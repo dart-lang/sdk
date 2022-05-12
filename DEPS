@@ -39,7 +39,7 @@ vars = {
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure.
-  "sdk_tag": "version:2.17.0-266.1.beta",
+  "sdk_tag": "version:2.17.0",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
@@ -135,18 +135,14 @@ vars = {
   "path_rev": "3d41ea582f5b0b18de3d90008809b877ff3f69bc",
   "platform_rev": "1ffad63428bbd1b3ecaa15926bacfb724023648c",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
-  "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
+  "pool_rev": "c40cc32eabecb9d60f1045d1403108d968805f9a",
   "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
   "protobuf_rev": "c1eb6cb51af39ccbaa1a8e19349546586a5c8e31",
-  "pub_rev": "1e3c17ea871e6a80c720aa998f37cbd3913bc287",
+  "pub_rev": "51435efcd574b7bc18d47a5dd620cb9759dea8f8",
   "pub_semver_rev": "ea6c54019948dc03042c595ce9413e17aaf7aa38",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
-  "shelf_packages_handler_rev": "78302e67c035047e6348e692b0c1182131f0fe35",
-  "shelf_proxy_rev": "124615d0614b38814970aa9638725d9d6b435268",
-  "shelf_rev": "78ac724a7944700340a3cef28c84bccbe62e9367",
-  "shelf_static_rev": "202ec1a53c9a830c17cf3b718d089cf7eba568ad",
-  "shelf_web_socket_rev": "24fb8a04befa75a94ac63a27047b231d1a22aab4",
+  "shelf_rev": "fadca320b04689be9ec960013843a0d9ee6c4fc4",
   "source_map_stack_trace_rev": "8eabd96b1811e30a11d3c54c9b4afae4fb72e98f",
   "source_maps_rev": "c07a01b8d5547ce3a47ee7a7a2b938a2bc09afe3",
   "source_span_rev": "8ae724c3e67f5afaacead44e93ff145bfb8775c7",
@@ -172,7 +168,7 @@ vars = {
   "webkit_inspection_protocol_rev": "dd6fb5d8b536e19cedb384d0bbf1f5631923f1e8",
   "yaml_edit_rev": "0b74d85fac10b4fbf7d1a347debcf16c8f7b0e9c",
   "yaml_rev": "0971c06490b9670add644ed62182acd6a5536946",
-  "zlib_rev": "faff052b6b6edcd6dd548513fe44ac0941427bf0",
+  "zlib_rev": "27c2f474b71d0d20764f86f60ef8b00da1a16cda",
 
   # Windows deps
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
@@ -393,16 +389,6 @@ deps = {
       Var("dart_git") + "pub.git" + "@" + Var("pub_rev"),
   Var("dart_root") + "/third_party/pkg/shelf":
       Var("dart_git") + "shelf.git" + "@" + Var("shelf_rev"),
-  Var("dart_root") + "/third_party/pkg/shelf_packages_handler":
-      Var("dart_git") + "shelf_packages_handler.git"
-      + "@" + Var("shelf_packages_handler_rev"),
-  Var("dart_root") + "/third_party/pkg/shelf_proxy":
-      Var("dart_git") + "shelf_proxy.git" + "@" + Var("shelf_proxy_rev"),
-  Var("dart_root") + "/third_party/pkg/shelf_static":
-      Var("dart_git") + "shelf_static.git" + "@" + Var("shelf_static_rev"),
-  Var("dart_root") + "/third_party/pkg/shelf_web_socket":
-      Var("dart_git") + "shelf_web_socket.git" +
-      "@" + Var("shelf_web_socket_rev"),
   Var("dart_root") + "/third_party/pkg/source_maps":
       Var("dart_git") + "source_maps.git" + "@" + Var("source_maps_rev"),
   Var("dart_root") + "/third_party/pkg/source_span":

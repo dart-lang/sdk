@@ -63,6 +63,7 @@ void recordTypes(List<AstNode> types) {
   types
       .whereType<Namespace>()
       .forEach((namespace) => _namespaces[namespace.name] = namespace);
+  _sortSubtypes();
 }
 
 /// Renames types that may have been generated with bad names.
@@ -221,6 +222,37 @@ String _rewriteCommentReference(String comment) {
       return '$description ([$reference])';
     }
   });
+}
+
+/// Sorts subtypes into a consistent order.
+///
+/// Subtypes will be sorted such that types with the most required fields appear
+/// first to ensure `fromJson` constructors delegate to the most specific type.
+void _sortSubtypes() {
+  int requiredFieldCount(String interfaceName) => _interfaces[interfaceName]!
+      .members
+      .whereType<Field>()
+      .where((field) => !field.allowsUndefined && !field.allowsNull)
+      .length;
+  int optionalFieldCount(String interfaceName) => _interfaces[interfaceName]!
+      .members
+      .whereType<Field>()
+      .where((field) => field.allowsUndefined || field.allowsNull)
+      .length;
+  for (final entry in _subtypes.entries) {
+    final subtypes = entry.value;
+    subtypes.sort((subtype1, subtype2) {
+      final requiredFields1 = requiredFieldCount(subtype1);
+      final requiredFields2 = requiredFieldCount(subtype2);
+      final optionalFields1 = optionalFieldCount(subtype1);
+      final optionalFields2 = optionalFieldCount(subtype2);
+      return requiredFields1 != requiredFields2
+          ? requiredFields2.compareTo(requiredFields1)
+          : optionalFields1 != optionalFields2
+              ? optionalFields2.compareTo(optionalFields1)
+              : subtype1.compareTo(subtype2);
+    });
+  }
 }
 
 /// Returns a String representing the underlying Dart type for the provided
@@ -420,7 +452,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
       resolveTypeAlias(requiredValueType, resolveEnumClasses: true);
 
   buffer
-    ..writeln('class ${namespace.name} {')
+    ..writeln('class ${namespace.name} implements ToJsonable {')
     ..indent()
     ..writeIndentedln('const ${namespace.name}$constructorName(this._value);')
     ..writeIndentedln('const ${namespace.name}.fromJson(this._value);')

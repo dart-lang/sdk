@@ -3709,6 +3709,12 @@ class LibraryElementImpl extends _ExistingElementImpl
   List<ExtensionElement> get accessibleExtensions => scope.extensions;
 
   @override
+  List<AugmentationImportElement> get augmentationImports {
+    // TODO(scheglov): implement augmentationImports
+    throw UnimplementedError();
+  }
+
+  @override
   CompilationUnitElementImpl get definingCompilationUnit =>
       _definingCompilationUnit;
 

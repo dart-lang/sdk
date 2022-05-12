@@ -1,13 +1,13 @@
 name: analyzer_plugin
 description: A framework and support code for building plugins for the analysis server.
-version: 0.9.0
+version: 0.10.0
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/analyzer_plugin
 
 environment:
   sdk: '>=2.14.0 <3.0.0'
 
 dependencies:
-  analyzer: ^3.0.0
+  analyzer: ^4.0.0
   collection: ^1.15.0
   dart_style: ^2.2.1
   pub_semver: ^2.0.0

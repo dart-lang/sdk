@@ -14915,11 +14915,19 @@ const char* ObjectPool::ToCString() const {
 void ObjectPool::DebugPrint() const {
   THR_Print("ObjectPool len:%" Pd " {\n", Length());
   for (intptr_t i = 0; i < Length(); i++) {
-    intptr_t offset = OffsetFromIndex(i);
-#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
-    THR_Print("  %" Pd "(pp) ", offset + kHeapObjectTag);
+#if defined(DART_PRECOMPILED_RUNTIME)
+    intptr_t offset = ObjectPool::element_offset(i);
 #else
-    THR_Print("  [pp+0x%" Px "] ", offset);
+    intptr_t offset = compiler::target::ObjectPool::element_offset(i);
+#endif
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+    THR_Print("  %" Pd "(pp) ", offset);  // PP is untagged
+#elif defined(TARGET_ARCH_ARM64)
+    THR_Print("  [pp, #%" Pd "] ", offset);  // PP is untagged
+#elif defined(TARGET_ARCH_ARM32)
+    THR_Print("  [pp, #%" Pd "] ", offset - kHeapObjectTag);  // PP is tagged
+#else
+    THR_Print("  [pp+0x%" Px "] ", offset - kHeapObjectTag);  // PP is tagged
 #endif
     if (TypeAt(i) == EntryType::kTaggedObject) {
       const Object& obj = Object::Handle(ObjectAt(i));
@@ -24946,6 +24954,16 @@ float Float32x4::w() const {
   return untag()->value_[3];
 }
 
+bool Float32x4::CanonicalizeEquals(const Instance& other) const {
+  return memcmp(&untag()->value_, Float32x4::Cast(other).untag()->value_,
+                sizeof(simd128_value_t)) == 0;
+}
+
+uint32_t Float32x4::CanonicalizeHash() const {
+  return HashBytes(reinterpret_cast<const uint8_t*>(&untag()->value_),
+                   sizeof(simd128_value_t));
+}
+
 const char* Float32x4::ToCString() const {
   float _x = x();
   float _y = y();
@@ -25034,6 +25052,16 @@ void Int32x4::set_value(simd128_value_t value) const {
                  value);
 }
 
+bool Int32x4::CanonicalizeEquals(const Instance& other) const {
+  return memcmp(&untag()->value_, Int32x4::Cast(other).untag()->value_,
+                sizeof(simd128_value_t)) == 0;
+}
+
+uint32_t Int32x4::CanonicalizeHash() const {
+  return HashBytes(reinterpret_cast<const uint8_t*>(&untag()->value_),
+                   sizeof(simd128_value_t));
+}
+
 const char* Int32x4::ToCString() const {
   int32_t _x = x();
   int32_t _y = y();
@@ -25096,6 +25124,16 @@ simd128_value_t Float64x2::value() const {
 
 void Float64x2::set_value(simd128_value_t value) const {
   StoreSimd128(&untag()->value_[0], value);
+}
+
+bool Float64x2::CanonicalizeEquals(const Instance& other) const {
+  return memcmp(&untag()->value_, Float64x2::Cast(other).untag()->value_,
+                sizeof(simd128_value_t)) == 0;
+}
+
+uint32_t Float64x2::CanonicalizeHash() const {
+  return HashBytes(reinterpret_cast<const uint8_t*>(&untag()->value_),
+                   sizeof(simd128_value_t));
 }
 
 const char* Float64x2::ToCString() const {

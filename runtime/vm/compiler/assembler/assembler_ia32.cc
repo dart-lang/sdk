@@ -2207,6 +2207,16 @@ void Assembler::LoadDImmediate(XmmRegister dst, double value) {
   addl(ESP, Immediate(2 * target::kWordSize));
 }
 
+void Assembler::LoadQImmediate(XmmRegister dst, simd128_value_t value) {
+  // TODO(5410843): Need to have a code constants table.
+  pushl(Immediate(value.int_storage[3]));
+  pushl(Immediate(value.int_storage[2]));
+  pushl(Immediate(value.int_storage[1]));
+  pushl(Immediate(value.int_storage[0]));
+  movups(dst, Address(ESP, 0));
+  addl(ESP, Immediate(4 * target::kWordSize));
+}
+
 void Assembler::FloatNegate(XmmRegister f) {
   static const struct ALIGN16 {
     uint32_t a;

@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -224,9 +223,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return FunctionTypeImpl(
       returnType: substitution.substituteType(returnType),
       typeFormals: const [],
-      parameters: parameters
-          .map((p) => p.copyWith(type: substitution.substituteType(p.type)))
-          .toList(),
+      parameters:
+          parameters.map((p) => ParameterMember.from(p, substitution)).toList(),
       nullabilitySuffix: nullabilitySuffix,
     );
   }

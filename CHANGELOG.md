@@ -30,6 +30,9 @@ Updated the Linter to `1.23.0`, which includes changes that
 
 #### Pub
 
+* Breaking: `dart pub get` and `dart pub upgrade` no longer creates the
+  [deprecated](https://github.com/dart-lang/sdk/issues/47431) `.packages` file.
+  It can still be created with the `--legacy-packages-file` flag.
 * `dart pub outdated` now shows which of your dependencies are discontinued.
 
 ## 2.17.0

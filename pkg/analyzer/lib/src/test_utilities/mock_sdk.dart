@@ -591,6 +591,9 @@ abstract class Set<E> implements Iterable<E> {
   void addAll(Iterable<E> elements);
   bool remove(Object? value);
   E? lookup(Object? object);
+
+  static Set<T> castFrom<S, T>(Set<S> source, {Set<R> Function<R>()? newSet}) =>
+      throw '';
 }
 
 class StackTrace {}

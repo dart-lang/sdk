@@ -225,7 +225,7 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 #endif
 
   if (FLAG_precompiled_mode) {
-    THR_Print("(No object pool for bare instructions.)\n");
+    // Global object pool emitted after it is finalized instead of per-function.
   } else {
     const ObjectPool& object_pool =
         ObjectPool::Handle(zone, code.GetObjectPool());

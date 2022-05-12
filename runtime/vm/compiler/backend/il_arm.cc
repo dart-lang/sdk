@@ -696,25 +696,48 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       __ LoadObject(destination.reg(), value_);
     }
   } else if (destination.IsFpuRegister()) {
-    const DRegister dst = EvenDRegisterOf(destination.fpu_reg());
-    if (Utils::DoublesBitEqual(Double::Cast(value_).value(), 0.0) &&
-        TargetCPUFeatures::neon_supported()) {
-      QRegister qdst = destination.fpu_reg();
-      __ veorq(qdst, qdst, qdst);
-    } else {
-      ASSERT(tmp != kNoRegister);
-      __ LoadDImmediate(dst, Double::Cast(value_).value(), tmp);
+    switch (representation()) {
+      case kUnboxedDouble:
+        ASSERT(tmp != kNoRegister);
+        __ LoadDImmediate(EvenDRegisterOf(destination.fpu_reg()),
+                          Double::Cast(value_).value(), tmp);
+        break;
+      case kUnboxedFloat64x2:
+        __ LoadQImmediate(destination.fpu_reg(),
+                          Float64x2::Cast(value_).value());
+        break;
+      case kUnboxedFloat32x4:
+        __ LoadQImmediate(destination.fpu_reg(),
+                          Float32x4::Cast(value_).value());
+        break;
+      case kUnboxedInt32x4:
+        __ LoadQImmediate(destination.fpu_reg(), Int32x4::Cast(value_).value());
+        break;
+      default:
+        UNREACHABLE();
     }
   } else if (destination.IsDoubleStackSlot()) {
-    if (Utils::DoublesBitEqual(Double::Cast(value_).value(), 0.0) &&
-        TargetCPUFeatures::neon_supported()) {
-      __ veorq(QTMP, QTMP, QTMP);
-    } else {
-      ASSERT(tmp != kNoRegister);
-      __ LoadDImmediate(DTMP, Double::Cast(value_).value(), tmp);
-    }
+    ASSERT(tmp != kNoRegister);
+    __ LoadDImmediate(DTMP, Double::Cast(value_).value(), tmp);
     const intptr_t dest_offset = destination.ToStackSlotOffset();
     __ StoreDToOffset(DTMP, destination.base_reg(), dest_offset);
+  } else if (destination.IsQuadStackSlot()) {
+    switch (representation()) {
+      case kUnboxedFloat64x2:
+        __ LoadQImmediate(QTMP, Float64x2::Cast(value_).value());
+        break;
+      case kUnboxedFloat32x4:
+        __ LoadQImmediate(QTMP, Float32x4::Cast(value_).value());
+        break;
+      case kUnboxedInt32x4:
+        __ LoadQImmediate(QTMP, Int32x4::Cast(value_).value());
+        break;
+      default:
+        UNREACHABLE();
+    }
+    const intptr_t dest_offset = destination.ToStackSlotOffset();
+    __ StoreMultipleDToOffset(EvenDRegisterOf(QTMP), 2, destination.base_reg(),
+                              dest_offset);
   } else {
     ASSERT(destination.IsStackSlot());
     ASSERT(tmp != kNoRegister);

@@ -537,7 +537,7 @@ class CallHierarchyIncomingCall implements ToJsonable {
 }
 
 class CallHierarchyIncomingCallsParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CallHierarchyIncomingCallsParams.canParse,
     CallHierarchyIncomingCallsParams.fromJson,
@@ -1086,7 +1086,7 @@ class CallHierarchyOutgoingCall implements ToJsonable {
 }
 
 class CallHierarchyOutgoingCallsParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CallHierarchyOutgoingCallsParams.canParse,
     CallHierarchyOutgoingCallsParams.fromJson,
@@ -1349,9 +1349,9 @@ class CallHierarchyPrepareParams
 
 class CallHierarchyRegistrationOptions
     implements
-        TextDocumentRegistrationOptions,
         CallHierarchyOptions,
         StaticRegistrationOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CallHierarchyRegistrationOptions.canParse,
@@ -3262,7 +3262,7 @@ class CodeActionDisabled implements ToJsonable {
 }
 
 /// A set of predefined code action kinds.
-class CodeActionKind {
+class CodeActionKind implements ToJsonable {
   const CodeActionKind(this._value);
   const CodeActionKind.fromJson(this._value);
 
@@ -3319,15 +3319,15 @@ class CodeActionKind {
   /// Source code actions apply to the entire file.
   static const Source = CodeActionKind('source');
 
-  /// Base kind for an organize imports source action: `source.organizeImports`.
-  static const SourceOrganizeImports = CodeActionKind('source.organizeImports');
-
   /// Base kind for a 'fix all' source action: `source.fixAll`.
   ///  'Fix all' actions automatically fix errors that have a clear fix that do
   /// not require user input. They should not suppress errors or perform unsafe
   /// fixes such as generating new types or classes.
   ///  @since 3.17.0
   static const SourceFixAll = CodeActionKind('source.fixAll');
+
+  /// Base kind for an organize imports source action: `source.organizeImports`.
+  static const SourceOrganizeImports = CodeActionKind('source.organizeImports');
 
   Object toJson() => _value;
 
@@ -3464,7 +3464,7 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
 
 /// Params for the CodeActionRequest
 class CodeActionParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CodeActionParams.canParse,
     CodeActionParams.fromJson,
@@ -3653,7 +3653,7 @@ class CodeActionParams
 }
 
 class CodeActionRegistrationOptions
-    implements TextDocumentRegistrationOptions, CodeActionOptions, ToJsonable {
+    implements CodeActionOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CodeActionRegistrationOptions.canParse,
     CodeActionRegistrationOptions.fromJson,
@@ -3807,7 +3807,7 @@ class CodeActionRegistrationOptions
 
 /// The reason why code actions were requested.
 ///  @since 3.17.0
-class CodeActionTriggerKind {
+class CodeActionTriggerKind implements ToJsonable {
   const CodeActionTriggerKind(this._value);
   const CodeActionTriggerKind.fromJson(this._value);
 
@@ -3817,14 +3817,14 @@ class CodeActionTriggerKind {
     return obj is int;
   }
 
-  /// Code actions were explicitly requested by the user or by an extension.
-  static const Invoked = CodeActionTriggerKind(1);
-
   /// Code actions were requested automatically.
   ///
   /// This typically happens when current selection in a file changes, but can
   /// also be triggered when file content changes.
   static const Automatic = CodeActionTriggerKind(2);
+
+  /// Code actions were explicitly requested by the user or by an extension.
+  static const Invoked = CodeActionTriggerKind(1);
 
   Object toJson() => _value;
 
@@ -4175,7 +4175,7 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
 }
 
 class CodeLensParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CodeLensParams.canParse,
     CodeLensParams.fromJson,
@@ -4307,7 +4307,7 @@ class CodeLensParams
 }
 
 class CodeLensRegistrationOptions
-    implements TextDocumentRegistrationOptions, CodeLensOptions, ToJsonable {
+    implements CodeLensOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CodeLensRegistrationOptions.canParse,
     CodeLensRegistrationOptions.fromJson,
@@ -4880,7 +4880,7 @@ class ColorPresentation implements ToJsonable {
 }
 
 class ColorPresentationParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ColorPresentationParams.canParse,
     ColorPresentationParams.fromJson,
@@ -6786,7 +6786,7 @@ class CompletionItem implements ToJsonable {
 }
 
 /// The kind of a completion entry.
-class CompletionItemKind {
+class CompletionItemKind implements ToJsonable {
   const CompletionItemKind(this._value);
   const CompletionItemKind.fromJson(this._value);
 
@@ -6796,31 +6796,31 @@ class CompletionItemKind {
     return obj is int;
   }
 
-  static const Text = CompletionItemKind(1);
-  static const Method = CompletionItemKind(2);
-  static const Function = CompletionItemKind(3);
-  static const Constructor = CompletionItemKind(4);
-  static const Field = CompletionItemKind(5);
-  static const Variable = CompletionItemKind(6);
   static const Class = CompletionItemKind(7);
+  static const Color = CompletionItemKind(16);
+  static const Constant = CompletionItemKind(21);
+  static const Constructor = CompletionItemKind(4);
+  static const Enum = CompletionItemKind(13);
+  static const EnumMember = CompletionItemKind(20);
+  static const Event = CompletionItemKind(23);
+  static const Field = CompletionItemKind(5);
+  static const File = CompletionItemKind(17);
+  static const Folder = CompletionItemKind(19);
+  static const Function = CompletionItemKind(3);
   static const Interface = CompletionItemKind(8);
+  static const Keyword = CompletionItemKind(14);
+  static const Method = CompletionItemKind(2);
   static const Module = CompletionItemKind(9);
+  static const Operator = CompletionItemKind(24);
   static const Property = CompletionItemKind(10);
+  static const Reference = CompletionItemKind(18);
+  static const Snippet = CompletionItemKind(15);
+  static const Struct = CompletionItemKind(22);
+  static const Text = CompletionItemKind(1);
+  static const TypeParameter = CompletionItemKind(25);
   static const Unit = CompletionItemKind(11);
   static const Value = CompletionItemKind(12);
-  static const Enum = CompletionItemKind(13);
-  static const Keyword = CompletionItemKind(14);
-  static const Snippet = CompletionItemKind(15);
-  static const Color = CompletionItemKind(16);
-  static const File = CompletionItemKind(17);
-  static const Reference = CompletionItemKind(18);
-  static const Folder = CompletionItemKind(19);
-  static const EnumMember = CompletionItemKind(20);
-  static const Constant = CompletionItemKind(21);
-  static const Struct = CompletionItemKind(22);
-  static const Event = CompletionItemKind(23);
-  static const Operator = CompletionItemKind(24);
-  static const TypeParameter = CompletionItemKind(25);
+  static const Variable = CompletionItemKind(6);
 
   Object toJson() => _value;
 
@@ -6928,7 +6928,7 @@ class CompletionItemLabelDetails implements ToJsonable {
 /// Completion item tags are extra annotations that tweak the rendering of a
 /// completion item.
 ///  @since 3.15.0
-class CompletionItemTag {
+class CompletionItemTag implements ToJsonable {
   const CompletionItemTag(this._value);
   const CompletionItemTag.fromJson(this._value);
 
@@ -7609,9 +7609,9 @@ class CompletionOptionsCompletionItem implements ToJsonable {
 
 class CompletionParams
     implements
+        PartialResultParams,
         TextDocumentPositionParams,
         WorkDoneProgressParams,
-        PartialResultParams,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CompletionParams.canParse,
@@ -7798,7 +7798,7 @@ class CompletionParams
 }
 
 class CompletionRegistrationOptions
-    implements TextDocumentRegistrationOptions, CompletionOptions, ToJsonable {
+    implements CompletionOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CompletionRegistrationOptions.canParse,
     CompletionRegistrationOptions.fromJson,
@@ -8017,7 +8017,7 @@ class CompletionRegistrationOptions
 }
 
 /// How a completion was triggered
-class CompletionTriggerKind {
+class CompletionTriggerKind implements ToJsonable {
   const CompletionTriggerKind._(this._value);
   const CompletionTriggerKind.fromJson(this._value);
 
@@ -8688,9 +8688,9 @@ class DeclarationOptions implements WorkDoneProgressOptions, ToJsonable {
 
 class DeclarationParams
     implements
+        PartialResultParams,
         TextDocumentPositionParams,
         WorkDoneProgressParams,
-        PartialResultParams,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DeclarationParams.canParse,
@@ -8853,8 +8853,8 @@ class DeclarationParams
 class DeclarationRegistrationOptions
     implements
         DeclarationOptions,
-        TextDocumentRegistrationOptions,
         StaticRegistrationOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DeclarationRegistrationOptions.canParse,
@@ -9129,9 +9129,9 @@ class DefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
 
 class DefinitionParams
     implements
+        PartialResultParams,
         TextDocumentPositionParams,
         WorkDoneProgressParams,
-        PartialResultParams,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DefinitionParams.canParse,
@@ -9292,7 +9292,7 @@ class DefinitionParams
 }
 
 class DefinitionRegistrationOptions
-    implements TextDocumentRegistrationOptions, DefinitionOptions, ToJsonable {
+    implements DefinitionOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DefinitionRegistrationOptions.canParse,
     DefinitionRegistrationOptions.fromJson,
@@ -10229,9 +10229,9 @@ class DiagnosticOptions implements WorkDoneProgressOptions, ToJsonable {
 ///  @since 3.17.0
 class DiagnosticRegistrationOptions
     implements
-        TextDocumentRegistrationOptions,
         DiagnosticOptions,
         StaticRegistrationOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DiagnosticRegistrationOptions.canParse,
@@ -10604,7 +10604,7 @@ class DiagnosticServerCancellationData implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class DiagnosticSeverity {
+class DiagnosticSeverity implements ToJsonable {
   const DiagnosticSeverity(this._value);
   const DiagnosticSeverity.fromJson(this._value);
 
@@ -10617,14 +10617,14 @@ class DiagnosticSeverity {
   /// Reports an error.
   static const Error = DiagnosticSeverity(1);
 
-  /// Reports a warning.
-  static const Warning = DiagnosticSeverity(2);
+  /// Reports a hint.
+  static const Hint = DiagnosticSeverity(4);
 
   /// Reports an information.
   static const Information = DiagnosticSeverity(3);
 
-  /// Reports a hint.
-  static const Hint = DiagnosticSeverity(4);
+  /// Reports a warning.
+  static const Warning = DiagnosticSeverity(2);
 
   Object toJson() => _value;
 
@@ -10639,7 +10639,7 @@ class DiagnosticSeverity {
 
 /// The diagnostic tags.
 ///  @since 3.15.0
-class DiagnosticTag {
+class DiagnosticTag implements ToJsonable {
   const DiagnosticTag(this._value);
   const DiagnosticTag.fromJson(this._value);
 
@@ -10649,16 +10649,16 @@ class DiagnosticTag {
     return obj is int;
   }
 
+  /// Deprecated or obsolete code.
+  ///
+  /// Clients are allowed to rendered diagnostics with this tag strike through.
+  static const Deprecated = DiagnosticTag(2);
+
   /// Unused or unnecessary code.
   ///
   /// Clients are allowed to render diagnostics with this tag faded out instead
   /// of having an error squiggle.
   static const Unnecessary = DiagnosticTag(1);
-
-  /// Deprecated or obsolete code.
-  ///
-  /// Clients are allowed to rendered diagnostics with this tag strike through.
-  static const Deprecated = DiagnosticTag(2);
 
   Object toJson() => _value;
 
@@ -12093,7 +12093,7 @@ class DocumentColorOptions implements WorkDoneProgressOptions, ToJsonable {
 }
 
 class DocumentColorParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentColorParams.canParse,
     DocumentColorParams.fromJson,
@@ -12227,9 +12227,9 @@ class DocumentColorParams
 
 class DocumentColorRegistrationOptions
     implements
-        TextDocumentRegistrationOptions,
-        StaticRegistrationOptions,
         DocumentColorOptions,
+        StaticRegistrationOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentColorRegistrationOptions.canParse,
@@ -12352,7 +12352,7 @@ class DocumentColorRegistrationOptions
 /// Parameters of the document diagnostic request.
 ///  @since 3.17.0
 class DocumentDiagnosticParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentDiagnosticParams.canParse,
     DocumentDiagnosticParams.fromJson,
@@ -12530,7 +12530,7 @@ class DocumentDiagnosticParams
 
 /// The document diagnostic report kinds.
 ///  @since 3.17.0
-class DocumentDiagnosticReportKind {
+class DocumentDiagnosticReportKind implements ToJsonable {
   const DocumentDiagnosticReportKind(this._value);
   const DocumentDiagnosticReportKind.fromJson(this._value);
 
@@ -12926,8 +12926,8 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
 
 class DocumentFormattingRegistrationOptions
     implements
-        TextDocumentRegistrationOptions,
         DocumentFormattingOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentFormattingRegistrationOptions.canParse,
@@ -13188,7 +13188,7 @@ class DocumentHighlightClientCapabilities implements ToJsonable {
 }
 
 /// A document highlight kind.
-class DocumentHighlightKind {
+class DocumentHighlightKind implements ToJsonable {
   const DocumentHighlightKind(this._value);
   const DocumentHighlightKind.fromJson(this._value);
 
@@ -13198,11 +13198,11 @@ class DocumentHighlightKind {
     return obj is int;
   }
 
-  /// A textual occurrence.
-  static const Text = DocumentHighlightKind(1);
-
   /// Read-access of a symbol, like reading a variable.
   static const Read = DocumentHighlightKind(2);
+
+  /// A textual occurrence.
+  static const Text = DocumentHighlightKind(1);
 
   /// Write-access of a symbol, like writing to a variable.
   static const Write = DocumentHighlightKind(3);
@@ -13287,9 +13287,9 @@ class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
 
 class DocumentHighlightParams
     implements
+        PartialResultParams,
         TextDocumentPositionParams,
         WorkDoneProgressParams,
-        PartialResultParams,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentHighlightParams.canParse,
@@ -13452,8 +13452,8 @@ class DocumentHighlightParams
 
 class DocumentHighlightRegistrationOptions
     implements
-        TextDocumentRegistrationOptions,
         DocumentHighlightOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentHighlightRegistrationOptions.canParse,
@@ -13867,7 +13867,7 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
 }
 
 class DocumentLinkParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentLinkParams.canParse,
     DocumentLinkParams.fromJson,
@@ -14001,8 +14001,8 @@ class DocumentLinkParams
 
 class DocumentLinkRegistrationOptions
     implements
-        TextDocumentRegistrationOptions,
         DocumentLinkOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentLinkRegistrationOptions.canParse,
@@ -14454,8 +14454,8 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
 
 class DocumentOnTypeFormattingRegistrationOptions
     implements
-        TextDocumentRegistrationOptions,
         DocumentOnTypeFormattingOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentOnTypeFormattingRegistrationOptions.canParse,
@@ -14883,8 +14883,8 @@ class DocumentRangeFormattingParams
 
 class DocumentRangeFormattingRegistrationOptions
     implements
-        TextDocumentRegistrationOptions,
         DocumentRangeFormattingOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentRangeFormattingRegistrationOptions.canParse,
@@ -15672,7 +15672,7 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
 }
 
 class DocumentSymbolParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentSymbolParams.canParse,
     DocumentSymbolParams.fromJson,
@@ -15806,8 +15806,8 @@ class DocumentSymbolParams
 
 class DocumentSymbolRegistrationOptions
     implements
-        TextDocumentRegistrationOptions,
         DocumentSymbolOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentSymbolRegistrationOptions.canParse,
@@ -15928,7 +15928,7 @@ class DocumentSymbolRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class ErrorCodes {
+class ErrorCodes implements ToJsonable {
   const ErrorCodes(this._value);
   const ErrorCodes.fromJson(this._value);
 
@@ -15938,12 +15938,22 @@ class ErrorCodes {
     return obj is int;
   }
 
-  /// Defined by JSON RPC
-  static const ParseError = ErrorCodes(-32700);
-  static const InvalidRequest = ErrorCodes(-32600);
-  static const MethodNotFound = ErrorCodes(-32601);
-  static const InvalidParams = ErrorCodes(-32602);
+  /// The server detected that the content of a document got modified outside
+  /// normal conditions. A server should NOT send this error code if it detects
+  /// a content change in it unprocessed messages. The result even computed on
+  /// an older state might still be useful for the client.
+  ///
+  /// If a client decides that a result is not of any use anymore the client
+  /// should cancel the request.
+  static const ContentModified = ErrorCodes(-32801);
   static const InternalError = ErrorCodes(-32603);
+  static const InvalidParams = ErrorCodes(-32602);
+  static const InvalidRequest = ErrorCodes(-32600);
+
+  /// This is the end range of JSON RPC reserved error codes. It doesn't denote
+  /// a real error code.
+  ///  @since 3.16.0
+  static const jsonrpcReservedErrorRangeEnd = ErrorCodes(-32000);
 
   /// This is the start range of JSON RPC reserved error codes. It doesn't
   /// denote a real error code. No LSP error codes should be defined between the
@@ -15952,20 +15962,22 @@ class ErrorCodes {
   ///  @since 3.16.0
   static const jsonrpcReservedErrorRangeStart = ErrorCodes(-32099);
 
-  /// Error code indicating that a server received a notification or request
-  /// before the server has received the `initialize` request.
-  static const ServerNotInitialized = ErrorCodes(-32002);
-  static const UnknownErrorCode = ErrorCodes(-32001);
-
-  /// This is the end range of JSON RPC reserved error codes. It doesn't denote
-  /// a real error code.
+  /// This is the end range of LSP reserved error codes. It doesn't denote a
+  /// real error code.
   ///  @since 3.16.0
-  static const jsonrpcReservedErrorRangeEnd = ErrorCodes(-32000);
+  static const lspReservedErrorRangeEnd = ErrorCodes(-32800);
 
   /// This is the start range of LSP reserved error codes. It doesn't denote a
   /// real error code.
   ///  @since 3.16.0
   static const lspReservedErrorRangeStart = ErrorCodes(-32899);
+  static const MethodNotFound = ErrorCodes(-32601);
+
+  /// Defined by JSON RPC
+  static const ParseError = ErrorCodes(-32700);
+
+  /// The client has canceled a request and a server as detected the cancel.
+  static const RequestCancelled = ErrorCodes(-32800);
 
   /// A request failed but it was syntactically correct, e.g the method name was
   /// known and the parameters were valid. The error message should contain
@@ -15978,22 +15990,10 @@ class ErrorCodes {
   ///  @since 3.17.0
   static const ServerCancelled = ErrorCodes(-32802);
 
-  /// The server detected that the content of a document got modified outside
-  /// normal conditions. A server should NOT send this error code if it detects
-  /// a content change in it unprocessed messages. The result even computed on
-  /// an older state might still be useful for the client.
-  ///
-  /// If a client decides that a result is not of any use anymore the client
-  /// should cancel the request.
-  static const ContentModified = ErrorCodes(-32801);
-
-  /// The client has canceled a request and a server as detected the cancel.
-  static const RequestCancelled = ErrorCodes(-32800);
-
-  /// This is the end range of LSP reserved error codes. It doesn't denote a
-  /// real error code.
-  ///  @since 3.16.0
-  static const lspReservedErrorRangeEnd = ErrorCodes(-32800);
+  /// Error code indicating that a server received a notification or request
+  /// before the server has received the `initialize` request.
+  static const ServerNotInitialized = ErrorCodes(-32002);
+  static const UnknownErrorCode = ErrorCodes(-32001);
 
   Object toJson() => _value;
 
@@ -16485,7 +16485,7 @@ class ExecutionSummary implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class FailureHandlingKind {
+class FailureHandlingKind implements ToJsonable {
   const FailureHandlingKind._(this._value);
   const FailureHandlingKind.fromJson(this._value);
 
@@ -16494,8 +16494,8 @@ class FailureHandlingKind {
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     switch (obj) {
       case 'abort':
-      case 'transactional':
       case 'textOnlyTransactional':
+      case 'transactional':
       case 'undo':
         return true;
     }
@@ -16507,15 +16507,15 @@ class FailureHandlingKind {
   /// executed.
   static const Abort = FailureHandlingKind._('abort');
 
-  /// All operations are executed transactional. That means they either all
-  /// succeed or no changes at all are applied to the workspace.
-  static const Transactional = FailureHandlingKind._('transactional');
-
   /// If the workspace edit contains only textual file changes they are executed
   /// transactional. If resource changes (create, rename or delete file) are
   /// part of the change the failure handling strategy is abort.
   static const TextOnlyTransactional =
       FailureHandlingKind._('textOnlyTransactional');
+
+  /// All operations are executed transactional. That means they either all
+  /// succeed or no changes at all are applied to the workspace.
+  static const Transactional = FailureHandlingKind._('transactional');
 
   /// The client tries to undo the operations already executed. But there is no
   /// guarantee that this is succeeding.
@@ -16533,7 +16533,7 @@ class FailureHandlingKind {
 }
 
 /// The file event type.
-class FileChangeType {
+class FileChangeType implements ToJsonable {
   const FileChangeType(this._value);
   const FileChangeType.fromJson(this._value);
 
@@ -16543,11 +16543,11 @@ class FileChangeType {
     return obj is int;
   }
 
-  /// The file got created.
-  static const Created = FileChangeType(1);
-
   /// The file got changed.
   static const Changed = FileChangeType(2);
+
+  /// The file got created.
+  static const Created = FileChangeType(1);
 
   /// The file got deleted.
   static const Deleted = FileChangeType(3);
@@ -17037,7 +17037,7 @@ class FileOperationPattern implements ToJsonable {
 
 /// A pattern kind describing if a glob pattern matches a file a folder or both.
 ///  @since 3.16.0
-class FileOperationPatternKind {
+class FileOperationPatternKind implements ToJsonable {
   const FileOperationPatternKind(this._value);
   const FileOperationPatternKind.fromJson(this._value);
 
@@ -17927,7 +17927,7 @@ class FoldingRangeClientCapabilitiesFoldingRangeKind implements ToJsonable {
 }
 
 /// A set of predefined range kinds.
-class FoldingRangeKind {
+class FoldingRangeKind implements ToJsonable {
   const FoldingRangeKind(this._value);
   const FoldingRangeKind.fromJson(this._value);
 
@@ -18023,7 +18023,7 @@ class FoldingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
 }
 
 class FoldingRangeParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     FoldingRangeParams.canParse,
     FoldingRangeParams.fromJson,
@@ -18157,9 +18157,9 @@ class FoldingRangeParams
 
 class FoldingRangeRegistrationOptions
     implements
-        TextDocumentRegistrationOptions,
         FoldingRangeOptions,
         StaticRegistrationOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     FoldingRangeRegistrationOptions.canParse,
@@ -18467,13 +18467,13 @@ class FullDocumentDiagnosticReport implements ToJsonable {
     }
   }
   static FullDocumentDiagnosticReport fromJson(Map<String, Object?> json) {
-    if (RelatedFullDocumentDiagnosticReport.canParse(
-        json, nullLspJsonReporter)) {
-      return RelatedFullDocumentDiagnosticReport.fromJson(json);
-    }
     if (WorkspaceFullDocumentDiagnosticReport.canParse(
         json, nullLspJsonReporter)) {
       return WorkspaceFullDocumentDiagnosticReport.fromJson(json);
+    }
+    if (RelatedFullDocumentDiagnosticReport.canParse(
+        json, nullLspJsonReporter)) {
+      return RelatedFullDocumentDiagnosticReport.fromJson(json);
     }
     final itemsJson = json['items'];
     final items = (itemsJson as List<Object?>)
@@ -19079,7 +19079,7 @@ class HoverParamsPosition implements ToJsonable {
 }
 
 class HoverRegistrationOptions
-    implements TextDocumentRegistrationOptions, HoverOptions, ToJsonable {
+    implements HoverOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     HoverRegistrationOptions.canParse,
     HoverRegistrationOptions.fromJson,
@@ -19400,9 +19400,9 @@ class ImplementationOptions implements WorkDoneProgressOptions, ToJsonable {
 
 class ImplementationParams
     implements
+        PartialResultParams,
         TextDocumentPositionParams,
         WorkDoneProgressParams,
-        PartialResultParams,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ImplementationParams.canParse,
@@ -19565,9 +19565,9 @@ class ImplementationParams
 
 class ImplementationRegistrationOptions
     implements
-        TextDocumentRegistrationOptions,
         ImplementationOptions,
         StaticRegistrationOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ImplementationRegistrationOptions.canParse,
@@ -19688,7 +19688,7 @@ class ImplementationRegistrationOptions
 }
 
 /// Known error codes for an `InitializeErrorCodes`;
-class InitializeErrorCodes {
+class InitializeErrorCodes implements ToJsonable {
   const InitializeErrorCodes(this._value);
   const InitializeErrorCodes.fromJson(this._value);
 
@@ -20783,7 +20783,7 @@ class InlayHintClientCapabilitiesResolveSupport implements ToJsonable {
 
 /// Inlay hint kinds.
 ///  @since 3.17.0
-class InlayHintKind {
+class InlayHintKind implements ToJsonable {
   const InlayHintKind(this._value);
   const InlayHintKind.fromJson(this._value);
 
@@ -20793,11 +20793,11 @@ class InlayHintKind {
     return obj is int;
   }
 
-  /// An inlay hint that for a type annotation.
-  static const Type = InlayHintKind(1);
-
   /// An inlay hint that is for a parameter.
   static const Parameter = InlayHintKind(2);
+
+  /// An inlay hint that for a type annotation.
+  static const Type = InlayHintKind(1);
 
   Object toJson() => _value;
 
@@ -21206,8 +21206,8 @@ class InlayHintParams implements WorkDoneProgressParams, ToJsonable {
 class InlayHintRegistrationOptions
     implements
         InlayHintOptions,
-        TextDocumentRegistrationOptions,
         StaticRegistrationOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InlayHintRegistrationOptions.canParse,
@@ -21894,8 +21894,8 @@ class InlineValueParams implements WorkDoneProgressParams, ToJsonable {
 class InlineValueRegistrationOptions
     implements
         InlineValueOptions,
-        TextDocumentRegistrationOptions,
         StaticRegistrationOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InlineValueRegistrationOptions.canParse,
@@ -22448,7 +22448,7 @@ class InsertReplaceEdit implements ToJsonable {
 
 /// Defines whether the insert text in a completion item should be interpreted
 /// as plain text or a snippet.
-class InsertTextFormat {
+class InsertTextFormat implements ToJsonable {
   const InsertTextFormat._(this._value);
   const InsertTextFormat.fromJson(this._value);
 
@@ -22487,7 +22487,7 @@ class InsertTextFormat {
 
 /// How whitespace and indentation is handled during completion item insertion.
 ///  @since 3.16.0
-class InsertTextMode {
+class InsertTextMode implements ToJsonable {
   const InsertTextMode(this._value);
   const InsertTextMode.fromJson(this._value);
 
@@ -22497,12 +22497,6 @@ class InsertTextMode {
     return obj is int;
   }
 
-  /// The insertion or replace strings is taken as it is. If the value is multi
-  /// line the lines below the cursor will be inserted using the indentation
-  /// defined in the string value. The client will not apply any kind of
-  /// adjustments to the string.
-  static const asIs = InsertTextMode(1);
-
   /// The editor adjusts leading whitespace of new lines so that they match the
   /// indentation up to the cursor of the line for which the item is accepted.
   ///
@@ -22510,6 +22504,12 @@ class InsertTextMode {
   /// line completion item is indented using 2 tabs and all following lines
   /// inserted will be indented using 2 tabs as well.
   static const adjustIndentation = InsertTextMode(2);
+
+  /// The insertion or replace strings is taken as it is. If the value is multi
+  /// line the lines below the cursor will be inserted using the indentation
+  /// defined in the string value. The client will not apply any kind of
+  /// adjustments to the string.
+  static const asIs = InsertTextMode(1);
 
   Object toJson() => _value;
 
@@ -22789,9 +22789,9 @@ class LinkedEditingRangeParams
 
 class LinkedEditingRangeRegistrationOptions
     implements
-        TextDocumentRegistrationOptions,
         LinkedEditingRangeOptions,
         StaticRegistrationOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     LinkedEditingRangeRegistrationOptions.canParse,
@@ -23704,7 +23704,7 @@ class MarkupContent implements ToJsonable {
 ///
 /// Please note that `MarkupKinds` must not start with a `$`. This kinds are
 /// reserved for internal usage.
-class MarkupKind {
+class MarkupKind implements ToJsonable {
   const MarkupKind._(this._value);
   const MarkupKind.fromJson(this._value);
 
@@ -23712,18 +23712,18 @@ class MarkupKind {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     switch (obj) {
-      case 'plaintext':
       case 'markdown':
+      case 'plaintext':
         return true;
     }
     return false;
   }
 
-  /// Plain text is supported as a content format
-  static const PlainText = MarkupKind._('plaintext');
-
   /// Markdown is supported as a content format
   static const Markdown = MarkupKind._('markdown');
+
+  /// Plain text is supported as a content format
+  static const PlainText = MarkupKind._('plaintext');
 
   Object toJson() => _value;
 
@@ -23750,11 +23750,11 @@ class Message implements ToJsonable {
     if (RequestMessage.canParse(json, nullLspJsonReporter)) {
       return RequestMessage.fromJson(json);
     }
-    if (ResponseMessage.canParse(json, nullLspJsonReporter)) {
-      return ResponseMessage.fromJson(json);
-    }
     if (NotificationMessage.canParse(json, nullLspJsonReporter)) {
       return NotificationMessage.fromJson(json);
+    }
+    if (ResponseMessage.canParse(json, nullLspJsonReporter)) {
+      return ResponseMessage.fromJson(json);
     }
     final clientRequestTimeJson = json['clientRequestTime'];
     final clientRequestTime = clientRequestTimeJson as int?;
@@ -23903,7 +23903,7 @@ class MessageActionItem implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class MessageType {
+class MessageType implements ToJsonable {
   const MessageType(this._value);
   const MessageType.fromJson(this._value);
 
@@ -23916,14 +23916,14 @@ class MessageType {
   /// An error message.
   static const Error = MessageType(1);
 
-  /// A warning message.
-  static const Warning = MessageType(2);
-
   /// An information message.
   static const Info = MessageType(3);
 
   /// A log message.
   static const Log = MessageType(4);
+
+  /// A warning message.
+  static const Warning = MessageType(2);
 
   Object toJson() => _value;
 
@@ -23937,7 +23937,7 @@ class MessageType {
 }
 
 /// Valid LSP methods known at the time of code generation from the spec.
-class Method {
+class Method implements ToJsonable {
   const Method(this._value);
   const Method.fromJson(this._value);
 
@@ -23947,90 +23947,6 @@ class Method {
     return obj is String;
   }
 
-  /// Constant for the '$/cancelRequest' method.
-  static const cancelRequest = Method(r'$/cancelRequest');
-
-  /// Constant for the '$/progress' method.
-  static const progress = Method(r'$/progress');
-
-  /// Constant for the 'initialize' method.
-  static const initialize = Method('initialize');
-
-  /// Constant for the 'initialized' method.
-  static const initialized = Method('initialized');
-
-  /// Constant for the 'client/registerCapability' method.
-  static const client_registerCapability = Method('client/registerCapability');
-
-  /// Constant for the 'client/unregisterCapability' method.
-  static const client_unregisterCapability =
-      Method('client/unregisterCapability');
-
-  /// Constant for the '$/setTrace' method.
-  static const setTrace = Method(r'$/setTrace');
-
-  /// Constant for the '$/logTrace' method.
-  static const logTrace = Method(r'$/logTrace');
-
-  /// Constant for the 'shutdown' method.
-  static const shutdown = Method('shutdown');
-
-  /// Constant for the 'exit' method.
-  static const exit = Method('exit');
-
-  /// Constant for the 'textDocument/didOpen' method.
-  static const textDocument_didOpen = Method('textDocument/didOpen');
-
-  /// Constant for the 'textDocument/didChange' method.
-  static const textDocument_didChange = Method('textDocument/didChange');
-
-  /// Constant for the 'textDocument/willSave' method.
-  static const textDocument_willSave = Method('textDocument/willSave');
-
-  /// Constant for the 'textDocument/willSaveWaitUntil' method.
-  static const textDocument_willSaveWaitUntil =
-      Method('textDocument/willSaveWaitUntil');
-
-  /// Constant for the 'textDocument/didSave' method.
-  static const textDocument_didSave = Method('textDocument/didSave');
-
-  /// Constant for the 'textDocument/didClose' method.
-  static const textDocument_didClose = Method('textDocument/didClose');
-
-  /// Constant for the 'notebookDocument/didOpen' method.
-  static const notebookDocument_didOpen = Method('notebookDocument/didOpen');
-
-  /// Constant for the 'notebookDocument/didChange' method.
-  static const notebookDocument_didChange =
-      Method('notebookDocument/didChange');
-
-  /// Constant for the 'notebookDocument/didSave' method.
-  static const notebookDocument_didSave = Method('notebookDocument/didSave');
-
-  /// Constant for the 'notebookDocument/didClose' method.
-  static const notebookDocument_didClose = Method('notebookDocument/didClose');
-
-  /// Constant for the 'textDocument/declaration' method.
-  static const textDocument_declaration = Method('textDocument/declaration');
-
-  /// Constant for the 'textDocument/definition' method.
-  static const textDocument_definition = Method('textDocument/definition');
-
-  /// Constant for the 'textDocument/typeDefinition' method.
-  static const textDocument_typeDefinition =
-      Method('textDocument/typeDefinition');
-
-  /// Constant for the 'textDocument/implementation' method.
-  static const textDocument_implementation =
-      Method('textDocument/implementation');
-
-  /// Constant for the 'textDocument/references' method.
-  static const textDocument_references = Method('textDocument/references');
-
-  /// Constant for the 'textDocument/prepareCallHierarchy' method.
-  static const textDocument_prepareCallHierarchy =
-      Method('textDocument/prepareCallHierarchy');
-
   /// Constant for the 'callHierarchy/incomingCalls' method.
   static const callHierarchy_incomingCalls =
       Method('callHierarchy/incomingCalls');
@@ -24039,15 +23955,102 @@ class Method {
   static const callHierarchy_outgoingCalls =
       Method('callHierarchy/outgoingCalls');
 
-  /// Constant for the 'textDocument/prepareTypeHierarchy' method.
-  static const textDocument_prepareTypeHierarchy =
-      Method('textDocument/prepareTypeHierarchy');
+  /// Constant for the '$/cancelRequest' method.
+  static const cancelRequest = Method(r'$/cancelRequest');
 
-  /// Constant for the 'typeHierarchy/supertypes' method.
-  static const typeHierarchy_supertypes = Method('typeHierarchy/supertypes');
+  /// Constant for the 'client/registerCapability' method.
+  static const client_registerCapability = Method('client/registerCapability');
 
-  /// Constant for the 'typeHierarchy/subtypes' method.
-  static const typeHierarchy_subtypes = Method('typeHierarchy/subtypes');
+  /// Constant for the 'client/unregisterCapability' method.
+  static const client_unregisterCapability =
+      Method('client/unregisterCapability');
+
+  /// Constant for the 'codeAction/resolve' method.
+  static const codeAction_resolve = Method('codeAction/resolve');
+
+  /// Constant for the 'codeLens/resolve' method.
+  static const codeLens_resolve = Method('codeLens/resolve');
+
+  /// Constant for the 'completionItem/resolve' method.
+  static const completionItem_resolve = Method('completionItem/resolve');
+
+  /// Constant for the 'documentLink/resolve' method.
+  static const documentLink_resolve = Method('documentLink/resolve');
+
+  /// Constant for the 'exit' method.
+  static const exit = Method('exit');
+
+  /// Constant for the 'initialize' method.
+  static const initialize = Method('initialize');
+
+  /// Constant for the 'initialized' method.
+  static const initialized = Method('initialized');
+
+  /// Constant for the 'inlayHint/resolve' method.
+  static const inlayHint_resolve = Method('inlayHint/resolve');
+
+  /// Constant for the '$/logTrace' method.
+  static const logTrace = Method(r'$/logTrace');
+
+  /// Constant for the 'notebookDocument/didChange' method.
+  static const notebookDocument_didChange =
+      Method('notebookDocument/didChange');
+
+  /// Constant for the 'notebookDocument/didClose' method.
+  static const notebookDocument_didClose = Method('notebookDocument/didClose');
+
+  /// Constant for the 'notebookDocument/didOpen' method.
+  static const notebookDocument_didOpen = Method('notebookDocument/didOpen');
+
+  /// Constant for the 'notebookDocument/didSave' method.
+  static const notebookDocument_didSave = Method('notebookDocument/didSave');
+
+  /// Constant for the '$/progress' method.
+  static const progress = Method(r'$/progress');
+
+  /// Constant for the '$/setTrace' method.
+  static const setTrace = Method(r'$/setTrace');
+
+  /// Constant for the 'shutdown' method.
+  static const shutdown = Method('shutdown');
+
+  /// Constant for the 'telemetry/event' method.
+  static const telemetry_event = Method('telemetry/event');
+
+  /// Constant for the 'textDocument/codeAction' method.
+  static const textDocument_codeAction = Method('textDocument/codeAction');
+
+  /// Constant for the 'textDocument/codeLens' method.
+  static const textDocument_codeLens = Method('textDocument/codeLens');
+
+  /// Constant for the 'textDocument/colorPresentation' method.
+  static const textDocument_colorPresentation =
+      Method('textDocument/colorPresentation');
+
+  /// Constant for the 'textDocument/completion' method.
+  static const textDocument_completion = Method('textDocument/completion');
+
+  /// Constant for the 'textDocument/declaration' method.
+  static const textDocument_declaration = Method('textDocument/declaration');
+
+  /// Constant for the 'textDocument/definition' method.
+  static const textDocument_definition = Method('textDocument/definition');
+
+  /// Constant for the 'textDocument/didChange' method.
+  static const textDocument_didChange = Method('textDocument/didChange');
+
+  /// Constant for the 'textDocument/didClose' method.
+  static const textDocument_didClose = Method('textDocument/didClose');
+
+  /// Constant for the 'textDocument/didOpen' method.
+  static const textDocument_didOpen = Method('textDocument/didOpen');
+
+  /// Constant for the 'textDocument/didSave' method.
+  static const textDocument_didSave = Method('textDocument/didSave');
+
+  /// Constant for the 'textDocument/documentColor' method.
+  static const textDocument_documentColor =
+      Method('textDocument/documentColor');
 
   /// Constant for the 'textDocument/documentHighlight' method.
   static const textDocument_documentHighlight =
@@ -24056,32 +24059,69 @@ class Method {
   /// Constant for the 'textDocument/documentLink' method.
   static const textDocument_documentLink = Method('textDocument/documentLink');
 
-  /// Constant for the 'documentLink/resolve' method.
-  static const documentLink_resolve = Method('documentLink/resolve');
-
-  /// Constant for the 'textDocument/hover' method.
-  static const textDocument_hover = Method('textDocument/hover');
-
-  /// Constant for the 'textDocument/codeLens' method.
-  static const textDocument_codeLens = Method('textDocument/codeLens');
-
-  /// Constant for the 'codeLens/resolve' method.
-  static const codeLens_resolve = Method('codeLens/resolve');
-
-  /// Constant for the 'workspace/codeLens/refresh' method.
-  static const workspace_codeLens_refresh =
-      Method('workspace/codeLens/refresh');
+  /// Constant for the 'textDocument/documentSymbol' method.
+  static const textDocument_documentSymbol =
+      Method('textDocument/documentSymbol');
 
   /// Constant for the 'textDocument/foldingRange' method.
   static const textDocument_foldingRange = Method('textDocument/foldingRange');
 
+  /// Constant for the 'textDocument/formatting' method.
+  static const textDocument_formatting = Method('textDocument/formatting');
+
+  /// Constant for the 'textDocument/hover' method.
+  static const textDocument_hover = Method('textDocument/hover');
+
+  /// Constant for the 'textDocument/implementation' method.
+  static const textDocument_implementation =
+      Method('textDocument/implementation');
+
+  /// Constant for the 'textDocument/inlayHint' method.
+  static const textDocument_inlayHint = Method('textDocument/inlayHint');
+
+  /// Constant for the 'textDocument/inlineValue' method.
+  static const textDocument_inlineValue = Method('textDocument/inlineValue');
+
+  /// Constant for the 'textDocument/linkedEditingRange' method.
+  static const textDocument_linkedEditingRange =
+      Method('textDocument/linkedEditingRange');
+
+  /// Constant for the 'textDocument/moniker' method.
+  static const textDocument_moniker = Method('textDocument/moniker');
+
+  /// Constant for the 'textDocument/onTypeFormatting' method.
+  static const textDocument_onTypeFormatting =
+      Method('textDocument/onTypeFormatting');
+
+  /// Constant for the 'textDocument/prepareCallHierarchy' method.
+  static const textDocument_prepareCallHierarchy =
+      Method('textDocument/prepareCallHierarchy');
+
+  /// Constant for the 'textDocument/prepareRename' method.
+  static const textDocument_prepareRename =
+      Method('textDocument/prepareRename');
+
+  /// Constant for the 'textDocument/prepareTypeHierarchy' method.
+  static const textDocument_prepareTypeHierarchy =
+      Method('textDocument/prepareTypeHierarchy');
+
+  /// Constant for the 'textDocument/publishDiagnostics' method.
+  static const textDocument_publishDiagnostics =
+      Method('textDocument/publishDiagnostics');
+
+  /// Constant for the 'textDocument/rangeFormatting' method.
+  static const textDocument_rangeFormatting =
+      Method('textDocument/rangeFormatting');
+
+  /// Constant for the 'textDocument/references' method.
+  static const textDocument_references = Method('textDocument/references');
+
+  /// Constant for the 'textDocument/rename' method.
+  static const textDocument_rename = Method('textDocument/rename');
+
   /// Constant for the 'textDocument/selectionRange' method.
   static const textDocument_selectionRange =
       Method('textDocument/selectionRange');
-
-  /// Constant for the 'textDocument/documentSymbol' method.
-  static const textDocument_documentSymbol =
-      Method('textDocument/documentSymbol');
 
   /// Constant for the 'textDocument/semanticTokens/full' method.
   static const textDocument_semanticTokens_full =
@@ -24095,132 +24135,32 @@ class Method {
   static const textDocument_semanticTokens_range =
       Method('textDocument/semanticTokens/range');
 
-  /// Constant for the 'workspace/semanticTokens/refresh' method.
-  static const workspace_semanticTokens_refresh =
-      Method('workspace/semanticTokens/refresh');
-
-  /// Constant for the 'textDocument/inlayHint' method.
-  static const textDocument_inlayHint = Method('textDocument/inlayHint');
-
-  /// Constant for the 'inlayHint/resolve' method.
-  static const inlayHint_resolve = Method('inlayHint/resolve');
-
-  /// Constant for the 'workspace/inlayHint/refresh' method.
-  static const workspace_inlayHint_refresh =
-      Method('workspace/inlayHint/refresh');
-
-  /// Constant for the 'textDocument/inlineValue' method.
-  static const textDocument_inlineValue = Method('textDocument/inlineValue');
-
-  /// Constant for the 'workspace/inlineValue/refresh' method.
-  static const workspace_inlineValue_refresh =
-      Method('workspace/inlineValue/refresh');
-
-  /// Constant for the 'textDocument/moniker' method.
-  static const textDocument_moniker = Method('textDocument/moniker');
-
-  /// Constant for the 'textDocument/completion' method.
-  static const textDocument_completion = Method('textDocument/completion');
-
-  /// Constant for the 'completionItem/resolve' method.
-  static const completionItem_resolve = Method('completionItem/resolve');
-
-  /// Constant for the 'textDocument/publishDiagnostics' method.
-  static const textDocument_publishDiagnostics =
-      Method('textDocument/publishDiagnostics');
-
-  /// Constant for the 'workspace/diagnostic/refresh' method.
-  static const workspace_diagnostic_refresh =
-      Method('workspace/diagnostic/refresh');
-
   /// Constant for the 'textDocument/signatureHelp' method.
   static const textDocument_signatureHelp =
       Method('textDocument/signatureHelp');
 
-  /// Constant for the 'textDocument/codeAction' method.
-  static const textDocument_codeAction = Method('textDocument/codeAction');
+  /// Constant for the 'textDocument/typeDefinition' method.
+  static const textDocument_typeDefinition =
+      Method('textDocument/typeDefinition');
 
-  /// Constant for the 'codeAction/resolve' method.
-  static const codeAction_resolve = Method('codeAction/resolve');
+  /// Constant for the 'textDocument/willSave' method.
+  static const textDocument_willSave = Method('textDocument/willSave');
 
-  /// Constant for the 'textDocument/documentColor' method.
-  static const textDocument_documentColor =
-      Method('textDocument/documentColor');
+  /// Constant for the 'textDocument/willSaveWaitUntil' method.
+  static const textDocument_willSaveWaitUntil =
+      Method('textDocument/willSaveWaitUntil');
 
-  /// Constant for the 'textDocument/colorPresentation' method.
-  static const textDocument_colorPresentation =
-      Method('textDocument/colorPresentation');
+  /// Constant for the 'typeHierarchy/subtypes' method.
+  static const typeHierarchy_subtypes = Method('typeHierarchy/subtypes');
 
-  /// Constant for the 'textDocument/formatting' method.
-  static const textDocument_formatting = Method('textDocument/formatting');
+  /// Constant for the 'typeHierarchy/supertypes' method.
+  static const typeHierarchy_supertypes = Method('typeHierarchy/supertypes');
 
-  /// Constant for the 'textDocument/rangeFormatting' method.
-  static const textDocument_rangeFormatting =
-      Method('textDocument/rangeFormatting');
+  /// Constant for the 'window/logMessage' method.
+  static const window_logMessage = Method('window/logMessage');
 
-  /// Constant for the 'textDocument/onTypeFormatting' method.
-  static const textDocument_onTypeFormatting =
-      Method('textDocument/onTypeFormatting');
-
-  /// Constant for the 'textDocument/rename' method.
-  static const textDocument_rename = Method('textDocument/rename');
-
-  /// Constant for the 'textDocument/prepareRename' method.
-  static const textDocument_prepareRename =
-      Method('textDocument/prepareRename');
-
-  /// Constant for the 'textDocument/linkedEditingRange' method.
-  static const textDocument_linkedEditingRange =
-      Method('textDocument/linkedEditingRange');
-
-  /// Constant for the 'workspace/symbol' method.
-  static const workspace_symbol = Method('workspace/symbol');
-
-  /// Constant for the 'workspaceSymbol/resolve' method.
-  static const workspaceSymbol_resolve = Method('workspaceSymbol/resolve');
-
-  /// Constant for the 'workspace/configuration' method.
-  static const workspace_configuration = Method('workspace/configuration');
-
-  /// Constant for the 'workspace/didChangeConfiguration' method.
-  static const workspace_didChangeConfiguration =
-      Method('workspace/didChangeConfiguration');
-
-  /// Constant for the 'workspace/workspaceFolders' method.
-  static const workspace_workspaceFolders =
-      Method('workspace/workspaceFolders');
-
-  /// Constant for the 'workspace/didChangeWorkspaceFolders' method.
-  static const workspace_didChangeWorkspaceFolders =
-      Method('workspace/didChangeWorkspaceFolders');
-
-  /// Constant for the 'workspace/willCreateFiles' method.
-  static const workspace_willCreateFiles = Method('workspace/willCreateFiles');
-
-  /// Constant for the 'workspace/didCreateFiles' method.
-  static const workspace_didCreateFiles = Method('workspace/didCreateFiles');
-
-  /// Constant for the 'workspace/willRenameFiles' method.
-  static const workspace_willRenameFiles = Method('workspace/willRenameFiles');
-
-  /// Constant for the 'workspace/didRenameFiles' method.
-  static const workspace_didRenameFiles = Method('workspace/didRenameFiles');
-
-  /// Constant for the 'workspace/willDeleteFiles' method.
-  static const workspace_willDeleteFiles = Method('workspace/willDeleteFiles');
-
-  /// Constant for the 'workspace/didDeleteFiles' method.
-  static const workspace_didDeleteFiles = Method('workspace/didDeleteFiles');
-
-  /// Constant for the 'workspace/didChangeWatchedFiles' method.
-  static const workspace_didChangeWatchedFiles =
-      Method('workspace/didChangeWatchedFiles');
-
-  /// Constant for the 'workspace/executeCommand' method.
-  static const workspace_executeCommand = Method('workspace/executeCommand');
-
-  /// Constant for the 'workspace/applyEdit' method.
-  static const workspace_applyEdit = Method('workspace/applyEdit');
+  /// Constant for the 'window/showDocument' method.
+  static const window_showDocument = Method('window/showDocument');
 
   /// Constant for the 'window/showMessage' method.
   static const window_showMessage = Method('window/showMessage');
@@ -24228,22 +24168,82 @@ class Method {
   /// Constant for the 'window/showMessageRequest' method.
   static const window_showMessageRequest = Method('window/showMessageRequest');
 
-  /// Constant for the 'window/showDocument' method.
-  static const window_showDocument = Method('window/showDocument');
-
-  /// Constant for the 'window/logMessage' method.
-  static const window_logMessage = Method('window/logMessage');
+  /// Constant for the 'window/workDoneProgress/cancel' method.
+  static const window_workDoneProgress_cancel =
+      Method('window/workDoneProgress/cancel');
 
   /// Constant for the 'window/workDoneProgress/create' method.
   static const window_workDoneProgress_create =
       Method('window/workDoneProgress/create');
 
-  /// Constant for the 'window/workDoneProgress/cancel' method.
-  static const window_workDoneProgress_cancel =
-      Method('window/workDoneProgress/cancel');
+  /// Constant for the 'workspace/applyEdit' method.
+  static const workspace_applyEdit = Method('workspace/applyEdit');
 
-  /// Constant for the 'telemetry/event' method.
-  static const telemetry_event = Method('telemetry/event');
+  /// Constant for the 'workspace/codeLens/refresh' method.
+  static const workspace_codeLens_refresh =
+      Method('workspace/codeLens/refresh');
+
+  /// Constant for the 'workspace/configuration' method.
+  static const workspace_configuration = Method('workspace/configuration');
+
+  /// Constant for the 'workspace/diagnostic/refresh' method.
+  static const workspace_diagnostic_refresh =
+      Method('workspace/diagnostic/refresh');
+
+  /// Constant for the 'workspace/didChangeConfiguration' method.
+  static const workspace_didChangeConfiguration =
+      Method('workspace/didChangeConfiguration');
+
+  /// Constant for the 'workspace/didChangeWatchedFiles' method.
+  static const workspace_didChangeWatchedFiles =
+      Method('workspace/didChangeWatchedFiles');
+
+  /// Constant for the 'workspace/didChangeWorkspaceFolders' method.
+  static const workspace_didChangeWorkspaceFolders =
+      Method('workspace/didChangeWorkspaceFolders');
+
+  /// Constant for the 'workspace/didCreateFiles' method.
+  static const workspace_didCreateFiles = Method('workspace/didCreateFiles');
+
+  /// Constant for the 'workspace/didDeleteFiles' method.
+  static const workspace_didDeleteFiles = Method('workspace/didDeleteFiles');
+
+  /// Constant for the 'workspace/didRenameFiles' method.
+  static const workspace_didRenameFiles = Method('workspace/didRenameFiles');
+
+  /// Constant for the 'workspace/executeCommand' method.
+  static const workspace_executeCommand = Method('workspace/executeCommand');
+
+  /// Constant for the 'workspace/inlayHint/refresh' method.
+  static const workspace_inlayHint_refresh =
+      Method('workspace/inlayHint/refresh');
+
+  /// Constant for the 'workspace/inlineValue/refresh' method.
+  static const workspace_inlineValue_refresh =
+      Method('workspace/inlineValue/refresh');
+
+  /// Constant for the 'workspace/semanticTokens/refresh' method.
+  static const workspace_semanticTokens_refresh =
+      Method('workspace/semanticTokens/refresh');
+
+  /// Constant for the 'workspace/symbol' method.
+  static const workspace_symbol = Method('workspace/symbol');
+
+  /// Constant for the 'workspace/willCreateFiles' method.
+  static const workspace_willCreateFiles = Method('workspace/willCreateFiles');
+
+  /// Constant for the 'workspace/willDeleteFiles' method.
+  static const workspace_willDeleteFiles = Method('workspace/willDeleteFiles');
+
+  /// Constant for the 'workspace/willRenameFiles' method.
+  static const workspace_willRenameFiles = Method('workspace/willRenameFiles');
+
+  /// Constant for the 'workspace/workspaceFolders' method.
+  static const workspace_workspaceFolders =
+      Method('workspace/workspaceFolders');
+
+  /// Constant for the 'workspaceSymbol/resolve' method.
+  static const workspaceSymbol_resolve = Method('workspaceSymbol/resolve');
 
   Object toJson() => _value;
 
@@ -24475,7 +24475,7 @@ class MonikerClientCapabilities implements ToJsonable {
 }
 
 /// The moniker kind.
-class MonikerKind {
+class MonikerKind implements ToJsonable {
   const MonikerKind(this._value);
   const MonikerKind.fromJson(this._value);
 
@@ -24485,11 +24485,11 @@ class MonikerKind {
     return obj is String;
   }
 
-  /// The moniker represent a symbol that is imported into a project
-  static const import = MonikerKind('import');
-
   /// The moniker represents a symbol that is exported from a project
   static const export = MonikerKind('export');
+
+  /// The moniker represent a symbol that is imported into a project
+  static const import = MonikerKind('import');
 
   /// The moniker represents a symbol that is local to a project (e.g. a local
   /// variable of a function, a class not visible outside the project, ...)
@@ -24572,9 +24572,9 @@ class MonikerOptions implements WorkDoneProgressOptions, ToJsonable {
 
 class MonikerParams
     implements
+        PartialResultParams,
         TextDocumentPositionParams,
         WorkDoneProgressParams,
-        PartialResultParams,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     MonikerParams.canParse,
@@ -24735,7 +24735,7 @@ class MonikerParams
 }
 
 class MonikerRegistrationOptions
-    implements TextDocumentRegistrationOptions, MonikerOptions, ToJsonable {
+    implements MonikerOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     MonikerRegistrationOptions.canParse,
     MonikerRegistrationOptions.fromJson,
@@ -25106,7 +25106,7 @@ class NotebookCellArrayChange implements ToJsonable {
 
 /// A notebook cell kind.
 ///  @since 3.17.0
-class NotebookCellKind {
+class NotebookCellKind implements ToJsonable {
   const NotebookCellKind(this._value);
   const NotebookCellKind.fromJson(this._value);
 
@@ -25116,11 +25116,11 @@ class NotebookCellKind {
     return obj is int;
   }
 
-  /// A markup-cell is formatted source that is used for display.
-  static const Markup = NotebookCellKind(1);
-
   /// A code-cell is source code.
   static const Code = NotebookCellKind(2);
+
+  /// A markup-cell is formatted source that is used for display.
+  static const Markup = NotebookCellKind(1);
 
   Object toJson() => _value;
 
@@ -27297,53 +27297,14 @@ class PartialResultParams implements ToJsonable {
     this.partialResultToken,
   });
   static PartialResultParams fromJson(Map<String, Object?> json) {
-    if (DeclarationParams.canParse(json, nullLspJsonReporter)) {
-      return DeclarationParams.fromJson(json);
+    if (CodeActionParams.canParse(json, nullLspJsonReporter)) {
+      return CodeActionParams.fromJson(json);
     }
-    if (DefinitionParams.canParse(json, nullLspJsonReporter)) {
-      return DefinitionParams.fromJson(json);
-    }
-    if (TypeDefinitionParams.canParse(json, nullLspJsonReporter)) {
-      return TypeDefinitionParams.fromJson(json);
-    }
-    if (ImplementationParams.canParse(json, nullLspJsonReporter)) {
-      return ImplementationParams.fromJson(json);
-    }
-    if (ReferenceParams.canParse(json, nullLspJsonReporter)) {
-      return ReferenceParams.fromJson(json);
-    }
-    if (CallHierarchyIncomingCallsParams.canParse(json, nullLspJsonReporter)) {
-      return CallHierarchyIncomingCallsParams.fromJson(json);
-    }
-    if (CallHierarchyOutgoingCallsParams.canParse(json, nullLspJsonReporter)) {
-      return CallHierarchyOutgoingCallsParams.fromJson(json);
-    }
-    if (TypeHierarchySupertypesParams.canParse(json, nullLspJsonReporter)) {
-      return TypeHierarchySupertypesParams.fromJson(json);
-    }
-    if (TypeHierarchySubtypesParams.canParse(json, nullLspJsonReporter)) {
-      return TypeHierarchySubtypesParams.fromJson(json);
-    }
-    if (DocumentHighlightParams.canParse(json, nullLspJsonReporter)) {
-      return DocumentHighlightParams.fromJson(json);
-    }
-    if (DocumentLinkParams.canParse(json, nullLspJsonReporter)) {
-      return DocumentLinkParams.fromJson(json);
-    }
-    if (CodeLensParams.canParse(json, nullLspJsonReporter)) {
-      return CodeLensParams.fromJson(json);
-    }
-    if (FoldingRangeParams.canParse(json, nullLspJsonReporter)) {
-      return FoldingRangeParams.fromJson(json);
+    if (ColorPresentationParams.canParse(json, nullLspJsonReporter)) {
+      return ColorPresentationParams.fromJson(json);
     }
     if (SelectionRangeParams.canParse(json, nullLspJsonReporter)) {
       return SelectionRangeParams.fromJson(json);
-    }
-    if (DocumentSymbolParams.canParse(json, nullLspJsonReporter)) {
-      return DocumentSymbolParams.fromJson(json);
-    }
-    if (SemanticTokensParams.canParse(json, nullLspJsonReporter)) {
-      return SemanticTokensParams.fromJson(json);
     }
     if (SemanticTokensDeltaParams.canParse(json, nullLspJsonReporter)) {
       return SemanticTokensDeltaParams.fromJson(json);
@@ -27351,29 +27312,68 @@ class PartialResultParams implements ToJsonable {
     if (SemanticTokensRangeParams.canParse(json, nullLspJsonReporter)) {
       return SemanticTokensRangeParams.fromJson(json);
     }
-    if (MonikerParams.canParse(json, nullLspJsonReporter)) {
-      return MonikerParams.fromJson(json);
-    }
-    if (CompletionParams.canParse(json, nullLspJsonReporter)) {
-      return CompletionParams.fromJson(json);
-    }
     if (DocumentDiagnosticParams.canParse(json, nullLspJsonReporter)) {
       return DocumentDiagnosticParams.fromJson(json);
     }
     if (WorkspaceDiagnosticParams.canParse(json, nullLspJsonReporter)) {
       return WorkspaceDiagnosticParams.fromJson(json);
     }
-    if (CodeActionParams.canParse(json, nullLspJsonReporter)) {
-      return CodeActionParams.fromJson(json);
+    if (CallHierarchyIncomingCallsParams.canParse(json, nullLspJsonReporter)) {
+      return CallHierarchyIncomingCallsParams.fromJson(json);
+    }
+    if (CallHierarchyOutgoingCallsParams.canParse(json, nullLspJsonReporter)) {
+      return CallHierarchyOutgoingCallsParams.fromJson(json);
+    }
+    if (CodeLensParams.canParse(json, nullLspJsonReporter)) {
+      return CodeLensParams.fromJson(json);
     }
     if (DocumentColorParams.canParse(json, nullLspJsonReporter)) {
       return DocumentColorParams.fromJson(json);
     }
-    if (ColorPresentationParams.canParse(json, nullLspJsonReporter)) {
-      return ColorPresentationParams.fromJson(json);
+    if (DocumentLinkParams.canParse(json, nullLspJsonReporter)) {
+      return DocumentLinkParams.fromJson(json);
+    }
+    if (DocumentSymbolParams.canParse(json, nullLspJsonReporter)) {
+      return DocumentSymbolParams.fromJson(json);
+    }
+    if (FoldingRangeParams.canParse(json, nullLspJsonReporter)) {
+      return FoldingRangeParams.fromJson(json);
+    }
+    if (ReferenceParams.canParse(json, nullLspJsonReporter)) {
+      return ReferenceParams.fromJson(json);
+    }
+    if (SemanticTokensParams.canParse(json, nullLspJsonReporter)) {
+      return SemanticTokensParams.fromJson(json);
+    }
+    if (TypeHierarchySubtypesParams.canParse(json, nullLspJsonReporter)) {
+      return TypeHierarchySubtypesParams.fromJson(json);
+    }
+    if (TypeHierarchySupertypesParams.canParse(json, nullLspJsonReporter)) {
+      return TypeHierarchySupertypesParams.fromJson(json);
     }
     if (WorkspaceSymbolParams.canParse(json, nullLspJsonReporter)) {
       return WorkspaceSymbolParams.fromJson(json);
+    }
+    if (CompletionParams.canParse(json, nullLspJsonReporter)) {
+      return CompletionParams.fromJson(json);
+    }
+    if (DeclarationParams.canParse(json, nullLspJsonReporter)) {
+      return DeclarationParams.fromJson(json);
+    }
+    if (DefinitionParams.canParse(json, nullLspJsonReporter)) {
+      return DefinitionParams.fromJson(json);
+    }
+    if (DocumentHighlightParams.canParse(json, nullLspJsonReporter)) {
+      return DocumentHighlightParams.fromJson(json);
+    }
+    if (ImplementationParams.canParse(json, nullLspJsonReporter)) {
+      return ImplementationParams.fromJson(json);
+    }
+    if (MonikerParams.canParse(json, nullLspJsonReporter)) {
+      return MonikerParams.fromJson(json);
+    }
+    if (TypeDefinitionParams.canParse(json, nullLspJsonReporter)) {
+      return TypeDefinitionParams.fromJson(json);
     }
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
@@ -27431,6 +27431,101 @@ class PartialResultParams implements ToJsonable {
 
   @override
   int get hashCode => partialResultToken.hashCode;
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class PlaceholderAndRange implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    PlaceholderAndRange.canParse,
+    PlaceholderAndRange.fromJson,
+  );
+
+  PlaceholderAndRange({
+    required this.placeholder,
+    required this.range,
+  });
+  static PlaceholderAndRange fromJson(Map<String, Object?> json) {
+    final placeholderJson = json['placeholder'];
+    final placeholder = placeholderJson as String;
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    return PlaceholderAndRange(
+      placeholder: placeholder,
+      range: range,
+    );
+  }
+
+  final String placeholder;
+  final Range range;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    __result['placeholder'] = placeholder;
+    __result['range'] = range.toJson();
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('placeholder');
+      try {
+        if (!obj.containsKey('placeholder')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final placeholder = obj['placeholder'];
+        if (placeholder == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(placeholder is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('range');
+      try {
+        if (!obj.containsKey('range')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final range = obj['range'];
+        if (range == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(Range.canParse(range, reporter))) {
+          reporter.reportError('must be of type Range');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type PlaceholderAndRange');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is PlaceholderAndRange &&
+        other.runtimeType == PlaceholderAndRange) {
+      return placeholder == other.placeholder && range == other.range && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        placeholder,
+        range,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -27539,7 +27634,7 @@ class Position implements ToJsonable {
 
 /// A set of predefined position encoding kinds.
 ///  @since 3.17.0
-class PositionEncodingKind {
+class PositionEncodingKind implements ToJsonable {
   const PositionEncodingKind(this._value);
   const PositionEncodingKind.fromJson(this._value);
 
@@ -27548,9 +27643,6 @@ class PositionEncodingKind {
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is String;
   }
-
-  /// Character offsets count UTF-8 code units.
-  static const UTF8 = PositionEncodingKind('utf-8');
 
   /// Character offsets count UTF-16 code units.
   ///
@@ -27563,6 +27655,9 @@ class PositionEncodingKind {
   /// `PositionEncodingKind` may also be used for an encoding-agnostic
   /// representation of character offsets.
   static const UTF32 = PositionEncodingKind('utf-32');
+
+  /// Character offsets count UTF-8 code units.
+  static const UTF8 = PositionEncodingKind('utf-8');
 
   Object toJson() => _value;
 
@@ -27676,7 +27771,7 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class PrepareSupportDefaultBehavior {
+class PrepareSupportDefaultBehavior implements ToJsonable {
   const PrepareSupportDefaultBehavior(this._value);
   const PrepareSupportDefaultBehavior.fromJson(this._value);
 
@@ -28358,101 +28453,6 @@ class Range implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class RangeAndPlaceholder implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    RangeAndPlaceholder.canParse,
-    RangeAndPlaceholder.fromJson,
-  );
-
-  RangeAndPlaceholder({
-    required this.placeholder,
-    required this.range,
-  });
-  static RangeAndPlaceholder fromJson(Map<String, Object?> json) {
-    final placeholderJson = json['placeholder'];
-    final placeholder = placeholderJson as String;
-    final rangeJson = json['range'];
-    final range = Range.fromJson(rangeJson as Map<String, Object?>);
-    return RangeAndPlaceholder(
-      placeholder: placeholder,
-      range: range,
-    );
-  }
-
-  final String placeholder;
-  final Range range;
-
-  Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['placeholder'] = placeholder;
-    __result['range'] = range.toJson();
-    return __result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('placeholder');
-      try {
-        if (!obj.containsKey('placeholder')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final placeholder = obj['placeholder'];
-        if (placeholder == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(placeholder is String)) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('range');
-      try {
-        if (!obj.containsKey('range')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final range = obj['range'];
-        if (range == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(Range.canParse(range, reporter))) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError('must be of type RangeAndPlaceholder');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is RangeAndPlaceholder &&
-        other.runtimeType == RangeAndPlaceholder) {
-      return placeholder == other.placeholder && range == other.range && true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        placeholder,
-        range,
-      );
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
 class ReferenceClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ReferenceClientCapabilities.canParse,
@@ -28650,9 +28650,9 @@ class ReferenceOptions implements WorkDoneProgressOptions, ToJsonable {
 
 class ReferenceParams
     implements
+        PartialResultParams,
         TextDocumentPositionParams,
         WorkDoneProgressParams,
-        PartialResultParams,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ReferenceParams.canParse,
@@ -28841,7 +28841,7 @@ class ReferenceParams
 }
 
 class ReferenceRegistrationOptions
-    implements TextDocumentRegistrationOptions, ReferenceOptions, ToJsonable {
+    implements ReferenceOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ReferenceRegistrationOptions.canParse,
     ReferenceRegistrationOptions.fromJson,
@@ -30442,7 +30442,7 @@ class RenameParams
 }
 
 class RenameRegistrationOptions
-    implements TextDocumentRegistrationOptions, RenameOptions, ToJsonable {
+    implements RenameOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     RenameRegistrationOptions.canParse,
     RenameRegistrationOptions.fromJson,
@@ -30722,7 +30722,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class ResourceOperationKind {
+class ResourceOperationKind implements ToJsonable {
   const ResourceOperationKind._(this._value);
   const ResourceOperationKind.fromJson(this._value);
 
@@ -30731,8 +30731,8 @@ class ResourceOperationKind {
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     switch (obj) {
       case 'create':
-      case 'rename':
       case 'delete':
+      case 'rename':
         return true;
     }
     return false;
@@ -30741,11 +30741,11 @@ class ResourceOperationKind {
   /// Supports creating new files and folders.
   static const Create = ResourceOperationKind._('create');
 
-  /// Supports renaming existing files and folders.
-  static const Rename = ResourceOperationKind._('rename');
-
   /// Supports deleting existing files and folders.
   static const Delete = ResourceOperationKind._('delete');
+
+  /// Supports renaming existing files and folders.
+  static const Rename = ResourceOperationKind._('rename');
 
   Object toJson() => _value;
 
@@ -31327,7 +31327,7 @@ class SelectionRangeOptions implements WorkDoneProgressOptions, ToJsonable {
 }
 
 class SelectionRangeParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SelectionRangeParams.canParse,
     SelectionRangeParams.fromJson,
@@ -31494,8 +31494,8 @@ class SelectionRangeParams
 class SelectionRangeRegistrationOptions
     implements
         SelectionRangeOptions,
-        TextDocumentRegistrationOptions,
         StaticRegistrationOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SelectionRangeRegistrationOptions.canParse,
@@ -31615,7 +31615,7 @@ class SelectionRangeRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class SemanticTokenModifiers {
+class SemanticTokenModifiers implements ToJsonable {
   const SemanticTokenModifiers(this._value);
   const SemanticTokenModifiers.fromJson(this._value);
 
@@ -31625,16 +31625,16 @@ class SemanticTokenModifiers {
     return obj is String;
   }
 
-  static const declaration = SemanticTokenModifiers('declaration');
-  static const definition = SemanticTokenModifiers('definition');
-  static const readonly = SemanticTokenModifiers('readonly');
-  static const static = SemanticTokenModifiers('static');
-  static const deprecated = SemanticTokenModifiers('deprecated');
   static const abstract = SemanticTokenModifiers('abstract');
   static const async = SemanticTokenModifiers('async');
-  static const modification = SemanticTokenModifiers('modification');
-  static const documentation = SemanticTokenModifiers('documentation');
+  static const declaration = SemanticTokenModifiers('declaration');
   static const defaultLibrary = SemanticTokenModifiers('defaultLibrary');
+  static const definition = SemanticTokenModifiers('definition');
+  static const deprecated = SemanticTokenModifiers('deprecated');
+  static const documentation = SemanticTokenModifiers('documentation');
+  static const modification = SemanticTokenModifiers('modification');
+  static const readonly = SemanticTokenModifiers('readonly');
+  static const static = SemanticTokenModifiers('static');
 
   Object toJson() => _value;
 
@@ -31648,7 +31648,7 @@ class SemanticTokenModifiers {
       o is SemanticTokenModifiers && o._value == _value;
 }
 
-class SemanticTokenTypes {
+class SemanticTokenTypes implements ToJsonable {
   const SemanticTokenTypes(this._value);
   const SemanticTokenTypes.fromJson(this._value);
 
@@ -31658,31 +31658,31 @@ class SemanticTokenTypes {
     return obj is String;
   }
 
+  static const class_ = SemanticTokenTypes('class');
+  static const comment = SemanticTokenTypes('comment');
+  static const enum_ = SemanticTokenTypes('enum');
+  static const enumMember = SemanticTokenTypes('enumMember');
+  static const event = SemanticTokenTypes('event');
+  static const function = SemanticTokenTypes('function');
+  static const interface = SemanticTokenTypes('interface');
+  static const keyword = SemanticTokenTypes('keyword');
+  static const macro = SemanticTokenTypes('macro');
+  static const method = SemanticTokenTypes('method');
+  static const modifier = SemanticTokenTypes('modifier');
   static const namespace = SemanticTokenTypes('namespace');
+  static const number = SemanticTokenTypes('number');
+  static const operator = SemanticTokenTypes('operator');
+  static const parameter = SemanticTokenTypes('parameter');
+  static const property = SemanticTokenTypes('property');
+  static const regexp = SemanticTokenTypes('regexp');
+  static const string = SemanticTokenTypes('string');
+  static const struct = SemanticTokenTypes('struct');
 
   /// Represents a generic type. Acts as a fallback for types which can't be
   /// mapped to a specific type like class or enum.
   static const type = SemanticTokenTypes('type');
-  static const class_ = SemanticTokenTypes('class');
-  static const enum_ = SemanticTokenTypes('enum');
-  static const interface = SemanticTokenTypes('interface');
-  static const struct = SemanticTokenTypes('struct');
   static const typeParameter = SemanticTokenTypes('typeParameter');
-  static const parameter = SemanticTokenTypes('parameter');
   static const variable = SemanticTokenTypes('variable');
-  static const property = SemanticTokenTypes('property');
-  static const enumMember = SemanticTokenTypes('enumMember');
-  static const event = SemanticTokenTypes('event');
-  static const function = SemanticTokenTypes('function');
-  static const method = SemanticTokenTypes('method');
-  static const macro = SemanticTokenTypes('macro');
-  static const keyword = SemanticTokenTypes('keyword');
-  static const modifier = SemanticTokenTypes('modifier');
-  static const comment = SemanticTokenTypes('comment');
-  static const string = SemanticTokenTypes('string');
-  static const number = SemanticTokenTypes('number');
-  static const regexp = SemanticTokenTypes('regexp');
-  static const operator = SemanticTokenTypes('operator');
 
   Object toJson() => _value;
 
@@ -32416,7 +32416,7 @@ class SemanticTokensDelta implements ToJsonable {
 }
 
 class SemanticTokensDeltaParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SemanticTokensDeltaParams.canParse,
     SemanticTokensDeltaParams.fromJson,
@@ -33152,7 +33152,7 @@ class SemanticTokensOptionsRange implements ToJsonable {
 }
 
 class SemanticTokensParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SemanticTokensParams.canParse,
     SemanticTokensParams.fromJson,
@@ -33354,7 +33354,7 @@ class SemanticTokensPartialResult implements ToJsonable {
 }
 
 class SemanticTokensRangeParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SemanticTokensRangeParams.canParse,
     SemanticTokensRangeParams.fromJson,
@@ -33516,9 +33516,9 @@ class SemanticTokensRangeParams
 
 class SemanticTokensRegistrationOptions
     implements
-        TextDocumentRegistrationOptions,
         SemanticTokensOptions,
         StaticRegistrationOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SemanticTokensRegistrationOptions.canParse,
@@ -37083,8 +37083,8 @@ class SignatureHelpParams
 
 class SignatureHelpRegistrationOptions
     implements
-        TextDocumentRegistrationOptions,
         SignatureHelpOptions,
+        TextDocumentRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SignatureHelpRegistrationOptions.canParse,
@@ -37241,7 +37241,7 @@ class SignatureHelpRegistrationOptions
 
 /// How a signature help was triggered.
 ///  @since 3.15.0
-class SignatureHelpTriggerKind {
+class SignatureHelpTriggerKind implements ToJsonable {
   const SignatureHelpTriggerKind(this._value);
   const SignatureHelpTriggerKind.fromJson(this._value);
 
@@ -37251,15 +37251,15 @@ class SignatureHelpTriggerKind {
     return obj is int;
   }
 
+  /// Signature help was triggered by the cursor moving or by the document
+  /// content changing.
+  static const ContentChange = SignatureHelpTriggerKind(3);
+
   /// Signature help was invoked manually by the user or by a command.
   static const Invoked = SignatureHelpTriggerKind(1);
 
   /// Signature help was triggered by a trigger character.
   static const TriggerCharacter = SignatureHelpTriggerKind(2);
-
-  /// Signature help was triggered by the cursor moving or by the document
-  /// content changing.
-  static const ContentChange = SignatureHelpTriggerKind(3);
 
   Object toJson() => _value;
 
@@ -37446,39 +37446,11 @@ class StaticRegistrationOptions implements ToJsonable {
     this.id,
   });
   static StaticRegistrationOptions fromJson(Map<String, Object?> json) {
-    if (NotebookDocumentSyncRegistrationOptions.canParse(
-        json, nullLspJsonReporter)) {
-      return NotebookDocumentSyncRegistrationOptions.fromJson(json);
-    }
-    if (DeclarationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return DeclarationRegistrationOptions.fromJson(json);
-    }
-    if (TypeDefinitionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return TypeDefinitionRegistrationOptions.fromJson(json);
-    }
-    if (ImplementationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return ImplementationRegistrationOptions.fromJson(json);
-    }
     if (CallHierarchyRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return CallHierarchyRegistrationOptions.fromJson(json);
     }
-    if (TypeHierarchyRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return TypeHierarchyRegistrationOptions.fromJson(json);
-    }
-    if (FoldingRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return FoldingRangeRegistrationOptions.fromJson(json);
-    }
-    if (SelectionRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return SelectionRangeRegistrationOptions.fromJson(json);
-    }
-    if (SemanticTokensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return SemanticTokensRegistrationOptions.fromJson(json);
-    }
-    if (InlayHintRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return InlayHintRegistrationOptions.fromJson(json);
-    }
-    if (InlineValueRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return InlineValueRegistrationOptions.fromJson(json);
+    if (DeclarationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return DeclarationRegistrationOptions.fromJson(json);
     }
     if (DiagnosticRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DiagnosticRegistrationOptions.fromJson(json);
@@ -37486,9 +37458,37 @@ class StaticRegistrationOptions implements ToJsonable {
     if (DocumentColorRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DocumentColorRegistrationOptions.fromJson(json);
     }
+    if (FoldingRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return FoldingRangeRegistrationOptions.fromJson(json);
+    }
+    if (ImplementationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return ImplementationRegistrationOptions.fromJson(json);
+    }
+    if (InlayHintRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return InlayHintRegistrationOptions.fromJson(json);
+    }
+    if (InlineValueRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return InlineValueRegistrationOptions.fromJson(json);
+    }
     if (LinkedEditingRangeRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
       return LinkedEditingRangeRegistrationOptions.fromJson(json);
+    }
+    if (NotebookDocumentSyncRegistrationOptions.canParse(
+        json, nullLspJsonReporter)) {
+      return NotebookDocumentSyncRegistrationOptions.fromJson(json);
+    }
+    if (SelectionRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return SelectionRangeRegistrationOptions.fromJson(json);
+    }
+    if (SemanticTokensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return SemanticTokensRegistrationOptions.fromJson(json);
+    }
+    if (TypeDefinitionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return TypeDefinitionRegistrationOptions.fromJson(json);
+    }
+    if (TypeHierarchyRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return TypeHierarchyRegistrationOptions.fromJson(json);
     }
     final idJson = json['id'];
     final id = idJson as String?;
@@ -37758,7 +37758,7 @@ class SymbolInformation implements ToJsonable {
 }
 
 /// A symbol kind.
-class SymbolKind {
+class SymbolKind implements ToJsonable {
   const SymbolKind(this._value);
   const SymbolKind.fromJson(this._value);
 
@@ -37768,32 +37768,32 @@ class SymbolKind {
     return obj is int;
   }
 
-  static const File = SymbolKind(1);
-  static const Module = SymbolKind(2);
-  static const Namespace = SymbolKind(3);
-  static const Package = SymbolKind(4);
+  static const Array = SymbolKind(18);
+  static const Boolean = SymbolKind(17);
   static const Class = SymbolKind(5);
-  static const Method = SymbolKind(6);
-  static const Property = SymbolKind(7);
-  static const Field = SymbolKind(8);
+  static const Constant = SymbolKind(14);
   static const Constructor = SymbolKind(9);
   static const Enum = SymbolKind(10);
-  static const Interface = SymbolKind(11);
-  static const Function = SymbolKind(12);
-  static const Variable = SymbolKind(13);
-  static const Constant = SymbolKind(14);
-  static const Str = SymbolKind(15);
-  static const Number = SymbolKind(16);
-  static const Boolean = SymbolKind(17);
-  static const Array = SymbolKind(18);
-  static const Obj = SymbolKind(19);
-  static const Key = SymbolKind(20);
-  static const Null = SymbolKind(21);
   static const EnumMember = SymbolKind(22);
-  static const Struct = SymbolKind(23);
   static const Event = SymbolKind(24);
+  static const Field = SymbolKind(8);
+  static const File = SymbolKind(1);
+  static const Function = SymbolKind(12);
+  static const Interface = SymbolKind(11);
+  static const Key = SymbolKind(20);
+  static const Method = SymbolKind(6);
+  static const Module = SymbolKind(2);
+  static const Namespace = SymbolKind(3);
+  static const Null = SymbolKind(21);
+  static const Number = SymbolKind(16);
+  static const Obj = SymbolKind(19);
   static const Operator = SymbolKind(25);
+  static const Package = SymbolKind(4);
+  static const Property = SymbolKind(7);
+  static const Str = SymbolKind(15);
+  static const Struct = SymbolKind(23);
   static const TypeParameter = SymbolKind(26);
+  static const Variable = SymbolKind(13);
 
   Object toJson() => _value;
 
@@ -37808,7 +37808,7 @@ class SymbolKind {
 
 /// Symbol tags are extra annotations that tweak the rendering of a symbol.
 ///  @since 3.16
-class SymbolTag {
+class SymbolTag implements ToJsonable {
   const SymbolTag(this._value);
   const SymbolTag.fromJson(this._value);
 
@@ -39499,35 +39499,11 @@ class TextDocumentPositionParams implements ToJsonable {
     required this.textDocument,
   });
   static TextDocumentPositionParams fromJson(Map<String, Object?> json) {
-    if (DeclarationParams.canParse(json, nullLspJsonReporter)) {
-      return DeclarationParams.fromJson(json);
-    }
-    if (DefinitionParams.canParse(json, nullLspJsonReporter)) {
-      return DefinitionParams.fromJson(json);
-    }
-    if (TypeDefinitionParams.canParse(json, nullLspJsonReporter)) {
-      return TypeDefinitionParams.fromJson(json);
-    }
-    if (ImplementationParams.canParse(json, nullLspJsonReporter)) {
-      return ImplementationParams.fromJson(json);
-    }
     if (ReferenceParams.canParse(json, nullLspJsonReporter)) {
       return ReferenceParams.fromJson(json);
     }
-    if (CallHierarchyPrepareParams.canParse(json, nullLspJsonReporter)) {
-      return CallHierarchyPrepareParams.fromJson(json);
-    }
-    if (TypeHierarchyPrepareParams.canParse(json, nullLspJsonReporter)) {
-      return TypeHierarchyPrepareParams.fromJson(json);
-    }
-    if (DocumentHighlightParams.canParse(json, nullLspJsonReporter)) {
-      return DocumentHighlightParams.fromJson(json);
-    }
-    if (HoverParams.canParse(json, nullLspJsonReporter)) {
-      return HoverParams.fromJson(json);
-    }
-    if (MonikerParams.canParse(json, nullLspJsonReporter)) {
-      return MonikerParams.fromJson(json);
+    if (RenameParams.canParse(json, nullLspJsonReporter)) {
+      return RenameParams.fromJson(json);
     }
     if (CompletionParams.canParse(json, nullLspJsonReporter)) {
       return CompletionParams.fromJson(json);
@@ -39535,14 +39511,38 @@ class TextDocumentPositionParams implements ToJsonable {
     if (SignatureHelpParams.canParse(json, nullLspJsonReporter)) {
       return SignatureHelpParams.fromJson(json);
     }
-    if (RenameParams.canParse(json, nullLspJsonReporter)) {
-      return RenameParams.fromJson(json);
+    if (CallHierarchyPrepareParams.canParse(json, nullLspJsonReporter)) {
+      return CallHierarchyPrepareParams.fromJson(json);
+    }
+    if (DeclarationParams.canParse(json, nullLspJsonReporter)) {
+      return DeclarationParams.fromJson(json);
+    }
+    if (DefinitionParams.canParse(json, nullLspJsonReporter)) {
+      return DefinitionParams.fromJson(json);
+    }
+    if (DocumentHighlightParams.canParse(json, nullLspJsonReporter)) {
+      return DocumentHighlightParams.fromJson(json);
+    }
+    if (HoverParams.canParse(json, nullLspJsonReporter)) {
+      return HoverParams.fromJson(json);
+    }
+    if (ImplementationParams.canParse(json, nullLspJsonReporter)) {
+      return ImplementationParams.fromJson(json);
+    }
+    if (LinkedEditingRangeParams.canParse(json, nullLspJsonReporter)) {
+      return LinkedEditingRangeParams.fromJson(json);
+    }
+    if (MonikerParams.canParse(json, nullLspJsonReporter)) {
+      return MonikerParams.fromJson(json);
     }
     if (PrepareRenameParams.canParse(json, nullLspJsonReporter)) {
       return PrepareRenameParams.fromJson(json);
     }
-    if (LinkedEditingRangeParams.canParse(json, nullLspJsonReporter)) {
-      return LinkedEditingRangeParams.fromJson(json);
+    if (TypeDefinitionParams.canParse(json, nullLspJsonReporter)) {
+      return TypeDefinitionParams.fromJson(json);
+    }
+    if (TypeHierarchyPrepareParams.canParse(json, nullLspJsonReporter)) {
+      return TypeHierarchyPrepareParams.fromJson(json);
     }
     final positionJson = json['position'];
     final position = Position.fromJson(positionJson as Map<String, Object?>);
@@ -39653,72 +39653,26 @@ class TextDocumentRegistrationOptions implements ToJsonable {
         json, nullLspJsonReporter)) {
       return TextDocumentSaveRegistrationOptions.fromJson(json);
     }
+    if (CallHierarchyRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return CallHierarchyRegistrationOptions.fromJson(json);
+    }
+    if (CodeActionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return CodeActionRegistrationOptions.fromJson(json);
+    }
+    if (CodeLensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return CodeLensRegistrationOptions.fromJson(json);
+    }
+    if (CompletionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return CompletionRegistrationOptions.fromJson(json);
+    }
     if (DeclarationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DeclarationRegistrationOptions.fromJson(json);
     }
     if (DefinitionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DefinitionRegistrationOptions.fromJson(json);
     }
-    if (TypeDefinitionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return TypeDefinitionRegistrationOptions.fromJson(json);
-    }
-    if (ImplementationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return ImplementationRegistrationOptions.fromJson(json);
-    }
-    if (ReferenceRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return ReferenceRegistrationOptions.fromJson(json);
-    }
-    if (CallHierarchyRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return CallHierarchyRegistrationOptions.fromJson(json);
-    }
-    if (TypeHierarchyRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return TypeHierarchyRegistrationOptions.fromJson(json);
-    }
-    if (DocumentHighlightRegistrationOptions.canParse(
-        json, nullLspJsonReporter)) {
-      return DocumentHighlightRegistrationOptions.fromJson(json);
-    }
-    if (DocumentLinkRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return DocumentLinkRegistrationOptions.fromJson(json);
-    }
-    if (HoverRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return HoverRegistrationOptions.fromJson(json);
-    }
-    if (CodeLensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return CodeLensRegistrationOptions.fromJson(json);
-    }
-    if (FoldingRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return FoldingRangeRegistrationOptions.fromJson(json);
-    }
-    if (SelectionRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return SelectionRangeRegistrationOptions.fromJson(json);
-    }
-    if (DocumentSymbolRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return DocumentSymbolRegistrationOptions.fromJson(json);
-    }
-    if (SemanticTokensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return SemanticTokensRegistrationOptions.fromJson(json);
-    }
-    if (InlayHintRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return InlayHintRegistrationOptions.fromJson(json);
-    }
-    if (InlineValueRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return InlineValueRegistrationOptions.fromJson(json);
-    }
-    if (MonikerRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return MonikerRegistrationOptions.fromJson(json);
-    }
-    if (CompletionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return CompletionRegistrationOptions.fromJson(json);
-    }
     if (DiagnosticRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DiagnosticRegistrationOptions.fromJson(json);
-    }
-    if (SignatureHelpRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return SignatureHelpRegistrationOptions.fromJson(json);
-    }
-    if (CodeActionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return CodeActionRegistrationOptions.fromJson(json);
     }
     if (DocumentColorRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DocumentColorRegistrationOptions.fromJson(json);
@@ -39727,20 +39681,66 @@ class TextDocumentRegistrationOptions implements ToJsonable {
         json, nullLspJsonReporter)) {
       return DocumentFormattingRegistrationOptions.fromJson(json);
     }
-    if (DocumentRangeFormattingRegistrationOptions.canParse(
+    if (DocumentHighlightRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
-      return DocumentRangeFormattingRegistrationOptions.fromJson(json);
+      return DocumentHighlightRegistrationOptions.fromJson(json);
+    }
+    if (DocumentLinkRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return DocumentLinkRegistrationOptions.fromJson(json);
     }
     if (DocumentOnTypeFormattingRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
       return DocumentOnTypeFormattingRegistrationOptions.fromJson(json);
     }
-    if (RenameRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return RenameRegistrationOptions.fromJson(json);
+    if (DocumentRangeFormattingRegistrationOptions.canParse(
+        json, nullLspJsonReporter)) {
+      return DocumentRangeFormattingRegistrationOptions.fromJson(json);
+    }
+    if (DocumentSymbolRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return DocumentSymbolRegistrationOptions.fromJson(json);
+    }
+    if (FoldingRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return FoldingRangeRegistrationOptions.fromJson(json);
+    }
+    if (HoverRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return HoverRegistrationOptions.fromJson(json);
+    }
+    if (ImplementationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return ImplementationRegistrationOptions.fromJson(json);
+    }
+    if (InlayHintRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return InlayHintRegistrationOptions.fromJson(json);
+    }
+    if (InlineValueRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return InlineValueRegistrationOptions.fromJson(json);
     }
     if (LinkedEditingRangeRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
       return LinkedEditingRangeRegistrationOptions.fromJson(json);
+    }
+    if (MonikerRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return MonikerRegistrationOptions.fromJson(json);
+    }
+    if (ReferenceRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return ReferenceRegistrationOptions.fromJson(json);
+    }
+    if (RenameRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return RenameRegistrationOptions.fromJson(json);
+    }
+    if (SelectionRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return SelectionRangeRegistrationOptions.fromJson(json);
+    }
+    if (SemanticTokensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return SemanticTokensRegistrationOptions.fromJson(json);
+    }
+    if (SignatureHelpRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return SignatureHelpRegistrationOptions.fromJson(json);
+    }
+    if (TypeDefinitionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return TypeDefinitionRegistrationOptions.fromJson(json);
+    }
+    if (TypeHierarchyRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return TypeHierarchyRegistrationOptions.fromJson(json);
     }
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -39807,7 +39807,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
 }
 
 /// Represents reasons why a text document is saved.
-class TextDocumentSaveReason {
+class TextDocumentSaveReason implements ToJsonable {
   const TextDocumentSaveReason(this._value);
   const TextDocumentSaveReason.fromJson(this._value);
 
@@ -39817,15 +39817,15 @@ class TextDocumentSaveReason {
     return obj is int;
   }
 
-  /// Manually triggered, e.g. by the user pressing save, by starting debugging,
-  /// or by an API call.
-  static const Manual = TextDocumentSaveReason(1);
-
   /// Automatic after a delay.
   static const AfterDelay = TextDocumentSaveReason(2);
 
   /// When the editor lost focus.
   static const FocusOut = TextDocumentSaveReason(3);
+
+  /// Manually triggered, e.g. by the user pressing save, by starting debugging,
+  /// or by an API call.
+  static const Manual = TextDocumentSaveReason(1);
 
   Object toJson() => _value;
 
@@ -40078,7 +40078,7 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
 
 /// Defines how the host (editor) should sync document changes to the language
 /// server.
-class TextDocumentSyncKind {
+class TextDocumentSyncKind implements ToJsonable {
   const TextDocumentSyncKind(this._value);
   const TextDocumentSyncKind.fromJson(this._value);
 
@@ -40088,15 +40088,15 @@ class TextDocumentSyncKind {
     return obj is int;
   }
 
-  /// Documents should not be synced at all.
-  static const None = TextDocumentSyncKind(0);
-
   /// Documents are synced by always sending the full content of the document.
   static const Full = TextDocumentSyncKind(1);
 
   /// Documents are synced by sending the full content on open. After that only
   /// incremental updates to the document are send.
   static const Incremental = TextDocumentSyncKind(2);
+
+  /// Documents should not be synced at all.
+  static const None = TextDocumentSyncKind(0);
 
   Object toJson() => _value;
 
@@ -40385,7 +40385,7 @@ class TextEdit implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class TokenFormat {
+class TokenFormat implements ToJsonable {
   const TokenFormat(this._value);
   const TokenFormat.fromJson(this._value);
 
@@ -40566,9 +40566,9 @@ class TypeDefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
 
 class TypeDefinitionParams
     implements
+        PartialResultParams,
         TextDocumentPositionParams,
         WorkDoneProgressParams,
-        PartialResultParams,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     TypeDefinitionParams.canParse,
@@ -40731,9 +40731,9 @@ class TypeDefinitionParams
 
 class TypeDefinitionRegistrationOptions
     implements
+        StaticRegistrationOptions,
         TextDocumentRegistrationOptions,
         TypeDefinitionOptions,
-        StaticRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     TypeDefinitionRegistrationOptions.canParse,
@@ -41367,9 +41367,9 @@ class TypeHierarchyPrepareParams
 
 class TypeHierarchyRegistrationOptions
     implements
+        StaticRegistrationOptions,
         TextDocumentRegistrationOptions,
         TypeHierarchyOptions,
-        StaticRegistrationOptions,
         ToJsonable {
   static const jsonHandler = LspJsonHandler(
     TypeHierarchyRegistrationOptions.canParse,
@@ -41490,7 +41490,7 @@ class TypeHierarchyRegistrationOptions
 }
 
 class TypeHierarchySubtypesParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     TypeHierarchySubtypesParams.canParse,
     TypeHierarchySubtypesParams.fromJson,
@@ -41621,7 +41621,7 @@ class TypeHierarchySubtypesParams
 }
 
 class TypeHierarchySupertypesParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     TypeHierarchySupertypesParams.canParse,
     TypeHierarchySupertypesParams.fromJson,
@@ -41769,13 +41769,13 @@ class UnchangedDocumentDiagnosticReport implements ToJsonable {
     }
   }
   static UnchangedDocumentDiagnosticReport fromJson(Map<String, Object?> json) {
-    if (RelatedUnchangedDocumentDiagnosticReport.canParse(
-        json, nullLspJsonReporter)) {
-      return RelatedUnchangedDocumentDiagnosticReport.fromJson(json);
-    }
     if (WorkspaceUnchangedDocumentDiagnosticReport.canParse(
         json, nullLspJsonReporter)) {
       return WorkspaceUnchangedDocumentDiagnosticReport.fromJson(json);
+    }
+    if (RelatedUnchangedDocumentDiagnosticReport.canParse(
+        json, nullLspJsonReporter)) {
+      return RelatedUnchangedDocumentDiagnosticReport.fromJson(json);
     }
     final kindJson = json['kind'];
     final kind = kindJson as String;
@@ -41867,7 +41867,7 @@ class UnchangedDocumentDiagnosticReport implements ToJsonable {
 }
 
 /// Moniker uniqueness level to define scope of the moniker.
-class UniquenessLevel {
+class UniquenessLevel implements ToJsonable {
   const UniquenessLevel(this._value);
   const UniquenessLevel.fromJson(this._value);
 
@@ -41880,17 +41880,17 @@ class UniquenessLevel {
   /// The moniker is only unique inside a document
   static const document = UniquenessLevel('document');
 
-  /// The moniker is unique inside a project for which a dump got created
-  static const project = UniquenessLevel('project');
+  /// The moniker is globally unique
+  static const global = UniquenessLevel('global');
 
   /// The moniker is unique inside the group to which a project belongs
   static const group = UniquenessLevel('group');
 
+  /// The moniker is unique inside a project for which a dump got created
+  static const project = UniquenessLevel('project');
+
   /// The moniker is unique inside the moniker scheme.
   static const scheme = UniquenessLevel('scheme');
-
-  /// The moniker is globally unique
-  static const global = UniquenessLevel('global');
 
   Object toJson() => _value;
 
@@ -42284,7 +42284,7 @@ class VersionedTextDocumentIdentifier
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class WatchKind {
+class WatchKind implements ToJsonable {
   const WatchKind(this._value);
   const WatchKind.fromJson(this._value);
 
@@ -42294,11 +42294,11 @@ class WatchKind {
     return obj is int;
   }
 
-  /// Interested in create events.
-  static const Create = WatchKind(1);
-
   /// Interested in change events
   static const Change = WatchKind(2);
+
+  /// Interested in create events.
+  static const Create = WatchKind(1);
 
   /// Interested in delete events
   static const Delete = WatchKind(4);
@@ -42980,71 +42980,50 @@ class WorkDoneProgressOptions implements ToJsonable {
     this.workDoneProgress,
   });
   static WorkDoneProgressOptions fromJson(Map<String, Object?> json) {
+    if (DiagnosticOptions.canParse(json, nullLspJsonReporter)) {
+      return DiagnosticOptions.fromJson(json);
+    }
+    if (SemanticTokensOptions.canParse(json, nullLspJsonReporter)) {
+      return SemanticTokensOptions.fromJson(json);
+    }
+    if (ExecuteCommandOptions.canParse(json, nullLspJsonReporter)) {
+      return ExecuteCommandOptions.fromJson(json);
+    }
+    if (CompletionOptions.canParse(json, nullLspJsonReporter)) {
+      return CompletionOptions.fromJson(json);
+    }
+    if (CodeActionOptions.canParse(json, nullLspJsonReporter)) {
+      return CodeActionOptions.fromJson(json);
+    }
+    if (SignatureHelpOptions.canParse(json, nullLspJsonReporter)) {
+      return SignatureHelpOptions.fromJson(json);
+    }
+    if (CodeLensOptions.canParse(json, nullLspJsonReporter)) {
+      return CodeLensOptions.fromJson(json);
+    }
+    if (DocumentLinkOptions.canParse(json, nullLspJsonReporter)) {
+      return DocumentLinkOptions.fromJson(json);
+    }
+    if (DocumentSymbolOptions.canParse(json, nullLspJsonReporter)) {
+      return DocumentSymbolOptions.fromJson(json);
+    }
+    if (InlayHintOptions.canParse(json, nullLspJsonReporter)) {
+      return InlayHintOptions.fromJson(json);
+    }
+    if (RenameOptions.canParse(json, nullLspJsonReporter)) {
+      return RenameOptions.fromJson(json);
+    }
+    if (WorkspaceSymbolOptions.canParse(json, nullLspJsonReporter)) {
+      return WorkspaceSymbolOptions.fromJson(json);
+    }
+    if (CallHierarchyOptions.canParse(json, nullLspJsonReporter)) {
+      return CallHierarchyOptions.fromJson(json);
+    }
     if (DeclarationOptions.canParse(json, nullLspJsonReporter)) {
       return DeclarationOptions.fromJson(json);
     }
     if (DefinitionOptions.canParse(json, nullLspJsonReporter)) {
       return DefinitionOptions.fromJson(json);
-    }
-    if (TypeDefinitionOptions.canParse(json, nullLspJsonReporter)) {
-      return TypeDefinitionOptions.fromJson(json);
-    }
-    if (ImplementationOptions.canParse(json, nullLspJsonReporter)) {
-      return ImplementationOptions.fromJson(json);
-    }
-    if (ReferenceOptions.canParse(json, nullLspJsonReporter)) {
-      return ReferenceOptions.fromJson(json);
-    }
-    if (CallHierarchyOptions.canParse(json, nullLspJsonReporter)) {
-      return CallHierarchyOptions.fromJson(json);
-    }
-    if (TypeHierarchyOptions.canParse(json, nullLspJsonReporter)) {
-      return TypeHierarchyOptions.fromJson(json);
-    }
-    if (DocumentHighlightOptions.canParse(json, nullLspJsonReporter)) {
-      return DocumentHighlightOptions.fromJson(json);
-    }
-    if (DocumentLinkOptions.canParse(json, nullLspJsonReporter)) {
-      return DocumentLinkOptions.fromJson(json);
-    }
-    if (HoverOptions.canParse(json, nullLspJsonReporter)) {
-      return HoverOptions.fromJson(json);
-    }
-    if (CodeLensOptions.canParse(json, nullLspJsonReporter)) {
-      return CodeLensOptions.fromJson(json);
-    }
-    if (FoldingRangeOptions.canParse(json, nullLspJsonReporter)) {
-      return FoldingRangeOptions.fromJson(json);
-    }
-    if (SelectionRangeOptions.canParse(json, nullLspJsonReporter)) {
-      return SelectionRangeOptions.fromJson(json);
-    }
-    if (DocumentSymbolOptions.canParse(json, nullLspJsonReporter)) {
-      return DocumentSymbolOptions.fromJson(json);
-    }
-    if (SemanticTokensOptions.canParse(json, nullLspJsonReporter)) {
-      return SemanticTokensOptions.fromJson(json);
-    }
-    if (InlayHintOptions.canParse(json, nullLspJsonReporter)) {
-      return InlayHintOptions.fromJson(json);
-    }
-    if (InlineValueOptions.canParse(json, nullLspJsonReporter)) {
-      return InlineValueOptions.fromJson(json);
-    }
-    if (MonikerOptions.canParse(json, nullLspJsonReporter)) {
-      return MonikerOptions.fromJson(json);
-    }
-    if (CompletionOptions.canParse(json, nullLspJsonReporter)) {
-      return CompletionOptions.fromJson(json);
-    }
-    if (DiagnosticOptions.canParse(json, nullLspJsonReporter)) {
-      return DiagnosticOptions.fromJson(json);
-    }
-    if (SignatureHelpOptions.canParse(json, nullLspJsonReporter)) {
-      return SignatureHelpOptions.fromJson(json);
-    }
-    if (CodeActionOptions.canParse(json, nullLspJsonReporter)) {
-      return CodeActionOptions.fromJson(json);
     }
     if (DocumentColorOptions.canParse(json, nullLspJsonReporter)) {
       return DocumentColorOptions.fromJson(json);
@@ -43052,20 +43031,41 @@ class WorkDoneProgressOptions implements ToJsonable {
     if (DocumentFormattingOptions.canParse(json, nullLspJsonReporter)) {
       return DocumentFormattingOptions.fromJson(json);
     }
+    if (DocumentHighlightOptions.canParse(json, nullLspJsonReporter)) {
+      return DocumentHighlightOptions.fromJson(json);
+    }
     if (DocumentRangeFormattingOptions.canParse(json, nullLspJsonReporter)) {
       return DocumentRangeFormattingOptions.fromJson(json);
     }
-    if (RenameOptions.canParse(json, nullLspJsonReporter)) {
-      return RenameOptions.fromJson(json);
+    if (FoldingRangeOptions.canParse(json, nullLspJsonReporter)) {
+      return FoldingRangeOptions.fromJson(json);
+    }
+    if (HoverOptions.canParse(json, nullLspJsonReporter)) {
+      return HoverOptions.fromJson(json);
+    }
+    if (ImplementationOptions.canParse(json, nullLspJsonReporter)) {
+      return ImplementationOptions.fromJson(json);
+    }
+    if (InlineValueOptions.canParse(json, nullLspJsonReporter)) {
+      return InlineValueOptions.fromJson(json);
     }
     if (LinkedEditingRangeOptions.canParse(json, nullLspJsonReporter)) {
       return LinkedEditingRangeOptions.fromJson(json);
     }
-    if (WorkspaceSymbolOptions.canParse(json, nullLspJsonReporter)) {
-      return WorkspaceSymbolOptions.fromJson(json);
+    if (MonikerOptions.canParse(json, nullLspJsonReporter)) {
+      return MonikerOptions.fromJson(json);
     }
-    if (ExecuteCommandOptions.canParse(json, nullLspJsonReporter)) {
-      return ExecuteCommandOptions.fromJson(json);
+    if (ReferenceOptions.canParse(json, nullLspJsonReporter)) {
+      return ReferenceOptions.fromJson(json);
+    }
+    if (SelectionRangeOptions.canParse(json, nullLspJsonReporter)) {
+      return SelectionRangeOptions.fromJson(json);
+    }
+    if (TypeDefinitionOptions.canParse(json, nullLspJsonReporter)) {
+      return TypeDefinitionOptions.fromJson(json);
+    }
+    if (TypeHierarchyOptions.canParse(json, nullLspJsonReporter)) {
+      return TypeHierarchyOptions.fromJson(json);
     }
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -43129,65 +43129,26 @@ class WorkDoneProgressParams implements ToJsonable {
     this.workDoneToken,
   });
   static WorkDoneProgressParams fromJson(Map<String, Object?> json) {
-    if (InitializeParams.canParse(json, nullLspJsonReporter)) {
-      return InitializeParams.fromJson(json);
+    if (CodeActionParams.canParse(json, nullLspJsonReporter)) {
+      return CodeActionParams.fromJson(json);
     }
-    if (DeclarationParams.canParse(json, nullLspJsonReporter)) {
-      return DeclarationParams.fromJson(json);
+    if (ColorPresentationParams.canParse(json, nullLspJsonReporter)) {
+      return ColorPresentationParams.fromJson(json);
     }
-    if (DefinitionParams.canParse(json, nullLspJsonReporter)) {
-      return DefinitionParams.fromJson(json);
+    if (DocumentRangeFormattingParams.canParse(json, nullLspJsonReporter)) {
+      return DocumentRangeFormattingParams.fromJson(json);
     }
-    if (TypeDefinitionParams.canParse(json, nullLspJsonReporter)) {
-      return TypeDefinitionParams.fromJson(json);
+    if (InlineValueParams.canParse(json, nullLspJsonReporter)) {
+      return InlineValueParams.fromJson(json);
     }
-    if (ImplementationParams.canParse(json, nullLspJsonReporter)) {
-      return ImplementationParams.fromJson(json);
+    if (DocumentFormattingParams.canParse(json, nullLspJsonReporter)) {
+      return DocumentFormattingParams.fromJson(json);
     }
-    if (ReferenceParams.canParse(json, nullLspJsonReporter)) {
-      return ReferenceParams.fromJson(json);
-    }
-    if (CallHierarchyPrepareParams.canParse(json, nullLspJsonReporter)) {
-      return CallHierarchyPrepareParams.fromJson(json);
-    }
-    if (CallHierarchyIncomingCallsParams.canParse(json, nullLspJsonReporter)) {
-      return CallHierarchyIncomingCallsParams.fromJson(json);
-    }
-    if (CallHierarchyOutgoingCallsParams.canParse(json, nullLspJsonReporter)) {
-      return CallHierarchyOutgoingCallsParams.fromJson(json);
-    }
-    if (TypeHierarchyPrepareParams.canParse(json, nullLspJsonReporter)) {
-      return TypeHierarchyPrepareParams.fromJson(json);
-    }
-    if (TypeHierarchySupertypesParams.canParse(json, nullLspJsonReporter)) {
-      return TypeHierarchySupertypesParams.fromJson(json);
-    }
-    if (TypeHierarchySubtypesParams.canParse(json, nullLspJsonReporter)) {
-      return TypeHierarchySubtypesParams.fromJson(json);
-    }
-    if (DocumentHighlightParams.canParse(json, nullLspJsonReporter)) {
-      return DocumentHighlightParams.fromJson(json);
-    }
-    if (DocumentLinkParams.canParse(json, nullLspJsonReporter)) {
-      return DocumentLinkParams.fromJson(json);
-    }
-    if (HoverParams.canParse(json, nullLspJsonReporter)) {
-      return HoverParams.fromJson(json);
-    }
-    if (CodeLensParams.canParse(json, nullLspJsonReporter)) {
-      return CodeLensParams.fromJson(json);
-    }
-    if (FoldingRangeParams.canParse(json, nullLspJsonReporter)) {
-      return FoldingRangeParams.fromJson(json);
+    if (InlayHintParams.canParse(json, nullLspJsonReporter)) {
+      return InlayHintParams.fromJson(json);
     }
     if (SelectionRangeParams.canParse(json, nullLspJsonReporter)) {
       return SelectionRangeParams.fromJson(json);
-    }
-    if (DocumentSymbolParams.canParse(json, nullLspJsonReporter)) {
-      return DocumentSymbolParams.fromJson(json);
-    }
-    if (SemanticTokensParams.canParse(json, nullLspJsonReporter)) {
-      return SemanticTokensParams.fromJson(json);
     }
     if (SemanticTokensDeltaParams.canParse(json, nullLspJsonReporter)) {
       return SemanticTokensDeltaParams.fromJson(json);
@@ -43195,53 +43156,92 @@ class WorkDoneProgressParams implements ToJsonable {
     if (SemanticTokensRangeParams.canParse(json, nullLspJsonReporter)) {
       return SemanticTokensRangeParams.fromJson(json);
     }
-    if (InlayHintParams.canParse(json, nullLspJsonReporter)) {
-      return InlayHintParams.fromJson(json);
-    }
-    if (InlineValueParams.canParse(json, nullLspJsonReporter)) {
-      return InlineValueParams.fromJson(json);
-    }
-    if (MonikerParams.canParse(json, nullLspJsonReporter)) {
-      return MonikerParams.fromJson(json);
-    }
-    if (CompletionParams.canParse(json, nullLspJsonReporter)) {
-      return CompletionParams.fromJson(json);
+    if (InitializeParams.canParse(json, nullLspJsonReporter)) {
+      return InitializeParams.fromJson(json);
     }
     if (DocumentDiagnosticParams.canParse(json, nullLspJsonReporter)) {
       return DocumentDiagnosticParams.fromJson(json);
     }
+    if (ExecuteCommandParams.canParse(json, nullLspJsonReporter)) {
+      return ExecuteCommandParams.fromJson(json);
+    }
     if (WorkspaceDiagnosticParams.canParse(json, nullLspJsonReporter)) {
       return WorkspaceDiagnosticParams.fromJson(json);
     }
-    if (SignatureHelpParams.canParse(json, nullLspJsonReporter)) {
-      return SignatureHelpParams.fromJson(json);
+    if (CallHierarchyIncomingCallsParams.canParse(json, nullLspJsonReporter)) {
+      return CallHierarchyIncomingCallsParams.fromJson(json);
     }
-    if (CodeActionParams.canParse(json, nullLspJsonReporter)) {
-      return CodeActionParams.fromJson(json);
+    if (CallHierarchyOutgoingCallsParams.canParse(json, nullLspJsonReporter)) {
+      return CallHierarchyOutgoingCallsParams.fromJson(json);
+    }
+    if (CodeLensParams.canParse(json, nullLspJsonReporter)) {
+      return CodeLensParams.fromJson(json);
     }
     if (DocumentColorParams.canParse(json, nullLspJsonReporter)) {
       return DocumentColorParams.fromJson(json);
     }
-    if (ColorPresentationParams.canParse(json, nullLspJsonReporter)) {
-      return ColorPresentationParams.fromJson(json);
+    if (DocumentLinkParams.canParse(json, nullLspJsonReporter)) {
+      return DocumentLinkParams.fromJson(json);
     }
-    if (DocumentFormattingParams.canParse(json, nullLspJsonReporter)) {
-      return DocumentFormattingParams.fromJson(json);
+    if (DocumentSymbolParams.canParse(json, nullLspJsonReporter)) {
+      return DocumentSymbolParams.fromJson(json);
     }
-    if (DocumentRangeFormattingParams.canParse(json, nullLspJsonReporter)) {
-      return DocumentRangeFormattingParams.fromJson(json);
+    if (FoldingRangeParams.canParse(json, nullLspJsonReporter)) {
+      return FoldingRangeParams.fromJson(json);
+    }
+    if (ReferenceParams.canParse(json, nullLspJsonReporter)) {
+      return ReferenceParams.fromJson(json);
     }
     if (RenameParams.canParse(json, nullLspJsonReporter)) {
       return RenameParams.fromJson(json);
     }
-    if (LinkedEditingRangeParams.canParse(json, nullLspJsonReporter)) {
-      return LinkedEditingRangeParams.fromJson(json);
+    if (SemanticTokensParams.canParse(json, nullLspJsonReporter)) {
+      return SemanticTokensParams.fromJson(json);
+    }
+    if (TypeHierarchySubtypesParams.canParse(json, nullLspJsonReporter)) {
+      return TypeHierarchySubtypesParams.fromJson(json);
+    }
+    if (TypeHierarchySupertypesParams.canParse(json, nullLspJsonReporter)) {
+      return TypeHierarchySupertypesParams.fromJson(json);
     }
     if (WorkspaceSymbolParams.canParse(json, nullLspJsonReporter)) {
       return WorkspaceSymbolParams.fromJson(json);
     }
-    if (ExecuteCommandParams.canParse(json, nullLspJsonReporter)) {
-      return ExecuteCommandParams.fromJson(json);
+    if (CompletionParams.canParse(json, nullLspJsonReporter)) {
+      return CompletionParams.fromJson(json);
+    }
+    if (SignatureHelpParams.canParse(json, nullLspJsonReporter)) {
+      return SignatureHelpParams.fromJson(json);
+    }
+    if (CallHierarchyPrepareParams.canParse(json, nullLspJsonReporter)) {
+      return CallHierarchyPrepareParams.fromJson(json);
+    }
+    if (DeclarationParams.canParse(json, nullLspJsonReporter)) {
+      return DeclarationParams.fromJson(json);
+    }
+    if (DefinitionParams.canParse(json, nullLspJsonReporter)) {
+      return DefinitionParams.fromJson(json);
+    }
+    if (DocumentHighlightParams.canParse(json, nullLspJsonReporter)) {
+      return DocumentHighlightParams.fromJson(json);
+    }
+    if (HoverParams.canParse(json, nullLspJsonReporter)) {
+      return HoverParams.fromJson(json);
+    }
+    if (ImplementationParams.canParse(json, nullLspJsonReporter)) {
+      return ImplementationParams.fromJson(json);
+    }
+    if (LinkedEditingRangeParams.canParse(json, nullLspJsonReporter)) {
+      return LinkedEditingRangeParams.fromJson(json);
+    }
+    if (MonikerParams.canParse(json, nullLspJsonReporter)) {
+      return MonikerParams.fromJson(json);
+    }
+    if (TypeDefinitionParams.canParse(json, nullLspJsonReporter)) {
+      return TypeDefinitionParams.fromJson(json);
+    }
+    if (TypeHierarchyPrepareParams.canParse(json, nullLspJsonReporter)) {
+      return TypeHierarchyPrepareParams.fromJson(json);
     }
     final workDoneTokenJson = json['workDoneToken'];
     final workDoneToken = workDoneTokenJson == null
@@ -43888,7 +43888,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
 /// Parameters of the workspace diagnostic request.
 ///  @since 3.17.0
 class WorkspaceDiagnosticParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     WorkspaceDiagnosticParams.canParse,
     WorkspaceDiagnosticParams.fromJson,
@@ -44273,26 +44273,22 @@ class WorkspaceEdit implements ToJsonable {
                 .map((item) => TextEdit.fromJson(item as Map<String, Object?>))
                 .toList()));
     final documentChangesJson = json['documentChanges'];
-    final documentChanges = documentChangesJson == null
-        ? null
-        : ((documentChangesJson is List<Object?> &&
-                (documentChangesJson.every((item) =>
-                    (CreateFile.canParse(item, nullLspJsonReporter) ||
-                        DeleteFile.canParse(item, nullLspJsonReporter) ||
-                        RenameFile.canParse(item, nullLspJsonReporter) ||
-                        TextDocumentEdit.canParse(item, nullLspJsonReporter)))))
-            ? Either2<List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>, List<TextDocumentEdit>>.t1((documentChangesJson)
-                .map((item) => CreateFile.canParse(item, nullLspJsonReporter)
-                    ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t1(
-                        CreateFile.fromJson(item as Map<String, Object?>))
-                    : (DeleteFile.canParse(item, nullLspJsonReporter)
-                        ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t2(
-                            DeleteFile.fromJson(item as Map<String, Object?>))
-                        : (RenameFile.canParse(item, nullLspJsonReporter)
-                            ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t3(RenameFile.fromJson(item as Map<String, Object?>))
-                            : (TextDocumentEdit.canParse(item, nullLspJsonReporter) ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t4(TextDocumentEdit.fromJson(item as Map<String, Object?>)) : (throw '''$item was not one of (CreateFile, DeleteFile, RenameFile, TextDocumentEdit)''')))))
-                .toList())
-            : ((documentChangesJson is List<Object?> && (documentChangesJson.every((item) => TextDocumentEdit.canParse(item, nullLspJsonReporter)))) ? Either2<List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>, List<TextDocumentEdit>>.t2((documentChangesJson).map((item) => TextDocumentEdit.fromJson(item as Map<String, Object?>)).toList()) : (throw '''$documentChangesJson was not one of (List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>, List<TextDocumentEdit>)''')));
+    final documentChanges = (documentChangesJson as List<Object?>?)
+        ?.map((item) => CreateFile.canParse(item, nullLspJsonReporter)
+            ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t1(
+                CreateFile.fromJson(item as Map<String, Object?>))
+            : (DeleteFile.canParse(item, nullLspJsonReporter)
+                ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t2(
+                    DeleteFile.fromJson(item as Map<String, Object?>))
+                : (RenameFile.canParse(item, nullLspJsonReporter)
+                    ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t3(
+                        RenameFile.fromJson(item as Map<String, Object?>))
+                    : (TextDocumentEdit.canParse(item, nullLspJsonReporter)
+                        ? Either4<CreateFile, DeleteFile, RenameFile,
+                                TextDocumentEdit>.t4(
+                            TextDocumentEdit.fromJson(item as Map<String, Object?>))
+                        : (throw '''$item was not one of (CreateFile, DeleteFile, RenameFile, TextDocumentEdit)''')))))
+        .toList();
     return WorkspaceEdit(
       changeAnnotations: changeAnnotations,
       changes: changes,
@@ -44324,9 +44320,8 @@ class WorkspaceEdit implements ToJsonable {
   /// If a client neither supports `documentChanges` nor
   /// `workspace.workspaceEdit.resourceOperations` then only plain `TextEdit`s
   /// using the `changes` property are supported.
-  final Either2<
-      List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>,
-      List<TextDocumentEdit>>? documentChanges;
+  final List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>?
+      documentChanges;
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
@@ -44379,17 +44374,14 @@ class WorkspaceEdit implements ToJsonable {
       try {
         final documentChanges = obj['documentChanges'];
         if (documentChanges != null &&
-            !(((documentChanges is List<Object?> &&
-                    (documentChanges.every((item) =>
-                        (CreateFile.canParse(item, reporter) ||
-                            DeleteFile.canParse(item, reporter) ||
-                            RenameFile.canParse(item, reporter) ||
-                            TextDocumentEdit.canParse(item, reporter))))) ||
-                (documentChanges is List<Object?> &&
-                    (documentChanges.every((item) =>
+            !((documentChanges is List<Object?> &&
+                (documentChanges.every((item) =>
+                    (CreateFile.canParse(item, reporter) ||
+                        DeleteFile.canParse(item, reporter) ||
+                        RenameFile.canParse(item, reporter) ||
                         TextDocumentEdit.canParse(item, reporter))))))) {
           reporter.reportError(
-              'must be of type Either2<List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>, List<TextDocumentEdit>>');
+              'must be of type List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>');
           return false;
         }
       } finally {
@@ -44412,7 +44404,14 @@ class WorkspaceEdit implements ToJsonable {
               other.changes,
               (List<TextEdit> a, List<TextEdit> b) =>
                   listEqual(a, b, (TextEdit a, TextEdit b) => a == b)) &&
-          documentChanges == other.documentChanges &&
+          listEqual(
+              documentChanges,
+              other.documentChanges,
+              (Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit> a,
+                      Either4<CreateFile, DeleteFile, RenameFile,
+                              TextDocumentEdit>
+                          b) =>
+                  a == b) &&
           true;
     }
     return false;
@@ -44422,7 +44421,7 @@ class WorkspaceEdit implements ToJsonable {
   int get hashCode => Object.hash(
         lspHashCode(changeAnnotations),
         lspHashCode(changes),
-        documentChanges,
+        lspHashCode(documentChanges),
       );
 
   @override
@@ -45918,7 +45917,7 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
 
 /// The parameters of a Workspace Symbol Request.
 class WorkspaceSymbolParams
-    implements WorkDoneProgressParams, PartialResultParams, ToJsonable {
+    implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     WorkspaceSymbolParams.canParse,
     WorkspaceSymbolParams.fromJson,

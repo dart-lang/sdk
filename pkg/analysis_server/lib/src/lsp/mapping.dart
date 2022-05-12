@@ -105,10 +105,7 @@ WorkspaceEdit createRenameEdit(String oldPath, String newPath) {
 
   changes.add(renameUnion);
 
-  final edit = WorkspaceEdit(
-      documentChanges: Either2<
-          List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>,
-          List<TextDocumentEdit>>.t1(changes));
+  final edit = WorkspaceEdit(documentChanges: changes);
   return edit;
 }
 
@@ -171,15 +168,8 @@ lsp.WorkspaceEdit createWorkspaceEdit(
   final textDocumentEditsAsUnion = Either4<lsp.CreateFile, lsp.DeleteFile,
       lsp.RenameFile, lsp.TextDocumentEdit>.t4(textDocumentEdit);
 
-  // Convert to the union that documentChanges is.
-  final documentChanges = Either2<
-      List<
-          Either4<lsp.CreateFile, lsp.DeleteFile, lsp.RenameFile,
-              lsp.TextDocumentEdit>>,
-      List<lsp.TextDocumentEdit>>.t1([textDocumentEditsAsUnion]);
-
   /// Add the textDocumentEdit to a WorkspaceEdit.
-  return lsp.WorkspaceEdit(documentChanges: documentChanges);
+  return lsp.WorkspaceEdit(documentChanges: [textDocumentEditsAsUnion]);
 }
 
 lsp.CompletionItemKind? declarationKindToCompletionItemKind(
@@ -696,19 +686,10 @@ WorkspaceEdit mergeWorkspaceEdits(List<WorkspaceEdit> edits) {
       <Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>[];
 
   for (final edit in edits) {
-    // Flatten the Either into just the Union side to get a flat list.
-    final flatResourceChanges = edit.documentChanges!.map(
-      (resources) => resources,
-      (edits) => edits.map((e) =>
-          Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t4(e)),
-    );
-    changes.addAll(flatResourceChanges);
+    changes.addAll(edit.documentChanges!);
   }
 
-  return WorkspaceEdit(
-      documentChanges: Either2<
-          List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>,
-          List<TextDocumentEdit>>.t1(changes));
+  return WorkspaceEdit(documentChanges: changes);
 }
 
 lsp.Location navigationTargetToLocation(
@@ -1612,12 +1593,7 @@ lsp.WorkspaceEdit toWorkspaceEdit(
       changes.add(textDocEditUnion);
     }
 
-    return lsp.WorkspaceEdit(
-        documentChanges: Either2<
-            List<
-                Either4<lsp.CreateFile, lsp.DeleteFile, lsp.RenameFile,
-                    lsp.TextDocumentEdit>>,
-            List<lsp.TextDocumentEdit>>.t1(changes));
+    return lsp.WorkspaceEdit(documentChanges: changes);
   } else {
     return lsp.WorkspaceEdit(changes: toWorkspaceEditChanges(edits));
   }

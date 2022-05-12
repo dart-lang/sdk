@@ -49,7 +49,20 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
+
+/// A library augmentation import directive within a library.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class AugmentationImportElement implements UriReferencedElement {
+  /// Returns the augmentation library that this element imports.
+  LibraryAugmentationElement get augmentation;
+
+  @override
+  LibraryOrAugmentationElement get enclosingElement;
+}
 
 /// An element that represents a class or a mixin. The class can be defined by
 /// either a class declaration (with a class body), a mixin application (without
@@ -1292,17 +1305,20 @@ abstract class LabelElement implements Element {
   String get name;
 }
 
+/// A library augmentation.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class LibraryAugmentationElement extends LibraryOrAugmentationElement {
+  /// Returns the library that is augmented by this augmentation.
+  LibraryOrAugmentationElement get augmented;
+}
+
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LibraryElement implements _ExistingElement {
-  /// Returns a list containing all of the extension elements accessible within
-  /// this library.
-  List<ExtensionElement> get accessibleExtensions;
-
-  /// Return the compilation unit that defines this library.
-  CompilationUnitElement get definingCompilationUnit;
-
+abstract class LibraryElement
+    implements LibraryOrAugmentationElement, _ExistingElement {
   /// Return the entry point for this library, or `null` if this library does
   /// not have an entry point. The entry point is defined to be a zero argument
   /// top-level function whose name is `main`.
@@ -1315,16 +1331,6 @@ abstract class LibraryElement implements _ExistingElement {
   /// The export [Namespace] of this library.
   Namespace get exportNamespace;
 
-  /// Return a list containing all of the exports defined in this library.
-  List<ExportElement> get exports;
-
-  /// The set of features available to this library.
-  ///
-  /// Determined by the combination of the language version for the enclosing
-  /// package, enabled experiments, and the presence of a `// @dart` language
-  /// version override comment at the top of the file.
-  FeatureSet get featureSet;
-
   /// Return an identifier that uniquely identifies this element among the
   /// children of this element's parent.
   String get identifier;
@@ -1333,9 +1339,6 @@ abstract class LibraryElement implements _ExistingElement {
   /// library. This includes all of the libraries that are imported using a
   /// prefix and those that are imported without a prefix.
   List<LibraryElement> get importedLibraries;
-
-  /// Return a list containing all of the imports defined in this library.
-  List<ImportElement> get imports;
 
   /// Return `true` if this library is an application that can be run in the
   /// browser.
@@ -1349,11 +1352,6 @@ abstract class LibraryElement implements _ExistingElement {
 
   /// Return `true` if this library is part of the SDK.
   bool get isInSdk;
-
-  bool get isNonNullableByDefault;
-
-  /// The language version for this library.
-  LibraryLanguageVersion get languageVersion;
 
   /// Return the element representing the synthetic function `loadLibrary` that
   /// is implicitly defined for this library if the library is imported using a
@@ -1370,31 +1368,13 @@ abstract class LibraryElement implements _ExistingElement {
   /// compilation unit that contains the `part` directives.
   List<CompilationUnitElement> get parts;
 
-  /// Return a list containing elements for each of the prefixes used to
-  /// `import` libraries into this library. Each prefix can be used in more
-  /// than one `import` directive.
-  List<PrefixElement> get prefixes;
-
   /// The public [Namespace] of this library.
   Namespace get publicNamespace;
-
-  /// Return the name lookup scope for this library. It consists of elements
-  /// that are either declared in the library, or imported into it.
-  Scope get scope;
-
-  @override
-  AnalysisSession get session;
 
   /// Return the top-level elements defined in each of the compilation units
   /// that are included in this library. This includes both public and private
   /// elements, but does not include imports, exports, or synthetic elements.
   Iterable<Element> get topLevelElements;
-
-  /// Return the [TypeProvider] that is used in this library.
-  TypeProvider get typeProvider;
-
-  /// Return the [TypeSystem] that is used in this library.
-  TypeSystem get typeSystem;
 
   /// Return a list containing all of the compilation units this library
   /// consists of. This includes the defining compilation unit and units
@@ -1434,6 +1414,59 @@ class LibraryLanguageVersion {
   Version get effective {
     return override ?? package;
   }
+}
+
+/// Shared interface between [LibraryElement] and [LibraryAugmentationElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class LibraryOrAugmentationElement implements Element {
+  /// Returns a list containing all of the extension elements accessible within
+  /// this library.
+  List<ExtensionElement> get accessibleExtensions;
+
+  /// Returns the augmentation imports specified in this library.
+  @experimental
+  List<AugmentationImportElement> get augmentationImports;
+
+  /// Return the compilation unit that defines this library.
+  CompilationUnitElement get definingCompilationUnit;
+
+  /// Return a list containing all of the exports defined in this library.
+  List<ExportElement> get exports;
+
+  /// The set of features available to this library.
+  ///
+  /// Determined by the combination of the language version for the enclosing
+  /// package, enabled experiments, and the presence of a `// @dart` language
+  /// version override comment at the top of the file.
+  FeatureSet get featureSet;
+
+  /// Return a list containing all of the imports defined in this library.
+  List<ImportElement> get imports;
+
+  bool get isNonNullableByDefault;
+
+  /// The language version for this library.
+  LibraryLanguageVersion get languageVersion;
+
+  /// Return a list containing elements for each of the prefixes used to
+  /// `import` libraries into this library. Each prefix can be used in more
+  /// than one `import` directive.
+  List<PrefixElement> get prefixes;
+
+  /// Return the name lookup scope for this library. It consists of elements
+  /// that are either declared in the library, or imported into it.
+  Scope get scope;
+
+  @override
+  AnalysisSession get session;
+
+  /// Return the [TypeProvider] that is used in this library.
+  TypeProvider get typeProvider;
+
+  /// Return the [TypeSystem] that is used in this library.
+  TypeSystem get typeSystem;
 }
 
 /// An element that can be (but is not required to be) defined within a method

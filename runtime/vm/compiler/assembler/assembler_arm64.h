@@ -1415,11 +1415,11 @@ class Assembler : public AssemblerBase {
   void fcvtds(VRegister vd, VRegister vn) { EmitFPOneSourceOp(FCVTDS, vd, vn); }
   void fldrq(VRegister vt, Address a) {
     ASSERT(a.type() != Address::PCOffset);
-    EmitLoadStoreReg(FLDRQ, static_cast<Register>(vt), a, kByte);
+    EmitLoadStoreReg(FLDRQ, static_cast<Register>(vt), a, kQWord);
   }
   void fstrq(VRegister vt, Address a) {
     ASSERT(a.type() != Address::PCOffset);
-    EmitLoadStoreReg(FSTRQ, static_cast<Register>(vt), a, kByte);
+    EmitLoadStoreReg(FSTRQ, static_cast<Register>(vt), a, kQWord);
   }
   void fldrd(VRegister vt, Address a) {
     ASSERT(a.type() != Address::PCOffset);
