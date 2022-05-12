@@ -531,6 +531,18 @@ class Parser {
       return uniqueTypes.firstWhere(isAnyType);
     }
 
+    // Special case to simplify a complex type in the TypeScript spec that is
+    // hard to detect generically and is already simplified in the JSON model.
+    // The first type in the union is fully representable in the second and can
+    // be dropped.
+    // TODO(dantup): Remove this when switching to the JSON model.
+    if (uniqueTypes.length == 2 &&
+        uniqueTypes[0].dartTypeWithTypeArgs == 'List<TextDocumentEdit>' &&
+        uniqueTypes[1].dartTypeWithTypeArgs ==
+            'List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>') {
+      return uniqueTypes[1];
+    }
+
     return uniqueTypes.length == 1
         ? uniqueTypes.single
         : uniqueTypes.every(isLiteralType)

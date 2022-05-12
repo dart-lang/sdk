@@ -3262,7 +3262,7 @@ class CodeActionDisabled implements ToJsonable {
 }
 
 /// A set of predefined code action kinds.
-class CodeActionKind {
+class CodeActionKind implements ToJsonable {
   const CodeActionKind(this._value);
   const CodeActionKind.fromJson(this._value);
 
@@ -3807,7 +3807,7 @@ class CodeActionRegistrationOptions
 
 /// The reason why code actions were requested.
 ///  @since 3.17.0
-class CodeActionTriggerKind {
+class CodeActionTriggerKind implements ToJsonable {
   const CodeActionTriggerKind(this._value);
   const CodeActionTriggerKind.fromJson(this._value);
 
@@ -6786,7 +6786,7 @@ class CompletionItem implements ToJsonable {
 }
 
 /// The kind of a completion entry.
-class CompletionItemKind {
+class CompletionItemKind implements ToJsonable {
   const CompletionItemKind(this._value);
   const CompletionItemKind.fromJson(this._value);
 
@@ -6928,7 +6928,7 @@ class CompletionItemLabelDetails implements ToJsonable {
 /// Completion item tags are extra annotations that tweak the rendering of a
 /// completion item.
 ///  @since 3.15.0
-class CompletionItemTag {
+class CompletionItemTag implements ToJsonable {
   const CompletionItemTag(this._value);
   const CompletionItemTag.fromJson(this._value);
 
@@ -8017,7 +8017,7 @@ class CompletionRegistrationOptions
 }
 
 /// How a completion was triggered
-class CompletionTriggerKind {
+class CompletionTriggerKind implements ToJsonable {
   const CompletionTriggerKind._(this._value);
   const CompletionTriggerKind.fromJson(this._value);
 
@@ -10604,7 +10604,7 @@ class DiagnosticServerCancellationData implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class DiagnosticSeverity {
+class DiagnosticSeverity implements ToJsonable {
   const DiagnosticSeverity(this._value);
   const DiagnosticSeverity.fromJson(this._value);
 
@@ -10639,7 +10639,7 @@ class DiagnosticSeverity {
 
 /// The diagnostic tags.
 ///  @since 3.15.0
-class DiagnosticTag {
+class DiagnosticTag implements ToJsonable {
   const DiagnosticTag(this._value);
   const DiagnosticTag.fromJson(this._value);
 
@@ -12530,7 +12530,7 @@ class DocumentDiagnosticParams
 
 /// The document diagnostic report kinds.
 ///  @since 3.17.0
-class DocumentDiagnosticReportKind {
+class DocumentDiagnosticReportKind implements ToJsonable {
   const DocumentDiagnosticReportKind(this._value);
   const DocumentDiagnosticReportKind.fromJson(this._value);
 
@@ -13188,7 +13188,7 @@ class DocumentHighlightClientCapabilities implements ToJsonable {
 }
 
 /// A document highlight kind.
-class DocumentHighlightKind {
+class DocumentHighlightKind implements ToJsonable {
   const DocumentHighlightKind(this._value);
   const DocumentHighlightKind.fromJson(this._value);
 
@@ -15928,7 +15928,7 @@ class DocumentSymbolRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class ErrorCodes {
+class ErrorCodes implements ToJsonable {
   const ErrorCodes(this._value);
   const ErrorCodes.fromJson(this._value);
 
@@ -16485,7 +16485,7 @@ class ExecutionSummary implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class FailureHandlingKind {
+class FailureHandlingKind implements ToJsonable {
   const FailureHandlingKind._(this._value);
   const FailureHandlingKind.fromJson(this._value);
 
@@ -16533,7 +16533,7 @@ class FailureHandlingKind {
 }
 
 /// The file event type.
-class FileChangeType {
+class FileChangeType implements ToJsonable {
   const FileChangeType(this._value);
   const FileChangeType.fromJson(this._value);
 
@@ -17037,7 +17037,7 @@ class FileOperationPattern implements ToJsonable {
 
 /// A pattern kind describing if a glob pattern matches a file a folder or both.
 ///  @since 3.16.0
-class FileOperationPatternKind {
+class FileOperationPatternKind implements ToJsonable {
   const FileOperationPatternKind(this._value);
   const FileOperationPatternKind.fromJson(this._value);
 
@@ -17927,7 +17927,7 @@ class FoldingRangeClientCapabilitiesFoldingRangeKind implements ToJsonable {
 }
 
 /// A set of predefined range kinds.
-class FoldingRangeKind {
+class FoldingRangeKind implements ToJsonable {
   const FoldingRangeKind(this._value);
   const FoldingRangeKind.fromJson(this._value);
 
@@ -19688,7 +19688,7 @@ class ImplementationRegistrationOptions
 }
 
 /// Known error codes for an `InitializeErrorCodes`;
-class InitializeErrorCodes {
+class InitializeErrorCodes implements ToJsonable {
   const InitializeErrorCodes(this._value);
   const InitializeErrorCodes.fromJson(this._value);
 
@@ -20783,7 +20783,7 @@ class InlayHintClientCapabilitiesResolveSupport implements ToJsonable {
 
 /// Inlay hint kinds.
 ///  @since 3.17.0
-class InlayHintKind {
+class InlayHintKind implements ToJsonable {
   const InlayHintKind(this._value);
   const InlayHintKind.fromJson(this._value);
 
@@ -22448,7 +22448,7 @@ class InsertReplaceEdit implements ToJsonable {
 
 /// Defines whether the insert text in a completion item should be interpreted
 /// as plain text or a snippet.
-class InsertTextFormat {
+class InsertTextFormat implements ToJsonable {
   const InsertTextFormat._(this._value);
   const InsertTextFormat.fromJson(this._value);
 
@@ -22487,7 +22487,7 @@ class InsertTextFormat {
 
 /// How whitespace and indentation is handled during completion item insertion.
 ///  @since 3.16.0
-class InsertTextMode {
+class InsertTextMode implements ToJsonable {
   const InsertTextMode(this._value);
   const InsertTextMode.fromJson(this._value);
 
@@ -23704,7 +23704,7 @@ class MarkupContent implements ToJsonable {
 ///
 /// Please note that `MarkupKinds` must not start with a `$`. This kinds are
 /// reserved for internal usage.
-class MarkupKind {
+class MarkupKind implements ToJsonable {
   const MarkupKind._(this._value);
   const MarkupKind.fromJson(this._value);
 
@@ -23903,7 +23903,7 @@ class MessageActionItem implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class MessageType {
+class MessageType implements ToJsonable {
   const MessageType(this._value);
   const MessageType.fromJson(this._value);
 
@@ -23937,7 +23937,7 @@ class MessageType {
 }
 
 /// Valid LSP methods known at the time of code generation from the spec.
-class Method {
+class Method implements ToJsonable {
   const Method(this._value);
   const Method.fromJson(this._value);
 
@@ -24475,7 +24475,7 @@ class MonikerClientCapabilities implements ToJsonable {
 }
 
 /// The moniker kind.
-class MonikerKind {
+class MonikerKind implements ToJsonable {
   const MonikerKind(this._value);
   const MonikerKind.fromJson(this._value);
 
@@ -25106,7 +25106,7 @@ class NotebookCellArrayChange implements ToJsonable {
 
 /// A notebook cell kind.
 ///  @since 3.17.0
-class NotebookCellKind {
+class NotebookCellKind implements ToJsonable {
   const NotebookCellKind(this._value);
   const NotebookCellKind.fromJson(this._value);
 
@@ -27539,7 +27539,7 @@ class Position implements ToJsonable {
 
 /// A set of predefined position encoding kinds.
 ///  @since 3.17.0
-class PositionEncodingKind {
+class PositionEncodingKind implements ToJsonable {
   const PositionEncodingKind(this._value);
   const PositionEncodingKind.fromJson(this._value);
 
@@ -27676,7 +27676,7 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class PrepareSupportDefaultBehavior {
+class PrepareSupportDefaultBehavior implements ToJsonable {
   const PrepareSupportDefaultBehavior(this._value);
   const PrepareSupportDefaultBehavior.fromJson(this._value);
 
@@ -30722,7 +30722,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class ResourceOperationKind {
+class ResourceOperationKind implements ToJsonable {
   const ResourceOperationKind._(this._value);
   const ResourceOperationKind.fromJson(this._value);
 
@@ -31615,7 +31615,7 @@ class SelectionRangeRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class SemanticTokenModifiers {
+class SemanticTokenModifiers implements ToJsonable {
   const SemanticTokenModifiers(this._value);
   const SemanticTokenModifiers.fromJson(this._value);
 
@@ -31648,7 +31648,7 @@ class SemanticTokenModifiers {
       o is SemanticTokenModifiers && o._value == _value;
 }
 
-class SemanticTokenTypes {
+class SemanticTokenTypes implements ToJsonable {
   const SemanticTokenTypes(this._value);
   const SemanticTokenTypes.fromJson(this._value);
 
@@ -37241,7 +37241,7 @@ class SignatureHelpRegistrationOptions
 
 /// How a signature help was triggered.
 ///  @since 3.15.0
-class SignatureHelpTriggerKind {
+class SignatureHelpTriggerKind implements ToJsonable {
   const SignatureHelpTriggerKind(this._value);
   const SignatureHelpTriggerKind.fromJson(this._value);
 
@@ -37758,7 +37758,7 @@ class SymbolInformation implements ToJsonable {
 }
 
 /// A symbol kind.
-class SymbolKind {
+class SymbolKind implements ToJsonable {
   const SymbolKind(this._value);
   const SymbolKind.fromJson(this._value);
 
@@ -37808,7 +37808,7 @@ class SymbolKind {
 
 /// Symbol tags are extra annotations that tweak the rendering of a symbol.
 ///  @since 3.16
-class SymbolTag {
+class SymbolTag implements ToJsonable {
   const SymbolTag(this._value);
   const SymbolTag.fromJson(this._value);
 
@@ -39807,7 +39807,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
 }
 
 /// Represents reasons why a text document is saved.
-class TextDocumentSaveReason {
+class TextDocumentSaveReason implements ToJsonable {
   const TextDocumentSaveReason(this._value);
   const TextDocumentSaveReason.fromJson(this._value);
 
@@ -40078,7 +40078,7 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
 
 /// Defines how the host (editor) should sync document changes to the language
 /// server.
-class TextDocumentSyncKind {
+class TextDocumentSyncKind implements ToJsonable {
   const TextDocumentSyncKind(this._value);
   const TextDocumentSyncKind.fromJson(this._value);
 
@@ -40385,7 +40385,7 @@ class TextEdit implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class TokenFormat {
+class TokenFormat implements ToJsonable {
   const TokenFormat(this._value);
   const TokenFormat.fromJson(this._value);
 
@@ -41867,7 +41867,7 @@ class UnchangedDocumentDiagnosticReport implements ToJsonable {
 }
 
 /// Moniker uniqueness level to define scope of the moniker.
-class UniquenessLevel {
+class UniquenessLevel implements ToJsonable {
   const UniquenessLevel(this._value);
   const UniquenessLevel.fromJson(this._value);
 
@@ -42284,7 +42284,7 @@ class VersionedTextDocumentIdentifier
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class WatchKind {
+class WatchKind implements ToJsonable {
   const WatchKind(this._value);
   const WatchKind.fromJson(this._value);
 
@@ -44273,26 +44273,22 @@ class WorkspaceEdit implements ToJsonable {
                 .map((item) => TextEdit.fromJson(item as Map<String, Object?>))
                 .toList()));
     final documentChangesJson = json['documentChanges'];
-    final documentChanges = documentChangesJson == null
-        ? null
-        : ((documentChangesJson is List<Object?> &&
-                (documentChangesJson.every((item) =>
-                    (CreateFile.canParse(item, nullLspJsonReporter) ||
-                        DeleteFile.canParse(item, nullLspJsonReporter) ||
-                        RenameFile.canParse(item, nullLspJsonReporter) ||
-                        TextDocumentEdit.canParse(item, nullLspJsonReporter)))))
-            ? Either2<List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>, List<TextDocumentEdit>>.t1((documentChangesJson)
-                .map((item) => CreateFile.canParse(item, nullLspJsonReporter)
-                    ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t1(
-                        CreateFile.fromJson(item as Map<String, Object?>))
-                    : (DeleteFile.canParse(item, nullLspJsonReporter)
-                        ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t2(
-                            DeleteFile.fromJson(item as Map<String, Object?>))
-                        : (RenameFile.canParse(item, nullLspJsonReporter)
-                            ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t3(RenameFile.fromJson(item as Map<String, Object?>))
-                            : (TextDocumentEdit.canParse(item, nullLspJsonReporter) ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t4(TextDocumentEdit.fromJson(item as Map<String, Object?>)) : (throw '''$item was not one of (CreateFile, DeleteFile, RenameFile, TextDocumentEdit)''')))))
-                .toList())
-            : ((documentChangesJson is List<Object?> && (documentChangesJson.every((item) => TextDocumentEdit.canParse(item, nullLspJsonReporter)))) ? Either2<List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>, List<TextDocumentEdit>>.t2((documentChangesJson).map((item) => TextDocumentEdit.fromJson(item as Map<String, Object?>)).toList()) : (throw '''$documentChangesJson was not one of (List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>, List<TextDocumentEdit>)''')));
+    final documentChanges = (documentChangesJson as List<Object?>?)
+        ?.map((item) => CreateFile.canParse(item, nullLspJsonReporter)
+            ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t1(
+                CreateFile.fromJson(item as Map<String, Object?>))
+            : (DeleteFile.canParse(item, nullLspJsonReporter)
+                ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t2(
+                    DeleteFile.fromJson(item as Map<String, Object?>))
+                : (RenameFile.canParse(item, nullLspJsonReporter)
+                    ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t3(
+                        RenameFile.fromJson(item as Map<String, Object?>))
+                    : (TextDocumentEdit.canParse(item, nullLspJsonReporter)
+                        ? Either4<CreateFile, DeleteFile, RenameFile,
+                                TextDocumentEdit>.t4(
+                            TextDocumentEdit.fromJson(item as Map<String, Object?>))
+                        : (throw '''$item was not one of (CreateFile, DeleteFile, RenameFile, TextDocumentEdit)''')))))
+        .toList();
     return WorkspaceEdit(
       changeAnnotations: changeAnnotations,
       changes: changes,
@@ -44324,9 +44320,8 @@ class WorkspaceEdit implements ToJsonable {
   /// If a client neither supports `documentChanges` nor
   /// `workspace.workspaceEdit.resourceOperations` then only plain `TextEdit`s
   /// using the `changes` property are supported.
-  final Either2<
-      List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>,
-      List<TextDocumentEdit>>? documentChanges;
+  final List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>?
+      documentChanges;
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
@@ -44379,17 +44374,14 @@ class WorkspaceEdit implements ToJsonable {
       try {
         final documentChanges = obj['documentChanges'];
         if (documentChanges != null &&
-            !(((documentChanges is List<Object?> &&
-                    (documentChanges.every((item) =>
-                        (CreateFile.canParse(item, reporter) ||
-                            DeleteFile.canParse(item, reporter) ||
-                            RenameFile.canParse(item, reporter) ||
-                            TextDocumentEdit.canParse(item, reporter))))) ||
-                (documentChanges is List<Object?> &&
-                    (documentChanges.every((item) =>
+            !((documentChanges is List<Object?> &&
+                (documentChanges.every((item) =>
+                    (CreateFile.canParse(item, reporter) ||
+                        DeleteFile.canParse(item, reporter) ||
+                        RenameFile.canParse(item, reporter) ||
                         TextDocumentEdit.canParse(item, reporter))))))) {
           reporter.reportError(
-              'must be of type Either2<List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>, List<TextDocumentEdit>>');
+              'must be of type List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>');
           return false;
         }
       } finally {
@@ -44412,7 +44404,14 @@ class WorkspaceEdit implements ToJsonable {
               other.changes,
               (List<TextEdit> a, List<TextEdit> b) =>
                   listEqual(a, b, (TextEdit a, TextEdit b) => a == b)) &&
-          documentChanges == other.documentChanges &&
+          listEqual(
+              documentChanges,
+              other.documentChanges,
+              (Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit> a,
+                      Either4<CreateFile, DeleteFile, RenameFile,
+                              TextDocumentEdit>
+                          b) =>
+                  a == b) &&
           true;
     }
     return false;
@@ -44422,7 +44421,7 @@ class WorkspaceEdit implements ToJsonable {
   int get hashCode => Object.hash(
         lspHashCode(changeAnnotations),
         lspHashCode(changes),
-        documentChanges,
+        lspHashCode(documentChanges),
       );
 
   @override

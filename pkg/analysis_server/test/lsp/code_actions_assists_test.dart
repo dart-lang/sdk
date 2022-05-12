@@ -548,28 +548,20 @@ void f() {
   }
 
   List<TextDocumentEdit> _extractTextDocumentEdits(
-          Either2<
-                  List<
-                      Either4<CreateFile, DeleteFile, RenameFile,
-                          TextDocumentEdit>>,
-                  List<TextDocumentEdit>>
+          List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>
               documentChanges) =>
-      documentChanges.map(
-        // Extract TextDocumentEdits from union of resource changes
-        (changes) => changes
-            .map(
-              (change) => change.map(
-                (create) => null,
-                (delete) => null,
-                (rename) => null,
-                (textDocEdit) => textDocEdit,
-              ),
-            )
-            .whereNotNull()
-            .toList(),
-        // Already TextDocumentEdits
-        (edits) => edits,
-      );
+      // Extract TextDocumentEdits from union of resource changes
+      documentChanges
+          .map(
+            (change) => change.map(
+              (create) => null,
+              (delete) => null,
+              (rename) => null,
+              (textDocEdit) => textDocEdit,
+            ),
+          )
+          .whereNotNull()
+          .toList();
 }
 
 class _RawParams extends ToJsonable {

@@ -420,7 +420,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
       resolveTypeAlias(requiredValueType, resolveEnumClasses: true);
 
   buffer
-    ..writeln('class ${namespace.name} {')
+    ..writeln('class ${namespace.name} implements ToJsonable {')
     ..indent()
     ..writeIndentedln('const ${namespace.name}$constructorName(this._value);')
     ..writeIndentedln('const ${namespace.name}.fromJson(this._value);')

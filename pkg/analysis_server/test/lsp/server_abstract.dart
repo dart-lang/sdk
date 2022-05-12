@@ -684,8 +684,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   void applyDocumentChanges(
     Map<String, String> fileContents,
-    Either2<List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>,
-            List<TextDocumentEdit>>
+    List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>
         documentChanges, {
     Map<String, int>? expectedVersions,
   }) {
@@ -694,10 +693,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     if (expectedVersions != null) {
       expectDocumentVersions(documentChanges, expectedVersions);
     }
-    documentChanges.map(
-      (changes) => applyResourceChanges(fileContents, changes),
-      (edits) => applyTextDocumentEdits(fileContents, edits),
-    );
+    applyResourceChanges(fileContents, documentChanges);
   }
 
   void applyResourceChanges(
@@ -904,31 +900,20 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   /// Validates the document versions for a set of edits match the versions in
   /// the supplied map.
   void expectDocumentVersions(
-    Either2<List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>,
-            List<TextDocumentEdit>>
+    List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>
         documentChanges,
     Map<String, int> expectedVersions,
   ) {
-    documentChanges.map(
-      // For resource changes, we only need to validate changes since
-      // creates/renames/deletes do not supply versions.
-      (changes) {
-        for (var change in changes) {
-          change.map(
-            (create) => {},
-            (delete) {},
-            (rename) {},
-            (edit) => expectDocumentVersion(edit, expectedVersions),
-          );
-        }
-      },
-      // Validate versions on simple doc edits
-      (edits) {
-        for (var edit in edits) {
-          expectDocumentVersion(edit, expectedVersions);
-        }
-      },
-    );
+    // For resource changes, we only need to validate changes since
+    // creates/renames/deletes do not supply versions.
+    for (var change in documentChanges) {
+      change.map(
+        (create) {},
+        (delete) {},
+        (rename) {},
+        (edit) => expectDocumentVersion(edit, expectedVersions),
+      );
+    }
   }
 
   Future<ShowMessageParams> expectErrorNotification(

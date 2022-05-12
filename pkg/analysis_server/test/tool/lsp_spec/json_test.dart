@@ -306,7 +306,7 @@ void main() {
       expect(
           reporter.errors.first,
           equals(
-              'params.documentChanges must be of type Either2<List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>, List<TextDocumentEdit>>'));
+              'params.documentChanges must be of type List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>'));
     });
 
     test('ResponseMessage can include a null result', () {
