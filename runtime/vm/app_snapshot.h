@@ -334,7 +334,7 @@ class Serializer : public ThreadStackResource {
     stream_->WriteWordWith32BitWrites(value);
   }
 
-  void WriteBytes(const void* addr, intptr_t len) {
+  void WriteBytes(const uint8_t* addr, intptr_t len) {
     stream_->WriteBytes(addr, len);
   }
   void Align(intptr_t alignment) { stream_->Align(alignment); }

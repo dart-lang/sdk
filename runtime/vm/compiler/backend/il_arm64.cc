@@ -612,42 +612,17 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       __ LoadObject(destination.reg(), value_);
     }
   } else if (destination.IsFpuRegister()) {
-    switch (representation()) {
-      case kUnboxedDouble:
-        __ LoadDImmediate(destination.fpu_reg(), Double::Cast(value_).value());
-        break;
-      case kUnboxedFloat64x2:
-        __ LoadQImmediate(destination.fpu_reg(),
-                          Float64x2::Cast(value_).value());
-        break;
-      case kUnboxedFloat32x4:
-        __ LoadQImmediate(destination.fpu_reg(),
-                          Float32x4::Cast(value_).value());
-        break;
-      case kUnboxedInt32x4:
-        __ LoadQImmediate(destination.fpu_reg(), Int32x4::Cast(value_).value());
-        break;
-      default:
-        UNREACHABLE();
+    const VRegister dst = destination.fpu_reg();
+    if (Utils::DoublesBitEqual(Double::Cast(value_).value(), 0.0)) {
+      __ veor(dst, dst, dst);
+    } else {
+      __ LoadDImmediate(dst, Double::Cast(value_).value());
     }
   } else if (destination.IsDoubleStackSlot()) {
-    ASSERT(representation() == kUnboxedDouble);
-    __ LoadDImmediate(VTMP, Double::Cast(value_).value());
-    const intptr_t dest_offset = destination.ToStackSlotOffset();
-    __ StoreDToOffset(VTMP, destination.base_reg(), dest_offset);
-  } else if (destination.IsQuadStackSlot()) {
-    switch (representation()) {
-      case kUnboxedFloat64x2:
-        __ LoadQImmediate(VTMP, Float64x2::Cast(value_).value());
-        break;
-      case kUnboxedFloat32x4:
-        __ LoadQImmediate(VTMP, Float32x4::Cast(value_).value());
-        break;
-      case kUnboxedInt32x4:
-        __ LoadQImmediate(VTMP, Int32x4::Cast(value_).value());
-        break;
-      default:
-        UNREACHABLE();
+    if (Utils::DoublesBitEqual(Double::Cast(value_).value(), 0.0)) {
+      __ veor(VTMP, VTMP, VTMP);
+    } else {
+      __ LoadDImmediate(VTMP, Double::Cast(value_).value());
     }
     const intptr_t dest_offset = destination.ToStackSlotOffset();
     __ StoreDToOffset(VTMP, destination.base_reg(), dest_offset);

@@ -748,7 +748,6 @@ class Assembler : public AssemblerBase {
   }
 
   void LoadDImmediate(XmmRegister dst, double value);
-  void LoadQImmediate(XmmRegister dst, simd128_value_t value);
 
   void Drop(intptr_t stack_elements);
 
