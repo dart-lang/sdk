@@ -2988,6 +2988,22 @@ Definition* BoxInstr::Canonicalize(FlowGraph* flow_graph) {
     return unbox_defn->value()->definition();
   }
 
+  if (value()->BindsToConstant()) {
+    switch (representation()) {
+      case kUnboxedFloat64x2:
+        ASSERT(value()->BoundConstant().IsFloat64x2());
+        return flow_graph->GetConstant(value()->BoundConstant(), kTagged);
+      case kUnboxedFloat32x4:
+        ASSERT(value()->BoundConstant().IsFloat32x4());
+        return flow_graph->GetConstant(value()->BoundConstant(), kTagged);
+      case kUnboxedInt32x4:
+        ASSERT(value()->BoundConstant().IsInt32x4());
+        return flow_graph->GetConstant(value()->BoundConstant(), kTagged);
+      default:
+        return this;
+    }
+  }
+
   return this;
 }
 
@@ -7256,6 +7272,53 @@ Representation SimdOpInstr::RequiredInputRepresentation(intptr_t idx) const {
 
 bool SimdOpInstr::HasMask() const {
   return simd_op_information[kind()].has_mask;
+}
+
+Definition* SimdOpInstr::Canonicalize(FlowGraph* flow_graph) {
+  if ((kind() == SimdOpInstr::kFloat64x2FromDoubles) &&
+      InputAt(0)->BindsToConstant() && InputAt(1)->BindsToConstant()) {
+    const Object& x = InputAt(0)->BoundConstant();
+    const Object& y = InputAt(1)->BoundConstant();
+    if (x.IsDouble() && y.IsDouble()) {
+      Float64x2& result = Float64x2::ZoneHandle(Float64x2::New(
+          Double::Cast(x).value(), Double::Cast(y).value(), Heap::kOld));
+      result ^= result.Canonicalize(Thread::Current());
+      return flow_graph->GetConstant(result, kUnboxedFloat64x2);
+    }
+  }
+  if ((kind() == SimdOpInstr::kFloat32x4FromDoubles) &&
+      InputAt(0)->BindsToConstant() && InputAt(1)->BindsToConstant() &&
+      InputAt(2)->BindsToConstant() && InputAt(3)->BindsToConstant()) {
+    const Object& x = InputAt(0)->BoundConstant();
+    const Object& y = InputAt(1)->BoundConstant();
+    const Object& z = InputAt(2)->BoundConstant();
+    const Object& w = InputAt(3)->BoundConstant();
+    if (x.IsDouble() && y.IsDouble() && z.IsDouble() && w.IsDouble()) {
+      Float32x4& result = Float32x4::Handle(Float32x4::New(
+          Double::Cast(x).value(), Double::Cast(y).value(),
+          Double::Cast(z).value(), Double::Cast(w).value(), Heap::kOld));
+      result ^= result.Canonicalize(Thread::Current());
+      return flow_graph->GetConstant(result, kUnboxedFloat32x4);
+    }
+  }
+  if ((kind() == SimdOpInstr::kInt32x4FromInts) &&
+      InputAt(0)->BindsToConstant() && InputAt(1)->BindsToConstant() &&
+      InputAt(2)->BindsToConstant() && InputAt(3)->BindsToConstant()) {
+    const Object& x = InputAt(0)->BoundConstant();
+    const Object& y = InputAt(1)->BoundConstant();
+    const Object& z = InputAt(2)->BoundConstant();
+    const Object& w = InputAt(3)->BoundConstant();
+    if (x.IsInteger() && y.IsInteger() && z.IsInteger() && w.IsInteger()) {
+      Int32x4& result = Int32x4::Handle(Int32x4::New(
+          Integer::Cast(x).AsInt64Value(), Integer::Cast(y).AsInt64Value(),
+          Integer::Cast(z).AsInt64Value(), Integer::Cast(w).AsInt64Value(),
+          Heap::kOld));
+      result ^= result.Canonicalize(Thread::Current());
+      return flow_graph->GetConstant(result, kUnboxedInt32x4);
+    }
+  }
+
+  return this;
 }
 
 LocationSummary* Call1ArgStubInstr::MakeLocationSummary(Zone* zone,

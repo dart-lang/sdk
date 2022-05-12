@@ -566,10 +566,43 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       __ LoadObject(destination.reg(), value_);
     }
   } else if (destination.IsFpuRegister()) {
-    __ LoadDImmediate(destination.fpu_reg(), Double::Cast(value_).value());
+    switch (representation()) {
+      case kUnboxedDouble:
+        __ LoadDImmediate(destination.fpu_reg(), Double::Cast(value_).value());
+        break;
+      case kUnboxedFloat64x2:
+        __ LoadQImmediate(destination.fpu_reg(),
+                          Float64x2::Cast(value_).value());
+        break;
+      case kUnboxedFloat32x4:
+        __ LoadQImmediate(destination.fpu_reg(),
+                          Float32x4::Cast(value_).value());
+        break;
+      case kUnboxedInt32x4:
+        __ LoadQImmediate(destination.fpu_reg(), Int32x4::Cast(value_).value());
+        break;
+      default:
+        UNREACHABLE();
+    }
   } else if (destination.IsDoubleStackSlot()) {
+    ASSERT(representation() == kUnboxedDouble);
     __ LoadDImmediate(FpuTMP, Double::Cast(value_).value());
     __ movsd(LocationToStackSlotAddress(destination), FpuTMP);
+  } else if (destination.IsQuadStackSlot()) {
+    switch (representation()) {
+      case kUnboxedFloat64x2:
+        __ LoadQImmediate(FpuTMP, Float64x2::Cast(value_).value());
+        break;
+      case kUnboxedFloat32x4:
+        __ LoadQImmediate(FpuTMP, Float32x4::Cast(value_).value());
+        break;
+      case kUnboxedInt32x4:
+        __ LoadQImmediate(FpuTMP, Int32x4::Cast(value_).value());
+        break;
+      default:
+        UNREACHABLE();
+    }
+    __ movups(LocationToStackSlotAddress(destination), FpuTMP);
   } else {
     ASSERT(destination.IsStackSlot());
     if (RepresentationUtils::IsUnboxedInteger(representation())) {

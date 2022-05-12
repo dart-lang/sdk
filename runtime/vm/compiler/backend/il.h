@@ -9531,6 +9531,8 @@ class SimdOpInstr : public Definition {
            (!HasMask() || mask() == other_op->mask());
   }
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
   DECLARE_INSTRUCTION(SimdOp)
   PRINT_OPERANDS_TO_SUPPORT
 
