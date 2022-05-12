@@ -100,10 +100,15 @@ abstract class ClassMemberDeclaration implements Declaration {
   bool get isStatic;
 }
 
-/// A declaration that defines a new type in the program.
+/// Marker interface for a declaration that defines a new type in the program.
+///
+/// See [ParameterizedTypeDeclaration] and [TypeParameterDeclaration].
+abstract class TypeDeclaration implements Declaration {}
+
+/// A [TypeDeclaration] which may have type parameters.
 ///
 /// See subtypes [ClassDeclaration] and [TypeAliasDeclaration].
-abstract class TypeDeclaration implements Declaration {
+abstract class ParameterizedTypeDeclaration implements TypeDeclaration {
   /// The type parameters defined for this type declaration.
   Iterable<TypeParameterDeclaration> get typeParameters;
 }
@@ -112,7 +117,7 @@ abstract class TypeDeclaration implements Declaration {
 ///
 /// Information about fields, methods, and constructors must be retrieved from
 /// the `builder` objects.
-abstract class ClassDeclaration implements TypeDeclaration {
+abstract class ClassDeclaration implements ParameterizedTypeDeclaration {
   /// Whether this class has an `abstract` modifier.
   bool get isAbstract;
 
@@ -133,7 +138,7 @@ abstract class ClassDeclaration implements TypeDeclaration {
 }
 
 /// Type alias introspection information.
-abstract class TypeAliasDeclaration extends TypeDeclaration {
+abstract class TypeAliasDeclaration implements ParameterizedTypeDeclaration {
   /// The type annotation this is an alias for.
   TypeAnnotation get aliasedType;
 }
@@ -227,8 +232,8 @@ abstract class FunctionTypeParameter implements Parameter {
   String? get name;
 }
 
-/// Type parameter introspection information.
-abstract class TypeParameterDeclaration implements Declaration {
+/// Generic type parameter introspection information.
+abstract class TypeParameterDeclaration implements TypeDeclaration {
   /// The bound for this type parameter, if it has any.
   TypeAnnotation? get bound;
 

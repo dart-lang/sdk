@@ -564,12 +564,12 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
   }
 }
 
-abstract class TypeDeclarationImpl extends DeclarationImpl
-    implements TypeDeclaration {
+abstract class ParameterizedTypeDeclarationImpl extends DeclarationImpl
+    implements ParameterizedTypeDeclaration {
   @override
   final List<TypeParameterDeclarationImpl> typeParameters;
 
-  TypeDeclarationImpl({
+  ParameterizedTypeDeclarationImpl({
     required int id,
     required IdentifierImpl identifier,
     required this.typeParameters,
@@ -588,7 +588,7 @@ abstract class TypeDeclarationImpl extends DeclarationImpl
   }
 }
 
-class ClassDeclarationImpl extends TypeDeclarationImpl
+class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
     implements ClassDeclaration {
   @override
   final List<TypeAnnotationImpl> interfaces;
@@ -645,7 +645,7 @@ class ClassDeclarationImpl extends TypeDeclarationImpl
   }
 }
 
-class TypeAliasDeclarationImpl extends TypeDeclarationImpl
+class TypeAliasDeclarationImpl extends ParameterizedTypeDeclarationImpl
     implements TypeAliasDeclaration {
   /// The type being aliased.
   final TypeAnnotationImpl aliasedType;
