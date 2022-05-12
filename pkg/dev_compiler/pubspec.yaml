@@ -52,6 +52,6 @@ dependency_overrides:
   meta:
     path: ../meta
   shelf:
-    path: ../../third_party/pkg/shelf
+    path: ../../third_party/pkg/shelf/pkgs/shelf
   http_multi_server:
     path: ../../third_party/pkg/http_multi_server
