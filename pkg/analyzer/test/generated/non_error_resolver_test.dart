@@ -1458,10 +1458,8 @@ test(C c) => c.method<bool>(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.staticParameterElement!;
-    // Note: the staticParameterElement is synthetic; see
-    // https://github.com/dart-lang/sdk/issues/48500
-    expect(y, isNot(TypeMatcher<ParameterMember>()));
-    expect(y.enclosingElement, isNull);
+    expect(y.enclosingElement, isNotNull);
+    expect(y.declaration, findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_methodCall_implicitTypeArg() async {
@@ -1473,10 +1471,8 @@ bool test(C c) => c.method<bool>(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.staticParameterElement!;
-    // Note: the staticParameterElement is synthetic; see
-    // https://github.com/dart-lang/sdk/issues/48500
-    expect(y, isNot(TypeMatcher<ParameterMember>()));
-    expect(y.enclosingElement, isNull);
+    expect(y.enclosingElement, isNotNull);
+    expect(y.declaration, findElement.parameter('arg'));
   }
 
   test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
@@ -2256,6 +2252,21 @@ int f(v) {
   }
 }
 ''');
+  }
+
+  test_librarySource_of_type_substituted_synthetic_parameter() async {
+    await assertErrorsInCode('''
+Map<int, T> f<T>(T t) => throw '';
+Map<double, T> g<T>(T t) => throw '';
+h(bool b) {
+  Map<num, String> m = (b ? f : g)('x');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 104, 1),
+    ]);
+    var parameter = findNode.stringLiteral("'x'").staticParameterElement;
+    expect(parameter!.library, isNull);
+    expect(parameter.librarySource, isNull);
   }
 
   test_loadLibraryDefined() async {
@@ -3310,6 +3321,24 @@ core.dynamic dynamicVariable;
 @reflectiveTest
 class NonErrorResolverWithoutNullSafetyTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin, NonErrorResolverTestCases {
+  test_castFrom() async {
+    // This test exercises a corner case of legacy erasure: due to the type
+    // substitution in the `newSet` parameter of `Set.castFrom`, we wind up with
+    // a synthetic `ParameterMember` that belongs to no library.  We need to
+    // make sure this doesn't lead to a crash.
+    await assertErrorsInCode('''
+class C {}
+
+void testNewSet(Set<C> setEls) {
+  var customNewSet;
+  Set.castFrom<C, Object>(setEls,
+      newSet: <T>() => customNewSet = new Set<T>());
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 12),
+    ]);
+  }
+
   test_conflictingStaticGetterAndInstanceSetter_thisClass() async {
     await assertNoErrorsInCode(r'''
 class A {
