@@ -28,6 +28,10 @@ Updated the Linter to `1.23.0`, which includes changes that
 - fixes `unnecessary_null_checks` to properly handle map
   literal entries.
 
+#### Pub
+
+* `dart pub outdated` now shows which of your dependencies are discontinued.
+
 ## 2.17.0
 
 ### Language
