@@ -193,13 +193,13 @@ class PowersetBitsDomain {
   bool isPrimitiveValue(int value) => isSingleton(value);
 
   int computeAbstractValueForConstant(ConstantValue value) {
-    if (value.isTrue) {
+    if (value is TrueConstantValue) {
       return trueValue;
     }
-    if (value.isFalse) {
+    if (value is FalseConstantValue) {
       return falseValue;
     }
-    if (value.isNull) {
+    if (value is NullConstantValue) {
       return nullValue;
     }
 

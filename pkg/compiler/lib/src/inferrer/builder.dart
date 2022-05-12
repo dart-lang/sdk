@@ -1285,10 +1285,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       if (member.isField) {
         FieldAnalysisData fieldData =
             _closedWorld.fieldAnalysis.getFieldData(member);
-        if (fieldData.isEffectivelyConstant && fieldData.constantValue.isInt) {
-          IntConstantValue intValue = fieldData.constantValue;
-          if (intValue.intValue.isValidInt) {
-            return finish(intValue.intValue.toInt());
+        ConstantValue constantValue = fieldData.constantValue;
+        if (fieldData.isEffectivelyConstant &&
+            constantValue is IntConstantValue) {
+          BigInt intValue = constantValue.intValue;
+          if (intValue.isValidInt) {
+            return finish(intValue.toInt());
           }
         }
       }

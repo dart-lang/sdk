@@ -37,7 +37,8 @@ void main() {
     for (String stringValue in ["cA", "cB", "cC"]) {
       StringConstantValue constant =
           allConstants.firstWhere((dynamic constant) {
-        return constant.isString && constant.stringValue == stringValue;
+        return constant is StringConstantValue &&
+            constant.stringValue == stringValue;
       });
       Expect.notEquals(
           null,

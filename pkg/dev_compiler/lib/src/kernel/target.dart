@@ -133,7 +133,9 @@ class DevCompilerTarget extends Target {
   @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
-      _allowedTestLibrary(importer);
+      _allowedTestLibrary(importer) ||
+      (importer.isScheme('package') &&
+          importer.path.startsWith('dart2js_runtime_metrics/'));
 
   @override
   bool get nativeExtensionExpectsString => false;

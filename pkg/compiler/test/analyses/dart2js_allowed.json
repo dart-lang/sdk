@@ -56,13 +56,6 @@
   "pkg/compiler/lib/src/serialization/binary_sink.dart": {
     "Dynamic access of 'index'.": 1
   },
-  "pkg/compiler/lib/src/ssa/value_range_analyzer.dart": {
-    "Dynamic access of 'isZero'.": 2,
-    "Dynamic invocation of '+'.": 2,
-    "Dynamic invocation of 'max'.": 1,
-    "Dynamic invocation of 'min'.": 1,
-    "Dynamic invocation of 'unary-'.": 1
-  },
   "pkg/compiler/lib/src/util/enumset.dart": {
     "Dynamic access of 'index'.": 4
   },

@@ -81,7 +81,7 @@ NumConstantValue createInt(BigInt i) =>
 
 NumConstantValue createIntFromInt(int i) => createInt(BigInt.from(i));
 
-NumConstantValue _createInt32(BigInt i) => IntConstantValue(i.toUnsigned(32));
+IntConstantValue _createInt32(BigInt i) => IntConstantValue(i.toUnsigned(32));
 
 NumConstantValue createDouble(double d) =>
     _convertToJavaScriptConstant(DoubleConstantValue(d));
@@ -98,7 +98,7 @@ ListConstantValue createList(CommonElements commonElements,
   return ListConstantValue(type, values);
 }
 
-ConstantValue createType(CommonElements commonElements, DartType type) {
+TypeConstantValue createType(CommonElements commonElements, DartType type) {
   InterfaceType instanceType = commonElements.typeLiteralType;
   return TypeConstantValue(type, instanceType);
 }
@@ -112,23 +112,23 @@ ConstantValue createType(CommonElements commonElements, DartType type) {
 ///
 /// We consistently match that runtime semantics at compile time as well.
 bool isInt(ConstantValue constant) =>
-    constant.isInt ||
+    constant is IntConstantValue ||
     constant.isMinusZero ||
     constant.isPositiveInfinity ||
     constant.isNegativeInfinity;
 
 /// Returns true if the [constant] is a double at runtime.
 bool isDouble(ConstantValue constant) =>
-    constant.isDouble && !constant.isMinusZero;
+    constant is DoubleConstantValue && !constant.isMinusZero;
 
 /// Returns true if the [constant] is a string at runtime.
-bool isString(ConstantValue constant) => constant.isString;
+bool isString(ConstantValue constant) => constant is StringConstantValue;
 
 /// Returns true if the [constant] is a boolean at runtime.
-bool isBool(ConstantValue constant) => constant.isBool;
+bool isBool(ConstantValue constant) => constant is BoolConstantValue;
 
 /// Returns true if the [constant] is null at runtime.
-bool isNull(ConstantValue constant) => constant.isNull;
+bool isNull(ConstantValue constant) => constant is NullConstantValue;
 
 bool isSubtype(DartTypes types, DartType s, DartType t) {
   // At runtime, an integer is both an integer and a double: the
@@ -175,7 +175,8 @@ MapConstantValue createMap(
   return JavaScriptMapConstant(type, keysList, values, onlyStringKeys);
 }
 
-ConstantValue createSymbol(CommonElements commonElements, String text) {
+ConstructedConstantValue createSymbol(
+    CommonElements commonElements, String text) {
   InterfaceType type = commonElements.symbolImplementationType;
   FieldEntity field = commonElements.symbolField;
   ConstantValue argument = createString(text);
@@ -207,7 +208,7 @@ class BitNotOperation implements UnaryOperation {
   const BitNotOperation();
 
   @override
-  ConstantValue? fold(ConstantValue constant) {
+  IntConstantValue? fold(ConstantValue constant) {
     if (isInt(constant)) {
       // In JavaScript we don't check for -0 and treat it as if it was zero.
       if (constant.isMinusZero) {
@@ -229,8 +230,8 @@ class NegateOperation implements UnaryOperation {
   const NegateOperation();
 
   @override
-  ConstantValue? fold(ConstantValue constant) {
-    ConstantValue? _fold(ConstantValue constant) {
+  NumConstantValue? fold(ConstantValue constant) {
+    NumConstantValue? _fold(ConstantValue constant) {
       if (constant is IntConstantValue) {
         return createInt(-constant.intValue);
       }
@@ -256,7 +257,7 @@ class NotOperation implements UnaryOperation {
   const NotOperation();
 
   @override
-  ConstantValue? fold(ConstantValue constant) {
+  BoolConstantValue? fold(ConstantValue constant) {
     if (constant is BoolConstantValue) {
       return createBool(!constant.boolValue);
     }
@@ -269,7 +270,7 @@ abstract class BinaryBitOperation implements BinaryOperation {
   const BinaryBitOperation();
 
   @override
-  ConstantValue? fold(ConstantValue left, ConstantValue right) {
+  IntConstantValue? fold(ConstantValue left, ConstantValue right) {
     IntConstantValue? _fold(ConstantValue left, ConstantValue right) {
       if (left is IntConstantValue && right is IntConstantValue) {
         BigInt? resultValue = foldInts(left.intValue, right.intValue);
@@ -361,7 +362,7 @@ class ShiftRightOperation extends BinaryBitOperation {
   const ShiftRightOperation();
 
   @override
-  ConstantValue? fold(ConstantValue left, ConstantValue right) {
+  IntConstantValue? fold(ConstantValue left, ConstantValue right) {
     // Truncate the input value to 32 bits. The web implementation of '>>' is a
     // signed shift for negative values, and an unsigned for shift for
     // non-negative values.
@@ -409,7 +410,7 @@ abstract class BinaryBoolOperation implements BinaryOperation {
   const BinaryBoolOperation();
 
   @override
-  ConstantValue? fold(ConstantValue left, ConstantValue right) {
+  BoolConstantValue? fold(ConstantValue left, ConstantValue right) {
     if (left is BoolConstantValue && right is BoolConstantValue) {
       bool resultValue = foldBools(left.boolValue, right.boolValue);
       return createBool(resultValue);
@@ -450,7 +451,7 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
   const ArithmeticNumOperation();
 
   @override
-  ConstantValue? fold(ConstantValue left, ConstantValue right) {
+  NumConstantValue? fold(ConstantValue left, ConstantValue right) {
     NumConstantValue? _fold(ConstantValue left, ConstantValue right) {
       if (left is NumConstantValue && right is NumConstantValue) {
         var foldedValue;
@@ -638,7 +639,7 @@ abstract class RelationalNumOperation implements BinaryOperation {
   const RelationalNumOperation();
 
   @override
-  ConstantValue? fold(ConstantValue left, ConstantValue right) {
+  BoolConstantValue? fold(ConstantValue left, ConstantValue right) {
     if (left is NumConstantValue && right is NumConstantValue) {
       bool foldedValue;
       if (left is IntConstantValue && right is IntConstantValue) {
@@ -727,7 +728,7 @@ class EqualsOperation implements BinaryOperation {
   const EqualsOperation();
 
   @override
-  ConstantValue? fold(ConstantValue left, ConstantValue right) {
+  BoolConstantValue? fold(ConstantValue left, ConstantValue right) {
     // Numbers need to be treated specially because: NaN != NaN, -0.0 == 0.0,
     // and 1 == 1.0.
     if (left is IntConstantValue && right is IntConstantValue) {
@@ -740,8 +741,8 @@ class EqualsOperation implements BinaryOperation {
       return createBool(result);
     }
 
-    if (left.isConstructedObject) {
-      if (right.isNull) {
+    if (left is ConstructedConstantValue) {
+      if (right is NullConstantValue) {
         return createBool(false);
       }
       // Unless we know that the user-defined object does not implement the
@@ -796,7 +797,7 @@ class IfNullOperation implements BinaryOperation {
 
   @override
   ConstantValue fold(ConstantValue left, ConstantValue right) {
-    if (left.isNull) return right;
+    if (left is NullConstantValue) return right;
     return left;
   }
 
@@ -811,7 +812,7 @@ class CodeUnitAtOperation implements BinaryOperation {
   const CodeUnitAtOperation();
 
   @override
-  ConstantValue? fold(ConstantValue left, ConstantValue right) {
+  NumConstantValue? fold(ConstantValue left, ConstantValue right) {
     if (left is StringConstantValue && right is IntConstantValue) {
       String string = left.stringValue;
       int index = right.intValue.toInt();
@@ -833,10 +834,10 @@ class RoundOperation implements UnaryOperation {
   const RoundOperation();
 
   @override
-  ConstantValue? fold(ConstantValue constant) {
+  NumConstantValue? fold(ConstantValue constant) {
     // Be careful to round() only values that do not throw on either the host or
     // target platform.
-    ConstantValue? tryToRound(double value) {
+    NumConstantValue? tryToRound(double value) {
       // Due to differences between browsers, only 'round' easy cases. Avoid
       // cases where nudging the value up or down changes the answer.
       // 13 digits is safely within the ~15 digit precision of doubles.
@@ -874,7 +875,7 @@ class ToIntOperation implements UnaryOperation {
   const ToIntOperation();
 
   @override
-  ConstantValue? fold(ConstantValue constant) {
+  NumConstantValue? fold(ConstantValue constant) {
     if (constant is IntConstantValue) {
       double value = constant.doubleValue;
       // The code below is written to work for any `double`, even though
@@ -968,8 +969,6 @@ class JavaScriptMapConstant extends MapConstantValue {
       List<ConstantValue> values, this.onlyStringKeys)
       : this.keyList = keyList,
         super(type, keyList.entries, values);
-  @override
-  bool get isMap => true;
 
   @override
   List<ConstantValue> getDependencies() {

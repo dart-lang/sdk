@@ -284,7 +284,7 @@ import '../common/metrics.dart'
     show Metric, Metrics, CountMetric, DurationMetric;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
-import '../constants/values.dart' show ConstantValue;
+import '../constants/values.dart';
 import '../elements/types.dart';
 import '../elements/entities.dart';
 import '../kernel/element_map.dart';
@@ -586,7 +586,7 @@ class DeferredLoadTask extends CompilerTask {
         var value = d.entity;
         // Skip primitive values: they are not stored in the constant tables and
         // if they are shared, they end up duplicated anyways across output units.
-        if (value.isPrimitive) return;
+        if (value is PrimitiveConstantValue) return;
         constantMap
             .putIfAbsent(importSet.unit, () => [])
             .add(value.toStructuredText(dartTypes));

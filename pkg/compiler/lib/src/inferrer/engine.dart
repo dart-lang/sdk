@@ -586,10 +586,8 @@ class InferrerEngine {
             // constant folding that could give more precise results.
             ConstantValue value = _getFieldConstant(field);
             if (value != null) {
-              if (value.isFunction) {
-                FunctionConstantValue functionConstant = value;
-                FunctionEntity function = functionConstant.element;
-                type = types.allocateClosure(function);
+              if (value is FunctionConstantValue) {
+                type = types.allocateClosure(value.element);
               } else {
                 // Although we might find a better type, we have to keep
                 // the old type around to ensure that we get a complete view

@@ -132,7 +132,7 @@ class ModularConstantEmitter
   @override
   jsAst.Expression visitBool(BoolConstantValue constant, [_]) {
     if (_options.enableMinification) {
-      if (constant.isTrue) {
+      if (constant is TrueConstantValue) {
         // Use !0 for true.
         return js("!0");
       } else {
@@ -140,7 +140,7 @@ class ModularConstantEmitter
         return js("!1");
       }
     } else {
-      return constant.isTrue ? js('true') : js('false');
+      return constant is TrueConstantValue ? js('true') : js('false');
     }
   }
 

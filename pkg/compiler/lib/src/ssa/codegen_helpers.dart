@@ -158,8 +158,9 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
           // We also leave HIf nodes in place when one branch is dead.
           HInstruction condition = current.inputs.first;
           if (condition is HConstant) {
-            bool isTrue = condition.constant.isTrue;
-            successor = isTrue ? current.thenBlock : current.elseBlock;
+            successor = condition.constant is TrueConstantValue
+                ? current.thenBlock
+                : current.elseBlock;
           }
         }
         if (successor != null && successor.id > current.block.id) {
@@ -1195,17 +1196,17 @@ class SsaShareRegionConstants extends HBaseVisitor with CodegenPhase {
     if (node.usedBy.length <= 1) return;
     ConstantValue constant = node.constant;
 
-    if (constant.isNull) {
+    if (constant is NullConstantValue) {
       _handleNull(node);
       return;
     }
 
-    if (constant.isInt) {
+    if (constant is IntConstantValue) {
       _handleInt(node, constant);
       return;
     }
 
-    if (constant.isString) {
+    if (constant is StringConstantValue) {
       _handleString(node, constant);
       return;
     }
