@@ -1589,7 +1589,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return toPosition(lineInfo.getLocation(offset));
   }
 
-  Future<RangeAndPlaceholder?> prepareRename(Uri uri, Position pos) {
+  Future<PlaceholderAndRange?> prepareRename(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_prepareRename,
       TextDocumentPositionParams(
@@ -1597,7 +1597,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         position: pos,
       ),
     );
-    return expectSuccessfulResponseTo(request, RangeAndPlaceholder.fromJson);
+    return expectSuccessfulResponseTo(request, PlaceholderAndRange.fromJson);
   }
 
   /// Calls the supplied function and responds to any `workspace/configuration`

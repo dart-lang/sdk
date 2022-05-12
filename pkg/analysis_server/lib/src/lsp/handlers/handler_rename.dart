@@ -12,7 +12,7 @@ import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart
 import 'package:analyzer/dart/element/element.dart';
 
 class PrepareRenameHandler
-    extends MessageHandler<TextDocumentPositionParams, RangeAndPlaceholder?> {
+    extends MessageHandler<TextDocumentPositionParams, PlaceholderAndRange?> {
   PrepareRenameHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_prepareRename;
@@ -22,7 +22,7 @@ class PrepareRenameHandler
       TextDocumentPositionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<RangeAndPlaceholder?>> handle(
+  Future<ErrorOr<PlaceholderAndRange?>> handle(
       TextDocumentPositionParams params,
       MessageInfo message,
       CancellationToken token) async {
@@ -61,7 +61,7 @@ class PrepareRenameHandler
             ServerErrorCodes.RenameNotValid, initStatus.problem!.message, null);
       }
 
-      return success(RangeAndPlaceholder(
+      return success(PlaceholderAndRange(
         range: toRange(
           unit.result.lineInfo,
           // If the offset is set to -1 it means there is no location for the

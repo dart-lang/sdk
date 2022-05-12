@@ -172,7 +172,10 @@ class Interface extends AstNode {
     this.typeArgs,
     this.baseTypes,
     this.members,
-  );
+  ) {
+    baseTypes.sortBy((type) => type.dartTypeWithTypeArgs.toLowerCase());
+    members.sortBy((member) => member.name.toLowerCase());
+  }
 
   @override
   String get name => nameToken.lexeme;
@@ -238,7 +241,9 @@ class Namespace extends AstNode {
     super.comment,
     this.nameToken,
     this.members,
-  );
+  ) {
+    members.sortBy((member) => member.name.toLowerCase());
+  }
 
   @override
   String get name => nameToken.lexeme;

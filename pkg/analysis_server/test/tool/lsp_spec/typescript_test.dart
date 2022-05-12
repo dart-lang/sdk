@@ -334,9 +334,9 @@ enum Foo {
       expect(output.first, const TypeMatcher<Namespace>());
       final enum_ = output.first as Namespace;
       expect(enum_.members, hasLength(3));
-      expect(enum_.members[0].name, equals('namespace'));
-      expect(enum_.members[1].name, equals('class'));
-      expect(enum_.members[2].name, equals('enum'));
+      expect(enum_.members[0].name, equals('class'));
+      expect(enum_.members[1].name, equals('enum'));
+      expect(enum_.members[2].name, equals('namespace'));
     });
 
     test('parses a tuple in an array', () {
