@@ -172,7 +172,7 @@ vars = {
   "webkit_inspection_protocol_rev": "dd6fb5d8b536e19cedb384d0bbf1f5631923f1e8",
   "yaml_edit_rev": "0b74d85fac10b4fbf7d1a347debcf16c8f7b0e9c",
   "yaml_rev": "0971c06490b9670add644ed62182acd6a5536946",
-  "zlib_rev": "faff052b6b6edcd6dd548513fe44ac0941427bf0",
+  "zlib_rev": "27c2f474b71d0d20764f86f60ef8b00da1a16cda",
 
   # Windows deps
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
