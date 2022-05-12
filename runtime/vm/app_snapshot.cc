@@ -2631,6 +2631,16 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
 
       d->set_position(restore_position);
     }
+
+#if defined(DART_PRECOMPILED_RUNTIME) &&                                       \
+    (!defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER))
+    if (FLAG_disassemble) {
+      ObjectPool& pool = ObjectPool::Handle(
+          d->isolate_group()->object_store()->global_object_pool());
+      THR_Print("Global object pool:\n");
+      pool.DebugPrint();
+    }
+#endif
   }
 
  private:

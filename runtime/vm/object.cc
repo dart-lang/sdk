@@ -14915,11 +14915,19 @@ const char* ObjectPool::ToCString() const {
 void ObjectPool::DebugPrint() const {
   THR_Print("ObjectPool len:%" Pd " {\n", Length());
   for (intptr_t i = 0; i < Length(); i++) {
-    intptr_t offset = OffsetFromIndex(i);
-#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
-    THR_Print("  %" Pd "(pp) ", offset + kHeapObjectTag);
+#if defined(DART_PRECOMPILED_RUNTIME)
+    intptr_t offset = ObjectPool::element_offset(i);
 #else
-    THR_Print("  [pp+0x%" Px "] ", offset);
+    intptr_t offset = compiler::target::ObjectPool::element_offset(i);
+#endif
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+    THR_Print("  %" Pd "(pp) ", offset);  // PP is untagged
+#elif defined(TARGET_ARCH_ARM64)
+    THR_Print("  [pp, #%" Pd "] ", offset);  // PP is untagged
+#elif defined(TARGET_ARCH_ARM32)
+    THR_Print("  [pp, #%" Pd "] ", offset - kHeapObjectTag);  // PP is tagged
+#else
+    THR_Print("  [pp+0x%" Px "] ", offset - kHeapObjectTag);  // PP is tagged
 #endif
     if (TypeAt(i) == EntryType::kTaggedObject) {
       const Object& obj = Object::Handle(ObjectAt(i));

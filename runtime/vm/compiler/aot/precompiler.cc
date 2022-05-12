@@ -68,7 +68,6 @@ DEFINE_FLAG(bool,
             false,
             "Print per-phase breakdown of time spent precompiling");
 DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynamic targets");
-DEFINE_FLAG(bool, print_gop, false, "Print global object pool");
 DEFINE_FLAG(charp,
             print_object_layout_to,
             nullptr,
@@ -586,7 +585,7 @@ void Precompiler::DoCompileAll() {
         IG->object_store()->set_global_object_pool(pool);
         global_object_pool_builder()->Reset();
 
-        if (FLAG_print_gop) {
+        if (FLAG_disassemble) {
           THR_Print("Global object pool:\n");
           pool.DebugPrint();
         }
