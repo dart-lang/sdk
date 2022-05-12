@@ -409,6 +409,10 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   @override
   LibraryElement get enclosingElement;
 
+  /// Return the library, or library augmentation that encloses this unit.
+  @experimental
+  LibraryOrAugmentationElement get enclosingElement2;
+
   /// Return a list containing all of the enums contained in this compilation
   /// unit.
   List<ClassElement> get enums;
@@ -867,70 +871,76 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ElementKind implements Comparable<ElementKind> {
-  static const ElementKind CLASS = ElementKind('CLASS', 0, "class");
+  static const ElementKind AUGMENTATION_IMPORT =
+      ElementKind('AUGMENTATION_IMPORT', 0, "augmentation import");
+
+  static const ElementKind CLASS = ElementKind('CLASS', 1, "class");
 
   static const ElementKind COMPILATION_UNIT =
-      ElementKind('COMPILATION_UNIT', 1, "compilation unit");
+      ElementKind('COMPILATION_UNIT', 2, "compilation unit");
 
   static const ElementKind CONSTRUCTOR =
-      ElementKind('CONSTRUCTOR', 2, "constructor");
+      ElementKind('CONSTRUCTOR', 3, "constructor");
 
-  static const ElementKind DYNAMIC = ElementKind('DYNAMIC', 3, "<dynamic>");
+  static const ElementKind DYNAMIC = ElementKind('DYNAMIC', 4, "<dynamic>");
 
-  static const ElementKind ENUM = ElementKind('ENUM', 4, "enum");
+  static const ElementKind ENUM = ElementKind('ENUM', 5, "enum");
 
-  static const ElementKind ERROR = ElementKind('ERROR', 5, "<error>");
+  static const ElementKind ERROR = ElementKind('ERROR', 6, "<error>");
 
   static const ElementKind EXPORT =
-      ElementKind('EXPORT', 6, "export directive");
+      ElementKind('EXPORT', 7, "export directive");
 
-  static const ElementKind EXTENSION = ElementKind('EXTENSION', 7, "extension");
+  static const ElementKind EXTENSION = ElementKind('EXTENSION', 8, "extension");
 
-  static const ElementKind FIELD = ElementKind('FIELD', 8, "field");
+  static const ElementKind FIELD = ElementKind('FIELD', 9, "field");
 
-  static const ElementKind FUNCTION = ElementKind('FUNCTION', 9, "function");
+  static const ElementKind FUNCTION = ElementKind('FUNCTION', 10, "function");
 
   static const ElementKind GENERIC_FUNCTION_TYPE =
-      ElementKind('GENERIC_FUNCTION_TYPE', 10, 'generic function type');
+      ElementKind('GENERIC_FUNCTION_TYPE', 11, 'generic function type');
 
-  static const ElementKind GETTER = ElementKind('GETTER', 11, "getter");
+  static const ElementKind GETTER = ElementKind('GETTER', 12, "getter");
 
   static const ElementKind IMPORT =
-      ElementKind('IMPORT', 12, "import directive");
+      ElementKind('IMPORT', 13, "import directive");
 
-  static const ElementKind LABEL = ElementKind('LABEL', 13, "label");
+  static const ElementKind LABEL = ElementKind('LABEL', 14, "label");
 
-  static const ElementKind LIBRARY = ElementKind('LIBRARY', 14, "library");
+  static const ElementKind LIBRARY = ElementKind('LIBRARY', 15, "library");
+
+  static const ElementKind LIBRARY_AUGMENTATION =
+      ElementKind('LIBRARY_AUGMENTATION', 16, "library augmentation");
 
   static const ElementKind LOCAL_VARIABLE =
-      ElementKind('LOCAL_VARIABLE', 15, "local variable");
+      ElementKind('LOCAL_VARIABLE', 17, "local variable");
 
-  static const ElementKind METHOD = ElementKind('METHOD', 16, "method");
+  static const ElementKind METHOD = ElementKind('METHOD', 18, "method");
 
-  static const ElementKind NAME = ElementKind('NAME', 17, "<name>");
+  static const ElementKind NAME = ElementKind('NAME', 19, "<name>");
 
-  static const ElementKind NEVER = ElementKind('NEVER', 18, "<never>");
+  static const ElementKind NEVER = ElementKind('NEVER', 20, "<never>");
 
   static const ElementKind PARAMETER =
-      ElementKind('PARAMETER', 19, "parameter");
+      ElementKind('PARAMETER', 21, "parameter");
 
-  static const ElementKind PREFIX = ElementKind('PREFIX', 20, "import prefix");
+  static const ElementKind PREFIX = ElementKind('PREFIX', 22, "import prefix");
 
-  static const ElementKind SETTER = ElementKind('SETTER', 21, "setter");
+  static const ElementKind SETTER = ElementKind('SETTER', 23, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      ElementKind('TOP_LEVEL_VARIABLE', 22, "top level variable");
+      ElementKind('TOP_LEVEL_VARIABLE', 24, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      ElementKind('FUNCTION_TYPE_ALIAS', 23, "function type alias");
+      ElementKind('FUNCTION_TYPE_ALIAS', 25, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      ElementKind('TYPE_PARAMETER', 24, "type parameter");
+      ElementKind('TYPE_PARAMETER', 26, "type parameter");
 
   static const ElementKind TYPE_ALIAS =
-      ElementKind('TYPE_ALIAS', 25, "type alias");
+      ElementKind('TYPE_ALIAS', 27, "type alias");
 
-  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 26, "<universe>");
+  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 28, "<universe>");
 
   static const List<ElementKind> values = [
     CLASS,
@@ -1017,6 +1027,8 @@ abstract class ElementLocation {
 /// * ThrowingElementVisitor which implements every visit method by throwing an
 ///   exception.
 abstract class ElementVisitor<R> {
+  R? visitAugmentationImportElement(AugmentationImportElement element);
+
   R? visitClassElement(ClassElement element);
 
   R? visitCompilationUnitElement(CompilationUnitElement element);
@@ -1038,6 +1050,8 @@ abstract class ElementVisitor<R> {
   R? visitImportElement(ImportElement element);
 
   R? visitLabelElement(LabelElement element);
+
+  R? visitLibraryAugmentationElement(LibraryAugmentationElement element);
 
   R? visitLibraryElement(LibraryElement element);
 
@@ -1639,6 +1653,10 @@ abstract class ParameterElement
 abstract class PrefixElement implements _ExistingElement {
   @override
   LibraryElement get enclosingElement;
+
+  /// Return the library, or library augmentation that encloses this element.
+  @experimental
+  LibraryOrAugmentationElement get enclosingElement2;
 
   @override
   String get name;

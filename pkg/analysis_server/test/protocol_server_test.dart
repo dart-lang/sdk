@@ -240,11 +240,13 @@ class EnumTest {
     EnumTester<engine.ElementKind, ElementKind>()
         .run(convertElementKind, exceptions: {
       // TODO(paulberry): do any of the exceptions below constitute bugs?
+      engine.ElementKind.AUGMENTATION_IMPORT: ElementKind.UNKNOWN,
       engine.ElementKind.DYNAMIC: ElementKind.UNKNOWN,
       engine.ElementKind.ERROR: ElementKind.UNKNOWN,
       engine.ElementKind.EXPORT: ElementKind.UNKNOWN,
       engine.ElementKind.GENERIC_FUNCTION_TYPE: ElementKind.FUNCTION_TYPE_ALIAS,
       engine.ElementKind.IMPORT: ElementKind.UNKNOWN,
+      engine.ElementKind.LIBRARY_AUGMENTATION: ElementKind.UNKNOWN,
       engine.ElementKind.NAME: ElementKind.UNKNOWN,
       engine.ElementKind.NEVER: ElementKind.UNKNOWN,
       engine.ElementKind.UNIVERSE: ElementKind.UNKNOWN
