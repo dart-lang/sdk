@@ -74,7 +74,6 @@ elif [ "$LINTER_BOT" = "coverage" ]; then
     --lcov \
     --in=var/coverage.json \
     --out=var/lcov.info \
-    --packages=.packages \
     --report-on=lib \
     --check-ignore
 
