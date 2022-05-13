@@ -13,6 +13,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -516,6 +518,30 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
     }
     return iterable.first;
   }
+}
+
+/// A concrete implementation of a [AugmentationImportElement].
+class AugmentationImportElementImpl extends UriReferencedElementImpl
+    implements AugmentationImportElement {
+  @override
+  final LibraryAugmentationElement augmentation;
+
+  AugmentationImportElementImpl({
+    required this.augmentation,
+    required int nameOffset,
+  }) : super(null, nameOffset);
+
+  @override
+  LibraryOrAugmentationElementImpl get enclosingElement {
+    return super.enclosingElement as LibraryOrAugmentationElementImpl;
+  }
+
+  @override
+  ElementKind get kind => ElementKind.AUGMENTATION_IMPORT;
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) =>
+      visitor.visitAugmentationImportElement(this);
 }
 
 /// An [AbstractClassElementImpl] which is a class.
@@ -1075,6 +1101,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   LibraryElement get enclosingElement =>
       super.enclosingElement as LibraryElement;
+
+  @override
+  LibraryOrAugmentationElement get enclosingElement2 =>
+      super.enclosingElement as LibraryOrAugmentationElement;
 
   @override
   CompilationUnitElementImpl get enclosingUnit {
@@ -3626,9 +3656,55 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitLabelElement(this);
 }
 
+class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
+    implements LibraryAugmentationElement {
+  @override
+  final LibraryOrAugmentationElement augmented;
+
+  LibraryAugmentationElementImpl({
+    required this.augmented,
+    required int nameOffset,
+  }) : super(name: null, nameOffset: nameOffset);
+
+  @override
+  // TODO: implement accessibleExtensions
+  List<ExtensionElement> get accessibleExtensions => throw UnimplementedError();
+
+  @override
+  FeatureSet get featureSet => augmented.featureSet;
+
+  @override
+  bool get isNonNullableByDefault => augmented.isNonNullableByDefault;
+
+  @override
+  ElementKind get kind => ElementKind.LIBRARY_AUGMENTATION;
+
+  @override
+  LibraryLanguageVersion get languageVersion => augmented.languageVersion;
+
+  @override
+  // TODO: implement scope
+  Scope get scope => throw UnimplementedError();
+
+  @override
+  AnalysisSession get session => augmented.session;
+
+  @override
+  TypeProvider get typeProvider => augmented.typeProvider;
+
+  @override
+  TypeSystem get typeSystem => augmented.typeSystem;
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) {
+    return visitor.visitLibraryAugmentationElement(this);
+  }
+}
+
 /// A concrete implementation of a [LibraryElement].
-class LibraryElementImpl extends _ExistingElementImpl
-    implements LibraryElement, MacroTargetElementContainer {
+class LibraryElementImpl extends LibraryOrAugmentationElementImpl
+    with _HasLibraryMixin
+    implements LibraryElement {
   /// The analysis context in which this library is defined.
   @override
   final AnalysisContext context;
@@ -3654,20 +3730,9 @@ class LibraryElementImpl extends _ExistingElementImpl
   @override
   final FeatureSet featureSet;
 
-  /// The compilation unit that defines this library.
-  late CompilationUnitElementImpl _definingCompilationUnit;
-
   /// The entry point for this library, or `null` if this library does not have
   /// an entry point.
   FunctionElement? _entryPoint;
-
-  /// A list containing specifications of all of the imports defined in this
-  /// library.
-  List<ImportElement> _imports = _Sentinel.importElement;
-
-  /// A list containing specifications of all of the exports defined in this
-  /// library.
-  List<ExportElement> _exports = _Sentinel.exportElement;
 
   /// A list containing all of the compilation units that are included in this
   /// library using a `part` directive.
@@ -3689,9 +3754,6 @@ class LibraryElementImpl extends _ExistingElementImpl
   /// computed yet.
   Namespace? _publicNamespace;
 
-  /// The cached list of prefixes.
-  List<PrefixElement>? _prefixes;
-
   /// The scope of this library, `null` if it has not been created yet.
   LibraryScope? _scope;
 
@@ -3703,28 +3765,10 @@ class LibraryElementImpl extends _ExistingElementImpl
   LibraryElementImpl(this.context, this.session, String name, int offset,
       this.nameLength, this.featureSet)
       : linkedData = null,
-        super(name, offset);
+        super(name: name, nameOffset: offset);
 
   @override
   List<ExtensionElement> get accessibleExtensions => scope.extensions;
-
-  @override
-  List<AugmentationImportElement> get augmentationImports {
-    // TODO(scheglov): implement augmentationImports
-    throw UnimplementedError();
-  }
-
-  @override
-  CompilationUnitElementImpl get definingCompilationUnit =>
-      _definingCompilationUnit;
-
-  /// Set the compilation unit that defines this library to the given
-  ///  compilation[unit].
-  set definingCompilationUnit(CompilationUnitElement unit) {
-    assert((unit as CompilationUnitElementImpl).librarySource == unit.source);
-    (unit as CompilationUnitElementImpl).enclosingElement = this;
-    _definingCompilationUnit = unit;
-  }
 
   @override
   CompilationUnitElementImpl get enclosingUnit {
@@ -3779,19 +3823,6 @@ class LibraryElementImpl extends _ExistingElementImpl
     return _exports;
   }
 
-  /// Set the specifications of all of the exports defined in this library to
-  /// the given list of [exports].
-  set exports(List<ExportElement> exports) {
-    for (ExportElement exportElement in exports) {
-      (exportElement as ExportElementImpl).enclosingElement = this;
-    }
-    _exports = exports;
-  }
-
-  List<ExportElement> get exports_unresolved {
-    return _exports;
-  }
-
   bool get hasPartOfDirective {
     return hasModifier(Modifier.HAS_PART_OF_DIRECTIVE);
   }
@@ -3818,24 +3849,6 @@ class LibraryElementImpl extends _ExistingElementImpl
   @override
   List<ImportElement> get imports {
     linkedData?.read(this);
-    return _imports;
-  }
-
-  /// Set the specifications of all of the imports defined in this library to
-  /// the given list of [imports].
-  set imports(List<ImportElement> imports) {
-    for (ImportElement importElement in imports) {
-      (importElement as ImportElementImpl).enclosingElement = this;
-      var prefix = importElement.prefix as PrefixElementImpl?;
-      if (prefix != null) {
-        prefix.enclosingElement = this;
-      }
-    }
-    _imports = imports;
-    _prefixes = null;
-  }
-
-  List<ImportElement> get imports_unresolved {
     return _imports;
   }
 
@@ -4091,9 +4104,6 @@ class LibraryElementImpl extends _ExistingElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    _definingCompilationUnit.accept(visitor);
-    safelyVisitChildren(exports, visitor);
-    safelyVisitChildren(imports, visitor);
     safelyVisitChildren(_parts, visitor);
   }
 
@@ -4136,6 +4146,134 @@ class LibraryElementImpl extends _ExistingElementImpl
       }
     }
     return null;
+  }
+}
+
+/// A concrete implementation of a [LibraryOrAugmentationElement].
+abstract class LibraryOrAugmentationElementImpl extends ElementImpl
+    implements LibraryOrAugmentationElement, MacroTargetElementContainer {
+  /// The compilation unit that defines this library.
+  late CompilationUnitElementImpl _definingCompilationUnit;
+
+  List<AugmentationImportElement> _augmentationImports =
+      _Sentinel.augmentationImportElement;
+
+  /// A list containing specifications of all of the imports defined in this
+  /// library.
+  List<ImportElement> _imports = _Sentinel.importElement;
+
+  /// A list containing specifications of all of the exports defined in this
+  /// library.
+  List<ExportElement> _exports = _Sentinel.exportElement;
+
+  /// The cached list of prefixes.
+  List<PrefixElement>? _prefixes;
+
+  LibraryOrAugmentationElementImpl({
+    required String? name,
+    required int nameOffset,
+  }) : super(name, nameOffset);
+
+  @override
+  List<AugmentationImportElement> get augmentationImports {
+    return _augmentationImports;
+  }
+
+  set augmentationImports(List<AugmentationImportElement> imports) {
+    for (final importElement in imports) {
+      (importElement as AugmentationImportElementImpl).enclosingElement = this;
+    }
+    _augmentationImports = imports;
+  }
+
+  @override
+  CompilationUnitElementImpl get definingCompilationUnit =>
+      _definingCompilationUnit;
+
+  /// Set the compilation unit that defines this library to the given
+  ///  compilation[unit].
+  set definingCompilationUnit(CompilationUnitElement unit) {
+    assert((unit as CompilationUnitElementImpl).librarySource == unit.source);
+    (unit as CompilationUnitElementImpl).enclosingElement = this;
+    _definingCompilationUnit = unit;
+  }
+
+  @override
+  CompilationUnitElementImpl get enclosingUnit {
+    return _definingCompilationUnit;
+  }
+
+  @override
+  List<ExportElement> get exports {
+    return _exports;
+  }
+
+  /// Set the specifications of all of the exports defined in this library to
+  /// the given list of [exports].
+  set exports(List<ExportElement> exports) {
+    for (ExportElement exportElement in exports) {
+      (exportElement as ExportElementImpl).enclosingElement = this;
+    }
+    _exports = exports;
+  }
+
+  List<ExportElement> get exports_unresolved {
+    return _exports;
+  }
+
+  @override
+  String get identifier => '${_definingCompilationUnit.source.uri}';
+
+  @override
+  List<ImportElement> get imports {
+    return _imports;
+  }
+
+  /// Set the specifications of all of the imports defined in this library to
+  /// the given list of [imports].
+  set imports(List<ImportElement> imports) {
+    for (ImportElement importElement in imports) {
+      (importElement as ImportElementImpl).enclosingElement = this;
+      var prefix = importElement.prefix as PrefixElementImpl?;
+      if (prefix != null) {
+        prefix.enclosingElement = this;
+      }
+    }
+    _imports = imports;
+    _prefixes = null;
+  }
+
+  List<ImportElement> get imports_unresolved {
+    return _imports;
+  }
+
+  @override
+  List<PrefixElement> get prefixes =>
+      _prefixes ??= buildPrefixesFromImports(imports);
+
+  @override
+  Source get source {
+    return _definingCompilationUnit.source;
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    super.visitChildren(visitor);
+    _definingCompilationUnit.accept(visitor);
+    safelyVisitChildren(exports, visitor);
+    safelyVisitChildren(imports, visitor);
+  }
+
+  static List<PrefixElement> buildPrefixesFromImports(
+      List<ImportElement> imports) {
+    HashSet<PrefixElement> prefixes = HashSet<PrefixElement>();
+    for (ImportElement element in imports) {
+      var prefix = element.prefix;
+      if (prefix != null) {
+        prefixes.add(prefix);
+      }
+    }
+    return prefixes.toList(growable: false);
   }
 }
 
@@ -4969,6 +5107,10 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   @override
   LibraryElement get enclosingElement =>
       super.enclosingElement as LibraryElement;
+
+  @override
+  LibraryOrAugmentationElementImpl get enclosingElement2 =>
+      super.enclosingElement as LibraryOrAugmentationElementImpl;
 
   @override
   ElementKind get kind => ElementKind.PREFIX;
@@ -5994,6 +6136,8 @@ class _Sentinel {
       List.unmodifiable([]);
   static final List<ExportElement> exportElement = List.unmodifiable([]);
   static final List<FieldElement> fieldElement = List.unmodifiable([]);
+  static final List<AugmentationImportElement> augmentationImportElement =
+      List.unmodifiable([]);
   static final List<ImportElement> importElement = List.unmodifiable([]);
   static final List<MethodElement> methodElement = List.unmodifiable([]);
   static final List<PropertyAccessorElement> propertyAccessorElement =

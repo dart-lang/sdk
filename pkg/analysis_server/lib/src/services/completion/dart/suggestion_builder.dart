@@ -974,7 +974,7 @@ class SuggestionBuilder {
         withNullability: _isNonNullableByDefault);
     _addSuggestion(
       suggestion,
-      textToMatchOverride: element.displayName,
+      textToMatchOverride: _textToMatchOverride(element),
     );
   }
 
@@ -1501,6 +1501,13 @@ class SuggestionBuilder {
       suggestion.docComplete = doc.full;
       suggestion.docSummary = doc.summary;
     }
+  }
+
+  static String _textToMatchOverride(ExecutableElement element) {
+    if (element.isOperator) {
+      return 'operator';
+    }
+    return element.displayName;
   }
 }
 

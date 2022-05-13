@@ -962,8 +962,12 @@ class LibraryAnalyzer {
       // The name of a NamedType does not provide any context.
       // So, we don't need to resolve anything.
       if (parent is NamedType) {
-        // `{foo^ print(0);}` looks as `foo print; (0);`.
         var parent3 = parent.parent?.parent;
+        // `class A {foo^ int bar = 0;}` looks as `class A {foo int; bar = 0;}`.
+        if (parent3 is FieldDeclaration) {
+          return false;
+        }
+        // `{foo^ print(0);}` looks as `foo print; (0);`.
         if (parent3 is VariableDeclarationStatement &&
             parent3.semicolon.isSynthetic) {
           return false;

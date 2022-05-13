@@ -3157,10 +3157,8 @@ class UntaggedInt32x4 : public UntaggedInstance {
 
   ALIGN8 int32_t value_[4];
 
-  friend class Simd128DeserializationCluster;
-  friend class Simd128MessageDeserializationCluster;
   friend class Simd128MessageSerializationCluster;
-  friend class Simd128SerializationCluster;
+  friend class Simd128MessageDeserializationCluster;
 
  public:
   int32_t x() const { return value_[0]; }

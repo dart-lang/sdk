@@ -38,7 +38,7 @@ extension ElementExtension on Element {
       ancestor = ancestor.enclosingElement;
     }
     return ancestor is CompilationUnitElement &&
-        ancestor.enclosingElement.hasDeprecated;
+        ancestor.enclosingElement2.hasDeprecated;
   }
 
   /// Return this element and all its enclosing elements.

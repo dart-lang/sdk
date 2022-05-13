@@ -10669,9 +10669,6 @@ class Float32x4 : public Instance {
     return OFFSET_OF(UntaggedFloat32x4, value_);
   }
 
-  virtual bool CanonicalizeEquals(const Instance& other) const;
-  virtual uint32_t CanonicalizeHash() const;
-
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Float32x4, Instance);
   friend class Class;
@@ -10705,9 +10702,6 @@ class Int32x4 : public Instance {
 
   static intptr_t value_offset() { return OFFSET_OF(UntaggedInt32x4, value_); }
 
-  virtual bool CanonicalizeEquals(const Instance& other) const;
-  virtual uint32_t CanonicalizeHash() const;
-
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Int32x4, Instance);
   friend class Class;
@@ -10737,9 +10731,6 @@ class Float64x2 : public Instance {
   static intptr_t value_offset() {
     return OFFSET_OF(UntaggedFloat64x2, value_);
   }
-
-  virtual bool CanonicalizeEquals(const Instance& other) const;
-  virtual uint32_t CanonicalizeHash() const;
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Float64x2, Instance);

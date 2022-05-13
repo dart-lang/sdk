@@ -420,36 +420,18 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       __ LoadObjectSafely(destination.reg(), value_);
     }
   } else if (destination.IsFpuRegister()) {
-    switch (representation()) {
-      case kUnboxedDouble: {
-        const double value_as_double = Double::Cast(value_).value();
-        uword addr = FindDoubleConstant(value_as_double);
-        if (addr == 0) {
-          __ pushl(EAX);
-          __ LoadObject(EAX, value_);
-          __ movsd(destination.fpu_reg(),
-                   compiler::FieldAddress(EAX, Double::value_offset()));
-          __ popl(EAX);
-        } else if (Utils::DoublesBitEqual(value_as_double, 0.0)) {
-          __ xorps(destination.fpu_reg(), destination.fpu_reg());
-        } else {
-          __ movsd(destination.fpu_reg(), compiler::Address::Absolute(addr));
-        }
-        break;
-      }
-      case kUnboxedFloat64x2:
-        __ LoadQImmediate(destination.fpu_reg(),
-                          Float64x2::Cast(value_).value());
-        break;
-      case kUnboxedFloat32x4:
-        __ LoadQImmediate(destination.fpu_reg(),
-                          Float32x4::Cast(value_).value());
-        break;
-      case kUnboxedInt32x4:
-        __ LoadQImmediate(destination.fpu_reg(), Int32x4::Cast(value_).value());
-        break;
-      default:
-        UNREACHABLE();
+    const double value_as_double = Double::Cast(value_).value();
+    uword addr = FindDoubleConstant(value_as_double);
+    if (addr == 0) {
+      __ pushl(EAX);
+      __ LoadObject(EAX, value_);
+      __ movsd(destination.fpu_reg(),
+               compiler::FieldAddress(EAX, Double::value_offset()));
+      __ popl(EAX);
+    } else if (Utils::DoublesBitEqual(value_as_double, 0.0)) {
+      __ xorps(destination.fpu_reg(), destination.fpu_reg());
+    } else {
+      __ movsd(destination.fpu_reg(), compiler::Address::Absolute(addr));
     }
   } else if (destination.IsDoubleStackSlot()) {
     const double value_as_double = Double::Cast(value_).value();
@@ -465,21 +447,6 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       __ movsd(FpuTMP, compiler::Address::Absolute(addr));
     }
     __ movsd(LocationToStackSlotAddress(destination), FpuTMP);
-  } else if (destination.IsQuadStackSlot()) {
-    switch (representation()) {
-      case kUnboxedFloat64x2:
-        __ LoadQImmediate(FpuTMP, Float64x2::Cast(value_).value());
-        break;
-      case kUnboxedFloat32x4:
-        __ LoadQImmediate(FpuTMP, Float32x4::Cast(value_).value());
-        break;
-      case kUnboxedInt32x4:
-        __ LoadQImmediate(FpuTMP, Int32x4::Cast(value_).value());
-        break;
-      default:
-        UNREACHABLE();
-    }
-    __ movups(LocationToStackSlotAddress(destination), FpuTMP);
   } else {
     ASSERT(destination.IsStackSlot());
     if (RepresentationUtils::IsUnboxedInteger(representation())) {
