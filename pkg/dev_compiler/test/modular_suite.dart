@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Test the modular compilation pipeline of ddc.
 ///
 /// This is a shell that runs multiple tests, one per folder under `data/`.
@@ -18,9 +16,9 @@ import 'package:modular_test/src/suite.dart';
 String packageConfigJsonPath = '.dart_tool/package_config.json';
 Uri sdkRoot = Platform.script.resolve('../../../');
 Uri packageConfigUri = sdkRoot.resolve(packageConfigJsonPath);
-Options _options;
-String _dartdevcScript;
-String _kernelWorkerScript;
+late Options _options;
+late String _dartdevcScript;
+late String _kernelWorkerScript;
 
 void main(List<String> args) async {
   _options = Options.parse(args);
@@ -89,8 +87,7 @@ class SourceToSummaryDillStep implements IOModularStep {
       extraArgs = [
         '--libraries-file',
         '$rootScheme:///sdk/lib/libraries.json',
-        '--enable-experiment',
-        'non-nullable',
+        '--no-sound-null-safety',
       ];
       assert(transitiveDependencies.isEmpty);
     } else {
@@ -175,8 +172,7 @@ class DDCStep implements IOModularStep {
         '--compile-sdk',
         '--libraries-file',
         '$rootScheme:///sdk/lib/libraries.json',
-        '--enable-experiment',
-        'non-nullable',
+        '--no-sound-null-safety',
       ];
       assert(transitiveDependencies.isEmpty);
     } else {
@@ -319,7 +315,7 @@ String get _d8executable {
 
 String _sourceToImportUri(Module module, String rootScheme, Uri relativeUri) {
   if (module.isPackage) {
-    var basePath = module.packageBase.path;
+    var basePath = module.packageBase!.path;
     var packageRelativePath = basePath == './'
         ? relativeUri.path
         : relativeUri.path.substring(basePath.length);
