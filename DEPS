@@ -150,7 +150,7 @@ vars = {
   "stack_trace_rev": "5220580872625ddee41e9ca9a5f3364789b2f0f6",
   "stream_channel_rev": "3fa3e40c75c210d617b8b943b9b8f580e9866a89",
   "string_scanner_rev": "6579871b528036767b3200b390a3ecef28e4900d",
-  "sync_http_rev": "b59c134f2e34d12acac110d4f17f83e5a7db4330",
+  "sync_http_rev": "b6bd47965694dddffb6e62fb8a6c12d17c4ae4cd",
   "term_glyph_rev": "4885b7f8af6931e23d3aa6d1767ee3f9a626923d",
   "test_descriptor_rev": "ead23c1e7df079ac0f6457a35f7a71432892e527",
   "test_process_rev": "7c73ec8a8a6e0e63d0ec27d70c21ca4323fb5e8f",
