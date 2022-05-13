@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../ast.dart';
 
 const _desc = r'Provide doc comments for all public APIs.';
 
@@ -59,18 +58,13 @@ Advice for writing good doc comments can be found in the
 
 ''';
 
-class PackageApiDocs extends LintRule implements ProjectVisitor, NodeLintRule {
-  DartProject? project;
-
+class PackageApiDocs extends LintRule {
   PackageApiDocs()
       : super(
             name: 'package_api_docs',
             description: _desc,
             details: _details,
             group: Group.style);
-
-  @override
-  ProjectVisitor getProjectVisitor() => this;
 
   @override
   void registerNodeProcessors(
@@ -86,11 +80,6 @@ class PackageApiDocs extends LintRule implements ProjectVisitor, NodeLintRule {
     registry.addClassTypeAlias(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
   }
-
-  @override
-  void visit(DartProject project) {
-    this.project = project;
-  }
 }
 
 class _Visitor extends GeneralizingAstVisitor {
@@ -98,20 +87,25 @@ class _Visitor extends GeneralizingAstVisitor {
 
   _Visitor(this.rule);
 
+  // ignore: prefer_expression_function_bodies
   void check(Declaration node) {
-    // If no project info is set, bail early.
-    // https://github.com/dart-lang/linter/issues/154
-    var currentProject = rule.project;
-    if (currentProject == null) {
-      return;
-    }
+    // See: https://github.com/dart-lang/linter/issues/3395
+    // (`DartProject` removal).
+    return;
 
-    var declaredElement = node.declaredElement;
-    if (declaredElement != null && currentProject.isApi(declaredElement)) {
-      if (node.documentationComment == null) {
-        rule.reportLint(getNodeToAnnotate(node));
-      }
-    }
+    // // If no project info is set, bail early.
+    // // https://github.com/dart-lang/linter/issues/154
+    // var currentProject = rule.project;
+    // if (currentProject == null) {
+    //   return;
+    // }
+    //
+    // var declaredElement = node.declaredElement;
+    // if (declaredElement != null && currentProject.isApi(declaredElement)) {
+    //   if (node.documentationComment == null) {
+    //     rule.reportLint(getNodeToAnnotate(node));
+    //   }
+    // }
   }
 
   ///  classMember ::=
