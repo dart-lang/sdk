@@ -2095,28 +2095,35 @@ Fragment StreamingFlowGraphBuilder::BuildInvalidExpression(
   return Fragment();
 }
 
-Fragment StreamingFlowGraphBuilder::BuildVariableGet(TokenPosition* position) {
+Fragment StreamingFlowGraphBuilder::BuildVariableGet(
+    TokenPosition* position,
+    bool allow_late_uninitialized) {
   const TokenPosition pos = ReadPosition();
   if (position != nullptr) *position = pos;
   intptr_t variable_kernel_position = ReadUInt();  // read kernel position.
   ReadUInt();              // read relative variable index.
   SkipOptionalDartType();  // read promoted type.
-  return BuildVariableGetImpl(variable_kernel_position, pos);
+  return BuildVariableGetImpl(variable_kernel_position, pos,
+                              allow_late_uninitialized);
 }
 
-Fragment StreamingFlowGraphBuilder::BuildVariableGet(uint8_t payload,
-                                                     TokenPosition* position) {
+Fragment StreamingFlowGraphBuilder::BuildVariableGet(
+    uint8_t payload,
+    TokenPosition* position,
+    bool allow_late_uninitialized) {
   const TokenPosition pos = ReadPosition();
   if (position != nullptr) *position = pos;
   intptr_t variable_kernel_position = ReadUInt();  // read kernel position.
-  return BuildVariableGetImpl(variable_kernel_position, pos);
+  return BuildVariableGetImpl(variable_kernel_position, pos,
+                              allow_late_uninitialized);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildVariableGetImpl(
     intptr_t variable_kernel_position,
-    TokenPosition position) {
+    TokenPosition position,
+    bool allow_late_uninitialized) {
   LocalVariable* variable = LookupVariable(variable_kernel_position);
-  if (!variable->is_late()) {
+  if (!variable->is_late() || allow_late_uninitialized) {
     return LoadLocal(variable);
   }
 
@@ -3479,6 +3486,8 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
   switch (recognized_kind) {
     case MethodRecognizer::kNativeEffect:
       return BuildNativeEffect();
+    case MethodRecognizer::kReachabilityFence:
+      return BuildReachabilityFence();
     case MethodRecognizer::kFfiAsFunctionInternal:
       return BuildFfiAsFunctionInternal();
     case MethodRecognizer::kFfiNativeCallbackFunction:
@@ -5718,6 +5727,45 @@ Fragment StreamingFlowGraphBuilder::BuildNativeEffect() {
   ASSERT(named_args_len == 0);
 
   Fragment code;
+  code += NullConstant();  // Return type is void.
+  return code;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildReachabilityFence() {
+  const intptr_t argc = ReadUInt();               // Read argument count.
+  ASSERT(argc == 1);                              // LoadField, can be late.
+  const intptr_t list_length = ReadListLength();  // Read types list length.
+  ASSERT(list_length == 0);
+
+  const intptr_t positional_count = ReadListLength();
+  ASSERT(positional_count == 1);
+
+  // The CFE transform only generates a subset of argument expressions:
+  // either variable get or `this`.
+  uint8_t payload = 0;
+  Tag tag = ReadTag(&payload);
+  TokenPosition* position = nullptr;
+  const bool allow_late_uninitialized = true;
+  Fragment code;
+  switch (tag) {
+    case kVariableGet:
+      code = BuildVariableGet(position, allow_late_uninitialized);
+      break;
+    case kSpecializedVariableGet:
+      code = BuildVariableGet(payload, position, allow_late_uninitialized);
+      break;
+    case kThisExpression:
+      code = BuildThisExpression(position);
+      break;
+    default:
+      // The transformation should not be generating anything else.
+      FATAL1("Unexpected tag %i", tag);
+  }
+
+  const intptr_t named_args_len = ReadListLength();
+  ASSERT(named_args_len == 0);
+
+  code <<= new (Z) ReachabilityFenceInstr(Pop());
   code += NullConstant();  // Return type is void.
   return code;
 }

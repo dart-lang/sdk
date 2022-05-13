@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:args/args.dart';
 import 'package:test_runner/src/configuration.dart';
 import 'package:test_runner/src/testing_servers.dart';
 import 'package:test_runner/src/utils.dart';
-import 'package:test_runner/src/vendored_pkg/args/args.dart';
 
 void main(List<String> arguments) {
   var parser = ArgParser();
@@ -30,7 +30,7 @@ void main(List<String> arguments) {
 
   var args = parser.parse(arguments);
   if (args['help'] as bool) {
-    print(parser.getUsage());
+    print(parser.usage);
   } else {
     var servers = TestingServers(
         args['build-directory'] as String,
