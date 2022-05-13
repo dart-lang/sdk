@@ -149,8 +149,7 @@ bool _isPartDirective(Directive node) => node is PartDirective;
 bool _isRelativeDirective(NamespaceDirective node) =>
     !_isAbsoluteDirective(node);
 
-class DirectivesOrdering extends LintRule
-    implements ProjectVisitor, NodeLintRule {
+class DirectivesOrdering extends LintRule {
   static const LintCode dartDirectiveGoFirst =
       LintCode('directives_ordering', "Place 'dart:' {0}s before other {0}s.");
 
@@ -164,8 +163,6 @@ class DirectivesOrdering extends LintRule
   static const LintCode packageDirectiveBeforeRelative = LintCode(
       'directives_ordering', "Place 'package:' {0}s before relative {0}s.");
 
-  DartProject? project;
-
   DirectivesOrdering()
       : super(
             name: 'directives_ordering',
@@ -174,18 +171,10 @@ class DirectivesOrdering extends LintRule
             group: Group.style);
 
   @override
-  ProjectVisitor getProjectVisitor() => this;
-
-  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
-  }
-
-  @override
-  void visit(DartProject project) {
-    this.project = project;
   }
 
   void _reportLintWithDartDirectiveGoFirstMessage(AstNode node, String type) {
@@ -212,11 +201,13 @@ class DirectivesOrdering extends LintRule
   }
 }
 
+// ignore: unused_element
 class _PackageBox {
   final String _packageName;
 
   _PackageBox(this._packageName);
 
+  // ignore: unused_element
   bool _isNotOwnPackageDirective(NamespaceDirective node) =>
       _isPackageDirective(node) && !_isOwnPackageDirective(node);
 
@@ -231,8 +222,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   final DirectivesOrdering rule;
 
   _Visitor(this.rule);
-
-  DartProject? get project => rule.project;
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
@@ -285,33 +274,40 @@ class _Visitor extends SimpleAstVisitor<void> {
     _checkSectionInOrder(lintedNodes, relativeImports);
     _checkSectionInOrder(lintedNodes, relativeExports);
 
-    var projectName = project?.name;
-    if (projectName == null) {
-      // Not a pub package. Package directives should be sorted in one block.
-      var packageImports = importDirectives.where(_isPackageDirective);
-      var packageExports = exportDirectives.where(_isPackageDirective);
+    // See: https://github.com/dart-lang/linter/issues/3395
+    // (`DartProject` removal)
+    // The rub is that *all* projects are being treated as "not pub"
+    // packages.  We'll want to be careful when fixing this since it
+    // will have ecosystem impact.
 
-      _checkSectionInOrder(lintedNodes, packageImports);
-      _checkSectionInOrder(lintedNodes, packageExports);
-    } else {
-      var packageBox = _PackageBox(projectName);
+    // Not a pub package. Package directives should be sorted in one block.
+    var packageImports = importDirectives.where(_isPackageDirective);
+    var packageExports = exportDirectives.where(_isPackageDirective);
 
-      var thirdPartyPackageImports =
-          importDirectives.where(packageBox._isNotOwnPackageDirective);
-      var thirdPartyPackageExports =
-          exportDirectives.where(packageBox._isNotOwnPackageDirective);
+    _checkSectionInOrder(lintedNodes, packageImports);
+    _checkSectionInOrder(lintedNodes, packageExports);
 
-      var ownPackageImports =
-          importDirectives.where(packageBox._isOwnPackageDirective);
-      var ownPackageExports =
-          exportDirectives.where(packageBox._isOwnPackageDirective);
-
-      _checkSectionInOrder(lintedNodes, thirdPartyPackageImports);
-      _checkSectionInOrder(lintedNodes, thirdPartyPackageExports);
-
-      _checkSectionInOrder(lintedNodes, ownPackageImports);
-      _checkSectionInOrder(lintedNodes, ownPackageExports);
-    }
+    // The following is relying on projectName which is meant to come from
+    // a `DartProject` instance (but was not since the project was always null)
+    // else {
+    //   var packageBox = _PackageBox(projectName);
+    //
+    //   var thirdPartyPackageImports =
+    //       importDirectives.where(packageBox._isNotOwnPackageDirective);
+    //   var thirdPartyPackageExports =
+    //       exportDirectives.where(packageBox._isNotOwnPackageDirective);
+    //
+    //   var ownPackageImports =
+    //       importDirectives.where(packageBox._isOwnPackageDirective);
+    //   var ownPackageExports =
+    //       exportDirectives.where(packageBox._isOwnPackageDirective);
+    //
+    //   _checkSectionInOrder(lintedNodes, thirdPartyPackageImports);
+    //   _checkSectionInOrder(lintedNodes, thirdPartyPackageExports);
+    //
+    //   _checkSectionInOrder(lintedNodes, ownPackageImports);
+    //   _checkSectionInOrder(lintedNodes, ownPackageExports);
+    // }
   }
 
   void _checkExportDirectiveAfterImportDirective(
