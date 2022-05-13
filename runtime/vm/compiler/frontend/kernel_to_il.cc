@@ -955,7 +955,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
     case MethodRecognizer::kImmutableLinkedHashBase_setIndexStoreRelease:
     case MethodRecognizer::kFfiAbi:
-    case MethodRecognizer::kReachabilityFence:
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kHas63BitSmis:
     case MethodRecognizer::kExtensionStreamHasListener:
@@ -1292,12 +1291,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(4));  // table
       body += Utf8Scan();
       body += Box(kUnboxedIntPtr);
-      break;
-    case MethodRecognizer::kReachabilityFence:
-      ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += ReachabilityFence();
-      body += NullConstant();
       break;
     case MethodRecognizer::kFfiAbi:
       ASSERT_EQUAL(function.NumParameters(), 0);

@@ -274,10 +274,14 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildArgumentsFromActualArguments(Array* argument_names);
 
   Fragment BuildInvalidExpression(TokenPosition* position);
-  Fragment BuildVariableGet(TokenPosition* position);
-  Fragment BuildVariableGet(uint8_t payload, TokenPosition* position);
+  Fragment BuildVariableGet(TokenPosition* position,
+                            bool allow_late_uninitialized = false);
+  Fragment BuildVariableGet(uint8_t payload,
+                            TokenPosition* position,
+                            bool allow_late_uninitialized = false);
   Fragment BuildVariableGetImpl(intptr_t variable_kernel_position,
-                                TokenPosition position);
+                                TokenPosition position,
+                                bool allow_late_uninitialized = false);
   Fragment BuildVariableSet(TokenPosition* position);
   Fragment BuildVariableSet(uint8_t payload, TokenPosition* position);
   Fragment BuildVariableSetImpl(TokenPosition position,
@@ -367,6 +371,10 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   // Build flow graph for '_nativeEffect'.
   Fragment BuildNativeEffect();
+
+  // Build the call-site manually, to avoid doing initialization checks
+  // for late fields.
+  Fragment BuildReachabilityFence();
 
   // Build flow graph for '_loadAbiSpecificInt' and
   // '_loadAbiSpecificIntAtIndex', '_storeAbiSpecificInt', and
