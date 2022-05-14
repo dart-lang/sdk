@@ -114,7 +114,7 @@ vars = {
   "fixnum_rev": "3bfc2ed1eea7e7acb79ad4f17392f92c816fc5ce",
   "glob_rev": "e10eb2407c58427144004458ef85c9bbf7286e56",
   "html_rev": "f108bce59d136c584969fd24a5006914796cf213",
-  "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
+  "http_io_rev": "405fc79233b4a3d4bb079ebf438bb2caf2f49355",
   "http_multi_server_rev": "34bf7f04b61cce561f47f7f275c2cc811534a05a",
   "http_parser_rev": "9126ee04e77fd8e4e2e6435b503ee4dd708d7ddc",
   "http_rev": "2c9b418f5086f999c150d18172d2eec1f963de7b",
