@@ -56,13 +56,15 @@ io/platform_resolved_executable_test/06: RuntimeError # Issue 23641
 
 [ $mode == release && $runtime == vm && $system == macos ]
 io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
-io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
 
 [ $mode == release && $runtime == vm && $system == windows ]
 io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
 
 [ $runtime == dart_precompiled && $system == linux && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 || $arch == x64) ]
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 35192
+
+[ $runtime == vm && $system == macos ]
+io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
 
 [ $runtime == vm && ($arch == arm || $arch == arm64) ]
 io/dart_std_io_pipe_test: Timeout, Pass
