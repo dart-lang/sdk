@@ -16,12 +16,20 @@ class FileSystemEntityType {
 
   static const link = const FileSystemEntityType._internal(2);
 
-  static const notFound = const FileSystemEntityType._internal(3);
+  static const unixDomainSock = const FileSystemEntityType._internal(3);
+
+  static const pipe = const FileSystemEntityType._internal(4);
+
+  static const notFound = const FileSystemEntityType._internal(5);
+  @Deprecated("Use notFound instead")
+  static const NOT_FOUND = notFound;
 
   static const _typeList = const [
     FileSystemEntityType.file,
     FileSystemEntityType.directory,
     FileSystemEntityType.link,
+    FileSystemEntityType.unixDomainSock,
+    FileSystemEntityType.pipe,
     FileSystemEntityType.notFound,
   ];
   final int _type;
@@ -29,7 +37,14 @@ class FileSystemEntityType {
   const FileSystemEntityType._internal(this._type);
 
   static FileSystemEntityType _lookup(int type) => _typeList[type];
-  String toString() => const ['file', 'directory', 'link', 'notFound'][_type];
+  String toString() => const [
+        'file',
+        'directory',
+        'link',
+        'unixDomainSock',
+        'pipe',
+        'notFound'
+      ][_type];
 }
 
 /// The result of calling the POSIX `stat()` function on a file system object.
