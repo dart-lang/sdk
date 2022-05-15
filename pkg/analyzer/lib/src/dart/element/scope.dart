@@ -133,7 +133,7 @@ class LocalScope extends EnclosedScope {
 }
 
 class PrefixScope implements Scope {
-  final LibraryElement _library;
+  final LibraryOrAugmentationElement _library;
   final Map<String, Element> _getters = {};
   final Map<String, Element> _setters = {};
   final Set<ExtensionElement> _extensions = {};

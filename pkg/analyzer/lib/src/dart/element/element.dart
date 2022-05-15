@@ -4021,9 +4021,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     return null;
   }
 
+  @Deprecated('Use PrefixElement.imports instead')
   @override
-  List<ImportElement> getImportsWithPrefix(PrefixElement prefixElement) {
-    return getImportsWithPrefixFromImports(prefixElement, imports);
+  List<ImportElement> getImportsWithPrefix(PrefixElement prefix) {
+    return prefix.imports;
   }
 
   @override
@@ -4117,18 +4118,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
       }
     }
     return prefixes.toList(growable: false);
-  }
-
-  static List<ImportElement> getImportsWithPrefixFromImports(
-      PrefixElement prefixElement, List<ImportElement> imports) {
-    int count = imports.length;
-    List<ImportElement> importList = <ImportElement>[];
-    for (int i = 0; i < count; i++) {
-      if (identical(imports[i].prefix, prefixElement)) {
-        importList.add(imports[i]);
-      }
-    }
-    return importList;
   }
 
   static ClassElement? getTypeFromParts(
@@ -5104,13 +5093,21 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   @override
   String get displayName => name;
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
   LibraryElement get enclosingElement =>
       super.enclosingElement as LibraryElement;
 
   @override
-  LibraryOrAugmentationElementImpl get enclosingElement2 =>
-      super.enclosingElement as LibraryOrAugmentationElementImpl;
+  LibraryOrAugmentationElement get enclosingElement2 =>
+      super.enclosingElement as LibraryOrAugmentationElement;
+
+  @override
+  List<ImportElement> get imports {
+    return enclosingElement2.imports
+        .where((import) => identical(import.prefix, this))
+        .toList();
+  }
 
   @override
   ElementKind get kind => ElementKind.PREFIX;
@@ -5121,7 +5118,7 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   }
 
   @override
-  Scope get scope => _scope ??= PrefixScope(enclosingElement, this);
+  Scope get scope => _scope ??= PrefixScope(enclosingElement2, this);
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitPrefixElement(this);

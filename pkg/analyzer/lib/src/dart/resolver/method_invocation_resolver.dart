@@ -654,7 +654,7 @@ class MethodInvocationResolver {
     // Note: prefix?.bar is reported as an error in ElementResolver.
 
     if (name == FunctionElement.LOAD_LIBRARY_NAME) {
-      var imports = _definingLibrary.getImportsWithPrefix(prefix);
+      var imports = prefix.imports;
       if (imports.length == 1 && imports[0].isDeferred) {
         var importedLibrary = imports[0].importedLibrary;
         var element = importedLibrary?.loadLibraryFunction;
