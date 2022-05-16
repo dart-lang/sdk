@@ -18,6 +18,7 @@ defineTests() {
       // TODO(brianwilkerson) These tests fail on the bots because the cwd is
       // not the same there as when we run tests locally.
       group('cwd', () async {
+        // ignore: deprecated_member_use_from_same_package
         var project = await DartProject.create(_AnalysisSessionMock(), []);
         test('name', () {
           expect(project.name, 'analyzer');

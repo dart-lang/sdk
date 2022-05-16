@@ -134,15 +134,8 @@ class LintDriver {
     }
 
     if (projectAnalysisSession != null) {
-      var project = await DartProject.create(
-        projectAnalysisSession,
-        _filesAnalyzed.toList(),
-      );
-      for (var lint in Registry.ruleRegistry) {
-        if (lint is ProjectVisitor) {
-          (lint as ProjectVisitor).visit(project);
-        }
-      }
+      // ignore: deprecated_member_use_from_same_package
+      await _visitProject(projectAnalysisSession);
     }
 
     var result = <AnalysisErrorInfo>[];
@@ -167,6 +160,24 @@ class LintDriver {
     path = pathContext.absolute(path);
     path = pathContext.normalize(path);
     return path;
+  }
+
+  @Deprecated('DartProject is deprecated. This is slated for removal')
+  Future<void> _visitProject(AnalysisSession projectAnalysisSession) async {
+    Future<DartProject> createProject() async {
+      return await DartProject.create(
+        projectAnalysisSession,
+        _filesAnalyzed.toList(),
+      );
+    }
+
+    DartProject? project;
+    for (var lint in Registry.ruleRegistry) {
+      if (lint is ProjectVisitor) {
+        project ??= await createProject();
+        (lint as ProjectVisitor).visit(project);
+      }
+    }
   }
 }
 
