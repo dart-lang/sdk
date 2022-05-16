@@ -61,7 +61,7 @@ enum Register {
   A5 = 15,  // PP, untagged
   A6 = 16,
   A7 = 17,
-  S2 = 18,
+  S2 = 18,  // ShadowCallStack
   S3 = 19,
   S4 = 20,  // ARGS_DESC_REG
   S5 = 21,  // IC_DATA_REG
@@ -192,10 +192,10 @@ struct InstantiationABI {
 // Registers in addition to those listed in TypeTestABI used inside the
 // implementation of type testing stubs that are _not_ preserved.
 struct TTSInternalRegs {
-  static constexpr Register kInstanceTypeArgumentsReg = S2;
-  static constexpr Register kScratchReg = S3;
-  static constexpr Register kSubTypeArgumentReg = S4;
-  static constexpr Register kSuperTypeArgumentReg = S5;
+  static constexpr Register kInstanceTypeArgumentsReg = S3;
+  static constexpr Register kScratchReg = S4;
+  static constexpr Register kSubTypeArgumentReg = S5;
+  static constexpr Register kSuperTypeArgumentReg = S6;
 
   // Must be pushed/popped whenever generic type arguments are being checked as
   // they overlap with registers in TypeTestABI.
@@ -210,10 +210,10 @@ struct TTSInternalRegs {
 // Registers in addition to those listed in TypeTestABI used inside the
 // implementation of subtype test cache stubs that are _not_ preserved.
 struct STCInternalRegs {
-  static constexpr Register kInstanceCidOrSignatureReg = S2;
-  static constexpr Register kInstanceInstantiatorTypeArgumentsReg = S3;
-  static constexpr Register kInstanceParentFunctionTypeArgumentsReg = S4;
-  static constexpr Register kInstanceDelayedFunctionTypeArgumentsReg = S5;
+  static constexpr Register kInstanceCidOrSignatureReg = S3;
+  static constexpr Register kInstanceInstantiatorTypeArgumentsReg = S4;
+  static constexpr Register kInstanceParentFunctionTypeArgumentsReg = S5;
+  static constexpr Register kInstanceDelayedFunctionTypeArgumentsReg = S6;
 
   static const intptr_t kInternalRegisters =
       (1 << kInstanceCidOrSignatureReg) |
@@ -443,15 +443,30 @@ constexpr RegList kAbiPreservedCpuRegs = R(S1) | R(S2) | R(S3) | R(S4) | R(S5) |
                                          R(S6) | R(S7) | R(S8) | R(S9) |
                                          R(S10) | R(S11);
 constexpr int kAbiPreservedCpuRegCount = 11;
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+// We rely on X18 not being touched by Dart generated assembly or stubs at all.
+// We rely on that any calls into C++ also preserve X18.
+constexpr intptr_t kReservedCpuRegisters =
+    R(ZR) | R(TP) | R(GP) | R(SP) | R(FP) | R(TMP) | R(TMP2) | R(PP) | R(THR) |
+    R(RA) | R(WRITE_BARRIER_MASK) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
+    R(FAR_TMP) | R(18);
+constexpr intptr_t kNumberOfReservedCpuRegisters = 15;
+#else
 constexpr intptr_t kReservedCpuRegisters =
     R(ZR) | R(TP) | R(GP) | R(SP) | R(FP) | R(TMP) | R(TMP2) | R(PP) | R(THR) |
     R(RA) | R(WRITE_BARRIER_MASK) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
     R(FAR_TMP);
 constexpr intptr_t kNumberOfReservedCpuRegisters = 14;
+#endif
 // CPU registers available to Dart allocator.
 constexpr RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
+#if defined(DART_TARGET_OS_FUCHSIA)
+constexpr int kNumberOfDartAvailableCpuRegs = 17;
+#else
 constexpr int kNumberOfDartAvailableCpuRegs = 18;
+#endif
 // Registers X8-15 (S0-1,A0-5) have more compressed instructions available.
 constexpr int kRegisterAllocationBias = 8;
 // Registers available to Dart that are not preserved by runtime calls.
@@ -511,7 +526,8 @@ class CallingConventions {
   static constexpr Register kSecondReturnReg = A1;
   static constexpr FpuRegister kReturnFpuReg = FA0;
 
-  static constexpr Register kFfiAnyNonAbiRegister = S2;  // S0=FP, S1=THR
+  // S0=FP, S1=THR, S2=ShadowCallStack
+  static constexpr Register kFfiAnyNonAbiRegister = S3;
   static constexpr Register kFirstNonArgumentRegister = T0;
   static constexpr Register kSecondNonArgumentRegister = T1;
   static constexpr Register kStackPointerRegister = SPREG;

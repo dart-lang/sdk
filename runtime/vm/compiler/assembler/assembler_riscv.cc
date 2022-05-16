@@ -3031,9 +3031,9 @@ void Assembler::StoreBarrier(Register object,
     if (object != kWriteBarrierValueReg) {
       PushRegister(kWriteBarrierValueReg);
     } else {
-      COMPILE_ASSERT(S2 != kWriteBarrierValueReg);
       COMPILE_ASSERT(S3 != kWriteBarrierValueReg);
-      objectForCall = (value == S2) ? S3 : S2;
+      COMPILE_ASSERT(S4 != kWriteBarrierValueReg);
+      objectForCall = (value == S3) ? S4 : S3;
       PushRegisterPair(kWriteBarrierValueReg, objectForCall);
       mv(objectForCall, object);
     }

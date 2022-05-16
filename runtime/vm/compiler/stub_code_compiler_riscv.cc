@@ -272,12 +272,12 @@ void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub(
 //   Stack: set up for native call (SP), aligned, CSP < SP
 //
 // On exit:
-//   S2: clobbered, although normally callee-saved
+//   S3: clobbered, although normally callee-saved
 //   Stack: preserved, CSP == SP
 void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
     Assembler* assembler) {
-  COMPILE_ASSERT(IsAbiPreservedRegister(S2));
-  __ mv(S2, RA);
+  COMPILE_ASSERT(IsAbiPreservedRegister(S3));
+  __ mv(S3, RA);
   __ LoadImmediate(T1, target::Thread::exit_through_ffi());
   __ TransitionGeneratedToNative(T0, FPREG, T1 /*volatile*/,
                                  /*enter_safepoint=*/true);
@@ -294,7 +294,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
   __ jalr(T0);
 
   __ TransitionNativeToGenerated(T1, /*leave_safepoint=*/true);
-  __ jr(S2);
+  __ jr(S3);
 }
 
 #if !defined(DART_PRECOMPILER)
@@ -1321,7 +1321,9 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ lx(TMP2, Address(A3, target::Thread::invoke_dart_code_stub_offset()));
   __ PushRegister(TMP2);
 
-#if defined(USING_SHADOW_CALL_STACK)
+#if defined(DART_TARGET_OS_FUCHSIA)
+  __ sx(S2, Address(A3, target::Thread::saved_shadow_call_stack_offset()));
+#elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
 
@@ -3032,7 +3034,9 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   __ mv(SP, A1);                 // Stack pointer.
   __ mv(FP, A2);                 // Frame_pointer.
   __ mv(THR, A3);
-#if defined(USING_SHADOW_CALL_STACK)
+#if defined(DART_TARGET_OS_FUCHSIA)
+  __ lx(S2, Address(THR, target::Thread::saved_shadow_call_stack_offset()));
+#elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
   Label exit_through_non_ffi;
