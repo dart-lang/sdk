@@ -436,7 +436,7 @@ import 'a.dart';
     driver.addFile(b);
 
     void assertNumberOfErrorsInB(int n) {
-      var bResult = allResults.singleWhere((r) => r.path == b);
+      var bResult = allResults.withPath(b);
       expect(bResult.errors, hasLength(n));
       allResults.clear();
     }
@@ -482,8 +482,7 @@ import 'a.dart';
     await waitForIdleWithoutExceptions();
 
     // Only 'b' has been analyzed, because 'a' was removed before we started.
-    expect(allResults, hasLength(1));
-    expect(allResults[0].path, b);
+    expect(allResults.pathList, [b]);
   }
 
   test_analyze_resolveDirectives() async {
@@ -993,8 +992,7 @@ var A2 = B1;
     // Initial analysis.
     {
       await waitForIdleWithoutExceptions();
-      expect(allResults, hasLength(1));
-      var result = allResults[0] as ResolvedUnitResult;
+      final result = allResults.whereType<ResolvedUnitResult>().single;
       expect(result.path, testFile);
       _assertTopLevelVarType(result.unit, 'V', 'int');
     }
@@ -1014,8 +1012,7 @@ var A2 = B1;
     // We get a new result.
     {
       await waitForIdleWithoutExceptions();
-      expect(allResults, hasLength(1));
-      var result = allResults[0] as ResolvedUnitResult;
+      final result = allResults.whereType<ResolvedUnitResult>().single;
       expect(result.path, testFile);
       _assertTopLevelVarType(result.unit, 'V', 'double');
     }
@@ -1729,7 +1726,7 @@ class B {}
 
     // The same result is also received through the stream.
     await waitForIdleWithoutExceptions();
-    expect(allResults, [result]);
+    expect(allResults.toList(), [result]);
   }
 
   test_getResult_constants_defaultParameterValue_localFunction() async {
@@ -3004,7 +3001,7 @@ var b = new B();
     driver.addFile(a);
 
     await waitForIdleWithoutExceptions();
-    expect(allResults.map((e) => e.path).toSet(), {a});
+    expect(allResults.pathSet, {a});
     allResults.clear();
 
     driver.removeFile(a);
@@ -3012,7 +3009,7 @@ var b = new B();
 
     // a.dart should be produced again
     await waitForIdleWithoutExceptions();
-    expect(allResults.map((e) => e.path).toSet(), {a});
+    expect(allResults.pathSet, {a});
   }
 
   test_removeFile_changeFile_implicitlyAnalyzed() async {
@@ -3068,8 +3065,7 @@ var A = B;
 
     // We have a result.
     await waitForIdleWithoutExceptions();
-    expect(allResults, hasLength(1));
-    expect(allResults[0].path, testFile);
+    expect(allResults.pathSet, {testFile});
     allResults.clear();
 
     // Remove the file and send the change notification.
@@ -3094,14 +3090,14 @@ var A = B;
     await waitForIdleWithoutExceptions();
 
     // b.dart s clean.
-    expect(allResults.singleWhere((r) => r.path == b).errors, isEmpty);
+    expect(allResults.withPath(b).errors, isEmpty);
     allResults.clear();
 
     // Remove a.dart, now b.dart should be reanalyzed and has an error.
     deleteFile(a);
     driver.removeFile(a);
     await waitForIdleWithoutExceptions();
-    expect(allResults.singleWhere((r) => r.path == b).errors, hasLength(2));
+    expect(allResults.withPath(b).errors, hasLength(2));
     allResults.clear();
   }
 
@@ -3155,7 +3151,7 @@ class F extends X {}
     driver.changeFile(b);
     await waitForIdleWithoutExceptions();
 
-    List<String> analyzedPaths = allResults.map((r) => r.path).toList();
+    List<String> analyzedPaths = allResults.pathList;
 
     // The changed file must be the first.
     expect(analyzedPaths[0], b);
@@ -3197,7 +3193,7 @@ class F extends X {}
     driver.changeFile(a);
     await waitForIdleWithoutExceptions();
 
-    List<String> analyzedPaths = allResults.map((r) => r.path).toList();
+    List<String> analyzedPaths = allResults.pathList;
 
     // The changed files must be the first.
     expect(analyzedPaths[0], a);
@@ -3242,7 +3238,7 @@ class F extends X {}
     await waitForIdleWithoutExceptions();
 
     expect(allResults, hasLength(3));
-    var result = allResults[0] as ResolvedUnitResult;
+    var result = allResults.first as ResolvedUnitResult;
     expect(result.path, b);
     expect(result.unit, isNotNull);
     expect(result.errors, hasLength(0));
@@ -3270,7 +3266,7 @@ var v = 0;
     driver.addFile(a);
 
     await waitForIdleWithoutExceptions();
-    expect(allResults.singleWhere((r) => r.path == a).errors, hasLength(0));
+    expect(allResults.withPath(a).errors, hasLength(0));
     allResults.clear();
 
     newFile(a, r'''
@@ -3279,7 +3275,7 @@ var v = 0
     driver.removeFile(b);
     driver.changeFile(a);
     await waitForIdleWithoutExceptions();
-    expect(allResults.singleWhere((r) => r.path == a).errors, hasLength(1));
+    expect(allResults.withPath(a).errors, hasLength(1));
   }
 
   test_results_skipNotAffected() async {
