@@ -7,6 +7,10 @@
 - Add `connectionState` attribute and `connectionstatechange` listener to
   `RtcPeerConnection`.
 
+#### `dart:js_util`
+
+- Added `dartify` and a number of minor helper functions.
+
 ### Tools
 
 #### Linter

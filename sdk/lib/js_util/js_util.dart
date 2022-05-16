@@ -417,3 +417,76 @@ Future<T> promiseToFuture<T>(Object jsPromise) {
   JS('', '#.then(#, #)', jsPromise, success, error);
   return completer.future;
 }
+
+Object? _getConstructor(String constructorName) =>
+    getProperty(globalThis, constructorName);
+
+/// Like [instanceof] only takes a [String] for the object name instead of a
+/// constructor object.
+bool instanceOfString(Object? element, String objectType) {
+  Object? constructor = _getConstructor(objectType);
+  return constructor != null && instanceof(element, constructor);
+}
+
+/// Returns the prototype of a given object. Equivalent to
+/// `Object.getPrototypeOf`.
+Object? objectGetPrototypeOf(Object? object) =>
+    JS('', 'Object.getPrototypeOf(#)', object);
+
+/// Returns the `Object` prototype. Equivalent to `Object.prototype`.
+Object? get objectPrototype => JS('', 'Object.prototype');
+
+/// Returns the keys for a given object. Equivalent to `Object.keys(object)`.
+List<Object?> objectKeys(Object? object) => JS('', 'Object.keys(#)', object);
+
+/// Returns `true` if a given object is a JavaScript array.
+bool isJavaScriptArray(value) => instanceOfString(value, 'Array');
+
+/// Returns `true` if a given object is a simple JavaScript object.
+bool isJavaScriptSimpleObject(value) {
+  final Object? proto = objectGetPrototypeOf(value);
+  return proto == null || proto == objectPrototype;
+}
+
+/// Effectively the inverse of [jsify], [dartify] Takes a JavaScript object, and
+/// converts it to a Dart based object. Only JS primitives, arrays, or 'map'
+/// like JS objects are supported.
+Object? dartify(Object? o) {
+  var _convertedObjects = HashMap.identity();
+  Object? convert() {
+    if (_convertedObjects.containsKey(o)) {
+      return _convertedObjects[o];
+    }
+    if (o == null || o is bool || o is num || o is String) return o;
+    if (isJavaScriptSimpleObject(o)) {
+      Map<Object?, Object?> dartObject = {};
+      _convertedObjects[o] = dartObject;
+      List<Object?> originalKeys = objectKeys(o);
+      List<Object?> dartKeys = [];
+      for (Object? key in originalKeys) {
+        dartKeys.add(dartify(key));
+      }
+      for (int i = 0; i < originalKeys.length; i++) {
+        Object? jsKey = originalKeys[i];
+        Object? dartKey = dartKeys[i];
+        if (jsKey != null) {
+          dartObject[dartKey] = dartify(getProperty(o, jsKey));
+        }
+      }
+      return dartObject;
+    }
+    if (isJavaScriptArray(o)) {
+      List<Object?> dartObject = [];
+      _convertedObjects[o] = dartObject;
+      int length = getProperty(o, 'length');
+      for (int i = 0; i < length; i++) {
+        dartObject.add(dartify(getProperty(o, i)));
+      }
+      return dartObject;
+    }
+    throw ArgumentError(
+        "JavaScriptObject $o must be a primitive, simple object, or array");
+  }
+
+  return convert();
+}

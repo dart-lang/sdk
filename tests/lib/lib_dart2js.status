@@ -88,6 +88,7 @@ html/js_typed_interop_type_test: SkipByDesign
 html/js_typed_interop_window_property_test: SkipByDesign
 html/js_util_test: SkipByDesign
 html/postmessage_structured_test: SkipByDesign
+js/js_util/dartify_test: SkipByDesign
 
 [ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
