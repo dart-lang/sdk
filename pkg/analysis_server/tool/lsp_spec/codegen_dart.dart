@@ -73,7 +73,23 @@ Iterable<AstNode> renameTypes(List<AstNode> types) sync* {
     //   the migration to JSON meta_model.
     'ClientCapabilitiesWindow': 'WindowClientCapabilities',
     'ClientCapabilitiesWorkspace': 'WorkspaceClientCapabilities',
+    'ClientCapabilitiesFileOperations': 'FileOperationClientCapabilities',
+    'ServerCapabilitiesFileOperations': 'FileOperationOptions',
+    'ClientCapabilitiesGeneral': 'GeneralClientCapabilities',
+    'CompletionClientCapabilitiesInsertTextModeSupport':
+        'CompletionItemInsertTextModeSupport',
+    'CompletionClientCapabilitiesResolveSupport':
+        'CompletionItemResolveSupport',
+    'CompletionClientCapabilitiesTagSupport': 'CompletionItemTagSupport',
+    'CodeActionClientCapabilitiesCodeActionKind':
+        'CodeActionLiteralSupportCodeActionKind',
     'DocumentFilter': 'TextDocumentFilter',
+    'ClientCapabilitiesStaleRequestSupport':
+        'GeneralClientCapabilitiesStaleRequestSupport',
+    'SignatureHelpClientCapabilitiesParameterInformation':
+        'SignatureInformationParameterInformation',
+    'NotebookDocumentChangeEventStructure':
+        'NotebookDocumentChangeEventCellsStructure',
   };
 
   for (final type in types) {

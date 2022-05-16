@@ -126,7 +126,7 @@ features:
     help: "Static meta-programming"
 
   inference-update-1:
-    help: "Enhanced type inference"
+    help: "Horizontal type inference for function expressions passed to generic invocations."
 
 # Experiment flag only used for testing.
   test-experiment:

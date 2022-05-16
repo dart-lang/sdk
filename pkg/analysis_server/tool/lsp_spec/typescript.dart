@@ -149,6 +149,9 @@ bool includeTypeDefinitionInOutput(AstNode node) {
   // have to handle any cases where both a namespace and interfaces are declared
   // with the same name.
   return node.name != 'InitializeError' &&
+      // We don't use `InitializeErrorCodes` as it contains only one error code
+      // that has been deprecated and we've never used.
+      node.name != 'InitializeErrorCodes' &&
       // We don't emit MarkedString because it gets mapped to a simple String
       // when getting the .dartType for it.
       // .startsWith() because there are inline types that will be generated.

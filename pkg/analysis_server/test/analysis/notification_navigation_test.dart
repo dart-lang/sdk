@@ -583,18 +583,51 @@ class A {
     // don't check regions, but there should be no exceptions
   }
 
-  Future<void> test_class_fieldFormalParameter() async {
+  Future<void> test_class_fieldFormalParameter_requiredNamed() async {
     addTestFile('''
-class AAA {
-  int fff = 123;
-  AAA(this.fff);
+class A {
+  final int f;
+  A({required this.f}) : assert(f > 0);
 }
 ''');
     await prepareNavigation();
-    assertHasRegionTarget('fff);', 'fff = 123');
+    assertHasRegionTarget('this.f', 'f;');
+    assertHasRegionTarget('f}) :', 'f;');
+    assertHasRegionTarget('f > 0', 'f}) :');
   }
 
-  Future<void> test_class_fieldFormalParameter_unresolved() async {
+  Future<void> test_class_fieldFormalParameter_requiredPositional() async {
+    addTestFile('''
+class A {
+  final int f;
+  A(this.f) : assert(f > 0);
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('this.f', 'f;');
+    assertHasRegionTarget('f) :', 'f;');
+    assertHasRegionTarget('f > 0', 'f) :');
+  }
+
+  Future<void>
+      test_class_fieldFormalParameter_requiredPositional_functionTyped() async {
+    addTestFile('''
+class B {
+  final Object f;
+  B(int this.f<T>(T a)) : assert(f is Object);
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('f<T>', 'f;');
+    assertHasRegion('int ');
+    assertHasRegionTarget('T>', 'T>');
+    assertHasRegionTarget('T a', 'T>');
+    assertHasRegionTarget('a))', 'a))');
+    assertHasRegionTarget('f is', 'f<T>');
+  }
+
+  Future<void>
+      test_class_fieldFormalParameter_requiredPositional_unresolved() async {
     addTestFile('''
 class AAA {
   AAA(this.fff);
@@ -1343,28 +1376,30 @@ class B extends A {
   Future<void> test_superFormalParameter_requiredNamed() async {
     addTestFile('''
 class A {
-  A({required int a}); // 0
+  A({required int a});
 }
 class B extends A {
-  B({required super.a}); // 1
+  B({required super.a}) : assert(a > 0);
 }
 ''');
     await prepareNavigation();
-    assertHasRegionTarget('a}); // 1', 'a}); // 0');
+    assertHasRegionTarget('a}) :', 'a});');
+    assertHasRegionTarget('a > 0', 'a}) :');
   }
 
   Future<void> test_superFormalParameter_requiredPositional() async {
     addTestFile('''
 class A {
-  A(int a); // 0
+  A(int a);
 }
 class B extends A {
-  B(super.a); // 1
+  B(super.a) : assert(a > 0);
 }
 ''');
     await prepareNavigation();
-    assertHasRegionTarget('super.a', 'a); // 0');
-    assertHasRegionTarget('a); // 1', 'a); // 0');
+    assertHasRegionTarget('super.a', 'a);');
+    assertHasRegionTarget('a) :', 'a);');
+    assertHasRegionTarget('a > 0', 'a) :');
   }
 
   Future<void>
@@ -1374,7 +1409,7 @@ class A {
   A(Object a); // 0
 }
 class B extends A {
-  B(int super.a<T>(T b)); // 1
+  B(int super.a<T>(T b)) : assert(a is Object);
 }
 ''');
     await prepareNavigation();
@@ -1383,6 +1418,8 @@ class B extends A {
     assertHasRegionTarget('T>', 'T>');
     assertHasRegionTarget('T b', 'T>');
     assertHasRegionTarget('b))', 'b))');
+    assertHasRegionTarget('b))', 'b))');
+    assertHasRegionTarget('a is', 'a<T>');
   }
 
   Future<void> test_superFormalParameter_requiredPositional_unresolved() async {

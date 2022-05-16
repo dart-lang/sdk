@@ -268,10 +268,10 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
                                  ->build_nongeneric_method_extractor_code());
   ASSERT(!build_method_extractor.IsNull());
 
-  const intptr_t stub_index = __ object_pool_builder().AddObject(
-      build_method_extractor, compiler::ObjectPoolBuilderEntry::kNotPatchable);
-  const intptr_t function_index = __ object_pool_builder().AddObject(
-      extracted_method, compiler::ObjectPoolBuilderEntry::kNotPatchable);
+  const intptr_t stub_index =
+      __ object_pool_builder().FindObject(build_method_extractor);
+  const intptr_t function_index =
+      __ object_pool_builder().FindObject(extracted_method);
 
   // We use a custom pool register to preserve caller PP.
   Register kPoolReg = RAX;
@@ -705,11 +705,15 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     __ pushq(reg);
     __ PushObject(obj);
     if (is_optimizing()) {
-      __ CallPatchable(StubCode::OptimizedIdenticalWithNumberCheck());
+      // No breakpoints in optimized code.
+      __ Call(StubCode::OptimizedIdenticalWithNumberCheck());
+      AddCurrentDescriptor(UntaggedPcDescriptors::kOther, deopt_id, source);
     } else {
+      // Patchable to support breakpoints.
       __ CallPatchable(StubCode::UnoptimizedIdenticalWithNumberCheck());
+      AddCurrentDescriptor(UntaggedPcDescriptors::kRuntimeCall, deopt_id,
+                           source);
     }
-    AddCurrentDescriptor(UntaggedPcDescriptors::kRuntimeCall, deopt_id, source);
     // Stub returns result in flags (result of a cmpq, we need ZF computed).
     __ popq(reg);  // Discard constant.
     __ popq(reg);  // Restore 'reg'.
@@ -729,7 +733,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(
     __ pushq(left);
     __ pushq(right);
     if (is_optimizing()) {
-      __ CallPatchable(StubCode::OptimizedIdenticalWithNumberCheck());
+      __ Call(StubCode::OptimizedIdenticalWithNumberCheck());
     } else {
       __ CallPatchable(StubCode::UnoptimizedIdenticalWithNumberCheck());
     }
