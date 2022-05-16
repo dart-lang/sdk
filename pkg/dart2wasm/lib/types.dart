@@ -14,8 +14,15 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 class Types {
   final Translator translator;
   late final typeClassInfo = translator.classInfo[translator.typeClass]!;
+  late final w.ValueType typeListExpectedType = classAndFieldToType(
+      translator.interfaceTypeClass, FieldIndex.interfaceTypeTypeArguments);
+  late final w.ValueType namedParametersExpectedType = classAndFieldToType(
+      translator.functionTypeClass, FieldIndex.functionTypeNamedParameters);
 
   Types(this.translator);
+
+  w.ValueType classAndFieldToType(Class cls, int fieldIndex) =>
+      translator.classInfo[cls]!.struct.fields[fieldIndex].type.unpacked;
 
   Iterable<Class> _getConcreteSubtypes(Class cls) =>
       translator.subtypes.getSubtypesOf(cls).where((c) => !c.isAbstract);
@@ -23,6 +30,9 @@ class Types {
   w.ValueType get nullableTypeType => typeClassInfo.nullableType;
 
   w.ValueType get nonNullableTypeType => typeClassInfo.nonNullableType;
+
+  InterfaceType get namedParameterType =>
+      InterfaceType(translator.namedParameterClass, Nullability.nonNullable);
 
   /// Build a [Map<int, List<int>>] to store subtype information.
   Map<int, List<int>> _buildSubtypeMap() {
@@ -62,13 +72,19 @@ class Types {
     return expectedType;
   }
 
+  bool isGenericFunction(FunctionType type) => type.typeParameters.isNotEmpty;
+
   bool _isTypeConstant(DartType type) {
     return type is DynamicType ||
         type is VoidType ||
         type is NeverType ||
         type is NullType ||
-        type is FunctionType ||
         type is FutureOrType && _isTypeConstant(type.typeArgument) ||
+        (type is FunctionType &&
+            type.typeParameters.isEmpty && // TODO(joshualitt) generic functions
+            _isTypeConstant(type.returnType) &&
+            type.positionalParameters.every(_isTypeConstant) &&
+            type.namedParameters.every((n) => _isTypeConstant(n.type))) ||
         type is InterfaceType && type.typeArguments.every(_isTypeConstant);
   }
 
@@ -92,30 +108,32 @@ class Types {
     } else if (type is InterfaceType) {
       return translator.interfaceTypeClass;
     } else if (type is FunctionType) {
-      if (type.typeParameters.isEmpty) {
-        return translator.functionTypeClass;
-      } else {
+      if (isGenericFunction(type)) {
         return translator.genericFunctionTypeClass;
+      } else {
+        return translator.functionTypeClass;
       }
     }
     throw "Unexpected DartType: $type";
+  }
+
+  void _makeTypeList(
+      CodeGenerator codeGen, List<DartType> types, TreeNode node) {
+    w.ValueType listType = codeGen.makeList(
+        types.map((t) => TypeLiteral(t)).toList(),
+        translator.fixedLengthListClass,
+        InterfaceType(translator.typeClass, Nullability.nonNullable),
+        node);
+    translator.convertType(codeGen.function, listType, typeListExpectedType);
   }
 
   void _makeInterfaceType(CodeGenerator codeGen, ClassInfo info,
       InterfaceType type, TreeNode node) {
     w.Instructions b = codeGen.b;
     ClassInfo typeInfo = translator.classInfo[type.classNode]!;
-    w.ValueType typeListExpectedType =
-        info.struct.fields[FieldIndex.interfaceTypeTypeArguments].type.unpacked;
     encodeNullability(b, type);
     b.i64_const(typeInfo.classId);
-    w.DefinedFunction function = codeGen.function;
-    w.ValueType listType = codeGen.makeList(
-        type.typeArguments.map((t) => TypeLiteral(t)).toList(),
-        translator.fixedLengthListClass,
-        InterfaceType(translator.typeClass, Nullability.nonNullable),
-        node);
-    translator.convertType(function, listType, typeListExpectedType);
+    _makeTypeList(codeGen, type.typeArguments, node);
   }
 
   void _makeFutureOrType(
@@ -137,6 +155,52 @@ class Types {
     } else {
       encodeNullability(b, type);
       makeType(codeGen, type.typeArgument, node);
+    }
+  }
+
+  void _makeFunctionType(
+      CodeGenerator codeGen, ClassInfo info, FunctionType type, TreeNode node) {
+    w.Instructions b = codeGen.b;
+    encodeNullability(b, type);
+    makeType(codeGen, type.returnType, node);
+    if (type.positionalParameters.every(_isTypeConstant)) {
+      translator.constants.instantiateConstant(
+          codeGen.function,
+          b,
+          translator.constants.makeTypeList(type.positionalParameters),
+          typeListExpectedType);
+    } else {
+      _makeTypeList(codeGen, type.positionalParameters, node);
+    }
+    b.i64_const(type.requiredParameterCount);
+    if (type.namedParameters.every((n) => _isTypeConstant(n.type))) {
+      translator.constants.instantiateConstant(
+          codeGen.function,
+          b,
+          translator.constants.makeNamedParametersList(type),
+          namedParametersExpectedType);
+    } else {
+      Class namedParameterClass = translator.namedParameterClass;
+      Constructor namedParameterConstructor =
+          namedParameterClass.constructors.single;
+      List<Expression> expressions = [];
+      for (NamedType n in type.namedParameters) {
+        expressions.add(_isTypeConstant(n.type)
+            ? ConstantExpression(
+                translator.constants.makeNamedParameterConstant(n),
+                namedParameterType)
+            : ConstructorInvocation(
+                namedParameterConstructor,
+                Arguments([
+                  StringLiteral(n.name),
+                  TypeLiteral(n.type),
+                  BoolLiteral(n.isRequired)
+                ])));
+      }
+      w.ValueType namedParametersListType = codeGen.makeList(expressions,
+          translator.fixedLengthListClass, namedParameterType, node);
+      translator.convertType(codeGen.function, namedParametersListType,
+          namedParametersExpectedType);
     }
   }
 
@@ -190,9 +254,14 @@ class Types {
     } else if (type is FutureOrType) {
       _makeFutureOrType(codeGen, type, node);
     } else if (type is FunctionType) {
-      // TODO(joshualitt): Finish RTI.
-      print("Not implemented: RTI ${type}");
-      encodeNullability(b, type);
+      if (isGenericFunction(type)) {
+        // TODO(joshualitt): Implement generic function types and share most of
+        // the logic with _makeFunctionType.
+        print("Not implemented: RTI ${type}");
+        encodeNullability(b, type);
+      } else {
+        _makeFunctionType(codeGen, info, type, node);
+      }
     } else {
       throw '`$type` should have already been handled.';
     }

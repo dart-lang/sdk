@@ -97,6 +97,7 @@ class Translator {
   late final Class interfaceTypeClass;
   late final Class functionTypeClass;
   late final Class genericFunctionTypeClass;
+  late final Class namedParameterClass;
   late final Class stackTraceClass;
   late final Class ffiCompoundClass;
   late final Class ffiPointerClass;
@@ -212,6 +213,7 @@ class Translator {
     interfaceTypeClass = lookupCore("_InterfaceType");
     functionTypeClass = lookupCore("_FunctionType");
     genericFunctionTypeClass = lookupCore("_GenericFunctionType");
+    namedParameterClass = lookupCore("_NamedParameter");
     stackTraceClass = lookupCore("StackTrace");
     typeUniverseClass = lookupCore("_TypeUniverse");
     ffiCompoundClass = lookupFfi("_Compound");

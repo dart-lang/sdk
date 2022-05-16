@@ -13,6 +13,7 @@
 // file:
 //   * [_Type.asNonNullable]
 //   * [_FutureOrType.asFuture].
+// TODO(joshualitt): Make `Function` a canonical type.
 abstract class _Type implements Type {
   final bool isNullable;
 
@@ -30,7 +31,9 @@ abstract class _Type implements Type {
 
   T as<T>() => unsafeCast<T>(this);
 
-  _Type get asNonNullable;
+  _Type get asNonNullable => isNullable ? _asNonNullable : this;
+
+  _Type get _asNonNullable;
 
   @override
   bool operator ==(Object other) => ClassID.getID(this) == ClassID.getID(other);
@@ -44,7 +47,7 @@ class _NeverType extends _Type {
   const _NeverType() : super(false);
 
   @override
-  _Type get asNonNullable => this;
+  _Type get _asNonNullable => this;
 
   @override
   String toString() => 'Never';
@@ -55,7 +58,7 @@ class _DynamicType extends _Type {
   const _DynamicType() : super(true);
 
   @override
-  _Type get asNonNullable => throw '`dynamic` type is always nullable.';
+  _Type get _asNonNullable => throw '`dynamic` type is always nullable.';
 
   @override
   String toString() => 'dynamic';
@@ -66,7 +69,7 @@ class _VoidType extends _Type {
   const _VoidType() : super(true);
 
   @override
-  _Type get asNonNullable => throw '`void` type is always nullable.';
+  _Type get _asNonNullable => throw '`void` type is always nullable.';
 
   @override
   String toString() => 'void';
@@ -77,7 +80,7 @@ class _NullType extends _Type {
   const _NullType() : super(true);
 
   @override
-  _Type get asNonNullable => const _NeverType();
+  _Type get _asNonNullable => const _NeverType();
 
   @override
   String toString() => 'Null';
@@ -94,8 +97,7 @@ class _FutureOrType extends _Type {
       _InterfaceType(ClassID.cidFuture, isNullable, [typeArgument]);
 
   @override
-  _Type get asNonNullable {
-    if (!isNullable) return this;
+  _Type get _asNonNullable {
     if (!typeArgument.isNullable) return _FutureOrType(false, typeArgument);
     throw '`$this` cannot be non nullable.';
   }
@@ -137,7 +139,7 @@ class _InterfaceType extends _Type {
       : super(isNullable);
 
   @override
-  _Type get asNonNullable => _InterfaceType(classId, false, typeArguments);
+  _Type get _asNonNullable => _InterfaceType(classId, false, typeArguments);
 
   @override
   bool operator ==(Object o) {
@@ -171,7 +173,7 @@ class _InterfaceType extends _Type {
     if (typeArguments.isNotEmpty) {
       s.write("<");
       for (int i = 0; i < typeArguments.length; i++) {
-        if (i > 0) s.write(",");
+        if (i > 0) s.write(", ");
         s.write(typeArguments[i]);
       }
       s.write(">");
@@ -181,25 +183,126 @@ class _InterfaceType extends _Type {
   }
 }
 
-// TODO(joshualitt): Implement.
-@pragma("wasm:entry-point")
-class _FunctionType extends _Type {
-  const _FunctionType(bool isNullable) : super(isNullable);
+class _NamedParameter {
+  final String name;
+  final _Type type;
+  final bool isRequired;
+
+  @pragma("wasm:entry-point")
+  const _NamedParameter(this.name, this.type, this.isRequired);
 
   @override
-  _Type get asNonNullable => throw 'unimplemented';
+  bool operator ==(Object o) {
+    if (ClassID.getID(this) != ClassID.getID(o)) return false;
+    _NamedParameter other = unsafeCast<_NamedParameter>(o);
+    return this.name == other.name &&
+        this.type == other.type &&
+        isRequired == other.isRequired;
+  }
 
   @override
-  String toString() => 'FunctionType';
+  int get hashCode {
+    int hash = mix64(ClassID.getID(this));
+    hash = mix64(hash ^ name.hashCode);
+    hash = mix64(hash ^ type.hashCode);
+    return mix64(hash ^ (isRequired ? 1 : 0));
+  }
+
+  @override
+  String toString() {
+    StringBuffer s = StringBuffer();
+    if (isRequired) s.write('required ');
+    s.write(type);
+    s.write(' ');
+    s.write(name);
+    return s.toString();
+  }
 }
 
-// TODO(joshualitt): Implement.
+class _FunctionType extends _Type {
+  final _Type returnType;
+  final List<_Type> positionalParameters;
+  final int requiredParameterCount;
+  final List<_NamedParameter> namedParameters;
+
+  @pragma("wasm:entry-point")
+  const _FunctionType(this.returnType, this.positionalParameters,
+      this.requiredParameterCount, this.namedParameters, bool isNullable)
+      : super(isNullable);
+
+  @override
+  _Type get _asNonNullable => _FunctionType(returnType, positionalParameters,
+      requiredParameterCount, namedParameters, false);
+
+  bool operator ==(Object o) {
+    if (!(super == o)) return false;
+    _FunctionType other = unsafeCast<_FunctionType>(o);
+    if (isNullable != other.isNullable) return false;
+    if (returnType != other.returnType) ;
+    if (positionalParameters.length != other.positionalParameters.length) {
+      return false;
+    }
+    if (requiredParameterCount != other.requiredParameterCount) return false;
+    if (namedParameters.length != other.namedParameters.length) return false;
+    for (int i = 0; i < positionalParameters.length; i++) {
+      if (positionalParameters[i] != other.positionalParameters[i]) {
+        return false;
+      }
+    }
+    for (int i = 0; i < namedParameters.length; i++) {
+      if (namedParameters[i] != other.namedParameters[i]) return false;
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode {
+    int hash = super.hashCode;
+    hash = mix64(hash ^ (isNullable ? 1 : 0));
+    hash = mix64(hash ^ returnType.hashCode);
+    for (int i = 0; i < positionalParameters.length; i++) {
+      hash = mix64(hash ^ positionalParameters[i].hashCode);
+    }
+    hash = mix64(hash ^ requiredParameterCount);
+    for (int i = 0; i < namedParameters.length; i++) {
+      hash = mix64(hash ^ namedParameters[i].hashCode);
+    }
+    return hash;
+  }
+
+  @override
+  String toString() {
+    StringBuffer s = StringBuffer();
+    s.write(returnType);
+    s.write(" Function(");
+    for (int i = 0; i < positionalParameters.length; i++) {
+      if (i > 0) s.write(", ");
+      if (i == requiredParameterCount) s.write("[");
+      s.write(positionalParameters[i]);
+    }
+    if (requiredParameterCount < positionalParameters.length) s.write("]");
+    if (namedParameters.isNotEmpty) {
+      if (positionalParameters.isNotEmpty) s.write(", ");
+      s.write("{");
+      for (int i = 0; i < namedParameters.length; i++) {
+        if (i > 0) s.write(", ");
+        s.write(namedParameters[i]);
+      }
+      s.write("}");
+    }
+    s.write(")");
+    if (isNullable) s.write("?");
+    return s.toString();
+  }
+}
+
+// TODO(joshualitt): Implement. This should probably extend _FunctionType.
 @pragma("wasm:entry-point")
-class _GenericFunctionType extends _FunctionType {
+class _GenericFunctionType extends _Type {
   const _GenericFunctionType(bool isNullable) : super(isNullable);
 
   @override
-  _Type get asNonNullable => throw 'unimplemented';
+  _Type get _asNonNullable => throw 'unimplemented';
 
   @override
   String toString() => 'GenericFunctionType';
@@ -217,13 +320,15 @@ class _TypeUniverse {
     return _TypeUniverse._(_getSubtypeMap());
   }
 
-  bool isObjectQuestionType(_Type t) => isObjectType(t) && t.isNullable;
-
-  bool isObjectType(_Type t) {
+  bool isSpecificInterfaceType(_Type t, int classId) {
     if (!t.isInterface) return false;
     _InterfaceType type = t.as<_InterfaceType>();
-    return type.classId == ClassID.cidObject;
+    return type.classId == classId;
   }
+
+  bool isObjectQuestionType(_Type t) => isObjectType(t) && t.isNullable;
+
+  bool isObjectType(_Type t) => isSpecificInterfaceType(t, ClassID.cidObject);
 
   bool isTopType(_Type type) {
     return isObjectQuestionType(type) || type.isDynamic || type.isVoid;
@@ -232,6 +337,9 @@ class _TypeUniverse {
   bool isBottomType(_Type type) {
     return type.isNever;
   }
+
+  bool isFunctionType(_Type t) =>
+      isSpecificInterfaceType(t, ClassID.cidFunction);
 
   bool isInterfaceSubtype(_InterfaceType s, _InterfaceType t) {
     int sId = s.classId;
@@ -249,6 +357,72 @@ class _TypeUniverse {
     if (subtypes == null) return false;
     if (!subtypes.contains(sId)) return false;
     // TODO(joshualitt): Compare type arguments.
+    return true;
+  }
+
+  bool isFunctionSubtype(_FunctionType s, _FunctionType t) {
+    if (!isSubtype(s.returnType, t.returnType)) return false;
+
+    // Check [s] does not have more required positional arguments than [t].
+    int sRequiredCount = s.requiredParameterCount;
+    int tRequiredCount = t.requiredParameterCount;
+    if (sRequiredCount > tRequiredCount) {
+      return false;
+    }
+
+    // Check [s] has enough required and optional positional arguments to
+    // potentially be a valid subtype of [t].
+    List<_Type> sPositional = s.positionalParameters;
+    List<_Type> tPositional = t.positionalParameters;
+    int sPositionalLength = sPositional.length;
+    int tPositionalLength = tPositional.length;
+    if (sPositionalLength < tPositionalLength) {
+      return false;
+    }
+
+    // Check all [t] positional arguments are subtypes of [s] positional
+    // arguments.
+    for (int i = 0; i < tPositionalLength; i++) {
+      _Type sParameter = sPositional[i];
+      _Type tParameter = tPositional[i];
+      if (!isSubtype(tParameter, sParameter)) {
+        return false;
+      }
+    }
+
+    // Check that [t]'s named arguments are subtypes of [s]'s named arguments.
+    // This logic assumes the named arguments are stored in sorted order.
+    List<_NamedParameter> sNamed = s.namedParameters;
+    List<_NamedParameter> tNamed = t.namedParameters;
+    int sNamedLength = sNamed.length;
+    int tNamedLength = tNamed.length;
+    int sIndex = 0;
+    for (int tIndex = 0; tIndex < tNamedLength; tIndex++) {
+      _NamedParameter tNamedParameter = tNamed[tIndex];
+      String tName = tNamedParameter.name;
+      while (true) {
+        if (sIndex >= sNamedLength) return false;
+        _NamedParameter sNamedParameter = sNamed[sIndex];
+        String sName = sNamedParameter.name;
+        sIndex++;
+        int sNameComparedToTName = sName.compareTo(tName);
+        if (sNameComparedToTName > 0) return false;
+        bool sIsRequired = sNamedParameter.isRequired;
+        if (sNameComparedToTName < 0) {
+          if (sIsRequired) return false;
+          continue;
+        }
+        bool tIsRequired = tNamedParameter.isRequired;
+        if (sIsRequired && !tIsRequired) return false;
+        if (!isSubtype(tNamedParameter.type, sNamedParameter.type)) {
+          return false;
+        }
+        break;
+      }
+    }
+    while (sIndex < sNamedLength) {
+      if (sNamed[sIndex].isRequired) return false;
+    }
     return true;
   }
 
@@ -312,7 +486,7 @@ class _TypeUniverse {
 
     // Right Nullable:
     if (t.isNullable) {
-      return isSubtype(s, const _NullType()) || isSubtype(s, t.asNonNullable);
+      return isSubtype(s, t.asNonNullable);
     }
 
     // Left Promoted Variable does not apply at runtime.
@@ -321,10 +495,19 @@ class _TypeUniverse {
     // TODO(joshualitt): Implement case.
 
     // Function Type / Function:
-    // TODO(joshualitt): Implement case.
+    if ((s.isFunction || s.isGenericFunction) && isFunctionType(t)) {
+      return true;
+    }
 
     // Positional Function Types + Named Function Types:
-    // TODO(joshualitt): Implement case.
+    if (s.isGenericFunction && t.isGenericFunction) {
+      // TODO(joshualitt): Implement case.
+      return true;
+    }
+
+    if (s.isFunction && t.isFunction) {
+      return isFunctionSubtype(s.as<_FunctionType>(), t.as<_FunctionType>());
+    }
 
     // Interface Compositionality + Super-Interface:
     if (s.isInterface &&
