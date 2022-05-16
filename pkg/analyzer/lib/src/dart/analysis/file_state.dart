@@ -47,7 +47,7 @@ import 'package:pub_semver/pub_semver.dart';
 class ExternalLibrary {
   final Uri uri;
 
-  ExternalLibrary(this.uri);
+  ExternalLibrary._(this.uri);
 }
 
 /// [FileContentOverlay] is used to temporary override content of files.
@@ -232,20 +232,9 @@ class FileState {
 
   LibraryCycle? get internal_libraryCycle => _libraryCycle;
 
-  /// Return `true` if the file is a stub created for a library in the provided
-  /// external summary store.
-  bool get isExternalLibrary {
-    return _fsState.externalSummaries != null &&
-        _fsState.externalSummaries!.hasLinkedLibrary(uriStr);
-  }
-
   /// Return `true` if the file does not have a `library` directive, and has a
   /// `part of` directive, so is probably a part.
   bool get isPart {
-    if (_fsState.externalSummaries != null &&
-        _fsState.externalSummaries!.hasUnlinkedUnit(uriStr)) {
-      return _fsState.externalSummaries!.isPartUnit(uriStr);
-    }
     return !_unlinked2!.hasLibraryDirective && _unlinked2!.hasPartOfDirective;
   }
 
@@ -872,10 +861,11 @@ class FileSystemState {
   Either2<FileState?, ExternalLibrary> getFileForUri(Uri uri) {
     // If the external store has this URI, create a stub file for it.
     // We are given all required unlinked and linked summaries for it.
+    final externalSummaries = this.externalSummaries;
     if (externalSummaries != null) {
       String uriStr = uri.toString();
-      if (externalSummaries!.hasLinkedLibrary(uriStr)) {
-        return Either2.t2(ExternalLibrary(uri));
+      if (externalSummaries.hasLinkedLibrary(uriStr)) {
+        return Either2.t2(ExternalLibrary._(uri));
       }
     }
 
