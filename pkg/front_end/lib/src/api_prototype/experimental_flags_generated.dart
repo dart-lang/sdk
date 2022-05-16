@@ -131,6 +131,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 18),
       experimentReleasedVersion: const Version(2, 18));
 
+  static const ExperimentalFlag inferenceUpdate2 = const ExperimentalFlag(
+      name: 'inference-update-2',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: const Version(2, 18),
+      experimentEnabledVersion: const Version(2, 18),
+      experimentReleasedVersion: const Version(2, 18));
+
   static const ExperimentalFlag macros = const ExperimentalFlag(
       name: 'macros',
       isEnabledByDefault: false,
@@ -306,6 +314,10 @@ class GlobalFeatures {
   GlobalFeature get inferenceUpdate1 => _inferenceUpdate1 ??=
       _computeGlobalFeature(ExperimentalFlag.inferenceUpdate1);
 
+  GlobalFeature? _inferenceUpdate2;
+  GlobalFeature get inferenceUpdate2 => _inferenceUpdate2 ??=
+      _computeGlobalFeature(ExperimentalFlag.inferenceUpdate2);
+
   GlobalFeature? _macros;
   GlobalFeature get macros =>
       _macros ??= _computeGlobalFeature(ExperimentalFlag.macros);
@@ -415,6 +427,11 @@ class LibraryFeatures {
       _inferenceUpdate1 ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.inferenceUpdate1, canonicalUri, libraryVersion);
 
+  LibraryFeature? _inferenceUpdate2;
+  LibraryFeature get inferenceUpdate2 =>
+      _inferenceUpdate2 ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.inferenceUpdate2, canonicalUri, libraryVersion);
+
   LibraryFeature? _macros;
   LibraryFeature get macros =>
       _macros ??= globalFeatures._computeLibraryFeature(
@@ -497,6 +514,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.genericMetadata;
     case "inference-update-1":
       return ExperimentalFlag.inferenceUpdate1;
+    case "inference-update-2":
+      return ExperimentalFlag.inferenceUpdate2;
     case "macros":
       return ExperimentalFlag.macros;
     case "named-arguments-anywhere":
@@ -544,6 +563,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.genericMetadata.isEnabledByDefault,
   ExperimentalFlag.inferenceUpdate1:
       ExperimentalFlag.inferenceUpdate1.isEnabledByDefault,
+  ExperimentalFlag.inferenceUpdate2:
+      ExperimentalFlag.inferenceUpdate2.isEnabledByDefault,
   ExperimentalFlag.macros: ExperimentalFlag.macros.isEnabledByDefault,
   ExperimentalFlag.namedArgumentsAnywhere:
       ExperimentalFlag.namedArgumentsAnywhere.isEnabledByDefault,
