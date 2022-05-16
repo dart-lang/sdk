@@ -1,4 +1,4 @@
-## master
+## 1.8.0
 
 * Add `@UseResult.unless`.
 * The mechanism behind `noInline` and `tryInline` from `dart2js.dart` has been

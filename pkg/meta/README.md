@@ -1,4 +1,5 @@
-# Annotations for Static Analysis
+[![pub package](https://img.shields.io/pub/v/meta.svg)](https://pub.dev/packages/meta)
+[![package publisher](https://img.shields.io/pub/publisher/meta.svg)](https://pub.dev/packages/meta/publisher)
 
 This package defines annotations that can be used by the tools that are shipped
 with the Dart SDK.
