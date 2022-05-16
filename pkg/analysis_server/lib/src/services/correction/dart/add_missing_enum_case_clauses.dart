@@ -39,7 +39,7 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
       if (enumElement.isEnum) {
         enumName = enumElement.name;
         for (var field in enumElement.fields) {
-          if (!field.isSynthetic) {
+          if (field.isEnumConstant) {
             enumConstantNames.add(field.name);
           }
         }
