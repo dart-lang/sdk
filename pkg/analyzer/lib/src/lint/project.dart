@@ -35,6 +35,7 @@ Pubspec? _findAndParsePubspec(Directory root) {
 /// standardized way, access global information (such as whether elements are
 /// in the "public API") and resources that have special meanings in the
 /// context of pub package layout conventions.
+@Deprecated('Use LinterContext instead')
 class DartProject {
   late final _ApiModel _apiModel;
   String? _name;
@@ -98,6 +99,7 @@ class DartProject {
 }
 
 /// An object that can be used to visit Dart project structure.
+@Deprecated('Use LinterContext instead')
 abstract class ProjectVisitor<T> {
   T? visit(DartProject project) => null;
 }
