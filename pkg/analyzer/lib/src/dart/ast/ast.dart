@@ -8891,8 +8891,7 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   bool get isDeferred {
     Element? element = _prefix.staticElement;
     if (element is PrefixElement) {
-      List<ImportElement> imports =
-          element.enclosingElement.getImportsWithPrefix(element);
+      List<ImportElement> imports = element.imports;
       if (imports.length != 1) {
         return false;
       }

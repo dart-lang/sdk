@@ -1397,6 +1397,7 @@ abstract class LibraryElement
 
   /// Return a list containing all of the imports that share the given [prefix],
   /// or an empty array if there are no such imports.
+  @Deprecated('Use PrefixElement.imports instead')
   List<ImportElement> getImportsWithPrefix(PrefixElement prefix);
 
   /// Return the class defined in this library that has the given [name], or
@@ -1657,6 +1658,9 @@ abstract class PrefixElement implements _ExistingElement {
   /// Return the library, or library augmentation that encloses this element.
   @experimental
   LibraryOrAugmentationElement get enclosingElement2;
+
+  /// Return the imports that share this prefix.
+  List<ImportElement> get imports;
 
   @override
   String get name;
