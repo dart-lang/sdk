@@ -190,7 +190,8 @@ class ExperimentalFeatures {
     enableString: EnableString.inference_update_1,
     isEnabledByDefault: IsEnabledByDefault.inference_update_1,
     isExpired: IsExpired.inference_update_1,
-    documentation: 'Enhanced type inference',
+    documentation:
+        'Horizontal type inference for function expressions passed to generic invocations.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
   );
