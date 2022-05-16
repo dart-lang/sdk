@@ -120,7 +120,7 @@ class AnalyzeCommand extends DartdevCommand {
     if (args.wasParsed('sdk-path')) {
       sdkPath = io.Directory(args['sdk-path'] as String);
       if (!sdkPath.existsSync()) {
-        usageException('Invalid Dart SDK path: $sdkPath');
+        usageException('Invalid Dart SDK path: ${sdkPath.path}');
       }
       final snapshotPath = path.join(
         sdkPath.path,
@@ -131,7 +131,7 @@ class AnalyzeCommand extends DartdevCommand {
       if (!io.File(snapshotPath).existsSync()) {
         usageException(
             'Invalid Dart SDK path has no analysis_server.dart.snapshot file: '
-            '$sdkPath');
+            '${sdkPath.path}');
       }
     } else {
       sdkPath = io.Directory(sdk.sdkPath);
