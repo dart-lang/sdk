@@ -1117,6 +1117,23 @@ Stream<int> f(A a) async* {
 ''');
   }
 
+  test_namedExpression() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int m() => 1;
+}
+
+void g({int? i}) {}
+
+void f() {
+  g(i: A().m());
+}
+''');
+  }
+
   test_topLevelFunction_result_assigned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';

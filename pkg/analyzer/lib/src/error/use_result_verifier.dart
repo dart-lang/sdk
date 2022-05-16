@@ -223,6 +223,7 @@ class UseResultVerifier {
         parent is ListLiteral ||
         parent is MapLiteralEntry ||
         parent is MethodInvocation ||
+        parent is NamedExpression ||
         parent is PropertyAccess ||
         parent is ReturnStatement ||
         parent is SetOrMapLiteral ||
