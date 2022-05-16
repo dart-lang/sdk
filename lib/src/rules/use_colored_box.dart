@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 
 import '../analyzer.dart';
 import '../util/flutter_utils.dart';
@@ -90,7 +91,9 @@ class _ArgumentData {
         return;
       }
       var label = argument.name.label;
-      if (label.name == 'color') {
+      if (label.name == 'color' &&
+          argument.staticType?.nullabilitySuffix !=
+              NullabilitySuffix.question) {
         hasColor = true;
       } else if (label.name == 'child') {
         // Ignore child

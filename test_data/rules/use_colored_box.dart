@@ -82,3 +82,9 @@ Widget containerWithColorAndAdditionalArgumentAndChild() {
     child: SizedBox(),
   );
 }
+
+Widget nullableColor(Color? myColor) {
+  return Container( // OK
+    color: myColor
+  );
+}
