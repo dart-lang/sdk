@@ -252,10 +252,10 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
                                  ->object_store()
                                  ->build_nongeneric_method_extractor_code());
 
-  const intptr_t stub_index = __ object_pool_builder().AddObject(
-      build_method_extractor, ObjectPool::Patchability::kNotPatchable);
-  const intptr_t function_index = __ object_pool_builder().AddObject(
-      extracted_method, ObjectPool::Patchability::kNotPatchable);
+  const intptr_t stub_index =
+      __ object_pool_builder().FindObject(build_method_extractor);
+  const intptr_t function_index =
+      __ object_pool_builder().FindObject(extracted_method);
 
   // We use a custom pool register to preserve caller PP.
   Register kPoolReg = A1;
@@ -693,11 +693,15 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     __ LoadObject(TMP, obj);
     __ PushRegisterPair(TMP, reg);
     if (is_optimizing()) {
-      __ JumpAndLinkPatchable(StubCode::OptimizedIdenticalWithNumberCheck());
+      // No breakpoints in optimized code.
+      __ JumpAndLink(StubCode::OptimizedIdenticalWithNumberCheck());
+      AddCurrentDescriptor(UntaggedPcDescriptors::kOther, deopt_id, source);
     } else {
+      // Patchable to support breakpoints.
       __ JumpAndLinkPatchable(StubCode::UnoptimizedIdenticalWithNumberCheck());
+      AddCurrentDescriptor(UntaggedPcDescriptors::kRuntimeCall, deopt_id,
+                           source);
     }
-    AddCurrentDescriptor(UntaggedPcDescriptors::kRuntimeCall, deopt_id, source);
     __ PopRegisterPair(ZR, reg);
     // RISC-V has no condition flags, so the result is instead returned as
     // TMP zero if equal, non-zero if non-equal.
@@ -718,7 +722,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(
   if (needs_number_check) {
     __ PushRegisterPair(right, left);
     if (is_optimizing()) {
-      __ JumpAndLinkPatchable(StubCode::OptimizedIdenticalWithNumberCheck());
+      __ JumpAndLink(StubCode::OptimizedIdenticalWithNumberCheck());
     } else {
       __ JumpAndLinkPatchable(StubCode::UnoptimizedIdenticalWithNumberCheck());
     }

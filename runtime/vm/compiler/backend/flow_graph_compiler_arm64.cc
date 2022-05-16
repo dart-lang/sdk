@@ -263,10 +263,10 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
                                  ->object_store()
                                  ->build_nongeneric_method_extractor_code());
 
-  const intptr_t stub_index = __ object_pool_builder().AddObject(
-      build_method_extractor, ObjectPool::Patchability::kNotPatchable);
-  const intptr_t function_index = __ object_pool_builder().AddObject(
-      extracted_method, ObjectPool::Patchability::kNotPatchable);
+  const intptr_t stub_index =
+      __ object_pool_builder().FindObject(build_method_extractor);
+  const intptr_t function_index =
+      __ object_pool_builder().FindObject(extracted_method);
 
   // We use a custom pool register to preserve caller PP.
   Register kPoolReg = R0;
@@ -717,11 +717,15 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     __ LoadObject(TMP, obj);
     __ PushPair(TMP, reg);
     if (is_optimizing()) {
-      __ BranchLinkPatchable(StubCode::OptimizedIdenticalWithNumberCheck());
+      // No breakpoints in optimized code.
+      __ BranchLink(StubCode::OptimizedIdenticalWithNumberCheck());
+      AddCurrentDescriptor(UntaggedPcDescriptors::kOther, deopt_id, source);
     } else {
+      // Patchable to support breakpoints.
       __ BranchLinkPatchable(StubCode::UnoptimizedIdenticalWithNumberCheck());
+      AddCurrentDescriptor(UntaggedPcDescriptors::kRuntimeCall, deopt_id,
+                           source);
     }
-    AddCurrentDescriptor(UntaggedPcDescriptors::kRuntimeCall, deopt_id, source);
     // Stub returns result in flags (result of a cmp, we need Z computed).
     // Discard constant.
     // Restore 'reg'.
@@ -741,7 +745,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(
   if (needs_number_check) {
     __ PushPair(right, left);
     if (is_optimizing()) {
-      __ BranchLinkPatchable(StubCode::OptimizedIdenticalWithNumberCheck());
+      __ BranchLink(StubCode::OptimizedIdenticalWithNumberCheck());
     } else {
       __ BranchLinkPatchable(StubCode::UnoptimizedIdenticalWithNumberCheck());
     }
