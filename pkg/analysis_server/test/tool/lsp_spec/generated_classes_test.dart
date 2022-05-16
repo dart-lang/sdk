@@ -16,10 +16,10 @@ void main() {
     });
 
     test('with list fields can be checked for equality', () {
-      final a = CodeActionClientCapabilitiesCodeActionKind(
+      final a = CodeActionLiteralSupportCodeActionKind(
         valueSet: [CodeActionKind.QuickFix],
       );
-      final b = CodeActionClientCapabilitiesCodeActionKind(
+      final b = CodeActionLiteralSupportCodeActionKind(
         valueSet: [CodeActionKind.QuickFix],
       );
 

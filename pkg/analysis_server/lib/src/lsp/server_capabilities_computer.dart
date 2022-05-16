@@ -283,7 +283,7 @@ class ServerCapabilitiesComputer {
         ),
         fileOperations: dynamicRegistrations.fileOperations
             ? null
-            : ServerCapabilitiesFileOperations(
+            : FileOperationOptions(
                 willRename: fileOperationRegistrationOptions,
               ),
       ),

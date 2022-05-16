@@ -1682,7 +1682,7 @@ class ClientCapabilities implements ToJsonable {
     final experimental = experimentalJson;
     final generalJson = json['general'];
     final general = generalJson != null
-        ? ClientCapabilitiesGeneral.fromJson(
+        ? GeneralClientCapabilities.fromJson(
             generalJson as Map<String, Object?>)
         : null;
     final notebookDocumentJson = json['notebookDocument'];
@@ -1719,7 +1719,7 @@ class ClientCapabilities implements ToJsonable {
 
   /// General client capabilities.
   ///  @since 3.16.0
-  final ClientCapabilitiesGeneral? general;
+  final GeneralClientCapabilities? general;
 
   /// Capabilities specific to the notebook document support.
   ///  @since 3.17.0
@@ -1763,8 +1763,8 @@ class ClientCapabilities implements ToJsonable {
       try {
         final general = obj['general'];
         if (general != null &&
-            !(ClientCapabilitiesGeneral.canParse(general, reporter))) {
-          reporter.reportError('must be of type ClientCapabilitiesGeneral');
+            !(GeneralClientCapabilities.canParse(general, reporter))) {
+          reporter.reportError('must be of type GeneralClientCapabilities');
           return false;
         }
       } finally {
@@ -1848,486 +1848,6 @@ class ClientCapabilities implements ToJsonable {
         textDocument,
         window,
         workspace,
-      );
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class ClientCapabilitiesFileOperations implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    ClientCapabilitiesFileOperations.canParse,
-    ClientCapabilitiesFileOperations.fromJson,
-  );
-
-  ClientCapabilitiesFileOperations({
-    this.didCreate,
-    this.didDelete,
-    this.didRename,
-    this.dynamicRegistration,
-    this.willCreate,
-    this.willDelete,
-    this.willRename,
-  });
-  static ClientCapabilitiesFileOperations fromJson(Map<String, Object?> json) {
-    final didCreateJson = json['didCreate'];
-    final didCreate = didCreateJson as bool?;
-    final didDeleteJson = json['didDelete'];
-    final didDelete = didDeleteJson as bool?;
-    final didRenameJson = json['didRename'];
-    final didRename = didRenameJson as bool?;
-    final dynamicRegistrationJson = json['dynamicRegistration'];
-    final dynamicRegistration = dynamicRegistrationJson as bool?;
-    final willCreateJson = json['willCreate'];
-    final willCreate = willCreateJson as bool?;
-    final willDeleteJson = json['willDelete'];
-    final willDelete = willDeleteJson as bool?;
-    final willRenameJson = json['willRename'];
-    final willRename = willRenameJson as bool?;
-    return ClientCapabilitiesFileOperations(
-      didCreate: didCreate,
-      didDelete: didDelete,
-      didRename: didRename,
-      dynamicRegistration: dynamicRegistration,
-      willCreate: willCreate,
-      willDelete: willDelete,
-      willRename: willRename,
-    );
-  }
-
-  /// The client has support for sending didCreateFiles notifications.
-  final bool? didCreate;
-
-  /// The client has support for sending didDeleteFiles notifications.
-  final bool? didDelete;
-
-  /// The client has support for sending didRenameFiles notifications.
-  final bool? didRename;
-
-  /// Whether the client supports dynamic registration for file
-  /// requests/notifications.
-  final bool? dynamicRegistration;
-
-  /// The client has support for sending willCreateFiles requests.
-  final bool? willCreate;
-
-  /// The client has support for sending willDeleteFiles requests.
-  final bool? willDelete;
-
-  /// The client has support for sending willRenameFiles requests.
-  final bool? willRename;
-
-  Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    if (didCreate != null) {
-      __result['didCreate'] = didCreate;
-    }
-    if (didDelete != null) {
-      __result['didDelete'] = didDelete;
-    }
-    if (didRename != null) {
-      __result['didRename'] = didRename;
-    }
-    if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
-    }
-    if (willCreate != null) {
-      __result['willCreate'] = willCreate;
-    }
-    if (willDelete != null) {
-      __result['willDelete'] = willDelete;
-    }
-    if (willRename != null) {
-      __result['willRename'] = willRename;
-    }
-    return __result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('didCreate');
-      try {
-        final didCreate = obj['didCreate'];
-        if (didCreate != null && !(didCreate is bool)) {
-          reporter.reportError('must be of type bool');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('didDelete');
-      try {
-        final didDelete = obj['didDelete'];
-        if (didDelete != null && !(didDelete is bool)) {
-          reporter.reportError('must be of type bool');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('didRename');
-      try {
-        final didRename = obj['didRename'];
-        if (didRename != null && !(didRename is bool)) {
-          reporter.reportError('must be of type bool');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('dynamicRegistration');
-      try {
-        final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
-          reporter.reportError('must be of type bool');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('willCreate');
-      try {
-        final willCreate = obj['willCreate'];
-        if (willCreate != null && !(willCreate is bool)) {
-          reporter.reportError('must be of type bool');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('willDelete');
-      try {
-        final willDelete = obj['willDelete'];
-        if (willDelete != null && !(willDelete is bool)) {
-          reporter.reportError('must be of type bool');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('willRename');
-      try {
-        final willRename = obj['willRename'];
-        if (willRename != null && !(willRename is bool)) {
-          reporter.reportError('must be of type bool');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError('must be of type ClientCapabilitiesFileOperations');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is ClientCapabilitiesFileOperations &&
-        other.runtimeType == ClientCapabilitiesFileOperations) {
-      return didCreate == other.didCreate &&
-          didDelete == other.didDelete &&
-          didRename == other.didRename &&
-          dynamicRegistration == other.dynamicRegistration &&
-          willCreate == other.willCreate &&
-          willDelete == other.willDelete &&
-          willRename == other.willRename &&
-          true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        didCreate,
-        didDelete,
-        didRename,
-        dynamicRegistration,
-        willCreate,
-        willDelete,
-        willRename,
-      );
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class ClientCapabilitiesGeneral implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    ClientCapabilitiesGeneral.canParse,
-    ClientCapabilitiesGeneral.fromJson,
-  );
-
-  ClientCapabilitiesGeneral({
-    this.markdown,
-    this.positionEncodings,
-    this.regularExpressions,
-    this.staleRequestSupport,
-  });
-  static ClientCapabilitiesGeneral fromJson(Map<String, Object?> json) {
-    final markdownJson = json['markdown'];
-    final markdown = markdownJson != null
-        ? MarkdownClientCapabilities.fromJson(
-            markdownJson as Map<String, Object?>)
-        : null;
-    final positionEncodingsJson = json['positionEncodings'];
-    final positionEncodings = (positionEncodingsJson as List<Object?>?)
-        ?.map((item) => PositionEncodingKind.fromJson(item as String))
-        .toList();
-    final regularExpressionsJson = json['regularExpressions'];
-    final regularExpressions = regularExpressionsJson != null
-        ? RegularExpressionsClientCapabilities.fromJson(
-            regularExpressionsJson as Map<String, Object?>)
-        : null;
-    final staleRequestSupportJson = json['staleRequestSupport'];
-    final staleRequestSupport = staleRequestSupportJson != null
-        ? ClientCapabilitiesStaleRequestSupport.fromJson(
-            staleRequestSupportJson as Map<String, Object?>)
-        : null;
-    return ClientCapabilitiesGeneral(
-      markdown: markdown,
-      positionEncodings: positionEncodings,
-      regularExpressions: regularExpressions,
-      staleRequestSupport: staleRequestSupport,
-    );
-  }
-
-  /// Client capabilities specific to the client's markdown parser.
-  ///  @since 3.16.0
-  final MarkdownClientCapabilities? markdown;
-
-  /// The position encodings supported by the client. Client and server have to
-  /// agree on the same position encoding to ensure that offsets (e.g. character
-  /// position in a line) are interpreted the same on both side.
-  ///
-  /// To keep the protocol backwards compatible the following applies: if the
-  /// value 'utf-16' is missing from the array of position encodings servers can
-  /// assume that the client supports UTF-16. UTF-16 is therefore a mandatory
-  /// encoding.
-  ///
-  /// If omitted it defaults to ['utf-16'].
-  ///
-  /// Implementation considerations: since the conversion from one encoding into
-  /// another requires the content of the file / line the conversion is best
-  /// done where the file is read which is usually on the server side.
-  ///  @since 3.17.0
-  final List<PositionEncodingKind>? positionEncodings;
-
-  /// Client capabilities specific to regular expressions.
-  ///  @since 3.16.0
-  final RegularExpressionsClientCapabilities? regularExpressions;
-
-  /// Client capability that signals how the client handles stale requests (e.g.
-  /// a request for which the client will not process the response anymore since
-  /// the information is outdated).
-  ///  @since 3.17.0
-  final ClientCapabilitiesStaleRequestSupport? staleRequestSupport;
-
-  Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    if (markdown != null) {
-      __result['markdown'] = markdown?.toJson();
-    }
-    if (positionEncodings != null) {
-      __result['positionEncodings'] =
-          positionEncodings?.map((item) => item.toJson()).toList();
-    }
-    if (regularExpressions != null) {
-      __result['regularExpressions'] = regularExpressions?.toJson();
-    }
-    if (staleRequestSupport != null) {
-      __result['staleRequestSupport'] = staleRequestSupport?.toJson();
-    }
-    return __result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('markdown');
-      try {
-        final markdown = obj['markdown'];
-        if (markdown != null &&
-            !(MarkdownClientCapabilities.canParse(markdown, reporter))) {
-          reporter.reportError('must be of type MarkdownClientCapabilities');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('positionEncodings');
-      try {
-        final positionEncodings = obj['positionEncodings'];
-        if (positionEncodings != null &&
-            !((positionEncodings is List<Object?> &&
-                (positionEncodings.every((item) =>
-                    PositionEncodingKind.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<PositionEncodingKind>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('regularExpressions');
-      try {
-        final regularExpressions = obj['regularExpressions'];
-        if (regularExpressions != null &&
-            !(RegularExpressionsClientCapabilities.canParse(
-                regularExpressions, reporter))) {
-          reporter.reportError(
-              'must be of type RegularExpressionsClientCapabilities');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('staleRequestSupport');
-      try {
-        final staleRequestSupport = obj['staleRequestSupport'];
-        if (staleRequestSupport != null &&
-            !(ClientCapabilitiesStaleRequestSupport.canParse(
-                staleRequestSupport, reporter))) {
-          reporter.reportError(
-              'must be of type ClientCapabilitiesStaleRequestSupport');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError('must be of type ClientCapabilitiesGeneral');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is ClientCapabilitiesGeneral &&
-        other.runtimeType == ClientCapabilitiesGeneral) {
-      return markdown == other.markdown &&
-          listEqual(positionEncodings, other.positionEncodings,
-              (PositionEncodingKind a, PositionEncodingKind b) => a == b) &&
-          regularExpressions == other.regularExpressions &&
-          staleRequestSupport == other.staleRequestSupport &&
-          true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        markdown,
-        lspHashCode(positionEncodings),
-        regularExpressions,
-        staleRequestSupport,
-      );
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class ClientCapabilitiesStaleRequestSupport implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    ClientCapabilitiesStaleRequestSupport.canParse,
-    ClientCapabilitiesStaleRequestSupport.fromJson,
-  );
-
-  ClientCapabilitiesStaleRequestSupport({
-    required this.cancel,
-    required this.retryOnContentModified,
-  });
-  static ClientCapabilitiesStaleRequestSupport fromJson(
-      Map<String, Object?> json) {
-    final cancelJson = json['cancel'];
-    final cancel = cancelJson as bool;
-    final retryOnContentModifiedJson = json['retryOnContentModified'];
-    final retryOnContentModified = (retryOnContentModifiedJson as List<Object?>)
-        .map((item) => item as String)
-        .toList();
-    return ClientCapabilitiesStaleRequestSupport(
-      cancel: cancel,
-      retryOnContentModified: retryOnContentModified,
-    );
-  }
-
-  /// The client will actively cancel the request.
-  final bool cancel;
-
-  /// The list of requests for which the client will retry the request if it
-  /// receives a response with error code `ContentModified``
-  final List<String> retryOnContentModified;
-
-  Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['cancel'] = cancel;
-    __result['retryOnContentModified'] = retryOnContentModified;
-    return __result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('cancel');
-      try {
-        if (!obj.containsKey('cancel')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final cancel = obj['cancel'];
-        if (cancel == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(cancel is bool)) {
-          reporter.reportError('must be of type bool');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('retryOnContentModified');
-      try {
-        if (!obj.containsKey('retryOnContentModified')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final retryOnContentModified = obj['retryOnContentModified'];
-        if (retryOnContentModified == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!((retryOnContentModified is List<Object?> &&
-            (retryOnContentModified.every((item) => item is String))))) {
-          reporter.reportError('must be of type List<String>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter
-          .reportError('must be of type ClientCapabilitiesStaleRequestSupport');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is ClientCapabilitiesStaleRequestSupport &&
-        other.runtimeType == ClientCapabilitiesStaleRequestSupport) {
-      return cancel == other.cancel &&
-          listEqual(retryOnContentModified, other.retryOnContentModified,
-              (String a, String b) => a == b) &&
-          true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        cancel,
-        lspHashCode(retryOnContentModified),
       );
 
   @override
@@ -2819,85 +2339,6 @@ class CodeActionClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class CodeActionClientCapabilitiesCodeActionKind implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    CodeActionClientCapabilitiesCodeActionKind.canParse,
-    CodeActionClientCapabilitiesCodeActionKind.fromJson,
-  );
-
-  CodeActionClientCapabilitiesCodeActionKind({
-    required this.valueSet,
-  });
-  static CodeActionClientCapabilitiesCodeActionKind fromJson(
-      Map<String, Object?> json) {
-    final valueSetJson = json['valueSet'];
-    final valueSet = (valueSetJson as List<Object?>)
-        .map((item) => CodeActionKind.fromJson(item as String))
-        .toList();
-    return CodeActionClientCapabilitiesCodeActionKind(
-      valueSet: valueSet,
-    );
-  }
-
-  /// The code action kind values the client supports. When this property exists
-  /// the client also guarantees that it will handle values outside its set
-  /// gracefully and falls back to a default value when unknown.
-  final List<CodeActionKind> valueSet;
-
-  Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
-    return __result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('valueSet');
-      try {
-        if (!obj.containsKey('valueSet')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final valueSet = obj['valueSet'];
-        if (valueSet == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!((valueSet is List<Object?> &&
-            (valueSet
-                .every((item) => CodeActionKind.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<CodeActionKind>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError(
-          'must be of type CodeActionClientCapabilitiesCodeActionKind');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is CodeActionClientCapabilitiesCodeActionKind &&
-        other.runtimeType == CodeActionClientCapabilitiesCodeActionKind) {
-      return listEqual(valueSet, other.valueSet,
-              (CodeActionKind a, CodeActionKind b) => a == b) &&
-          true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => lspHashCode(valueSet);
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
 class CodeActionClientCapabilitiesCodeActionLiteralSupport
     implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -2911,7 +2352,7 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
   static CodeActionClientCapabilitiesCodeActionLiteralSupport fromJson(
       Map<String, Object?> json) {
     final codeActionKindJson = json['codeActionKind'];
-    final codeActionKind = CodeActionClientCapabilitiesCodeActionKind.fromJson(
+    final codeActionKind = CodeActionLiteralSupportCodeActionKind.fromJson(
         codeActionKindJson as Map<String, Object?>);
     return CodeActionClientCapabilitiesCodeActionLiteralSupport(
       codeActionKind: codeActionKind,
@@ -2919,7 +2360,7 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
   }
 
   /// The code action kind is supported with the following value set.
-  final CodeActionClientCapabilitiesCodeActionKind codeActionKind;
+  final CodeActionLiteralSupportCodeActionKind codeActionKind;
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
@@ -2940,10 +2381,10 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(CodeActionClientCapabilitiesCodeActionKind.canParse(
+        if (!(CodeActionLiteralSupportCodeActionKind.canParse(
             codeActionKind, reporter))) {
           reporter.reportError(
-              'must be of type CodeActionClientCapabilitiesCodeActionKind');
+              'must be of type CodeActionLiteralSupportCodeActionKind');
           return false;
         }
       } finally {
@@ -3338,6 +2779,85 @@ class CodeActionKind implements ToJsonable {
   int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) => o is CodeActionKind && o._value == _value;
+}
+
+class CodeActionLiteralSupportCodeActionKind implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    CodeActionLiteralSupportCodeActionKind.canParse,
+    CodeActionLiteralSupportCodeActionKind.fromJson,
+  );
+
+  CodeActionLiteralSupportCodeActionKind({
+    required this.valueSet,
+  });
+  static CodeActionLiteralSupportCodeActionKind fromJson(
+      Map<String, Object?> json) {
+    final valueSetJson = json['valueSet'];
+    final valueSet = (valueSetJson as List<Object?>)
+        .map((item) => CodeActionKind.fromJson(item as String))
+        .toList();
+    return CodeActionLiteralSupportCodeActionKind(
+      valueSet: valueSet,
+    );
+  }
+
+  /// The code action kind values the client supports. When this property exists
+  /// the client also guarantees that it will handle values outside its set
+  /// gracefully and falls back to a default value when unknown.
+  final List<CodeActionKind> valueSet;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('valueSet');
+      try {
+        if (!obj.containsKey('valueSet')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final valueSet = obj['valueSet'];
+        if (valueSet == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!((valueSet is List<Object?> &&
+            (valueSet
+                .every((item) => CodeActionKind.canParse(item, reporter)))))) {
+          reporter.reportError('must be of type List<CodeActionKind>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError(
+          'must be of type CodeActionLiteralSupportCodeActionKind');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is CodeActionLiteralSupportCodeActionKind &&
+        other.runtimeType == CodeActionLiteralSupportCodeActionKind) {
+      return listEqual(valueSet, other.valueSet,
+              (CodeActionKind a, CodeActionKind b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => lspHashCode(valueSet);
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
@@ -5424,7 +4944,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
     final insertReplaceSupport = insertReplaceSupportJson as bool?;
     final insertTextModeSupportJson = json['insertTextModeSupport'];
     final insertTextModeSupport = insertTextModeSupportJson != null
-        ? CompletionClientCapabilitiesInsertTextModeSupport.fromJson(
+        ? CompletionItemInsertTextModeSupport.fromJson(
             insertTextModeSupportJson as Map<String, Object?>)
         : null;
     final labelDetailsSupportJson = json['labelDetailsSupport'];
@@ -5433,14 +4953,14 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
     final preselectSupport = preselectSupportJson as bool?;
     final resolveSupportJson = json['resolveSupport'];
     final resolveSupport = resolveSupportJson != null
-        ? CompletionClientCapabilitiesResolveSupport.fromJson(
+        ? CompletionItemResolveSupport.fromJson(
             resolveSupportJson as Map<String, Object?>)
         : null;
     final snippetSupportJson = json['snippetSupport'];
     final snippetSupport = snippetSupportJson as bool?;
     final tagSupportJson = json['tagSupport'];
     final tagSupport = tagSupportJson != null
-        ? CompletionClientCapabilitiesTagSupport.fromJson(
+        ? CompletionItemTagSupport.fromJson(
             tagSupportJson as Map<String, Object?>)
         : null;
     return CompletionClientCapabilitiesCompletionItem(
@@ -5476,8 +4996,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
   /// override the whitespace handling mode as defined by the client (see
   /// `insertTextMode`).
   ///  @since 3.16.0
-  final CompletionClientCapabilitiesInsertTextModeSupport?
-      insertTextModeSupport;
+  final CompletionItemInsertTextModeSupport? insertTextModeSupport;
 
   /// The client has support for completion item label details (see also
   /// `CompletionItemLabelDetails`).
@@ -5491,7 +5010,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
   /// item. Before version 3.16.0 only the predefined properties `documentation`
   /// and `detail` could be resolved lazily.
   ///  @since 3.16.0
-  final CompletionClientCapabilitiesResolveSupport? resolveSupport;
+  final CompletionItemResolveSupport? resolveSupport;
 
   /// Client supports snippets as insert text.
   ///
@@ -5506,7 +5025,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
   /// preserve unknown tags when sending a completion item back to the server in
   /// a resolve call.
   ///  @since 3.15.0
-  final CompletionClientCapabilitiesTagSupport? tagSupport;
+  final CompletionItemTagSupport? tagSupport;
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
@@ -5594,10 +5113,10 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       try {
         final insertTextModeSupport = obj['insertTextModeSupport'];
         if (insertTextModeSupport != null &&
-            !(CompletionClientCapabilitiesInsertTextModeSupport.canParse(
+            !(CompletionItemInsertTextModeSupport.canParse(
                 insertTextModeSupport, reporter))) {
           reporter.reportError(
-              'must be of type CompletionClientCapabilitiesInsertTextModeSupport');
+              'must be of type CompletionItemInsertTextModeSupport');
           return false;
         }
       } finally {
@@ -5627,10 +5146,9 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       try {
         final resolveSupport = obj['resolveSupport'];
         if (resolveSupport != null &&
-            !(CompletionClientCapabilitiesResolveSupport.canParse(
+            !(CompletionItemResolveSupport.canParse(
                 resolveSupport, reporter))) {
-          reporter.reportError(
-              'must be of type CompletionClientCapabilitiesResolveSupport');
+          reporter.reportError('must be of type CompletionItemResolveSupport');
           return false;
         }
       } finally {
@@ -5650,10 +5168,8 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       try {
         final tagSupport = obj['tagSupport'];
         if (tagSupport != null &&
-            !(CompletionClientCapabilitiesTagSupport.canParse(
-                tagSupport, reporter))) {
-          reporter.reportError(
-              'must be of type CompletionClientCapabilitiesTagSupport');
+            !(CompletionItemTagSupport.canParse(tagSupport, reporter))) {
+          reporter.reportError('must be of type CompletionItemTagSupport');
           return false;
         }
       } finally {
@@ -5854,236 +5370,6 @@ class CompletionClientCapabilitiesCompletionList implements ToJsonable {
 
   @override
   int get hashCode => lspHashCode(itemDefaults);
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class CompletionClientCapabilitiesInsertTextModeSupport implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    CompletionClientCapabilitiesInsertTextModeSupport.canParse,
-    CompletionClientCapabilitiesInsertTextModeSupport.fromJson,
-  );
-
-  CompletionClientCapabilitiesInsertTextModeSupport({
-    required this.valueSet,
-  });
-  static CompletionClientCapabilitiesInsertTextModeSupport fromJson(
-      Map<String, Object?> json) {
-    final valueSetJson = json['valueSet'];
-    final valueSet = (valueSetJson as List<Object?>)
-        .map((item) => InsertTextMode.fromJson(item as int))
-        .toList();
-    return CompletionClientCapabilitiesInsertTextModeSupport(
-      valueSet: valueSet,
-    );
-  }
-
-  final List<InsertTextMode> valueSet;
-
-  Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
-    return __result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('valueSet');
-      try {
-        if (!obj.containsKey('valueSet')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final valueSet = obj['valueSet'];
-        if (valueSet == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!((valueSet is List<Object?> &&
-            (valueSet
-                .every((item) => InsertTextMode.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<InsertTextMode>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError(
-          'must be of type CompletionClientCapabilitiesInsertTextModeSupport');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is CompletionClientCapabilitiesInsertTextModeSupport &&
-        other.runtimeType ==
-            CompletionClientCapabilitiesInsertTextModeSupport) {
-      return listEqual(valueSet, other.valueSet,
-              (InsertTextMode a, InsertTextMode b) => a == b) &&
-          true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => lspHashCode(valueSet);
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class CompletionClientCapabilitiesResolveSupport implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    CompletionClientCapabilitiesResolveSupport.canParse,
-    CompletionClientCapabilitiesResolveSupport.fromJson,
-  );
-
-  CompletionClientCapabilitiesResolveSupport({
-    required this.properties,
-  });
-  static CompletionClientCapabilitiesResolveSupport fromJson(
-      Map<String, Object?> json) {
-    final propertiesJson = json['properties'];
-    final properties = (propertiesJson as List<Object?>)
-        .map((item) => item as String)
-        .toList();
-    return CompletionClientCapabilitiesResolveSupport(
-      properties: properties,
-    );
-  }
-
-  /// The properties that a client can resolve lazily.
-  final List<String> properties;
-
-  Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['properties'] = properties;
-    return __result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('properties');
-      try {
-        if (!obj.containsKey('properties')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final properties = obj['properties'];
-        if (properties == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!((properties is List<Object?> &&
-            (properties.every((item) => item is String))))) {
-          reporter.reportError('must be of type List<String>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError(
-          'must be of type CompletionClientCapabilitiesResolveSupport');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is CompletionClientCapabilitiesResolveSupport &&
-        other.runtimeType == CompletionClientCapabilitiesResolveSupport) {
-      return listEqual(
-              properties, other.properties, (String a, String b) => a == b) &&
-          true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => lspHashCode(properties);
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class CompletionClientCapabilitiesTagSupport implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    CompletionClientCapabilitiesTagSupport.canParse,
-    CompletionClientCapabilitiesTagSupport.fromJson,
-  );
-
-  CompletionClientCapabilitiesTagSupport({
-    required this.valueSet,
-  });
-  static CompletionClientCapabilitiesTagSupport fromJson(
-      Map<String, Object?> json) {
-    final valueSetJson = json['valueSet'];
-    final valueSet = (valueSetJson as List<Object?>)
-        .map((item) => CompletionItemTag.fromJson(item as int))
-        .toList();
-    return CompletionClientCapabilitiesTagSupport(
-      valueSet: valueSet,
-    );
-  }
-
-  /// The tags supported by the client.
-  final List<CompletionItemTag> valueSet;
-
-  Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
-    return __result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('valueSet');
-      try {
-        if (!obj.containsKey('valueSet')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final valueSet = obj['valueSet'];
-        if (valueSet == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!((valueSet is List<Object?> &&
-            (valueSet.every(
-                (item) => CompletionItemTag.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<CompletionItemTag>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError(
-          'must be of type CompletionClientCapabilitiesTagSupport');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is CompletionClientCapabilitiesTagSupport &&
-        other.runtimeType == CompletionClientCapabilitiesTagSupport) {
-      return listEqual(valueSet, other.valueSet,
-              (CompletionItemTag a, CompletionItemTag b) => a == b) &&
-          true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => lspHashCode(valueSet);
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -6785,6 +6071,82 @@ class CompletionItem implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class CompletionItemInsertTextModeSupport implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    CompletionItemInsertTextModeSupport.canParse,
+    CompletionItemInsertTextModeSupport.fromJson,
+  );
+
+  CompletionItemInsertTextModeSupport({
+    required this.valueSet,
+  });
+  static CompletionItemInsertTextModeSupport fromJson(
+      Map<String, Object?> json) {
+    final valueSetJson = json['valueSet'];
+    final valueSet = (valueSetJson as List<Object?>)
+        .map((item) => InsertTextMode.fromJson(item as int))
+        .toList();
+    return CompletionItemInsertTextModeSupport(
+      valueSet: valueSet,
+    );
+  }
+
+  final List<InsertTextMode> valueSet;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('valueSet');
+      try {
+        if (!obj.containsKey('valueSet')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final valueSet = obj['valueSet'];
+        if (valueSet == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!((valueSet is List<Object?> &&
+            (valueSet
+                .every((item) => InsertTextMode.canParse(item, reporter)))))) {
+          reporter.reportError('must be of type List<InsertTextMode>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter
+          .reportError('must be of type CompletionItemInsertTextModeSupport');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is CompletionItemInsertTextModeSupport &&
+        other.runtimeType == CompletionItemInsertTextModeSupport) {
+      return listEqual(valueSet, other.valueSet,
+              (InsertTextMode a, InsertTextMode b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => lspHashCode(valueSet);
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 /// The kind of a completion entry.
 class CompletionItemKind implements ToJsonable {
   const CompletionItemKind(this._value);
@@ -6925,6 +6287,80 @@ class CompletionItemLabelDetails implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class CompletionItemResolveSupport implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    CompletionItemResolveSupport.canParse,
+    CompletionItemResolveSupport.fromJson,
+  );
+
+  CompletionItemResolveSupport({
+    required this.properties,
+  });
+  static CompletionItemResolveSupport fromJson(Map<String, Object?> json) {
+    final propertiesJson = json['properties'];
+    final properties = (propertiesJson as List<Object?>)
+        .map((item) => item as String)
+        .toList();
+    return CompletionItemResolveSupport(
+      properties: properties,
+    );
+  }
+
+  /// The properties that a client can resolve lazily.
+  final List<String> properties;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    __result['properties'] = properties;
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('properties');
+      try {
+        if (!obj.containsKey('properties')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final properties = obj['properties'];
+        if (properties == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!((properties is List<Object?> &&
+            (properties.every((item) => item is String))))) {
+          reporter.reportError('must be of type List<String>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type CompletionItemResolveSupport');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is CompletionItemResolveSupport &&
+        other.runtimeType == CompletionItemResolveSupport) {
+      return listEqual(
+              properties, other.properties, (String a, String b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => lspHashCode(properties);
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 /// Completion item tags are extra annotations that tweak the rendering of a
 /// completion item.
 ///  @since 3.15.0
@@ -6950,6 +6386,81 @@ class CompletionItemTag implements ToJsonable {
   int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) => o is CompletionItemTag && o._value == _value;
+}
+
+class CompletionItemTagSupport implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    CompletionItemTagSupport.canParse,
+    CompletionItemTagSupport.fromJson,
+  );
+
+  CompletionItemTagSupport({
+    required this.valueSet,
+  });
+  static CompletionItemTagSupport fromJson(Map<String, Object?> json) {
+    final valueSetJson = json['valueSet'];
+    final valueSet = (valueSetJson as List<Object?>)
+        .map((item) => CompletionItemTag.fromJson(item as int))
+        .toList();
+    return CompletionItemTagSupport(
+      valueSet: valueSet,
+    );
+  }
+
+  /// The tags supported by the client.
+  final List<CompletionItemTag> valueSet;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('valueSet');
+      try {
+        if (!obj.containsKey('valueSet')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final valueSet = obj['valueSet'];
+        if (valueSet == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!((valueSet is List<Object?> &&
+            (valueSet.every(
+                (item) => CompletionItemTag.canParse(item, reporter)))))) {
+          reporter.reportError('must be of type List<CompletionItemTag>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type CompletionItemTagSupport');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is CompletionItemTagSupport &&
+        other.runtimeType == CompletionItemTagSupport) {
+      return listEqual(valueSet, other.valueSet,
+              (CompletionItemTag a, CompletionItemTag b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => lspHashCode(valueSet);
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
 }
 
 /// Represents a collection of completion items ([CompletionItem]) to be
@@ -16801,6 +16312,205 @@ class FileEvent implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class FileOperationClientCapabilities implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    FileOperationClientCapabilities.canParse,
+    FileOperationClientCapabilities.fromJson,
+  );
+
+  FileOperationClientCapabilities({
+    this.didCreate,
+    this.didDelete,
+    this.didRename,
+    this.dynamicRegistration,
+    this.willCreate,
+    this.willDelete,
+    this.willRename,
+  });
+  static FileOperationClientCapabilities fromJson(Map<String, Object?> json) {
+    final didCreateJson = json['didCreate'];
+    final didCreate = didCreateJson as bool?;
+    final didDeleteJson = json['didDelete'];
+    final didDelete = didDeleteJson as bool?;
+    final didRenameJson = json['didRename'];
+    final didRename = didRenameJson as bool?;
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final willCreateJson = json['willCreate'];
+    final willCreate = willCreateJson as bool?;
+    final willDeleteJson = json['willDelete'];
+    final willDelete = willDeleteJson as bool?;
+    final willRenameJson = json['willRename'];
+    final willRename = willRenameJson as bool?;
+    return FileOperationClientCapabilities(
+      didCreate: didCreate,
+      didDelete: didDelete,
+      didRename: didRename,
+      dynamicRegistration: dynamicRegistration,
+      willCreate: willCreate,
+      willDelete: willDelete,
+      willRename: willRename,
+    );
+  }
+
+  /// The client has support for sending didCreateFiles notifications.
+  final bool? didCreate;
+
+  /// The client has support for sending didDeleteFiles notifications.
+  final bool? didDelete;
+
+  /// The client has support for sending didRenameFiles notifications.
+  final bool? didRename;
+
+  /// Whether the client supports dynamic registration for file
+  /// requests/notifications.
+  final bool? dynamicRegistration;
+
+  /// The client has support for sending willCreateFiles requests.
+  final bool? willCreate;
+
+  /// The client has support for sending willDeleteFiles requests.
+  final bool? willDelete;
+
+  /// The client has support for sending willRenameFiles requests.
+  final bool? willRename;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    if (didCreate != null) {
+      __result['didCreate'] = didCreate;
+    }
+    if (didDelete != null) {
+      __result['didDelete'] = didDelete;
+    }
+    if (didRename != null) {
+      __result['didRename'] = didRename;
+    }
+    if (dynamicRegistration != null) {
+      __result['dynamicRegistration'] = dynamicRegistration;
+    }
+    if (willCreate != null) {
+      __result['willCreate'] = willCreate;
+    }
+    if (willDelete != null) {
+      __result['willDelete'] = willDelete;
+    }
+    if (willRename != null) {
+      __result['willRename'] = willRename;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('didCreate');
+      try {
+        final didCreate = obj['didCreate'];
+        if (didCreate != null && !(didCreate is bool)) {
+          reporter.reportError('must be of type bool');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('didDelete');
+      try {
+        final didDelete = obj['didDelete'];
+        if (didDelete != null && !(didDelete is bool)) {
+          reporter.reportError('must be of type bool');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('didRename');
+      try {
+        final didRename = obj['didRename'];
+        if (didRename != null && !(didRename is bool)) {
+          reporter.reportError('must be of type bool');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('dynamicRegistration');
+      try {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+          reporter.reportError('must be of type bool');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('willCreate');
+      try {
+        final willCreate = obj['willCreate'];
+        if (willCreate != null && !(willCreate is bool)) {
+          reporter.reportError('must be of type bool');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('willDelete');
+      try {
+        final willDelete = obj['willDelete'];
+        if (willDelete != null && !(willDelete is bool)) {
+          reporter.reportError('must be of type bool');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('willRename');
+      try {
+        final willRename = obj['willRename'];
+        if (willRename != null && !(willRename is bool)) {
+          reporter.reportError('must be of type bool');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type FileOperationClientCapabilities');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is FileOperationClientCapabilities &&
+        other.runtimeType == FileOperationClientCapabilities) {
+      return didCreate == other.didCreate &&
+          didDelete == other.didDelete &&
+          didRename == other.didRename &&
+          dynamicRegistration == other.dynamicRegistration &&
+          willCreate == other.willCreate &&
+          willDelete == other.willDelete &&
+          willRename == other.willRename &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        didCreate,
+        didDelete,
+        didRename,
+        dynamicRegistration,
+        willCreate,
+        willDelete,
+        willRename,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 /// A filter to describe in which file operation requests or notifications the
 /// server is interested in.
 ///  @since 3.16.0
@@ -16891,6 +16601,215 @@ class FileOperationFilter implements ToJsonable {
   int get hashCode => Object.hash(
         pattern,
         scheme,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class FileOperationOptions implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    FileOperationOptions.canParse,
+    FileOperationOptions.fromJson,
+  );
+
+  FileOperationOptions({
+    this.didCreate,
+    this.didDelete,
+    this.didRename,
+    this.willCreate,
+    this.willDelete,
+    this.willRename,
+  });
+  static FileOperationOptions fromJson(Map<String, Object?> json) {
+    final didCreateJson = json['didCreate'];
+    final didCreate = didCreateJson != null
+        ? FileOperationRegistrationOptions.fromJson(
+            didCreateJson as Map<String, Object?>)
+        : null;
+    final didDeleteJson = json['didDelete'];
+    final didDelete = didDeleteJson != null
+        ? FileOperationRegistrationOptions.fromJson(
+            didDeleteJson as Map<String, Object?>)
+        : null;
+    final didRenameJson = json['didRename'];
+    final didRename = didRenameJson != null
+        ? FileOperationRegistrationOptions.fromJson(
+            didRenameJson as Map<String, Object?>)
+        : null;
+    final willCreateJson = json['willCreate'];
+    final willCreate = willCreateJson != null
+        ? FileOperationRegistrationOptions.fromJson(
+            willCreateJson as Map<String, Object?>)
+        : null;
+    final willDeleteJson = json['willDelete'];
+    final willDelete = willDeleteJson != null
+        ? FileOperationRegistrationOptions.fromJson(
+            willDeleteJson as Map<String, Object?>)
+        : null;
+    final willRenameJson = json['willRename'];
+    final willRename = willRenameJson != null
+        ? FileOperationRegistrationOptions.fromJson(
+            willRenameJson as Map<String, Object?>)
+        : null;
+    return FileOperationOptions(
+      didCreate: didCreate,
+      didDelete: didDelete,
+      didRename: didRename,
+      willCreate: willCreate,
+      willDelete: willDelete,
+      willRename: willRename,
+    );
+  }
+
+  /// The server is interested in receiving didCreateFiles notifications.
+  final FileOperationRegistrationOptions? didCreate;
+
+  /// The server is interested in receiving didDeleteFiles file notifications.
+  final FileOperationRegistrationOptions? didDelete;
+
+  /// The server is interested in receiving didRenameFiles notifications.
+  final FileOperationRegistrationOptions? didRename;
+
+  /// The server is interested in receiving willCreateFiles requests.
+  final FileOperationRegistrationOptions? willCreate;
+
+  /// The server is interested in receiving willDeleteFiles file requests.
+  final FileOperationRegistrationOptions? willDelete;
+
+  /// The server is interested in receiving willRenameFiles requests.
+  final FileOperationRegistrationOptions? willRename;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    if (didCreate != null) {
+      __result['didCreate'] = didCreate?.toJson();
+    }
+    if (didDelete != null) {
+      __result['didDelete'] = didDelete?.toJson();
+    }
+    if (didRename != null) {
+      __result['didRename'] = didRename?.toJson();
+    }
+    if (willCreate != null) {
+      __result['willCreate'] = willCreate?.toJson();
+    }
+    if (willDelete != null) {
+      __result['willDelete'] = willDelete?.toJson();
+    }
+    if (willRename != null) {
+      __result['willRename'] = willRename?.toJson();
+    }
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('didCreate');
+      try {
+        final didCreate = obj['didCreate'];
+        if (didCreate != null &&
+            !(FileOperationRegistrationOptions.canParse(didCreate, reporter))) {
+          reporter
+              .reportError('must be of type FileOperationRegistrationOptions');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('didDelete');
+      try {
+        final didDelete = obj['didDelete'];
+        if (didDelete != null &&
+            !(FileOperationRegistrationOptions.canParse(didDelete, reporter))) {
+          reporter
+              .reportError('must be of type FileOperationRegistrationOptions');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('didRename');
+      try {
+        final didRename = obj['didRename'];
+        if (didRename != null &&
+            !(FileOperationRegistrationOptions.canParse(didRename, reporter))) {
+          reporter
+              .reportError('must be of type FileOperationRegistrationOptions');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('willCreate');
+      try {
+        final willCreate = obj['willCreate'];
+        if (willCreate != null &&
+            !(FileOperationRegistrationOptions.canParse(
+                willCreate, reporter))) {
+          reporter
+              .reportError('must be of type FileOperationRegistrationOptions');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('willDelete');
+      try {
+        final willDelete = obj['willDelete'];
+        if (willDelete != null &&
+            !(FileOperationRegistrationOptions.canParse(
+                willDelete, reporter))) {
+          reporter
+              .reportError('must be of type FileOperationRegistrationOptions');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('willRename');
+      try {
+        final willRename = obj['willRename'];
+        if (willRename != null &&
+            !(FileOperationRegistrationOptions.canParse(
+                willRename, reporter))) {
+          reporter
+              .reportError('must be of type FileOperationRegistrationOptions');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type FileOperationOptions');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is FileOperationOptions &&
+        other.runtimeType == FileOperationOptions) {
+      return didCreate == other.didCreate &&
+          didDelete == other.didDelete &&
+          didRename == other.didRename &&
+          willCreate == other.willCreate &&
+          willDelete == other.willDelete &&
+          willRename == other.willRename &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        didCreate,
+        didDelete,
+        didRename,
+        willCreate,
+        willDelete,
+        willRename,
       );
 
   @override
@@ -18590,6 +18509,287 @@ class FullDocumentDiagnosticReport implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class GeneralClientCapabilities implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    GeneralClientCapabilities.canParse,
+    GeneralClientCapabilities.fromJson,
+  );
+
+  GeneralClientCapabilities({
+    this.markdown,
+    this.positionEncodings,
+    this.regularExpressions,
+    this.staleRequestSupport,
+  });
+  static GeneralClientCapabilities fromJson(Map<String, Object?> json) {
+    final markdownJson = json['markdown'];
+    final markdown = markdownJson != null
+        ? MarkdownClientCapabilities.fromJson(
+            markdownJson as Map<String, Object?>)
+        : null;
+    final positionEncodingsJson = json['positionEncodings'];
+    final positionEncodings = (positionEncodingsJson as List<Object?>?)
+        ?.map((item) => PositionEncodingKind.fromJson(item as String))
+        .toList();
+    final regularExpressionsJson = json['regularExpressions'];
+    final regularExpressions = regularExpressionsJson != null
+        ? RegularExpressionsClientCapabilities.fromJson(
+            regularExpressionsJson as Map<String, Object?>)
+        : null;
+    final staleRequestSupportJson = json['staleRequestSupport'];
+    final staleRequestSupport = staleRequestSupportJson != null
+        ? GeneralClientCapabilitiesStaleRequestSupport.fromJson(
+            staleRequestSupportJson as Map<String, Object?>)
+        : null;
+    return GeneralClientCapabilities(
+      markdown: markdown,
+      positionEncodings: positionEncodings,
+      regularExpressions: regularExpressions,
+      staleRequestSupport: staleRequestSupport,
+    );
+  }
+
+  /// Client capabilities specific to the client's markdown parser.
+  ///  @since 3.16.0
+  final MarkdownClientCapabilities? markdown;
+
+  /// The position encodings supported by the client. Client and server have to
+  /// agree on the same position encoding to ensure that offsets (e.g. character
+  /// position in a line) are interpreted the same on both side.
+  ///
+  /// To keep the protocol backwards compatible the following applies: if the
+  /// value 'utf-16' is missing from the array of position encodings servers can
+  /// assume that the client supports UTF-16. UTF-16 is therefore a mandatory
+  /// encoding.
+  ///
+  /// If omitted it defaults to ['utf-16'].
+  ///
+  /// Implementation considerations: since the conversion from one encoding into
+  /// another requires the content of the file / line the conversion is best
+  /// done where the file is read which is usually on the server side.
+  ///  @since 3.17.0
+  final List<PositionEncodingKind>? positionEncodings;
+
+  /// Client capabilities specific to regular expressions.
+  ///  @since 3.16.0
+  final RegularExpressionsClientCapabilities? regularExpressions;
+
+  /// Client capability that signals how the client handles stale requests (e.g.
+  /// a request for which the client will not process the response anymore since
+  /// the information is outdated).
+  ///  @since 3.17.0
+  final GeneralClientCapabilitiesStaleRequestSupport? staleRequestSupport;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    if (markdown != null) {
+      __result['markdown'] = markdown?.toJson();
+    }
+    if (positionEncodings != null) {
+      __result['positionEncodings'] =
+          positionEncodings?.map((item) => item.toJson()).toList();
+    }
+    if (regularExpressions != null) {
+      __result['regularExpressions'] = regularExpressions?.toJson();
+    }
+    if (staleRequestSupport != null) {
+      __result['staleRequestSupport'] = staleRequestSupport?.toJson();
+    }
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('markdown');
+      try {
+        final markdown = obj['markdown'];
+        if (markdown != null &&
+            !(MarkdownClientCapabilities.canParse(markdown, reporter))) {
+          reporter.reportError('must be of type MarkdownClientCapabilities');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('positionEncodings');
+      try {
+        final positionEncodings = obj['positionEncodings'];
+        if (positionEncodings != null &&
+            !((positionEncodings is List<Object?> &&
+                (positionEncodings.every((item) =>
+                    PositionEncodingKind.canParse(item, reporter)))))) {
+          reporter.reportError('must be of type List<PositionEncodingKind>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('regularExpressions');
+      try {
+        final regularExpressions = obj['regularExpressions'];
+        if (regularExpressions != null &&
+            !(RegularExpressionsClientCapabilities.canParse(
+                regularExpressions, reporter))) {
+          reporter.reportError(
+              'must be of type RegularExpressionsClientCapabilities');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('staleRequestSupport');
+      try {
+        final staleRequestSupport = obj['staleRequestSupport'];
+        if (staleRequestSupport != null &&
+            !(GeneralClientCapabilitiesStaleRequestSupport.canParse(
+                staleRequestSupport, reporter))) {
+          reporter.reportError(
+              'must be of type GeneralClientCapabilitiesStaleRequestSupport');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type GeneralClientCapabilities');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is GeneralClientCapabilities &&
+        other.runtimeType == GeneralClientCapabilities) {
+      return markdown == other.markdown &&
+          listEqual(positionEncodings, other.positionEncodings,
+              (PositionEncodingKind a, PositionEncodingKind b) => a == b) &&
+          regularExpressions == other.regularExpressions &&
+          staleRequestSupport == other.staleRequestSupport &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        markdown,
+        lspHashCode(positionEncodings),
+        regularExpressions,
+        staleRequestSupport,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class GeneralClientCapabilitiesStaleRequestSupport implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    GeneralClientCapabilitiesStaleRequestSupport.canParse,
+    GeneralClientCapabilitiesStaleRequestSupport.fromJson,
+  );
+
+  GeneralClientCapabilitiesStaleRequestSupport({
+    required this.cancel,
+    required this.retryOnContentModified,
+  });
+  static GeneralClientCapabilitiesStaleRequestSupport fromJson(
+      Map<String, Object?> json) {
+    final cancelJson = json['cancel'];
+    final cancel = cancelJson as bool;
+    final retryOnContentModifiedJson = json['retryOnContentModified'];
+    final retryOnContentModified = (retryOnContentModifiedJson as List<Object?>)
+        .map((item) => item as String)
+        .toList();
+    return GeneralClientCapabilitiesStaleRequestSupport(
+      cancel: cancel,
+      retryOnContentModified: retryOnContentModified,
+    );
+  }
+
+  /// The client will actively cancel the request.
+  final bool cancel;
+
+  /// The list of requests for which the client will retry the request if it
+  /// receives a response with error code `ContentModified``
+  final List<String> retryOnContentModified;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    __result['cancel'] = cancel;
+    __result['retryOnContentModified'] = retryOnContentModified;
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('cancel');
+      try {
+        if (!obj.containsKey('cancel')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final cancel = obj['cancel'];
+        if (cancel == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(cancel is bool)) {
+          reporter.reportError('must be of type bool');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('retryOnContentModified');
+      try {
+        if (!obj.containsKey('retryOnContentModified')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final retryOnContentModified = obj['retryOnContentModified'];
+        if (retryOnContentModified == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!((retryOnContentModified is List<Object?> &&
+            (retryOnContentModified.every((item) => item is String))))) {
+          reporter.reportError('must be of type List<String>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError(
+          'must be of type GeneralClientCapabilitiesStaleRequestSupport');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is GeneralClientCapabilitiesStaleRequestSupport &&
+        other.runtimeType == GeneralClientCapabilitiesStaleRequestSupport) {
+      return cancel == other.cancel &&
+          listEqual(retryOnContentModified, other.retryOnContentModified,
+              (String a, String b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        cancel,
+        lspHashCode(retryOnContentModified),
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 /// The result of a hover request.
 class Hover implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -19685,28 +19885,6 @@ class ImplementationRegistrationOptions
 
   @override
   String toString() => jsonEncoder.convert(toJson());
-}
-
-/// Known error codes for an `InitializeErrorCodes`;
-class InitializeErrorCodes implements ToJsonable {
-  const InitializeErrorCodes(this._value);
-  const InitializeErrorCodes.fromJson(this._value);
-
-  final int _value;
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    return obj is int;
-  }
-
-  Object toJson() => _value;
-
-  @override
-  String toString() => _value.toString();
-
-  @override
-  int get hashCode => _value.hashCode;
-
-  bool operator ==(Object o) => o is InitializeErrorCodes && o._value == _value;
 }
 
 class InitializeParams implements WorkDoneProgressParams, ToJsonable {
@@ -24036,6 +24214,9 @@ class Method implements ToJsonable {
   /// Constant for the 'textDocument/definition' method.
   static const textDocument_definition = Method('textDocument/definition');
 
+  /// Constant for the 'textDocument/diagnostic' method.
+  static const textDocument_diagnostic = Method('textDocument/diagnostic');
+
   /// Constant for the 'textDocument/didChange' method.
   static const textDocument_didChange = Method('textDocument/didChange');
 
@@ -24185,6 +24366,9 @@ class Method implements ToJsonable {
 
   /// Constant for the 'workspace/configuration' method.
   static const workspace_configuration = Method('workspace/configuration');
+
+  /// Constant for the 'workspace/diagnostic' method.
+  static const workspace_diagnostic = Method('workspace/diagnostic');
 
   /// Constant for the 'workspace/diagnostic/refresh' method.
   static const workspace_diagnostic_refresh =
@@ -25529,7 +25713,7 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
         .toList();
     final structureJson = json['structure'];
     final structure = structureJson != null
-        ? NotebookDocumentChangeEventStructure.fromJson(
+        ? NotebookDocumentChangeEventCellsStructure.fromJson(
             structureJson as Map<String, Object?>)
         : null;
     final textContentJson = json['textContent'];
@@ -25549,7 +25733,7 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
   final List<NotebookCell>? data;
 
   /// Changes to the cell structure to add or remove cells.
-  final NotebookDocumentChangeEventStructure? structure;
+  final NotebookDocumentChangeEventCellsStructure? structure;
 
   /// Changes to the text content of notebook cells.
   final List<NotebookDocumentChangeEventTextContent>? textContent;
@@ -25588,10 +25772,10 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
       try {
         final structure = obj['structure'];
         if (structure != null &&
-            !(NotebookDocumentChangeEventStructure.canParse(
+            !(NotebookDocumentChangeEventCellsStructure.canParse(
                 structure, reporter))) {
           reporter.reportError(
-              'must be of type NotebookDocumentChangeEventStructure');
+              'must be of type NotebookDocumentChangeEventCellsStructure');
           return false;
         }
       } finally {
@@ -25648,18 +25832,18 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class NotebookDocumentChangeEventStructure implements ToJsonable {
+class NotebookDocumentChangeEventCellsStructure implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    NotebookDocumentChangeEventStructure.canParse,
-    NotebookDocumentChangeEventStructure.fromJson,
+    NotebookDocumentChangeEventCellsStructure.canParse,
+    NotebookDocumentChangeEventCellsStructure.fromJson,
   );
 
-  NotebookDocumentChangeEventStructure({
+  NotebookDocumentChangeEventCellsStructure({
     required this.array,
     this.didClose,
     this.didOpen,
   });
-  static NotebookDocumentChangeEventStructure fromJson(
+  static NotebookDocumentChangeEventCellsStructure fromJson(
       Map<String, Object?> json) {
     final arrayJson = json['array'];
     final array =
@@ -25673,7 +25857,7 @@ class NotebookDocumentChangeEventStructure implements ToJsonable {
     final didOpen = (didOpenJson as List<Object?>?)
         ?.map((item) => TextDocumentItem.fromJson(item as Map<String, Object?>))
         .toList();
-    return NotebookDocumentChangeEventStructure(
+    return NotebookDocumentChangeEventCellsStructure(
       array: array,
       didClose: didClose,
       didOpen: didOpen,
@@ -25749,16 +25933,16 @@ class NotebookDocumentChangeEventStructure implements ToJsonable {
       }
       return true;
     } else {
-      reporter
-          .reportError('must be of type NotebookDocumentChangeEventStructure');
+      reporter.reportError(
+          'must be of type NotebookDocumentChangeEventCellsStructure');
       return false;
     }
   }
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentChangeEventStructure &&
-        other.runtimeType == NotebookDocumentChangeEventStructure) {
+    if (other is NotebookDocumentChangeEventCellsStructure &&
+        other.runtimeType == NotebookDocumentChangeEventCellsStructure) {
       return array == other.array &&
           listEqual(didClose, other.didClose,
               (TextDocumentIdentifier a, TextDocumentIdentifier b) => a == b) &&
@@ -35133,215 +35317,6 @@ class ServerCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class ServerCapabilitiesFileOperations implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    ServerCapabilitiesFileOperations.canParse,
-    ServerCapabilitiesFileOperations.fromJson,
-  );
-
-  ServerCapabilitiesFileOperations({
-    this.didCreate,
-    this.didDelete,
-    this.didRename,
-    this.willCreate,
-    this.willDelete,
-    this.willRename,
-  });
-  static ServerCapabilitiesFileOperations fromJson(Map<String, Object?> json) {
-    final didCreateJson = json['didCreate'];
-    final didCreate = didCreateJson != null
-        ? FileOperationRegistrationOptions.fromJson(
-            didCreateJson as Map<String, Object?>)
-        : null;
-    final didDeleteJson = json['didDelete'];
-    final didDelete = didDeleteJson != null
-        ? FileOperationRegistrationOptions.fromJson(
-            didDeleteJson as Map<String, Object?>)
-        : null;
-    final didRenameJson = json['didRename'];
-    final didRename = didRenameJson != null
-        ? FileOperationRegistrationOptions.fromJson(
-            didRenameJson as Map<String, Object?>)
-        : null;
-    final willCreateJson = json['willCreate'];
-    final willCreate = willCreateJson != null
-        ? FileOperationRegistrationOptions.fromJson(
-            willCreateJson as Map<String, Object?>)
-        : null;
-    final willDeleteJson = json['willDelete'];
-    final willDelete = willDeleteJson != null
-        ? FileOperationRegistrationOptions.fromJson(
-            willDeleteJson as Map<String, Object?>)
-        : null;
-    final willRenameJson = json['willRename'];
-    final willRename = willRenameJson != null
-        ? FileOperationRegistrationOptions.fromJson(
-            willRenameJson as Map<String, Object?>)
-        : null;
-    return ServerCapabilitiesFileOperations(
-      didCreate: didCreate,
-      didDelete: didDelete,
-      didRename: didRename,
-      willCreate: willCreate,
-      willDelete: willDelete,
-      willRename: willRename,
-    );
-  }
-
-  /// The server is interested in receiving didCreateFiles notifications.
-  final FileOperationRegistrationOptions? didCreate;
-
-  /// The server is interested in receiving didDeleteFiles file notifications.
-  final FileOperationRegistrationOptions? didDelete;
-
-  /// The server is interested in receiving didRenameFiles notifications.
-  final FileOperationRegistrationOptions? didRename;
-
-  /// The server is interested in receiving willCreateFiles requests.
-  final FileOperationRegistrationOptions? willCreate;
-
-  /// The server is interested in receiving willDeleteFiles file requests.
-  final FileOperationRegistrationOptions? willDelete;
-
-  /// The server is interested in receiving willRenameFiles requests.
-  final FileOperationRegistrationOptions? willRename;
-
-  Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    if (didCreate != null) {
-      __result['didCreate'] = didCreate?.toJson();
-    }
-    if (didDelete != null) {
-      __result['didDelete'] = didDelete?.toJson();
-    }
-    if (didRename != null) {
-      __result['didRename'] = didRename?.toJson();
-    }
-    if (willCreate != null) {
-      __result['willCreate'] = willCreate?.toJson();
-    }
-    if (willDelete != null) {
-      __result['willDelete'] = willDelete?.toJson();
-    }
-    if (willRename != null) {
-      __result['willRename'] = willRename?.toJson();
-    }
-    return __result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('didCreate');
-      try {
-        final didCreate = obj['didCreate'];
-        if (didCreate != null &&
-            !(FileOperationRegistrationOptions.canParse(didCreate, reporter))) {
-          reporter
-              .reportError('must be of type FileOperationRegistrationOptions');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('didDelete');
-      try {
-        final didDelete = obj['didDelete'];
-        if (didDelete != null &&
-            !(FileOperationRegistrationOptions.canParse(didDelete, reporter))) {
-          reporter
-              .reportError('must be of type FileOperationRegistrationOptions');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('didRename');
-      try {
-        final didRename = obj['didRename'];
-        if (didRename != null &&
-            !(FileOperationRegistrationOptions.canParse(didRename, reporter))) {
-          reporter
-              .reportError('must be of type FileOperationRegistrationOptions');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('willCreate');
-      try {
-        final willCreate = obj['willCreate'];
-        if (willCreate != null &&
-            !(FileOperationRegistrationOptions.canParse(
-                willCreate, reporter))) {
-          reporter
-              .reportError('must be of type FileOperationRegistrationOptions');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('willDelete');
-      try {
-        final willDelete = obj['willDelete'];
-        if (willDelete != null &&
-            !(FileOperationRegistrationOptions.canParse(
-                willDelete, reporter))) {
-          reporter
-              .reportError('must be of type FileOperationRegistrationOptions');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('willRename');
-      try {
-        final willRename = obj['willRename'];
-        if (willRename != null &&
-            !(FileOperationRegistrationOptions.canParse(
-                willRename, reporter))) {
-          reporter
-              .reportError('must be of type FileOperationRegistrationOptions');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError('must be of type ServerCapabilitiesFileOperations');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is ServerCapabilitiesFileOperations &&
-        other.runtimeType == ServerCapabilitiesFileOperations) {
-      return didCreate == other.didCreate &&
-          didDelete == other.didDelete &&
-          didRename == other.didRename &&
-          willCreate == other.willCreate &&
-          willDelete == other.willDelete &&
-          willRename == other.willRename &&
-          true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        didCreate,
-        didDelete,
-        didRename,
-        willCreate,
-        willDelete,
-        willRename,
-      );
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
 class ServerCapabilitiesWorkspace implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ServerCapabilitiesWorkspace.canParse,
@@ -35355,7 +35330,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
   static ServerCapabilitiesWorkspace fromJson(Map<String, Object?> json) {
     final fileOperationsJson = json['fileOperations'];
     final fileOperations = fileOperationsJson != null
-        ? ServerCapabilitiesFileOperations.fromJson(
+        ? FileOperationOptions.fromJson(
             fileOperationsJson as Map<String, Object?>)
         : null;
     final workspaceFoldersJson = json['workspaceFolders'];
@@ -35371,7 +35346,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
 
   /// The server is interested in file notifications/requests.
   ///  @since 3.16.0
-  final ServerCapabilitiesFileOperations? fileOperations;
+  final FileOperationOptions? fileOperations;
 
   /// The server supports workspace folder.
   ///  @since 3.6.0
@@ -35394,10 +35369,8 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
       try {
         final fileOperations = obj['fileOperations'];
         if (fileOperations != null &&
-            !(ServerCapabilitiesFileOperations.canParse(
-                fileOperations, reporter))) {
-          reporter
-              .reportError('must be of type ServerCapabilitiesFileOperations');
+            !(FileOperationOptions.canParse(fileOperations, reporter))) {
+          reporter.reportError('must be of type FileOperationOptions');
           return false;
         }
       } finally {
@@ -36434,75 +36407,6 @@ class SignatureHelpClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class SignatureHelpClientCapabilitiesParameterInformation
-    implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    SignatureHelpClientCapabilitiesParameterInformation.canParse,
-    SignatureHelpClientCapabilitiesParameterInformation.fromJson,
-  );
-
-  SignatureHelpClientCapabilitiesParameterInformation({
-    this.labelOffsetSupport,
-  });
-  static SignatureHelpClientCapabilitiesParameterInformation fromJson(
-      Map<String, Object?> json) {
-    final labelOffsetSupportJson = json['labelOffsetSupport'];
-    final labelOffsetSupport = labelOffsetSupportJson as bool?;
-    return SignatureHelpClientCapabilitiesParameterInformation(
-      labelOffsetSupport: labelOffsetSupport,
-    );
-  }
-
-  /// The client supports processing label offsets instead of a simple label
-  /// string.
-  ///  @since 3.14.0
-  final bool? labelOffsetSupport;
-
-  Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    if (labelOffsetSupport != null) {
-      __result['labelOffsetSupport'] = labelOffsetSupport;
-    }
-    return __result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('labelOffsetSupport');
-      try {
-        final labelOffsetSupport = obj['labelOffsetSupport'];
-        if (labelOffsetSupport != null && !(labelOffsetSupport is bool)) {
-          reporter.reportError('must be of type bool');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError(
-          'must be of type SignatureHelpClientCapabilitiesParameterInformation');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is SignatureHelpClientCapabilitiesParameterInformation &&
-        other.runtimeType ==
-            SignatureHelpClientCapabilitiesParameterInformation) {
-      return labelOffsetSupport == other.labelOffsetSupport && true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => labelOffsetSupport.hashCode;
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
 class SignatureHelpClientCapabilitiesSignatureInformation
     implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -36525,7 +36429,7 @@ class SignatureHelpClientCapabilitiesSignatureInformation
         .toList();
     final parameterInformationJson = json['parameterInformation'];
     final parameterInformation = parameterInformationJson != null
-        ? SignatureHelpClientCapabilitiesParameterInformation.fromJson(
+        ? SignatureInformationParameterInformation.fromJson(
             parameterInformationJson as Map<String, Object?>)
         : null;
     return SignatureHelpClientCapabilitiesSignatureInformation(
@@ -36545,8 +36449,7 @@ class SignatureHelpClientCapabilitiesSignatureInformation
   final List<MarkupKind>? documentationFormat;
 
   /// Client capabilities specific to parameter information.
-  final SignatureHelpClientCapabilitiesParameterInformation?
-      parameterInformation;
+  final SignatureInformationParameterInformation? parameterInformation;
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
@@ -36593,10 +36496,10 @@ class SignatureHelpClientCapabilitiesSignatureInformation
       try {
         final parameterInformation = obj['parameterInformation'];
         if (parameterInformation != null &&
-            !(SignatureHelpClientCapabilitiesParameterInformation.canParse(
+            !(SignatureInformationParameterInformation.canParse(
                 parameterInformation, reporter))) {
           reporter.reportError(
-              'must be of type SignatureHelpClientCapabilitiesParameterInformation');
+              'must be of type SignatureInformationParameterInformation');
           return false;
         }
       } finally {
@@ -37430,6 +37333,73 @@ class SignatureInformation implements ToJsonable {
         label,
         lspHashCode(parameters),
       );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class SignatureInformationParameterInformation implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    SignatureInformationParameterInformation.canParse,
+    SignatureInformationParameterInformation.fromJson,
+  );
+
+  SignatureInformationParameterInformation({
+    this.labelOffsetSupport,
+  });
+  static SignatureInformationParameterInformation fromJson(
+      Map<String, Object?> json) {
+    final labelOffsetSupportJson = json['labelOffsetSupport'];
+    final labelOffsetSupport = labelOffsetSupportJson as bool?;
+    return SignatureInformationParameterInformation(
+      labelOffsetSupport: labelOffsetSupport,
+    );
+  }
+
+  /// The client supports processing label offsets instead of a simple label
+  /// string.
+  ///  @since 3.14.0
+  final bool? labelOffsetSupport;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    if (labelOffsetSupport != null) {
+      __result['labelOffsetSupport'] = labelOffsetSupport;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('labelOffsetSupport');
+      try {
+        final labelOffsetSupport = obj['labelOffsetSupport'];
+        if (labelOffsetSupport != null && !(labelOffsetSupport is bool)) {
+          reporter.reportError('must be of type bool');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError(
+          'must be of type SignatureInformationParameterInformation');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is SignatureInformationParameterInformation &&
+        other.runtimeType == SignatureInformationParameterInformation) {
+      return labelOffsetSupport == other.labelOffsetSupport && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => labelOffsetSupport.hashCode;
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -43510,7 +43480,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
         : null;
     final fileOperationsJson = json['fileOperations'];
     final fileOperations = fileOperationsJson != null
-        ? ClientCapabilitiesFileOperations.fromJson(
+        ? FileOperationClientCapabilities.fromJson(
             fileOperationsJson as Map<String, Object?>)
         : null;
     final inlayHintJson = json['inlayHint'];
@@ -43587,7 +43557,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
 
   /// The client has support for file requests/notifications.
   ///  @since 3.16.0
-  final ClientCapabilitiesFileOperations? fileOperations;
+  final FileOperationClientCapabilities? fileOperations;
 
   /// Client workspace capabilities specific to inlay hints.
   ///  @since 3.17.0
@@ -43750,10 +43720,10 @@ class WorkspaceClientCapabilities implements ToJsonable {
       try {
         final fileOperations = obj['fileOperations'];
         if (fileOperations != null &&
-            !(ClientCapabilitiesFileOperations.canParse(
+            !(FileOperationClientCapabilities.canParse(
                 fileOperations, reporter))) {
           reporter
-              .reportError('must be of type ClientCapabilitiesFileOperations');
+              .reportError('must be of type FileOperationClientCapabilities');
           return false;
         }
       } finally {
