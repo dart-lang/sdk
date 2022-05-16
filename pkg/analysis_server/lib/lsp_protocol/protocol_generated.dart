@@ -15461,12 +15461,12 @@ class ErrorCodes implements ToJsonable {
   static const InvalidParams = ErrorCodes(-32602);
   static const InvalidRequest = ErrorCodes(-32600);
 
-  /// This is the end range of JSON RPC reserved error codes. It doesn't denote
+  /// This is the end range of JSON-RPC reserved error codes. It doesn't denote
   /// a real error code.
   ///  @since 3.16.0
   static const jsonrpcReservedErrorRangeEnd = ErrorCodes(-32000);
 
-  /// This is the start range of JSON RPC reserved error codes. It doesn't
+  /// This is the start range of JSON-RPC reserved error codes. It doesn't
   /// denote a real error code. No LSP error codes should be defined between the
   /// start and end range. For backwards compatibility the
   /// `ServerNotInitialized` and the `UnknownErrorCode` are left in the range.
@@ -15484,7 +15484,7 @@ class ErrorCodes implements ToJsonable {
   static const lspReservedErrorRangeStart = ErrorCodes(-32899);
   static const MethodNotFound = ErrorCodes(-32601);
 
-  /// Defined by JSON RPC
+  /// Defined by JSON-RPC
   static const ParseError = ErrorCodes(-32700);
 
   /// The client has canceled a request and a server as detected the cancel.
@@ -19183,101 +19183,6 @@ class HoverParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class HoverParamsPosition implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    HoverParamsPosition.canParse,
-    HoverParamsPosition.fromJson,
-  );
-
-  HoverParamsPosition({
-    required this.character,
-    required this.line,
-  });
-  static HoverParamsPosition fromJson(Map<String, Object?> json) {
-    final characterJson = json['character'];
-    final character = characterJson as int;
-    final lineJson = json['line'];
-    final line = lineJson as int;
-    return HoverParamsPosition(
-      character: character,
-      line: line,
-    );
-  }
-
-  final int character;
-  final int line;
-
-  Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['character'] = character;
-    __result['line'] = line;
-    return __result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('character');
-      try {
-        if (!obj.containsKey('character')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final character = obj['character'];
-        if (character == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(character is int)) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('line');
-      try {
-        if (!obj.containsKey('line')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final line = obj['line'];
-        if (line == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(line is int)) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError('must be of type HoverParamsPosition');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is HoverParamsPosition &&
-        other.runtimeType == HoverParamsPosition) {
-      return character == other.character && line == other.line && true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        character,
-        line,
-      );
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
 class HoverRegistrationOptions
     implements HoverOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -19370,73 +19275,6 @@ class HoverRegistrationOptions
         lspHashCode(documentSelector),
         workDoneProgress,
       );
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class HoverResult implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    HoverResult.canParse,
-    HoverResult.fromJson,
-  );
-
-  HoverResult({
-    required this.value,
-  });
-  static HoverResult fromJson(Map<String, Object?> json) {
-    final valueJson = json['value'];
-    final value = valueJson as String;
-    return HoverResult(
-      value: value,
-    );
-  }
-
-  final String value;
-
-  Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['value'] = value;
-    return __result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('value');
-      try {
-        if (!obj.containsKey('value')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final value = obj['value'];
-        if (value == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(value is String)) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError('must be of type HoverResult');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is HoverResult && other.runtimeType == HoverResult) {
-      return value == other.value && true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => value.hashCode;
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -21675,16 +21513,23 @@ class InlineValueContext implements ToJsonable {
   );
 
   InlineValueContext({
+    required this.frameId,
     required this.stoppedLocation,
   });
   static InlineValueContext fromJson(Map<String, Object?> json) {
+    final frameIdJson = json['frameId'];
+    final frameId = frameIdJson as int;
     final stoppedLocationJson = json['stoppedLocation'];
     final stoppedLocation =
         Range.fromJson(stoppedLocationJson as Map<String, Object?>);
     return InlineValueContext(
+      frameId: frameId,
       stoppedLocation: stoppedLocation,
     );
   }
+
+  /// The stack frame (as a DAP Id) where the execution has stopped.
+  final int frameId;
 
   /// The document range where execution has stopped. Typically the end position
   /// of the range denotes the line where the inline values are shown.
@@ -21692,12 +21537,31 @@ class InlineValueContext implements ToJsonable {
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
+    __result['frameId'] = frameId;
     __result['stoppedLocation'] = stoppedLocation.toJson();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
+      reporter.push('frameId');
+      try {
+        if (!obj.containsKey('frameId')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final frameId = obj['frameId'];
+        if (frameId == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(frameId is int)) {
+          reporter.reportError('must be of type int');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       reporter.push('stoppedLocation');
       try {
         if (!obj.containsKey('stoppedLocation')) {
@@ -21727,13 +21591,18 @@ class InlineValueContext implements ToJsonable {
   bool operator ==(Object other) {
     if (other is InlineValueContext &&
         other.runtimeType == InlineValueContext) {
-      return stoppedLocation == other.stoppedLocation && true;
+      return frameId == other.frameId &&
+          stoppedLocation == other.stoppedLocation &&
+          true;
     }
     return false;
   }
 
   @override
-  int get hashCode => stoppedLocation.hashCode;
+  int get hashCode => Object.hash(
+        frameId,
+        stoppedLocation,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());

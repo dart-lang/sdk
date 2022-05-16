@@ -386,7 +386,11 @@ bool shouldIncludeScriptBlock(String input) {
   // of the LSP spec.
   if (input.trim() == r"export const EOL: string[] = ['\n', '\r\n', '\r'];" ||
       input.startsWith('textDocument.codeAction.resolveSupport =') ||
-      input.startsWith('textDocument.inlayHint.resolveSupport =')) {
+      input.startsWith('textDocument.inlayHint.resolveSupport =') ||
+      // These two are example definitions, the real definitions start "export"
+      // and contain some base classes.
+      input.startsWith('interface HoverParams {') ||
+      input.startsWith('interface HoverResult {')) {
     return false;
   }
 
