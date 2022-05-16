@@ -48,8 +48,7 @@ void print(String name) {
 ```
 ''';
 
-class NoLeadingUnderscoresForLocalIdentifiers extends LintRule
-    implements NodeLintRule {
+class NoLeadingUnderscoresForLocalIdentifiers extends LintRule {
   NoLeadingUnderscoresForLocalIdentifiers()
       : super(
             name: 'no_leading_underscores_for_local_identifiers',
