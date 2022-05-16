@@ -124,6 +124,64 @@ class AnalysisSessionImpl_BazelWorkspaceTest
 
 @reflectiveTest
 class AnalysisSessionImplTest extends PubPackageResolutionTest {
+  test_applyPendingFileChanges_getFile() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+    final analysisContext = contextFor(a.path);
+
+    int lineCount_in_a() {
+      final result = analysisContext.currentSession.getFileValid(a.path);
+      return result.lineInfo.lineCount;
+    }
+
+    expect(lineCount_in_a(), 1);
+
+    newFile(a.path, '\n');
+    analysisContext.changeFile(a.path);
+    await analysisContext.applyPendingFileChanges();
+
+    // The file must be re-read after `applyPendingFileChanges()`.
+    expect(lineCount_in_a(), 2);
+  }
+
+  test_applyPendingFileChanges_getParsedLibrary() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+    final analysisContext = contextFor(a.path);
+
+    int lineCount_in_a() {
+      final analysisSession = analysisContext.currentSession;
+      final result = analysisSession.getParsedLibraryValid(a.path);
+      return result.units.first.lineInfo.lineCount;
+    }
+
+    expect(lineCount_in_a(), 1);
+
+    newFile(a.path, '\n');
+    analysisContext.changeFile(a.path);
+    await analysisContext.applyPendingFileChanges();
+
+    // The file must be re-read after `applyPendingFileChanges()`.
+    expect(lineCount_in_a(), 2);
+  }
+
+  test_applyPendingFileChanges_getParsedUnit() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+    final analysisContext = contextFor(a.path);
+
+    int lineCount_in_a() {
+      final result = analysisContext.currentSession.getParsedUnitValid(a.path);
+      return result.lineInfo.lineCount;
+    }
+
+    expect(lineCount_in_a(), 1);
+
+    newFile(a.path, '\n');
+    analysisContext.changeFile(a.path);
+    await analysisContext.applyPendingFileChanges();
+
+    // The file must be re-read after `applyPendingFileChanges()`.
+    expect(lineCount_in_a(), 2);
+  }
+
   test_getErrors() async {
     var test = newFile(testFilePath, 'class C {');
 

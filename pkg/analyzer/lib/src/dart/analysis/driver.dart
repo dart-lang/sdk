@@ -1041,10 +1041,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   @override
   Future<void> performWork() async {
-    if (_fileTracker.verifyChangedFilesIfNeeded()) {
-      return;
-    }
-
     if (!_hasDartCoreDiscovered) {
       _hasDartCoreDiscovered = true;
       _discoverDartCore();
@@ -1369,6 +1365,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
     _pendingFileChanges.clear();
+
+    // Read files, so that synchronous methods also see new content.
+    while (_fileTracker.verifyChangedFilesIfNeeded()) {}
 
     if (_pendingFileChangesCompleters.isNotEmpty) {
       var completers = _pendingFileChangesCompleters.toList();
