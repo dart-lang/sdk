@@ -71,6 +71,10 @@ foo12() async {
   x..[0] = fut();
 }
 
+foo13() async {
+  var y = '${fut()}'; //LINT
+}
+
 class _Bar {
   Future<void>? futureField;
 }

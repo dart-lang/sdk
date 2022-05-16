@@ -57,6 +57,7 @@ class UnawaitedFutures extends LintRule {
     var visitor = _Visitor(this);
     registry.addExpressionStatement(this, visitor);
     registry.addCascadeExpression(this, visitor);
+    registry.addInterpolationExpression(this, visitor);
   }
 }
 
@@ -67,12 +68,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCascadeExpression(CascadeExpression node) {
-    for (var expr in node.cascadeSections) {
-      if ((expr.staticType?.isDartAsyncFuture ?? false) &&
-          _isEnclosedInAsyncFunctionBody(expr) &&
-          expr is! AssignmentExpression) {
-        rule.reportLint(expr);
-      }
+    var sections = node.cascadeSections;
+    for (var i = 0; i < sections.length; i++) {
+      _visit(sections[i]);
     }
   }
 
@@ -100,6 +98,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
+  @override
+  void visitInterpolationExpression(InterpolationExpression node) {
+    _visit(node.expression);
+  }
+
   bool _isEnclosedInAsyncFunctionBody(AstNode node) {
     var enclosingFunctionBody = node.thisOrAncestorOfType<FunctionBody>();
     return enclosingFunctionBody?.isAsynchronous ?? false;
@@ -121,4 +124,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       expr is MethodInvocation &&
       expr.methodName.name == 'putIfAbsent' &&
       _isMapClass(expr.methodName.staticElement?.enclosingElement);
+
+  void _visit(Expression expr) {
+    if ((expr.staticType?.isDartAsyncFuture ?? false) &&
+        _isEnclosedInAsyncFunctionBody(expr) &&
+        expr is! AssignmentExpression) {
+      rule.reportLint(expr);
+    }
+  }
 }
