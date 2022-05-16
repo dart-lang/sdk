@@ -71,9 +71,6 @@ class _DartNavigationCollector {
 
   void _addRegion(int offset, int length, Element? element) {
     element = element?.nonSynthetic;
-    if (element is FieldFormalParameterElement) {
-      element = element.field;
-    }
     if (element == null || element == DynamicElementImpl.instance) {
       return;
     }
@@ -343,6 +340,19 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       _addUriDirectiveRegion(node, libraryElement);
     }
     super.visitExportDirective(node);
+  }
+
+  @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    final element = node.declaredElement;
+    if (element is FieldFormalParameterElementImpl) {
+      computer._addRegionForToken(node.thisKeyword, element.field);
+      computer._addRegionForNode(node.identifier, element.field);
+    }
+
+    node.type?.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
   }
 
   @override
