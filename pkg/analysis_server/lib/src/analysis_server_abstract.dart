@@ -6,6 +6,8 @@ import 'dart:io' as io;
 import 'dart:io';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
+import 'package:analysis_server/src/analytics/noop_analytics_manager.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
@@ -62,6 +64,9 @@ import 'package:meta/meta.dart';
 abstract class AbstractAnalysisServer {
   /// The options of this server instance.
   AnalysisServerOptions options;
+
+  /// The object through which analytics are to be sent.
+  final AnalyticsManager analyticsManager;
 
   /// The builder for attachments that should be included into crash reports.
   final CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder;
@@ -159,7 +164,8 @@ abstract class AbstractAnalysisServer {
     this.notificationManager, {
     this.requestStatistics,
     bool enableBazelWatcher = false,
-  })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
+  })  : analyticsManager = NoopAnalyticsManager(),
+        resourceProvider = OverlayResourceProvider(baseResourceProvider),
         pubApi = PubApi(instrumentationService, httpClient,
             Platform.environment['PUB_HOSTED_URL']) {
     // We can only spawn processes (eg. to run pub commands) when backed by
@@ -530,6 +536,7 @@ abstract class AbstractAnalysisServer {
   @mustCallSuper
   void shutdown() {
     pubPackageService.shutdown();
+    analyticsManager.shutdown();
   }
 
   /// Return the path to the location of the byte store on disk, or `null` if

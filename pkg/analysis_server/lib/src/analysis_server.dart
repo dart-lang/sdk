@@ -372,9 +372,6 @@ class AnalysisServer extends AbstractAnalysisServer {
     _newRefactoringManager();
   }
 
-  /// The analytics instance; note, this object can be `null`.
-  telemetry.Analytics? get analytics => options.analytics;
-
   /// The [Future] that completes when analysis is complete.
   Future<void> get onAnalysisComplete {
     if (isAnalysisComplete()) {
@@ -668,6 +665,8 @@ class AnalysisServer extends AbstractAnalysisServer {
 
     pubApi.close();
 
+    // TODO(brianwilkerson) Remove the following 6 lines when the
+    //  analyticsManager is being correctly initialized.
     var analytics = options.analytics;
     if (analytics != null) {
       analytics.waitForLastPing(timeout: Duration(milliseconds: 200)).then((_) {

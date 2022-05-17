@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'analytics/test_all.dart' as analytics;
 import 'cider/test_all.dart' as cider;
 import 'computer/test_all.dart' as computer;
 import 'domains/test_all.dart' as domains;
@@ -17,6 +18,7 @@ import 'utilities/test_all.dart' as utilities;
 
 void main() {
   defineReflectiveSuite(() {
+    analytics.main();
     cider.main();
     computer.main();
     domains.main();
