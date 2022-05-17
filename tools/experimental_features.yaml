@@ -128,6 +128,9 @@ features:
   inference-update-1:
     help: "Horizontal type inference for function expressions passed to generic invocations."
 
+  inference-update-2:
+    help: "Type promotion for fields"
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-

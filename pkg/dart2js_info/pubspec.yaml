@@ -9,17 +9,17 @@ environment:
   sdk: '>=2.11.99 <3.0.0'
 
 dependencies:
-  args: ^2.3.0
-  collection: ^1.10.1
-  fixnum: '>=0.10.5 <2.0.0'
-  path: ^1.3.6
-  protobuf: '>=1.0.1 <3.0.0'
-  shelf: ^1.2.0
-  yaml: ^3.1.0
+  args: any
+  collection: any
+  fixnum: any
+  path: any
+  protobuf: any
+  shelf: any
+  yaml: any
 
 dev_dependencies:
   lints: any
-  test: ^1.2.0
+  test: any
 
 executables:
   dart2js_info: tools

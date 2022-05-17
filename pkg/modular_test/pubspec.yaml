@@ -5,6 +5,7 @@ description: >
  Small framework to test modular pipelines.
  This is used within the Dart SDK to define and validate modular tests, and to
  execute them using the modular pipeline of different SDK tools.
+
 environment:
   sdk: '>=2.16.0 <3.0.0'
 
@@ -14,8 +15,6 @@ dependencies:
   yaml: any
 
 dev_dependencies:
-  async_helper:
-    path: ../async_helper
-  expect:
-    path: ../expect
+  async_helper: any
+  expect: any
   test: any

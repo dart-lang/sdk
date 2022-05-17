@@ -10,19 +10,13 @@ environment:
 dependencies:
   analyzer: any
   args: any
-  linter: ^1.0.0
+  linter: any
   meta: any
   path: any
-  pub_semver: ^2.0.0
+  pub_semver: any
   yaml: any
 
 dev_dependencies:
   lints: any
-  test_reflective_loader: ^0.2.0
-  test: ^1.0.0
-
-dependency_overrides:
-  analyzer:
-    path: ../analyzer
-  meta:
-    path: ../meta
+  test_reflective_loader: any
+  test: any

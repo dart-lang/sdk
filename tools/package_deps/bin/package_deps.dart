@@ -327,18 +327,10 @@ class Package implements Comparable<Package> {
     // for pkg/ packages.
     if (!publishable) {
       for (PubDep dep in [..._declaredPubDeps, ..._declaredDevPubDeps]) {
-        if (pkgPackages.contains(dep.name) && dep is! PathPubDep) {
-          // check to see if there is a dependency_override to a path dependency
-          final override = _declaredOverridePubDeps
-              .singleWhereOrNull((element) => element.name == dep.name);
-          if (override != null && override is PathPubDep) {
-            continue;
-          }
-
-          out('  Prefer a relative path dep for pkg/ packages:');
-          out('    $dep');
-          fail = true;
-        }
+        if (dep is AnyPubDep) continue;
+        out('  Prefer `any` dependencies for unpublished packages');
+        out('    $dep');
+        fail = true;
       }
     }
 
@@ -530,7 +522,7 @@ abstract class PubDep {
 
   static PubDep parse(String name, Object dep) {
     if (dep is String) {
-      return SemverPubDep(name, dep);
+      return (dep == 'any') ? AnyPubDep(name) : SemverPubDep(name, dep);
     } else if (dep is Map) {
       if (dep.containsKey('path')) {
         return PathPubDep(name, dep['path']);
@@ -541,6 +533,13 @@ abstract class PubDep {
       return UnhandledPubDep(name);
     }
   }
+}
+
+class AnyPubDep extends PubDep {
+  AnyPubDep(String name) : super(name);
+
+  @override
+  String toString() => '$name: any';
 }
 
 class SemverPubDep extends PubDep {

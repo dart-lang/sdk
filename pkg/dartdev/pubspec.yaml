@@ -5,37 +5,28 @@ publish_to: none
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
+
 dependencies:
-  analysis_server:
-    path: ../analysis_server
-  analysis_server_client:
-    path: ../analysis_server_client
-  analyzer:
-    path: ../analyzer
+  analysis_server: any
+  analysis_server_client: any
+  analyzer: any
   args: any
   cli_util: any
   collection: any
-  dart2native:
-    path: ../dart2native
+  dart2native: any
   dart_style: any
   dartdoc: any
-  dds:
-    path: ../dds
-  front_end:
-    path: ../front_end
-  meta:
-    path: ../meta
-  nnbd_migration:
-    path: ../nnbd_migration
+  dds: any
+  front_end: any
+  meta: any
+  nnbd_migration: any
   path: any
   pub: any
-  telemetry:
-    path: ../telemetry
+  telemetry: any
   usage: any
 
 dev_dependencies:
-  expect:
-    path: ../expect
+  expect: any
   lints: any
   pub_semver: any
   test: any

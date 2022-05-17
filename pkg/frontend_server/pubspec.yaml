@@ -7,24 +7,17 @@ environment:
   sdk: "^2.15.0"
 
 dependencies:
-  args: ^2.0.0
-  _fe_analyzer_shared:
-    path: ../_fe_analyzer_shared
-  build_integration:
-    path: ../build_integration
-  compiler:
-    path: ../compiler
-  dev_compiler:
-    path: ../dev_compiler
-  front_end:
-    path: ../front_end
-  kernel:
-    path: ../kernel
-  package_config: ^2.0.0
+  _fe_analyzer_shared: any
+  args: any
+  build_integration: any
+  compiler: any
+  dev_compiler: any
+  front_end: any
+  kernel: any
+  package_config: any
   path: any
   usage: any
-  vm:
-    path: ../vm
+  vm: any
 
 dev_dependencies:
   mockito: any

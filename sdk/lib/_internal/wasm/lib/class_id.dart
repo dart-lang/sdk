@@ -18,6 +18,8 @@ class ClassID {
   external static int get cidObject;
   @pragma("wasm:class-id", "dart.async#Future")
   external static int get cidFuture;
+  @pragma("wasm:class-id", "dart.core#Function")
+  external static int get cidFunction;
 
   // Class IDs for RTI Types.
   @pragma("wasm:class-id", "dart.core#_NeverType")

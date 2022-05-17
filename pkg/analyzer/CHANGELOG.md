@@ -4,6 +4,7 @@
 * Deprecated `ResourceProviderMixin.newAnalysisOptionsYamlFile2`, use `newAnalysisOptionsYamlFile` instead.
 * Deprecated `DartType.resolveToBound`, use `TypeSystem.resolveToBound` instead.
 * Deprecated `LibraryElement.getImportsWithPrefix`, use `PrefixElement.imports` instead.
+* Fix for `AnalysisSession.getFile()` to return stale content even after `applyPendingFileChanges`.
 
 ## 4.0.0
 * Removed deprecated `UriKind` and `Source.uriKind`.

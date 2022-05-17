@@ -27,6 +27,7 @@ class FieldIndex {
   static const closureFunction = 3;
   static const typeIsNullable = 2;
   static const interfaceTypeTypeArguments = 4;
+  static const functionTypeNamedParameters = 6;
   static const typedListBaseLength = 2;
   static const typedListArray = 3;
   static const typedListViewTypedData = 3;
@@ -55,6 +56,8 @@ class FieldIndex {
     check(translator.typeClass, "isNullable", FieldIndex.typeIsNullable);
     check(translator.interfaceTypeClass, "typeArguments",
         FieldIndex.interfaceTypeTypeArguments);
+    check(translator.functionTypeClass, "namedParameters",
+        FieldIndex.functionTypeNamedParameters);
   }
 }
 

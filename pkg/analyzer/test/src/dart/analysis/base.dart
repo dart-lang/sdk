@@ -33,7 +33,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   late final AnalysisDriverScheduler scheduler;
   late final AnalysisDriver driver;
   final List<AnalysisStatus> allStatuses = <AnalysisStatus>[];
-  final List<AnalysisResultWithErrors> allResults = [];
+  final DriverTestAnalysisResults allResults = DriverTestAnalysisResults();
   final List<ExceptionResult> allExceptions = <ExceptionResult>[];
 
   late final String testProject;
@@ -142,14 +142,48 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
     scheduler.start();
     scheduler.status.listen(allStatuses.add);
     driver.results.listen((result) {
-      if (result is AnalysisResultWithErrors) {
-        allResults.add(result);
-      }
+      allResults.add(result);
     });
     driver.exceptions.listen(allExceptions.add);
   }
 
   void tearDown() {}
+}
+
+class DriverTestAnalysisResults {
+  final List<Object> _results = [];
+
+  Object get first => _results.first;
+
+  bool get isEmpty => _results.isEmpty;
+
+  int get length => _results.length;
+
+  List<String> get pathList => _withErrors.map((e) => e.path).toList();
+
+  Set<String> get pathSet => _withErrors.map((e) => e.path).toSet();
+
+  Object get single => _results.single;
+
+  Iterable<AnalysisResultWithErrors> get _withErrors {
+    return _results.whereType<AnalysisResultWithErrors>();
+  }
+
+  void add(Object result) {
+    _results.add(result);
+  }
+
+  void clear() {
+    _results.clear();
+  }
+
+  List<Object> toList() => _results.toList();
+
+  Iterable<T> whereType<T>() => _results.whereType<T>();
+
+  AnalysisResultWithErrors withPath(String path) {
+    return _withErrors.singleWhere((result) => result.path == path);
+  }
 }
 
 class _GeneratedUriResolverMock extends UriResolver {

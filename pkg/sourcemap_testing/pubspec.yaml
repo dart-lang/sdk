@@ -7,12 +7,9 @@ environment:
   sdk: '>=2.1.0 <3.0.0'
 
 dependencies:
-  _fe_analyzer_shared:
-    path: ../_fe_analyzer_shared
-  dart2js_tools: 
-    path: ../dart2js_tools
-  expect: 
-    path: ../expect
+  _fe_analyzer_shared: any
+  dart2js_tools:  any
+  expect:  any
   path: any
   source_maps: any
   source_span: any

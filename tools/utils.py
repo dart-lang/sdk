@@ -265,6 +265,9 @@ def IsCrossBuild(target_os, arch):
         return True
     if arch.startswith('sim'):
         return False
+    if arch.endswith('c'):
+        # Strip 'compressed' suffix.
+        arch = arch[:-1]
     if arch in HostArchitectures():
         return False
     return True

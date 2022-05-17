@@ -247,6 +247,33 @@ class Constants {
     b.end();
   }
 
+  /// Makes a type list [ListConstant].
+  ListConstant makeTypeList(List<DartType> types) => ListConstant(
+      InterfaceType(translator.typeClass, Nullability.nonNullable),
+      types.map((t) => TypeLiteralConstant(t)).toList());
+
+  /// Makes a `_NamedParameter` [InstanceConstant].
+  InstanceConstant makeNamedParameterConstant(NamedType n) {
+    Class namedParameter = translator.namedParameterClass;
+    assert(namedParameter.fields[0].name.text == 'name' &&
+        namedParameter.fields[1].name.text == 'type' &&
+        namedParameter.fields[2].name.text == 'isRequired');
+    Reference namedParameterName = namedParameter.fields[0].fieldReference;
+    Reference namedParameterType = namedParameter.fields[1].fieldReference;
+    Reference namedParameterIsRequired =
+        namedParameter.fields[2].fieldReference;
+    return InstanceConstant(namedParameter.reference, [], {
+      namedParameterName: StringConstant(n.name),
+      namedParameterType: TypeLiteralConstant(n.type),
+      namedParameterIsRequired: BoolConstant(n.isRequired)
+    });
+  }
+
+  /// Makes a [ListConstant] of `_NamedParameters` to initialize a [FunctionType].
+  ListConstant makeNamedParametersList(FunctionType type) => ListConstant(
+      translator.types.namedParameterType,
+      type.namedParameters.map(makeNamedParameterConstant).toList());
+
   /// Ensure that the constant has a Wasm global assigned.
   ///
   /// In eager mode, sub-constants must have Wasm globals assigned before the
@@ -682,6 +709,69 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     });
   }
 
+  ConstantInfo? _makeInterfaceType(
+      TypeLiteralConstant constant, InterfaceType type, ClassInfo info) {
+    ListConstant typeArgs = constants.makeTypeList(type.typeArguments);
+    ensureConstant(typeArgs);
+    return createConstant(constant, info.nonNullableType, (function, b) {
+      ClassInfo typeInfo = translator.classInfo[type.classNode]!;
+      w.ValueType typeListExpectedType = info
+          .struct.fields[FieldIndex.interfaceTypeTypeArguments].type.unpacked;
+
+      b.i32_const(info.classId);
+      b.i32_const(initialIdentityHash);
+      types.encodeNullability(b, type);
+      b.i64_const(typeInfo.classId);
+      constants.instantiateConstant(
+          function, b, typeArgs, typeListExpectedType);
+      translator.struct_new(b, info);
+    });
+  }
+
+  ConstantInfo? _makeFutureOrType(
+      TypeLiteralConstant constant, FutureOrType type, ClassInfo info) {
+    TypeLiteralConstant typeArgument = TypeLiteralConstant(type.typeArgument);
+    ensureConstant(typeArgument);
+    return createConstant(constant, info.nonNullableType, (function, b) {
+      b.i32_const(info.classId);
+      b.i32_const(initialIdentityHash);
+      types.encodeNullability(b, type);
+      constants.instantiateConstant(
+          function, b, typeArgument, types.nonNullableTypeType);
+      translator.struct_new(b, info);
+    });
+  }
+
+  ConstantInfo? _makeFunctionType(
+      TypeLiteralConstant constant, FunctionType type, ClassInfo info) {
+    TypeLiteralConstant returnTypeConstant =
+        TypeLiteralConstant(type.returnType);
+    ListConstant positionalParametersConstant =
+        constants.makeTypeList(type.positionalParameters);
+    IntConstant requiredParameterCountConstant =
+        IntConstant(type.requiredParameterCount);
+    ListConstant namedParametersConstant =
+        constants.makeNamedParametersList(type);
+    ensureConstant(returnTypeConstant);
+    ensureConstant(positionalParametersConstant);
+    ensureConstant(requiredParameterCountConstant);
+    ensureConstant(namedParametersConstant);
+    return createConstant(constant, info.nonNullableType, (function, b) {
+      b.i32_const(info.classId);
+      b.i32_const(initialIdentityHash);
+      types.encodeNullability(b, type);
+      constants.instantiateConstant(
+          function, b, returnTypeConstant, types.nonNullableTypeType);
+      constants.instantiateConstant(function, b, positionalParametersConstant,
+          types.typeListExpectedType);
+      constants.instantiateConstant(
+          function, b, requiredParameterCountConstant, w.NumType.i64);
+      constants.instantiateConstant(function, b, namedParametersConstant,
+          types.namedParametersExpectedType);
+      translator.struct_new(b, info);
+    });
+  }
+
   @override
   ConstantInfo? visitTypeLiteralConstant(TypeLiteralConstant constant) {
     DartType type = constant.type;
@@ -690,42 +780,22 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     ClassInfo info = translator.classInfo[types.classForType(type)]!;
     translator.functions.allocateClass(info.classId);
     if (type is InterfaceType) {
-      ListConstant typeArgs = ListConstant(
-          InterfaceType(translator.typeClass, Nullability.nonNullable),
-          type.typeArguments.map((t) => TypeLiteralConstant(t)).toList());
-      ensureConstant(typeArgs);
-      return createConstant(constant, info.nonNullableType, (function, b) {
-        ClassInfo typeInfo = translator.classInfo[type.classNode]!;
-        w.ValueType typeListExpectedType = info
-            .struct.fields[FieldIndex.interfaceTypeTypeArguments].type.unpacked;
-
-        b.i32_const(info.classId);
-        b.i32_const(initialIdentityHash);
-        types.encodeNullability(b, type);
-        b.i64_const(typeInfo.classId);
-        constants.instantiateConstant(
-            function, b, typeArgs, typeListExpectedType);
-        translator.struct_new(b, info);
-      });
+      return _makeInterfaceType(constant, type, info);
     } else if (type is FutureOrType) {
-      TypeLiteralConstant typeArgument = TypeLiteralConstant(type.typeArgument);
-      ensureConstant(typeArgument);
-      return createConstant(constant, info.nonNullableType, (function, b) {
-        b.i32_const(info.classId);
-        b.i32_const(initialIdentityHash);
-        types.encodeNullability(b, type);
-        constants.instantiateConstant(
-            function, b, typeArgument, types.nonNullableTypeType);
-        translator.struct_new(b, info);
-      });
+      return _makeFutureOrType(constant, type, info);
     } else if (type is FunctionType) {
-      // TODO(joshualitt): Real implementation for function types.
-      return createConstant(constant, info.nonNullableType, (function, b) {
-        b.i32_const(info.classId);
-        b.i32_const(initialIdentityHash);
-        types.encodeNullability(b, type);
-        translator.struct_new(b, info);
-      });
+      if (types.isGenericFunction(type)) {
+        // TODO(joshualitt): implement generic function types and share most of
+        // the logic with _makeFunctionType.
+        return createConstant(constant, info.nonNullableType, (function, b) {
+          b.i32_const(info.classId);
+          b.i32_const(initialIdentityHash);
+          types.encodeNullability(b, type);
+          translator.struct_new(b, info);
+        });
+      } else {
+        return _makeFunctionType(constant, type, info);
+      }
     } else {
       assert(type is VoidType ||
           type is NeverType ||

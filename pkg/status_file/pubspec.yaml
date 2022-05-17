@@ -1,12 +1,13 @@
 name: status_file
 # This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
+
 environment:
   sdk: "^2.12.0"
+
 dependencies:
-  path: "^1.4.0"
-  args: ^2.0.0
+  path: any
+  args: any
 
 dev_dependencies:
-  expect:
-    path: ../expect
+  expect: any

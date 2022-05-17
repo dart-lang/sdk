@@ -84,7 +84,7 @@ import 'package:meta/meta.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 218;
+  static const int DATA_VERSION = 219;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -1041,10 +1041,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   @override
   Future<void> performWork() async {
-    if (_fileTracker.verifyChangedFilesIfNeeded()) {
-      return;
-    }
-
     if (!_hasDartCoreDiscovered) {
       _hasDartCoreDiscovered = true;
       _discoverDartCore();
@@ -1369,6 +1365,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
     _pendingFileChanges.clear();
+
+    // Read files, so that synchronous methods also see new content.
+    while (_fileTracker.verifyChangedFilesIfNeeded()) {}
 
     if (_pendingFileChangesCompleters.isNotEmpty) {
       var completers = _pendingFileChangesCompleters.toList();

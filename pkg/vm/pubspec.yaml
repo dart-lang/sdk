@@ -7,20 +7,16 @@ environment:
   sdk: '>=2.15.0 <3.0.0'
 
 dependencies:
-  args: ^2.0.0
-  build_integration:
-    path: ../build_integration
+  args: any
+  build_integration: any
+  collection: any
   crypto: any
-  front_end:
-    path: ../front_end
-  kernel:
-    path: ../kernel
+  front_end: any
+  kernel: any
   package_config: any
-  collection: ^1.15.0
 
 dev_dependencies:
-  expect:
-    path: ../expect
+  expect: any
   json_rpc_2: any
   path: any
   test: any

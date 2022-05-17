@@ -9,33 +9,16 @@ environment:
   sdk: "^2.3.0"
 dependencies:
   args: any
-  dart2js_tools:
-    path: ../dart2js_tools
-  package_config:
-    path: ../../third_party/pkg_tested/package_config
+  dart2js_tools: any
+  package_config: any
   path: any
   pool: any
-  smith:
-    path: ../smith
-  status_file:
-    path: ../status_file
-  webdriver:
-    path: ../../third_party/pkg/webdriver
+  smith: any
+  status_file: any
+  webdriver: any
+
 dev_dependencies:
-  analyzer:
-    path: ../../pkg/analyzer
-  expect:
-    path: ../expect
+  analyzer: any
+  expect: any
   file: any
   glob: any
-dependency_overrides:
-  # Other packages in the dependency graph have normal hosted dependencies on
-  # this, so just override it to force the local one.
-  analyzer:
-    path: ../../pkg/analyzer
-  args:
-    path: ../../third_party/pkg/args
-  file:
-    path: ../../third_party/pkg/file/packages/file
-  glob:
-    path: ../../third_party/pkg/glob
