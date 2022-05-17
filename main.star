@@ -253,6 +253,7 @@ dart.ci_sandbox_builder(
     category = "cfe|fl",
     channels = ["try"],
     notifies = "frontend-team",
+    location_regexp = paths.to_location_regexp(paths.cfe_only),
 )
 cron.weekly_builder(
     "frontend-weekly",
