@@ -21,7 +21,7 @@ import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/dart/resolver/named_type_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/declaration_resolver.dart';
+import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 class ElementHolder {

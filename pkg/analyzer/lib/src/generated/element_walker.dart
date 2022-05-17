@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// See: https://github.com/dart-lang/linter/issues/3345
-// ignore_for_file: prefer_initializing_formals
-
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
@@ -41,9 +38,8 @@ class ElementWalker {
 
   /// Creates an [ElementWalker] which walks the child elements of a class
   /// element.
-  ElementWalker.forClass(ClassElement element)
-      : element = element,
-        _accessors = element.accessors.where(_isNotSynthetic).toList(),
+  ElementWalker.forClass(ClassElement this.element)
+      : _accessors = element.accessors.where(_isNotSynthetic).toList(),
         _constructors = element.isMixinApplication
             ? null
             : element.constructors.where(_isNotSynthetic).toList(),
@@ -53,10 +49,9 @@ class ElementWalker {
 
   /// Creates an [ElementWalker] which walks the child elements of a compilation
   /// unit element.
-  ElementWalker.forCompilationUnit(CompilationUnitElementImpl element,
+  ElementWalker.forCompilationUnit(CompilationUnitElementImpl this.element,
       {this.libraryFilePath, this.unitFilePath})
-      : element = element,
-        _accessors = element.accessors.where(_isNotSynthetic).toList(),
+      : _accessors = element.accessors.where(_isNotSynthetic).toList(),
         _classes = element.classes,
         _enums = element.enums,
         _extensions = element.extensions,
@@ -67,46 +62,40 @@ class ElementWalker {
 
   /// Creates an [ElementWalker] which walks the child elements of a compilation
   /// unit element.
-  ElementWalker.forExecutable(ExecutableElement element)
-      : element = element,
-        _functions = const <ExecutableElement>[],
+  ElementWalker.forExecutable(ExecutableElement this.element)
+      : _functions = const <ExecutableElement>[],
         _parameters = element.parameters,
         _typeParameters = element.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of an extension
   /// element.
-  ElementWalker.forExtension(ExtensionElement element)
-      : element = element,
-        _accessors = element.accessors.where(_isNotSynthetic).toList(),
+  ElementWalker.forExtension(ExtensionElement this.element)
+      : _accessors = element.accessors.where(_isNotSynthetic).toList(),
         _functions = element.methods,
         _typeParameters = element.typeParameters,
         _variables = element.fields.where(_isNotSynthetic).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element.
-  ElementWalker.forGenericFunctionType(GenericFunctionTypeElement element)
-      : element = element,
-        _parameters = element.parameters,
+  ElementWalker.forGenericFunctionType(GenericFunctionTypeElement this.element)
+      : _parameters = element.parameters,
         _typeParameters = element.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element defined using a generic function type.
-  ElementWalker.forGenericTypeAlias(TypeAliasElement element)
-      : element = element,
-        _typeParameters = element.typeParameters;
+  ElementWalker.forGenericTypeAlias(TypeAliasElement this.element)
+      : _typeParameters = element.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of a parameter
   /// element.
-  ElementWalker.forParameter(ParameterElement element)
-      : element = element,
-        _parameters = element.parameters,
+  ElementWalker.forParameter(ParameterElement this.element)
+      : _parameters = element.parameters,
         _typeParameters = element.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element.
-  ElementWalker.forTypedef(TypeAliasElement element)
-      : element = element,
-        _parameters =
+  ElementWalker.forTypedef(TypeAliasElement this.element)
+      : _parameters =
             (element.aliasedElement as GenericFunctionTypeElement).parameters,
         _typeParameters = element.typeParameters;
 
