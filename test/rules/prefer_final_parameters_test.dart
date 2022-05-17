@@ -33,4 +33,18 @@ class E extends D {
 }
 ''', []);
   }
+
+  test_superParameter_optional() async {
+    await assertDiagnostics('''
+class A {
+  final String? a;
+
+  A({this.a});
+}
+
+class B extends A {
+  B({super.a}); // OK
+}
+''', []);
+  }
 }
