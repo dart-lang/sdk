@@ -38,6 +38,8 @@ import '../source/source_loader.dart' show SourceLoader;
 
 import '../ticker.dart' show Ticker;
 
+import '../uris.dart';
+
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 import 'dill_target.dart' show DillTarget;
@@ -226,6 +228,8 @@ class DillLoader extends Loader {
       List<LocatedMessage>? context,
       bool problemOnLibrary: false,
       List<Uri>? involvedFiles}) {
+    assert(
+        fileUri != missingUri, "Message unexpectedly reported on missing uri.");
     severity ??= message.code.severity;
     if (severity == Severity.ignored) return null;
     String trace = """

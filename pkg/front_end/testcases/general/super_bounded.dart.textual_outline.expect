@@ -1,0 +1,8 @@
+typedef F<X> = X Function(X);
+
+class A<T> {}
+
+class Class<T extends A<T>> {}
+
+method(Class c1, Class<dynamic> c2) {}
+main() {}

@@ -2,27 +2,27 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/issue43211.dart:10:53: Error: Type argument 'A<Null>' doesn't conform to the bound 'A<X>?' of the type variable 'X' on 'A'.
+// pkg/front_end/testcases/nnbd/issue43211.dart:10:41: Error: Type argument 'A<Null>' doesn't conform to the bound 'A<X>?' of the type variable 'X' on 'A'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/issue43211.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   void method1<Y extends A<Y>?>(A<Y> a, A<A<Null>>? b) {
-//                                                     ^
+//                                         ^
 // pkg/front_end/testcases/nnbd/issue43211.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
 // class A<X extends A<X>?> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/issue43211.dart:15:39: Error: Type argument 'Y' doesn't conform to the bound 'num' of the type variable 'X' on 'D'.
+// pkg/front_end/testcases/nnbd/issue43211.dart:15:34: Error: Type argument 'Y' doesn't conform to the bound 'num' of the type variable 'X' on 'D'.
 // Try changing type arguments so that they conform to the bounds.
 //   void method2<Y extends String>(D<Y> a, D<String>? b) {
-//                                       ^
+//                                  ^
 // pkg/front_end/testcases/nnbd/issue43211.dart:7:9: Context: This is the type variable whose bound isn't conformed to.
 // class D<X extends num> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/issue43211.dart:15:53: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'D'.
+// pkg/front_end/testcases/nnbd/issue43211.dart:15:42: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'D'.
 // Try changing type arguments so that they conform to the bounds.
 //   void method2<Y extends String>(D<Y> a, D<String>? b) {
-//                                                     ^
+//                                          ^
 // pkg/front_end/testcases/nnbd/issue43211.dart:7:9: Context: This is the type variable whose bound isn't conformed to.
 // class D<X extends num> {}
 //         ^
@@ -38,65 +38,65 @@ library /*isNonNullableByDefault*/;
 // class A<X extends A<X>?> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/issue43211.dart:23:7: Error: Type argument 'X/*1*/' doesn't conform to the bound 'A<X/*2*/>?' of the type variable 'X' on 'A' in the supertype 'A' of class 'B'.
+// pkg/front_end/testcases/nnbd/issue43211.dart:24:36: Error: Type argument 'Y' doesn't conform to the bound 'A<X>?' of the type variable 'X' on 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/issue43211.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void method1<Y extends A<Null>?>(A<Y> a, A<A<Null>>? b) {
+//                                    ^
+// pkg/front_end/testcases/nnbd/issue43211.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends A<X>?> {}
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43211.dart:24:44: Error: Type argument 'A<Null>' doesn't conform to the bound 'A<X>?' of the type variable 'X' on 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/issue43211.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   void method1<Y extends A<Null>?>(A<Y> a, A<A<Null>>? b) {
+//                                            ^
+// pkg/front_end/testcases/nnbd/issue43211.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends A<X>?> {}
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43211.dart:29:34: Error: Type argument 'Y' doesn't conform to the bound 'num' of the type variable 'X' on 'D'.
+// Try changing type arguments so that they conform to the bounds.
+//   void method2<Y extends String>(D<Y> a, D<String>? b) {
+//                                  ^
+// pkg/front_end/testcases/nnbd/issue43211.dart:7:9: Context: This is the type variable whose bound isn't conformed to.
+// class D<X extends num> {}
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43211.dart:29:42: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'D'.
+// Try changing type arguments so that they conform to the bounds.
+//   void method2<Y extends String>(D<Y> a, D<String>? b) {
+//                                          ^
+// pkg/front_end/testcases/nnbd/issue43211.dart:7:9: Context: This is the type variable whose bound isn't conformed to.
+// class D<X extends num> {}
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43211.dart:23:40: Error: Type argument 'X/*1*/' doesn't conform to the bound 'A<X/*2*/>?' of the type variable 'X' on 'A'.
 //  - 'X/*1*/' is from 'pkg/front_end/testcases/nnbd/issue43211.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/issue43211.dart'.
 //  - 'X/*2*/' is from 'pkg/front_end/testcases/nnbd/issue43211.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // class B<X extends A<Null>?> implements A<X> {
-//       ^
+//                                        ^
 // pkg/front_end/testcases/nnbd/issue43211.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
 // class A<X extends A<X>?> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/issue43211.dart:24:41: Error: Type argument 'Y' doesn't conform to the bound 'A<X>?' of the type variable 'X' on 'A'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/issue43211.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   void method1<Y extends A<Null>?>(A<Y> a, A<A<Null>>? b) {
-//                                         ^
-// pkg/front_end/testcases/nnbd/issue43211.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
-// class A<X extends A<X>?> {}
-//         ^
-//
-// pkg/front_end/testcases/nnbd/issue43211.dart:24:56: Error: Type argument 'A<Null>' doesn't conform to the bound 'A<X>?' of the type variable 'X' on 'A'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/issue43211.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   void method1<Y extends A<Null>?>(A<Y> a, A<A<Null>>? b) {
-//                                                        ^
-// pkg/front_end/testcases/nnbd/issue43211.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
-// class A<X extends A<X>?> {}
-//         ^
-//
-// pkg/front_end/testcases/nnbd/issue43211.dart:29:39: Error: Type argument 'Y' doesn't conform to the bound 'num' of the type variable 'X' on 'D'.
-// Try changing type arguments so that they conform to the bounds.
-//   void method2<Y extends String>(D<Y> a, D<String>? b) {
-//                                       ^
-// pkg/front_end/testcases/nnbd/issue43211.dart:7:9: Context: This is the type variable whose bound isn't conformed to.
-// class D<X extends num> {}
-//         ^
-//
-// pkg/front_end/testcases/nnbd/issue43211.dart:29:53: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'D'.
-// Try changing type arguments so that they conform to the bounds.
-//   void method2<Y extends String>(D<Y> a, D<String>? b) {
-//                                                     ^
-// pkg/front_end/testcases/nnbd/issue43211.dart:7:9: Context: This is the type variable whose bound isn't conformed to.
-// class D<X extends num> {}
-//         ^
-//
-// pkg/front_end/testcases/nnbd/issue43211.dart:36:34: Error: Type argument 'A<Null>' doesn't conform to the bound 'A<X>?' of the type variable 'X' on 'A'.
+// pkg/front_end/testcases/nnbd/issue43211.dart:36:22: Error: Type argument 'A<Null>' doesn't conform to the bound 'A<X>?' of the type variable 'X' on 'A'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/issue43211.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   factory C.redirect(A<A<Null>>? a) = C.internal;
-//                                  ^
+//                      ^
 // pkg/front_end/testcases/nnbd/issue43211.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
 // class A<X extends A<X>?> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/issue43211.dart:38:30: Error: Type argument 'A<Null>' doesn't conform to the bound 'A<X>?' of the type variable 'X' on 'A'.
+// pkg/front_end/testcases/nnbd/issue43211.dart:38:18: Error: Type argument 'A<Null>' doesn't conform to the bound 'A<X>?' of the type variable 'X' on 'A'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/issue43211.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   factory C.fact(A<A<Null>>? a) {
-//                              ^
+//                  ^
 // pkg/front_end/testcases/nnbd/issue43211.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
 // class A<X extends A<X>?> {}
 //         ^

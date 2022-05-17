@@ -2,7 +2,6 @@ library #lib /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-typedef SomeType<contravariant T extends core::Object? = dynamic> = (core::List<T%>) → void;
 abstract class A extends core::Object {
   static method staticMethod() → void {}
 }

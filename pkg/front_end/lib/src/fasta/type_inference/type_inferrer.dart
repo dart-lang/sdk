@@ -10,7 +10,8 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/canonical_name.dart' as kernel;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/src/bounds_checks.dart' show calculateBounds;
+import 'package:kernel/src/bounds_checks.dart'
+    show calculateBounds, isGenericFunctionTypeOrAlias;
 import 'package:kernel/src/future_value_type.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart';
@@ -4873,6 +4874,22 @@ class TypeInferrerImpl implements TypeInferrer {
   /// [fileOffset] as file offset for the created nodes.
   Expression createEqualsNull(int fileOffset, Expression left) {
     return new EqualsNull(left)..fileOffset = fileOffset;
+  }
+
+  /// Reports an error if [typeArgument] is a generic function type.
+  ///
+  /// This is use for reporting generic function types used as a type argument,
+  /// which was disallowed before the 'generic-metadata' feature was enabled.
+  void checkGenericFunctionTypeArgument(DartType typeArgument, int fileOffset) {
+    assert(!libraryBuilder.libraryFeatures.genericMetadata.isEnabled);
+    if (isGenericFunctionTypeOrAlias(typeArgument)) {
+      libraryBuilder.addProblem(
+          templateGenericFunctionTypeInferredAsActualTypeArgument.withArguments(
+              typeArgument, isNonNullableByDefault),
+          fileOffset,
+          noLength,
+          helper!.uri);
+    }
   }
 
   DartType _computeInferredType(ExpressionInferenceResult result) =>

@@ -5,9 +5,6 @@
 library fasta.function_type_alias_builder;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/src/legacy_erasure.dart';
-
-import 'package:kernel/type_algebra.dart' show substitute, uniteNullabilities;
 
 import '../fasta_codes.dart'
     show
@@ -55,12 +52,7 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
 
   DartType buildThisType();
 
-  /// [arguments] have already been built.
-  @override
-  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
-      Nullability nullability, List<DartType>? arguments);
-
-  List<DartType> buildTypeArguments(
+  List<DartType> buildAliasedTypeArguments(
       LibraryBuilder library, List<TypeBuilder>? arguments);
 
   /// Returns `true` if this typedef is an alias of the `Null` type.
@@ -153,81 +145,50 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
 
   /// [arguments] have already been built.
   @override
-  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
-      Nullability nullability, List<DartType>? arguments) {
-    DartType thisType = buildThisType();
-    if (const DynamicType() == thisType) return thisType;
-    Nullability adjustedNullability =
-        isNullAlias ? Nullability.nullable : nullability;
-    DartType result = thisType.withDeclaredNullability(adjustedNullability);
-    // TODO(johnniwinther): Couldn't [arguments] be null and
-    // `typedef.typeParameters` be non-empty?
-    if (typedef.typeParameters.isEmpty && arguments == null) return result;
-    Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
-    for (int i = 0; i < typedef.typeParameters.length; i++) {
-      substitution[typedef.typeParameters[i]] = arguments![i];
+  DartType buildAliasedTypeWithBuiltArguments(
+      LibraryBuilder library,
+      Nullability nullability,
+      List<DartType>? arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      {required bool hasExplicitTypeArguments}) {
+    buildThisType();
+    TypedefType type = new TypedefType(typedef, nullability, arguments);
+    if (library is SourceLibraryBuilder) {
+      if (typeVariablesCount != 0) {
+        library.registerBoundsCheck(type, fileUri, charOffset, typeUse,
+            inferred: !hasExplicitTypeArguments);
+      }
+      if (!library.libraryFeatures.genericMetadata.isEnabled) {
+        library.registerGenericFunctionTypeCheck(type, fileUri, charOffset);
+      }
     }
-    // The following adds the built type to the list of unchecked typedef types
-    // of the client library. It is needed because the type is built unaliased,
-    // and at the time of the check it wouldn't be possible to see if the type
-    // arguments to the generic typedef conform to the bounds without preserving
-    // the TypedefType for the delayed check.
-    if (library is SourceLibraryBuilder &&
-        arguments!.isNotEmpty &&
-        thisType is! FunctionType) {
-      library.uncheckedTypedefTypes.add(new UncheckedTypedefType(
-          new TypedefType(typedef, nullability, arguments)));
-    }
-    return substitute(result, substitution);
+
+    return type;
   }
 
   @override
-  DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
-    return buildTypeInternal(library, nullabilityBuilder, arguments,
-        performLegacyErasure: true);
-  }
-
-  @override
-  DartType buildTypeLiteralType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
-    return buildTypeInternal(library, nullabilityBuilder, arguments,
-        performLegacyErasure: false);
-  }
-
-  DartType buildTypeInternal(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {required bool performLegacyErasure}) {
+  DartType buildAliasedType(
+      LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder,
+      List<TypeBuilder>? arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      {required bool hasExplicitTypeArguments}) {
     DartType thisType = buildThisType();
     if (thisType is InvalidType) return thisType;
 
-    // The following won't work if the right-hand side of the typedef is a
-    // FutureOr.
-    Nullability nullability;
-    if (isNullAlias) {
-      // Null is always nullable.
-      nullability = Nullability.nullable;
-    } else if (!parent.isNonNullableByDefault ||
-        !library.isNonNullableByDefault) {
-      // The typedef is defined or used in an opt-out library so the nullability
-      // is based on the use site alone.
-      nullability = nullabilityBuilder.build(library);
-    } else {
-      nullability = uniteNullabilities(
-          thisType.declaredNullability, nullabilityBuilder.build(library));
-    }
-    DartType result;
-    if (typedef.typeParameters.isEmpty && arguments == null) {
-      result = thisType.withDeclaredNullability(nullability);
-    } else {
-      // Otherwise, substitute.
-      result = buildTypeWithBuiltArguments(
-          library, nullability, buildTypeArguments(library, arguments));
-    }
-    if (performLegacyErasure && !library.isNonNullableByDefault) {
-      result = legacyErasure(result);
-    }
-    return result;
+    Nullability nullability = nullabilityBuilder.build(library);
+    return buildAliasedTypeWithBuiltArguments(
+        library,
+        nullability,
+        buildAliasedTypeArguments(library, arguments),
+        typeUse,
+        fileUri,
+        charOffset,
+        hasExplicitTypeArguments: hasExplicitTypeArguments);
   }
 
   TypeDeclarationBuilder? _cachedUnaliasedDeclaration;

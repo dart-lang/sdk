@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart:13:3: Error: Inferred type argument 'C<dynamic> Function(C<dynamic>)' doesn't conform to the bound 'C<X> Function(C<X>)' of the type variable 'X' on 'A'.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart:13:3: Error: Inferred type argument 'G<C<dynamic>>' doesn't conform to the bound 'C<X> Function(C<X>)' of the type variable 'X' on 'A'.
 //  - 'C' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //   A a = throw 42; // Error.
@@ -10,9 +10,21 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart:7:11: Context: This is the type variable whose bound isn't conformed to.
 // typedef A<X extends G<C<X>>> = C<X>;
 //           ^
-// pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart:13:3: Context: If you want 'A<C<dynamic> Function(C<dynamic>)>' to be a super-bounded type, note that the inverted type 'A<G<C<Never>>>' must then satisfy its bounds, which it does not.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart:13:3: Context: If you want 'A<G<C<dynamic>>>' to be a super-bounded type, note that the inverted type 'A<G<C<Never>>>' must then satisfy its bounds, which it does not.
 //  - 'C' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart'.
 //   A a = throw 42; // Error.
+//   ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart:14:3: Error: Inferred type argument 'H<dynamic>' doesn't conform to the bound 'C<X Function(X)>' of the type variable 'X' on 'B'.
+//  - 'C' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   B b = throw 42; // Error.
+//   ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart:10:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef B<X extends H<X>> = C<X>;
+//           ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart:14:3: Context: If you want 'B<H<dynamic>>' to be a super-bounded type, note that the inverted type 'B<H<Never>>' must then satisfy its bounds, which it does not.
+//   B b = throw 42; // Error.
 //   ^
 //
 import self as self;

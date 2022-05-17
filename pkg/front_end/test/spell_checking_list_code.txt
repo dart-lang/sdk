@@ -60,6 +60,8 @@ args
 arise
 arising
 arity
+arm
+arms
 artifact
 artifacts
 artificial
@@ -259,6 +261,7 @@ continuations
 contra
 contribute
 convention
+conversely
 coordinated
 coordinating
 core
@@ -310,6 +313,7 @@ dec
 decl
 decoupled
 decreases
+dedupe
 deduplication
 deemed
 deepest
@@ -343,6 +347,8 @@ destination
 destinations
 destroy
 destructive
+destructure
+destructuring
 deterministic
 dev
 device
@@ -426,6 +432,7 @@ eof
 eq
 equation
 equivalences
+erase
 erased
 es
 establish
@@ -437,9 +444,12 @@ execute
 executor
 executors
 exhausted
+exhaustively
+exhaustiveness
 existence
 existentially
 exp
+expanded
 expando
 expense
 experimentation
@@ -606,6 +616,7 @@ implying
 importantly
 imprecise
 improperly
+improves
 inapplicable
 inc
 incomparable
@@ -618,6 +629,7 @@ indexer
 indexing
 indirection
 individual
+individually
 inequality
 inequivalence
 inequivalences
@@ -642,6 +654,7 @@ integrate
 intends
 intentionally
 interested
+interfere
 interim
 interior
 interleaved
@@ -650,6 +663,7 @@ internet
 interop
 interpolations
 interrupted
+intersections
 intersects
 interval
 intervals
@@ -717,6 +731,7 @@ lc
 ld
 leafp
 leeway
+left's
 len
 lets
 letting
@@ -765,6 +780,7 @@ macos
 macro
 macros
 maintaining
+malbounded
 mangled
 manipulation
 manner
@@ -859,6 +875,7 @@ occurences
 offending
 ogham
 oked
+omitting
 op
 opens
 opt
@@ -879,6 +896,7 @@ outlined
 outputs
 outputting
 overlap
+overlapping
 overloader
 overlooked
 overshadowed
@@ -967,6 +985,7 @@ processes
 processor
 producers
 product
+profile
 progresses
 promo
 proof
@@ -1115,6 +1134,7 @@ rewrote
 rf
 rhs
 ri
+right's
 rightmost
 risk
 rn
@@ -1157,6 +1177,7 @@ serializable
 serializables
 serializer
 serializers
+series
 serve
 server
 serves
@@ -1263,6 +1284,7 @@ strict
 stringified
 stringify
 structs
+structurally
 structures
 stub
 stubs
@@ -1275,15 +1297,22 @@ subexpression
 subexpression's
 subexpressions
 subgraph
+subname
 subnode
 subnodes
 subscription
 subsection
 subsections
+subspace
+subspaces
 subst
 substed
 substitutes
 substitutor
+subtracted
+subtracting
+subtraction
+subtracts
 suffixing
 suggests
 suite
@@ -1384,6 +1413,7 @@ ts
 tty
 tuple
 twos
+type's
 typeref
 u
 ufeff
@@ -1421,6 +1451,7 @@ unification
 unifier
 unifies
 unify
+uninhabited
 uninstantiable
 uninstantiated
 unintentionally

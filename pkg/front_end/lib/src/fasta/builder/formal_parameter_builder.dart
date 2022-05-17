@@ -145,7 +145,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   VariableDeclaration build(
       SourceLibraryBuilder library, int functionNestingLevel) {
     if (variable == null) {
-      DartType? builtType = type?.build(library);
+      DartType? builtType = type?.build(library, TypeUse.parameterType);
       variable = new VariableDeclarationImpl(
           name == noNameSentinel ? null : name, functionNestingLevel,
           type: builtType,

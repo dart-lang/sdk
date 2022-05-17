@@ -1,0 +1,40 @@
+import 'dart:async';
+
+List<T<void>> v2 = [];
+T<int>? v1;
+
+abstract class C {
+  C() : v7 = null;
+  C.name1(this.v5, this.v7);
+  List<T<T>> v6 = [];
+  Map<T<C>, T<C>> m1(covariant T<C> arg1, [Set<Set<T<C>>> arg2]);
+  T<D>? v5;
+  T<FutureOr<FutureOr<void>>> get g;
+  T<double> operator +(T<double> other);
+  factory C.name2(T<D> arg1, T<Null> arg2) = C1.name1;
+  final T<Null> v7;
+  set g(T<FutureOr<FutureOr<void>>> value);
+  static List<T<T>> v2 = [];
+  static T<C>? v1;
+  static const List<T<List>> v4 = [];
+  static final T<Null> v3 = throw "Anything";
+  void m2({T arg1, Map<T, T> arg2(T Function(T) arg21, T arg22)});
+}
+
+class C1 implements C {
+  C1.name1(T<D> arg1, T<Null> arg2);
+  noSuchMethod(Invocation invocation) => throw 0;
+}
+
+class D {}
+
+const List<T<C>> v4 = [];
+const v5 = <Type, Type>{T: T};
+
+extension E on T<dynamic> {
+  T<dynamic> foo(T<dynamic> t) => t;
+}
+
+final T<String> v3 = throw "Anything";
+main() {}
+typedef T<X> = X;

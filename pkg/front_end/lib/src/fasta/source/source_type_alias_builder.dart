@@ -6,7 +6,6 @@ library fasta.source_type_alias_builder;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -88,7 +87,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   Typedef build() {
-    typedef.type ??= buildThisType();
+    buildThisType();
 
     TypeBuilder? type = this.type;
     if (type is FunctionTypeBuilder ||
@@ -120,38 +119,29 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     // detect cycles by detecting recursive calls to this method using an
     // instance of InvalidType that isn't identical to `const InvalidType()`.
     thisType = pendingTypeAliasMarker;
+    DartType builtType = const InvalidType();
     TypeBuilder? type = this.type;
     // ignore: unnecessary_null_comparison
     if (type != null) {
-      DartType builtType = type.build(libraryBuilder);
-      if (builtType is FunctionType) {
-        // Set the `typedefType` if it hasn't already been set. It can already
-        // be set if this type alias is an alias of another typedef, in which
-        // we use the existing value. For instance
-        //
-        //    typedef void F(); // typedefType will be set to `F`.
-        //    typedef G = F; // The typedefType has already been set to `F`.
-        //
-        builtType.typedefType ??= thisTypedefType(typedef, libraryBuilder);
-      }
+      builtType = type.build(libraryBuilder, TypeUse.typedefAlias);
       // ignore: unnecessary_null_comparison
       if (builtType != null) {
         if (typeVariables != null) {
           for (TypeVariableBuilder tv in typeVariables!) {
             // Follow bound in order to find all cycles
-            tv.bound?.build(libraryBuilder);
+            tv.bound?.build(libraryBuilder, TypeUse.typeParameterBound);
           }
         }
         if (identical(thisType, cyclicTypeAliasMarker)) {
-          return thisType = const InvalidType();
+          builtType = const InvalidType();
         } else {
-          return thisType = builtType;
+          builtType = builtType;
         }
       } else {
-        return thisType = const InvalidType();
+        builtType = const InvalidType();
       }
     }
-    return thisType = const InvalidType();
+    return thisType = typedef.type ??= builtType;
   }
 
   TypedefType thisTypedefType(Typedef typedef, LibraryBuilder clientLibrary) {
@@ -190,15 +180,23 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   @override
-  List<DartType> buildTypeArguments(
+  List<DartType> buildAliasedTypeArguments(
       LibraryBuilder library, List<TypeBuilder>? arguments) {
     if (arguments == null && typeVariables == null) {
       return <DartType>[];
     }
 
     if (arguments == null && typeVariables != null) {
-      List<DartType> result = new List<DartType>.generate(typeVariables!.length,
-          (int i) => typeVariables![i].defaultType!.build(library),
+      // TODO(johnniwinther): Use i2b here when needed.
+      List<DartType> result = new List<DartType>.generate(
+          typeVariables!.length,
+          (int i) => typeVariables![i]
+              .defaultType!
+              // TODO(johnniwinther): Using [libraryBuilder] here instead of
+              // [library] preserves the nullability of the original
+              // declaration. We legacy erase it later, but should we legacy
+              // erase it now also?
+              .buildAliased(libraryBuilder, TypeUse.defaultTypeAsTypeArgument),
           growable: true);
       if (library is SourceLibraryBuilder) {
         library.inferredTypes.addAll(result);
@@ -218,17 +216,9 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     }
 
     // arguments.length == typeVariables.length
-    return new List<DartType>.generate(
-        arguments!.length, (int i) => arguments[i].build(library),
+    return new List<DartType>.generate(arguments!.length,
+        (int i) => arguments[i].buildAliased(library, TypeUse.typeArgument),
         growable: true);
-  }
-
-  void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    libraryBuilder.checkBoundsInTypeParameters(
-        typeEnvironment, typedef.typeParameters, fileUri);
-    libraryBuilder.checkBoundsInType(
-        typedef.type!, typeEnvironment, fileUri, type?.charOffset ?? charOffset,
-        allowSuperBounded: false);
   }
 
   void buildOutlineExpressions(

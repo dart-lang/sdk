@@ -133,8 +133,6 @@ class DartTypeNodeWriter
       _sink.writeBool(parameter.isRequired);
       _sink._writeDartTypeNode(parameter.type, functionTypeVariables);
     }
-    _sink._writeDartTypeNode(node.typedefType, functionTypeVariables,
-        allowNull: true);
     _sink.end(functionTypeNodeTag);
   }
 

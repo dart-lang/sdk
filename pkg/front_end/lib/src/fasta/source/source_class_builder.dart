@@ -56,7 +56,7 @@ import '../util/helpers.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
-import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 
 Class initializeClass(
@@ -523,15 +523,22 @@ class SourceClassBuilder extends ClassBuilderImpl
   int get typeVariablesCount => typeVariables?.length ?? 0;
 
   @override
-  List<DartType> buildTypeArguments(
+  List<DartType> buildAliasedTypeArguments(
       LibraryBuilder library, List<TypeBuilder>? arguments) {
     if (arguments == null && typeVariables == null) {
       return <DartType>[];
     }
 
     if (arguments == null && typeVariables != null) {
-      List<DartType> result = new List<DartType>.generate(typeVariables!.length,
-          (int i) => typeVariables![i].defaultType!.build(library),
+      // TODO(johnniwinther): Use i2b here when needed.
+      List<DartType> result = new List<DartType>.generate(
+          typeVariables!.length,
+          (int i) => typeVariables![i]
+              .defaultType!
+              // TODO(johnniwinther): Using [libraryBuilder] here instead of
+              // [library] preserves the nullability of the original
+              // declaration. Should we legacy erase this?
+              .buildAliased(libraryBuilder, TypeUse.defaultTypeAsTypeArgument),
           growable: true);
       if (library is SourceLibraryBuilder) {
         library.inferredTypes.addAll(result);
@@ -551,8 +558,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     assert(arguments!.length == typeVariablesCount);
-    List<DartType> result = new List<DartType>.generate(
-        arguments!.length, (int i) => arguments[i].build(library),
+    List<DartType> result = new List<DartType>.generate(arguments!.length,
+        (int i) => arguments[i].buildAliased(library, TypeUse.typeArgument),
         growable: true);
     return result;
   }
@@ -1321,99 +1328,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  void checkBoundsInSupertype(
-      Supertype supertype, TypeEnvironment typeEnvironment) {
-    Library library = libraryBuilder.library;
-
-    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-        new InterfaceType(
-            supertype.classNode, library.nonNullable, supertype.typeArguments),
-        typeEnvironment,
-        libraryBuilder.isNonNullableByDefault
-            ? SubtypeCheckMode.withNullabilities
-            : SubtypeCheckMode.ignoringNullabilities,
-        allowSuperBounded: false,
-        isNonNullableByDefault: library.isNonNullableByDefault,
-        areGenericArgumentsAllowed:
-            libraryBuilder.libraryFeatures.genericMetadata.isEnabled);
-    for (TypeArgumentIssue issue in issues) {
-      DartType argument = issue.argument;
-      TypeParameter typeParameter = issue.typeParameter;
-      bool inferred = libraryBuilder.inferredTypes.contains(argument);
-      if (issue.isGenericTypeAsArgumentIssue) {
-        if (inferred) {
-          // Supertype can't be or contain super-bounded types, so null is
-          // passed for super-bounded hint here.
-          libraryBuilder.reportTypeArgumentIssue(
-              templateGenericFunctionTypeInferredAsActualTypeArgument
-                  .withArguments(argument, library.isNonNullableByDefault),
-              fileUri,
-              charOffset,
-              typeParameter: null,
-              superBoundedAttempt: null,
-              superBoundedAttemptInverted: null);
-        } else {
-          // Supertype can't be or contain super-bounded types, so null is
-          // passed for super-bounded hint here.
-          libraryBuilder.reportTypeArgumentIssue(
-              messageGenericFunctionTypeUsedAsActualTypeArgument,
-              fileUri,
-              charOffset,
-              typeParameter: null,
-              superBoundedAttempt: null,
-              superBoundedAttemptInverted: null);
-        }
-      } else {
-        void reportProblem(
-            Template<
-                    Message Function(DartType, DartType, String, String, String,
-                        String, bool)>
-                template) {
-          // Supertype can't be or contain super-bounded types, so null is
-          // passed for super-bounded hint here.
-          libraryBuilder.reportTypeArgumentIssue(
-              template.withArguments(
-                  argument,
-                  typeParameter.bound,
-                  typeParameter.name!,
-                  getGenericTypeName(issue.enclosingType!),
-                  supertype.classNode.name,
-                  name,
-                  library.isNonNullableByDefault),
-              fileUri,
-              charOffset,
-              typeParameter: typeParameter,
-              superBoundedAttempt: null,
-              superBoundedAttemptInverted: null);
-        }
-
-        if (inferred) {
-          reportProblem(templateIncorrectTypeArgumentInSupertypeInferred);
-        } else {
-          reportProblem(templateIncorrectTypeArgumentInSupertype);
-        }
-      }
-    }
-  }
-
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    libraryBuilder.checkBoundsInTypeParameters(
-        typeEnvironment, cls.typeParameters, fileUri);
-
-    // Check in supers.
-    if (cls.supertype != null) {
-      checkBoundsInSupertype(cls.supertype!, typeEnvironment);
-    }
-    if (cls.mixedInType != null) {
-      checkBoundsInSupertype(cls.mixedInType!, typeEnvironment);
-    }
-    // ignore: unnecessary_null_comparison
-    if (cls.implementedTypes != null) {
-      for (Supertype supertype in cls.implementedTypes) {
-        checkBoundsInSupertype(supertype, typeEnvironment);
-      }
-    }
-
     forEach((String name, Builder builder) {
       if (builder is SourceMemberBuilder) {
         builder.checkVariance(this, typeEnvironment);

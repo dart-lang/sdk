@@ -42,8 +42,7 @@ vars = {
   "sdk_tag": "version:2.17.0",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
-  # hashes. It requires access to the dart-build-access group, which EngProd
-  # has.
+  # hashes.
   "co19_rev": "9849573cd1b8317e58247b8c1672e89b1cd842e2",
   # This line prevents conflicts when both packages are rolled simultaneously.
   "co19_2_rev": "b2034a17609472e374623f3dbe0efd9f5cb258af",
@@ -109,7 +108,7 @@ vars = {
 
   "dartdoc_rev": "334072b0cad436c05f6bcecf8a1a59f2f0809b84",
   "devtools_rev": "3c16b8d73120e46958982d94215d499793b972eb",
-  "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",
+  "ffi_rev": "0c8364a728cfe4e4ba859c53b99d56b3dbe3add4",
   "file_rev": "0132eeedea2933513bf230513a766a8baeab0c4f",
   "fixnum_rev": "3bfc2ed1eea7e7acb79ad4f17392f92c816fc5ce",
   "glob_rev": "e10eb2407c58427144004458ef85c9bbf7286e56",

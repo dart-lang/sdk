@@ -18,7 +18,7 @@ import '../../base/instrumentation.dart'
 import '../fasta_codes.dart';
 import '../names.dart';
 import '../problems.dart' show unhandled;
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../source/source_library_builder.dart';
 import '../type_inference/type_constraint_gatherer.dart';
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
@@ -274,8 +274,7 @@ class InferenceVisitor
         resultType.returnType, resultType.declaredNullability,
         namedParameters: resultType.namedParameters,
         typeParameters: freshTypeParameters.freshTypeParameters,
-        requiredParameterCount: resultType.requiredParameterCount,
-        typedefType: null);
+        requiredParameterCount: resultType.requiredParameterCount);
     ExpressionInferenceResult inferredResult =
         inferrer.instantiateTearOff(resultType, typeContext, node);
     return inferrer.ensureAssignableResult(typeContext, inferredResult);
@@ -1397,8 +1396,6 @@ class InferenceVisitor
       inferrer.dataForTesting!.typeInferenceResult.inferredVariableTypes[node] =
           inferredType.returnType;
     }
-    inferrer.libraryBuilder.checkBoundsInFunctionNode(node.function,
-        inferrer.typeSchemaEnvironment, inferrer.libraryBuilder.fileUri);
     node.variable.type = inferredType;
     inferrer.flowAnalysis.functionExpression_end();
     return const StatementInferenceResult();
@@ -1414,11 +1411,6 @@ class InferenceVisitor
       inferrer.dataForTesting!.typeInferenceResult.inferredVariableTypes[node] =
           inferredType.returnType;
     }
-    // In anonymous functions the return type isn't declared, so
-    // it shouldn't be checked.
-    inferrer.libraryBuilder.checkBoundsInFunctionNode(node.function,
-        inferrer.typeSchemaEnvironment, inferrer.libraryBuilder.fileUri,
-        skipReturnType: true);
     inferrer.flowAnalysis.functionExpression_end();
     return new ExpressionInferenceResult(inferredType, node);
   }
@@ -2088,9 +2080,10 @@ class InferenceVisitor
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.libraryBuilder;
       if (inferenceNeeded) {
-        library.checkBoundsInListLiteral(
-            node, inferrer.typeSchemaEnvironment, inferrer.helper!.uri,
-            inferred: true);
+        if (!library.libraryFeatures.genericMetadata.isEnabled) {
+          inferrer.checkGenericFunctionTypeArgument(
+              node.typeArgument, node.fileOffset);
+        }
       }
     }
 
@@ -2885,9 +2878,12 @@ class InferenceVisitor
       // Either both [_declaredKeyType] and [_declaredValueType] are omitted or
       // none of them, so we may just check one.
       if (inferenceNeeded) {
-        library.checkBoundsInMapLiteral(
-            node, inferrer.typeSchemaEnvironment, inferrer.helper!.uri,
-            inferred: true);
+        if (!library.libraryFeatures.genericMetadata.isEnabled) {
+          inferrer.checkGenericFunctionTypeArgument(
+              node.keyType, node.fileOffset);
+          inferrer.checkGenericFunctionTypeArgument(
+              node.valueType, node.fileOffset);
+        }
       }
     }
     return new ExpressionInferenceResult(inferredType, node);
@@ -6032,9 +6028,10 @@ class InferenceVisitor
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.libraryBuilder;
       if (inferenceNeeded) {
-        library.checkBoundsInSetLiteral(
-            node, inferrer.typeSchemaEnvironment, inferrer.helper!.uri,
-            inferred: true);
+        if (!library.libraryFeatures.genericMetadata.isEnabled) {
+          inferrer.checkGenericFunctionTypeArgument(
+              node.typeArgument, node.fileOffset);
+        }
       }
 
       if (!library.loader.target.backendTarget.supportsSetLiterals) {
@@ -6453,13 +6450,6 @@ class InferenceVisitor
       TypeLiteral node, DartType typeContext) {
     DartType inferredType =
         inferrer.coreTypes.typeRawType(inferrer.libraryBuilder.nonNullable);
-    if (inferrer.libraryFeatures.constructorTearoffs.isEnabled) {
-      inferrer.libraryBuilder.checkBoundsInType(
-          node.type,
-          inferrer.typeSchemaEnvironment,
-          inferrer.libraryBuilder.fileUri,
-          node.fileOffset);
-    }
     return new ExpressionInferenceResult(inferredType, node);
   }
 
@@ -6591,14 +6581,6 @@ class InferenceVisitor
           fileOffset: node.fileOffset, isVoidAllowed: node.type is VoidType);
       Expression initializer = initializerResult.expression;
       node.initializer = initializer..parent = node;
-    }
-    if (!inferrer.isTopLevel) {
-      SourceLibraryBuilder library = inferrer.libraryBuilder;
-      if (node.isImplicitlyTyped) {
-        library.checkBoundsInVariableDeclaration(
-            node, inferrer.typeSchemaEnvironment, inferrer.helper!.uri,
-            inferred: true);
-      }
     }
     if (node.isLate &&
         inferrer.libraryBuilder.loader.target.backendTarget

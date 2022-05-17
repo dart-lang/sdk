@@ -1,0 +1,1478 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:13:25: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// class ExtendsT1 extends F {} // Error
+//                         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:15:25: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ExtendsT2 extends F<dynamic> {} // Error
+//                         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:17:25: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ExtendsT3 extends F<Class> {} // Error
+//                         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:19:25: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ExtendsT4 extends F<Class<dynamic>> {} // Error
+//                         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:25:25: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ExtendsT7 extends F<Object> {} // Error
+//                         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:27:25: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ExtendsT8 extends F<int> {} // Error
+//                         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:29:25: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// class ExtendsS1 extends G {} // Error
+//                         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:31:25: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ExtendsS2 extends G<dynamic> {} // Error
+//                         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:33:25: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ExtendsS3 extends G<Class> {} // Error
+//                         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:35:25: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ExtendsS4 extends G<Class<dynamic>> {} // Error
+//                         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:41:25: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ExtendsS7 extends G<Object> {} // Error
+//                         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:43:25: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ExtendsS8 extends G<int> {} // Error
+//                         ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:45:31: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// class ImplementsT1 implements F {} // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:47:31: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ImplementsT2 implements F<dynamic> {} // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:49:31: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ImplementsT3 implements F<Class> {} // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:51:31: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ImplementsT4 implements F<Class<dynamic>> {} // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:57:31: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ImplementsT7 implements F<Object> {} // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:59:31: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ImplementsT8 implements F<int> {} // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:61:31: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// class ImplementsS1 implements G {} // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:63:31: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ImplementsS2 implements G<dynamic> {} // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:65:31: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ImplementsS3 implements G<Class> {} // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:67:31: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ImplementsS4 implements G<Class<dynamic>> {} // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:73:31: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ImplementsS7 implements G<Object> {} // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:75:31: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class ImplementsS8 implements G<int> {} // Error
+//                               ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:77:19: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// class WithT1 with F {} // Error
+//                   ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:79:19: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class WithT2 with F<dynamic> {} // Error
+//                   ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:81:19: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class WithT3 with F<Class> {} // Error
+//                   ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:83:19: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class WithT4 with F<Class<dynamic>> {} // Error
+//                   ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:89:19: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class WithT7 with F<Object> {} // Error
+//                   ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:91:19: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class WithT8 with F<int> {} // Error
+//                   ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:109:34: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// enum EnumImplementsT1 implements F /* Error */ { a }
+//                                  ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:111:34: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumImplementsT2 implements F<dynamic> /* Error */ { a }
+//                                  ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:113:34: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumImplementsT3 implements F<Class> /* Error */ { a }
+//                                  ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:115:34: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumImplementsT4 implements F<Class<dynamic>> /* Error */ { a }
+//                                  ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:121:34: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumImplementsT7 implements F<Object> /* Error */ { a }
+//                                  ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:123:34: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumImplementsT8 implements F<int> /* Error */ { a }
+//                                  ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:125:34: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// enum EnumImplementsS1 implements G /* Error */ { a }
+//                                  ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:127:34: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumImplementsS2 implements G<dynamic> /* Error */ { a }
+//                                  ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:129:34: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumImplementsS3 implements G<Class> /* Error */ { a }
+//                                  ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:131:34: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumImplementsS4 implements G<Class<dynamic>> /* Error */ { a }
+//                                  ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:137:34: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumImplementsS7 implements G<Object> /* Error */ { a }
+//                                  ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:139:34: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumImplementsS8 implements G<int> /* Error */ { a }
+//                                  ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:141:22: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// enum EnumWithT1 with F /* Error */ { a }
+//                      ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:143:22: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumWithT2 with F<dynamic> /* Error */ { a }
+//                      ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:145:22: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumWithT3 with F<Class> /* Error */ { a }
+//                      ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:147:22: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumWithT4 with F<Class<dynamic>> /* Error */ { a }
+//                      ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:153:22: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumWithT7 with F<Object> /* Error */ { a }
+//                      ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:155:22: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumWithT8 with F<int> /* Error */ { a }
+//                      ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:173:20: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// mixin MixinOnT1 on F {} // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:175:20: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// mixin MixinOnT2 on F<dynamic> {} // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:177:20: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// mixin MixinOnT3 on F<Class> {} // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:179:20: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// mixin MixinOnT4 on F<Class<dynamic>> {} // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:185:20: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// mixin MixinOnT7 on F<Object> {} // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:187:20: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// mixin MixinOnT8 on F<int> {} // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:189:20: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// mixin MixinOnS1 on G {} // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:191:20: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// mixin MixinOnS2 on G<dynamic> {} // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:193:20: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// mixin MixinOnS3 on G<Class> {} // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:195:20: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// mixin MixinOnS4 on G<Class<dynamic>> {} // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:201:20: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// mixin MixinOnS7 on G<Object> {} // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:203:20: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// mixin MixinOnS8 on G<int> {} // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:217:28: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// extension ExtensionOnT7 on F<Object> {} // Error
+//                            ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:219:28: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// extension ExtensionOnT8 on F<int> {} // Error
+//                            ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = Class<X>;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:233:28: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// extension ExtensionOnS7 on G<Object> {} // Error
+//                            ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:235:28: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// extension ExtensionOnS8 on G<int> {} // Error
+//                            ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:93:19: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// class WithS1 with G {} // Error
+//                   ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:95:19: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class WithS2 with G<dynamic> {} // Error
+//                   ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:97:19: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class WithS3 with G<Class> {} // Error
+//                   ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:99:19: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class WithS4 with G<Class<dynamic>> {} // Error
+//                   ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:105:19: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class WithS7 with G<Object> {} // Error
+//                   ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:107:19: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// class WithS8 with G<int> {} // Error
+//                   ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:157:22: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// enum EnumWithS1 with G /* Error */ { a }
+//                      ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:159:22: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumWithS2 with G<dynamic> /* Error */ { a }
+//                      ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:161:22: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumWithS3 with G<Class> /* Error */ { a }
+//                      ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:163:22: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumWithS4 with G<Class<dynamic>> /* Error */ { a }
+//                      ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:169:22: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumWithS7 with G<Object> /* Error */ { a }
+//                      ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_supertypes.dart:171:22: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_supertypes.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// enum EnumWithS8 with G<int> /* Error */ { a }
+//                      ^
+// pkg/front_end/testcases/general/bounds_supertypes.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F<X extends self::Class<X> = self::Class<dynamic>> = self::Class<X>;
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    ;
+}
+class ConcreteClass extends core::Object implements self::Class<self::ConcreteClass> {
+  synthetic constructor •() → self::ConcreteClass
+    ;
+}
+class G<X extends self::Class<self::G::X> = self::Class<dynamic>> extends core::Object {
+  synthetic constructor •() → self::G<self::G::X>
+    ;
+}
+class ExtendsT1 extends self::Class<self::Class<dynamic>> {
+  synthetic constructor •() → self::ExtendsT1
+    ;
+}
+class ExtendsT2 extends self::Class<dynamic> {
+  synthetic constructor •() → self::ExtendsT2
+    ;
+}
+class ExtendsT3 extends self::Class<self::Class<dynamic>> {
+  synthetic constructor •() → self::ExtendsT3
+    ;
+}
+class ExtendsT4 extends self::Class<self::Class<dynamic>> {
+  synthetic constructor •() → self::ExtendsT4
+    ;
+}
+class ExtendsT5 extends self::Class<self::ConcreteClass> {
+  synthetic constructor •() → self::ExtendsT5
+    ;
+}
+class ExtendsT6 extends self::Class<self::Class<self::ConcreteClass>> {
+  synthetic constructor •() → self::ExtendsT6
+    ;
+}
+class ExtendsT7 extends self::Class<core::Object> {
+  synthetic constructor •() → self::ExtendsT7
+    ;
+}
+class ExtendsT8 extends self::Class<core::int> {
+  synthetic constructor •() → self::ExtendsT8
+    ;
+}
+class ExtendsS1 extends self::G<self::Class<dynamic>> {
+  synthetic constructor •() → self::ExtendsS1
+    ;
+}
+class ExtendsS2 extends self::G<dynamic> {
+  synthetic constructor •() → self::ExtendsS2
+    ;
+}
+class ExtendsS3 extends self::G<self::Class<dynamic>> {
+  synthetic constructor •() → self::ExtendsS3
+    ;
+}
+class ExtendsS4 extends self::G<self::Class<dynamic>> {
+  synthetic constructor •() → self::ExtendsS4
+    ;
+}
+class ExtendsS5 extends self::G<self::ConcreteClass> {
+  synthetic constructor •() → self::ExtendsS5
+    ;
+}
+class ExtendsS6 extends self::G<self::Class<self::ConcreteClass>> {
+  synthetic constructor •() → self::ExtendsS6
+    ;
+}
+class ExtendsS7 extends self::G<core::Object> {
+  synthetic constructor •() → self::ExtendsS7
+    ;
+}
+class ExtendsS8 extends self::G<core::int> {
+  synthetic constructor •() → self::ExtendsS8
+    ;
+}
+class ImplementsT1 extends core::Object implements self::Class<self::Class<dynamic>> {
+  synthetic constructor •() → self::ImplementsT1
+    ;
+}
+class ImplementsT2 extends core::Object implements self::Class<dynamic> {
+  synthetic constructor •() → self::ImplementsT2
+    ;
+}
+class ImplementsT3 extends core::Object implements self::Class<self::Class<dynamic>> {
+  synthetic constructor •() → self::ImplementsT3
+    ;
+}
+class ImplementsT4 extends core::Object implements self::Class<self::Class<dynamic>> {
+  synthetic constructor •() → self::ImplementsT4
+    ;
+}
+class ImplementsT5 extends core::Object implements self::Class<self::ConcreteClass> {
+  synthetic constructor •() → self::ImplementsT5
+    ;
+}
+class ImplementsT6 extends core::Object implements self::Class<self::Class<self::ConcreteClass>> {
+  synthetic constructor •() → self::ImplementsT6
+    ;
+}
+class ImplementsT7 extends core::Object implements self::Class<core::Object> {
+  synthetic constructor •() → self::ImplementsT7
+    ;
+}
+class ImplementsT8 extends core::Object implements self::Class<core::int> {
+  synthetic constructor •() → self::ImplementsT8
+    ;
+}
+class ImplementsS1 extends core::Object implements self::G<self::Class<dynamic>> {
+  synthetic constructor •() → self::ImplementsS1
+    ;
+}
+class ImplementsS2 extends core::Object implements self::G<dynamic> {
+  synthetic constructor •() → self::ImplementsS2
+    ;
+}
+class ImplementsS3 extends core::Object implements self::G<self::Class<dynamic>> {
+  synthetic constructor •() → self::ImplementsS3
+    ;
+}
+class ImplementsS4 extends core::Object implements self::G<self::Class<dynamic>> {
+  synthetic constructor •() → self::ImplementsS4
+    ;
+}
+class ImplementsS5 extends core::Object implements self::G<self::ConcreteClass> {
+  synthetic constructor •() → self::ImplementsS5
+    ;
+}
+class ImplementsS6 extends core::Object implements self::G<self::Class<self::ConcreteClass>> {
+  synthetic constructor •() → self::ImplementsS6
+    ;
+}
+class ImplementsS7 extends core::Object implements self::G<core::Object> {
+  synthetic constructor •() → self::ImplementsS7
+    ;
+}
+class ImplementsS8 extends core::Object implements self::G<core::int> {
+  synthetic constructor •() → self::ImplementsS8
+    ;
+}
+abstract class _WithT1&Object&F = core::Object with self::Class<self::Class<dynamic>> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithT1&Object&F
+    : super core::Object::•()
+    ;
+}
+class WithT1 extends self::_WithT1&Object&F {
+  synthetic constructor •() → self::WithT1
+    ;
+}
+abstract class _WithT2&Object&F = core::Object with self::Class<dynamic> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithT2&Object&F
+    : super core::Object::•()
+    ;
+}
+class WithT2 extends self::_WithT2&Object&F {
+  synthetic constructor •() → self::WithT2
+    ;
+}
+abstract class _WithT3&Object&F = core::Object with self::Class<self::Class<dynamic>> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithT3&Object&F
+    : super core::Object::•()
+    ;
+}
+class WithT3 extends self::_WithT3&Object&F {
+  synthetic constructor •() → self::WithT3
+    ;
+}
+abstract class _WithT4&Object&F = core::Object with self::Class<self::Class<dynamic>> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithT4&Object&F
+    : super core::Object::•()
+    ;
+}
+class WithT4 extends self::_WithT4&Object&F {
+  synthetic constructor •() → self::WithT4
+    ;
+}
+abstract class _WithT5&Object&F = core::Object with self::Class<self::ConcreteClass> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithT5&Object&F
+    : super core::Object::•()
+    ;
+}
+class WithT5 extends self::_WithT5&Object&F {
+  synthetic constructor •() → self::WithT5
+    ;
+}
+abstract class _WithT6&Object&F = core::Object with self::Class<self::Class<self::ConcreteClass>> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithT6&Object&F
+    : super core::Object::•()
+    ;
+}
+class WithT6 extends self::_WithT6&Object&F {
+  synthetic constructor •() → self::WithT6
+    ;
+}
+abstract class _WithT7&Object&F = core::Object with self::Class<core::Object> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithT7&Object&F
+    : super core::Object::•()
+    ;
+}
+class WithT7 extends self::_WithT7&Object&F {
+  synthetic constructor •() → self::WithT7
+    ;
+}
+abstract class _WithT8&Object&F = core::Object with self::Class<core::int> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithT8&Object&F
+    : super core::Object::•()
+    ;
+}
+class WithT8 extends self::_WithT8&Object&F {
+  synthetic constructor •() → self::WithT8
+    ;
+}
+abstract class _WithS1&Object&G = core::Object with self::G<self::Class<dynamic>> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithS1&Object&G
+    : super core::Object::•()
+    ;
+}
+class WithS1 extends self::_WithS1&Object&G {
+  synthetic constructor •() → self::WithS1
+    ;
+}
+abstract class _WithS2&Object&G = core::Object with self::G<dynamic> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithS2&Object&G
+    : super core::Object::•()
+    ;
+}
+class WithS2 extends self::_WithS2&Object&G {
+  synthetic constructor •() → self::WithS2
+    ;
+}
+abstract class _WithS3&Object&G = core::Object with self::G<self::Class<dynamic>> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithS3&Object&G
+    : super core::Object::•()
+    ;
+}
+class WithS3 extends self::_WithS3&Object&G {
+  synthetic constructor •() → self::WithS3
+    ;
+}
+abstract class _WithS4&Object&G = core::Object with self::G<self::Class<dynamic>> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithS4&Object&G
+    : super core::Object::•()
+    ;
+}
+class WithS4 extends self::_WithS4&Object&G {
+  synthetic constructor •() → self::WithS4
+    ;
+}
+abstract class _WithS5&Object&G = core::Object with self::G<self::ConcreteClass> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithS5&Object&G
+    : super core::Object::•()
+    ;
+}
+class WithS5 extends self::_WithS5&Object&G {
+  synthetic constructor •() → self::WithS5
+    ;
+}
+abstract class _WithS6&Object&G = core::Object with self::G<self::Class<self::ConcreteClass>> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithS6&Object&G
+    : super core::Object::•()
+    ;
+}
+class WithS6 extends self::_WithS6&Object&G {
+  synthetic constructor •() → self::WithS6
+    ;
+}
+abstract class _WithS7&Object&G = core::Object with self::G<core::Object> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithS7&Object&G
+    : super core::Object::•()
+    ;
+}
+class WithS7 extends self::_WithS7&Object&G {
+  synthetic constructor •() → self::WithS7
+    ;
+}
+abstract class _WithS8&Object&G = core::Object with self::G<core::int> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_WithS8&Object&G
+    : super core::Object::•()
+    ;
+}
+class WithS8 extends self::_WithS8&Object&G {
+  synthetic constructor •() → self::WithS8
+    ;
+}
+class EnumImplementsT1 extends core::_Enum implements self::Class<self::Class<dynamic>> /*isEnum*/  {
+  static const field core::List<self::EnumImplementsT1> values = const <self::EnumImplementsT1>[self::EnumImplementsT1::a];
+  static const field self::EnumImplementsT1 a = const self::EnumImplementsT1::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumImplementsT1
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "EnumImplementsT1.${this.{core::_Enum::_name}{core::String}}";
+}
+class EnumImplementsT2 extends core::_Enum implements self::Class<dynamic> /*isEnum*/  {
+  static const field core::List<self::EnumImplementsT2> values = const <self::EnumImplementsT2>[self::EnumImplementsT2::a];
+  static const field self::EnumImplementsT2 a = const self::EnumImplementsT2::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumImplementsT2
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "EnumImplementsT2.${this.{core::_Enum::_name}{core::String}}";
+}
+class EnumImplementsT3 extends core::_Enum implements self::Class<self::Class<dynamic>> /*isEnum*/  {
+  static const field core::List<self::EnumImplementsT3> values = const <self::EnumImplementsT3>[self::EnumImplementsT3::a];
+  static const field self::EnumImplementsT3 a = const self::EnumImplementsT3::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumImplementsT3
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "EnumImplementsT3.${this.{core::_Enum::_name}{core::String}}";
+}
+class EnumImplementsT4 extends core::_Enum implements self::Class<self::Class<dynamic>> /*isEnum*/  {
+  static const field core::List<self::EnumImplementsT4> values = const <self::EnumImplementsT4>[self::EnumImplementsT4::a];
+  static const field self::EnumImplementsT4 a = const self::EnumImplementsT4::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumImplementsT4
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "EnumImplementsT4.${this.{core::_Enum::_name}{core::String}}";
+}
+class EnumImplementsT5 extends core::_Enum implements self::Class<self::ConcreteClass> /*isEnum*/  {
+  static const field core::List<self::EnumImplementsT5> values = const <self::EnumImplementsT5>[self::EnumImplementsT5::a];
+  static const field self::EnumImplementsT5 a = const self::EnumImplementsT5::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumImplementsT5
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "EnumImplementsT5.${this.{core::_Enum::_name}{core::String}}";
+}
+class EnumImplementsT6 extends core::_Enum implements self::Class<self::Class<self::ConcreteClass>> /*isEnum*/  {
+  static const field core::List<self::EnumImplementsT6> values = const <self::EnumImplementsT6>[self::EnumImplementsT6::a];
+  static const field self::EnumImplementsT6 a = const self::EnumImplementsT6::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumImplementsT6
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "EnumImplementsT6.${this.{core::_Enum::_name}{core::String}}";
+}
+class EnumImplementsT7 extends core::_Enum implements self::Class<core::Object> /*isEnum*/  {
+  static const field core::List<self::EnumImplementsT7> values = const <self::EnumImplementsT7>[self::EnumImplementsT7::a];
+  static const field self::EnumImplementsT7 a = const self::EnumImplementsT7::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumImplementsT7
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "EnumImplementsT7.${this.{core::_Enum::_name}{core::String}}";
+}
+class EnumImplementsT8 extends core::_Enum implements self::Class<core::int> /*isEnum*/  {
+  static const field core::List<self::EnumImplementsT8> values = const <self::EnumImplementsT8>[self::EnumImplementsT8::a];
+  static const field self::EnumImplementsT8 a = const self::EnumImplementsT8::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumImplementsT8
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "EnumImplementsT8.${this.{core::_Enum::_name}{core::String}}";
+}
+class EnumImplementsS1 extends core::_Enum implements self::G<self::Class<dynamic>> /*isEnum*/  {
+  static const field core::List<self::EnumImplementsS1> values = const <self::EnumImplementsS1>[self::EnumImplementsS1::a];
+  static const field self::EnumImplementsS1 a = const self::EnumImplementsS1::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumImplementsS1
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "EnumImplementsS1.${this.{core::_Enum::_name}{core::String}}";
+}
+class EnumImplementsS2 extends core::_Enum implements self::G<dynamic> /*isEnum*/  {
+  static const field core::List<self::EnumImplementsS2> values = const <self::EnumImplementsS2>[self::EnumImplementsS2::a];
+  static const field self::EnumImplementsS2 a = const self::EnumImplementsS2::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumImplementsS2
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "EnumImplementsS2.${this.{core::_Enum::_name}{core::String}}";
+}
+class EnumImplementsS3 extends core::_Enum implements self::G<self::Class<dynamic>> /*isEnum*/  {
+  static const field core::List<self::EnumImplementsS3> values = const <self::EnumImplementsS3>[self::EnumImplementsS3::a];
+  static const field self::EnumImplementsS3 a = const self::EnumImplementsS3::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumImplementsS3
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "EnumImplementsS3.${this.{core::_Enum::_name}{core::String}}";
+}
+class EnumImplementsS4 extends core::_Enum implements self::G<self::Class<dynamic>> /*isEnum*/  {
+  static const field core::List<self::EnumImplementsS4> values = const <self::EnumImplementsS4>[self::EnumImplementsS4::a];
+  static const field self::EnumImplementsS4 a = const self::EnumImplementsS4::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumImplementsS4
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "EnumImplementsS4.${this.{core::_Enum::_name}{core::String}}";
+}
+class EnumImplementsS5 extends core::_Enum implements self::G<self::ConcreteClass> /*isEnum*/  {
+  static const field core::List<self::EnumImplementsS5> values = const <self::EnumImplementsS5>[self::EnumImplementsS5::a];
+  static const field self::EnumImplementsS5 a = const self::EnumImplementsS5::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumImplementsS5
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "EnumImplementsS5.${this.{core::_Enum::_name}{core::String}}";
+}
+class EnumImplementsS6 extends core::_Enum implements self::G<self::Class<self::ConcreteClass>> /*isEnum*/  {
+  static const field core::List<self::EnumImplementsS6> values = const <self::EnumImplementsS6>[self::EnumImplementsS6::a];
+  static const field self::EnumImplementsS6 a = const self::EnumImplementsS6::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumImplementsS6
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "EnumImplementsS6.${this.{core::_Enum::_name}{core::String}}";
+}
+class EnumImplementsS7 extends core::_Enum implements self::G<core::Object> /*isEnum*/  {
+  static const field core::List<self::EnumImplementsS7> values = const <self::EnumImplementsS7>[self::EnumImplementsS7::a];
+  static const field self::EnumImplementsS7 a = const self::EnumImplementsS7::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumImplementsS7
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "EnumImplementsS7.${this.{core::_Enum::_name}{core::String}}";
+}
+class EnumImplementsS8 extends core::_Enum implements self::G<core::int> /*isEnum*/  {
+  static const field core::List<self::EnumImplementsS8> values = const <self::EnumImplementsS8>[self::EnumImplementsS8::a];
+  static const field self::EnumImplementsS8 a = const self::EnumImplementsS8::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumImplementsS8
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "EnumImplementsS8.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EnumWithT1&_Enum&F = core::_Enum with self::Class<self::Class<dynamic>> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithT1&_Enum&F
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumWithT1 extends self::_EnumWithT1&_Enum&F /*isEnum*/  {
+  static const field core::List<self::EnumWithT1> values = const <self::EnumWithT1>[self::EnumWithT1::a];
+  static const field self::EnumWithT1 a = const self::EnumWithT1::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumWithT1
+    ;
+  method toString() → core::String
+    return "EnumWithT1.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EnumWithT2&_Enum&F = core::_Enum with self::Class<dynamic> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithT2&_Enum&F
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumWithT2 extends self::_EnumWithT2&_Enum&F /*isEnum*/  {
+  static const field core::List<self::EnumWithT2> values = const <self::EnumWithT2>[self::EnumWithT2::a];
+  static const field self::EnumWithT2 a = const self::EnumWithT2::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumWithT2
+    ;
+  method toString() → core::String
+    return "EnumWithT2.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EnumWithT3&_Enum&F = core::_Enum with self::Class<self::Class<dynamic>> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithT3&_Enum&F
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumWithT3 extends self::_EnumWithT3&_Enum&F /*isEnum*/  {
+  static const field core::List<self::EnumWithT3> values = const <self::EnumWithT3>[self::EnumWithT3::a];
+  static const field self::EnumWithT3 a = const self::EnumWithT3::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumWithT3
+    ;
+  method toString() → core::String
+    return "EnumWithT3.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EnumWithT4&_Enum&F = core::_Enum with self::Class<self::Class<dynamic>> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithT4&_Enum&F
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumWithT4 extends self::_EnumWithT4&_Enum&F /*isEnum*/  {
+  static const field core::List<self::EnumWithT4> values = const <self::EnumWithT4>[self::EnumWithT4::a];
+  static const field self::EnumWithT4 a = const self::EnumWithT4::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumWithT4
+    ;
+  method toString() → core::String
+    return "EnumWithT4.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EnumWithT5&_Enum&F = core::_Enum with self::Class<self::ConcreteClass> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithT5&_Enum&F
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumWithT5 extends self::_EnumWithT5&_Enum&F /*isEnum*/  {
+  static const field core::List<self::EnumWithT5> values = const <self::EnumWithT5>[self::EnumWithT5::a];
+  static const field self::EnumWithT5 a = const self::EnumWithT5::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumWithT5
+    ;
+  method toString() → core::String
+    return "EnumWithT5.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EnumWithT6&_Enum&F = core::_Enum with self::Class<self::Class<self::ConcreteClass>> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithT6&_Enum&F
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumWithT6 extends self::_EnumWithT6&_Enum&F /*isEnum*/  {
+  static const field core::List<self::EnumWithT6> values = const <self::EnumWithT6>[self::EnumWithT6::a];
+  static const field self::EnumWithT6 a = const self::EnumWithT6::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumWithT6
+    ;
+  method toString() → core::String
+    return "EnumWithT6.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EnumWithT7&_Enum&F = core::_Enum with self::Class<core::Object> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithT7&_Enum&F
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumWithT7 extends self::_EnumWithT7&_Enum&F /*isEnum*/  {
+  static const field core::List<self::EnumWithT7> values = const <self::EnumWithT7>[self::EnumWithT7::a];
+  static const field self::EnumWithT7 a = const self::EnumWithT7::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumWithT7
+    ;
+  method toString() → core::String
+    return "EnumWithT7.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EnumWithT8&_Enum&F = core::_Enum with self::Class<core::int> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithT8&_Enum&F
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumWithT8 extends self::_EnumWithT8&_Enum&F /*isEnum*/  {
+  static const field core::List<self::EnumWithT8> values = const <self::EnumWithT8>[self::EnumWithT8::a];
+  static const field self::EnumWithT8 a = const self::EnumWithT8::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumWithT8
+    ;
+  method toString() → core::String
+    return "EnumWithT8.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EnumWithS1&_Enum&G = core::_Enum with self::G<self::Class<dynamic>> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithS1&_Enum&G
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumWithS1 extends self::_EnumWithS1&_Enum&G /*isEnum*/  {
+  static const field core::List<self::EnumWithS1> values = const <self::EnumWithS1>[self::EnumWithS1::a];
+  static const field self::EnumWithS1 a = const self::EnumWithS1::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumWithS1
+    ;
+  method toString() → core::String
+    return "EnumWithS1.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EnumWithS2&_Enum&G = core::_Enum with self::G<dynamic> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithS2&_Enum&G
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumWithS2 extends self::_EnumWithS2&_Enum&G /*isEnum*/  {
+  static const field core::List<self::EnumWithS2> values = const <self::EnumWithS2>[self::EnumWithS2::a];
+  static const field self::EnumWithS2 a = const self::EnumWithS2::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumWithS2
+    ;
+  method toString() → core::String
+    return "EnumWithS2.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EnumWithS3&_Enum&G = core::_Enum with self::G<self::Class<dynamic>> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithS3&_Enum&G
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumWithS3 extends self::_EnumWithS3&_Enum&G /*isEnum*/  {
+  static const field core::List<self::EnumWithS3> values = const <self::EnumWithS3>[self::EnumWithS3::a];
+  static const field self::EnumWithS3 a = const self::EnumWithS3::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumWithS3
+    ;
+  method toString() → core::String
+    return "EnumWithS3.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EnumWithS4&_Enum&G = core::_Enum with self::G<self::Class<dynamic>> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithS4&_Enum&G
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumWithS4 extends self::_EnumWithS4&_Enum&G /*isEnum*/  {
+  static const field core::List<self::EnumWithS4> values = const <self::EnumWithS4>[self::EnumWithS4::a];
+  static const field self::EnumWithS4 a = const self::EnumWithS4::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumWithS4
+    ;
+  method toString() → core::String
+    return "EnumWithS4.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EnumWithS5&_Enum&G = core::_Enum with self::G<self::ConcreteClass> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithS5&_Enum&G
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumWithS5 extends self::_EnumWithS5&_Enum&G /*isEnum*/  {
+  static const field core::List<self::EnumWithS5> values = const <self::EnumWithS5>[self::EnumWithS5::a];
+  static const field self::EnumWithS5 a = const self::EnumWithS5::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumWithS5
+    ;
+  method toString() → core::String
+    return "EnumWithS5.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EnumWithS6&_Enum&G = core::_Enum with self::G<self::Class<self::ConcreteClass>> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithS6&_Enum&G
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumWithS6 extends self::_EnumWithS6&_Enum&G /*isEnum*/  {
+  static const field core::List<self::EnumWithS6> values = const <self::EnumWithS6>[self::EnumWithS6::a];
+  static const field self::EnumWithS6 a = const self::EnumWithS6::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumWithS6
+    ;
+  method toString() → core::String
+    return "EnumWithS6.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EnumWithS7&_Enum&G = core::_Enum with self::G<core::Object> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithS7&_Enum&G
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumWithS7 extends self::_EnumWithS7&_Enum&G /*isEnum*/  {
+  static const field core::List<self::EnumWithS7> values = const <self::EnumWithS7>[self::EnumWithS7::a];
+  static const field self::EnumWithS7 a = const self::EnumWithS7::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumWithS7
+    ;
+  method toString() → core::String
+    return "EnumWithS7.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EnumWithS8&_Enum&G = core::_Enum with self::G<core::int> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithS8&_Enum&G
+    : super core::_Enum::•(index, _name)
+    ;
+}
+class EnumWithS8 extends self::_EnumWithS8&_Enum&G /*isEnum*/  {
+  static const field core::List<self::EnumWithS8> values = const <self::EnumWithS8>[self::EnumWithS8::a];
+  static const field self::EnumWithS8 a = const self::EnumWithS8::•(0, "a");
+  const constructor •(core::int index, core::String name) → self::EnumWithS8
+    ;
+  method toString() → core::String
+    return "EnumWithS8.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class MixinOnT1 extends self::Class<self::Class<dynamic>> /*isMixinDeclaration*/  {
+}
+abstract class MixinOnT2 extends self::Class<dynamic> /*isMixinDeclaration*/  {
+}
+abstract class MixinOnT3 extends self::Class<self::Class<dynamic>> /*isMixinDeclaration*/  {
+}
+abstract class MixinOnT4 extends self::Class<self::Class<dynamic>> /*isMixinDeclaration*/  {
+}
+abstract class MixinOnT5 extends self::Class<self::ConcreteClass> /*isMixinDeclaration*/  {
+}
+abstract class MixinOnT6 extends self::Class<self::Class<self::ConcreteClass>> /*isMixinDeclaration*/  {
+}
+abstract class MixinOnT7 extends self::Class<core::Object> /*isMixinDeclaration*/  {
+}
+abstract class MixinOnT8 extends self::Class<core::int> /*isMixinDeclaration*/  {
+}
+abstract class MixinOnS1 extends self::G<self::Class<dynamic>> /*isMixinDeclaration*/  {
+}
+abstract class MixinOnS2 extends self::G<dynamic> /*isMixinDeclaration*/  {
+}
+abstract class MixinOnS3 extends self::G<self::Class<dynamic>> /*isMixinDeclaration*/  {
+}
+abstract class MixinOnS4 extends self::G<self::Class<dynamic>> /*isMixinDeclaration*/  {
+}
+abstract class MixinOnS5 extends self::G<self::ConcreteClass> /*isMixinDeclaration*/  {
+}
+abstract class MixinOnS6 extends self::G<self::Class<self::ConcreteClass>> /*isMixinDeclaration*/  {
+}
+abstract class MixinOnS7 extends self::G<core::Object> /*isMixinDeclaration*/  {
+}
+abstract class MixinOnS8 extends self::G<core::int> /*isMixinDeclaration*/  {
+}
+extension ExtensionOnT1 on self::Class<self::Class<dynamic>> {
+}
+extension ExtensionOnT2 on self::Class<dynamic> {
+}
+extension ExtensionOnT3 on self::Class<self::Class<dynamic>> {
+}
+extension ExtensionOnT4 on self::Class<self::Class<dynamic>> {
+}
+extension ExtensionOnT5 on self::Class<self::ConcreteClass> {
+}
+extension ExtensionOnT6 on self::Class<self::Class<self::ConcreteClass>> {
+}
+extension ExtensionOnT7 on self::Class<core::Object> {
+}
+extension ExtensionOnT8 on self::Class<core::int> {
+}
+extension ExtensionOnS1 on self::G<self::Class<dynamic>> {
+}
+extension ExtensionOnS2 on self::G<dynamic> {
+}
+extension ExtensionOnS3 on self::G<self::Class<dynamic>> {
+}
+extension ExtensionOnS4 on self::G<self::Class<dynamic>> {
+}
+extension ExtensionOnS5 on self::G<self::ConcreteClass> {
+}
+extension ExtensionOnS6 on self::G<self::Class<self::ConcreteClass>> {
+}
+extension ExtensionOnS7 on self::G<core::Object> {
+}
+extension ExtensionOnS8 on self::G<core::int> {
+}
+static method main() → dynamic
+  ;
+static method _#F#new#tearOff<X extends self::Class<self::_#F#new#tearOff::X> = self::Class<dynamic>>() → self::Class<self::_#F#new#tearOff::X>
+  return new self::Class::•<self::_#F#new#tearOff::X>();
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:109:6 -> ListConstant(const <EnumImplementsT1*>[const EnumImplementsT1{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:109:50 -> InstanceConstant(const EnumImplementsT1{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:111:6 -> ListConstant(const <EnumImplementsT2*>[const EnumImplementsT2{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:111:59 -> InstanceConstant(const EnumImplementsT2{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:113:6 -> ListConstant(const <EnumImplementsT3*>[const EnumImplementsT3{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:113:57 -> InstanceConstant(const EnumImplementsT3{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:115:6 -> ListConstant(const <EnumImplementsT4*>[const EnumImplementsT4{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:115:66 -> InstanceConstant(const EnumImplementsT4{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:117:6 -> ListConstant(const <EnumImplementsT5*>[const EnumImplementsT5{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:117:62 -> InstanceConstant(const EnumImplementsT5{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:119:6 -> ListConstant(const <EnumImplementsT6*>[const EnumImplementsT6{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:119:69 -> InstanceConstant(const EnumImplementsT6{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:121:6 -> ListConstant(const <EnumImplementsT7*>[const EnumImplementsT7{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:121:58 -> InstanceConstant(const EnumImplementsT7{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:123:6 -> ListConstant(const <EnumImplementsT8*>[const EnumImplementsT8{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:123:55 -> InstanceConstant(const EnumImplementsT8{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:125:6 -> ListConstant(const <EnumImplementsS1*>[const EnumImplementsS1{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:125:50 -> InstanceConstant(const EnumImplementsS1{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:127:6 -> ListConstant(const <EnumImplementsS2*>[const EnumImplementsS2{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:127:59 -> InstanceConstant(const EnumImplementsS2{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:129:6 -> ListConstant(const <EnumImplementsS3*>[const EnumImplementsS3{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:129:57 -> InstanceConstant(const EnumImplementsS3{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:131:6 -> ListConstant(const <EnumImplementsS4*>[const EnumImplementsS4{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:131:66 -> InstanceConstant(const EnumImplementsS4{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:133:6 -> ListConstant(const <EnumImplementsS5*>[const EnumImplementsS5{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:133:62 -> InstanceConstant(const EnumImplementsS5{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:135:6 -> ListConstant(const <EnumImplementsS6*>[const EnumImplementsS6{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:135:69 -> InstanceConstant(const EnumImplementsS6{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:137:6 -> ListConstant(const <EnumImplementsS7*>[const EnumImplementsS7{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:137:58 -> InstanceConstant(const EnumImplementsS7{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:139:6 -> ListConstant(const <EnumImplementsS8*>[const EnumImplementsS8{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:139:55 -> InstanceConstant(const EnumImplementsS8{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:141:6 -> ListConstant(const <EnumWithT1*>[const EnumWithT1{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:141:38 -> InstanceConstant(const EnumWithT1{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:143:6 -> ListConstant(const <EnumWithT2*>[const EnumWithT2{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:143:47 -> InstanceConstant(const EnumWithT2{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:145:6 -> ListConstant(const <EnumWithT3*>[const EnumWithT3{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:145:45 -> InstanceConstant(const EnumWithT3{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:147:6 -> ListConstant(const <EnumWithT4*>[const EnumWithT4{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:147:54 -> InstanceConstant(const EnumWithT4{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:149:6 -> ListConstant(const <EnumWithT5*>[const EnumWithT5{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:149:50 -> InstanceConstant(const EnumWithT5{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:151:6 -> ListConstant(const <EnumWithT6*>[const EnumWithT6{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:151:57 -> InstanceConstant(const EnumWithT6{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:153:6 -> ListConstant(const <EnumWithT7*>[const EnumWithT7{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:153:46 -> InstanceConstant(const EnumWithT7{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:155:6 -> ListConstant(const <EnumWithT8*>[const EnumWithT8{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:155:43 -> InstanceConstant(const EnumWithT8{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:157:6 -> ListConstant(const <EnumWithS1*>[const EnumWithS1{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:157:38 -> InstanceConstant(const EnumWithS1{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:159:6 -> ListConstant(const <EnumWithS2*>[const EnumWithS2{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:159:47 -> InstanceConstant(const EnumWithS2{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:161:6 -> ListConstant(const <EnumWithS3*>[const EnumWithS3{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:161:45 -> InstanceConstant(const EnumWithS3{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:163:6 -> ListConstant(const <EnumWithS4*>[const EnumWithS4{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:163:54 -> InstanceConstant(const EnumWithS4{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:165:6 -> ListConstant(const <EnumWithS5*>[const EnumWithS5{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:165:50 -> InstanceConstant(const EnumWithS5{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:167:6 -> ListConstant(const <EnumWithS6*>[const EnumWithS6{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:167:57 -> InstanceConstant(const EnumWithS6{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:169:6 -> ListConstant(const <EnumWithS7*>[const EnumWithS7{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:169:46 -> InstanceConstant(const EnumWithS7{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_supertypes.dart:171:6 -> ListConstant(const <EnumWithS8*>[const EnumWithS8{}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_supertypes.dart:171:43 -> InstanceConstant(const EnumWithS8{})
+Extra constant evaluation: evaluated: 225, effectively constant: 64

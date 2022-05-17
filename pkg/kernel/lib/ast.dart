@@ -8752,8 +8752,7 @@ class TypedefTearOff extends Expression {
         type.positionalParameters, type.returnType, type.declaredNullability,
         namedParameters: type.namedParameters,
         typeParameters: freshTypeParameters.freshTypeParameters,
-        requiredParameterCount: type.requiredParameterCount,
-        typedefType: null);
+        requiredParameterCount: type.requiredParameterCount);
   }
 
   @override
@@ -11207,8 +11206,6 @@ class FunctionType extends DartType {
   @override
   final Nullability declaredNullability;
 
-  TypedefType? _typedefType;
-
   final DartType returnType;
 
   @override
@@ -11218,27 +11215,10 @@ class FunctionType extends DartType {
       this.declaredNullability,
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
-      int? requiredParameterCount,
-      TypedefType? typedefType})
+      int? requiredParameterCount})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
-            requiredParameterCount ?? positionalParameters.length,
-        _typedefType = typedefType;
-
-  Reference? get typedefReference => _typedefType?.typedefReference;
-
-  Typedef? get typedef => typedefReference?.asTypedef;
-
-  /// The [Typedef] this function type is created for, if any.
-  TypedefType? get typedefType => _typedefType;
-
-  void set typedefType(TypedefType? value) {
-    assert(
-        _typedefType == null,
-        "Cannot change an already set FunctionType.typedefType from "
-        "$_typedefType to $value.");
-    _typedefType = value;
-  }
+            requiredParameterCount ?? positionalParameters.length;
 
   @override
   Nullability get nullability => declaredNullability;
@@ -11255,7 +11235,6 @@ class FunctionType extends DartType {
     visitList(typeParameters, v);
     visitList(positionalParameters, v);
     visitList(namedParameters, v);
-    typedefType?.accept(v);
     returnType.accept(v);
   }
 
@@ -11325,8 +11304,7 @@ class FunctionType extends DartType {
     if (typeParameters.isEmpty) return this;
     return new FunctionType(positionalParameters, returnType, nullability,
         requiredParameterCount: requiredParameterCount,
-        namedParameters: namedParameters,
-        typedefType: null);
+        namedParameters: namedParameters);
   }
 
   /// Looks up the type of the named parameter with the given name.
@@ -11375,8 +11353,7 @@ class FunctionType extends DartType {
         positionalParameters, returnType, declaredNullability,
         namedParameters: namedParameters,
         typeParameters: typeParameters,
-        requiredParameterCount: requiredParameterCount,
-        typedefType: typedefType?.withDeclaredNullability(declaredNullability));
+        requiredParameterCount: requiredParameterCount);
     if (typeParameters.isEmpty) return result;
     return getFreshTypeParameters(typeParameters).applyToFunctionType(result);
   }
@@ -13485,8 +13462,7 @@ class TypedefTearOffConstant extends Constant {
         type.positionalParameters, type.returnType, type.declaredNullability,
         namedParameters: type.namedParameters,
         typeParameters: freshTypeParameters.freshTypeParameters,
-        requiredParameterCount: type.requiredParameterCount,
-        typedefType: null);
+        requiredParameterCount: type.requiredParameterCount);
   }
 }
 

@@ -1467,10 +1467,6 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
     }
   }
 
-  if (!simple) {
-    helper_.SkipOptionalDartType();  // read typedef reference.
-  }
-
   VisitDartType();  // read return type.
 }
 

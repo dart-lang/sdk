@@ -1,0 +1,100 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/bounds_type_literals.dart:22:3: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_literals.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   F<Object>; // Error
+//   ^
+// pkg/front_end/testcases/general/bounds_type_literals.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_type_literals.dart:23:3: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_literals.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   F<int>; // Error
+//   ^
+// pkg/front_end/testcases/general/bounds_type_literals.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_type_literals.dart:30:3: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_literals.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   G<Object>; // Error
+//   ^
+// pkg/front_end/testcases/general/bounds_type_literals.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_literals.dart:31:3: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_literals.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   G<int>; // Error
+//   ^
+// pkg/front_end/testcases/general/bounds_type_literals.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F<X extends self::Class<X> = self::Class<dynamic>> = X;
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    : super core::Object::•()
+    ;
+}
+class ConcreteClass extends core::Object implements self::Class<self::ConcreteClass> {
+  synthetic constructor •() → self::ConcreteClass
+    : super core::Object::•()
+    ;
+}
+class G<X extends self::Class<self::G::X> = self::Class<dynamic>> extends core::Object {
+  synthetic constructor •() → self::G<self::G::X>
+    : super core::Object::•()
+    ;
+}
+class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1
+    : super core::Object::•()
+    ;
+}
+static method test() → dynamic {
+  #C1;
+  #C2;
+  #C1;
+  #C1;
+  #C3;
+  #C4;
+  #C5;
+  #C6;
+  #C7;
+  #C8;
+  #C7;
+  #C7;
+  #C9;
+  #C10;
+  #C11;
+  #C12;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = TypeLiteralConstant(self::Class<dynamic>*)
+  #C2 = TypeLiteralConstant(dynamic)
+  #C3 = TypeLiteralConstant(self::ConcreteClass*)
+  #C4 = TypeLiteralConstant(self::Class<self::ConcreteClass*>*)
+  #C5 = TypeLiteralConstant(core::Object*)
+  #C6 = TypeLiteralConstant(core::int*)
+  #C7 = TypeLiteralConstant(self::G<self::Class<dynamic>*>*)
+  #C8 = TypeLiteralConstant(self::G<dynamic>*)
+  #C9 = TypeLiteralConstant(self::G<self::ConcreteClass*>*)
+  #C10 = TypeLiteralConstant(self::G<self::Class<self::ConcreteClass*>*>*)
+  #C11 = TypeLiteralConstant(self::G<core::Object*>*)
+  #C12 = TypeLiteralConstant(self::G<core::int*>*)
+}

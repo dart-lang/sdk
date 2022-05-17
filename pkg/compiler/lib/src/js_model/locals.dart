@@ -18,8 +18,9 @@ import '../serialization/serialization.dart';
 
 import 'element_map.dart';
 import 'elements.dart' show JGeneratorBody;
+import 'locals_interfaces.dart' as interfaces;
 
-class GlobalLocalsMap {
+class GlobalLocalsMap implements interfaces.GlobalLocalsMap {
   /// Tag used for identifying serialized [GlobalLocalsMap] objects in a
   /// debugging data stream.
   static const String tag = 'global-locals-map';

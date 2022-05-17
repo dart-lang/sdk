@@ -44,47 +44,6 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
         return false;
       }
 
-      // If the two types are un-aliased typedef instantiations, check that
-      // those instantiations are equal as well.
-      bool nodeIsUnaliased = node.typedefType != null;
-      bool otherIsUnaliased = other.typedefType != null;
-      if (nodeIsUnaliased != otherIsUnaliased) {
-        return false;
-      }
-      if (node.typedefType != null) {
-        // The assert below checks the implication: if the typedef types are
-        // equal, their un-aliased types are equal as well.  The reverse is not
-        // true due to possibly unused type parameters F<int> and F<String> may
-        // be equal when un-aliased if the type parameter of typedef F isn't
-        // used on the right-hand side of the definition of F.  The checked
-        // proposition in the assert allows to skip checking the function types
-        // themselves if the typedef types are equal.
-        assert(() {
-          DartTypeEquivalence copy = this.copy();
-          if (!copy.areEqual(node.typedefType!, other.typedefType!)) {
-            return true;
-          }
-          FunctionType nodeWithoutTypedefType = new FunctionType(
-              node.positionalParameters,
-              node.returnType,
-              node.declaredNullability,
-              namedParameters: node.namedParameters,
-              typeParameters: node.typeParameters,
-              requiredParameterCount: node.requiredParameterCount,
-              typedefType: null);
-          FunctionType otherWithoutTypedefType = new FunctionType(
-              other.positionalParameters,
-              other.returnType,
-              other.declaredNullability,
-              namedParameters: other.namedParameters,
-              typeParameters: other.typeParameters,
-              requiredParameterCount: other.requiredParameterCount,
-              typedefType: null);
-          return copy.areEqual(nodeWithoutTypedefType, otherWithoutTypedefType);
-        }());
-        return node.typedefType!.accept1(this, other.typedefType);
-      }
-
       // Perform simple number checks before the checks on parts.
       if (node.typeParameters.length != other.typeParameters.length) {
         return false;

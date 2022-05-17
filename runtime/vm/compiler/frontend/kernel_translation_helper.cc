@@ -2262,10 +2262,6 @@ void KernelReaderHelper::SkipFunctionType(bool simple) {
     }
   }
 
-  if (!simple) {
-    SkipOptionalDartType();  // read typedef type.
-  }
-
   SkipDartType();  // read return type.
 }
 
@@ -3261,10 +3257,6 @@ void TypeTranslator::BuildFunctionType(bool simple) {
     }
   }
   signature.FinalizeNameArray();
-
-  if (!simple) {
-    helper_->SkipOptionalDartType();  // read typedef type.
-  }
 
   BuildTypeInternal();  // read return type.
   signature.set_result_type(result_);

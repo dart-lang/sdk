@@ -284,16 +284,16 @@ class TypeArgumentIssue {
   }
 }
 
-// Finds type arguments that don't follow the rules of well-boundness.
+// Finds type arguments that don't follow the rules of well-boundedness.
 //
 // [bottomType] should be either Null or Never, depending on what should be
 // taken for the bottom type at the call site.  The bottom type is used in the
-// checks for super-boundness for construction of the auxiliary type.  For
+// checks for super-boundedness for construction of the auxiliary type.  For
 // details see Dart Language Specification, Section 14.3.2 The Instantiation to
 // Bound Algorithm.
 List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
     TypeEnvironment typeEnvironment, SubtypeCheckMode subtypeCheckMode,
-    {bool allowSuperBounded = false,
+    {required bool allowSuperBounded,
     required bool isNonNullableByDefault,
     required bool areGenericArgumentsAllowed}) {
   // ignore: unnecessary_null_comparison
@@ -305,26 +305,6 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
   List<DartType> arguments = const <DartType>[];
   List<TypeArgumentIssue> typedefRhsResult = const <TypeArgumentIssue>[];
 
-  if (type is FunctionType && type.typedefType != null) {
-    // [type] is a function type that is an application of a parametrized
-    // typedef.  We need to check both the l.h.s. and the r.h.s. of the
-    // definition in that case.  For details, see [link]
-    // (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/super-bounded-types.md).
-    FunctionType functionType = type;
-    FunctionType cloned = new FunctionType(functionType.positionalParameters,
-        functionType.returnType, functionType.nullability,
-        namedParameters: functionType.namedParameters,
-        typeParameters: functionType.typeParameters,
-        requiredParameterCount: functionType.requiredParameterCount,
-        typedefType: null);
-    typedefRhsResult = findTypeArgumentIssues(
-        cloned, typeEnvironment, subtypeCheckMode,
-        allowSuperBounded: true,
-        isNonNullableByDefault: isNonNullableByDefault,
-        areGenericArgumentsAllowed: areGenericArgumentsAllowed);
-    type = functionType.typedefType!;
-  }
-
   if (type is InterfaceType) {
     variables = type.classNode.typeParameters;
     arguments = type.typeArguments;
@@ -333,14 +313,6 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
     arguments = type.typeArguments;
   } else if (type is FunctionType) {
     List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
-
-    for (TypeParameter parameter in type.typeParameters) {
-      result.addAll(findTypeArgumentIssues(
-          parameter.bound, typeEnvironment, subtypeCheckMode,
-          allowSuperBounded: true,
-          isNonNullableByDefault: isNonNullableByDefault,
-          areGenericArgumentsAllowed: areGenericArgumentsAllowed));
-    }
 
     for (DartType formal in type.positionalParameters) {
       result.addAll(findTypeArgumentIssues(
@@ -401,12 +373,6 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
       // The bound is InvalidType so it's not checked, because an error was
       // reported already at the time of the creation of InvalidType.
     }
-
-    argumentsResult.addAll(findTypeArgumentIssues(
-        argument, typeEnvironment, subtypeCheckMode,
-        allowSuperBounded: true,
-        isNonNullableByDefault: isNonNullableByDefault,
-        areGenericArgumentsAllowed: areGenericArgumentsAllowed));
   }
   result.addAll(argumentsResult);
   result.addAll(typedefRhsResult);
@@ -440,6 +406,8 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
       new Map<TypeParameter, DartType>.fromIterables(variables, arguments);
   for (int i = 0; i < arguments.length; ++i) {
     DartType argument = arguments[i];
+    // TODO(johnniwinther): Should we check this even when generic functions
+    // as type arguments is allowed?
     if (isGenericFunctionTypeOrAlias(argument)) {
       // Generic function types aren't allowed as type arguments either.
       isCorrectSuperBounded = false;
@@ -517,12 +485,6 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
         result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
       }
     }
-
-    result.addAll(findTypeArgumentIssues(
-        argument, typeEnvironment, subtypeCheckMode,
-        allowSuperBounded: true,
-        isNonNullableByDefault: isNonNullableByDefault,
-        areGenericArgumentsAllowed: areGenericArgumentsAllowed));
   }
   return result;
 }
@@ -554,6 +516,7 @@ DartType? convertSuperBoundedToRegularBounded(
 class _SuperBoundedTypeInverter extends ReplacementVisitor {
   final TypeEnvironment typeEnvironment;
   final bool isNonNullableByDefault;
+  bool isOutermost = true;
 
   _SuperBoundedTypeInverter(this.typeEnvironment,
       {required this.isNonNullableByDefault})
@@ -629,6 +592,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
 
   @override
   DartType? visitInterfaceType(InterfaceType node, int variance) {
+    isOutermost = false;
     // Check for Object-based top types.
     if (isTop(node) && flipTop(variance)) {
       return bottomType;
@@ -639,6 +603,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
 
   @override
   DartType? visitFutureOrType(FutureOrType node, int variance) {
+    isOutermost = false;
     // Check FutureOr-based top types.
     if (isTop(node) && flipTop(variance)) {
       return bottomType;
@@ -679,10 +644,12 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
 
   // TypedefTypes receive special treatment because the variance of their
   // arguments' positions depend on the opt-in status of the library.
-  // TODO(cstefantsova): Remove the method when the discrepancy between the
-  // NNBD modes is resolved.
   @override
   DartType? visitTypedefType(TypedefType node, int variance) {
+    if (!isNonNullableByDefault && !isOutermost) {
+      return node.unalias.accept1(this, variance);
+    }
+    isOutermost = false;
     Nullability? newNullability = visitNullability(node);
     List<DartType>? newTypeArguments = null;
     for (int i = 0; i < node.typeArguments.length; i++) {
@@ -706,13 +673,8 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
 
   @override
   DartType? visitFunctionType(FunctionType node, int variance) {
-    // The variance of the Typedef parameters should be taken into account only
-    // when for the NNBD code.
-    if (node.typedefType != null && isNonNullableByDefault) {
-      return node.typedefType!.accept1(this, variance);
-    } else {
-      return super.visitFunctionType(node, variance);
-    }
+    isOutermost = false;
+    return super.visitFunctionType(node, variance);
   }
 }
 
@@ -886,4 +848,50 @@ class VarianceCalculator
 bool isGenericFunctionTypeOrAlias(DartType type) {
   if (type is TypedefType) type = type.unalias;
   return type is FunctionType && type.typeParameters.isNotEmpty;
+}
+
+bool hasGenericFunctionTypeAsTypeArgument(DartType type) {
+  return type.accept1(
+      const _HasGenericFunctionTypeAsTypeArgumentVisitor(), false);
+}
+
+class _HasGenericFunctionTypeAsTypeArgumentVisitor
+    extends DartTypeVisitor1<bool, bool> {
+  const _HasGenericFunctionTypeAsTypeArgumentVisitor();
+
+  @override
+  bool defaultDartType(DartType node, bool isTypeArgument) => false;
+
+  @override
+  bool visitFunctionType(FunctionType node, bool isTypeArgument) {
+    if (isTypeArgument && node.typeParameters.isNotEmpty) {
+      return true;
+    }
+    // TODO(johnniwinther): Should deeply nested generic function types be
+    //  disallowed?
+    if (node.returnType.accept1(this, false)) return true;
+    for (DartType parameterType in node.positionalParameters) {
+      if (parameterType.accept1(this, false)) return true;
+    }
+    for (NamedType namedParameterType in node.namedParameters) {
+      if (namedParameterType.type.accept1(this, false)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitInterfaceType(InterfaceType node, bool isTypeArgument) {
+    for (DartType typeArgument in node.typeArguments) {
+      if (typeArgument.accept1(this, true)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitTypedefType(TypedefType node, bool isTypeArgument) {
+    for (DartType typeArgument in node.typeArguments) {
+      if (typeArgument.accept1(this, true)) return true;
+    }
+    return false;
+  }
 }

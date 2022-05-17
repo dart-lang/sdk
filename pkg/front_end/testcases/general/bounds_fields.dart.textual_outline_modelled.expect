@@ -1,0 +1,63 @@
+F<Class<ConcreteClass>>? field6a, field6b;
+F<Class<dynamic>>? field4a, field4b;
+F<Class>? field3a, field3b;
+F<ConcreteClass>? field5a, field5b;
+F<Object>? field7a, field7b;
+F<dynamic>? field2a, field2b;
+F<int>? field8a, field8b;
+F? field1a, field1b;
+G<Class<ConcreteClass>>? field6c, field6d;
+G<Class<dynamic>>? field4c, field4d;
+G<Class>? field3c, field3d;
+G<ConcreteClass>? field5c, field5d;
+G<Object>? field7c, field8d;
+G<dynamic>? field2c, field2d;
+G<int>? field8c, field7d;
+G? field1c, field1d;
+
+class Class<T> {}
+
+class Class1 {
+  F<Class<ConcreteClass>>? field6a, field6b;
+  F<Class<dynamic>>? field4a, field4b;
+  F<Class>? field3a, field3b;
+  F<ConcreteClass>? field5a, field5b;
+  F<Object>? field7a, field7b;
+  F<dynamic>? field2a, field2b;
+  F<int>? field8a, field8b;
+  F? field1a, field1b;
+  G<Class<ConcreteClass>>? field6c, field6d;
+  G<Class<dynamic>>? field4c, field4d;
+  G<Class>? field3c, field3d;
+  G<ConcreteClass>? field5c, field5d;
+  G<Object>? field7c, field8d;
+  G<dynamic>? field2c, field2d;
+  G<int>? field8c, field7d;
+  G? field1c, field1d;
+}
+
+class ConcreteClass implements Class<ConcreteClass> {}
+
+class G<X extends Class<X>> {}
+
+extension Extension1 on int {
+  static F<Class<ConcreteClass>>? field6a, field6b;
+  static F<Class<dynamic>>? field4a, field4b;
+  static F<Class>? field3a, field3b;
+  static F<ConcreteClass>? field5a, field5b;
+  static F<Object>? field7a, field7b;
+  static F<dynamic>? field2a, field2b;
+  static F<int>? field8a, field8b;
+  static F? field1a, field1b;
+  static G<Class<ConcreteClass>>? field6c, field6d;
+  static G<Class<dynamic>>? field4c, field4d;
+  static G<Class>? field3c, field3d;
+  static G<ConcreteClass>? field5c, field5d;
+  static G<Object>? field7c, field8d;
+  static G<dynamic>? field2c, field2d;
+  static G<int>? field8c, field7d;
+  static G? field1c, field1d;
+}
+
+main() {}
+typedef F<X extends Class<X>> = X;

@@ -1,0 +1,46 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef F<X extends self::Class<X> = self::Class<dynamic>> = X;
+typedef H<unrelated X extends core::Object? = dynamic> = self::Class2;
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    ;
+}
+class ConcreteClass extends core::Object implements self::Class<self::ConcreteClass> {
+  synthetic constructor •() → self::ConcreteClass
+    ;
+}
+class G<X extends self::Class<self::G::X> = self::Class<dynamic>> extends core::Object {
+  synthetic constructor •() → self::G<self::G::X>
+    ;
+}
+class Class1<T1 extends core::Object? = dynamic, T2 extends core::Object? = dynamic, T3 extends core::Object? = dynamic, T4 extends core::Object? = dynamic, T5 extends core::Object? = dynamic, T6 extends core::Object? = dynamic, T7 extends core::Object? = dynamic, T8 extends core::Object? = dynamic, S1 extends core::Object? = dynamic, S2 extends core::Object? = dynamic, S3 extends core::Object? = dynamic, S4 extends core::Object? = dynamic, S5 extends core::Object? = dynamic, S6 extends core::Object? = dynamic, S7 extends core::Object? = dynamic, S8 extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::Class1::redirect]/*isLegacy*/;
+  constructor •() → self::Class1<self::Class1::T1%, self::Class1::T2%, self::Class1::T3%, self::Class1::T4%, self::Class1::T5%, self::Class1::T6%, self::Class1::T7%, self::Class1::T8%, self::Class1::S1%, self::Class1::S2%, self::Class1::S3%, self::Class1::S4%, self::Class1::S5%, self::Class1::S6%, self::Class1::S7%, self::Class1::S8%>
+    ;
+  static factory fact<T1 extends core::Object? = dynamic, T2 extends core::Object? = dynamic, T3 extends core::Object? = dynamic, T4 extends core::Object? = dynamic, T5 extends core::Object? = dynamic, T6 extends core::Object? = dynamic, T7 extends core::Object? = dynamic, T8 extends core::Object? = dynamic, S1 extends core::Object? = dynamic, S2 extends core::Object? = dynamic, S3 extends core::Object? = dynamic, S4 extends core::Object? = dynamic, S5 extends core::Object? = dynamic, S6 extends core::Object? = dynamic, S7 extends core::Object? = dynamic, S8 extends core::Object? = dynamic>() → self::Class1<self::Class1::fact::T1%, self::Class1::fact::T2%, self::Class1::fact::T3%, self::Class1::fact::T4%, self::Class1::fact::T5%, self::Class1::fact::T6%, self::Class1::fact::T7%, self::Class1::fact::T8%, self::Class1::fact::S1%, self::Class1::fact::S2%, self::Class1::fact::S3%, self::Class1::fact::S4%, self::Class1::fact::S5%, self::Class1::fact::S6%, self::Class1::fact::S7%, self::Class1::fact::S8%>
+    ;
+  static factory redirect<T1 extends core::Object? = dynamic, T2 extends core::Object? = dynamic, T3 extends core::Object? = dynamic, T4 extends core::Object? = dynamic, T5 extends core::Object? = dynamic, T6 extends core::Object? = dynamic, T7 extends core::Object? = dynamic, T8 extends core::Object? = dynamic, S1 extends core::Object? = dynamic, S2 extends core::Object? = dynamic, S3 extends core::Object? = dynamic, S4 extends core::Object? = dynamic, S5 extends core::Object? = dynamic, S6 extends core::Object? = dynamic, S7 extends core::Object? = dynamic, S8 extends core::Object? = dynamic>() → self::Class1<self::Class1::redirect::T1%, self::Class1::redirect::T2%, self::Class1::redirect::T3%, self::Class1::redirect::T4%, self::Class1::redirect::T5%, self::Class1::redirect::T6%, self::Class1::redirect::T7%, self::Class1::redirect::T8%, self::Class1::redirect::S1%, self::Class1::redirect::S2%, self::Class1::redirect::S3%, self::Class1::redirect::S4%, self::Class1::redirect::S5%, self::Class1::redirect::S6%, self::Class1::redirect::S7%, self::Class1::redirect::S8%>
+    return new self::Class1::•<self::Class1::redirect::T1%, self::Class1::redirect::T2%, self::Class1::redirect::T3%, self::Class1::redirect::T4%, self::Class1::redirect::T5%, self::Class1::redirect::T6%, self::Class1::redirect::T7%, self::Class1::redirect::T8%, self::Class1::redirect::S1%, self::Class1::redirect::S2%, self::Class1::redirect::S3%, self::Class1::redirect::S4%, self::Class1::redirect::S5%, self::Class1::redirect::S6%, self::Class1::redirect::S7%, self::Class1::redirect::S8%>();
+}
+class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2
+    ;
+  method instanceMethod<T1 extends core::Object? = dynamic, T2 extends core::Object? = dynamic, T3 extends core::Object? = dynamic, T4 extends core::Object? = dynamic, T5 extends core::Object? = dynamic, T6 extends core::Object? = dynamic, T7 extends core::Object? = dynamic, T8 extends core::Object? = dynamic, S1 extends core::Object? = dynamic, S2 extends core::Object? = dynamic, S3 extends core::Object? = dynamic, S4 extends core::Object? = dynamic, S5 extends core::Object? = dynamic, S6 extends core::Object? = dynamic, S7 extends core::Object? = dynamic, S8 extends core::Object? = dynamic>() → void
+    ;
+}
+static method staticMethod<T1 extends core::Object? = dynamic, T2 extends core::Object? = dynamic, T3 extends core::Object? = dynamic, T4 extends core::Object? = dynamic, T5 extends core::Object? = dynamic, T6 extends core::Object? = dynamic, T7 extends core::Object? = dynamic, T8 extends core::Object? = dynamic, S1 extends core::Object? = dynamic, S2 extends core::Object? = dynamic, S3 extends core::Object? = dynamic, S4 extends core::Object? = dynamic, S5 extends core::Object? = dynamic, S6 extends core::Object? = dynamic, S7 extends core::Object? = dynamic, S8 extends core::Object? = dynamic>() → void
+  ;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method _#H#new#tearOff<unrelated X extends core::Object? = dynamic>() → self::Class2
+  return new self::Class2::•();
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///bounds_type_arguments.dart:18:7 -> ConstructorTearOffConstant(Class1.redirect)
+Extra constant evaluation: evaluated: 4, effectively constant: 1

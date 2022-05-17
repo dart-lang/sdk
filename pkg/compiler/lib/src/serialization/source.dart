@@ -767,13 +767,11 @@ class DataSourceReader implements migrated.DataSourceReader {
           namedParameters[index] =
               ir.NamedType(name, type, isRequired: isRequired);
         }
-        ir.TypedefType typedefType = _readDartTypeNode(functionTypeVariables);
         end(functionTypeNodeTag);
         return ir.FunctionType(positionalParameters, returnType, nullability,
             namedParameters: namedParameters,
             typeParameters: typeParameters,
-            requiredParameterCount: requiredParameterCount,
-            typedefType: typedefType);
+            requiredParameterCount: requiredParameterCount);
 
       case DartTypeNodeKind.interfaceType:
         ir.Class cls = readClassNode();

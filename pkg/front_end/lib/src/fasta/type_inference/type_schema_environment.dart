@@ -49,10 +49,7 @@ FunctionType substituteTypeParams(
               isRequired: named.isRequired))
           .toList(),
       typeParameters: newTypeParameters,
-      requiredParameterCount: type.requiredParameterCount,
-      typedefType: type.typedefType == null
-          ? null
-          : substitution.substituteType(type.typedefType!) as TypedefType);
+      requiredParameterCount: type.requiredParameterCount);
 }
 
 /// Given a [FunctionType], gets the type of the named parameter with the given

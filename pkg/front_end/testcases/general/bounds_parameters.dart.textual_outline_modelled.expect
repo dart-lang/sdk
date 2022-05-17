@@ -1,0 +1,86 @@
+class Class<T> {}
+
+class Class1 {
+  Class1(
+    F t1,
+    F<dynamic> t2,
+    F<Class> t3,
+    F<Class<dynamic>> t4,
+    F<ConcreteClass> t5,
+    F<Class<ConcreteClass>> t6,
+    F<Object> t7,
+    F<int> t8, {
+    required G s1,
+    required G<dynamic> s2,
+    required G<Class> s3,
+    required G<Class<dynamic>> s4,
+    required G<ConcreteClass> s5,
+    required G<Class<ConcreteClass>> s6,
+    required G<Object> s7,
+    required G<int> s8,
+  });
+  void method2(
+    F t1,
+    F<dynamic> t2,
+    F<Class> t3,
+    F<Class<dynamic>> t4,
+    F<ConcreteClass> t5,
+    F<Class<ConcreteClass>> t6,
+    F<Object> t7,
+    F<int> t8, {
+    required G s1,
+    required G<dynamic> s2,
+    required G<Class> s3,
+    required G<Class<dynamic>> s4,
+    required G<ConcreteClass> s5,
+    required G<Class<ConcreteClass>> s6,
+    required G<Object> s7,
+    required G<int> s8,
+  }) {}
+}
+
+class ConcreteClass implements Class<ConcreteClass> {}
+
+class G<X extends Class<X>> {}
+
+extension Extension1 on int {
+  void method3(
+    F t1,
+    F<dynamic> t2,
+    F<Class> t3,
+    F<Class<dynamic>> t4,
+    F<ConcreteClass> t5,
+    F<Class<ConcreteClass>> t6,
+    F<Object> t7,
+    F<int> t8, {
+    required G s1,
+    required G<dynamic> s2,
+    required G<Class> s3,
+    required G<Class<dynamic>> s4,
+    required G<ConcreteClass> s5,
+    required G<Class<ConcreteClass>> s6,
+    required G<Object> s7,
+    required G<int> s8,
+  }) {}
+}
+
+main() {}
+typedef F<X extends Class<X>> = X;
+void method1(
+  F t1,
+  F<dynamic> t2,
+  F<Class> t3,
+  F<Class<dynamic>> t4,
+  F<ConcreteClass> t5,
+  F<Class<ConcreteClass>> t6,
+  F<Object> t7,
+  F<int> t8, {
+  required G s1,
+  required G<dynamic> s2,
+  required G<Class> s3,
+  required G<Class<dynamic>> s4,
+  required G<ConcreteClass> s5,
+  required G<Class<ConcreteClass>> s6,
+  required G<Object> s7,
+  required G<int> s8,
+}) {}

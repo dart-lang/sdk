@@ -1,0 +1,83 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef F<X extends self::Class<X> = self::Class<dynamic>> = X;
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    ;
+}
+class ConcreteClass extends core::Object implements self::Class<self::ConcreteClass> {
+  synthetic constructor •() → self::ConcreteClass
+    ;
+}
+class G<X extends self::Class<self::G::X> = self::Class<dynamic>> extends core::Object {
+  synthetic constructor •() → self::G<self::G::X>
+    ;
+}
+static method t1a() → dynamic
+  ;
+static method t2a() → dynamic
+  ;
+static method t3a() → dynamic
+  ;
+static method t4a() → dynamic
+  ;
+static method t5a() → dynamic
+  ;
+static method t6a() → dynamic
+  ;
+static method t7a() → dynamic
+  ;
+static method t8a() → dynamic
+  ;
+static method s1a() → dynamic
+  ;
+static method s2a() → dynamic
+  ;
+static method s3a() → dynamic
+  ;
+static method s4a() → dynamic
+  ;
+static method s5a() → dynamic
+  ;
+static method s6a() → dynamic
+  ;
+static method s7a() → dynamic
+  ;
+static method s8a() → dynamic
+  ;
+static method t1b() → dynamic
+  ;
+static method t2b() → dynamic
+  ;
+static method t3b() → dynamic
+  ;
+static method t4b() → dynamic
+  ;
+static method t5b() → dynamic
+  ;
+static method t6b() → dynamic
+  ;
+static method t7b() → dynamic
+  ;
+static method t8b() → dynamic
+  ;
+static method s1b() → dynamic
+  ;
+static method s2b() → dynamic
+  ;
+static method s3b() → dynamic
+  ;
+static method s4b() → dynamic
+  ;
+static method s5b() → dynamic
+  ;
+static method s6b() → dynamic
+  ;
+static method s7b() → dynamic
+  ;
+static method s8b() → dynamic
+  ;
+static method main() → dynamic
+  ;

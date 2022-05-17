@@ -179,7 +179,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
     List<SourceFieldBuilder> elementBuilders = <SourceFieldBuilder>[];
     NamedTypeBuilder selfType = new NamedTypeBuilder(
         name, const NullabilityBuilder.omitted(),
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected,
+        fileUri: fileUri,
+        charOffset: charOffset);
     NamedTypeBuilder listType = new NamedTypeBuilder(
         "List", const NullabilityBuilder.omitted(),
         arguments: <TypeBuilder>[selfType],
@@ -628,7 +630,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
   }
 
   DartType buildElement(SourceFieldBuilder fieldBuilder, CoreTypes coreTypes) {
-    DartType selfType = this.selfType.build(libraryBuilder);
+    DartType selfType =
+        this.selfType.build(libraryBuilder, TypeUse.enumSelfType);
     Builder? builder = firstMemberNamed(fieldBuilder.name);
     if (builder == null || !builder.isField) return selfType;
     fieldBuilder = builder as SourceFieldBuilder;
@@ -674,7 +677,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
     if (typeArgumentBuilders != null) {
       typeArguments = <DartType>[];
       for (TypeBuilder typeBuilder in typeArgumentBuilders) {
-        typeArguments.add(typeBuilder.build(libraryBuilder));
+        typeArguments.add(
+            typeBuilder.build(libraryBuilder, TypeUse.constructorTypeArgument));
       }
     }
     if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {

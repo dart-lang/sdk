@@ -18,6 +18,8 @@ import '../native/behavior.dart' show NativeBehavior;
 import '../serialization/serialization.dart';
 import '../util/util.dart';
 
+import 'native_data_interfaces.dart' as interfaces;
+
 class NativeBasicDataBuilder {
   bool _closed = false;
 
@@ -133,7 +135,7 @@ class NativeBasicDataBuilder {
 /// Basic information for native classes and js-interop libraries and classes.
 ///
 /// This information is computed during loading using [NativeBasicDataBuilder].
-class NativeBasicData {
+class NativeBasicData implements interfaces.NativeBasicData {
   /// Tag used for identifying serialized [NativeBasicData] objects in a
   /// debugging data stream.
   static const String tag = 'native-basic-data';
@@ -261,6 +263,7 @@ class NativeBasicData {
   /// A class is marked as native either through the `@Native(...)` annotation
   /// allowed for internal libraries or via the typed JavaScriptInterop
   /// mechanism allowed for user libraries.
+  @override
   bool isNativeClass(ClassEntity element) {
     if (isJsInteropClass(element)) return true;
     return _nativeClassTagInfo.containsKey(element);
@@ -286,6 +289,7 @@ class NativeBasicData {
   }
 
   /// Returns `true` if [element] is a JsInterop class.
+  @override
   bool isJsInteropClass(ClassEntity element) {
     return _jsInteropClasses.containsKey(element);
   }

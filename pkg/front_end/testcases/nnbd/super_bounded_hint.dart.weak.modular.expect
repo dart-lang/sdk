@@ -18,455 +18,425 @@ library /*isNonNullableByDefault*/;
 // typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
 //           ^
 //
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:11:31: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try changing type arguments so that they conform to the bounds.
-// foo1a(F<A<dynamic>, A<Never>> x) {}
-//                               ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:11:31: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-// foo1a(F<A<dynamic>, A<Never>> x) {}
-//                               ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:12:9: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
-// foo1b(F x) {}
-//         ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:12:9: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-// foo1b(F x) {}
-//         ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:14:7: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:14:17: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // foo2a<X extends F<A<dynamic>, A<Never>>>() {}
-//       ^
+//                 ^
 // pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
 // typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
 //           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:14:7: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:14:17: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
 //  - 'Object' is from 'dart:core'.
 // foo2a<X extends F<A<dynamic>, A<Never>>>() {}
-//       ^
+//                 ^
 //
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:15:7: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:15:17: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 // foo2b<X extends F>() {}
-//       ^
+//                 ^
 // pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
 // typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
 //           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:15:7: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:15:17: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
 //  - 'Object' is from 'dart:core'.
 // foo2b<X extends F>() {}
-//       ^
+//                 ^
 //
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:17:13: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:17:23: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // class Foo3a<X extends F<A<dynamic>, A<Never>>> {}
-//             ^
+//                       ^
 // pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
 // typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
 //           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:17:13: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:17:23: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
 //  - 'Object' is from 'dart:core'.
 // class Foo3a<X extends F<A<dynamic>, A<Never>>> {}
-//             ^
+//                       ^
 //
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:21:30: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F' in the return type.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try changing type arguments so that they conform to the bounds.
-// F<A<dynamic>, A<Never>> foo4a() => throw 42;
-//                              ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:21:30: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-// F<A<dynamic>, A<Never>> foo4a() => throw 42;
-//                              ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:22:8: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F' in the return type.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try changing type arguments so that they conform to the bounds.
-// F foo4b() => throw 42;
-//        ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:22:8: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-// F foo4b() => throw 42;
-//        ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:24:41: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try changing type arguments so that they conform to the bounds.
-// foo5a({required F<A<dynamic>, A<Never>> x}) {}
-//                                         ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:24:41: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-// foo5a({required F<A<dynamic>, A<Never>> x}) {}
-//                                         ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:25:19: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:19:23: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
-// foo5b({required F x}) {}
-//                   ^
+// class Foo3b<X extends F> {}
+//                       ^
 // pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
 // typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
 //           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:25:19: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:19:23: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
 //  - 'Object' is from 'dart:core'.
-// foo5b({required F x}) {}
-//                   ^
+// class Foo3b<X extends F> {}
+//                       ^
 //
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:47:33: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:56:16: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
 // Try changing type arguments so that they conform to the bounds.
-// foo7a([F<A<dynamic>, A<Never>>? x]) {}
-//                                 ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:47:33: Context: If you want 'F<A<dynamic>, A<Never>>?' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>?' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-// foo7a([F<A<dynamic>, A<Never>>? x]) {}
-//                                 ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:48:11: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
-// foo7b([F? x]) {}
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:48:11: Context: If you want 'F<A<dynamic>, A<Never>>?' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>?' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-// foo7b([F? x]) {}
-//           ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:54:13: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
-// Try changing type arguments so that they conform to the bounds.
-// bar1(B<num> x) {}
-//             ^
+// bar2<X extends B<num>>() {}
+//                ^
 // pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
 // class B<X extends int> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:56:6: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:58:22: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
 // Try changing type arguments so that they conform to the bounds.
-// bar2<X extends B<num>>() {}
+// class Bar3<X extends B<num>> {}
+//                      ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
+// class B<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:11:7: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// foo1a(F<A<dynamic>, A<Never>> x) {}
+//       ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:11:7: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+// foo1a(F<A<dynamic>, A<Never>> x) {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:12:7: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// foo1b(F x) {}
+//       ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:12:7: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+// foo1b(F x) {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:21:1: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// F<A<dynamic>, A<Never>> foo4a() => throw 42;
+// ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:21:1: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+// F<A<dynamic>, A<Never>> foo4a() => throw 42;
+// ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:22:1: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// F foo4b() => throw 42;
+// ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:22:1: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+// F foo4b() => throw 42;
+// ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:24:17: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// foo5a({required F<A<dynamic>, A<Never>> x}) {}
+//                 ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:24:17: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+// foo5a({required F<A<dynamic>, A<Never>> x}) {}
+//                 ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:25:17: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// foo5b({required F x}) {}
+//                 ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:25:17: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+// foo5b({required F x}) {}
+//                 ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:47:8: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// foo7a([F<A<dynamic>, A<Never>>? x]) {}
+//        ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:47:8: Context: If you want 'F<A<dynamic>, A<Never>>?' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>?' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+// foo7a([F<A<dynamic>, A<Never>>? x]) {}
+//        ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:48:8: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// foo7b([F? x]) {}
+//        ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:48:8: Context: If you want 'F<A<dynamic>, A<Never>>?' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>?' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+// foo7b([F? x]) {}
+//        ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:54:6: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
+// Try changing type arguments so that they conform to the bounds.
+// bar1(B<num> x) {}
 //      ^
 // pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
 // class B<X extends int> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:58:12: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
-// Try changing type arguments so that they conform to the bounds.
-// class Bar3<X extends B<num>> {}
-//            ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
-// class B<X extends int> {}
-//         ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:60:12: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B' in the return type.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:60:1: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
 // Try changing type arguments so that they conform to the bounds.
 // B<num> bar4() => throw 42;
-//            ^
+// ^
 // pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
 // class B<X extends int> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:62:23: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:62:16: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
 // Try changing type arguments so that they conform to the bounds.
 // bar5({required B<num> x}) {}
-//                       ^
+//                ^
 // pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
 // class B<X extends int> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:76:15: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:76:7: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
 // Try changing type arguments so that they conform to the bounds.
 // bar7([B<num>? x]) {}
-//               ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
-// class B<X extends int> {}
-//         ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:78:7: Error: Type argument 'dynamic' doesn't conform to the bound 'int' of the type variable 'X' on 'B' in the supertype 'B' of class 'Bar8'.
-// Try changing type arguments so that they conform to the bounds.
-// class Bar8 extends B<dynamic> {}
 //       ^
 // pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
 // class B<X extends int> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:28:27: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:78:20: Error: Type argument 'dynamic' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
 // Try changing type arguments so that they conform to the bounds.
-//   F<A<dynamic>, A<Never>> x;
-//                           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:28:27: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-//   F<A<dynamic>, A<Never>> x;
-//                           ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:29:32: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   for (F<A<dynamic>, A<Never>> x in []) {}
-//                                ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:29:32: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-//   for (F<A<dynamic>, A<Never>> x in []) {}
-//                                ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:29:37: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
-//   for (F<A<dynamic>, A<Never>> x in []) {}
-//                                     ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:29:37: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-//   for (F<A<dynamic>, A<Never>> x in []) {}
-//                                     ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:30:35: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   fooFoo1(F<A<dynamic>, A<Never>> x) {}
-//                                   ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:30:35: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-//   fooFoo1(F<A<dynamic>, A<Never>> x) {}
-//                                   ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:31:11: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   fooFoo2<X extends F<A<dynamic>, A<Never>>>() {}
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:31:11: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-//   fooFoo2<X extends F<A<dynamic>, A<Never>>>() {}
-//           ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:32:34: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F' in the return type.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   F<A<dynamic>, A<Never>> fooFoo4() => throw 42;
-//                                  ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:32:34: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-//   F<A<dynamic>, A<Never>> fooFoo4() => throw 42;
-//                                  ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:33:45: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   fooFoo5({required F<A<dynamic>, A<Never>> x}) {}
-//                                             ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:33:45: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-//   fooFoo5({required F<A<dynamic>, A<Never>> x}) {}
-//                                             ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:34:37: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   fooFoo7([F<A<dynamic>, A<Never>>? x]) {}
-//                                     ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:34:37: Context: If you want 'F<A<dynamic>, A<Never>>?' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>?' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-//   fooFoo7([F<A<dynamic>, A<Never>>? x]) {}
-//                                     ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:38:5: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   F x;
-//     ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:38:5: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-//   F x;
-//     ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:39:10: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   for (F x in []) {}
-//          ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:39:10: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-//   for (F x in []) {}
-//          ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:39:15: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
-//   for (F x in []) {}
-//               ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:39:15: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-//   for (F x in []) {}
-//               ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:40:13: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
-//   fooFoo1(F x) {}
-//             ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:40:13: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-//   fooFoo1(F x) {}
-//             ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:41:11: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
-//   fooFoo2<X extends F>() {}
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:41:11: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-//   fooFoo2<X extends F>() {}
-//           ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:42:12: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F' in the return type.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   F fooFoo4() => throw 42;
-//            ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:42:12: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-//   F fooFoo4() => throw 42;
-//            ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:43:23: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
-//   fooFoo5({required F x}) {}
-//                       ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:43:23: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-//   fooFoo5({required F x}) {}
-//                       ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:44:15: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
-//   fooFoo7([F? x]) {}
-//               ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
-//           ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:44:15: Context: If you want 'F<A<dynamic>, A<Never>>?' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>?' must then satisfy its bounds, which it does not.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
-//  - 'Object' is from 'dart:core'.
-//   fooFoo7([F? x]) {}
-//               ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:65:10: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
-// Try changing type arguments so that they conform to the bounds.
-//   B<num> x;
-//          ^
+// class Bar8 extends B<dynamic> {}
+//                    ^
 // pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
 // class B<X extends int> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:66:15: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:28:3: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
 // Try changing type arguments so that they conform to the bounds.
-//   for (B<num> x in []) {}
-//               ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
-// class B<X extends int> {}
-//         ^
+//   F<A<dynamic>, A<Never>> x;
+//   ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:28:3: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+//   F<A<dynamic>, A<Never>> x;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:29:8: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   for (F<A<dynamic>, A<Never>> x in []) {}
+//        ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:29:8: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+//   for (F<A<dynamic>, A<Never>> x in []) {}
+//        ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:30:11: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   fooFoo1(F<A<dynamic>, A<Never>> x) {}
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:30:11: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+//   fooFoo1(F<A<dynamic>, A<Never>> x) {}
+//           ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:31:21: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   fooFoo2<X extends F<A<dynamic>, A<Never>>>() {}
+//                     ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:31:21: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+//   fooFoo2<X extends F<A<dynamic>, A<Never>>>() {}
+//                     ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:32:3: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   F<A<dynamic>, A<Never>> fooFoo4() => throw 42;
+//   ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:32:3: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+//   F<A<dynamic>, A<Never>> fooFoo4() => throw 42;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:33:21: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   fooFoo5({required F<A<dynamic>, A<Never>> x}) {}
+//                     ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:33:21: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+//   fooFoo5({required F<A<dynamic>, A<Never>> x}) {}
+//                     ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:34:12: Error: Type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   fooFoo7([F<A<dynamic>, A<Never>>? x]) {}
+//            ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:34:12: Context: If you want 'F<A<dynamic>, A<Never>>?' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>?' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+//   fooFoo7([F<A<dynamic>, A<Never>>? x]) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:38:3: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   F x;
+//   ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:38:3: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+//   F x;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:39:8: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   for (F x in []) {}
+//        ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:39:8: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+//   for (F x in []) {}
+//        ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:40:11: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   fooFoo1(F x) {}
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:40:11: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+//   fooFoo1(F x) {}
+//           ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:41:21: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   fooFoo2<X extends F>() {}
+//                     ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:41:21: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+//   fooFoo2<X extends F>() {}
+//                     ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:42:3: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   F fooFoo4() => throw 42;
+//   ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:42:3: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+//   F fooFoo4() => throw 42;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:43:21: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   fooFoo5({required F x}) {}
+//                     ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:43:21: Context: If you want 'F<A<dynamic>, A<Never>>' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+//   fooFoo5({required F x}) {}
+//                     ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:44:12: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'F'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   fooFoo7([F? x]) {}
+//            ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends A<X>, Y extends A<Y>> = X Function(Y);
+//           ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:44:12: Context: If you want 'F<A<dynamic>, A<Never>>?' to be a super-bounded type, note that the inverted type 'F<A<Never>, A<Object?>>?' must then satisfy its bounds, which it does not.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/super_bounded_hint.dart'.
+//  - 'Object' is from 'dart:core'.
+//   fooFoo7([F? x]) {}
+//            ^
 //
 // pkg/front_end/testcases/nnbd/super_bounded_hint.dart:72:7: Error: Type argument 'dynamic' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
 // Try changing type arguments so that they conform to the bounds.
@@ -476,50 +446,58 @@ library /*isNonNullableByDefault*/;
 // class B<X extends int> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:66:20: Error: Inferred type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
-//   for (B<num> x in []) {}
-//                    ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:65:3: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
+// Try changing type arguments so that they conform to the bounds.
+//   B<num> x;
+//   ^
 // pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
 // class B<X extends int> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:67:18: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:66:8: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
+// Try changing type arguments so that they conform to the bounds.
+//   for (B<num> x in []) {}
+//        ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
+// class B<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:67:11: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
 // Try changing type arguments so that they conform to the bounds.
 //   barBar1(B<num> x) {}
-//                  ^
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
-// class B<X extends int> {}
-//         ^
-//
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:68:11: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
-// Try changing type arguments so that they conform to the bounds.
-//   barBar2<X extends B<num>>() {}
 //           ^
 // pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
 // class B<X extends int> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:69:17: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B' in the return type.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:68:21: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
+// Try changing type arguments so that they conform to the bounds.
+//   barBar2<X extends B<num>>() {}
+//                     ^
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
+// class B<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:69:3: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
 // Try changing type arguments so that they conform to the bounds.
 //   B<num> barBar4() => throw 42;
-//                 ^
+//   ^
 // pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
 // class B<X extends int> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:70:28: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:70:21: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
 // Try changing type arguments so that they conform to the bounds.
 //   barBar5({required B<num> x}) {}
-//                            ^
+//                     ^
 // pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
 // class B<X extends int> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:71:20: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
+// pkg/front_end/testcases/nnbd/super_bounded_hint.dart:71:12: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
 // Try changing type arguments so that they conform to the bounds.
 //   barBar7([B<num>? x]) {}
-//                    ^
+//            ^
 // pkg/front_end/testcases/nnbd/super_bounded_hint.dart:52:9: Context: This is the type variable whose bound isn't conformed to.
 // class B<X extends int> {}
 //         ^

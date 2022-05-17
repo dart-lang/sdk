@@ -989,10 +989,6 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor {
   @override
   visitFunctionType(FunctionType node) {
     node.visitChildren(this);
-    final typedef = node.typedef;
-    if (typedef != null) {
-      shaker.addUsedTypedef(typedef);
-    }
   }
 
   @override

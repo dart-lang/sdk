@@ -211,8 +211,8 @@ class _MyWidgetState extends State<MyWidget>
 
   @override
   void dispose() {
-    super.dispose();
     _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -263,8 +263,8 @@ class _MyWidgetState extends State<MyWidget>
 
   @override
   void dispose() {
-    super.dispose();
     _controller.dispose();
+    super.dispose();
   }
 
   @override

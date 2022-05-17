@@ -120,8 +120,7 @@ class StaticInteropClassEraser extends Transformer {
               signatureType.declaredNullability,
               namedParameters: signatureType.namedParameters,
               typeParameters: signatureType.typeParameters,
-              requiredParameterCount: signatureType.requiredParameterCount,
-              typedefType: signatureType.typedefType);
+              requiredParameterCount: signatureType.requiredParameterCount);
         }
         return newProcedure;
       }

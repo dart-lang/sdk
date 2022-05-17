@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../common/elements.dart' show CommonElements;
 import '../common/names.dart';
 import '../options.dart';
 import '../serialization/serialization_interfaces.dart';
@@ -1696,22 +1697,10 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
   }
 }
 
-/// The subset of CommonElements methods needed for DartTypes.
-// TODO(48820): Replace with CommonElements once that is migrated.
-abstract class CommonElementsForDartTypes {
-  InterfaceType get nullType;
-  InterfaceType get intType;
-  InterfaceType get doubleType;
-  InterfaceType get functionType;
-  InterfaceType get objectType;
-  InterfaceType get jsJavaScriptFunctionType;
-  InterfaceType futureType(DartType elementType);
-}
-
 /// Basic interface for the Dart type system.
 abstract class DartTypes {
   /// The types defined in 'dart:core'.
-  CommonElementsForDartTypes get commonElements;
+  CommonElements get commonElements;
 
   bool get useLegacySubtyping;
 
