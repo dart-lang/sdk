@@ -1,0 +1,22 @@
+// @dart = 2.12
+import 'alias_from_opt_in_lib.dart';
+
+main() {}
+test(
+  T1 t1a,
+  List<T1> t1b,
+  void Function(T1) t1c,
+  void Function(List<T1>) t1d,
+  T2 t2a,
+  List<T2> t2b,
+  void Function(T2) t2c,
+  void Function(List<T2>) t2d,
+  T3 t3a,
+  List<T3> t3b,
+  void Function(T3) t3c,
+  void Function(List<T3>) t3d,
+  T4 t4a,
+  List<T4> t4b,
+  void Function(T4) t4c,
+  void Function(List<T4>) t4d,
+) {}

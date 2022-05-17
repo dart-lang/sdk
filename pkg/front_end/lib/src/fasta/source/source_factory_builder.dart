@@ -360,7 +360,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     if (redirectionTarget.typeArguments != null) {
       typeArguments = new List<DartType>.generate(
           redirectionTarget.typeArguments!.length,
-          (int i) => redirectionTarget.typeArguments![i].build(libraryBuilder),
+          (int i) => redirectionTarget.typeArguments![i]
+              .build(libraryBuilder, TypeUse.redirectionTypeArgument),
           growable: false);
     }
     updatePrivateMemberName(_procedureInternal, libraryBuilder);

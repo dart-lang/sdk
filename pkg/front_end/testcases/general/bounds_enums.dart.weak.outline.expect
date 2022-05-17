@@ -1,0 +1,63 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/bounds_enums.dart:11:6: Error: Inferred type argument 'A<dynamic>' doesn't conform to the bound 'Y Function(Y)' of the type variable 'Y' on 'E1'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// enum E1<Y extends A<Y>> /* Error */ {
+//      ^
+// pkg/front_end/testcases/general/bounds_enums.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// enum E1<Y extends A<Y>> /* Error */ {
+//         ^
+// pkg/front_end/testcases/general/bounds_enums.dart:11:6: Context: If you want 'E1<A<dynamic>>' to be a super-bounded type, note that the inverted type 'E1<A<Never>>' must then satisfy its bounds, which it does not.
+//  - 'E1' is from 'pkg/front_end/testcases/general/bounds_enums.dart'.
+// enum E1<Y extends A<Y>> /* Error */ {
+//      ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef A<invariant X extends core::Object? = dynamic> = (X%) → X%;
+class B<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::X%>
+    ;
+}
+class E1<Y extends (self::E1::Y) → self::E1::Y = (dynamic) → dynamic> extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E1<(dynamic) → dynamic>> values = const <self::E1<dynamic>>[self::E1::e1];
+  static const field self::E1<Never> e1 = const self::E1::•<Never>(0, "e1");
+  const constructor •(core::int index, core::String name) → self::E1<self::E1::Y>
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2<Y extends self::B<self::E2::Y> = self::B<dynamic>> extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E2<self::B<dynamic>>> values = const <self::E2<dynamic>>[self::E2::e2];
+  static const field self::E2<Never> e2 = const self::E2::•<Never>(0, "e2");
+  const constructor •(core::int index, core::String name) → self::E2<self::E2::Y>
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3<Y extends self::E3<self::E3::Y> = self::E3<dynamic>> extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E3<self::E3<dynamic>>> values = const <self::E3<dynamic>>[self::E3::e3];
+  static const field self::E3<Never> e3 = const self::E3::•<Never>(0, "e3");
+  const constructor •(core::int index, core::String name) → self::E3<self::E3::Y>
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_enums.dart:11:6 -> ListConstant(const <E1<dynamic>*>[const E1<Never*>{_Enum.index: 0, _Enum._name: "e1"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_enums.dart:12:3 -> InstanceConstant(const E1<Never*>{_Enum.index: 0, _Enum._name: "e1"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_enums.dart:15:6 -> ListConstant(const <E2<dynamic>*>[const E2<Never*>{_Enum.index: 0, _Enum._name: "e2"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_enums.dart:16:3 -> InstanceConstant(const E2<Never*>{_Enum.index: 0, _Enum._name: "e2"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///bounds_enums.dart:19:6 -> ListConstant(const <E3<dynamic>*>[const E3<Never*>{_Enum.index: 0, _Enum._name: "e3"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bounds_enums.dart:20:3 -> InstanceConstant(const E3<Never*>{_Enum.index: 0, _Enum._name: "e3"})
+Extra constant evaluation: evaluated: 21, effectively constant: 6

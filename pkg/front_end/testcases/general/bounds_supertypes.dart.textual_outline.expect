@@ -1,0 +1,218 @@
+class Class<T> {}
+
+class ConcreteClass implements Class<ConcreteClass> {}
+
+typedef F<X extends Class<X>> = Class<X>;
+
+class G<X extends Class<X>> {}
+
+class ExtendsT1 extends F {}
+
+class ExtendsT2 extends F<dynamic> {}
+
+class ExtendsT3 extends F<Class> {}
+
+class ExtendsT4 extends F<Class<dynamic>> {}
+
+class ExtendsT5 extends F<ConcreteClass> {}
+
+class ExtendsT6 extends F<Class<ConcreteClass>> {}
+
+class ExtendsT7 extends F<Object> {}
+
+class ExtendsT8 extends F<int> {}
+
+class ExtendsS1 extends G {}
+
+class ExtendsS2 extends G<dynamic> {}
+
+class ExtendsS3 extends G<Class> {}
+
+class ExtendsS4 extends G<Class<dynamic>> {}
+
+class ExtendsS5 extends G<ConcreteClass> {}
+
+class ExtendsS6 extends G<Class<ConcreteClass>> {}
+
+class ExtendsS7 extends G<Object> {}
+
+class ExtendsS8 extends G<int> {}
+
+class ImplementsT1 implements F {}
+
+class ImplementsT2 implements F<dynamic> {}
+
+class ImplementsT3 implements F<Class> {}
+
+class ImplementsT4 implements F<Class<dynamic>> {}
+
+class ImplementsT5 implements F<ConcreteClass> {}
+
+class ImplementsT6 implements F<Class<ConcreteClass>> {}
+
+class ImplementsT7 implements F<Object> {}
+
+class ImplementsT8 implements F<int> {}
+
+class ImplementsS1 implements G {}
+
+class ImplementsS2 implements G<dynamic> {}
+
+class ImplementsS3 implements G<Class> {}
+
+class ImplementsS4 implements G<Class<dynamic>> {}
+
+class ImplementsS5 implements G<ConcreteClass> {}
+
+class ImplementsS6 implements G<Class<ConcreteClass>> {}
+
+class ImplementsS7 implements G<Object> {}
+
+class ImplementsS8 implements G<int> {}
+
+class WithT1 with F {}
+
+class WithT2 with F<dynamic> {}
+
+class WithT3 with F<Class> {}
+
+class WithT4 with F<Class<dynamic>> {}
+
+class WithT5 with F<ConcreteClass> {}
+
+class WithT6 with F<Class<ConcreteClass>> {}
+
+class WithT7 with F<Object> {}
+
+class WithT8 with F<int> {}
+
+class WithS1 with G {}
+
+class WithS2 with G<dynamic> {}
+
+class WithS3 with G<Class> {}
+
+class WithS4 with G<Class<dynamic>> {}
+
+class WithS5 with G<ConcreteClass> {}
+
+class WithS6 with G<Class<ConcreteClass>> {}
+
+class WithS7 with G<Object> {}
+
+class WithS8 with G<int> {}
+
+enum EnumImplementsT1 implements F { a }
+
+enum EnumImplementsT2 implements F<dynamic> { a }
+
+enum EnumImplementsT3 implements F<Class> { a }
+
+enum EnumImplementsT4 implements F<Class<dynamic>> { a }
+
+enum EnumImplementsT5 implements F<ConcreteClass> { a }
+
+enum EnumImplementsT6 implements F<Class<ConcreteClass>> { a }
+
+enum EnumImplementsT7 implements F<Object> { a }
+
+enum EnumImplementsT8 implements F<int> { a }
+
+enum EnumImplementsS1 implements G { a }
+
+enum EnumImplementsS2 implements G<dynamic> { a }
+
+enum EnumImplementsS3 implements G<Class> { a }
+
+enum EnumImplementsS4 implements G<Class<dynamic>> { a }
+
+enum EnumImplementsS5 implements G<ConcreteClass> { a }
+
+enum EnumImplementsS6 implements G<Class<ConcreteClass>> { a }
+
+enum EnumImplementsS7 implements G<Object> { a }
+
+enum EnumImplementsS8 implements G<int> { a }
+
+enum EnumWithT1 with F { a }
+
+enum EnumWithT2 with F<dynamic> { a }
+
+enum EnumWithT3 with F<Class> { a }
+
+enum EnumWithT4 with F<Class<dynamic>> { a }
+
+enum EnumWithT5 with F<ConcreteClass> { a }
+
+enum EnumWithT6 with F<Class<ConcreteClass>> { a }
+
+enum EnumWithT7 with F<Object> { a }
+
+enum EnumWithT8 with F<int> { a }
+
+enum EnumWithS1 with G { a }
+
+enum EnumWithS2 with G<dynamic> { a }
+
+enum EnumWithS3 with G<Class> { a }
+
+enum EnumWithS4 with G<Class<dynamic>> { a }
+
+enum EnumWithS5 with G<ConcreteClass> { a }
+
+enum EnumWithS6 with G<Class<ConcreteClass>> { a }
+
+enum EnumWithS7 with G<Object> { a }
+
+enum EnumWithS8 with G<int> { a }
+
+mixin MixinOnT1 on F {}
+mixin MixinOnT2 on F<dynamic> {}
+mixin MixinOnT3 on F<Class> {}
+mixin MixinOnT4 on F<Class<dynamic>> {}
+mixin MixinOnT5 on F<ConcreteClass> {}
+mixin MixinOnT6 on F<Class<ConcreteClass>> {}
+mixin MixinOnT7 on F<Object> {}
+mixin MixinOnT8 on F<int> {}
+mixin MixinOnS1 on G {}
+mixin MixinOnS2 on G<dynamic> {}
+mixin MixinOnS3 on G<Class> {}
+mixin MixinOnS4 on G<Class<dynamic>> {}
+mixin MixinOnS5 on G<ConcreteClass> {}
+mixin MixinOnS6 on G<Class<ConcreteClass>> {}
+mixin MixinOnS7 on G<Object> {}
+mixin MixinOnS8 on G<int> {}
+
+extension ExtensionOnT1 on F {}
+
+extension ExtensionOnT2 on F<dynamic> {}
+
+extension ExtensionOnT3 on F<Class> {}
+
+extension ExtensionOnT4 on F<Class<dynamic>> {}
+
+extension ExtensionOnT5 on F<ConcreteClass> {}
+
+extension ExtensionOnT6 on F<Class<ConcreteClass>> {}
+
+extension ExtensionOnT7 on F<Object> {}
+
+extension ExtensionOnT8 on F<int> {}
+
+extension ExtensionOnS1 on G {}
+
+extension ExtensionOnS2 on G<dynamic> {}
+
+extension ExtensionOnS3 on G<Class> {}
+
+extension ExtensionOnS4 on G<Class<dynamic>> {}
+
+extension ExtensionOnS5 on G<ConcreteClass> {}
+
+extension ExtensionOnS6 on G<Class<ConcreteClass>> {}
+
+extension ExtensionOnS7 on G<Object> {}
+
+extension ExtensionOnS8 on G<int> {}
+
+main() {}

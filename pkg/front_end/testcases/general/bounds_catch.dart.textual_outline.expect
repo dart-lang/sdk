@@ -1,0 +1,41 @@
+class Class<T> {}
+
+class ConcreteClass implements Class<ConcreteClass> {}
+
+typedef F<X extends Class<X>> = X;
+
+class G<X extends Class<X>> {}
+
+t1a() {}
+t2a() {}
+t3a() {}
+t4a() {}
+t5a() {}
+t6a() {}
+t7a() {}
+t8a() {}
+s1a() {}
+s2a() {}
+s3a() {}
+s4a() {}
+s5a() {}
+s6a() {}
+s7a() {}
+s8a() {}
+t1b() {}
+t2b() {}
+t3b() {}
+t4b() {}
+t5b() {}
+t6b() {}
+t7b() {}
+t8b() {}
+s1b() {}
+s2b() {}
+s3b() {}
+s4b() {}
+s5b() {}
+s6b() {}
+s7b() {}
+s8b() {}
+main() {}

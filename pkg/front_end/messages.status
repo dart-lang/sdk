@@ -429,6 +429,7 @@ FunctionTypedParameterVar/part_wrapped_script1: Fail
 FunctionTypedParameterVar/script1: Fail
 FunctionUsedAsDec/analyzerCode: Fail
 GeneratorReturnsValue/example: Fail
+GenericFunctionTypeAsTypeArgumentThroughTypedef/example: Fail
 GetterNotFound/example: Fail
 GetterWithFormals/example: Fail
 IllegalAssignmentToNonAssignable/part_wrapped_script1: Fail
@@ -467,9 +468,6 @@ ImportAfterPart/script1: Fail
 IncompatibleRedirecteeFunctionType/part_wrapped_script6: Fail
 IncompatibleRedirecteeFunctionType/script6: Fail # Triggers multiple errors.
 IncompatibleRedirecteeFunctionTypeWarning/example: Fail
-IncorrectTypeArgumentInReturnTypeWarning/example: Fail
-IncorrectTypeArgumentInSupertypeInferredWarning/example: Fail
-IncorrectTypeArgumentInSupertypeWarning/example: Fail
 IncorrectTypeArgumentInferredWarning/example: Fail
 IncorrectTypeArgumentQualifiedInferredWarning/example: Fail
 IncorrectTypeArgumentQualifiedWarning/example: Fail

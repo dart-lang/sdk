@@ -4074,9 +4074,6 @@ class EquivalenceStrategy {
     if (!checkFunctionType_declaredNullability(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkFunctionType_typedefType(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkFunctionType_returnType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -7120,12 +7117,6 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, FunctionType node, FunctionType other) {
     return visitor.checkValues(node.declaredNullability,
         other.declaredNullability, 'declaredNullability');
-  }
-
-  bool checkFunctionType_typedefType(
-      EquivalenceVisitor visitor, FunctionType node, FunctionType other) {
-    return visitor.checkNodes(
-        node.typedefType, other.typedefType, 'typedefType');
   }
 
   bool checkFunctionType_returnType(

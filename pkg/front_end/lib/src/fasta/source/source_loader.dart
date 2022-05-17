@@ -84,6 +84,7 @@ import '../ticker.dart' show Ticker;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 import '../util/helpers.dart';
+import '../uris.dart';
 import 'diet_listener.dart' show DietListener;
 import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
 import 'name_scheme.dart';
@@ -717,6 +718,8 @@ class SourceLoader extends Loader {
       List<LocatedMessage>? context,
       bool problemOnLibrary: false,
       List<Uri>? involvedFiles}) {
+    assert(
+        fileUri != missingUri, "Message unexpectedly reported on missing uri.");
     severity ??= message.code.severity;
     if (severity == Severity.ignored) return null;
     String trace = """

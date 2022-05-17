@@ -1,0 +1,164 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/bounds_as_is.dart:19:16: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_as_is.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// t7a(o) => o as F<Object>; // Error
+//                ^
+// pkg/front_end/testcases/general/bounds_as_is.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_as_is.dart:20:16: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_as_is.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// t8a(o) => o as F<int>; // Error
+//                ^
+// pkg/front_end/testcases/general/bounds_as_is.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_as_is.dart:27:16: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_as_is.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// s7a(o) => o as G<Object>; // Error
+//                ^
+// pkg/front_end/testcases/general/bounds_as_is.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_as_is.dart:28:16: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_as_is.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// s8a(o) => o as G<int>; // Error
+//                ^
+// pkg/front_end/testcases/general/bounds_as_is.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_as_is.dart:36:16: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_as_is.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// t7b(o) => o is F<Object>; // Error
+//                ^
+// pkg/front_end/testcases/general/bounds_as_is.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_as_is.dart:37:16: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_as_is.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// t8b(o) => o is F<int>; // Error
+//                ^
+// pkg/front_end/testcases/general/bounds_as_is.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_as_is.dart:44:16: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_as_is.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// s7b(o) => o is G<Object>; // Error
+//                ^
+// pkg/front_end/testcases/general/bounds_as_is.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_as_is.dart:45:16: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_as_is.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// s8b(o) => o is G<int>; // Error
+//                ^
+// pkg/front_end/testcases/general/bounds_as_is.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F<X extends self::Class<X> = self::Class<dynamic>> = X;
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    : super core::Object::•()
+    ;
+}
+class ConcreteClass extends core::Object implements self::Class<self::ConcreteClass> {
+  synthetic constructor •() → self::ConcreteClass
+    : super core::Object::•()
+    ;
+}
+class G<X extends self::Class<self::G::X> = self::Class<dynamic>> extends core::Object {
+  synthetic constructor •() → self::G<self::G::X>
+    : super core::Object::•()
+    ;
+}
+static method t1a(dynamic o) → dynamic
+  return o as{ForNonNullableByDefault} self::Class<dynamic>;
+static method t2a(dynamic o) → dynamic
+  return o as{ForNonNullableByDefault} dynamic;
+static method t3a(dynamic o) → dynamic
+  return o as{ForNonNullableByDefault} self::Class<dynamic>;
+static method t4a(dynamic o) → dynamic
+  return o as{ForNonNullableByDefault} self::Class<dynamic>;
+static method t5a(dynamic o) → dynamic
+  return o as{ForNonNullableByDefault} self::ConcreteClass;
+static method t6a(dynamic o) → dynamic
+  return o as{ForNonNullableByDefault} self::Class<self::ConcreteClass>;
+static method t7a(dynamic o) → dynamic
+  return o;
+static method t8a(dynamic o) → dynamic
+  return o as{ForNonNullableByDefault} core::int;
+static method s1a(dynamic o) → dynamic
+  return o as{ForNonNullableByDefault} self::G<self::Class<dynamic>>;
+static method s2a(dynamic o) → dynamic
+  return o as{ForNonNullableByDefault} self::G<dynamic>;
+static method s3a(dynamic o) → dynamic
+  return o as{ForNonNullableByDefault} self::G<self::Class<dynamic>>;
+static method s4a(dynamic o) → dynamic
+  return o as{ForNonNullableByDefault} self::G<self::Class<dynamic>>;
+static method s5a(dynamic o) → dynamic
+  return o as{ForNonNullableByDefault} self::G<self::ConcreteClass>;
+static method s6a(dynamic o) → dynamic
+  return o as{ForNonNullableByDefault} self::G<self::Class<self::ConcreteClass>>;
+static method s7a(dynamic o) → dynamic
+  return o as{ForNonNullableByDefault} self::G<core::Object>;
+static method s8a(dynamic o) → dynamic
+  return o as{ForNonNullableByDefault} self::G<core::int>;
+static method t1b(dynamic o) → dynamic
+  return o is{ForNonNullableByDefault} self::Class<dynamic>;
+static method t2b(dynamic o) → dynamic
+  return o is{ForNonNullableByDefault} dynamic;
+static method t3b(dynamic o) → dynamic
+  return o is{ForNonNullableByDefault} self::Class<dynamic>;
+static method t4b(dynamic o) → dynamic
+  return o is{ForNonNullableByDefault} self::Class<dynamic>;
+static method t5b(dynamic o) → dynamic
+  return o is{ForNonNullableByDefault} self::ConcreteClass;
+static method t6b(dynamic o) → dynamic
+  return o is{ForNonNullableByDefault} self::Class<self::ConcreteClass>;
+static method t7b(dynamic o) → dynamic
+  return o is{ForNonNullableByDefault} core::Object;
+static method t8b(dynamic o) → dynamic
+  return o is{ForNonNullableByDefault} core::int;
+static method s1b(dynamic o) → dynamic
+  return o is{ForNonNullableByDefault} self::G<self::Class<dynamic>>;
+static method s2b(dynamic o) → dynamic
+  return o is{ForNonNullableByDefault} self::G<dynamic>;
+static method s3b(dynamic o) → dynamic
+  return o is{ForNonNullableByDefault} self::G<self::Class<dynamic>>;
+static method s4b(dynamic o) → dynamic
+  return o is{ForNonNullableByDefault} self::G<self::Class<dynamic>>;
+static method s5b(dynamic o) → dynamic
+  return o is{ForNonNullableByDefault} self::G<self::ConcreteClass>;
+static method s6b(dynamic o) → dynamic
+  return o is{ForNonNullableByDefault} self::G<self::Class<self::ConcreteClass>>;
+static method s7b(dynamic o) → dynamic
+  return o is{ForNonNullableByDefault} self::G<core::Object>;
+static method s8b(dynamic o) → dynamic
+  return o is{ForNonNullableByDefault} self::G<core::int>;
+static method main() → dynamic {}

@@ -13,6 +13,249 @@ import 'nullability_builder.dart';
 import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
 
+enum TypeUse {
+  /// A type used as the type of a parameter.
+  ///
+  /// For instance `X` and `Y` in
+  ///
+  ///    method(X p, {Y q}) {}
+  ///
+  parameterType,
+
+  /// A type used as the type of a field.
+  ///
+  /// For instance `X` and `Y` in
+  ///
+  ///    X topLevelField;
+  ///    class Class {
+  ///      Y instanceField;
+  ///    }
+  ///
+  fieldType,
+
+  /// A type used as the return type of a function.
+  ///
+  /// For instance `X` in
+  ///
+  ///    X method() { ... }
+  ///
+  returnType,
+
+  /// A type used as a type argument to a constructor invocation.
+  ///
+  /// For instance `X` in
+  ///
+  ///   class Class<T> {}
+  ///   method() => new Class<X>();
+  ///
+  constructorTypeArgument,
+
+  /// A type used as a type argument to a redirecting factory constructor
+  /// declaration.
+  ///
+  /// For instance `X` in
+  ///
+  ///   class Class<T> {
+  ///     Class();
+  ///     factory Class.redirect() = Class<X>;
+  ///   }
+  ///
+  redirectionTypeArgument,
+
+  /// A type used as the bound of a type parameter.
+  ///
+  /// For instance `X` and `Y` in
+  ///
+  ///    method<T extends X>() {}
+  ///    class Class<S extends Y> {}
+  ///
+  typeParameterBound,
+
+  /// A type computed as the default type for a type parameter.
+  ///
+  /// For instance the type `X` computed for `T` and the type `dynamic` computed
+  /// for `S`.
+  ///
+  ///    method<T extends X>() {}
+  ///    class Class<S> {}
+  ///
+  typeParameterDefaultType,
+
+  /// A type used as a type argument in the instantiation of a tear off.
+  ///
+  /// For instance `X` and `Y` in
+  ///
+  ///    class Class<S> {}
+  ///    method<T>() {
+  ///      Class<X>.new;
+  ///      method<Y>;
+  ///    }
+  ///
+  tearOffTypeArgument,
+
+  /// A type used in an extends, with or implements clause.
+  ///
+  /// For instance `X`, `Y`, `Z` in
+  ///
+  ///    class Class extends X with Y implements Z {}
+  ///
+  // TODO(johnniwinther): The probably enclosed the mixin on clause. Is this
+  // a correct handling wrt well-boundedness?
+  superType,
+
+  /// A type used in a with clause.
+  ///
+  /// For instance `X` in
+  ///
+  ///    class Class extends X {}
+  ///
+  /// This type use creates an intermediate type used for mixin inference. The
+  /// type is not check for well-boundedness and contains [UnknownType] where
+  /// type arguments are omitted.
+  mixedInType,
+
+  /// A type used in the on clause of an extension declaration.
+  ///
+  /// For instance `X` in
+  ///
+  ///    extension Extension on X {}
+  ///
+  extensionOnType,
+
+  /// A type used as the definition of a typedef.
+  ///
+  /// For instance `X`, `void Function()` in
+  ///
+  ///    typedef Typedef1 = X;
+  ///    typedef void Typedef2(); // The unaliased type is `void Function()`.
+  ///
+  typedefAlias,
+
+  /// An internally created function type used when build local functions.
+  functionSignature,
+
+  /// The this type of an enum.
+  // TODO(johnniwinther): This is doesn't currently have the correct value
+  // and/or well-boundedness checking.
+  enumSelfType,
+
+  /// A type used as a type literal.
+  ///
+  /// For instance `X` in
+  ///
+  ///    method() => X;
+  ///
+  /// where `X` is the name of a class.
+  typeLiteral,
+
+  /// A type used as a type argument to a literal.
+  ///
+  /// For instance `X`, `Y`, `Z`, and `W` in
+  ///
+  ///    method() {
+  ///      <X>[];
+  ///      <Y>{};
+  ///      <Z, W>{};
+  ///    }
+  ///
+  literalTypeArgument,
+
+  /// A type used as a type argument in an invocation.
+  ///
+  /// For instance `X`, `Y`, and `Z` in
+  ///
+  ///   staticMethod<T>(Class c, void Function<S>() f) {
+  ///     staticMethod<X>(c, f);
+  ///     c.instanceMethod<Y>();
+  ///     f<Z>();
+  ///   }
+  ///   class Class {
+  ///     instanceMethod<U>() {}
+  ///   }
+  invocationTypeArgument,
+
+  /// A type used as the type in an is-test.
+  ///
+  /// For instance `X` in
+  ///
+  ///    method(o) => o is X;
+  ///
+  isType,
+
+  /// A type used as the type in an as-cast.
+  ///
+  /// For instance `X` in
+  ///
+  ///    method(o) => o as X;
+  ///
+  asType,
+
+  /// A type used as the type of local variable.
+  ///
+  /// For instance `X` in
+  ///
+  ///    method() {
+  ///      X local;
+  ///    }
+  ///
+  variableType,
+
+  /// A type used as the catch type in a catch clause.
+  ///
+  /// For instance `X` in
+  ///
+  ///    method() {
+  ///      try {
+  ///      } on X catch (e) {
+  ///      }
+  ///    }
+  ///
+  catchType,
+
+  /// A type used as an instantiation argument.
+  ///
+  /// For instance `X` in
+  ///
+  ///   method(void Function<T>() f) {
+  ///     f<X>;
+  ///   }
+  ///
+  instantiation,
+
+  /// A type used as a type argument within another type.
+  ///
+  /// For instance `X`, `Y`, `Z` and `W` in
+  ///
+  ///   method(List<X> a, Y Function(Z) f) {}
+  ///   class Class implements List<W> {}
+  ///
+  typeArgument,
+
+  /// The default type of a type parameter used as the type argument in a raw
+  /// type.
+  ///
+  /// For instance `X` implicitly inside `Class<X>` in the type of `cls` in
+  ///
+  ///   class Class<T extends X> {}
+  ///   Class cls;
+  ///
+  defaultTypeAsTypeArgument,
+
+  /// A type from a deferred library. This is an error case.
+  ///
+  /// For instance `X` in
+  ///
+  ///   import 'foo.dart' deferred as prefix;
+  ///
+  ///   prefix.X field;
+  ///
+  deferredTypeError,
+
+  /// A type used as a type argument in the construction of a type through the
+  /// macro API.
+  macroTypeArgument,
+}
+
 abstract class TypeBuilder {
   const TypeBuilder();
 
@@ -60,7 +303,23 @@ abstract class TypeBuilder {
 
   String get fullNameForErrors => "${printOn(new StringBuffer())}";
 
-  DartType build(LibraryBuilder library);
+  /// Creates the [DartType] from this [TypeBuilder] that doesn't contain
+  /// [TypedefType].
+  ///
+  /// [library] is used to determine nullabilities and for registering well-
+  /// boundedness checks on the created type. [typeUse] describes how the
+  /// type is used which determine which well-boundedness checks are applied.
+  DartType build(LibraryBuilder library, TypeUse typeUse);
+
+  /// Creates the [DartType] from this [TypeBuilder] that contains
+  /// [TypedefType]. This is used to create types internal on which well-
+  /// boundedness checks can be permit. Calls from outside the [TypeBuilder]
+  /// subclasses should generally use [build] instead.
+  ///
+  /// [library] is used to determine nullabilities and for registering well-
+  /// boundedness checks on the created type. [typeUse] describes how the
+  /// type is used which determine which well-boundedness checks are applied.
+  DartType buildAliased(LibraryBuilder library, TypeUse typeUse);
 
   Supertype? buildSupertype(LibraryBuilder library);
 

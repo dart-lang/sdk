@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart'
         NamedType,
         Supertype,
         TypeParameter;
+import 'package:kernel/src/unaliasing.dart';
 
 import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
 
@@ -84,19 +85,29 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   @override
-  FunctionType build(LibraryBuilder library) {
-    return _type ??= _buildInternal(library);
+  FunctionType build(LibraryBuilder library, TypeUse typeUse) {
+    return _type ??= _buildInternal(library, typeUse) as FunctionType;
   }
 
-  FunctionType _buildInternal(LibraryBuilder library) {
+  DartType _buildInternal(LibraryBuilder library, TypeUse typeUse) {
+    DartType aliasedType = buildAliased(library, typeUse);
+    return unalias(aliasedType,
+        legacyEraseAliases: !library.isNonNullableByDefault);
+  }
+
+  @override
+  DartType buildAliased(LibraryBuilder library, TypeUse typeUse) {
     DartType builtReturnType =
-        returnType?.build(library) ?? const DynamicType();
+        returnType?.buildAliased(library, TypeUse.returnType) ??
+            const DynamicType();
     List<DartType> positionalParameters = <DartType>[];
     List<NamedType>? namedParameters;
     int requiredParameterCount = 0;
     if (formals != null) {
       for (ParameterBuilder formal in formals!) {
-        DartType type = formal.type?.build(library) ?? const DynamicType();
+        DartType type =
+            formal.type?.buildAliased(library, TypeUse.parameterType) ??
+                const DynamicType();
         if (formal.isPositional) {
           positionalParameters.add(type);
           if (formal.isRequiredPositional) requiredParameterCount++;
@@ -116,7 +127,7 @@ class FunctionTypeBuilder extends TypeBuilder {
       for (TypeVariableBuilder t in typeVariables!) {
         typeParameters.add(t.parameter);
         // Build the bound to detect cycles in typedefs.
-        t.bound?.build(library);
+        t.bound?.build(library, TypeUse.typeParameterBound);
       }
     }
     return new FunctionType(positionalParameters, builtReturnType,

@@ -15,6 +15,7 @@ import '../fasta_codes.dart'
 
 import '../scope.dart';
 import '../source/source_library_builder.dart';
+import '../uris.dart';
 import '../util/helpers.dart';
 
 import 'builder.dart';
@@ -119,11 +120,15 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
   }
 
   @override
-  DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
+  DartType buildAliasedType(
+      LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder,
+      List<TypeBuilder>? arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      {required bool hasExplicitTypeArguments}) {
     if (arguments != null) {
-      int charOffset = -1; // TODO(ahe): Provide these.
-      Uri? fileUri = null; // TODO(ahe): Provide these.
       library.addProblem(
           templateTypeArgumentsOnTypeVariable.withArguments(name),
           charOffset,
@@ -148,26 +153,34 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     } else {
       nullability = nullabilityBuilder.build(library);
     }
-    TypeParameterType type =
-        buildTypeWithBuiltArguments(library, nullability, null);
+    TypeParameterType type = buildAliasedTypeWithBuiltArguments(
+        library, nullability, null, typeUse, fileUri, charOffset,
+        hasExplicitTypeArguments: hasExplicitTypeArguments);
     if (needsPostUpdate) {
       if (library is SourceLibraryBuilder) {
-        library.registerPendingNullability(fileUri!, charOffset, type);
+        library.registerPendingNullability(
+            this.fileUri!, this.charOffset, type);
       } else {
         library.addProblem(
             templateInternalProblemUnfinishedTypeVariable.withArguments(
                 name, library.importUri),
-            charOffset,
+            this.charOffset,
             name.length,
-            fileUri);
+            this.fileUri);
       }
     }
     return type;
   }
 
   @override
-  TypeParameterType buildTypeWithBuiltArguments(LibraryBuilder library,
-      Nullability nullability, List<DartType>? arguments) {
+  TypeParameterType buildAliasedTypeWithBuiltArguments(
+      LibraryBuilder library,
+      Nullability nullability,
+      List<DartType>? arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      {required bool hasExplicitTypeArguments}) {
     if (arguments != null) {
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri? fileUri = null; // TODO(ahe): Provide these.
@@ -183,10 +196,17 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
   void finish(
       LibraryBuilder library, ClassBuilder object, TypeBuilder dynamicType) {
     if (isPatch) return;
-    DartType objectType =
-        object.buildType(library, library.nullableBuilder, null);
+    DartType objectType = object.buildAliasedType(
+        library,
+        library.nullableBuilder,
+        null,
+        TypeUse.typeParameterBound,
+        fileUri ?? missingUri,
+        charOffset,
+        hasExplicitTypeArguments: false);
     if (identical(parameter.bound, TypeParameter.unsetBoundSentinel)) {
-      parameter.bound = bound?.build(library) ?? objectType;
+      parameter.bound =
+          bound?.build(library, TypeUse.typeParameterBound) ?? objectType;
     }
     // If defaultType is not set, initialize it to dynamic, unless the bound is
     // explicitly specified as Object, in which case defaultType should also be
@@ -194,10 +214,11 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     // explicit Object bound results in Object as the instantiated type.
     if (identical(
         parameter.defaultType, TypeParameter.unsetDefaultTypeSentinel)) {
-      parameter.defaultType = defaultType?.build(library) ??
+      parameter.defaultType = defaultType?.build(
+              library, TypeUse.typeParameterDefaultType) ??
           (bound != null && parameter.bound == objectType
               ? objectType
-              : dynamicType.build(library));
+              : dynamicType.build(library, TypeUse.typeParameterDefaultType));
     }
   }
 

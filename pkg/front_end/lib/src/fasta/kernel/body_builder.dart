@@ -85,7 +85,7 @@ import '../source/source_enum_builder.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_function_builder.dart';
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../source/source_library_builder.dart';
 import '../source/source_procedure_builder.dart';
 import '../source/stack_listener_impl.dart'
     show StackListenerImpl, offsetForToken;
@@ -1010,7 +1010,8 @@ class BodyBuilder extends StackListenerImpl
       // `invalid-type`.
       TypeBuilder? type = pop() as TypeBuilder?;
       if (type != null) {
-        buildDartType(type, allowPotentiallyConstantType: false);
+        buildDartType(type, TypeUse.fieldType,
+            allowPotentiallyConstantType: false);
       }
     }
     pop(); // Annotations.
@@ -1030,7 +1031,7 @@ class BodyBuilder extends StackListenerImpl
     _unaliasTypeAliasedConstructorInvocations();
     _unaliasTypeAliasedFactoryInvocations(typeAliasedFactoryInvocations);
     _resolveRedirectingFactoryTargets(redirectingFactoryInvocations);
-    libraryBuilder.checkUncheckedTypedefTypes(typeEnvironment);
+    libraryBuilder.checkPendingBoundsChecks(typeEnvironment);
     if (hasDelayedActions) {
       assert(
           delayedActionPerformers != null,
@@ -2193,7 +2194,7 @@ class BodyBuilder extends StackListenerImpl
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
       forest.argumentsSetTypeArguments(
           arguments,
-          buildDartTypeArguments(typeArguments,
+          buildDartTypeArguments(typeArguments, TypeUse.invocationTypeArgument,
               allowPotentiallyConstantType: false));
     } else {
       assert(typeArguments == null ||
@@ -3280,8 +3281,6 @@ class BodyBuilder extends StackListenerImpl
       ..fileOffset = identifier.charOffset
       ..fileEqualsOffset = offsetForToken(equalsToken);
     typeInferrer.assignedVariables.declare(variable);
-    libraryBuilder.checkBoundsInVariableDeclaration(
-        variable, typeEnvironment, uri);
     push(variable);
   }
 
@@ -3363,7 +3362,8 @@ class BodyBuilder extends StackListenerImpl
     }
     TypeBuilder? unresolvedType = pop(NullValue.TypeBuilder) as TypeBuilder?;
     DartType? type = unresolvedType != null
-        ? buildDartType(unresolvedType, allowPotentiallyConstantType: false)
+        ? buildDartType(unresolvedType, TypeUse.variableType,
+            allowPotentiallyConstantType: false)
         : null;
     int modifiers = (lateToken != null ? lateMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
@@ -3805,7 +3805,8 @@ class BodyBuilder extends StackListenerImpl
             lengthOfSpan(leftBracket, leftBracket.endGroup));
         typeArgument = const InvalidType();
       } else {
-        typeArgument = buildDartType(typeArguments.single,
+        typeArgument = buildDartType(
+            typeArguments.single, TypeUse.literalTypeArgument,
             allowPotentiallyConstantType: false);
         typeArgument = instantiateToBounds(
             typeArgument, coreTypes.objectClass, libraryBuilder.library);
@@ -3822,7 +3823,6 @@ class BodyBuilder extends StackListenerImpl
         expressions,
         isConst: constKeyword != null ||
             constantContext == ConstantContext.inferred);
-    libraryBuilder.checkBoundsInListLiteral(node, typeEnvironment, uri);
     push(node);
   }
 
@@ -3830,7 +3830,8 @@ class BodyBuilder extends StackListenerImpl
       Token leftBrace, List<dynamic>? setOrMapEntries) {
     DartType typeArgument;
     if (typeArguments != null) {
-      typeArgument = buildDartType(typeArguments.single,
+      typeArgument = buildDartType(
+          typeArguments.single, TypeUse.literalTypeArgument,
           allowPotentiallyConstantType: false);
       typeArgument = instantiateToBounds(
           typeArgument, coreTypes.objectClass, libraryBuilder.library);
@@ -3861,7 +3862,6 @@ class BodyBuilder extends StackListenerImpl
         expressions,
         isConst: constKeyword != null ||
             constantContext == ConstantContext.inferred);
-    libraryBuilder.checkBoundsInSetLiteral(node, typeEnvironment, uri);
     push(node);
   }
 
@@ -3971,9 +3971,9 @@ class BodyBuilder extends StackListenerImpl
         keyType = const InvalidType();
         valueType = const InvalidType();
       } else {
-        keyType = buildDartType(typeArguments[0],
+        keyType = buildDartType(typeArguments[0], TypeUse.literalTypeArgument,
             allowPotentiallyConstantType: false);
-        valueType = buildDartType(typeArguments[1],
+        valueType = buildDartType(typeArguments[1], TypeUse.literalTypeArgument,
             allowPotentiallyConstantType: false);
         keyType = instantiateToBounds(
             keyType, coreTypes.objectClass, libraryBuilder.library);
@@ -3995,7 +3995,6 @@ class BodyBuilder extends StackListenerImpl
         entries,
         isConst: constKeyword != null ||
             constantContext == ConstantContext.inferred);
-    libraryBuilder.checkBoundsInMapLiteral(node, typeEnvironment, uri);
     push(node);
   }
 
@@ -4222,10 +4221,8 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleAsOperator(Token operator) {
     debugEvent("AsOperator");
-    DartType type = buildDartType(pop() as TypeBuilder,
+    DartType type = buildDartType(pop() as TypeBuilder, TypeUse.asType,
         allowPotentiallyConstantType: libraryBuilder.isNonNullableByDefault);
-    libraryBuilder.checkBoundsInType(
-        type, typeEnvironment, uri, operator.charOffset);
     Expression expression = popForValue();
     Expression asExpression = forest.createAsExpression(
         offsetForToken(operator), expression, type,
@@ -4246,15 +4243,13 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleIsOperator(Token isOperator, Token? not) {
     debugEvent("IsOperator");
-    DartType type = buildDartType(pop() as TypeBuilder,
+    DartType type = buildDartType(pop() as TypeBuilder, TypeUse.isType,
         allowPotentiallyConstantType: libraryBuilder.isNonNullableByDefault);
     Expression operand = popForValue();
     Expression isExpression = forest.createIsExpression(
         offsetForToken(isOperator), operand, type,
         forNonNullableByDefault: libraryBuilder.isNonNullableByDefault,
         notFileOffset: not != null ? offsetForToken(not) : null);
-    libraryBuilder.checkBoundsInType(
-        type, typeEnvironment, uri, isOperator.charOffset);
     push(isExpression);
   }
 
@@ -4351,16 +4346,6 @@ class BodyBuilder extends StackListenerImpl
     }
     Object? nameNode = pop();
     TypeBuilder? type = pop() as TypeBuilder?;
-    if (functionNestingLevel == 0 && type != null) {
-      // TODO(ahe): The type we compute here may be different from what is
-      // computed in the outline phase. We should make sure that the outline
-      // phase computes the same type. See
-      // pkg/front_end/testcases/deferred_type_annotation.dart for an example
-      // where not calling [buildDartType] leads to a missing compile-time
-      // error. Also, notice that the type of the problematic parameter isn't
-      // `invalid-type`.
-      buildDartType(type, allowPotentiallyConstantType: false);
-    }
     Token? varOrFinalOrConst = pop(NullValue.Token) as Token?;
     if (superKeyword != null &&
         varOrFinalOrConst != null &&
@@ -4569,7 +4554,7 @@ class BodyBuilder extends StackListenerImpl
         popIfNotNull(onKeyword) as TypeBuilder?;
     DartType exceptionType;
     if (unresolvedExceptionType != null) {
-      exceptionType = buildDartType(unresolvedExceptionType,
+      exceptionType = buildDartType(unresolvedExceptionType, TypeUse.catchType,
           allowPotentiallyConstantType: false);
     } else {
       exceptionType = (libraryBuilder.isNonNullableByDefault
@@ -5285,7 +5270,7 @@ class BodyBuilder extends StackListenerImpl
         receiver = forest.createInstantiation(
             instantiationOffset,
             receiver,
-            buildDartTypeArguments(typeArguments,
+            buildDartTypeArguments(typeArguments, TypeUse.tearOffTypeArgument,
                 allowPotentiallyConstantType: true));
       }
       return forest.createMethodInvocation(invocationOffset, receiver,
@@ -5295,7 +5280,8 @@ class BodyBuilder extends StackListenerImpl
         assert(forest.argumentsTypeArguments(arguments).isEmpty);
         forest.argumentsSetTypeArguments(
             arguments,
-            buildDartTypeArguments(typeArguments,
+            buildDartTypeArguments(
+                typeArguments, TypeUse.constructorTypeArgument,
                 allowPotentiallyConstantType: false));
       }
       return buildUnresolvedError(
@@ -5437,7 +5423,8 @@ class BodyBuilder extends StackListenerImpl
             }
             List<DartType> dartTypeArguments = [];
             for (TypeBuilder typeBuilder in unaliasedTypeArgumentBuilders) {
-              dartTypeArguments.add(typeBuilder.build(libraryBuilder));
+              dartTypeArguments.add(typeBuilder.build(
+                  libraryBuilder, TypeUse.constructorTypeArgument));
             }
             assert(forest.argumentsTypeArguments(arguments).isEmpty);
             forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
@@ -5452,8 +5439,8 @@ class BodyBuilder extends StackListenerImpl
             typeArgumentBuilders.length, const DynamicType(),
             growable: false);
         for (int i = 0; i < typeArgumentsToCheck.length; ++i) {
-          typeArgumentsToCheck[i] =
-              typeArgumentBuilders[i].build(libraryBuilder);
+          typeArgumentsToCheck[i] = typeArgumentBuilders[i]
+              .build(libraryBuilder, TypeUse.constructorTypeArgument);
         }
       }
       DartType typeToCheck = new TypedefType(
@@ -5491,7 +5478,8 @@ class BodyBuilder extends StackListenerImpl
           }
           List<DartType> dartTypeArguments = [];
           for (TypeBuilder typeBuilder in unaliasedTypeArgumentBuilders) {
-            dartTypeArguments.add(typeBuilder.build(libraryBuilder));
+            dartTypeArguments.add(typeBuilder.build(
+                libraryBuilder, TypeUse.constructorTypeArgument));
           }
           assert(forest.argumentsTypeArguments(arguments).isEmpty);
           forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
@@ -5505,8 +5493,8 @@ class BodyBuilder extends StackListenerImpl
               // No type arguments provided to unaliased class, use defaults.
               List<DartType> result = new List<DartType>.generate(
                   cls.typeVariables!.length,
-                  (int i) => cls.typeVariables![i].defaultType!
-                      .build(cls.libraryBuilder),
+                  (int i) => cls.typeVariables![i].defaultType!.build(
+                      cls.libraryBuilder, TypeUse.constructorTypeArgument),
                   growable: true);
               forest.argumentsSetTypeArguments(arguments, result);
             }
@@ -5518,7 +5506,8 @@ class BodyBuilder extends StackListenerImpl
         assert(forest.argumentsTypeArguments(arguments).isEmpty);
         forest.argumentsSetTypeArguments(
             arguments,
-            buildDartTypeArguments(typeArguments,
+            buildDartTypeArguments(
+                typeArguments, TypeUse.constructorTypeArgument,
                 allowPotentiallyConstantType: false));
       }
     }
@@ -7195,7 +7184,7 @@ class BodyBuilder extends StackListenerImpl
       } else {
         push(new Instantiation(
             toValue(operand),
-            buildDartTypeArguments(typeArguments,
+            buildDartTypeArguments(typeArguments, TypeUse.tearOffTypeArgument,
                 allowPotentiallyConstantType: true))
           ..fileOffset = openAngleBracket.charOffset);
       }
@@ -7425,20 +7414,28 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  DartType buildDartType(TypeBuilder typeBuilder,
+  DartType buildDartType(TypeBuilder typeBuilder, TypeUse typeUse,
       {required bool allowPotentiallyConstantType}) {
     return validateTypeVariableUse(typeBuilder,
             allowPotentiallyConstantType: allowPotentiallyConstantType)
-        .build(libraryBuilder);
+        .build(libraryBuilder, typeUse);
+  }
+
+  DartType buildAliasedDartType(TypeBuilder typeBuilder, TypeUse typeUse,
+      {required bool allowPotentiallyConstantType}) {
+    return validateTypeVariableUse(typeBuilder,
+            allowPotentiallyConstantType: allowPotentiallyConstantType)
+        .buildAliased(libraryBuilder, typeUse);
   }
 
   @override
-  List<DartType> buildDartTypeArguments(List<TypeBuilder>? unresolvedTypes,
+  List<DartType> buildDartTypeArguments(
+      List<TypeBuilder>? unresolvedTypes, TypeUse typeUse,
       {required bool allowPotentiallyConstantType}) {
     if (unresolvedTypes == null) return <DartType>[];
     return new List<DartType>.generate(
         unresolvedTypes.length,
-        (int i) => buildDartType(unresolvedTypes[i],
+        (int i) => buildDartType(unresolvedTypes[i], typeUse,
             allowPotentiallyConstantType: allowPotentiallyConstantType),
         growable: true);
   }
@@ -7652,9 +7649,12 @@ class FormalParameters {
       AsyncMarker asyncModifier,
       Statement body,
       int fileEndOffset) {
+    // TODO(johnniwinther): Avoid creating a FunctionTypeBuilder to create
+    // the function. The function type is not written as a type by the user
+    // and shouldn't be checked as such.
     FunctionType type = toFunctionType(
             returnType, const NullabilityBuilder.omitted(), typeParameters)
-        .build(library) as FunctionType;
+        .build(library, TypeUse.functionSignature) as FunctionType;
     List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
     List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
     if (parameters != null) {

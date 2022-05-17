@@ -48,7 +48,12 @@ class FixedTypeBuilder extends TypeBuilder {
   }
 
   @override
-  DartType build(LibraryBuilder library) {
+  DartType build(LibraryBuilder library, TypeUse typeUse) {
+    return type;
+  }
+
+  @override
+  DartType buildAliased(LibraryBuilder library, TypeUse typeUse) {
     return type;
   }
 

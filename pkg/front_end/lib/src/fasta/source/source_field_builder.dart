@@ -367,7 +367,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   /// Builds the core AST structures for this field as needed for the outline.
   void build() {
     if (type != null) {
-      fieldType = type!.build(libraryBuilder);
+      fieldType = type!.build(libraryBuilder, TypeUse.fieldType);
     }
     _fieldEncoding.build(libraryBuilder, this);
   }

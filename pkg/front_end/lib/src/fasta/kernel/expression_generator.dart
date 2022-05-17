@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/src/unaliasing.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_algebra.dart';
 
@@ -56,7 +57,6 @@ import '../problems.dart';
 
 import '../scope.dart';
 
-import '../source/source_library_builder.dart';
 import '../source/stack_listener_impl.dart' show offsetForToken;
 
 import 'body_builder.dart' show noLocation;
@@ -261,7 +261,8 @@ abstract class Generator {
       int fileOffset, List<TypeBuilder>? typeArguments) {
     return new Instantiation(
         buildSimpleRead(),
-        _helper.buildDartTypeArguments(typeArguments,
+        _helper.buildDartTypeArguments(
+            typeArguments, TypeUse.tearOffTypeArgument,
             allowPotentiallyConstantType: true))
       ..fileOffset = fileOffset;
   }
@@ -2920,7 +2921,7 @@ class DeferredAccessGenerator extends Generator {
       int charOffset = offsetForToken(prefixGenerator.token);
       message = templateDeferredTypeAnnotation
           .withArguments(
-              _helper.buildDartType(type,
+              _helper.buildDartType(type, TypeUse.deferredTypeError,
                   allowPotentiallyConstantType: allowPotentiallyConstantType),
               prefixGenerator._plainNameForRead,
               _helper.libraryBuilder.isNonNullableByDefault)
@@ -3084,6 +3085,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 buildTypeWithResolvedArguments(
                     _helper.libraryBuilder.nonNullableBuilder, typeArguments,
                     allowPotentiallyConstantType: true, forTypeLiteral: true),
+                TypeUse.typeLiteral,
                 allowPotentiallyConstantType:
                     _helper.libraryFeatures.constructorTearoffs.isEnabled));
       }
@@ -3127,14 +3129,15 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       } else {
         if (declarationBuilder is DeclarationBuilder) {
           if (aliasedTypeArguments != null) {
-            _helper.libraryBuilder.uncheckedTypedefTypes.add(
-                new UncheckedTypedefType(new TypedefType(
-                    aliasBuilder.typedef,
-                    _helper.libraryBuilder.nonNullable,
-                    aliasBuilder.buildTypeArguments(
-                        _helper.libraryBuilder, aliasedTypeArguments)))
-                  ..fileUri = _uri
-                  ..offset = fileOffset);
+            new NamedTypeBuilder(
+                aliasBuilder.name, const NullabilityBuilder.omitted(),
+                arguments: aliasedTypeArguments,
+                fileUri: _uri,
+                charOffset: fileOffset,
+                instanceTypeVariableAccess:
+                    _helper.instanceTypeVariableAccessState)
+              ..bind(_helper.libraryBuilder, aliasBuilder)
+              ..build(_helper.libraryBuilder, TypeUse.instantiation);
           }
 
           // If the arguments weren't supplied, the tear off is treated as
@@ -3225,12 +3228,15 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                     builtTypeArguments.add(typeParameter.defaultType);
                   }
                 } else {
-                  builtTypeArguments = declarationBuilder.buildTypeArguments(
-                      _helper.libraryBuilder, unaliasedTypeArguments);
+                  builtTypeArguments = unaliasTypes(
+                      declarationBuilder.buildAliasedTypeArguments(
+                          _helper.libraryBuilder, unaliasedTypeArguments),
+                      legacyEraseAliases:
+                          !_helper.libraryBuilder.isNonNullableByDefault)!;
                 }
               } else if (typeArguments != null) {
                 builtTypeArguments = _helper.buildDartTypeArguments(
-                    typeArguments,
+                    typeArguments, TypeUse.tearOffTypeArgument,
                     allowPotentiallyConstantType: true);
               }
               if (isGenericTypedefTearOff) {
@@ -3262,6 +3268,10 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                         .add(freshTypeParameters.substitute(builtTypeArgument));
                   }
                 }
+                substitutedTypeArguments = unaliasTypes(
+                    substitutedTypeArguments,
+                    legacyEraseAliases:
+                        !_helper.libraryBuilder.isNonNullableByDefault);
 
                 tearOffExpression = _helper.forest.createTypedefTearOff(
                     token.charOffset,
@@ -3271,6 +3281,10 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               } else {
                 if (builtTypeArguments != null &&
                     builtTypeArguments.isNotEmpty) {
+                  builtTypeArguments = unaliasTypes(builtTypeArguments,
+                      legacyEraseAliases:
+                          !_helper.libraryBuilder.isNonNullableByDefault)!;
+
                   tearOffExpression = _helper.forest.createInstantiation(
                       token.charOffset, tearOffExpression, builtTypeArguments);
                 }
@@ -3672,7 +3686,8 @@ abstract class ErroneousExpressionGenerator extends Generator {
       assert(_forest.argumentsTypeArguments(arguments).isEmpty);
       _forest.argumentsSetTypeArguments(
           arguments,
-          _helper.buildDartTypeArguments(typeArguments,
+          _helper.buildDartTypeArguments(
+              typeArguments, TypeUse.constructorTypeArgument,
               allowPotentiallyConstantType: false));
     }
     return buildError(arguments, kind: UnresolvedKind.Constructor);

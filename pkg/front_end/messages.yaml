@@ -4453,22 +4453,6 @@ IncorrectTypeArgumentQualified:
     class C<T> { foo<U extends num>() {} }
     main() { new C<String>().foo<String>(); }
 
-IncorrectTypeArgumentInSupertype:
-  problemMessage: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'."
-  correctionMessage: "Try changing type arguments so that they conform to the bounds."
-  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  script: >
-    class A<T extends num> {}
-    class B extends A<String> {}
-
-IncorrectTypeArgumentInReturnType:
-  problemMessage: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the return type."
-  correctionMessage: "Try changing type arguments so that they conform to the bounds."
-  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  script: >
-    class A<T extends num> {}
-    A<String> foo() => throw '';
-
 IncorrectTypeArgumentInferred:
   problemMessage: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'."
   correctionMessage: "Try specifying type arguments explicitly so that they conform to the bounds."
@@ -4484,14 +4468,6 @@ IncorrectTypeArgumentQualifiedInferred:
   script: >
     class C<T> { foo<U extends num>(U u) {} }
     main() { new C<String>().foo(""); }
-
-IncorrectTypeArgumentInSupertypeInferred:
-  problemMessage: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'."
-  correctionMessage: "Try specifying type arguments explicitly so that they conform to the bounds."
-  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  script: >
-    class A<T extends A<T>> {}
-    class B extends A {}
 
 IncorrectTypeArgumentInstantiation:
   problemMessage: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'."
@@ -4559,6 +4535,11 @@ GenericFunctionTypeInferredAsActualTypeArgument:
     foo<X>(X x) => null;
     bar<Y>(Y y) => null;
     main() { foo(bar); }
+
+GenericFunctionTypeAsTypeArgumentThroughTypedef:
+  problemMessage: "Generic function type '#type' used as a type argument through typedef '#type2'."
+  correctionMessage: "Try providing a non-generic function type explicitly."
+  analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
 
 # These two message templates are used for constructing supplemental text
 # about the origins of raw interface types in error messages containing types.

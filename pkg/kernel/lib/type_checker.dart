@@ -566,8 +566,7 @@ class TypeCheckingVisitor
         result.declaredNullability,
         namedParameters: result.namedParameters,
         typeParameters: freshTypeParameters.freshTypeParameters,
-        requiredParameterCount: result.requiredParameterCount,
-        typedefType: null);
+        requiredParameterCount: result.requiredParameterCount);
   }
 
   @override

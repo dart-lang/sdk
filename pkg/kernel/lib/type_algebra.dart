@@ -168,10 +168,7 @@ class FreshTypeParameters {
         substitute(type.returnType), type.nullability,
         namedParameters: type.namedParameters.map(substituteNamed).toList(),
         typeParameters: freshTypeParameters,
-        requiredParameterCount: type.requiredParameterCount,
-        typedefType: type.typedefType == null
-            ? null
-            : substitute(type.typedefType!) as TypedefType);
+        requiredParameterCount: type.requiredParameterCount);
   }
 
   DartType substitute(DartType type) => substitution.substituteType(type);
@@ -769,15 +766,11 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
         : node.namedParameters.map(inner.visitNamedType).toList();
     inner.invertVariance();
     DartType returnType = inner.visit(node.returnType);
-    TypedefType? typedefType = node.typedefType == null
-        ? null
-        : inner.visit(node.typedefType!) as TypedefType;
     if (this.useCounter == before) return node;
     return new FunctionType(positionalParameters, returnType, node.nullability,
         namedParameters: namedParameters,
         typeParameters: typeParameters,
-        requiredParameterCount: node.requiredParameterCount,
-        typedefType: typedefType);
+        requiredParameterCount: node.requiredParameterCount);
   }
 
   void bumpCountersUntil(_TypeSubstitutor target) {
@@ -941,7 +934,7 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   @override
   bool defaultDartType(DartType node) {
-    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
+    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}).");
   }
 
   bool visitNamedType(NamedType node) {

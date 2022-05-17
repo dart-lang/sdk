@@ -282,10 +282,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addTypedef(Typedef typedef, Map<Name, Procedure>? tearOffs) {
-    DartType? type = typedef.type;
-    if (type is FunctionType && type.typedefType == null) {
-      unhandled("null", "addTypedef", typedef.fileOffset, typedef.fileUri);
-    }
     _addBuilder(
         typedef.name, new DillTypeAliasBuilder(typedef, tearOffs, this));
   }

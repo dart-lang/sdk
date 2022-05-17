@@ -91,7 +91,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   /// library.
   Extension build(LibraryBuilder coreLibrary,
       {required bool addMembersToLibrary}) {
-    _extension.onType = onType.build(libraryBuilder);
+    _extension.onType = onType.build(libraryBuilder, TypeUse.extensionOnType);
     extensionTypeShowHideClauseBuilder.buildAndStoreTypes(
         _extension, libraryBuilder);
 
@@ -242,16 +242,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    libraryBuilder.checkBoundsInTypeParameters(
-        typeEnvironment, extension.typeParameters, fileUri);
-
-    // Check on clause.
-    // ignore: unnecessary_null_comparison
-    if (_extension.onType != null) {
-      libraryBuilder.checkBoundsInType(_extension.onType, typeEnvironment,
-          onType.fileUri!, onType.charOffset!);
-    }
-
     forEach((String name, Builder builder) {
       if (builder is SourceFieldBuilder) {
         // Check fields.

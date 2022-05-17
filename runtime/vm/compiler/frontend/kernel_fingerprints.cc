@@ -310,11 +310,6 @@ void KernelFingerprintHelper::CalculateFunctionTypeFingerprint(bool simple) {
     }
   }
 
-  if (!simple) {
-    // TODO(bkonyi): include in hash.
-    SkipOptionalDartType();  // read typedef type.
-  }
-
   CalculateDartTypeFingerprint();  // read return type.
 }
 

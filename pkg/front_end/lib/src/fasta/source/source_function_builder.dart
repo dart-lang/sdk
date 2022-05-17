@@ -387,7 +387,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       function.requiredParameterCount = 1;
     }
     if (returnType != null) {
-      function.returnType = returnType!.build(libraryBuilder);
+      function.returnType =
+          returnType!.build(libraryBuilder, TypeUse.returnType);
     }
     if (isExtensionInstanceMember) {
       ExtensionBuilder extensionBuilder = parent as ExtensionBuilder;

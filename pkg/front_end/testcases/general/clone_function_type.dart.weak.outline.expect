@@ -32,70 +32,70 @@ library /*isNonNullableByDefault*/;
 // class Ef1<X extends Function({int})> {
 //                                  ^
 //
-// pkg/front_end/testcases/general/clone_function_type.dart:67:7: Error: Type argument 'dynamic Function(int)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2' in the supertype 'Am2' of class 'Object with Am2'.
+// pkg/front_end/testcases/general/clone_function_type.dart:67:34: Error: Type argument 'dynamic Function(int)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2'.
 // Try changing type arguments so that they conform to the bounds.
 // class Bm2<Z> extends Object with Am2<Function(int), Z> {}
-//       ^
+//                                  ^
 // pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
 // class Am2<X extends Function(), Y> {}
 //           ^
 //
-// pkg/front_end/testcases/general/clone_function_type.dart:70:7: Error: Type argument 'dynamic Function(int)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2' in the supertype 'Am2' of class 'Object with Am2'.
+// pkg/front_end/testcases/general/clone_function_type.dart:70:34: Error: Type argument 'dynamic Function(int)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2'.
 // Try changing type arguments so that they conform to the bounds.
 // class Cm2<Z> extends Object with Am2<Function(int x), Z> {}
-//       ^
+//                                  ^
 // pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
 // class Am2<X extends Function(), Y> {}
 //           ^
 //
-// pkg/front_end/testcases/general/clone_function_type.dart:86:7: Error: Type argument 'Function' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2' in the supertype 'Am2' of class 'Object with Am2'.
+// pkg/front_end/testcases/general/clone_function_type.dart:86:34: Error: Type argument 'Function' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2'.
 //  - 'Function' is from 'dart:core'.
 // Try changing type arguments so that they conform to the bounds.
 // class Jm2<Z> extends Object with Am2<Function, Z> {}
-//       ^
+//                                  ^
 // pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
 // class Am2<X extends Function(), Y> {}
 //           ^
 //
-// pkg/front_end/testcases/general/clone_function_type.dart:89:7: Error: Type argument 'dynamic Function(Function)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2' in the supertype 'Am2' of class 'Object with Am2'.
+// pkg/front_end/testcases/general/clone_function_type.dart:89:34: Error: Type argument 'dynamic Function(Function)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2'.
 //  - 'Function' is from 'dart:core'.
 // Try changing type arguments so that they conform to the bounds.
 // class Km2<Z> extends Object with Am2<Function(Function Function), Z> {}
-//       ^
+//                                  ^
 // pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
 // class Am2<X extends Function(), Y> {}
 //           ^
 //
-// pkg/front_end/testcases/general/clone_function_type.dart:95:7: Error: Type argument 'dynamic Function(int)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2' in the supertype 'Am2' of class 'Mm2'.
+// pkg/front_end/testcases/general/clone_function_type.dart:95:28: Error: Type argument 'dynamic Function(int)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2'.
 // Try changing type arguments so that they conform to the bounds.
 // class Mm2<Z> = Object with Am2<Function(int), Z>;
-//       ^
+//                            ^
 // pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
 // class Am2<X extends Function(), Y> {}
 //           ^
 //
-// pkg/front_end/testcases/general/clone_function_type.dart:98:7: Error: Type argument 'dynamic Function(int)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2' in the supertype 'Am2' of class 'Nm2'.
+// pkg/front_end/testcases/general/clone_function_type.dart:98:28: Error: Type argument 'dynamic Function(int)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2'.
 // Try changing type arguments so that they conform to the bounds.
 // class Nm2<Z> = Object with Am2<Function(int x), Z>;
-//       ^
+//                            ^
 // pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
 // class Am2<X extends Function(), Y> {}
 //           ^
 //
-// pkg/front_end/testcases/general/clone_function_type.dart:114:7: Error: Type argument 'Function' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2' in the supertype 'Am2' of class 'Um2'.
+// pkg/front_end/testcases/general/clone_function_type.dart:114:28: Error: Type argument 'Function' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2'.
 //  - 'Function' is from 'dart:core'.
 // Try changing type arguments so that they conform to the bounds.
 // class Um2<Z> = Object with Am2<Function, Z>;
-//       ^
+//                            ^
 // pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
 // class Am2<X extends Function(), Y> {}
 //           ^
 //
-// pkg/front_end/testcases/general/clone_function_type.dart:117:7: Error: Type argument 'dynamic Function(Function)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2' in the supertype 'Am2' of class 'Vm2'.
+// pkg/front_end/testcases/general/clone_function_type.dart:117:28: Error: Type argument 'dynamic Function(Function)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2'.
 //  - 'Function' is from 'dart:core'.
 // Try changing type arguments so that they conform to the bounds.
 // class Vm2<Z> = Object with Am2<Function(Function Function), Z>;
-//       ^
+//                            ^
 // pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
 // class Am2<X extends Function(), Y> {}
 //           ^

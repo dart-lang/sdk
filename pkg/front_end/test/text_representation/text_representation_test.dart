@@ -181,11 +181,7 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
       return node.constant.toText(strategy);
     } else if (node is VariableDeclaration) {
       DartType type = node.type;
-      if (type is FunctionType && type.typedefType != null) {
-        return type.typedefType!.toText(strategy);
-      } else {
-        return type.toText(strategy);
-      }
+      return type.toText(strategy);
     }
     return null;
   }

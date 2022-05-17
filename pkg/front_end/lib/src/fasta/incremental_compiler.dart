@@ -135,6 +135,8 @@ import 'util/experiment_environment_getter.dart'
 
 import 'util/textual_outline.dart' show textualOutline;
 
+import 'uris.dart' show dartCore;
+
 import 'hybrid_file_system.dart' show HybridFileSystem;
 
 import 'kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
@@ -655,7 +657,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           dillLibraryBuilder.exportScope.lookupLocalMember(name, setter: false);
       if (dillBuilder == null) {
         if ((name == 'dynamic' || name == 'Never') &&
-            sourceLibraryBuilder.importUri == Uri.parse('dart:core')) {
+            sourceLibraryBuilder.importUri == dartCore) {
           // The source library builder for dart:core has synthetically
           // injected builders for `dynamic` and `Never` which do not have
           // corresponding classes in the AST.

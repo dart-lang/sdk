@@ -34,6 +34,7 @@ general/accessors: RuntimeError
 general/ambiguous_exports: RuntimeError
 general/await_in_non_async: RuntimeError
 general/bounded_implicit_instantiation: TypeCheckError
+general/bounds_instances: TypeCheckError
 general/bug30695: TypeCheckError
 general/bug31124: RuntimeError
 general/call: RuntimeError

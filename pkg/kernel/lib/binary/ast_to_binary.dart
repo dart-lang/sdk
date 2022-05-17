@@ -2390,8 +2390,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitFunctionType(FunctionType node) {
     if (node.requiredParameterCount == node.positionalParameters.length &&
         node.typeParameters.isEmpty &&
-        node.namedParameters.isEmpty &&
-        node.typedefType == null) {
+        node.namedParameters.isEmpty) {
       writeByte(Tag.SimpleFunctionType);
       writeByte(node.nullability.index);
       writeNodeList(node.positionalParameters);
@@ -2406,7 +2405,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
           node.positionalParameters.length + node.namedParameters.length);
       writeNodeList(node.positionalParameters);
       writeNodeList(node.namedParameters);
-      writeOptionalNode(node.typedefType);
       writeNode(node.returnType);
       leaveScope(typeParameters: node.typeParameters);
     }

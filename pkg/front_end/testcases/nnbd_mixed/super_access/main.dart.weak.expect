@@ -2,7 +2,6 @@ library;
 import self as self;
 import "dart:core" as core;
 import "main_lib1.dart" as mai;
-import "main_lib2.dart" as mai2;
 
 import "org-dartlang-testcase:///main_lib1.dart";
 import "org-dartlang-testcase:///main_lib2.dart";

@@ -1,0 +1,99 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+typedef T<X extends core::Object? = dynamic> = X%;
+abstract class C extends core::Object {
+  static field self::C? v1 = null;
+  static field core::List<dynamic> v2 = <dynamic>[];
+  static final field Null v3 = throw "Anything";
+  static const field core::List<core::List<dynamic>> v4 = #C1;
+  field self::D? v5;
+  field core::List<dynamic> v6 = <dynamic>[];
+  final field Null v7;
+  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
+  constructor •() → self::C
+    : self::C::v5 = null, self::C::v7 = null, super core::Object::•()
+    ;
+  constructor name1(self::D? v5, Null v7) → self::C
+    : self::C::v5 = v5, self::C::v7 = v7, super core::Object::•()
+    ;
+  static factory name2(self::D arg1, Null arg2) → self::C
+    return new self::C1::name1(arg1, arg2);
+  static method _#name2#tearOff(self::D arg1, Null arg2) → self::C
+    return new self::C1::name1(arg1, arg2);
+  abstract operator +(core::double other) → core::double;
+  abstract get g() → FutureOr<FutureOr<void>>?;
+  abstract set g(FutureOr<FutureOr<void>>? value) → void;
+  abstract method m1(covariant-by-declaration self::C arg1, [core::Set<core::Set<self::C>> arg2 = #C3]) → core::Map<self::C, self::C>;
+  abstract method m2({dynamic arg1 = #C3, ((dynamic) → dynamic, dynamic) → core::Map<dynamic, dynamic> arg2 = #C3}) → void;
+}
+class C1 extends core::Object implements self::C {
+  constructor name1(self::D arg1, Null arg2) → self::C1
+    : super core::Object::•()
+    ;
+  static method _#name1#tearOff(self::D arg1, Null arg2) → self::C1
+    return new self::C1::name1(arg1, arg2);
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    return throw 0;
+  no-such-method-forwarder get v7() → Null
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v7", <dynamic>[], <dynamic>[], #C4, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} Null;
+  no-such-method-forwarder operator +(core::double other) → core::double
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("+", <dynamic>[], <dynamic>[other], #C4, 0)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::double;
+  no-such-method-forwarder get v6() → core::List<dynamic>
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v6", <dynamic>[], <dynamic>[], #C4, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<dynamic>;
+  no-such-method-forwarder get v5() → self::D?
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v5", <dynamic>[], <dynamic>[], #C4, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} self::D?;
+  no-such-method-forwarder method m1(covariant-by-declaration self::C arg1, [core::Set<core::Set<self::C>> arg2 = #C3]) → core::Map<self::C, self::C>
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("m1", <dynamic>[], <dynamic>[arg1, arg2], #C4, 0)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<self::C, self::C>;
+  no-such-method-forwarder method m2({dynamic arg1 = #C3, ((dynamic) → dynamic, dynamic) → core::Map<dynamic, dynamic> arg2 = #C3}) → void
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("m2", <dynamic>[], <dynamic>[], <core::String, dynamic>{"arg1": arg1, "arg2": arg2}, 0)){(core::Invocation) → dynamic};
+  no-such-method-forwarder get g() → FutureOr<FutureOr<void>>?
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("g", <dynamic>[], <dynamic>[], #C4, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<FutureOr<void>>?;
+  no-such-method-forwarder set v6(core::List<dynamic> value) → void
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v6=", <dynamic>[], <dynamic>[value], #C4, 2)){(core::Invocation) → dynamic};
+  no-such-method-forwarder set v5(self::D? value) → void
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v5=", <dynamic>[], <dynamic>[value], #C4, 2)){(core::Invocation) → dynamic};
+  no-such-method-forwarder set g(FutureOr<FutureOr<void>>? value) → void
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("g=", <dynamic>[], <dynamic>[value], #C4, 2)){(core::Invocation) → dynamic};
+}
+class D extends core::Object {
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff() → self::D
+    return new self::D::•();
+}
+extension E on dynamic {
+  method foo = self::E|foo;
+  tearoff foo = self::E|get#foo;
+}
+static field core::int? v1;
+static field core::List<void> v2 = <void>[];
+static final field core::String v3 = throw "Anything";
+static const field core::List<self::C> v4 = #C5;
+static const field core::Map<core::Type, core::Type> v5 = #C7;
+static method E|foo(lowered final dynamic #this, dynamic t) → dynamic
+  return t;
+static method E|get#foo(lowered final dynamic #this) → (dynamic) → dynamic
+  return (dynamic t) → dynamic => self::E|foo(#this, t);
+static method main() → dynamic {
+  core::List<self::C> v8 = <self::C>[];
+  core::Map<core::Set<dynamic>, core::Set<dynamic>> v9 = <core::Set<dynamic>, core::Set<dynamic>>{<dynamic>{}: <dynamic>{}};
+  core::Set<core::List<self::C>> v10 = <core::List<self::C>>{v8};
+  v9.{core::Map::[]=}(<dynamic>{}, <dynamic>{42}){(core::Set<dynamic>, core::Set<dynamic>) → void};
+  core::Set<core::List<self::C>> v11 = v10;
+  v10 = v11;
+}
+
+constants  {
+  #C1 = <core::List<dynamic>>[]
+  #C2 = constructor-tearoff self::C::name2
+  #C3 = null
+  #C4 = <core::String, dynamic>{)
+  #C5 = <self::C>[]
+  #C6 = TypeLiteralConstant(dynamic)
+  #C7 = <core::Type, core::Type>{#C6:#C6)
+}

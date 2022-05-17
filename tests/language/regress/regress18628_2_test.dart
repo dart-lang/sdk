@@ -13,8 +13,8 @@ class X<T extends Type> {}
 // This line is supposed to cause the warning; the other lines are
 // marked because they don't make sense when [Y] is not defined.
 class Y<U> extends X<U> {}
-//    ^
-// [cfe] Type argument 'U' doesn't conform to the bound 'Type' of the type variable 'T' on 'X' in the supertype 'X' of class 'Y'.
+//                 ^
+// [cfe] Type argument 'U' doesn't conform to the bound 'Type' of the type variable 'T' on 'X'.
 //                   ^
 // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 

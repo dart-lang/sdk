@@ -21,7 +21,8 @@ import 'package:kernel/src/bounds_checks.dart'
         TypeArgumentIssue,
         findTypeArgumentIssues,
         findTypeArgumentIssuesForInvocation,
-        getGenericTypeName;
+        getGenericTypeName,
+        hasGenericFunctionTypeAsTypeArgument;
 import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
@@ -175,8 +176,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   final List<TypeVariableBuilder> unboundTypeVariables =
       <TypeVariableBuilder>[];
 
-  final List<UncheckedTypedefType> uncheckedTypedefTypes =
-      <UncheckedTypedefType>[];
+  final List<PendingBoundsCheck> _pendingBoundsChecks = [];
+  final List<GenericFunctionTypeCheck> _pendingGenericFunctionTypeChecks = [];
 
   // A list of alternating forwarders and the procedures they were generated
   // for.  Note that it may not include a forwarder-origin pair in cases when
@@ -3953,7 +3954,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     addToExportScope(name, member);
   }
 
-  void reportTypeArgumentIssues(
+  void _reportTypeArgumentIssues(
       Iterable<TypeArgumentIssue> issues, Uri fileUri, int offset,
       {bool? inferred,
       TypeArgumentsInfo? typeArgumentsInfo,
@@ -4081,11 +4082,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void checkTypesInField(
       SourceFieldBuilder fieldBuilder, TypeEnvironment typeEnvironment) {
-    // Check the bounds in the field's type.
-    checkBoundsInType(fieldBuilder.fieldType, typeEnvironment,
-        fieldBuilder.fileUri, fieldBuilder.charOffset,
-        allowSuperBounded: true);
-
     // Check that the field has an initializer if its type is potentially
     // non-nullable.
     if (isNonNullableByDefault) {
@@ -4132,133 +4128,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void checkBoundsInTypeParameters(TypeEnvironment typeEnvironment,
-      List<TypeParameter> typeParameters, Uri fileUri) {
-    // Check in bounds of own type variables.
-    for (TypeParameter parameter in typeParameters) {
-      List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-          parameter.bound,
-          typeEnvironment,
-          isNonNullableByDefault
-              ? SubtypeCheckMode.withNullabilities
-              : SubtypeCheckMode.ignoringNullabilities,
-          allowSuperBounded: true,
-          isNonNullableByDefault: library.isNonNullableByDefault,
-          areGenericArgumentsAllowed:
-              libraryFeatures.genericMetadata.isEnabled);
-      for (TypeArgumentIssue issue in issues) {
-        DartType argument = issue.argument;
-        TypeParameter typeParameter = issue.typeParameter;
-        if (inferredTypes.contains(argument)) {
-          // Inference in type expressions in the supertypes boils down to
-          // instantiate-to-bound which shouldn't produce anything that breaks
-          // the bounds after the non-simplicity checks are done.  So, any
-          // violation here is the result of non-simple bounds, and the error
-          // is reported elsewhere.
-          continue;
-        }
-
-        if (issue.isGenericTypeAsArgumentIssue) {
-          reportTypeArgumentIssue(
-              messageGenericFunctionTypeUsedAsActualTypeArgument,
-              fileUri,
-              parameter.fileOffset,
-              typeParameter: null);
-        } else {
-          reportTypeArgumentIssue(
-              templateIncorrectTypeArgument.withArguments(
-                  argument,
-                  typeParameter.bound,
-                  typeParameter.name!,
-                  getGenericTypeName(issue.enclosingType!),
-                  library.isNonNullableByDefault),
-              fileUri,
-              parameter.fileOffset,
-              typeParameter: typeParameter,
-              superBoundedAttempt: issue.enclosingType,
-              superBoundedAttemptInverted: issue.invertedType);
-        }
-      }
-    }
-  }
-
-  void checkBoundsInFunctionNodeParts(
-      TypeEnvironment typeEnvironment, Uri fileUri, int fileOffset,
-      {List<TypeParameter>? typeParameters,
-      List<VariableDeclaration>? positionalParameters,
-      List<VariableDeclaration>? namedParameters,
-      DartType? returnType,
-      int? requiredParameterCount,
-      bool skipReturnType = false}) {
-    if (typeParameters != null) {
-      for (TypeParameter parameter in typeParameters) {
-        checkBoundsInType(
-            parameter.bound, typeEnvironment, fileUri, parameter.fileOffset,
-            allowSuperBounded: true);
-      }
-    }
-    if (positionalParameters != null) {
-      for (int i = 0; i < positionalParameters.length; ++i) {
-        VariableDeclaration parameter = positionalParameters[i];
-        checkBoundsInType(
-            parameter.type, typeEnvironment, fileUri, parameter.fileOffset,
-            allowSuperBounded: true);
-      }
-    }
-    if (namedParameters != null) {
-      for (int i = 0; i < namedParameters.length; ++i) {
-        VariableDeclaration named = namedParameters[i];
-        checkBoundsInType(
-            named.type, typeEnvironment, fileUri, named.fileOffset,
-            allowSuperBounded: true);
-      }
-    }
-    if (!skipReturnType && returnType != null) {
-      List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-          returnType,
-          typeEnvironment,
-          isNonNullableByDefault
-              ? SubtypeCheckMode.withNullabilities
-              : SubtypeCheckMode.ignoringNullabilities,
-          allowSuperBounded: true,
-          isNonNullableByDefault: library.isNonNullableByDefault,
-          areGenericArgumentsAllowed:
-              libraryFeatures.genericMetadata.isEnabled);
-      for (TypeArgumentIssue issue in issues) {
-        DartType argument = issue.argument;
-        TypeParameter typeParameter = issue.typeParameter;
-
-        // We don't need to check if [argument] was inferred or specified
-        // here, because inference in return types boils down to instantiate-
-        // -to-bound, and it can't provide a type that violates the bound.
-        if (issue.isGenericTypeAsArgumentIssue) {
-          reportTypeArgumentIssue(
-              messageGenericFunctionTypeUsedAsActualTypeArgument,
-              fileUri,
-              fileOffset,
-              typeParameter: null);
-        } else {
-          reportTypeArgumentIssue(
-              templateIncorrectTypeArgumentInReturnType.withArguments(
-                  argument,
-                  typeParameter.bound,
-                  typeParameter.name!,
-                  getGenericTypeName(issue.enclosingType!),
-                  isNonNullableByDefault),
-              fileUri,
-              fileOffset,
-              typeParameter: typeParameter,
-              superBoundedAttempt: issue.enclosingType,
-              superBoundedAttemptInverted: issue.invertedType);
-        }
-      }
-    }
-  }
-
   void checkTypesInFunctionBuilder(
       SourceFunctionBuilder procedureBuilder, TypeEnvironment typeEnvironment) {
-    checkBoundsInFunctionNode(
-        procedureBuilder.function, typeEnvironment, procedureBuilder.fileUri!);
     if (procedureBuilder.formals != null &&
         !(procedureBuilder.isAbstract || procedureBuilder.isExternal)) {
       checkInitializersInFormals(procedureBuilder.formals!, typeEnvironment);
@@ -4268,8 +4139,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkTypesInConstructorBuilder(
       DeclaredSourceConstructorBuilder constructorBuilder,
       TypeEnvironment typeEnvironment) {
-    checkBoundsInFunctionNode(
-        constructorBuilder.constructor.function, typeEnvironment, fileUri);
     if (!constructorBuilder.isExternal && constructorBuilder.formals != null) {
       checkInitializersInFormals(constructorBuilder.formals!, typeEnvironment);
     }
@@ -4278,48 +4147,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkTypesInRedirectingFactoryBuilder(
       RedirectingFactoryBuilder redirectingFactoryBuilder,
       TypeEnvironment typeEnvironment) {
-    checkBoundsInFunctionNode(redirectingFactoryBuilder.function,
-        typeEnvironment, redirectingFactoryBuilder.fileUri);
     // Default values are not required on redirecting factory constructors so
     // we don't call [checkInitializersInFormals].
-  }
-
-  void checkBoundsInFunctionNode(
-      FunctionNode function, TypeEnvironment typeEnvironment, Uri fileUri,
-      {bool skipReturnType = false}) {
-    checkBoundsInFunctionNodeParts(
-        typeEnvironment, fileUri, function.fileOffset,
-        typeParameters: function.typeParameters,
-        positionalParameters: function.positionalParameters,
-        namedParameters: function.namedParameters,
-        returnType: function.returnType,
-        requiredParameterCount: function.requiredParameterCount,
-        skipReturnType: skipReturnType);
-  }
-
-  void checkBoundsInListLiteral(
-      ListLiteral node, TypeEnvironment typeEnvironment, Uri fileUri,
-      {bool inferred = false}) {
-    checkBoundsInType(
-        node.typeArgument, typeEnvironment, fileUri, node.fileOffset,
-        inferred: inferred, allowSuperBounded: true);
-  }
-
-  void checkBoundsInSetLiteral(
-      SetLiteral node, TypeEnvironment typeEnvironment, Uri fileUri,
-      {bool inferred = false}) {
-    checkBoundsInType(
-        node.typeArgument, typeEnvironment, fileUri, node.fileOffset,
-        inferred: inferred, allowSuperBounded: true);
-  }
-
-  void checkBoundsInMapLiteral(
-      MapLiteral node, TypeEnvironment typeEnvironment, Uri fileUri,
-      {bool inferred = false}) {
-    checkBoundsInType(node.keyType, typeEnvironment, fileUri, node.fileOffset,
-        inferred: inferred, allowSuperBounded: true);
-    checkBoundsInType(node.valueType, typeEnvironment, fileUri, node.fileOffset,
-        inferred: inferred, allowSuperBounded: true);
   }
 
   void checkBoundsInType(
@@ -4334,16 +4163,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         allowSuperBounded: allowSuperBounded,
         isNonNullableByDefault: library.isNonNullableByDefault,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
-    reportTypeArgumentIssues(issues, fileUri, offset, inferred: inferred);
-  }
-
-  void checkBoundsInVariableDeclaration(
-      VariableDeclaration node, TypeEnvironment typeEnvironment, Uri fileUri,
-      {bool inferred = false}) {
-    // ignore: unnecessary_null_comparison
-    if (node.type == null) return;
-    checkBoundsInType(node.type, typeEnvironment, fileUri, node.fileOffset,
-        inferred: inferred, allowSuperBounded: true);
+    _reportTypeArgumentIssues(issues, fileUri, offset, inferred: inferred);
   }
 
   void checkBoundsInConstructorInvocation(
@@ -4408,7 +4228,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             new InterfaceType(klass, klass.enclosingLibrary.nonNullable);
       }
       String targetName = node.target.name.text;
-      reportTypeArgumentIssues(issues, fileUri, node.fileOffset,
+      _reportTypeArgumentIssues(issues, fileUri, node.fileOffset,
           typeArgumentsInfo: typeArgumentsInfo,
           targetReceiver: targetReceiver,
           targetName: targetName);
@@ -4487,7 +4307,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         bottomType,
         isNonNullableByDefault: library.isNonNullableByDefault,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
-    reportTypeArgumentIssues(issues, fileUri, offset,
+    _reportTypeArgumentIssues(issues, fileUri, offset,
         typeArgumentsInfo: getTypeArgumentsInfo(arguments),
         targetReceiver: receiverType,
         targetName: name.text);
@@ -4520,7 +4340,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         bottomType,
         isNonNullableByDefault: library.isNonNullableByDefault,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
-    reportTypeArgumentIssues(issues, fileUri, offset,
+    _reportTypeArgumentIssues(issues, fileUri, offset,
         typeArgumentsInfo: getTypeArgumentsInfo(arguments),
         // TODO(johnniwinther): Special-case messaging on function type
         //  invocation to avoid reference to 'call' and use the function type
@@ -4557,7 +4377,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         bottomType,
         isNonNullableByDefault: library.isNonNullableByDefault,
         areGenericArgumentsAllowed: libraryFeatures.genericMetadata.isEnabled);
-    reportTypeArgumentIssues(issues, fileUri, offset,
+    _reportTypeArgumentIssues(issues, fileUri, offset,
         targetReceiver: functionType,
         typeArgumentsInfo: inferred
             ? const AllInferredTypeArgumentsInfo()
@@ -4592,7 +4412,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else if (declaration is SourceExtensionBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceTypeAliasBuilder) {
-        declaration.checkTypesInOutline(typeEnvironment);
+        // Do nothing.
       } else {
         assert(
             declaration is! TypeDeclarationBuilder ||
@@ -4601,7 +4421,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     inferredTypes.clear();
-    checkUncheckedTypedefTypes(typeEnvironment);
+    checkPendingBoundsChecks(typeEnvironment);
   }
 
   void computeShowHideElements(ClassMembersBuilder membersBuilder) {
@@ -4906,19 +4726,113 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return type;
   }
 
-  /// Performs delayed bounds checks on [TypedefType]s for the library
-  ///
-  /// As [TypedefType]s are built, they are eagerly unaliased, making it
-  /// impossible to perform the bounds checks on them at the time when the
-  /// checks can be done. To perform the checks, [TypedefType]s are added to
-  /// [uncheckedTypedefTypes] as they are built.  This method performs the
-  /// checks and clears the list of the types for the delayed check.
-  void checkUncheckedTypedefTypes(TypeEnvironment typeEnvironment) {
-    for (UncheckedTypedefType uncheckedTypedefType in uncheckedTypedefTypes) {
-      checkBoundsInType(uncheckedTypedefType.typeToCheck, typeEnvironment,
-          uncheckedTypedefType.fileUri!, uncheckedTypedefType.offset!);
+  void registerBoundsCheck(
+      DartType type, Uri fileUri, int charOffset, TypeUse typeUse,
+      {required bool inferred}) {
+    _pendingBoundsChecks.add(new PendingBoundsCheck(
+        type, fileUri, charOffset, typeUse,
+        inferred: inferred));
+  }
+
+  void registerGenericFunctionTypeCheck(
+      TypedefType type, Uri fileUri, int charOffset) {
+    _pendingGenericFunctionTypeChecks
+        .add(new GenericFunctionTypeCheck(type, fileUri, charOffset));
+  }
+
+  /// Performs delayed bounds checks.
+  void checkPendingBoundsChecks(TypeEnvironment typeEnvironment) {
+    for (PendingBoundsCheck pendingBoundsCheck in _pendingBoundsChecks) {
+      switch (pendingBoundsCheck.typeUse) {
+        case TypeUse.literalTypeArgument:
+        case TypeUse.variableType:
+        case TypeUse.typeParameterBound:
+        case TypeUse.parameterType:
+        case TypeUse.fieldType:
+        case TypeUse.returnType:
+        case TypeUse.isType:
+        case TypeUse.asType:
+        case TypeUse.catchType:
+        case TypeUse.constructorTypeArgument:
+        case TypeUse.redirectionTypeArgument:
+        case TypeUse.tearOffTypeArgument:
+        case TypeUse.invocationTypeArgument:
+        case TypeUse.typeLiteral:
+        case TypeUse.extensionOnType:
+        case TypeUse.typeArgument:
+          checkBoundsInType(pendingBoundsCheck.type, typeEnvironment,
+              pendingBoundsCheck.fileUri, pendingBoundsCheck.charOffset,
+              inferred: pendingBoundsCheck.inferred, allowSuperBounded: true);
+          break;
+        case TypeUse.typedefAlias:
+        case TypeUse.superType:
+        case TypeUse.mixedInType:
+          checkBoundsInType(pendingBoundsCheck.type, typeEnvironment,
+              pendingBoundsCheck.fileUri, pendingBoundsCheck.charOffset,
+              inferred: pendingBoundsCheck.inferred, allowSuperBounded: false);
+          break;
+        case TypeUse.instantiation:
+          // TODO(johnniwinther): Should we allow super bounded tear offs of
+          // non-proper renames?
+          checkBoundsInType(pendingBoundsCheck.type, typeEnvironment,
+              pendingBoundsCheck.fileUri, pendingBoundsCheck.charOffset,
+              inferred: pendingBoundsCheck.inferred, allowSuperBounded: true);
+          break;
+        case TypeUse.enumSelfType:
+          // TODO(johnniwinther): Check/create this type as regular bounded i2b.
+          /*
+            checkBoundsInType(pendingBoundsCheck.type, typeEnvironment,
+                pendingBoundsCheck.fileUri, pendingBoundsCheck.charOffset,
+                inferred: pendingBoundsCheck.inferred,
+                allowSuperBounded: false);
+          */
+          break;
+        case TypeUse.macroTypeArgument:
+        case TypeUse.typeParameterDefaultType:
+        case TypeUse.defaultTypeAsTypeArgument:
+        case TypeUse.deferredTypeError:
+        case TypeUse.functionSignature:
+          break;
+      }
     }
-    uncheckedTypedefTypes.clear();
+    _pendingBoundsChecks.clear();
+
+    for (GenericFunctionTypeCheck genericFunctionTypeCheck
+        in _pendingGenericFunctionTypeChecks) {
+      checkGenericFunctionTypeAsTypeArgumentThroughTypedef(
+          genericFunctionTypeCheck.type,
+          genericFunctionTypeCheck.fileUri,
+          genericFunctionTypeCheck.charOffset);
+    }
+    _pendingGenericFunctionTypeChecks.clear();
+  }
+
+  /// Reports an error if [type] contains is a generic function type used as
+  /// a type argument through its alias.
+  ///
+  /// For instance
+  ///
+  ///   typedef A = B<void Function<T>(T)>;
+  ///
+  /// here `A` doesn't use a generic function as type argument directly, but
+  /// its unaliased value `B<void Function<T>(T)>` does.
+  ///
+  /// This is used for reporting generic function types used as a type argument,
+  /// which was disallowed before the 'generic-metadata' feature was enabled.
+  void checkGenericFunctionTypeAsTypeArgumentThroughTypedef(
+      TypedefType type, Uri fileUri, int fileOffset) {
+    assert(!libraryFeatures.genericMetadata.isEnabled);
+    if (!hasGenericFunctionTypeAsTypeArgument(type)) {
+      DartType unaliased = type.unalias;
+      if (hasGenericFunctionTypeAsTypeArgument(unaliased)) {
+        addProblem(
+            templateGenericFunctionTypeAsTypeArgumentThroughTypedef
+                .withArguments(unaliased, type, isNonNullableByDefault),
+            fileOffset,
+            noLength,
+            fileUri);
+      }
+    }
   }
 
   void installTypedefTearOffs() {
@@ -5459,11 +5373,21 @@ class PendingNullability {
   }
 }
 
-class UncheckedTypedefType {
-  final TypedefType typeToCheck;
+class PendingBoundsCheck {
+  final DartType type;
+  final Uri fileUri;
+  final int charOffset;
+  final TypeUse typeUse;
+  final bool inferred;
 
-  int? offset;
-  Uri? fileUri;
+  PendingBoundsCheck(this.type, this.fileUri, this.charOffset, this.typeUse,
+      {required this.inferred});
+}
 
-  UncheckedTypedefType(this.typeToCheck);
+class GenericFunctionTypeCheck {
+  final TypedefType type;
+  final Uri fileUri;
+  final int charOffset;
+
+  GenericFunctionTypeCheck(this.type, this.fileUri, this.charOffset);
 }

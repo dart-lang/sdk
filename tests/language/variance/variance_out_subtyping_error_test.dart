@@ -41,10 +41,10 @@ class C<out T extends Covariant<Middle>> {}
 
 class D {
   C<Covariant<Upper>> method1() {
+//^
+// [cfe] Type argument 'Covariant<Upper>' doesn't conform to the bound 'Covariant<Middle>' of the type variable 'T' on 'C'.
   //^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  //                         ^
-  // [cfe] Type argument 'Covariant<Upper>' doesn't conform to the bound 'Covariant<Middle>' of the type variable 'T' on 'C' in the return type.
     return C<Covariant<Upper>>();
     //     ^
     // [cfe] Type argument 'Covariant<Upper>' doesn't conform to the bound 'Covariant<Middle>' of the type variable 'T' on 'C'.
@@ -57,10 +57,10 @@ void testCall(Iterable<Covariant<Lower>> x) {}
 
 main() {
   C<Covariant<Upper>> c = new C<Covariant<Upper>>();
+//^
+// [cfe] Type argument 'Covariant<Upper>' doesn't conform to the bound 'Covariant<Middle>' of the type variable 'T' on 'C'.
   //^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  //                  ^
-  // [cfe] Type argument 'Covariant<Upper>' doesn't conform to the bound 'Covariant<Middle>' of the type variable 'T' on 'C'.
   //                          ^
   // [cfe] Type argument 'Covariant<Upper>' doesn't conform to the bound 'Covariant<Middle>' of the type variable 'T' on 'C'.
   //                            ^^^^^^^^^^^^^^^^

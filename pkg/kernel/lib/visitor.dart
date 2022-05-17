@@ -726,6 +726,8 @@ abstract class DartTypeVisitor<R> {
 }
 
 abstract class DartTypeVisitor1<R, T> {
+  const DartTypeVisitor1();
+
   R defaultDartType(DartType node, T arg);
 
   R visitInvalidType(InvalidType node, T arg) => defaultDartType(node, arg);

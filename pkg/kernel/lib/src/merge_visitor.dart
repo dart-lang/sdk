@@ -116,19 +116,10 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       }
       newNamedParameters[i] = newNamedType;
     }
-    TypedefType? newTypedefType;
-    if (a.typedefType != null && b.typedefType != null) {
-      newTypedefType =
-          mergeTypes(a.typedefType!, b.typedefType!) as TypedefType?;
-      // If the typedef couldn't be merged we just omit it from the resulting
-      // function type since the typedef type is only informational.
-    }
-
     return new FunctionType(newPositionalParameters, newReturnType, nullability,
         namedParameters: newNamedParameters,
         typeParameters: newTypeParameters,
-        requiredParameterCount: a.requiredParameterCount,
-        typedefType: newTypedefType);
+        requiredParameterCount: a.requiredParameterCount);
   }
 
   NamedType? mergeNamedTypes(NamedType a, NamedType b, DartType newType) {

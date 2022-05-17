@@ -99,42 +99,37 @@ genericFunctionType4(
 // TODO(johnniwinther): Support interdependent function type variables.
 //genericFunctionType5(T Function<T, S extends T>([T, S]) o) {}
 //genericFunctionType6(T Function<T extends S, S>([T, S]) o) {}
-typedefType1(
-    Typedef1 /*normal|limited.Typedef1**/ /*verbose.test::Typedef1**/ o) {}
+typedefType1(Typedef1 /*void Function()**/ o) {}
 typedefType2(
     Typedef2
-        /*normal|limited.Typedef2<dynamic>**/
-        /*verbose.test::Typedef2<dynamic>**/
+        /*void Function(dynamic)**/
         o) {}
 typedefType3(
     Typedef2<int>
-        /*normal|limited.Typedef2<int*>**/
-        /*verbose.test::Typedef2<dart.core::int*>**/
+        /*normal|limited.void Function(int*)**/
+        /*verbose.void Function(dart.core::int*)**/
         o) {}
 typedefType4(
     Typedef3
-        /*normal|limited.Typedef3**/
-        /*verbose.test::Typedef3**/
+        /*void Function()**/
         o) {}
 typedefType5(
     Typedef4
-        /*normal|limited.Typedef4<dynamic>**/
-        /*verbose.test::Typedef4<dynamic>**/
+        /*void Function(dynamic)**/
         o) {}
 typedefType7(
     Typedef4<int>
-        /*normal|limited.Typedef4<int*>**/
-        /*verbose.test::Typedef4<dart.core::int*>**/
+        /*normal|limited.void Function(int*)**/
+        /*verbose.void Function(dart.core::int*)**/
         o) {}
 typedefType8(
     Typedef5
-        /*normal|limited.Typedef5<dynamic>**/
-        /*verbose.test::Typedef5<dynamic>**/
+        /*void Function<S>(dynamic, S*)**/
         o) {}
 typedefType9(
     Typedef5<int>
-        /*normal|limited.Typedef5<int*>**/
-        /*verbose.test::Typedef5<dart.core::int*>**/
+        /*normal|limited.void Function<S>(int*, S*)**/
+        /*verbose.void Function<S>(dart.core::int*, S*)**/
         o) {}
 
 method() {

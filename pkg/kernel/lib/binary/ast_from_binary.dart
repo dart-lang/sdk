@@ -3089,7 +3089,6 @@ class BinaryBuilder {
     int totalParameterCount = readUInt30();
     List<DartType> positional = readDartTypeList();
     List<NamedType> named = readNamedTypeList();
-    TypedefType? typedefType = readDartTypeOption() as TypedefType?;
     assert(positional.length + named.length == totalParameterCount);
     DartType returnType = readDartType();
     typeParameterStack.length = typeParameterStackHeight;
@@ -3097,8 +3096,7 @@ class BinaryBuilder {
         positional, returnType, Nullability.values[nullabilityIndex],
         typeParameters: typeParameters,
         requiredParameterCount: requiredParameterCount,
-        namedParameters: named,
-        typedefType: typedefType);
+        namedParameters: named);
   }
 
   DartType _readSimpleFunctionType() {
