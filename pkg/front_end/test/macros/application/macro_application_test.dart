@@ -140,6 +140,30 @@ class MacroDataComputer extends DataComputer<String> {
         .dataForTesting!
         .macroApplicationData;
     StringBuffer sb = new StringBuffer();
+    if (library.importUri ==
+        testResultData.compilerResult.kernelTargetForTesting!.loader.firstUri) {
+      if (macroApplicationData.typesApplicationOrder.isNotEmpty) {
+        sb.write('\nTypes Order:');
+        for (ApplicationDataForTesting application
+            in macroApplicationData.typesApplicationOrder) {
+          sb.write('\n ${application}');
+        }
+      }
+      if (macroApplicationData.declarationsApplicationOrder.isNotEmpty) {
+        sb.write('\nDeclarations Order:');
+        for (ApplicationDataForTesting application
+            in macroApplicationData.declarationsApplicationOrder) {
+          sb.write('\n ${application}');
+        }
+      }
+      if (macroApplicationData.definitionApplicationOrder.isNotEmpty) {
+        sb.write('\nDefinition Order:');
+        for (ApplicationDataForTesting application
+            in macroApplicationData.definitionApplicationOrder) {
+          sb.write('\n ${application}');
+        }
+      }
+    }
     for (SourceLibraryBuilder sourceLibraryBuilder
         in macroApplicationData.libraryTypesResult.keys) {
       if (sourceLibraryBuilder.library == library) {

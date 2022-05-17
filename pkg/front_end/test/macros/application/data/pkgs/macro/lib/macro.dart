@@ -328,12 +328,37 @@ class ToStringMacro implements ClassDeclarationsMacro {
 
 macro
 
-class SequenceMacro implements ClassDeclarationsMacro {
-  const SequenceMacro();
+class SequenceMacro
+    implements
+        ClassDeclarationsMacro,
+        MethodDeclarationsMacro {
+  final int index;
+
+  const SequenceMacro(this.index);
+
+  void _addMethod(ClassDeclaration clazz,
+      ClassMemberDeclarationBuilder builder) async {
+  }
+
+  Future<void> _findAllMethods(ClassMemberDeclarationBuilder builder,
+      ClassDeclaration cls, List<MethodDeclaration> methods) async {
+    ClassDeclaration? superclass = await builder.superclassOf(cls);
+    if (superclass != null) {
+      await _findAllMethods(builder, superclass, methods);
+    }
+    for (ClassDeclaration mixin in await builder.mixinsOf(cls)) {
+      await _findAllMethods(builder, mixin, methods);
+    }
+    for (ClassDeclaration interface in await builder.interfacesOf(cls)) {
+      await _findAllMethods(builder, interface, methods);
+    }
+    methods.addAll(await builder.methodsOf(cls));
+  }
 
   FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) async {
-    Iterable<MethodDeclaration> methods = await builder.methodsOf(clazz);
+    List<MethodDeclaration> methods = [];
+    await _findAllMethods(builder, clazz, methods);
     int index = 0;
     String suffix = '';
     while (methods.any((m) => m.identifier.name == 'method$suffix')) {
@@ -342,6 +367,12 @@ class SequenceMacro implements ClassDeclarationsMacro {
     }
     builder.declareInClass(new DeclarationCode.fromString('''
   method$suffix() {}'''));
+  }
+
+  FutureOr<void> buildDeclarationsForMethod(MethodDeclaration method,
+      ClassMemberDeclarationBuilder builder) {
+    // Do nothing. The applying of this will show up in the declarations phase
+    // application order.
   }
 }
 

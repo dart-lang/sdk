@@ -3,6 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
+Definition Order:
+ topLevelFunction1:FunctionDefinitionMacro1.new()
+ topLevelFunction2:FunctionDefinitionMacro1.new()
+ topLevelFunction3:FunctionDefinitionMacro1.new()
+ topLevelFunction4:FunctionDefinitionMacro1.new()
+ topLevelFunction5:FunctionDefinitionMacro1.new()
+ topLevelFunction6:FunctionDefinitionMacro1.new()
+ topLevelFunction7:FunctionDefinitionMacro1.new()
+ topLevelFunction8:FunctionDefinitionMacro1.new()
 Definitions:
 import 'dart:core' as prefix0;
 import 'dart:math' as prefix1;
@@ -30,8 +39,7 @@ augment prefix0.Map<prefix1.Random, prefix0.List<prefix0.int>> topLevelFunction7
 }
 augment prefix0.Map<prefix0.int?, prefix0.String>? topLevelFunction8() {
   throw 42;
-}
-*/
+}*/
 
 import 'dart:math' as math;
 

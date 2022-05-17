@@ -3,6 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
+Declarations Order:
+ topLevelFunction1:FunctionDeclarationsMacro2.new()
+ topLevelFunction2:FunctionDeclarationsMacro2.new()
+ topLevelFunction3:FunctionDeclarationsMacro2.new()
+ topLevelFunction4:FunctionDeclarationsMacro2.new()
+Definition Order:
+ topLevelFunction1:FunctionDefinitionMacro2.new()
+ topLevelFunction2:FunctionDefinitionMacro2.new()
+ topLevelFunction3:FunctionDefinitionMacro2.new()
+ topLevelFunction4:FunctionDefinitionMacro2.new()
 Definitions:
 import 'org-dartlang-test:///a/b/c/main.dart' as prefix0;
 
@@ -25,8 +35,7 @@ augment prefix0.D2 topLevelFunction4(prefix0.D1 a, ) {
   print('isExactly=false');
   print('isSubtype=false');
   throw 42;
-}
-*/
+}*/
 
 import 'package:macro/macro.dart';
 

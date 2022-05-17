@@ -3,6 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
+Types Order:
+ topLevelFunction1:FunctionTypesMacro1.new()
+ topLevelFunction2:FunctionTypesMacro1.new()
+ topLevelFunction3:FunctionTypesMacro1.new()
+ topLevelFunction4:FunctionTypesMacro1.new()
+ topLevelFunction5:FunctionTypesMacro1.new()
 Types:
 import 'dart:core' as prefix0;
 import 'package:macro/macro.dart' as prefix1;
