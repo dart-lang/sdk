@@ -53,7 +53,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
     }
     // Send session data.
     var endTime = DateTime.now().millisecondsSinceEpoch;
-    var duration = endTime - sessionData.startTime;
+    var duration = endTime - sessionData.startTime.millisecondsSinceEpoch;
     analytics.sendEvent('language_server', 'session', parameters: {
       'flags': sessionData.commandLineArguments,
       'clientId': sessionData.clientId,
@@ -68,7 +68,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
     for (var data in completedRequests.values) {
       analytics.sendEvent('language_server', 'request', parameters: {
         'latency': data.latencyTimes.toAnalyticsString(),
-        'name': data.requestName,
+        'name': data.method,
         'duration': data.responseTimes.toAnalyticsString(),
         // TODO(brianwilkerson) Report the latencies for each of the plugins,
         //  probably as a map from plugin name to latency information.
@@ -82,17 +82,15 @@ class GoogleAnalyticsManager implements AnalyticsManager {
 
   @override
   void startedRequest({required Request request, required DateTime startTime}) {
-    activeRequests[request.id] = _ActiveRequestData(request.method,
-        request.clientRequestTime, startTime.millisecondsSinceEpoch);
+    activeRequests[request.id] = _ActiveRequestData(
+        request.method, request.clientRequestTime, startTime);
   }
 
   @override
   void startedRequestMessage(
       {required RequestMessage request, required DateTime startTime}) {
     activeRequests[request.id.asString] = _ActiveRequestData(
-        request.method.toString(),
-        request.clientRequestTime,
-        startTime.millisecondsSinceEpoch);
+        request.method.toString(), request.clientRequestTime, startTime);
   }
 
   @override
@@ -103,7 +101,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
       required String? clientVersion,
       required String sdkVersion}) {
     sessionData = _SessionData(
-        startTime: time.millisecondsSinceEpoch,
+        startTime: time,
         commandLineArguments: arguments.join(' '),
         clientId: clientId,
         clientVersion: clientVersion ?? '',
@@ -120,12 +118,12 @@ class GoogleAnalyticsManager implements AnalyticsManager {
 
     var requestName = data.requestName;
     var clientRequestTime = data.clientRequestTime;
-    var startTime = data.startTime;
+    var startTime = data.startTime.millisecondsSinceEpoch;
 
     var requestData = completedRequests.putIfAbsent(
         requestName, () => _RequestData(requestName));
 
-    if (clientRequestTime >= 0) {
+    if (clientRequestTime != null) {
       var latencyTime = startTime - clientRequestTime;
       requestData.latencyTimes.addValue(latencyTime);
     }
@@ -141,53 +139,52 @@ class _ActiveRequestData {
   final String requestName;
 
   /// The time at which the client sent the request.
-  final int clientRequestTime;
+  final int? clientRequestTime;
 
   /// The time at which the request was received.
-  final int startTime;
+  final DateTime startTime;
 
   /// Initialize a newly created data holder.
-  _ActiveRequestData(this.requestName, int? clientRequestTime, this.startTime)
-      : clientRequestTime = clientRequestTime ?? -1;
+  _ActiveRequestData(this.requestName, this.clientRequestTime, this.startTime);
 }
 
 /// Data about the requests that have been responded to that have the same name.
 class _RequestData {
   /// The name of the requests.
-  final String requestName;
+  final String method;
 
   /// The percentile calculator for latency times. The _latency time_ is the
   /// time from when the client sent the request until the time the server
   /// started processing the request.
-  PercentileCalculator latencyTimes = PercentileCalculator();
+  final PercentileCalculator latencyTimes = PercentileCalculator();
 
   /// The percentile calculator for response times. The _response time_ is the
   /// time from when the server started processing the request until the time
   /// the response was sent.
-  PercentileCalculator responseTimes = PercentileCalculator();
+  final PercentileCalculator responseTimes = PercentileCalculator();
 
   /// Initialize a newly create data holder for requests with the given
-  /// [requestName].
-  _RequestData(this.requestName);
+  /// [method].
+  _RequestData(this.method);
 }
 
 /// Data about the current session.
 class _SessionData {
   /// The time at which the current session started.
-  int startTime;
+  final DateTime startTime;
 
   /// The command-line arguments passed to the server on startup.
-  String commandLineArguments;
+  final String commandLineArguments;
 
   /// The name of the client that started the server.
-  String clientId;
+  final String clientId;
 
   /// The version of the client that started the server, or an empty string if
   /// no version information was provided.
-  String clientVersion;
+  final String clientVersion;
 
   /// The version of the SDK from which the server was started.
-  String sdkVersion;
+  final String sdkVersion;
 
   /// Initialize a newly created data holder.
   _SessionData(

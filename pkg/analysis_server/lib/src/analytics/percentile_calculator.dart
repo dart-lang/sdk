@@ -50,7 +50,7 @@ class PercentileCalculator {
     throw StateError('');
   }
 
-  /// Return a string that it suitable for sending to the analytics service.
+  /// Return a string that is suitable for sending to the analytics service.
   String toAnalyticsString() {
     var buffer = StringBuffer();
     buffer.write('[');
