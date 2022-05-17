@@ -218,8 +218,8 @@ class FlutterStatefulWidgetWithAnimationControllerSnippetProducer
             returnType: VoidTypeImpl.instance,
             bodyWriter: () {
               builder.writeln('{');
-              builder.writeln('    super.dispose();');
               builder.writeln('    _controller.dispose();');
+              builder.writeln('    super.dispose();');
               builder.writeln('  }');
             },
           );

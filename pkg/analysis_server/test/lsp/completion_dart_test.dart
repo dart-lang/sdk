@@ -2959,8 +2959,8 @@ class _\${1:MyWidget}State extends State<\${1:MyWidget}>
 
   @override
   void dispose() {
-    super.dispose();
     _controller.dispose();
+    super.dispose();
   }
 
   @override
