@@ -39,7 +39,19 @@ Updated the Linter to `1.23.0`, which includes changes that
   It can still be created with the `--legacy-packages-file` flag.
 * `dart pub outdated` now shows which of your dependencies are discontinued.
 
-## 2.17.0
+## 2.17.1 - 2022-05-18
+
+This is a patch release that fixes:
+
+- an analyzer plugin crash (issue [#48682][]).
+- Dart FFI support for `late` `Finalizable` variables (issue [#49024]).
+- `dart compile` on macOS 10.15 (issue [#49010][]).
+
+[#48682]: https://github.com/dart-lang/sdk/issues/48682
+[#49024]: https://github.com/dart-lang/sdk/issues/49024
+[#49010]: https://github.com/dart-lang/sdk/issues/49010
+
+## 2.17.0 - 2022-05-11
 
 ### Language
 
