@@ -12,7 +12,7 @@ environment:
   sdk: '>=2.17.0 <3.0.0'
 
 dependencies:
-  analyzer: ^4.0.0
+  analyzer: ^4.1.0
   args: ^2.1.0
   collection: ^1.15.0
   http: ^0.13.0

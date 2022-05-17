@@ -207,8 +207,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (target is SimpleIdentifier) {
         var element = target.staticElement;
         if (element is PrefixElement) {
-          var imports = element.enclosingElement.getImportsWithPrefix(element);
-          for (var import in imports) {
+          for (var import in element.imports) {
             if (import.isDeferred) {
               return;
             }

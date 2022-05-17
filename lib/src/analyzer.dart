@@ -37,8 +37,6 @@ export 'package:analyzer/src/lint/linter.dart'
         LintFilter,
         NodeLintRegistry,
         NodeLintRule;
-export 'package:analyzer/src/lint/project.dart'
-    show DartProject, ProjectVisitor;
 export 'package:analyzer/src/lint/pub.dart' show PubspecVisitor, PSEntry;
 export 'package:analyzer/src/lint/util.dart' show Spelunker;
 export 'package:analyzer/src/services/lint.dart' show lintRegistry;

@@ -276,7 +276,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   }
 
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
-    newAnalysisOptionsYamlFile2(
+    newAnalysisOptionsYamlFile(
       testPackageRootPath,
       config.toContent(),
     );
@@ -388,7 +388,7 @@ abstract class _ContextResolutionTest with ResourceProviderMixin {
       throw StateError('Only dart files can be changed after analysis.');
     }
 
-    return super.newFile2(path, content);
+    return super.newFile(path, content);
   }
 
   Future<ResolvedUnitResult> resolveFile(String path) async {

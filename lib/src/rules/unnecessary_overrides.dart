@@ -168,8 +168,8 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
   }
 
   bool _sameKind(ParameterElement first, ParameterElement second) {
-    if (first.isNotOptional) {
-      return second.isNotOptional;
+    if (first.isRequired) {
+      return second.isRequired;
     } else if (first.isOptionalPositional) {
       return second.isOptionalPositional;
     } else if (first.isNamed) {
