@@ -266,8 +266,6 @@ class Serializer : public ThreadStackResource {
   ZoneGrowableArray<Object*>* Serialize(SerializationRoots* roots);
   void PrintSnapshotSizes();
 
-  FieldTable* initial_field_table() const { return initial_field_table_; }
-
   NonStreamingWriteStream* stream() { return stream_; }
   intptr_t bytes_written() { return stream_->bytes_written(); }
   intptr_t bytes_heap_allocated() { return bytes_heap_allocated_; }
@@ -516,7 +514,6 @@ class Serializer : public ThreadStackResource {
   intptr_t num_base_objects_;
   intptr_t num_written_objects_;
   intptr_t next_ref_index_;
-  FieldTable* initial_field_table_;
 
   intptr_t dispatch_table_size_ = 0;
   intptr_t bytes_heap_allocated_ = 0;
@@ -716,7 +713,6 @@ class Deserializer : public ThreadStackResource {
     return kind_;
 #endif
   }
-  FieldTable* initial_field_table() const { return initial_field_table_; }
   bool is_non_root_unit() const { return is_non_root_unit_; }
   void set_code_start_index(intptr_t value) { code_start_index_ = value; }
   intptr_t code_start_index() const { return code_start_index_; }
@@ -810,7 +806,6 @@ class Deserializer : public ThreadStackResource {
   intptr_t code_stop_index_ = 0;
   intptr_t instructions_index_ = 0;
   DeserializationCluster** clusters_;
-  FieldTable* initial_field_table_;
   const bool is_non_root_unit_;
   InstructionsTable& instructions_table_;
 };

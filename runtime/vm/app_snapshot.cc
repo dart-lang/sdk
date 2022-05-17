@@ -1424,9 +1424,7 @@ class FieldSerializationCluster : public SerializationCluster {
     }
     // Write out either the initial static value or field offset.
     if (Field::StaticBit::decode(field->untag()->kind_bits_)) {
-      const intptr_t field_id =
-          Smi::Value(field->untag()->host_offset_or_field_id());
-      s->Push(s->initial_field_table()->At(field_id));
+      s->Push(field->untag()->host_offset_or_field_id());
     } else {
       s->Push(Smi::New(Field::TargetOffsetOf(field)));
     }
@@ -1472,10 +1470,7 @@ class FieldSerializationCluster : public SerializationCluster {
 
       // Write out either the initial static value or field offset.
       if (Field::StaticBit::decode(field->untag()->kind_bits_)) {
-        const intptr_t field_id =
-            Smi::Value(field->untag()->host_offset_or_field_id());
-        WriteFieldValue("static value", s->initial_field_table()->At(field_id));
-        s->WriteUnsigned(field_id);
+        WriteFieldValue("id", field->untag()->host_offset_or_field_id());
       } else {
         WriteFieldValue("offset", Smi::New(Field::TargetOffsetOf(field)));
       }
@@ -1535,20 +1530,12 @@ class FieldDeserializationCluster : public DeserializationCluster {
 #endif
       field->untag()->kind_bits_ = d.Read<uint16_t>();
 
-      ObjectPtr value_or_offset = d.ReadRef();
-      if (Field::StaticBit::decode(field->untag()->kind_bits_)) {
-        const intptr_t field_id = d.ReadUnsigned();
-        d_->initial_field_table()->SetAt(
-            field_id, static_cast<InstancePtr>(value_or_offset));
-        field->untag()->host_offset_or_field_id_ = Smi::New(field_id);
-      } else {
-        field->untag()->host_offset_or_field_id_ =
-            Smi::RawCast(value_or_offset);
+      field->untag()->host_offset_or_field_id_ =
+          static_cast<SmiPtr>(d.ReadRef());
 #if !defined(DART_PRECOMPILED_RUNTIME)
-        field->untag()->target_offset_ =
-            Smi::Value(field->untag()->host_offset_or_field_id());
+      field->untag()->target_offset_ =
+          Smi::Value(field->untag()->host_offset_or_field_id());
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
-      }
     }
   }
 
@@ -6019,6 +6006,12 @@ class ProgramSerializationRoots : public SerializationRoots {
       s->Push(*p);
     }
 
+    FieldTable* initial_field_table =
+        s->thread()->isolate_group()->initial_field_table();
+    for (intptr_t i = 0, n = initial_field_table->NumFieldIds(); i < n; i++) {
+      s->Push(initial_field_table->At(i));
+    }
+
     dispatch_table_entries_ = object_store_->dispatch_table_code_entries();
     // We should only have a dispatch table in precompiled mode.
     ASSERT(dispatch_table_entries_.IsNull() || s->kind() == Snapshot::kFullAOT);
@@ -6041,6 +6034,14 @@ class ProgramSerializationRoots : public SerializationRoots {
     ObjectPtr* to = object_store_->to_snapshot(s->kind());
     for (ObjectPtr* p = from; p <= to; p++) {
       s->WriteRootRef(*p, kObjectStoreFieldNames[p - from]);
+    }
+
+    FieldTable* initial_field_table =
+        s->thread()->isolate_group()->initial_field_table();
+    intptr_t n = initial_field_table->NumFieldIds();
+    s->WriteUnsigned(n);
+    for (intptr_t i = 0; i < n; i++) {
+      s->WriteRootRef(initial_field_table->At(i), "some-static-field");
     }
 
     // The dispatch table is serialized only for precompiled snapshots.
@@ -6085,6 +6086,14 @@ class ProgramDeserializationRoots : public DeserializationRoots {
     ObjectPtr* to = object_store_->to_snapshot(d->kind());
     for (ObjectPtr* p = from; p <= to; p++) {
       *p = d->ReadRef();
+    }
+
+    FieldTable* initial_field_table =
+        d->thread()->isolate_group()->initial_field_table();
+    intptr_t n = d->ReadUnsigned();
+    initial_field_table->AllocateIndex(n - 1);
+    for (intptr_t i = 0; i < n; i++) {
+      initial_field_table->SetAt(i, d->ReadRef());
     }
 
     // Deserialize dispatch table (when applicable)
@@ -6303,7 +6312,6 @@ Serializer::Serializer(Thread* thread,
       num_base_objects_(0),
       num_written_objects_(0),
       next_ref_index_(kFirstReference),
-      initial_field_table_(thread->isolate_group()->initial_field_table()),
       vm_(vm),
       profile_writer_(profile_writer)
 #if defined(SNAPSHOT_BACKTRACE)
@@ -7508,12 +7516,6 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   WriteUnsigned(num_base_objects_);
   WriteUnsigned(num_objects);
   WriteUnsigned(clusters.length());
-  // TODO(dartbug.com/36097): Not every snapshot carries the field table.
-  if (current_loading_unit_id_ <= LoadingUnit::kRootId) {
-    WriteUnsigned(initial_field_table_->NumFieldIds());
-  } else {
-    WriteUnsigned(0);
-  }
   ASSERT((instructions_table_len_ == 0) || FLAG_precompiled_mode);
   WriteUnsigned(instructions_table_len_);
   WriteUnsigned(instructions_table_rodata_offset_);
@@ -7800,7 +7802,6 @@ Deserializer::Deserializer(Thread* thread,
       refs_(nullptr),
       next_ref_index_(kFirstReference),
       clusters_(nullptr),
-      initial_field_table_(thread->isolate_group()->initial_field_table()),
       is_non_root_unit_(is_non_root_unit),
       instructions_table_(InstructionsTable::Handle(thread->zone())) {
   if (Snapshot::IncludesCode(kind)) {
@@ -8316,17 +8317,12 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
   num_base_objects_ = ReadUnsigned();
   num_objects_ = ReadUnsigned();
   num_clusters_ = ReadUnsigned();
-  const intptr_t initial_field_table_len = ReadUnsigned();
   const intptr_t instructions_table_len = ReadUnsigned();
   const uint32_t instruction_table_data_offset = ReadUnsigned();
   USE(instruction_table_data_offset);
 
   clusters_ = new DeserializationCluster*[num_clusters_];
   refs = Array::New(num_objects_ + kFirstReference, Heap::kOld);
-  if (initial_field_table_len > 0) {
-    initial_field_table_->AllocateIndex(initial_field_table_len - 1);
-    ASSERT_EQUAL(initial_field_table_->NumFieldIds(), initial_field_table_len);
-  }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (instructions_table_len > 0) {
