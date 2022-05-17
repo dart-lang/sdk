@@ -1600,11 +1600,15 @@ severity: $severity
           SourceClassBuilder classBuilder = builder;
           ClassMacroApplicationData classMacroApplicationData =
               new ClassMacroApplicationData();
-          classMacroApplicationData.classApplications = prebuildAnnotations(
+          List<MacroApplication>? classMacroApplications = prebuildAnnotations(
               enclosingLibrary: libraryBuilder,
               scope: classBuilder.scope,
               fileUri: classBuilder.fileUri,
               metadataBuilders: classBuilder.metadata);
+          if (classMacroApplications != null) {
+            classMacroApplicationData.classApplications = new ApplicationData(
+                libraryBuilder, classBuilder, classMacroApplications);
+          }
           classBuilder.forEach((String name, Builder memberBuilder) {
             if (memberBuilder is SourceProcedureBuilder) {
               List<MacroApplication>? macroApplications = prebuildAnnotations(
@@ -1614,7 +1618,8 @@ severity: $severity
                   metadataBuilders: memberBuilder.metadata);
               if (macroApplications != null) {
                 classMacroApplicationData.memberApplications[memberBuilder] =
-                    macroApplications;
+                    new ApplicationData(
+                        libraryBuilder, memberBuilder, macroApplications);
               }
             } else if (memberBuilder is SourceFieldBuilder) {
               List<MacroApplication>? macroApplications = prebuildAnnotations(
@@ -1624,7 +1629,8 @@ severity: $severity
                   metadataBuilders: memberBuilder.metadata);
               if (macroApplications != null) {
                 classMacroApplicationData.memberApplications[memberBuilder] =
-                    macroApplications;
+                    new ApplicationData(
+                        libraryBuilder, memberBuilder, macroApplications);
               }
             } else {
               throw new UnsupportedError("Unexpected class member "
@@ -1640,7 +1646,8 @@ severity: $severity
                   metadataBuilders: memberBuilder.metadata);
               if (macroApplications != null) {
                 classMacroApplicationData.memberApplications[memberBuilder] =
-                    macroApplications;
+                    new ApplicationData(
+                        libraryBuilder, memberBuilder, macroApplications);
               }
             } else if (memberBuilder is SourceFactoryBuilder) {
               List<MacroApplication>? macroApplications = prebuildAnnotations(
@@ -1650,7 +1657,8 @@ severity: $severity
                   metadataBuilders: memberBuilder.metadata);
               if (macroApplications != null) {
                 classMacroApplicationData.memberApplications[memberBuilder] =
-                    macroApplications;
+                    new ApplicationData(
+                        libraryBuilder, memberBuilder, macroApplications);
               }
             } else {
               throw new UnsupportedError("Unexpected constructor "
@@ -1671,7 +1679,7 @@ severity: $severity
               metadataBuilders: builder.metadata);
           if (macroApplications != null) {
             libraryMacroApplicationData.memberApplications[builder] =
-                macroApplications;
+                new ApplicationData(libraryBuilder, builder, macroApplications);
           }
         } else if (builder is SourceFieldBuilder) {
           List<MacroApplication>? macroApplications = prebuildAnnotations(
@@ -1681,7 +1689,7 @@ severity: $severity
               metadataBuilders: builder.metadata);
           if (macroApplications != null) {
             libraryMacroApplicationData.memberApplications[builder] =
-                macroApplications;
+                new ApplicationData(libraryBuilder, builder, macroApplications);
           }
         } else if (builder is PrefixBuilder ||
             builder is SourceExtensionBuilder ||

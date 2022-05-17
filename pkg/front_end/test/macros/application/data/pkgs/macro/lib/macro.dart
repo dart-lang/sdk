@@ -328,8 +328,17 @@ class ToStringMacro implements ClassDeclarationsMacro {
 
 macro
 
-class SequenceMacro implements ClassDeclarationsMacro {
-  const SequenceMacro();
+class SequenceMacro
+    implements
+        ClassDeclarationsMacro,
+        MethodDeclarationsMacro {
+  final int index;
+
+  const SequenceMacro(this.index);
+
+  void _addMethod(ClassDeclaration clazz,
+      ClassMemberDeclarationBuilder builder) async {
+  }
 
   FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) async {
@@ -342,6 +351,12 @@ class SequenceMacro implements ClassDeclarationsMacro {
     }
     builder.declareInClass(new DeclarationCode.fromString('''
   method$suffix() {}'''));
+  }
+
+  FutureOr<void> buildDeclarationsForMethod(MethodDeclaration method,
+      ClassMemberDeclarationBuilder builder) {
+    // Do nothing. The applying of this will show up in the declarations phase
+    // application order.
   }
 }
 

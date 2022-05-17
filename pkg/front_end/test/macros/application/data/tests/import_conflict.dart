@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
+Definition Order:
+ function:ImportConflictMacro.new()
 Definitions:
 import 'dart:core' as prefix2_0;
 import 'dart:async' as prefix2_1;
@@ -13,8 +15,7 @@ augment void function(prefix2_0.int i, prefix2_1.FutureOr<prefix2_2.Random> f, p
   var prefix = prefix2_0.int;
   var prefix0 = prefix2_1.FutureOr<prefix2_2.Random>;
   var prefix10 = prefix2_3.JsonCodec;
-}
-*/
+}*/
 
 import 'package:macro/macro.dart';
 import 'dart:async';

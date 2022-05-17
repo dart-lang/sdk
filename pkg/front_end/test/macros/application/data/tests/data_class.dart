@@ -3,6 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
+Declarations Order:
+ Foo:DataClass.new()
+Definition Order:
+ Foo:DataClass.new()
 Definitions:
 import 'dart:core' as prefix0;
 
@@ -17,8 +21,7 @@ augment prefix0.bool operator ==(prefix0.Object other, ) {
 augment prefix0.String toString() {
     return "Foo(bar=${this.bar},baz=${this.baz})";
   }
-}
-*/
+}*/
 
 import 'package:macro/data_class.dart';
 

@@ -39,6 +39,9 @@ List<MacroApplication>? prebuildAnnotations(
       result.add(application);
     }
   }
+  if (result != null && result.length > 1) {
+    result = result.reversed.toList(growable: false);
+  }
   return result;
 }
 
