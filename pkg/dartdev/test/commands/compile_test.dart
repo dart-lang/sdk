@@ -187,7 +187,7 @@ void defineCompileTests() {
     expect(result.stdout, contains('2: foo'));
   });
 
-  test('Compile and run executable', () async {
+  Future<void> basicCompileTest() async {
     final p = project(mainSrc: 'void main() { print("I love executables"); }');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'lib', 'main.exe'));
@@ -213,7 +213,9 @@ void defineCompileTests() {
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(result.stdout, contains('I love executables'));
-  }, skip: isRunningOnIA32);
+  }
+
+  test('Compile and run executable', basicCompileTest, skip: isRunningOnIA32);
 
   test('Compile to executable disabled on IA32', () async {
     final p = project(mainSrc: 'void main() { print("I love executables"); }');
@@ -1112,4 +1114,33 @@ void main() {
     expect(result.stderr, contains('Warning:'));
     expect(result.exitCode, 0);
   });
+
+  if (Platform.isMacOS) {
+    test('Compile and run executable from signed dartaotruntime', () async {
+      // Either the locally built dartaotruntime is already linker signed
+      // (on M1) or it is unsigned (on X64). For this test, sign the
+      // dartaotruntime executable with a non-linker signed adhoc signature,
+      // which won't cause issues with any other tests that use it. This
+      // ensures the code signing path in dart2native is exercised on X64
+      // (macOS <11.0), and also mimics the case for end users that are using
+      // the published Dart SDK (which is fully signed, not linker signed).
+      final Directory binDir = File(Platform.resolvedExecutable).parent;
+      final String originalRuntimePath =
+          path.join(binDir.path, 'dartaotruntime');
+      final codeSigningProcess = await Process.start('codesign', [
+        '-o',
+        'runtime',
+        '-s',
+        '-',
+        originalRuntimePath,
+      ]);
+
+      final signingResult = await codeSigningProcess.exitCode;
+      expect(signingResult, 0);
+
+      // Now perform the same basic compile and run test with the signed
+      // dartaotruntime.
+      await basicCompileTest();
+    }, skip: isRunningOnIA32);
+  }
 }
