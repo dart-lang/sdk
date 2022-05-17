@@ -5,15 +5,12 @@
 library dart2js.constants.values;
 
 import '../common.dart';
+import '../common/elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../deferred_load/output_unit_migrated.dart' show OutputUnit;
 import '../js/js.dart' as js;
 import '../util/util.dart';
-
-import 'common_elements_for_constants.dart';
-// TODO(48820): When CommonElements is migrated, replace this import with
-//   import '../common/elements.dart' show CommonElements;
 
 enum ConstantValueKind {
   FUNCTION,

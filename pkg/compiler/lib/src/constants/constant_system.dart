@@ -6,8 +6,7 @@
 /// compiled to JavaScript.
 library dart2js.constant_system;
 
-//import '../common/elements.dart' show CommonElements;
-import 'common_elements_for_constants.dart';
+import '../common/elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import 'values.dart';
