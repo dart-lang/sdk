@@ -459,8 +459,8 @@ class KernelTarget extends TargetImplementation {
       }
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSemantics);
-      List<SourceClassBuilder>? sourceClassBuilders =
-          loader.checkSemantics(objectClassBuilder);
+      List<SourceClassBuilder>? sortedSourceClassBuilders =
+          loader.checkClassCycles(objectClassBuilder);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_finishTypeVariables);
       loader.finishTypeVariables(
@@ -484,15 +484,16 @@ class KernelTarget extends TargetImplementation {
       computeCoreTypes();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_buildClassHierarchy);
-      loader.buildClassHierarchy(sourceClassBuilders, objectClassBuilder);
+      loader.buildClassHierarchy(sortedSourceClassBuilders, objectClassBuilder);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
       loader.checkSupertypes(
-          sourceClassBuilders, enumClass, underscoreEnumClass);
+          sortedSourceClassBuilders, enumClass, underscoreEnumClass);
 
       if (macroApplications != null) {
         benchmarker?.enterPhase(BenchmarkPhases.outline_applyDeclarationMacros);
-        await macroApplications.applyDeclarationsMacros(loader.hierarchyBuilder,
+        await macroApplications.applyDeclarationsMacros(
+            loader.hierarchyBuilder, sortedSourceClassBuilders,
             (SourceLibraryBuilder augmentationLibrary) async {
           List<SourceLibraryBuilder> augmentationLibraries = [
             augmentationLibrary
@@ -508,14 +509,14 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_installSyntheticConstructors);
-      installSyntheticConstructors(sourceClassBuilders);
+      installSyntheticConstructors(sortedSourceClassBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_resolveConstructors);
       loader.resolveConstructors(loader.sourceLibraryBuilders);
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_buildClassHierarchyMembers);
-      loader.buildClassHierarchyMembers(sourceClassBuilders);
+      loader.buildClassHierarchyMembers(sortedSourceClassBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_computeHierarchy);
       loader.computeHierarchy();
@@ -527,20 +528,20 @@ class KernelTarget extends TargetImplementation {
       loader.installTypedefTearOffs();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_performTopLevelInference);
-      loader.performTopLevelInference(sourceClassBuilders);
+      loader.performTopLevelInference(sortedSourceClassBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkOverrides);
-      loader.checkOverrides(sourceClassBuilders);
+      loader.checkOverrides(sortedSourceClassBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkAbstractMembers);
-      loader.checkAbstractMembers(sourceClassBuilders);
+      loader.checkAbstractMembers(sortedSourceClassBuilders);
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_addNoSuchMethodForwarders);
-      loader.addNoSuchMethodForwarders(sourceClassBuilders);
+      loader.addNoSuchMethodForwarders(sortedSourceClassBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkMixins);
-      loader.checkMixins(sourceClassBuilders);
+      loader.checkMixins(sortedSourceClassBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_buildOutlineExpressions);
       // TODO(johnniwinther): Add an interface for registering delayed actions.
@@ -554,7 +555,7 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_checkRedirectingFactories);
-      loader.checkRedirectingFactories(sourceClassBuilders);
+      loader.checkRedirectingFactories(sortedSourceClassBuilders);
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_finishSynthesizedParameters);
@@ -574,7 +575,7 @@ class KernelTarget extends TargetImplementation {
       // of time, meaning that all source library builders will be kept alive
       // (for whatever amount of time) even though we convert them to dill
       // library builders. To avoid it we null it out here.
-      sourceClassBuilders = null;
+      sortedSourceClassBuilders = null;
 
       return new BuildResult(
           component: component, macroApplications: macroApplications);

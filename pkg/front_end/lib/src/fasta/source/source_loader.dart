@@ -2005,7 +2005,11 @@ severity: $severity
     }
   }
 
-  List<SourceClassBuilder> checkSemantics(ClassBuilder objectClass) {
+  /// Checks that there are no cycles in the class hierarchy, and if so break
+  /// these cycles by removing supertypes.
+  ///
+  /// Returns a list of all source classes in topological order.
+  List<SourceClassBuilder> checkClassCycles(ClassBuilder objectClass) {
     checkObjectClassHierarchy(objectClass);
     return handleHierarchyCycles(objectClass);
   }

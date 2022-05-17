@@ -4,14 +4,6 @@
 
 /*library: 
 Declarations Order:
- topLevelFunction1:FunctionDeclarationsMacro1.new()
- topLevelFunction2:FunctionDeclarationsMacro1.new()
- topLevelField1:VariableDeclarationsMacro1.new()
- topLevelField2:VariableDeclarationsMacro1.new()
- topLevelField3:VariableDeclarationsMacro1.new()
- topLevelField4:VariableDeclarationsMacro1.new()
- topLevelGetter1:FunctionDeclarationsMacro1.new()
- topLevelSetter1:FunctionDeclarationsMacro1.new()
  Class1.instanceMethod1:MethodDeclarationsMacro1.new()
  Class1.instanceGetter1:MethodDeclarationsMacro1.new()
  Class1.[]:MethodDeclarationsMacro1.new()
@@ -27,7 +19,15 @@ Declarations Order:
  Class2.instanceMethod1:MethodDeclarationsMacro1.new()
  Class2.instanceField1:FieldDeclarationsMacro1.new()
  Class2:ClassDeclarationsMacro2.new()
- Class2:ClassDeclarationsMacro1.new()*/
+ Class2:ClassDeclarationsMacro1.new()
+ topLevelFunction1:FunctionDeclarationsMacro1.new()
+ topLevelFunction2:FunctionDeclarationsMacro1.new()
+ topLevelField1:VariableDeclarationsMacro1.new()
+ topLevelField2:VariableDeclarationsMacro1.new()
+ topLevelField3:VariableDeclarationsMacro1.new()
+ topLevelField4:VariableDeclarationsMacro1.new()
+ topLevelGetter1:FunctionDeclarationsMacro1.new()
+ topLevelSetter1:FunctionDeclarationsMacro1.new()*/
 
 import 'package:macro/macro.dart';
 

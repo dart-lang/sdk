@@ -340,9 +340,25 @@ class SequenceMacro
       ClassMemberDeclarationBuilder builder) async {
   }
 
+  Future<void> _findAllMethods(ClassMemberDeclarationBuilder builder,
+      ClassDeclaration cls, List<MethodDeclaration> methods) async {
+    ClassDeclaration? superclass = await builder.superclassOf(cls);
+    if (superclass != null) {
+      await _findAllMethods(builder, superclass, methods);
+    }
+    for (ClassDeclaration mixin in await builder.mixinsOf(cls)) {
+      await _findAllMethods(builder, mixin, methods);
+    }
+    for (ClassDeclaration interface in await builder.interfacesOf(cls)) {
+      await _findAllMethods(builder, interface, methods);
+    }
+    methods.addAll(await builder.methodsOf(cls));
+  }
+
   FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) async {
-    Iterable<MethodDeclaration> methods = await builder.methodsOf(clazz);
+    List<MethodDeclaration> methods = [];
+    await _findAllMethods(builder, clazz, methods);
     int index = 0;
     String suffix = '';
     while (methods.any((m) => m.identifier.name == 'method$suffix')) {

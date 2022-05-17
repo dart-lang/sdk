@@ -14,7 +14,18 @@ Declarations Order:
  Class4.method2:SequenceMacro.new(4)
  Class4:SequenceMacro.new(2)
  Class4:SequenceMacro.new(1)
- Class4:SequenceMacro.new(0)*/
+ Class4:SequenceMacro.new(0)
+ Class5a:SequenceMacro.new(0)
+ Class5b:SequenceMacro.new(0)
+ Class5c:SequenceMacro.new(0)
+ Class6c:SequenceMacro.new(0)
+ Class6a:SequenceMacro.new(0)
+ Class6b:SequenceMacro.new(0)
+ Class6d:SequenceMacro.new(0)
+ Class7a:SequenceMacro.new(0)
+ Class7b:SequenceMacro.new(0)
+ Class7c:SequenceMacro.new(0)
+ Class7d:SequenceMacro.new(0)*/
 
 import 'package:macro/macro.dart';
 
@@ -60,3 +71,80 @@ class Class4 {
   @SequenceMacro(5)
   method2() {}
 }
+
+/*class: Class5c:
+augment class Class5c {
+  method2() {}
+}*/
+@SequenceMacro(0)
+class Class5c extends Class5b {}
+
+/*class: Class5b:
+augment class Class5b {
+  method1() {}
+}*/
+@SequenceMacro(0)
+class Class5b extends Class5a {}
+
+/*class: Class5a:
+augment class Class5a {
+  method() {}
+}*/
+@SequenceMacro(0)
+class Class5a {}
+
+/*class: Class6d:
+augment class Class6d {
+  method2() {}
+}*/
+@SequenceMacro(0)
+abstract class Class6d implements Class6c, Class6b {}
+
+/*class: Class6c:
+augment class Class6c {
+  method() {}
+}*/
+@SequenceMacro(0)
+class Class6c {}
+
+/*class: Class6b:
+augment class Class6b {
+  method1() {}
+}*/
+@SequenceMacro(0)
+abstract class Class6b implements Class6a {}
+
+/*class: Class6a:
+augment class Class6a {
+  method() {}
+}*/
+@SequenceMacro(0)
+class Class6a {}
+
+/*class: Class7d:
+augment class Class7d {
+  method2() {}
+}*/
+@SequenceMacro(0)
+class Class7d with Class7b, Class7c {}
+
+/*class: Class7c:
+augment class Class7c {
+  method() {}
+}*/
+@SequenceMacro(0)
+class Class7c {}
+
+/*class: Class7b:
+augment class Class7b {
+  method1() {}
+}*/
+@SequenceMacro(0)
+class Class7b with Class7a {}
+
+/*class: Class7a:
+augment class Class7a {
+  method() {}
+}*/
+@SequenceMacro(0)
+class Class7a {}

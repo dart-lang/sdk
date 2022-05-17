@@ -454,30 +454,39 @@ class MacroApplications {
   late macro.TypeResolver typeResolver;
   late macro.ClassIntrospector classIntrospector;
 
-  Future<void> applyDeclarationsMacros(ClassHierarchyBuilder classHierarchy,
+  Future<void> applyDeclarationsMacros(
+      ClassHierarchyBuilder classHierarchy,
+      List<SourceClassBuilder> sortedSourceClassBuilders,
       Future<void> Function(SourceLibraryBuilder) onAugmentationLibrary) async {
     types = new Types(classHierarchy);
     typeResolver = new _TypeResolver(this);
     classIntrospector = new _ClassIntrospector(this, classHierarchy);
 
+    // Apply macros to classes first, in class hierarchy order.
+    for (SourceClassBuilder classBuilder in sortedSourceClassBuilders) {
+      LibraryMacroApplicationData? libraryApplicationData =
+          libraryData[classBuilder.libraryBuilder];
+      if (libraryApplicationData == null) continue;
+
+      ClassMacroApplicationData? classApplicationData =
+          libraryApplicationData.classData[classBuilder];
+      if (classApplicationData == null) continue;
+      for (ApplicationData applicationData
+          in classApplicationData.memberApplications.values) {
+        await _applyDeclarationsMacros(applicationData, onAugmentationLibrary);
+      }
+      if (classApplicationData.classApplications != null) {
+        await _applyDeclarationsMacros(
+            classApplicationData.classApplications!, onAugmentationLibrary);
+      }
+    }
+
+    // Apply macros to library members second.
     for (MapEntry<SourceLibraryBuilder, LibraryMacroApplicationData> entry
         in libraryData.entries) {
       LibraryMacroApplicationData data = entry.value;
       for (ApplicationData applicationData in data.memberApplications.values) {
         await _applyDeclarationsMacros(applicationData, onAugmentationLibrary);
-      }
-      for (MapEntry<ClassBuilder, ClassMacroApplicationData> entry
-          in data.classData.entries) {
-        ClassMacroApplicationData classApplicationData = entry.value;
-        for (ApplicationData applicationData
-            in classApplicationData.memberApplications.values) {
-          await _applyDeclarationsMacros(
-              applicationData, onAugmentationLibrary);
-        }
-        if (classApplicationData.classApplications != null) {
-          await _applyDeclarationsMacros(
-              classApplicationData.classApplications!, onAugmentationLibrary);
-        }
       }
     }
   }
