@@ -19,6 +19,7 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
 import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/abstract_value_strategy.dart';
 import '../js_emitter/sorter.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/field_analysis.dart';

@@ -23,6 +23,7 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../io/source_information.dart';
+import '../ir/class_relation.dart';
 import '../ir/static_type.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';

@@ -16,7 +16,7 @@ import '../common/tasks.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/entities.dart';
 import '../environment.dart';
-import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/abstract_value_strategy.dart';
 import '../inferrer/types.dart';
 import '../ir/modular.dart';
 import '../js_backend/backend.dart';

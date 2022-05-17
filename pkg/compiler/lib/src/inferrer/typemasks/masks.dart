@@ -14,7 +14,7 @@ import '../../constants/values.dart';
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart';
-import '../../ir/static_type.dart';
+import '../../ir/class_relation.dart';
 import '../../serialization/serialization.dart';
 import '../../universe/class_hierarchy.dart';
 import '../../universe/selector.dart' show Selector;
@@ -24,6 +24,7 @@ import '../../universe/world_builder.dart'
 import '../../util/util.dart';
 import '../../world.dart' show JClosedWorld;
 import '../abstract_value_domain.dart';
+import '../abstract_value_strategy.dart';
 import '../type_graph_inferrer.dart' show TypeGraphInferrer;
 import 'constants.dart';
 

@@ -10,7 +10,7 @@ import '../common/names.dart' show Identifiers, Names;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../ir/static_type.dart';
+import '../ir/class_relation.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/field_analysis.dart' show KFieldAnalysis;
 import '../js_backend/backend_usage.dart'

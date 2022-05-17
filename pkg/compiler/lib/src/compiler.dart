@@ -32,7 +32,7 @@ import 'dump_info.dart' show DumpInfoStateData, DumpInfoTask;
 import 'elements/entities.dart';
 import 'enqueue.dart' show Enqueuer;
 import 'environment.dart';
-import 'inferrer/abstract_value_domain.dart' show AbstractValueStrategy;
+import 'inferrer/abstract_value_strategy.dart';
 import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
 import 'inferrer/powersets/powersets.dart' show PowersetStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;

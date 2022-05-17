@@ -8,13 +8,14 @@ import '../../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart' show DartType;
-import '../../ir/static_type.dart';
+import '../../ir/class_relation.dart';
 import '../../serialization/serialization.dart';
 import '../../universe/selector.dart';
 import '../../universe/world_builder.dart';
 import '../../universe/use.dart';
 import '../../world.dart';
 import '../abstract_value_domain.dart';
+import '../abstract_value_strategy.dart';
 import 'powerset_bits.dart';
 
 class PowersetValue implements AbstractValue {

@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/ir/static_type.dart';
+import 'package:compiler/src/ir/class_relation.dart';
 import 'package:compiler/src/js_backend/native_data.dart';
 import 'package:compiler/src/universe/resolution_world_builder.dart';
 import 'package:compiler/src/universe/world_builder.dart';
