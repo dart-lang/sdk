@@ -16,20 +16,7 @@ import 'runtime_type_analysis.dart';
 import 'scope.dart';
 import 'static_type_base.dart';
 import 'static_type_cache.dart';
-
-/// Enum values for how the target of a static type should be interpreted.
-enum ClassRelation {
-  /// The target is any subtype of the static type.
-  subtype,
-
-  /// The target is a subclass or mixin application of the static type.
-  ///
-  /// This corresponds to accessing a member through a this expression.
-  thisExpression,
-
-  /// The target is an exact instance of the static type.
-  exact,
-}
+import 'class_relation.dart';
 
 ClassRelation computeClassRelationFromType(ir.DartType type) {
   if (type is ThisInterfaceType) {

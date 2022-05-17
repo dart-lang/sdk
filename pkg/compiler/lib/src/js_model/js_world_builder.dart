@@ -16,7 +16,7 @@ import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/abstract_value_strategy.dart';
 import '../ir/closure.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/backend_usage.dart';

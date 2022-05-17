@@ -17,6 +17,7 @@ import '../kernel/element_map.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
+import 'class_relation.dart';
 import 'constants.dart';
 import 'impact.dart';
 import 'runtime_type_analysis.dart';
