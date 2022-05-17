@@ -76,7 +76,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       NameScheme nameScheme,
       {required bool isExtensionMember,
       required bool isInstanceMember,
-      String? nativeMethodName})
+      String? nativeMethodName,
+      bool isSynthetic: false})
       // ignore: unnecessary_null_comparison
       : assert(isExtensionMember != null),
         // ignore: unnecessary_null_comparison
@@ -90,7 +91,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         isExtensionInstanceMember ? ProcedureKind.Method : kind,
         new FunctionNode(null),
         fileUri: libraryBuilder.fileUri,
-        reference: procedureReference)
+        reference: procedureReference,
+        isSynthetic: isSynthetic)
       ..startFileOffset = startCharOffset
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset

@@ -1977,6 +1977,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   bool is_abstract = procedure_helper.IsAbstract();
   bool is_external = procedure_helper.IsExternal();
   bool is_extension_member = procedure_helper.IsExtensionMember();
+  bool is_synthetic = procedure_helper.IsSynthetic();
   String& native_name = String::Handle(Z);
   bool scan_annotations_lazy;
   bool has_pragma_annotation;
@@ -2009,7 +2010,8 @@ void KernelLoader::LoadProcedure(const Library& library,
   function.set_has_pragma(has_pragma_annotation);
   function.set_end_token_pos(procedure_helper.end_position_);
   function.set_is_synthetic(procedure_helper.IsNoSuchMethodForwarder() ||
-                            procedure_helper.IsMemberSignature());
+                            procedure_helper.IsMemberSignature() ||
+                            is_synthetic);
   function.set_is_visible(!is_invisible_function);
   if (register_function) {
     functions_.Add(&function);
