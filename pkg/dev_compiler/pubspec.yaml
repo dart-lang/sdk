@@ -7,51 +7,30 @@ environment:
 
 dependencies:
   _fe_analyzer_shared: any
-  _js_interop_checks:
-    path: ../_js_interop_checks
+  _js_interop_checks: any
   args: any
   async: any
   bazel_worker: any
-  build_integration:
-    path: ../build_integration
-  collection: ^1.15.0
-  front_end:
-    path: ../front_end
-  kernel:
-    path: ../kernel
+  build_integration: any
+  collection: any
+  front_end: any
+  kernel: any
   meta: any
   path: any
   source_maps: any
   source_span: any
 
 dev_dependencies:
-  browser_launcher: ^1.0.0
-  expect:
-    path: ../expect
+  browser_launcher: any
+  expect: any
   http_multi_server: any
   js: any
   lints: any
-  modular_test:
-    path: ../modular_test
-  sourcemap_testing:
-    path: ../sourcemap_testing
-  stack_trace: any
+  modular_test: any
   shelf: any
+  sourcemap_testing: any
+  stack_trace: any
   test: any
-  testing:
-    path: ../testing
-  vm:
-    path: ../vm
-  webkit_inspection_protocol: ^1.0.0
-
-dependency_overrides:
-  _fe_analyzer_shared:
-    path: ../_fe_analyzer_shared
-  js:
-    path: ../js
-  meta:
-    path: ../meta
-  shelf:
-    path: ../../third_party/pkg/shelf/pkgs/shelf
-  http_multi_server:
-    path: ../../third_party/pkg/http_multi_server
+  testing: any
+  vm: any
+  webkit_inspection_protocol: any

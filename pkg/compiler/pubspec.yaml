@@ -10,110 +10,25 @@ environment:
 # package. The `.packages` file in the repository root will be used by default.
 dependencies:
   _fe_analyzer_shared: any
-  # Published packages - repo version ensured via dependency_overrides
+  _js_interop_checks: any
   collection: any
   crypto: any
-  dart2js_info:
-    path: ../dart2js_info
-  front_end:
-    path: ../front_end
-  kernel:
-    path: ../kernel
-
-  # Unpublished packages that can be used via path dependency
-  _js_interop_checks:
-    path: ../_js_interop_checks
-  js_ast:
-    path: ../js_ast
-  js_runtime:
-    path: ../js_runtime
+  dart2js_info: any
+  front_end: any
+  js_ast: any
+  js_runtime: any
+  kernel: any
 
 dev_dependencies:
-  # Published packages - repo version ensured via dependency_overrides
   args: any
   dart_style: any
   http: any
-  js:
-    path: ../js
+  js: any
   path: any
   source_maps: any
-  # Unpublished packages that can be used via path dependency
-  async_helper:
-    path: ../async_helper
-  dart2js_tools:
-    path: ../dart2js_tools
-  expect:
-    path: ../expect
-  modular_test:
-    path: ../modular_test
-  sourcemap_testing:
-    path: ../sourcemap_testing
-  testing:
-    path: ../testing
-
-dependency_overrides:
-  # Packages with source in the SDK
-  _fe_analyzer_shared:
-    path: ../_fe_analyzer_shared
-  analyzer:
-    path: ../analyzer
-  front_end:
-    path: ../front_end
-  js:
-    path: ../js
-  kernel:
-    path: ../kernel
-  meta:
-    path: ../meta
-  dart2js_info:
-    path: ../dart2js_info
-  smith:
-    path: ../smith
-
-  # Packages brought in via DEPS
-  args:
-    path: ../../third_party/pkg/args
-  async:
-    path: ../../third_party/pkg/async
-  charcode:
-    path: ../../third_party/pkg/charcode
-  collection:
-    path: ../../third_party/pkg/collection
-  convert:
-    path: ../../third_party/pkg/convert
-  crypto:
-    path: ../../third_party/pkg/crypto
-  fixnum:
-    path: ../../third_party/pkg/fixnum
-  http_parser:
-    path: ../../third_party/pkg/http_parser
-  matcher:
-    path: ../../third_party/pkg/matcher
-  mime:
-    path: ../../third_party/pkg/mime
-  package_config:
-    path: ../../third_party/pkg_tested/package_config
-  path:
-    path: ../../third_party/pkg/path
-  protobuf:
-    path: ../../third_party/pkg/protobuf/protobuf
-  shelf:
-    path: ../../third_party/pkg/shelf/pkgs/shelf
-  shelf_static:
-    path: ../../third_party/pkg/shelf/pkgs/shelf_static
-  source_span:
-    path: ../../third_party/pkg/source_span
-  stack_trace:
-    path: ../../third_party/pkg/stack_trace
-  stream_channel:
-    path: ../../third_party/pkg/stream_channel
-  string_scanner:
-    path: ../../third_party/pkg/string_scanner
-  test:
-    path: ../../third_party/pkg/test/pkgs/test
-  test_api:
-    path: ../../third_party/pkg/test/pkgs/test_api
-  typed_data:
-    path: ../../third_party/pkg/typed_data
-  yaml:
-    path: ../../third_party/pkg/yaml
+  async_helper: any
+  dart2js_tools: any
+  expect: any
+  modular_test: any
+  sourcemap_testing: any
+  testing: any

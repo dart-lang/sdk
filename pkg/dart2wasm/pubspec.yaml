@@ -5,26 +5,8 @@ environment:
   sdk: '>=2.12.0'
 
 dependencies:
-  _js_interop_checks:
-    path: ../_js_interop_checks
-  front_end:
-    path: ../front_end
-  kernel:
-    path: ../kernel
-  vm:
-    path: ../vm
-  wasm_builder:
-    path: ../wasm_builder
-
-dependency_overrides:
-  # Packages with source in the SDK
-  _js_interop_checks:
-    path: ../_js_interop_checks
-  front_end:
-    path: ../front_end
-  kernel:
-    path: ../kernel
-  vm:
-    path: ../vm
-  wasm_builder:
-    path: ../wasm_builder
+  _js_interop_checks: any
+  front_end: any
+  kernel: any
+  vm: any
+  wasm_builder: any

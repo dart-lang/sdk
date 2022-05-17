@@ -12,6 +12,4 @@ environment:
   sdk: ">=2.14.0 <2.15.0"
 
 dev_dependencies:
-  # Unpublished packages that can be used via path dependency
-  expect:
-    path: ../expect
+  expect: any

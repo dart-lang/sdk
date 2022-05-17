@@ -7,9 +7,4 @@ environment:
 
 dependencies:
   _fe_analyzer_shared: any
-  kernel:
-    path: ../kernel
-
-dependency_overrides:
-  _fe_analyzer_shared:
-    path: ../_fe_analyzer_shared
+  kernel: any

@@ -10,30 +10,19 @@ dependencies:
   _fe_analyzer_shared: any
   analyzer: any
   analyzer_plugin: any
-  args: ^2.3.0
-  cli_util: ^0.3.5
-  collection: ^1.15.0
-  crypto: ^3.0.1
+  args: any
+  cli_util: any
+  collection: any
+  crypto: any
   meta: any
-  path: ^1.6.2
-  pub_semver: ^2.1.0
-  source_span: ^1.4.1
+  path: any
+  pub_semver: any
+  source_span: any
   yaml: any
 
 dev_dependencies:
-  analyzer_utilities:
-    path: ../analyzer_utilities
-  http: ^0.13.4
+  analyzer_utilities: any
+  http: any
   lints: any
-  test: ^1.6.4
-  test_reflective_loader: ^0.2.0
-
-dependency_overrides:
-  _fe_analyzer_shared:
-    path: ../_fe_analyzer_shared
-  analyzer:
-    path: ../analyzer
-  analyzer_plugin:
-    path: ../analyzer_plugin
-  meta:
-    path: ../meta
+  test: any
+  test_reflective_loader: any

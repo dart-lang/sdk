@@ -6,43 +6,29 @@ environment:
   sdk: '>=2.17.0 <3.0.0'
 
 dependencies:
-  _fe_analyzer_shared:
-    path: ../_fe_analyzer_shared
-  analyzer:
-    path: ../analyzer
-  analyzer_plugin:
-    path: ../analyzer_plugin
+  _fe_analyzer_shared: any
+  analyzer: any
+  analyzer_plugin: any
   args: any
   collection: any
   convert: any
   crypto: any
   dart_style: any
-  http: any
   html: any
+  http: any
   linter: any
-  meta:
-    path: ../meta
-  stream_channel: any
-  telemetry:
-    path: ../telemetry
-  test: any
+  meta: any
   path: any
+  stream_channel: any
+  telemetry: any
+  test: any
   watcher: any
   yaml: any
 
 dev_dependencies:
-  analyzer_utilities:
-    path: ../analyzer_utilities
+  analyzer_utilities: any
   cli_util: any
-  lints: ^2.0.0
+  lints: any
   logging: any
   matcher: any
   test_reflective_loader: any
-
-dependency_overrides:
-  _fe_analyzer_shared:
-    path: ../_fe_analyzer_shared
-  analyzer:
-    path: ../analyzer
-  meta:
-    path: ../meta
