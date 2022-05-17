@@ -1,10 +1,10 @@
-## 4.1.0-dev
+## 4.1.0
 * Deprecated `ParameterElement.isNotOptional`, use `isRequired` instead.
 * Deprecated `ResourceProviderMixin.newFile2`, use `newFile` instead.
 * Deprecated `ResourceProviderMixin.newAnalysisOptionsYamlFile2`, use `newAnalysisOptionsYamlFile` instead.
 * Deprecated `DartType.resolveToBound`, use `TypeSystem.resolveToBound` instead.
 * Deprecated `LibraryElement.getImportsWithPrefix`, use `PrefixElement.imports` instead.
-* Fix for `AnalysisSession.getFile()` to return stale content even after `applyPendingFileChanges`.
+* Fix for `AnalysisSession.getFile()` to return updated content after `applyPendingFileChanges`.
 
 ## 4.0.0
 * Removed deprecated `UriKind` and `Source.uriKind`.
