@@ -3828,6 +3828,12 @@ class InstanceSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       InstancePtr instance = objects_[i];
       AutoTraceObject(instance);
+#if defined(DART_PRECOMPILER)
+      if (FLAG_write_v8_snapshot_profile_to != nullptr) {
+        ClassPtr cls = s->isolate_group()->class_table()->At(cid_);
+        s->AttributePropertyRef(cls, "<class>");
+      }
+#endif
       intptr_t offset = Instance::NextFieldOffset();
       while (offset < next_field_offset) {
         if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
@@ -4084,6 +4090,13 @@ class TypeSerializationCluster
 
   void WriteType(Serializer* s, TypePtr type) {
     AutoTraceObject(type);
+#if defined(DART_PRECOMPILER)
+    if (FLAG_write_v8_snapshot_profile_to != nullptr) {
+      ClassPtr type_class =
+          s->isolate_group()->class_table()->At(type->untag()->type_class_id_);
+      s->AttributePropertyRef(type_class, "<type_class>");
+    }
+#endif
     WriteFromTo(type);
     COMPILE_ASSERT(
         std::is_unsigned<decltype(UntaggedType::type_class_id_)>::value);
