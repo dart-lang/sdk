@@ -388,7 +388,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
           AsyncMarker.Sync,
           procedureNameScheme,
           isExtensionMember: false,
-          isInstanceMember: true);
+          isInstanceMember: true,
+          isSynthetic: true);
       members["toString"] = toStringBuilder;
     }
     String className = name;

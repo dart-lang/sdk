@@ -437,7 +437,7 @@ type Procedure extends Member {
   Byte stubKind; // Index into the ProcedureStubKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst,
               isRedirectingFactory, isExtensionMember,
-              isNonNullableByDefault);
+              isNonNullableByDefault, isSynthetic);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.

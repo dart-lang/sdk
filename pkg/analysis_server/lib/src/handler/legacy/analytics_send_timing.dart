@@ -18,7 +18,7 @@ class AnalyticsSendTimingHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    final analytics = server.analytics;
+    final analytics = server.options.analytics;
     if (analytics == null) {
       sendResult(AnalyticsSendTimingResult());
       return;

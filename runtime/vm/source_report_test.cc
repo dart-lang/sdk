@@ -1073,6 +1073,56 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_IssueCov341_LateFinalVars) {
       buffer);
 }
 
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_IssueCov386_EnhancedEnums) {
+  // https://github.com/dart-lang/coverage/issues/386
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
+  const char* kScript =
+      "enum FoodType {\n"
+      "  candy();\n"
+      "  const FoodType();\n"
+      "}\n"
+      "void main() {\n"
+      "  final food = FoodType.candy;\n"
+      "}\n";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // There are two ranges at the FoodType constructor. This one is missed,
+      // but the one below is hit, so it's ok. The point is that the synthetic
+      // toString method doesn't appear in this hitmap.
+      "{\"scriptIndex\":0,\"startPos\":29,\"endPos\":45,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[29]}},"
+
+      // Main is hit.
+      "{\"scriptIndex\":0,\"startPos\":49,\"endPos\":94,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[49],\"misses\":[]}},"
+
+      // FoodType constructor is hit.
+      "{\"scriptIndex\":0,\"compiled\":true,\"startPos\":29,\"endPos\":45,"
+      "\"coverage\":{\"hits\":[29],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+      buffer);
+}
+
 ISOLATE_UNIT_TEST_CASE(SourceReport_Regress95008_RedirectingFactory) {
   // WARNING: This MUST be big enough for the serialised JSON string.
   const int kBufferSize = 1024;
