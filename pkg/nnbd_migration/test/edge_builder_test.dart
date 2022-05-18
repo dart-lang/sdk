@@ -5730,10 +5730,9 @@ int f2(int i2) => (i2)/*!*/;
   Future<void> test_part_metadata() async {
     var pathContext = resourceProvider.pathContext;
     addSource(pathContext.join(pathContext.dirname(testFile), 'part.dart'), '''
-part of test;
+part of 'test.dart';
 ''');
     await analyze('''
-library test;
 @deprecated
 part 'part.dart';
 ''');
@@ -5744,10 +5743,13 @@ part 'part.dart';
   Future<void> test_part_of_identifier() async {
     var pathContext = resourceProvider.pathContext;
     var testFileName = pathContext.basename(testFile);
-    addSource(pathContext.join(pathContext.dirname(testFile), 'lib.dart'), '''
+    var libPath = pathContext.join(pathContext.dirname(testFile), 'lib.dart');
+    addSource(libPath, '''
 library test;
 part '$testFileName';
 ''');
+    // Discover the library for the part.
+    session.getParsedUnit(libPath);
     await analyze('''
 part of test;
 ''');
@@ -5758,13 +5760,16 @@ part of test;
   Future<void> test_part_of_metadata() async {
     var pathContext = resourceProvider.pathContext;
     var testFileName = pathContext.basename(testFile);
-    addSource(pathContext.join(pathContext.dirname(testFile), 'lib.dart'), '''
-library test;
+    var libPath = pathContext.join(pathContext.dirname(testFile), 'lib.dart');
+    addSource(libPath, '''
 part '$testFileName';
 ''');
+    // TODO(scheglov) This should not be necessary, we use URI, so can find it.
+    // Discover the library for the part.
+    session.getParsedUnit(libPath);
     await analyze('''
 @deprecated
-part of test;
+part of 'lib.dart';
 ''');
     // No assertions needed; the AnnotationTracker mixin verifies that the
     // metadata was visited.
@@ -5773,9 +5778,13 @@ part of test;
   Future<void> test_part_of_path() async {
     var pathContext = resourceProvider.pathContext;
     var testFileName = pathContext.basename(testFile);
-    addSource(pathContext.join(pathContext.dirname(testFile), 'lib.dart'), '''
+    var libPath = pathContext.join(pathContext.dirname(testFile), 'lib.dart');
+    addSource(libPath, '''
 part '$testFileName';
 ''');
+    // TODO(scheglov) This should not be necessary, we use URI, so can find it.
+    // Discover the library for the part.
+    session.getParsedUnit(libPath);
     await analyze('''
 part of 'lib.dart';
 ''');

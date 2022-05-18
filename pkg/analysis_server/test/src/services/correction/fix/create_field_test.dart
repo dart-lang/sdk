@@ -383,6 +383,7 @@ void f(A a) {
     });
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49046')
   Future<void> test_inPart_self() async {
     await resolveTestCode('''
 part of lib;

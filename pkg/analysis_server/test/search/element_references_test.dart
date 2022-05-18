@@ -742,8 +742,8 @@ void f() {
 }
 ''');
     await findElementReferences('fff(p) {}', false);
-    expect(results, hasLength(1));
-    assertHasResult(SearchResultKind.INVOCATION, 'fff(10);');
+    // A part without library, no results.
+    expect(results, isEmpty);
   }
 
   Future<void> test_parameter() async {

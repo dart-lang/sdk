@@ -96,6 +96,12 @@ library my.lib;
   }
 
   Future<void> test_libraryName_hasPartOfDirective() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library lib;
+
+part 'test.dart';
+''');
+
     addTestFile('''
 part of my.lib;
 ''');
