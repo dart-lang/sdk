@@ -161,6 +161,14 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
     }
   }
 
+  // Enum constuctors cannot be invoked by the user, so ignore them.
+  if (func.IsGenerativeConstructor()) {
+    Class& cls = Class::Handle(func.Owner());
+    if (cls.is_enum_class()) {
+      return true;
+    }
+  }
+
   return false;
 }
 

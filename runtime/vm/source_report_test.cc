@@ -1075,6 +1075,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_IssueCov341_LateFinalVars) {
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_IssueCov386_EnhancedEnums) {
   // https://github.com/dart-lang/coverage/issues/386
+  // https://github.com/dart-lang/coverage/issues/377
   // WARNING: This MUST be big enough for the serialised JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
@@ -1082,9 +1083,10 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_IssueCov386_EnhancedEnums) {
       "enum FoodType {\n"
       "  candy();\n"
       "  const FoodType();\n"
+      "  factory FoodType.candyFactory() => candy;\n"
       "}\n"
       "void main() {\n"
-      "  final food = FoodType.candy;\n"
+      "  final food = FoodType.candyFactory();\n"
       "}\n";
 
   Library& lib = Library::Handle();
@@ -1103,19 +1105,14 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_IssueCov386_EnhancedEnums) {
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":["
 
-      // There are two ranges at the FoodType constructor. This one is missed,
-      // but the one below is hit, so it's ok. The point is that the synthetic
-      // toString method doesn't appear in this hitmap.
-      "{\"scriptIndex\":0,\"startPos\":29,\"endPos\":45,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[],\"misses\":[29]}},"
-
       // Main is hit.
-      "{\"scriptIndex\":0,\"startPos\":49,\"endPos\":94,\"compiled\":true,"
+      "{\"scriptIndex\":0,\"startPos\":49,\"endPos\":89,\"compiled\":true,"
       "\"coverage\":{\"hits\":[49],\"misses\":[]}},"
 
-      // FoodType constructor is hit.
-      "{\"scriptIndex\":0,\"compiled\":true,\"startPos\":29,\"endPos\":45,"
-      "\"coverage\":{\"hits\":[29],\"misses\":[]}}],"
+      // The enum's constructor, and toString, are not included in the hitmap,
+      // but the factory is included.
+      "{\"scriptIndex\":0,\"startPos\":93,\"endPos\":147,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[93,131],\"misses\":[]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
