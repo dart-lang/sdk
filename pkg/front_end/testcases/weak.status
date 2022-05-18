@@ -168,6 +168,7 @@ general/error_recovery/issue_39958_01: RuntimeError
 general/error_recovery/issue_39958_02: RuntimeError
 general/error_recovery/issue_39958_03: RuntimeError
 general/error_recovery/issue_39958_04: RuntimeError
+general/error_recovery/weekly_bot_91_failure: Crash
 general/error_recovery/yield_not_in_generator: RuntimeError
 general/expressions: RuntimeError
 general/getter_vs_setter_type: TypeCheckError
