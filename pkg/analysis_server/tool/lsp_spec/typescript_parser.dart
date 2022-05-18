@@ -253,6 +253,10 @@ class Parser {
   final List<Token> _tokens;
   int _current = 0;
   final List<AstNode> _nodes = [];
+
+  /// A set of names already used (or reserved) by nodes.
+  final Set<String> _nodeNames = {};
+
   Parser(this._tokens);
 
   bool get _isAtEnd => _peek().type == TokenType.EOF;
@@ -260,12 +264,19 @@ class Parser {
   List<AstNode> parse() {
     if (_nodes.isEmpty) {
       while (!_isAtEnd) {
-        _nodes.add(_topLevel());
+        _addNode(_topLevel());
         // Consume any trailing semicolons.
         _match([TokenType.SEMI_COLON]);
       }
     }
     return _nodes;
+  }
+
+  /// Adds [node] to the current list and prevents its name from being used
+  /// by generated interfaces.
+  void _addNode(AstNode node) {
+    _nodeNames.add(node.name);
+    _nodes.add(node);
   }
 
   /// Returns the current token and moves to the next.
@@ -423,6 +434,28 @@ class Parser {
     }
     return Field(leadingComment, name, type,
         allowsNull: canBeNull, allowsUndefined: canBeUndefined);
+  }
+
+  /// Gets an available name for a node.
+  ///
+  /// If the computed name is already used, a number will be appended to the
+  /// end.
+  String _getAvailableName(String containerName, String? fieldName) {
+    final name = _joinNames(containerName, fieldName ?? '');
+    final requiresSuffix = fieldName == null;
+    // If the name has already been taken, try appending a number and try
+    // again.
+    String generatedName;
+    var suffixIndex = 1;
+    do {
+      if (suffixIndex > 20) {
+        throw 'Failed to generate an available name for $name';
+      }
+      generatedName =
+          requiresSuffix || suffixIndex > 1 ? '$name$suffixIndex' : name;
+      suffixIndex++;
+    } while (_nodeNames.contains(generatedName));
+    return generatedName;
   }
 
   Indexer _indexer(String containerName, Comment? leadingComment) {
@@ -592,9 +625,7 @@ class Parser {
     if (includeUndefined) {
       types.add(Type.Undefined);
     }
-    var typeIndex = 0;
     while (true) {
-      typeIndex++;
       TypeBase type;
       if (_match([TokenType.LEFT_BRACE])) {
         // Inline interfaces.
@@ -613,13 +644,8 @@ class Parser {
           type = MapType(indexer.indexType, indexer.valueType);
         } else {
           // Add a synthetic interface to the parsers list of nodes to represent this type.
-          // If we have no fieldName to base the synthetic name from, we should use
-          // the index of this type, for example in:
-          //    type Foo = { [..] } | { [...] }
-          // we will generate Foo1 and Foo2 for the types.
-          final nameSuffix = fieldName ?? '$typeIndex';
-          final generatedName = _joinNames(containerName, nameSuffix);
-          _nodes.add(InlineInterface(generatedName, members));
+          final generatedName = _getAvailableName(containerName, fieldName);
+          _addNode(InlineInterface(generatedName, members));
           // Record the type as a simple type that references this interface.
           type = Type.identifier(generatedName);
         }
@@ -705,6 +731,10 @@ class Parser {
   TypeAlias _typeAlias(Comment? leadingComment) {
     final name = _consume(TokenType.IDENTIFIER, 'Expected identifier');
     _consume(TokenType.EQUAL, 'Expected =');
+    // Reserve the name for this alias before we start reading its type so that
+    // inline/literal types will not try to compute the same name if they do
+    // not have field names.
+    _nodeNames.add(name.lexeme);
     final type = _type(name.lexeme, null);
     if (!_isAtEnd) {
       _consume(TokenType.SEMI_COLON, 'Expected ;');
