@@ -1,3 +1,12 @@
+# 1.24.0
+
+- fix `prefer_final_parameters` to support super parameters
+- new lint: `unnecessary_to_list_in_spreads`
+- fix `unawaited_futures` to handle string interpolated
+  futures
+- update `use_colored_box` to not flag nullable colors
+- new lint: `unnecessary_null_aware_operator_on_extension_on_nullable`
+
 # 1.23.0
 
 - fixed `no_leading_underscores_for_local_identifiers`
