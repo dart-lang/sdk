@@ -81,12 +81,6 @@ class _AnalyzerErrorGenerator {
     for (var importPath in imports.toList()..sort()) {
       out.writeln("import ${json.encode(importPath)};");
     }
-    out.writeln();
-    out.writeln("// It is hard to visually separate each code's _doc comment_ "
-        "from its published");
-    out.writeln('// _documentation comment_ when each is written as an '
-        'end-of-line comment.');
-    out.writeln('// ignore_for_file: slash_for_doc_comments');
     if (shouldGenerateFastaAnalyzerErrorCodes) {
       out.writeln();
       _generateFastaAnalyzerErrorCodeList();

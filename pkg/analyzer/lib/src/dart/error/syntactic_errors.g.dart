@@ -9,10 +9,6 @@
 
 import "package:analyzer/error/error.dart";
 
-// It is hard to visually separate each code's _doc comment_ from its published
-// _documentation comment_ when each is written as an end-of-line comment.
-// ignore_for_file: slash_for_doc_comments
-
 final fastaAnalyzerErrorCodes = <ErrorCode?>[
   null,
   ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
@@ -216,11 +212,9 @@ class ParserErrorCode extends ErrorCode {
     "An annotation with type arguments must be followed by an argument list.",
   );
 
-  /**
-   * 16.32 Identifier Reference: It is a compile-time error if any of the
-   * identifiers async, await, or yield is used as an identifier in a function
-   * body marked with either async, async, or sync.
-   */
+  ///  16.32 Identifier Reference: It is a compile-time error if any of the
+  ///  identifiers async, await, or yield is used as an identifier in a function
+  ///  body marked with either async, async, or sync.
   static const ParserErrorCode ASYNC_KEYWORD_USED_AS_IDENTIFIER =
       ParserErrorCode(
     'ASYNC_KEYWORD_USED_AS_IDENTIFIER',
@@ -377,34 +371,7 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try removing the keyword 'covariant'.",
   );
 
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a function type associated with
-  // a parameter includes optional parameters that have a default value. This
-  // isn't allowed because the default values of parameters aren't part of the
-  // function's type, and therefore including them doesn't provide any value.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because the parameter `p` has a
-  // default value even though it's part of the type of the parameter `g`:
-  //
-  // ```dart
-  // void f(void Function([int p [!=!] 0]) g) {
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Remove the default value from the function-type's parameter:
-  //
-  // ```dart
-  // void f(void Function([int p]) g) {
-  // }
-  // ```
+  ///  No parameters.
   static const ParserErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE = ParserErrorCode(
     'DEFAULT_VALUE_IN_FUNCTION_TYPE',
     "Parameters in a function type can't have default values.",
@@ -425,10 +392,8 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try moving the directive before any declarations.",
   );
 
-  /**
-   * Parameters:
-   * 0: the modifier that was duplicated
-   */
+  ///  Parameters:
+  ///  0: the modifier that was duplicated
   static const ParserErrorCode DUPLICATED_MODIFIER = ParserErrorCode(
     'DUPLICATED_MODIFIER',
     "The modifier '{0}' was already specified.",
@@ -441,10 +406,8 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try removing all but one 'deferred' keyword.",
   );
 
-  /**
-   * Parameters:
-   * 0: the label that was duplicated
-   */
+  ///  Parameters:
+  ///  0: the label that was duplicated
   static const ParserErrorCode DUPLICATE_LABEL_IN_SWITCH_STATEMENT =
       ParserErrorCode(
     'DUPLICATE_LABEL_IN_SWITCH_STATEMENT',
@@ -533,10 +496,8 @@ class ParserErrorCode extends ErrorCode {
     "Expected a string literal.",
   );
 
-  /**
-   * Parameters:
-   * 0: the token that was expected but not found
-   */
+  ///  Parameters:
+  ///  0: the token that was expected but not found
   static const ParserErrorCode EXPECTED_TOKEN = ParserErrorCode(
     'EXPECTED_TOKEN',
     "Expected to find '{0}'.",
@@ -563,28 +524,7 @@ class ParserErrorCode extends ErrorCode {
         "Try moving the export directives before the part directives.",
   );
 
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when an abstract declaration is
-  // declared in an extension. Extensions can declare only concrete members.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because the method `a` doesn't
-  // have a body:
-  //
-  // ```dart
-  // extension E on String {
-  //   int [!a!]();
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Either provide an implementation for the member or remove it.
+  ///  No parameters.
   static const ParserErrorCode EXTENSION_DECLARES_ABSTRACT_MEMBER =
       ParserErrorCode(
     'EXTENSION_DECLARES_ABSTRACT_MEMBER',
@@ -593,30 +533,7 @@ class ParserErrorCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a constructor declaration is
-  // found in an extension. It isn't valid to define a constructor because
-  // extensions aren't classes, and it isn't possible to create an instance of
-  // an extension.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because there is a constructor
-  // declaration in `E`:
-  //
-  // ```dart
-  // extension E on String {
-  //   [!E!]() : super();
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Remove the constructor or replace it with a static method.
+  ///  No parameters.
   static const ParserErrorCode EXTENSION_DECLARES_CONSTRUCTOR = ParserErrorCode(
     'EXTENSION_DECLARES_CONSTRUCTOR',
     "Extensions can't declare constructors.",
@@ -624,31 +541,7 @@ class ParserErrorCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when an instance field declaration is
-  // found in an extension. It isn't valid to define an instance field because
-  // extensions can only add behavior, not state.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because `s` is an instance
-  // field:
-  //
-  // ```dart
-  // %language=2.9
-  // extension E on String {
-  //   String [!s!];
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Remove the field, make it a static field, or convert it to be a getter,
-  // setter, or method.
+  ///  No parameters.
   static const ParserErrorCode EXTENSION_DECLARES_INSTANCE_FIELD =
       ParserErrorCode(
     'EXTENSION_DECLARES_INSTANCE_FIELD',
@@ -920,10 +813,8 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try removing the keyword, or use a for-each statement.",
   );
 
-  /**
-   * Parameters:
-   * 0: the invalid escape sequence
-   */
+  ///  Parameters:
+  ///  0: the invalid escape sequence
   static const ParserErrorCode INVALID_CODE_POINT = ParserErrorCode(
     'INVALID_CODE_POINT',
     "The escape sequence '{0}' isn't a valid code point.",
@@ -967,22 +858,18 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try removing the interpolation expressions.",
   );
 
-  /**
-   * Parameters:
-   * 0: the operator that is invalid
-   */
+  ///  Parameters:
+  ///  0: the operator that is invalid
   static const ParserErrorCode INVALID_OPERATOR = ParserErrorCode(
     'INVALID_OPERATOR',
     "The string '{0}' isn't a user-definable operator.",
   );
 
-  /**
-   * Parameters:
-   * 0: the operator being applied to 'super'
-   *
-   * Only generated by the old parser.
-   * Replaced by INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER.
-   */
+  ///  Parameters:
+  ///  0: the operator being applied to 'super'
+  ///
+  ///  Only generated by the old parser.
+  ///  Replaced by INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER.
   static const ParserErrorCode INVALID_OPERATOR_FOR_SUPER = ParserErrorCode(
     'INVALID_OPERATOR_FOR_SUPER',
     "The operator '{0}' can't be used with 'super'.",
@@ -1048,36 +935,7 @@ class ParserErrorCode extends ErrorCode {
         "digits or from 1 to 6 digits between '{' and '}'.",
   );
 
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a member declared inside an
-  // extension uses the keyword `covariant` in the declaration of a parameter.
-  // Extensions aren't classes and don't have subclasses, so the keyword serves
-  // no purpose.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because `i` is marked as being
-  // covariant:
-  //
-  // ```dart
-  // extension E on String {
-  //   void a([!covariant!] int i) {}
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Remove the `covariant` keyword:
-  //
-  // ```dart
-  // extension E on String {
-  //   void a(int i) {}
-  // }
-  // ```
+  ///  No parameters.
   static const ParserErrorCode INVALID_USE_OF_COVARIANT_IN_EXTENSION =
       ParserErrorCode(
     'INVALID_USE_OF_COVARIANT_IN_EXTENSION',
@@ -1273,10 +1131,8 @@ class ParserErrorCode extends ErrorCode {
     "Expected a statement.",
   );
 
-  /**
-   * Parameters:
-   * 0: the terminator that is missing
-   */
+  ///  Parameters:
+  ///  0: the terminator that is missing
   static const ParserErrorCode MISSING_TERMINATOR_FOR_PARAMETER_GROUP =
       ParserErrorCode(
     'MISSING_TERMINATOR_FOR_PARAMETER_GROUP',
@@ -1372,10 +1228,8 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try combining all of the groups into a single group.",
   );
 
-  /**
-   * Parameters:
-   * 0: the number of variables being declared
-   */
+  ///  Parameters:
+  ///  0: the number of variables being declared
   static const ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = ParserErrorCode(
     'MULTIPLE_VARIABLES_IN_FOR_EACH',
     "A single loop variable must be declared in a for-each loop before the "
@@ -1469,10 +1323,8 @@ class ParserErrorCode extends ErrorCode {
         "Try enclosing the URI in either single or double quotes.",
   );
 
-  /**
-   * Parameters:
-   * 0: the operator that the user is trying to define
-   */
+  ///  Parameters:
+  ///  0: the operator that the user is trying to define
   static const ParserErrorCode NON_USER_DEFINABLE_OPERATOR = ParserErrorCode(
     'NON_USER_DEFINABLE_OPERATOR',
     "The operator '{0}' isn't user definable.",
@@ -1639,20 +1491,16 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try removing the type parameters.",
   );
 
-  /**
-   * 7.1.1 Operators: Type parameters are not syntactically supported on an
-   * operator.
-   */
+  ///  7.1.1 Operators: Type parameters are not syntactically supported on an
+  ///  operator.
   static const ParserErrorCode TYPE_PARAMETER_ON_OPERATOR = ParserErrorCode(
     'TYPE_PARAMETER_ON_OPERATOR',
     "Types parameters aren't allowed when defining an operator.",
     correctionMessage: "Try removing the type parameters.",
   );
 
-  /**
-   * Parameters:
-   * 0: the starting character that was missing
-   */
+  ///  Parameters:
+  ///  0: the starting character that was missing
   static const ParserErrorCode UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP =
       ParserErrorCode(
     'UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP',
@@ -1660,10 +1508,8 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try inserting the '{0}' at the appropriate location.",
   );
 
-  /**
-   * Parameters:
-   * 0: the unexpected text that was found
-   */
+  ///  Parameters:
+  ///  0: the unexpected text that was found
   static const ParserErrorCode UNEXPECTED_TOKEN = ParserErrorCode(
     'UNEXPECTED_TOKEN',
     "Unexpected text '{0}'.",
@@ -1733,11 +1579,9 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try replacing the ':' with '='.",
   );
 
-  /**
-   * Parameters:
-   * 0: the terminator that was expected
-   * 1: the terminator that was found
-   */
+  ///  Parameters:
+  ///  0: the terminator that was expected
+  ///  1: the terminator that was found
   static const ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP =
       ParserErrorCode(
     'WRONG_TERMINATOR_FOR_PARAMETER_GROUP',
