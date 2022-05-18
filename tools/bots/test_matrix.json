@@ -1478,8 +1478,10 @@
         "vm-kernel-precomp-linux-release-simarm64",
         "vm-kernel-precomp-linux-release-simriscv32",
         "vm-kernel-precomp-linux-release-simriscv64",
+        "vm-kernel-precomp-mac-product-x64",
         "vm-kernel-precomp-mac-release-simarm64",
         "vm-kernel-precomp-mac-release-simarm64c",
+        "vm-kernel-precomp-win-product-x64",
         "vm-kernel-precomp-win-release-x64",
         "vm-kernel-precomp-win-release-x64c"
       ],
