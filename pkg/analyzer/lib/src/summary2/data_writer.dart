@@ -137,6 +137,15 @@ class BufferedSink {
     }
   }
 
+  void writeOptionalObject<T>(T? object, void Function(T x) write) {
+    if (object != null) {
+      writeBool(true);
+      write(object);
+    } else {
+      writeBool(false);
+    }
+  }
+
   void writeOptionalStringUtf8(String? value) {
     if (value != null) {
       writeBool(true);
