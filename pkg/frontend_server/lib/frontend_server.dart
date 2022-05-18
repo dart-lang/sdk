@@ -203,7 +203,12 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       defaultsTo: false)
   ..addFlag('print-incremental-dependencies',
       help: 'Print list of sources added and removed from compilation',
-      defaultsTo: true);
+      defaultsTo: true)
+  ..addOption('verbosity',
+      help: 'Sets the verbosity level of the compilation',
+      defaultsTo: Verbosity.defaultValue,
+      allowed: Verbosity.allowedValues,
+      allowedHelp: Verbosity.allowedValuesHelp);
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -395,26 +400,19 @@ class FrontendCompiler implements CompilerInterface {
   final List<String> errors = <String>[];
 
   _onDiagnostic(DiagnosticMessage message) {
-    // TODO(https://dartbug.com/44867): The frontend server should take a
-    // verbosity argument and put that in CompilerOptions and use it here.
-    bool printMessage;
     switch (message.severity) {
       case Severity.error:
       case Severity.internalProblem:
-        printMessage = true;
         errors.addAll(message.plainTextFormatted);
         break;
       case Severity.warning:
-        printMessage = true;
-        break;
       case Severity.info:
-        printMessage = false;
         break;
       case Severity.context:
       case Severity.ignored:
         throw 'Unexpected severity: ${message.severity}';
     }
-    if (printMessage) {
+    if (Verbosity.shouldPrint(_compilerOptions.verbosity, message)) {
       printDiagnosticMessage(message, _outputStream.writeln);
     }
   }
@@ -466,7 +464,10 @@ class FrontendCompiler implements CompilerInterface {
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
       ..nnbdMode = (nullSafety == true) ? NnbdMode.Strong : NnbdMode.Weak
-      ..onDiagnostic = _onDiagnostic;
+      ..onDiagnostic = _onDiagnostic
+      ..verbosity = Verbosity.parseArgument(options['verbosity'],
+          onError: (msg) => errors.add(msg));
+    _compilerOptions = compilerOptions;
 
     if (options.wasParsed('libraries-spec')) {
       compilerOptions.librariesSpecificationUri =
@@ -554,7 +555,6 @@ class FrontendCompiler implements CompilerInterface {
       ];
     }
 
-    _compilerOptions = compilerOptions;
     _processedOptions = ProcessedOptions(options: compilerOptions);
 
     KernelCompilationResults results;
