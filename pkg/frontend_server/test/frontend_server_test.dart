@@ -3062,6 +3062,61 @@ void main(List<String> arguments, SendPort sendPort) {
         inputStreamController.close();
       }
     }, timeout: Timeout.factor(8));
+
+    test('compile with(out) warning', () async {
+      Future runTest({bool hideWarnings}) async {
+        var file = File('${tempDir.path}/foo.dart')..createSync();
+        file.writeAsStringSync("""
+main() {}
+method(int i) => i?.isEven;
+""");
+        var package_config =
+            File('${tempDir.path}/.dart_tool/package_config.json')
+              ..createSync(recursive: true)
+              ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "hello",
+        "rootUri": "../",
+        "packageUri": "./"
+      }
+    ]
+  }
+  ''');
+        var dillFile = File('${tempDir.path}/app.dill');
+
+        expect(dillFile.existsSync(), false);
+
+        final List<String> args = <String>[
+          '--sdk-root=${sdkRoot.toFilePath()}',
+          '--incremental',
+          '--platform=${ddcPlatformKernel.path}',
+          '--output-dill=${dillFile.path}',
+          '--packages=${package_config.path}',
+          '--target=dartdevc',
+          if (hideWarnings) '--verbosity=error',
+          file.path,
+        ];
+        StringBuffer output = new StringBuffer();
+        expect(await starter(args, output: output), 0);
+        String result = output.toString();
+        Matcher matcher =
+            contains("Warning: Operand of null-aware operation '?.' "
+                "has type 'int' which excludes null.");
+        if (hideWarnings) {
+          matcher = isNot(matcher);
+        }
+        expect(result, matcher);
+
+        file.deleteSync();
+        dillFile.deleteSync();
+      }
+
+      await runTest(hideWarnings: false);
+      await runTest(hideWarnings: true);
+    });
   });
 }
 

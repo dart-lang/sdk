@@ -4,6 +4,7 @@
 
 library fasta.testing.kernel_chain;
 
+import 'dart:async';
 import 'dart:io' show Directory, File, IOSink, Platform;
 
 import 'dart:typed_data' show Uint8List;
@@ -32,7 +33,16 @@ import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 import 'package:front_end/src/fasta/messages.dart'
     show DiagnosticMessageFromJson, LocatedMessage, Message;
 
-import 'package:kernel/ast.dart' show Component, Library, Reference, Source;
+import 'package:kernel/ast.dart'
+    show
+        Block,
+        Component,
+        Library,
+        Procedure,
+        Reference,
+        ReturnStatement,
+        Source,
+        Statement;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
@@ -423,7 +433,9 @@ class KernelTextSerialization
 }
 
 class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
-  const WriteDill();
+  final bool skipVm;
+
+  const WriteDill({required this.skipVm});
 
   @override
   String get name => "write .dill";
@@ -431,27 +443,60 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
   @override
   Future<Result<ComponentResult>> run(ComponentResult result, _) async {
     Component component = result.component;
-    Directory tmp = await Directory.systemTemp.createTemp();
-    Uri uri = tmp.uri.resolve("generated.dill");
-    File generated = new File.fromUri(uri);
-    IOSink sink = generated.openWrite();
-    result = new ComponentResult(
-        result.description,
-        result.component,
-        result.userLibraries,
-        result.compilationSetup,
-        result.sourceTarget,
-        uri);
+    Procedure? mainMethod = component.mainMethod;
+    bool writeToFile = true;
+    if (mainMethod == null) {
+      writeToFile = false;
+    } else {
+      Statement? mainBody = mainMethod.function.body;
+      if (mainBody is Block && mainBody.statements.isEmpty ||
+          mainBody is ReturnStatement && mainBody.expression == null) {
+        writeToFile = false;
+      }
+    }
+
+    Sink<List<int>> sink;
+    String writeMessage;
+    if (writeToFile && !skipVm) {
+      Directory tmp = await Directory.systemTemp.createTemp();
+      Uri uri = tmp.uri.resolve("generated.dill");
+      File generated = new File.fromUri(uri);
+      sink = generated.openWrite();
+      result = new ComponentResult(
+          result.description,
+          result.component,
+          result.userLibraries,
+          result.compilationSetup,
+          result.sourceTarget,
+          uri);
+      writeMessage = "Wrote component to `${generated.path}`";
+    } else {
+      sink = new DevNullSink();
+      writeMessage = "Wrote component to /dev/null";
+    }
     try {
+      // TODO(johnniwinther,jensj): Avoid serializing the sdk.
       new BinaryPrinter(sink).writeComponentFile(component);
     } catch (e, s) {
       return fail(result, e, s);
     } finally {
-      print("Wrote `${generated.path}`");
-      await sink.close();
+      print(writeMessage);
+      if (sink is IOSink) {
+        await sink.close();
+      } else {
+        sink.close();
+      }
     }
     return pass(result);
   }
+}
+
+class DevNullSink<T> extends Sink<T> {
+  @override
+  void add(T data) {}
+
+  @override
+  void close() {}
 }
 
 class ReadDill extends Step<Uri, Uri, ChainContext> {

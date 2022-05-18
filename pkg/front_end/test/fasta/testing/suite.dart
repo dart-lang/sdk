@@ -421,9 +421,7 @@ class FastaContext extends ChainContext with MatchContext {
         }
       }
       steps.add(const EnsureNoErrors());
-      if (!skipVm) {
-        steps.add(const WriteDill());
-      }
+      steps.add(new WriteDill(skipVm: skipVm));
       if (semiFuzz) {
         steps.add(const FuzzCompiles());
       }
@@ -826,6 +824,11 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
   @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
+    Uri? outputUri = result.outputUri;
+    if (outputUri == null) {
+      return pass(result);
+    }
+
     FolderOptions folderOptions =
         context.computeFolderOptions(result.description);
     Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
