@@ -502,16 +502,8 @@ abstract class ErrorCodeInfo {
     var out = StringBuffer();
     var comment = this.comment;
     if (comment != null) {
-      out.writeln('$indent/**');
       for (var line in comment.split('\n')) {
-        out.writeln('$indent *${line.isEmpty ? '' : ' '}$line');
-      }
-      out.writeln('$indent */');
-    }
-    var documentation = this.documentation;
-    if (documentation != null) {
-      for (var line in documentation.split('\n')) {
-        out.writeln('$indent//${line.isEmpty ? '' : ' '}$line');
+        out.writeln('$indent/// ${line.isEmpty ? '' : ' '}$line');
       }
     }
     return out.toString();

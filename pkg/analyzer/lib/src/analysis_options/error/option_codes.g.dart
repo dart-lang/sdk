@@ -9,33 +9,25 @@
 
 import "package:analyzer/error/error.dart";
 
-// It is hard to visually separate each code's _doc comment_ from its published
-// _documentation comment_ when each is written as an end-of-line comment.
-// ignore_for_file: slash_for_doc_comments
-
 class AnalysisOptionsErrorCode extends ErrorCode {
-  /**
-   * An error code indicating that there is a syntactic error in the included
-   * file.
-   *
-   * Parameters:
-   * 0: the path of the file containing the error
-   * 1: the starting offset of the text in the file that contains the error
-   * 2: the ending offset of the text in the file that contains the error
-   * 3: the error message
-   */
+  ///  An error code indicating that there is a syntactic error in the included
+  ///  file.
+  ///
+  ///  Parameters:
+  ///  0: the path of the file containing the error
+  ///  1: the starting offset of the text in the file that contains the error
+  ///  2: the ending offset of the text in the file that contains the error
+  ///  3: the error message
   static const AnalysisOptionsErrorCode INCLUDED_FILE_PARSE_ERROR =
       AnalysisOptionsErrorCode(
     'INCLUDED_FILE_PARSE_ERROR',
     "{3} in {0}({1}..{2})",
   );
 
-  /**
-   * An error code indicating that there is a syntactic error in the file.
-   *
-   * Parameters:
-   * 0: the error message from the parse error
-   */
+  ///  An error code indicating that there is a syntactic error in the file.
+  ///
+  ///  Parameters:
+  ///  0: the error message from the parse error
   static const AnalysisOptionsErrorCode PARSE_ERROR = AnalysisOptionsErrorCode(
     'PARSE_ERROR',
     "{0}",
@@ -66,10 +58,8 @@ class AnalysisOptionsErrorCode extends ErrorCode {
 }
 
 class AnalysisOptionsHintCode extends ErrorCode {
-  /**
-   * An error code indicating that the enablePreviewDart2 setting is
-   * deprecated.
-   */
+  ///  An error code indicating that the enablePreviewDart2 setting is
+  ///  deprecated.
   static const AnalysisOptionsHintCode PREVIEW_DART_2_SETTING_DEPRECATED =
       AnalysisOptionsHintCode(
     'PREVIEW_DART_2_SETTING_DEPRECATED',
@@ -77,9 +67,7 @@ class AnalysisOptionsHintCode extends ErrorCode {
     correctionMessage: "It is no longer necessary to explicitly enable Dart 2.",
   );
 
-  /**
-   * An error code indicating that strong-mode: true is deprecated.
-   */
+  ///  An error code indicating that strong-mode: true is deprecated.
   static const AnalysisOptionsHintCode STRONG_MODE_SETTING_DEPRECATED =
       AnalysisOptionsHintCode(
     'STRONG_MODE_SETTING_DEPRECATED',
@@ -88,10 +76,8 @@ class AnalysisOptionsHintCode extends ErrorCode {
         "It is no longer necessary to explicitly enable strong mode.",
   );
 
-  /**
-   * An error code indicating that the enablePreviewDart2 setting is
-   * deprecated.
-   */
+  ///  An error code indicating that the enablePreviewDart2 setting is
+  ///  deprecated.
   static const AnalysisOptionsHintCode SUPER_MIXINS_SETTING_DEPRECATED =
       AnalysisOptionsHintCode(
     'SUPER_MIXINS_SETTING_DEPRECATED',
@@ -125,69 +111,57 @@ class AnalysisOptionsHintCode extends ErrorCode {
 }
 
 class AnalysisOptionsWarningCode extends ErrorCode {
-  /**
-   * An error code indicating that the given option is deprecated.
-   */
+  ///  An error code indicating that the given option is deprecated.
   static const AnalysisOptionsWarningCode ANALYSIS_OPTION_DEPRECATED =
       AnalysisOptionsWarningCode(
     'ANALYSIS_OPTION_DEPRECATED',
     "The option '{0}' is no longer supported.",
   );
 
-  /**
-   * An error code indicating a specified include file has a warning.
-   *
-   * Parameters:
-   * 0: the path of the file containing the warnings
-   * 1: the starting offset of the text in the file that contains the warning
-   * 2: the ending offset of the text in the file that contains the warning
-   * 3: the warning message
-   */
+  ///  An error code indicating a specified include file has a warning.
+  ///
+  ///  Parameters:
+  ///  0: the path of the file containing the warnings
+  ///  1: the starting offset of the text in the file that contains the warning
+  ///  2: the ending offset of the text in the file that contains the warning
+  ///  3: the warning message
   static const AnalysisOptionsWarningCode INCLUDED_FILE_WARNING =
       AnalysisOptionsWarningCode(
     'INCLUDED_FILE_WARNING',
     "Warning in the included options file {0}({1}..{2}): {3}",
   );
 
-  /**
-   * An error code indicating a specified include file could not be found.
-   *
-   * Parameters:
-   * 0: the uri of the file to be included
-   * 1: the path of the file containing the include directive
-   * 2: the path of the context being analyzed
-   */
+  ///  An error code indicating a specified include file could not be found.
+  ///
+  ///  Parameters:
+  ///  0: the uri of the file to be included
+  ///  1: the path of the file containing the include directive
+  ///  2: the path of the context being analyzed
   static const AnalysisOptionsWarningCode INCLUDE_FILE_NOT_FOUND =
       AnalysisOptionsWarningCode(
     'INCLUDE_FILE_NOT_FOUND',
     "The include file '{0}' in '{1}' can't be found when analyzing '{2}'.",
   );
 
-  /**
-   * An error code indicating that a plugin is being configured with an invalid
-   * value for an option and a detail message is provided.
-   */
+  ///  An error code indicating that a plugin is being configured with an invalid
+  ///  value for an option and a detail message is provided.
   static const AnalysisOptionsWarningCode INVALID_OPTION =
       AnalysisOptionsWarningCode(
     'INVALID_OPTION',
     "Invalid option specified for '{0}': {1}",
   );
 
-  /**
-   * An error code indicating an invalid format for an options file section.
-   *
-   * Parameters:
-   * 0: the section name
-   */
+  ///  An error code indicating an invalid format for an options file section.
+  ///
+  ///  Parameters:
+  ///  0: the section name
   static const AnalysisOptionsWarningCode INVALID_SECTION_FORMAT =
       AnalysisOptionsWarningCode(
     'INVALID_SECTION_FORMAT',
     "Invalid format for the '{0}' section.",
   );
 
-  /**
-   * An error code indicating that strong-mode: false is has been removed.
-   */
+  ///  An error code indicating that strong-mode: false is has been removed.
   static const AnalysisOptionsWarningCode SPEC_MODE_REMOVED =
       AnalysisOptionsWarningCode(
     'SPEC_MODE_REMOVED',
@@ -197,42 +171,36 @@ class AnalysisOptionsWarningCode extends ErrorCode {
         "code Dart 2 compliant).",
   );
 
-  /**
-   * An error code indicating that an unrecognized error code is being used to
-   * specify an error filter.
-   *
-   * Parameters:
-   * 0: the unrecognized error code
-   */
+  ///  An error code indicating that an unrecognized error code is being used to
+  ///  specify an error filter.
+  ///
+  ///  Parameters:
+  ///  0: the unrecognized error code
   static const AnalysisOptionsWarningCode UNRECOGNIZED_ERROR_CODE =
       AnalysisOptionsWarningCode(
     'UNRECOGNIZED_ERROR_CODE',
     "'{0}' isn't a recognized error code.",
   );
 
-  /**
-   * An error code indicating that a plugin is being configured with an
-   * unsupported option and legal options are provided.
-   *
-   * Parameters:
-   * 0: the plugin name
-   * 1: the unsupported option key
-   */
+  ///  An error code indicating that a plugin is being configured with an
+  ///  unsupported option and legal options are provided.
+  ///
+  ///  Parameters:
+  ///  0: the plugin name
+  ///  1: the unsupported option key
   static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITHOUT_VALUES =
       AnalysisOptionsWarningCode(
     'UNSUPPORTED_OPTION_WITHOUT_VALUES',
     "The option '{1}' isn't supported by '{0}'.",
   );
 
-  /**
-   * An error code indicating that a plugin is being configured with an
-   * unsupported option where there is just one legal value.
-   *
-   * Parameters:
-   * 0: the plugin name
-   * 1: the unsupported option key
-   * 2: the legal value
-   */
+  ///  An error code indicating that a plugin is being configured with an
+  ///  unsupported option where there is just one legal value.
+  ///
+  ///  Parameters:
+  ///  0: the plugin name
+  ///  1: the unsupported option key
+  ///  2: the legal value
   static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUE =
       AnalysisOptionsWarningCode(
     'UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
@@ -240,15 +208,13 @@ class AnalysisOptionsWarningCode extends ErrorCode {
         "option: '{2}'.",
   );
 
-  /**
-   * An error code indicating that a plugin is being configured with an
-   * unsupported option and legal options are provided.
-   *
-   * Parameters:
-   * 0: the plugin name
-   * 1: the unsupported option key
-   * 2: legal values
-   */
+  ///  An error code indicating that a plugin is being configured with an
+  ///  unsupported option and legal options are provided.
+  ///
+  ///  Parameters:
+  ///  0: the plugin name
+  ///  1: the unsupported option key
+  ///  2: legal values
   static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUES =
       AnalysisOptionsWarningCode(
     'UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
@@ -256,15 +222,13 @@ class AnalysisOptionsWarningCode extends ErrorCode {
     correctionMessage: "Try using one of the supported options: {2}.",
   );
 
-  /**
-   * An error code indicating that an option entry is being configured with an
-   * unsupported value.
-   *
-   * Parameters:
-   * 0: the option name
-   * 1: the unsupported value
-   * 2: legal values
-   */
+  ///  An error code indicating that an option entry is being configured with an
+  ///  unsupported value.
+  ///
+  ///  Parameters:
+  ///  0: the option name
+  ///  1: the unsupported value
+  ///  2: legal values
   static const AnalysisOptionsWarningCode UNSUPPORTED_VALUE =
       AnalysisOptionsWarningCode(
     'UNSUPPORTED_VALUE',

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 
 /// Helper class that traverses a kernel AST subtree to see if it has any
@@ -74,7 +72,7 @@ class SwitchContinueAnalysis extends ir.Visitor<bool>
   @override
   bool visitIfStatement(ir.IfStatement ifStatement) {
     return ifStatement.then.accept(this) ||
-        (ifStatement.otherwise != null && ifStatement.otherwise.accept(this));
+        (ifStatement.otherwise != null && ifStatement.otherwise!.accept(this));
   }
 
   @override
@@ -111,7 +109,7 @@ class SwitchContinueAnalysis extends ir.Visitor<bool>
 
   @override
   bool visitFunctionNode(ir.FunctionNode node) {
-    return node.body.accept(this);
+    return node.body!.accept(this);
   }
 
   @override
