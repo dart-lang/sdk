@@ -111,20 +111,13 @@ Future<void> main(List<String> args) async {
         ".pub-cache/hosted/pub.dartlang.org/");
     Directory pubDir = new Directory.fromUri(pubDirUri);
     if (!pubDir.existsSync()) throw "Expected to find $pubDir";
-    File galleryDotPackages = new File("$rootPath/gallery/.packages");
-    if (!galleryDotPackages.existsSync()) {
-      throw "Didn't find $galleryDotPackages";
-    }
-    String data = galleryDotPackages.readAsStringSync();
-    data = data.replaceAll(pubDirUri.toString(), "pub/");
-    galleryDotPackages.writeAsStringSync(data);
 
     File galleryPackageConfig =
         new File("$rootPath/gallery/.dart_tool/package_config.json");
     if (!galleryPackageConfig.existsSync()) {
       throw "Didn't find $galleryPackageConfig";
     }
-    data = galleryPackageConfig.readAsStringSync();
+    String data = galleryPackageConfig.readAsStringSync();
     data = data.replaceAll(pubDirUri.toString(), "../pub/");
     galleryPackageConfig.writeAsStringSync(data);
 
@@ -146,9 +139,10 @@ Future<void> main(List<String> args) async {
     print("Exit code from ln: $processExitCode");
   }
 
-  File galleryDotPackages = new File("$rootPath/gallery/.packages");
-  if (!galleryDotPackages.existsSync()) {
-    throw "Didn't find $galleryDotPackages";
+  File packageConfig =
+      new File("$rootPath/gallery/.dart_tool/package_config.json");
+  if (!packageConfig.existsSync()) {
+    throw "Didn't find $packageConfig";
   }
 
   List<helper.Interest> interests = <helper.Interest>[];
