@@ -147,7 +147,7 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
   "_late_helper": const LibraryInfo("_internal/js_runtime/lib/late_helper.dart",
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
-  "_rti": const LibraryInfo("_internal/js_runtime/lib/rti.dart",
+  "_rti": const LibraryInfo("_internal/js_shared/lib/rti.dart",
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
   "_dart2js_runtime_metrics": const LibraryInfo(
       "_internal/js_runtime/lib/dart2js_runtime_metrics.dart",
@@ -172,17 +172,17 @@ const Map<String, LibraryInfo> libraries = const {
       documented: false,
       platforms: DART2JS_PLATFORM),
   "_js_embedded_names": const LibraryInfo(
-      "_internal/js_runtime/lib/shared/embedded_names.dart",
+      "_internal/js_runtime/lib/synced/embedded_names.dart",
       categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
   "_async_await_error_codes": const LibraryInfo(
-      "_internal/js_runtime/lib/shared/async_await_error_codes.dart",
+      "_internal/js_runtime/lib/synced/async_await_error_codes.dart",
       categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
   "_recipe_syntax": const LibraryInfo(
-      "_internal/js_runtime/lib/shared/recipe_syntax.dart",
+      "_internal/js_shared/lib/synced/recipe_syntax.dart",
       categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),

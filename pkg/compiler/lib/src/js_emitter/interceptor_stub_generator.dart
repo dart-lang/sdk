@@ -6,7 +6,7 @@
 
 library dart2js.js_emitter.interceptor_stub_generator;
 
-import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
+import 'package:js_runtime/synced/embedded_names.dart' as embeddedNames;
 
 import '../common/elements.dart';
 import '../constants/values.dart';

@@ -7,7 +7,7 @@
 library dart2js.js_emitter.main_call_stub_generator;
 
 import 'package:compiler/src/options.dart';
-import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
+import 'package:js_runtime/synced/embedded_names.dart' as embeddedNames;
 
 import '../common/elements.dart';
 import '../elements/entities.dart';

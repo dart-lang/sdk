@@ -6,8 +6,8 @@
 
 /// Constants and predicates used for encoding and decoding type recipes.
 ///
-/// This library is shared between the compiler and the runtime system.
-library dart2js._recipe_syntax;
+/// This library is synchronized between the compiler and the runtime system.
+library js_shared._recipe_syntax;
 
 abstract class Recipe {
   Recipe._();

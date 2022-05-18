@@ -9,7 +9,7 @@ library js_backend.namer;
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show $0, $9, $A, $Z, $_, $a, $g, $s, $z;
 
-import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
+import 'package:js_runtime/synced/embedded_names.dart' show JsGetName;
 
 import '../closure.dart';
 import '../common.dart';
