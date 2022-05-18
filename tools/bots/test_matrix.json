@@ -183,6 +183,11 @@
     "dart2wasm_hostasserts": [
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
+      "out/ReleaseX64/dart_precompiled_runtime",
+      "out/ReleaseX64/dart2wasm.snapshot",
+      "out/ReleaseX64/dart2wasm_asserts.snapshot",
+      "out/ReleaseX64/dart2wasm_outline.dill",
+      "out/ReleaseX64/dart2wasm_platform.dill",
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
@@ -3029,7 +3034,7 @@
             "corelib",
             "web/wasm"
           ],
-          "shards": 30,
+          "shards": 3,
           "fileset": "dart2wasm_hostasserts"
         }
       ]
