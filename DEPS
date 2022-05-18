@@ -135,7 +135,7 @@ vars = {
   "platform_rev": "1ffad63428bbd1b3ecaa15926bacfb724023648c",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "c40cc32eabecb9d60f1045d1403108d968805f9a",
-  "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
+  "process_rev": "2546dfef7ba839b1514e0c9045344692eb47b771",
   "protobuf_rev": "c1eb6cb51af39ccbaa1a8e19349546586a5c8e31",
   "pub_rev": "51435efcd574b7bc18d47a5dd620cb9759dea8f8",
   "pub_semver_rev": "ea6c54019948dc03042c595ce9413e17aaf7aa38",
