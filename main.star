@@ -428,7 +428,6 @@ dart.ci_sandbox_builder(
     category = "analyzer|fa",
     channels = ["try"],
     execution_timeout = 45 * time.minute,
-    notifies = None,
 )
 dart.ci_sandbox_builder(
     "analyzer-analysis-server-linux",
