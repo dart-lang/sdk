@@ -196,15 +196,23 @@ List<AstNode> getCustomClasses() {
 
   Field field(
     String name, {
+    String? comment,
     required String type,
     bool array = false,
     bool canBeUndefined = false,
   }) {
-    var fieldType =
+    final fieldType =
         array ? ArrayType(Type.identifier(type)) : Type.identifier(type);
+    final commentNode =
+        comment != null ? Comment(Token(TokenType.COMMENT, comment)) : null;
 
-    return Field(null, Token.identifier(name), fieldType,
-        allowsNull: false, allowsUndefined: canBeUndefined);
+    return Field(
+      commentNode,
+      Token.identifier(name),
+      fieldType,
+      allowsNull: false,
+      allowsUndefined: canBeUndefined,
+    );
   }
 
   final customTypes = <AstNode>[
@@ -218,6 +226,72 @@ List<AstNode> getCustomClasses() {
       Token.identifier('LSPObject'),
       Type.Any,
     ),
+    interface('Message', [
+      field('jsonrpc', type: 'string'),
+      field('clientRequestTime', type: 'int', canBeUndefined: true),
+    ]),
+    interface(
+      'IncomingMessage',
+      [
+        field('method', type: 'Method'),
+        field('params', type: 'LSPAny', canBeUndefined: true),
+      ],
+      baseType: 'Message',
+    ),
+    interface(
+      'RequestMessage',
+      [
+        Field(
+          null,
+          Token.identifier('id'),
+          UnionType([Type.identifier('int'), Type.identifier('string')]),
+          allowsNull: false,
+          allowsUndefined: false,
+        )
+      ],
+      baseType: 'IncomingMessage',
+    ),
+    interface(
+      'NotificationMessage',
+      [],
+      baseType: 'IncomingMessage',
+    ),
+    interface(
+      'ResponseMessage',
+      [
+        Field(
+          null,
+          Token.identifier('id'),
+          UnionType([Type.identifier('int'), Type.identifier('string')]),
+          allowsNull: true,
+          allowsUndefined: false,
+        ),
+        field('result', type: 'LSPAny', canBeUndefined: true),
+        field('error', type: 'ResponseError', canBeUndefined: true),
+      ],
+      baseType: 'Message',
+    ),
+    interface(
+      'ResponseError',
+      [
+        field('code', type: 'ErrorCodes'),
+        field('message', type: 'string'),
+        // This is Object? normally, but since this class can be serialised
+        // we will crash if it data is set to something that can't be converted to
+        // JSON (for ex. Uri) so this forces anyone setting this to convert to a
+        // String.
+        field(
+          'data',
+          type: 'string',
+          canBeUndefined: true,
+          comment:
+              'A string that contains additional information about the error. '
+              'Can be omitted.',
+        ),
+      ],
+    ),
+    TypeAlias(null, Token.identifier('DocumentUri'), Type.identifier('string')),
+
     interface('DartDiagnosticServer', [field('port', type: 'int')]),
     interface('AnalyzerStatusParams', [field('isAnalyzing', type: 'boolean')]),
     interface('PublishClosingLabelsParams', [
@@ -326,34 +400,6 @@ List<AstNode> getCustomClasses() {
   return customTypes;
 }
 
-/// Gets additional custom fields to be added to LSP Spec classes.
-///
-/// Non-standard fields should generally be avoided and must always allow
-/// undefined.
-List<Field> getCustomFields(String interfaceName) {
-  final additionalFields = <String, List<Field>>{
-    // Allow clients to pass a "clientRequestTime" against any incomine message
-    // so that we can capture latency information for requests for performance
-    // measurements.
-    'Message': [
-      Field(
-        null,
-        Token.identifier('clientRequestTime'),
-        Type.identifier('int'),
-        allowsNull: false,
-        allowsUndefined: true,
-      ),
-    ],
-  };
-
-  final fields = additionalFields[interfaceName] ?? [];
-  assert(
-    fields.every((field) => field.allowsUndefined),
-    'Any additional non-standard LSP field must allow undefined',
-  );
-  return fields;
-}
-
 Future<List<AstNode>> getSpecClasses(ArgResults args) async {
   var download = args[argDownload] as bool;
   if (download) {
@@ -366,7 +412,6 @@ Future<List<AstNode>> getSpecClasses(ArgResults args) async {
       .map(parseString)
       .expand((f) => f)
       .where(includeTypeDefinitionInOutput)
-      .map(withCustomFields)
       .toList();
 
   // Generate an enum for all of the request methods to avoid strings.
@@ -415,26 +460,6 @@ bool shouldIncludeScriptBlock(String input) {
   }
 
   return true;
-}
-
-/// Returns [node] with any additional custom fields.
-AstNode withCustomFields(AstNode node) {
-  if (node is! Interface) {
-    return node;
-  }
-
-  final customFields = getCustomFields(node.name);
-  if (customFields.isEmpty) {
-    return node;
-  }
-
-  return Interface(
-    node.commentNode,
-    node.nameToken,
-    node.typeArgs,
-    node.baseTypes,
-    [...node.members, ...customFields],
-  );
 }
 
 /// Fetches and in-lines any includes that appear in [spec] in the form

@@ -8,6 +8,8 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 
+import 'protocol_custom_generated.dart';
+
 const jsonRpcVersion = '2.0';
 
 const NullJsonHandler = LspJsonHandler<Null>(_alwaysTrue, _alwaysNull);
@@ -262,14 +264,6 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
     }
     return success(results);
   }
-}
-
-/// A base class containing the fields common to RequestMessage and
-/// NotificationMessage to simplify handling.
-abstract class IncomingMessage {
-  int? get clientRequestTime;
-  Method get method;
-  dynamic get params;
 }
 
 /// A helper to allow handlers to declare both a JSON validation function and

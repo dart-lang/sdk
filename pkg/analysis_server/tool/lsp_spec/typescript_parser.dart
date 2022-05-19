@@ -378,12 +378,6 @@ class Parser {
     type = _type(containerName, name.lexeme,
         includeUndefined: canBeUndefined, improveTypes: true);
 
-    // Overwrite comment if we have an improved one.
-    final improvedComment = getImprovedComment(containerName, name.lexeme);
-    leadingComment = improvedComment != null
-        ? Comment(Token(TokenType.COMMENT, improvedComment))
-        : leadingComment;
-
     // Some fields have weird comments like this in the spec:
     //     {@link MessageType}
     // These seem to be the correct type of the field, while the field is

@@ -350,21 +350,19 @@ class LspAnalysisServer extends AbstractAnalysisServer {
         if (message is ResponseMessage) {
           handleClientResponse(message);
         } else if (message is IncomingMessage) {
-          final incomingMessage = message as IncomingMessage;
-
           // Record performance information for the request.
           final performance = OperationPerformanceImpl('<root>');
           await performance.runAsync('request', (performance) async {
             final requestPerformance = RequestPerformance(
-              operation: incomingMessage.method.toString(),
+              operation: message.method.toString(),
               performance: performance,
-              requestLatency: incomingMessage.timeSinceRequest,
+              requestLatency: message.timeSinceRequest,
             );
             recentPerformance.requests.add(requestPerformance);
 
             final messageInfo = MessageInfo(
               performance: performance,
-              timeSinceRequest: incomingMessage.timeSinceRequest,
+              timeSinceRequest: message.timeSinceRequest,
             );
 
             if (message is RequestMessage) {

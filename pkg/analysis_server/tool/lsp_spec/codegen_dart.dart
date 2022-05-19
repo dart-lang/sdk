@@ -4,7 +4,6 @@
 
 import 'package:dart_style/dart_style.dart';
 
-import 'typescript.dart';
 import 'typescript_parser.dart';
 
 final formatter = DartFormatter();
@@ -786,7 +785,6 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   buffer.writeIndented('class ${interface.nameWithTypeArgs} ');
   final allBaseTypes =
       interface.baseTypes.map((t) => t.dartTypeWithTypeArgs).toList();
-  allBaseTypes.addAll(getSpecialBaseTypes(interface));
   allBaseTypes.add('ToJsonable');
   if (allBaseTypes.isNotEmpty) {
     buffer.writeIndented('implements ${allBaseTypes.join(', ')} ');

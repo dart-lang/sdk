@@ -1087,6 +1087,361 @@ class FlutterOutlineAttribute implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class IncomingMessage implements Message, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    IncomingMessage.canParse,
+    IncomingMessage.fromJson,
+  );
+
+  IncomingMessage({
+    this.clientRequestTime,
+    required this.jsonrpc,
+    required this.method,
+    this.params,
+  });
+  static IncomingMessage fromJson(Map<String, Object?> json) {
+    if (RequestMessage.canParse(json, nullLspJsonReporter)) {
+      return RequestMessage.fromJson(json);
+    }
+    if (NotificationMessage.canParse(json, nullLspJsonReporter)) {
+      return NotificationMessage.fromJson(json);
+    }
+    final clientRequestTimeJson = json['clientRequestTime'];
+    final clientRequestTime = clientRequestTimeJson as int?;
+    final jsonrpcJson = json['jsonrpc'];
+    final jsonrpc = jsonrpcJson as String;
+    final methodJson = json['method'];
+    final method = Method.fromJson(methodJson as String);
+    final paramsJson = json['params'];
+    final params = paramsJson;
+    return IncomingMessage(
+      clientRequestTime: clientRequestTime,
+      jsonrpc: jsonrpc,
+      method: method,
+      params: params,
+    );
+  }
+
+  final int? clientRequestTime;
+  final String jsonrpc;
+  final Method method;
+  final Object? params;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    if (clientRequestTime != null) {
+      __result['clientRequestTime'] = clientRequestTime;
+    }
+    __result['jsonrpc'] = jsonrpc;
+    __result['method'] = method.toJson();
+    if (params != null) {
+      __result['params'] = params;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('clientRequestTime');
+      try {
+        final clientRequestTime = obj['clientRequestTime'];
+        if (clientRequestTime != null && !(clientRequestTime is int)) {
+          reporter.reportError('must be of type int');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('jsonrpc');
+      try {
+        if (!obj.containsKey('jsonrpc')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final jsonrpc = obj['jsonrpc'];
+        if (jsonrpc == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(jsonrpc is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('method');
+      try {
+        if (!obj.containsKey('method')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final method = obj['method'];
+        if (method == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(Method.canParse(method, reporter))) {
+          reporter.reportError('must be of type Method');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type IncomingMessage');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is IncomingMessage && other.runtimeType == IncomingMessage) {
+      return clientRequestTime == other.clientRequestTime &&
+          jsonrpc == other.jsonrpc &&
+          method == other.method &&
+          params == other.params &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        clientRequestTime,
+        jsonrpc,
+        method,
+        params,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class Message implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    Message.canParse,
+    Message.fromJson,
+  );
+
+  Message({
+    this.clientRequestTime,
+    required this.jsonrpc,
+  });
+  static Message fromJson(Map<String, Object?> json) {
+    if (IncomingMessage.canParse(json, nullLspJsonReporter)) {
+      return IncomingMessage.fromJson(json);
+    }
+    if (ResponseMessage.canParse(json, nullLspJsonReporter)) {
+      return ResponseMessage.fromJson(json);
+    }
+    final clientRequestTimeJson = json['clientRequestTime'];
+    final clientRequestTime = clientRequestTimeJson as int?;
+    final jsonrpcJson = json['jsonrpc'];
+    final jsonrpc = jsonrpcJson as String;
+    return Message(
+      clientRequestTime: clientRequestTime,
+      jsonrpc: jsonrpc,
+    );
+  }
+
+  final int? clientRequestTime;
+  final String jsonrpc;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    if (clientRequestTime != null) {
+      __result['clientRequestTime'] = clientRequestTime;
+    }
+    __result['jsonrpc'] = jsonrpc;
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('clientRequestTime');
+      try {
+        final clientRequestTime = obj['clientRequestTime'];
+        if (clientRequestTime != null && !(clientRequestTime is int)) {
+          reporter.reportError('must be of type int');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('jsonrpc');
+      try {
+        if (!obj.containsKey('jsonrpc')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final jsonrpc = obj['jsonrpc'];
+        if (jsonrpc == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(jsonrpc is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type Message');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is Message && other.runtimeType == Message) {
+      return clientRequestTime == other.clientRequestTime &&
+          jsonrpc == other.jsonrpc &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        clientRequestTime,
+        jsonrpc,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class NotificationMessage implements IncomingMessage, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    NotificationMessage.canParse,
+    NotificationMessage.fromJson,
+  );
+
+  NotificationMessage({
+    this.clientRequestTime,
+    required this.jsonrpc,
+    required this.method,
+    this.params,
+  });
+  static NotificationMessage fromJson(Map<String, Object?> json) {
+    final clientRequestTimeJson = json['clientRequestTime'];
+    final clientRequestTime = clientRequestTimeJson as int?;
+    final jsonrpcJson = json['jsonrpc'];
+    final jsonrpc = jsonrpcJson as String;
+    final methodJson = json['method'];
+    final method = Method.fromJson(methodJson as String);
+    final paramsJson = json['params'];
+    final params = paramsJson;
+    return NotificationMessage(
+      clientRequestTime: clientRequestTime,
+      jsonrpc: jsonrpc,
+      method: method,
+      params: params,
+    );
+  }
+
+  final int? clientRequestTime;
+  final String jsonrpc;
+  final Method method;
+  final Object? params;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    if (clientRequestTime != null) {
+      __result['clientRequestTime'] = clientRequestTime;
+    }
+    __result['jsonrpc'] = jsonrpc;
+    __result['method'] = method.toJson();
+    if (params != null) {
+      __result['params'] = params;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('clientRequestTime');
+      try {
+        final clientRequestTime = obj['clientRequestTime'];
+        if (clientRequestTime != null && !(clientRequestTime is int)) {
+          reporter.reportError('must be of type int');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('jsonrpc');
+      try {
+        if (!obj.containsKey('jsonrpc')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final jsonrpc = obj['jsonrpc'];
+        if (jsonrpc == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(jsonrpc is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('method');
+      try {
+        if (!obj.containsKey('method')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final method = obj['method'];
+        if (method == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(Method.canParse(method, reporter))) {
+          reporter.reportError('must be of type Method');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type NotificationMessage');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is NotificationMessage &&
+        other.runtimeType == NotificationMessage) {
+      return clientRequestTime == other.clientRequestTime &&
+          jsonrpc == other.jsonrpc &&
+          method == other.method &&
+          params == other.params &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        clientRequestTime,
+        jsonrpc,
+        method,
+        params,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class Outline implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     Outline.canParse,
@@ -1592,6 +1947,432 @@ class PublishOutlineParams implements ToJsonable {
   int get hashCode => Object.hash(
         outline,
         uri,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class RequestMessage implements IncomingMessage, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    RequestMessage.canParse,
+    RequestMessage.fromJson,
+  );
+
+  RequestMessage({
+    this.clientRequestTime,
+    required this.id,
+    required this.jsonrpc,
+    required this.method,
+    this.params,
+  });
+  static RequestMessage fromJson(Map<String, Object?> json) {
+    final clientRequestTimeJson = json['clientRequestTime'];
+    final clientRequestTime = clientRequestTimeJson as int?;
+    final idJson = json['id'];
+    final id = idJson is int
+        ? Either2<int, String>.t1(idJson)
+        : (idJson is String
+            ? Either2<int, String>.t2(idJson)
+            : (throw '''$idJson was not one of (int, String)'''));
+    final jsonrpcJson = json['jsonrpc'];
+    final jsonrpc = jsonrpcJson as String;
+    final methodJson = json['method'];
+    final method = Method.fromJson(methodJson as String);
+    final paramsJson = json['params'];
+    final params = paramsJson;
+    return RequestMessage(
+      clientRequestTime: clientRequestTime,
+      id: id,
+      jsonrpc: jsonrpc,
+      method: method,
+      params: params,
+    );
+  }
+
+  final int? clientRequestTime;
+  final Either2<int, String> id;
+  final String jsonrpc;
+  final Method method;
+  final Object? params;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    if (clientRequestTime != null) {
+      __result['clientRequestTime'] = clientRequestTime;
+    }
+    __result['id'] = id;
+    __result['jsonrpc'] = jsonrpc;
+    __result['method'] = method.toJson();
+    if (params != null) {
+      __result['params'] = params;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('clientRequestTime');
+      try {
+        final clientRequestTime = obj['clientRequestTime'];
+        if (clientRequestTime != null && !(clientRequestTime is int)) {
+          reporter.reportError('must be of type int');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('id');
+      try {
+        if (!obj.containsKey('id')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final id = obj['id'];
+        if (id == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!((id is int || id is String))) {
+          reporter.reportError('must be of type Either2<int, String>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('jsonrpc');
+      try {
+        if (!obj.containsKey('jsonrpc')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final jsonrpc = obj['jsonrpc'];
+        if (jsonrpc == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(jsonrpc is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('method');
+      try {
+        if (!obj.containsKey('method')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final method = obj['method'];
+        if (method == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(Method.canParse(method, reporter))) {
+          reporter.reportError('must be of type Method');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type RequestMessage');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is RequestMessage && other.runtimeType == RequestMessage) {
+      return clientRequestTime == other.clientRequestTime &&
+          id == other.id &&
+          jsonrpc == other.jsonrpc &&
+          method == other.method &&
+          params == other.params &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        clientRequestTime,
+        id,
+        jsonrpc,
+        method,
+        params,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class ResponseError implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    ResponseError.canParse,
+    ResponseError.fromJson,
+  );
+
+  ResponseError({
+    required this.code,
+    this.data,
+    required this.message,
+  });
+  static ResponseError fromJson(Map<String, Object?> json) {
+    final codeJson = json['code'];
+    final code = ErrorCodes.fromJson(codeJson as int);
+    final dataJson = json['data'];
+    final data = dataJson as String?;
+    final messageJson = json['message'];
+    final message = messageJson as String;
+    return ResponseError(
+      code: code,
+      data: data,
+      message: message,
+    );
+  }
+
+  final ErrorCodes code;
+
+  /// A string that contains additional information about the error. Can be
+  /// omitted.
+  final String? data;
+  final String message;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    __result['code'] = code.toJson();
+    if (data != null) {
+      __result['data'] = data;
+    }
+    __result['message'] = message;
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('code');
+      try {
+        if (!obj.containsKey('code')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final code = obj['code'];
+        if (code == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(ErrorCodes.canParse(code, reporter))) {
+          reporter.reportError('must be of type ErrorCodes');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('data');
+      try {
+        final data = obj['data'];
+        if (data != null && !(data is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('message');
+      try {
+        if (!obj.containsKey('message')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final message = obj['message'];
+        if (message == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(message is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type ResponseError');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is ResponseError && other.runtimeType == ResponseError) {
+      return code == other.code &&
+          data == other.data &&
+          message == other.message &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        code,
+        data,
+        message,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class ResponseMessage implements Message, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    ResponseMessage.canParse,
+    ResponseMessage.fromJson,
+  );
+
+  ResponseMessage({
+    this.clientRequestTime,
+    this.error,
+    this.id,
+    required this.jsonrpc,
+    this.result,
+  });
+  static ResponseMessage fromJson(Map<String, Object?> json) {
+    final clientRequestTimeJson = json['clientRequestTime'];
+    final clientRequestTime = clientRequestTimeJson as int?;
+    final errorJson = json['error'];
+    final error = errorJson != null
+        ? ResponseError.fromJson(errorJson as Map<String, Object?>)
+        : null;
+    final idJson = json['id'];
+    final id = idJson == null
+        ? null
+        : (idJson is int
+            ? Either2<int, String>.t1(idJson)
+            : (idJson is String
+                ? Either2<int, String>.t2(idJson)
+                : (throw '''$idJson was not one of (int, String)''')));
+    final jsonrpcJson = json['jsonrpc'];
+    final jsonrpc = jsonrpcJson as String;
+    final resultJson = json['result'];
+    final result = resultJson;
+    return ResponseMessage(
+      clientRequestTime: clientRequestTime,
+      error: error,
+      id: id,
+      jsonrpc: jsonrpc,
+      result: result,
+    );
+  }
+
+  final int? clientRequestTime;
+  final ResponseError? error;
+  final Either2<int, String>? id;
+  final String jsonrpc;
+  final Object? result;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    if (clientRequestTime != null) {
+      __result['clientRequestTime'] = clientRequestTime;
+    }
+    __result['id'] = id;
+    __result['jsonrpc'] = jsonrpc;
+    if (error != null && result != null) {
+      throw 'result and error cannot both be set';
+    } else if (error != null) {
+      __result['error'] = error;
+    } else {
+      __result['result'] = result;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('clientRequestTime');
+      try {
+        final clientRequestTime = obj['clientRequestTime'];
+        if (clientRequestTime != null && !(clientRequestTime is int)) {
+          reporter.reportError('must be of type int');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('error');
+      try {
+        final error = obj['error'];
+        if (error != null && !(ResponseError.canParse(error, reporter))) {
+          reporter.reportError('must be of type ResponseError');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('id');
+      try {
+        if (!obj.containsKey('id')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final id = obj['id'];
+        if (id != null && !((id is int || id is String))) {
+          reporter.reportError('must be of type Either2<int, String>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('jsonrpc');
+      try {
+        if (!obj.containsKey('jsonrpc')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final jsonrpc = obj['jsonrpc'];
+        if (jsonrpc == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(jsonrpc is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type ResponseMessage');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is ResponseMessage && other.runtimeType == ResponseMessage) {
+      return clientRequestTime == other.clientRequestTime &&
+          error == other.error &&
+          id == other.id &&
+          jsonrpc == other.jsonrpc &&
+          result == other.result &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        clientRequestTime,
+        error,
+        id,
+        jsonrpc,
+        result,
       );
 
   @override
