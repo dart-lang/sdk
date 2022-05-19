@@ -1842,6 +1842,8 @@ LintCode.unnecessary_new:
   status: hasFix
 LintCode.unnecessary_null_aware_assignments:
   status: hasFix
+LintCode.unnecessary_null_aware_operator_on_extension_on_nullable:
+  status: needsEvaluation
 LintCode.unnecessary_null_checks:
   status: needsEvaluation
 LintCode.unnecessary_null_in_if_null_operators:
@@ -1862,6 +1864,8 @@ LintCode.unnecessary_string_interpolations:
   status: hasFix
 LintCode.unnecessary_this:
   status: hasFix
+LintCode.unnecessary_to_list_in_spreads:
+  status: needsEvaluation
 LintCode.unrelated_type_equality_checks:
   status: needsEvaluation
 LintCode.unsafe_html_attribute:
