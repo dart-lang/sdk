@@ -28,14 +28,14 @@ class SetPriorityFilesTest extends PubPackageAnalysisServerTest {
   Future<void> test_fileDoesNotExist() async {
     var file = getFile('$testPackageLibPath/doesNotExist.dart');
     var response = await _setPriorityFile(file);
-    expect(response, isResponseSuccess('0'));
+    expect(response, isResponseSuccess('1'));
   }
 
   Future<void> test_fileInAnalysisRoot() async {
     addTestFile('');
     // set priority files
     var response = await _setPriorityFile(testFile);
-    expect(response, isResponseSuccess('0'));
+    expect(response, isResponseSuccess('1'));
     // verify
     _verifyPriorityFiles(testFile);
   }
@@ -55,7 +55,7 @@ class SetPriorityFilesTest extends PubPackageAnalysisServerTest {
         .getChildAssumingFolder('convert')
         .getChildAssumingFile('convert.dart');
     var response = await _setPriorityFile(file);
-    expect(response, isResponseSuccess('0'));
+    expect(response, isResponseSuccess('1'));
     // verify
     _verifyPriorityFiles(file);
   }
@@ -116,11 +116,11 @@ analyzer:
     var response = await handleRequest(
       AnalysisSetPriorityFilesParams([
         'test.dart',
-      ]).toRequest('0'),
+      ]).toRequest('1'),
     );
     assertResponseFailure(
       response,
-      requestId: '0',
+      requestId: '1',
       errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
@@ -128,10 +128,10 @@ analyzer:
   Future<void> test_invalidFilePathFormat_notNormalized() async {
     var response = await handleRequest(AnalysisSetPriorityFilesParams([
       convertPath('/foo/../bar/test.dart'),
-    ]).toRequest('0'));
+    ]).toRequest('1'));
     assertResponseFailure(
       response,
-      requestId: '0',
+      requestId: '1',
       errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
@@ -140,7 +140,7 @@ analyzer:
     addTestFile('');
     // set priority files
     var response = await _setPriorityFile(testFile);
-    expect(response, isResponseSuccess('0'));
+    expect(response, isResponseSuccess('1'));
     // verify
     var params = pluginManager.analysisSetPriorityFilesParams!;
     expect(params.files, [testFile.path]);
@@ -150,7 +150,7 @@ analyzer:
     return await handleSuccessfulRequest(
       AnalysisSetPriorityFilesParams(<String>[
         file.path,
-      ]).toRequest('0'),
+      ]).toRequest('1'),
     );
   }
 
