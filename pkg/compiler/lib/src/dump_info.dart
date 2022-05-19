@@ -499,6 +499,9 @@ class KernelInfoCollector {
       info.coverageId = '${field.hashCode}';
     }
 
+    _addClosureInfo(info, field,
+        libraryEntity: fieldEntity.library, memberEntity: fieldEntity);
+
     state.info.fields.add(info);
     return info;
   }
@@ -549,9 +552,10 @@ class KernelInfoCollector {
   }
 
   FunctionInfo visitFunction(ir.FunctionNode function,
-      {FunctionEntity functionEntity}) {
-    var parent = function.parent;
-    String name = parent.toStringInternal();
+      {FunctionEntity functionEntity, LocalFunctionInfo localFunctionInfo}) {
+    final parent = function.parent;
+    String name =
+        parent is ir.LocalFunction ? 'call' : parent.toStringInternal();
     bool isConstructor = parent is ir.Constructor;
     bool isFactory = parent is ir.Procedure && parent.isFactory;
     // Kernel `isStatic` refers to static members, constructors, and top-level
@@ -632,6 +636,15 @@ class KernelInfoCollector {
         outputUnit: null);
     state.entityToInfo[functionEntity] = info;
 
+    if (function.parent is ir.Member)
+      _addClosureInfo(info, function.parent,
+          libraryEntity: functionEntity.library, memberEntity: functionEntity);
+    else {
+      // This branch is only reached when function is a 'call' method.
+      // TODO(markzipan): Ensure call methods never have children.
+      info.closures = [];
+    }
+
     if (compiler.options.experimentCallInstrumentation) {
       // We use function.hashCode because it is globally unique and it is
       // available while we are doing codegen.
@@ -640,6 +653,41 @@ class KernelInfoCollector {
 
     state.info.functions.add(info);
     return info;
+  }
+
+  /// Adds closure information to [info], using all nested closures in [member].
+  void _addClosureInfo(Info info, ir.Member member,
+      {LibraryEntity libraryEntity, MemberEntity memberEntity}) {
+    final localFunctionInfoCollector = LocalFunctionInfoCollector();
+    member.accept(localFunctionInfoCollector);
+    List<ClosureInfo> nestedClosures = <ClosureInfo>[];
+    localFunctionInfoCollector.localFunctions.forEach((key, value) {
+      FunctionEntity closureEntity;
+      environment.forEachNestedClosure(memberEntity, (closure) {
+        if (closure.enclosingClass.name == value.name) {
+          closureEntity = closure;
+        }
+      });
+      final closureClassEntity = closureEntity.enclosingClass;
+      final closureInfo =
+          ClosureInfo(name: value.name, outputUnit: null, size: null);
+      state.entityToInfo[closureClassEntity] = closureInfo;
+
+      FunctionEntity callMethod = closedWorld.elementEnvironment
+          .lookupClassMember(closureClassEntity, Identifiers.call);
+      final functionInfo = visitFunction(key.function,
+          functionEntity: callMethod, localFunctionInfo: value);
+      state.entityToInfo[closureEntity] = functionInfo;
+
+      closureInfo.function = functionInfo;
+      functionInfo.parent = closureInfo;
+      state.info.closures.add(closureInfo);
+
+      closureInfo.parent = info;
+      nestedClosures.add(closureInfo);
+    });
+    if (info is FunctionInfo) info.closures = nestedClosures;
+    if (info is FieldInfo) info.closures = nestedClosures;
   }
 }
 
@@ -853,24 +901,25 @@ class DumpInfoAnnotator {
   }
 
   ClosureInfo visitClosureClass(ClassEntity element) {
-    ClosureInfo closureInfo = ClosureInfo(
-        name: element.name,
-        outputUnit: _unitInfoForClass(element),
-        size: dumpInfoTask.sizeOf(element));
-    kernelInfo.state.entityToInfo[element] = closureInfo;
+    final kClosureInfos = kernelInfo.state.info.closures
+        .where((info) => info.name == element.name)
+        .toList();
+    assert(
+        kClosureInfos.length == 1,
+        'Ambiguous closure resolution. '
+        'Expected singleton, found $kClosureInfos');
+    final kClosureInfo = kClosureInfos.first;
+
+    kClosureInfo.outputUnit = _unitInfoForClass(element);
+    kClosureInfo.size = dumpInfoTask.sizeOf(element);
 
     FunctionEntity callMethod = closedWorld.elementEnvironment
         .lookupClassMember(element, Identifiers.call);
 
-    FunctionInfo functionInfo = visitFunction(callMethod, element.name);
-    if (functionInfo == null) return null;
+    visitFunction(callMethod, element.name);
 
-    closureInfo.function = functionInfo;
-    functionInfo.parent = closureInfo;
-    closureInfo.treeShakenStatus = TreeShakenStatus.Live;
-
-    kernelInfo.state.info.closures.add(closureInfo);
-    return closureInfo;
+    kClosureInfo.treeShakenStatus = TreeShakenStatus.Live;
+    return kClosureInfo;
   }
 
   // TODO(markzipan): [parentName] is used for disambiguation, but this might
@@ -879,8 +928,6 @@ class DumpInfoAnnotator {
     int size = dumpInfoTask.sizeOf(function);
     // TODO(sigmund): consider adding a small info to represent unreachable
     // code here.
-    if (size == 0 && !shouldKeep(function)) return null;
-
     var compareName = function.name;
     if (function.isConstructor) {
       compareName = compareName == ""
@@ -898,9 +945,10 @@ class DumpInfoAnnotator {
             !(function.isSetter ^ i.modifiers.isSetter))
         .toList();
     assert(
-        kFunctionInfos.length == 1,
+        kFunctionInfos.length <= 1,
         'Ambiguous function resolution. '
-        'Expected singleton, found $kFunctionInfos');
+        'Expected single or none, found $kFunctionInfos');
+    if (kFunctionInfos.length == 0) return null;
     final kFunctionInfo = kFunctionInfos.first;
 
     List<CodeSpan> code = dumpInfoTask.codeOf(function);
@@ -943,19 +991,13 @@ class DumpInfoAnnotator {
   int _addClosureInfo(BasicInfo info, MemberEntity member) {
     assert(info is FunctionInfo || info is FieldInfo);
     int size = 0;
-    List<ClosureInfo> nestedClosures = <ClosureInfo>[];
     environment.forEachNestedClosure(member, (closure) {
       ClosureInfo closureInfo = visitClosureClass(closure.enclosingClass);
       if (closureInfo != null) {
-        closureInfo.parent = info;
-        closureInfo.treeShakenStatus = info.treeShakenStatus;
-        nestedClosures.add(closureInfo);
+        closureInfo.treeShakenStatus = TreeShakenStatus.Live;
         size += closureInfo.size;
       }
     });
-    if (info is FunctionInfo) info.closures = nestedClosures;
-    if (info is FieldInfo) info.closures = nestedClosures;
-
     return size;
   }
 
@@ -1431,4 +1473,74 @@ class DumpInfoStateData {
   final Map<OutputUnit, OutputUnitInfo> outputToInfo = {};
 
   DumpInfoStateData();
+}
+
+class LocalFunctionInfo {
+  final ir.LocalFunction localFunction;
+  final List<ir.TreeNode> hierarchy;
+  final String name;
+  bool isInvoked = false;
+
+  LocalFunctionInfo._(this.localFunction, this.hierarchy, this.name);
+
+  factory LocalFunctionInfo(ir.LocalFunction localFunction) {
+    String name = '';
+    ir.TreeNode node = localFunction;
+    final hierarchy = <ir.TreeNode>[];
+    bool inClosure = false;
+    while (node != null) {
+      // Only consider nodes used for resolving a closure's full name.
+      if (node is ir.FunctionDeclaration) {
+        hierarchy.add(node);
+        name = '_${node.variable.name}' + name;
+        inClosure = false;
+      } else if (node is ir.FunctionExpression) {
+        hierarchy.add(node);
+        name = (inClosure ? '_' : '_closure') + name;
+        inClosure = true;
+      } else if (node is ir.Member) {
+        hierarchy.add(node);
+        var cleanName = node.toStringInternal();
+        if (cleanName.endsWith('.'))
+          cleanName = cleanName.substring(0, cleanName.length - 1);
+        final isFactory = node is ir.Procedure && node.isFactory;
+        if (isFactory) {
+          cleanName = cleanName.replaceAll('.', '\$');
+          cleanName = '${node.enclosingClass.toStringInternal()}_' + cleanName;
+        } else {
+          cleanName = cleanName.replaceAll('.', '_');
+        }
+        name = cleanName + name;
+        inClosure = false;
+      }
+      node = node.parent;
+    }
+
+    return LocalFunctionInfo._(localFunction, hierarchy, name);
+  }
+}
+
+class LocalFunctionInfoCollector extends ir.RecursiveVisitor<void> {
+  final localFunctions = <ir.LocalFunction, LocalFunctionInfo>{};
+
+  @override
+  void visitFunctionExpression(ir.FunctionExpression node) {
+    assert(localFunctions[node] == null);
+    localFunctions[node] = LocalFunctionInfo(node);
+    defaultExpression(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    assert(localFunctions[node] == null);
+    localFunctions[node] = LocalFunctionInfo(node);
+    defaultStatement(node);
+  }
+
+  @override
+  void visitLocalFunctionInvocation(ir.LocalFunctionInvocation node) {
+    if (localFunctions[node.localFunction] == null)
+      visitFunctionDeclaration(node.localFunction);
+    localFunctions[node.localFunction].isInvoked = true;
+  }
 }
