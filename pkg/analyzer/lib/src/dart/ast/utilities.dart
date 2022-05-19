@@ -1384,7 +1384,10 @@ class LinterExceptionHandler {
 
   /// A method that can be passed to the `LinterVisitor` constructor to handle
   /// exceptions that occur during linting.
-  void logException(
+  ///
+  /// Returns `true` if the exception was fully handled, and `false` if the
+  /// exception should be rethrown.
+  bool logException(
       AstNode node, Object visitor, dynamic exception, StackTrace stackTrace) {
     StringBuffer buffer = StringBuffer();
     buffer.write('Exception while using a ${visitor.runtimeType} to visit a ');
@@ -1402,9 +1405,7 @@ class LinterExceptionHandler {
     // TODO(39284): should this exception be silent?
     AnalysisEngine.instance.instrumentationService.logException(
         SilentException(buffer.toString(), exception, stackTrace));
-    if (propagateExceptions) {
-      throw exception;
-    }
+    return !propagateExceptions;
   }
 }
 
