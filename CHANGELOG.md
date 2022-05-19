@@ -15,8 +15,15 @@
 
 #### Linter
 
-Updated the Linter to `1.23.0`, which includes changes that
+Updated the Linter to `1.24.0`, which includes changes that
 
+- fixes `prefer_final_parameters` to support super parameters.
+- adds new lint: `unnecessary_to_list_in_spreads`.
+- fixes `unawaited_futures` to handle string interpolated
+  futures.
+- updates `use_colored_box` to not flag nullable colors,
+- adds new lint: 
+  `unnecessary_null_aware_operator_on_extension_on_nullable`.
 - fixes `no_leading_underscores_for_local_identifiers`
   to lint local function declarations.
 - fixes `avoid_init_to_null` to correctly handle super

@@ -1222,7 +1222,7 @@ function(b, l) {
 function(m) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
-    __handler = 1, __currentError, __next = [], exception, __exception;
+    __handler = 1, __currentError, exception, __exception;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
