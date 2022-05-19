@@ -170,7 +170,6 @@ class CodeGenerator {
 // "pkg/analysis_server/tool/spec/generate_files".
 
 // ignore_for_file: constant_identifier_names
-// ignore_for_file: prefer_interpolation_to_compose_strings
 ''';
     }
     writeln(header.trim());
@@ -278,7 +277,7 @@ abstract class GeneratedContent {
     for (var target in targets) {
       var ok = await target.check(pkgPath);
       if (!ok) {
-        print('${target.output(pkgPath).absolute}'
+        print('${normalize(target.output(pkgPath).absolute.path)}'
             " doesn't have expected contents.");
         generateNeeded = true;
       }
@@ -376,7 +375,7 @@ class GeneratedDirectory extends GeneratedContent {
       var file = entry.key;
       var fileContentsComputer = entry.value;
       var outputFile = File(posix.join(outputDirectory.path, file));
-      print('  ${outputFile.path}');
+      print('  ${normalize(outputFile.path)}');
       var contents = await fileContentsComputer(pkgPath);
       outputFile.writeAsStringSync(contents);
     }
@@ -426,7 +425,7 @@ class GeneratedFile extends GeneratedContent {
   @override
   Future<void> generate(String pkgPath) async {
     var outputFile = output(pkgPath);
-    print('  ${outputFile.path}');
+    print('  ${normalize(outputFile.path)}');
     var contents = await computeContents(pkgPath);
     outputFile.writeAsStringSync(contents);
     if (isDartFile) {
