@@ -1,3 +1,6 @@
+## 4.2.0-dev
+* Update SDK constraints to `>=2.17.0 <3.0.0`.
+
 ## 4.1.0
 * Deprecated `ParameterElement.isNotOptional`, use `isRequired` instead.
 * Deprecated `ResourceProviderMixin.newFile2`, use `newFile` instead.
