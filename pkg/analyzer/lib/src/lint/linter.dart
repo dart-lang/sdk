@@ -35,7 +35,6 @@ import 'package:analyzer/src/lint/analysis.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
-import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart' show Linter;
@@ -626,11 +625,6 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     }
     return name.compareTo(other.name);
   }
-
-  /// Return a visitor to be passed to provide access to Dart project context
-  /// and to perform project-level analyses.
-  @Deprecated('Use LinterContext instead')
-  ProjectVisitor? getProjectVisitor() => null;
 
   /// Return a visitor to be passed to pubspecs to perform lint
   /// analysis.

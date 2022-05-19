@@ -5,7 +5,6 @@
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -15,8 +14,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/project.dart';
-import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:yaml/yaml.dart';
 
@@ -124,18 +121,9 @@ class LintDriver {
       },
     );
 
-    AnalysisSession? projectAnalysisSession;
     for (io.File file in files) {
       var path = _absoluteNormalizedPath(file.path);
       _filesAnalyzed.add(path);
-      var analysisContext = contextCollection.contextFor(path);
-      var analysisSession = analysisContext.currentSession;
-      projectAnalysisSession = analysisSession;
-    }
-
-    if (projectAnalysisSession != null) {
-      // ignore: deprecated_member_use_from_same_package
-      await _visitProject(projectAnalysisSession);
     }
 
     var result = <AnalysisErrorInfo>[];
@@ -160,24 +148,6 @@ class LintDriver {
     path = pathContext.absolute(path);
     path = pathContext.normalize(path);
     return path;
-  }
-
-  @Deprecated('DartProject is deprecated. This is slated for removal')
-  Future<void> _visitProject(AnalysisSession projectAnalysisSession) async {
-    Future<DartProject> createProject() async {
-      return await DartProject.create(
-        projectAnalysisSession,
-        _filesAnalyzed.toList(),
-      );
-    }
-
-    DartProject? project;
-    for (var lint in Registry.ruleRegistry) {
-      if (lint is ProjectVisitor) {
-        project ??= await createProject();
-        (lint as ProjectVisitor).visit(project);
-      }
-    }
   }
 }
 
