@@ -369,7 +369,7 @@
         "uri": "_internal/js_runtime/lib/late_helper.dart"
       },
       "_rti": {
-        "uri": "_internal/js_runtime/lib/rti.dart"
+        "uri": "_internal/js_shared/lib/rti.dart"
       },
       "_interceptors": {
         "uri": "_internal/js_runtime/lib/interceptors.dart"
@@ -384,13 +384,13 @@
         "uri": "_internal/js_runtime/lib/js_primitives.dart"
       },
       "_js_embedded_names": {
-        "uri": "_internal/js_runtime/lib/shared/embedded_names.dart"
+        "uri": "_internal/js_runtime/lib/synced/embedded_names.dart"
       },
       "_async_await_error_codes": {
-        "uri": "_internal/js_runtime/lib/shared/async_await_error_codes.dart"
+        "uri": "_internal/js_runtime/lib/synced/async_await_error_codes.dart"
       },
       "_recipe_syntax": {
-        "uri": "_internal/js_runtime/lib/shared/recipe_syntax.dart"
+        "uri": "_internal/js_shared/lib/synced/recipe_syntax.dart"
       }
     }
   },

@@ -139,6 +139,15 @@ class ParseStringResultImpl implements ParseStringResult {
   LineInfo get lineInfo => unit.lineInfo;
 }
 
+class PartWithoutLibraryResultImpl implements PartWithoutLibraryResult {
+  @override
+  final String path;
+
+  PartWithoutLibraryResultImpl({
+    required this.path,
+  });
+}
+
 class ResolvedForCompletionResultImpl {
   final AnalysisSession analysisSession;
   final String path;

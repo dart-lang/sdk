@@ -99,6 +99,16 @@ class FileState {
 
   bool get exists => _unlinked.exists;
 
+  /// Return `true` if the file does not have a `library` directive, and has a
+  /// `part of` directive, so is probably a part.
+  bool get isPart {
+    if (unlinkedUnit.libraryDirective != null) {
+      return false;
+    }
+    return unlinkedUnit.partOfNameDirective != null ||
+        unlinkedUnit.partOfUriDirective != null;
+  }
+
   /// Return the [LibraryCycle] this file belongs to, even if it consists of
   /// just this file.  If the library cycle is not known yet, compute it.
   LibraryCycle get libraryCycle {
@@ -799,7 +809,7 @@ class _FileStateUnlinked {
 
     var performance = OperationPerformanceImpl('<root>');
 
-    var libraryName = unlinked.unit.partOfName;
+    var libraryName = unlinked.unit.partOfNameDirective?.name;
     if (libraryName != null) {
       location._fsState.testView.partsDiscoveredLibraries.add(location.path);
       return _partOfLibrary = location._findPartOfNameLibrary(
@@ -807,15 +817,16 @@ class _FileStateUnlinked {
       );
     }
 
-    var libraryUri = unlinked.unit.partOfUri;
-    if (libraryUri == null) {
-      return null;
+    var libraryUri = unlinked.unit.partOfUriDirective?.uri;
+    if (libraryUri != null) {
+      location._fsState.testView.partsDiscoveredLibraries.add(location.path);
+      return _partOfLibrary = location._fileForRelativeUri(
+        relativeUri: libraryUri,
+        performance: performance,
+      );
     }
-    location._fsState.testView.partsDiscoveredLibraries.add(location.path);
-    return _partOfLibrary = location._fileForRelativeUri(
-      relativeUri: libraryUri,
-      performance: performance,
-    );
+
+    return null;
   }
 
   void _prefetchDirectReferences() {
@@ -889,14 +900,14 @@ class _FileStateUnlinked {
   }
 
   static CiderUnlinkedUnit serializeAstCiderUnlinked(CompilationUnit unit) {
+    UnlinkedLibraryDirective? libraryDirective;
+    UnlinkedLibraryAugmentationDirective? libraryAugmentationDirective;
+    UnlinkedPartOfNameDirective? partOfNameDirective;
+    UnlinkedPartOfUriDirective? partOfUriDirective;
     var exports = <UnlinkedNamespaceDirective>[];
     var imports = <UnlinkedNamespaceDirective>[];
     var parts = <String>[];
     var hasDartCoreImport = false;
-    var hasLibraryDirective = false;
-    var hasPartOfDirective = false;
-    String? partOfName;
-    String? partOfUriStr;
     for (var directive in unit.directives) {
       if (directive is ExportDirective) {
         var builder = _serializeNamespaceDirective(directive);
@@ -907,19 +918,47 @@ class _FileStateUnlinked {
         if (builder.uri == 'dart:core') {
           hasDartCoreImport = true;
         }
+      } else if (directive is LibraryAugmentationDirective) {
+        final uri = directive.uri;
+        final uriStr = uri.stringValue;
+        if (uriStr != null) {
+          libraryAugmentationDirective = UnlinkedLibraryAugmentationDirective(
+            uri: uriStr,
+            uriRange: UnlinkedSourceRange(
+              offset: uri.offset,
+              length: uri.length,
+            ),
+          );
+        }
       } else if (directive is LibraryDirective) {
-        hasLibraryDirective = true;
+        libraryDirective = UnlinkedLibraryDirective(
+          name: directive.name.components.map((e) => e.name).join('.'),
+        );
       } else if (directive is PartDirective) {
         var uriStr = directive.uri.stringValue;
         parts.add(uriStr ?? '');
       } else if (directive is PartOfDirective) {
-        hasPartOfDirective = true;
-        var libraryName = directive.libraryName;
-        var uriStr = directive.uri?.stringValue;
+        final libraryName = directive.libraryName;
+        final uri = directive.uri;
         if (libraryName != null) {
-          partOfName = libraryName.components.map((e) => e.name).join('.');
-        } else if (uriStr != null) {
-          partOfUriStr = uriStr;
+          partOfNameDirective = UnlinkedPartOfNameDirective(
+            name: libraryName.name,
+            nameRange: UnlinkedSourceRange(
+              offset: libraryName.offset,
+              length: libraryName.length,
+            ),
+          );
+        } else if (uri != null) {
+          final uriStr = uri.stringValue;
+          if (uriStr != null) {
+            partOfUriDirective = UnlinkedPartOfUriDirective(
+              uri: uriStr,
+              uriRange: UnlinkedSourceRange(
+                offset: uri.offset,
+                length: uri.length,
+              ),
+            );
+          }
         }
       }
     }
@@ -957,15 +996,15 @@ class _FileStateUnlinked {
     var unlinkedUnit = UnlinkedUnit(
       apiSignature: computeUnlinkedApiSignature(unit),
       exports: exports,
-      hasLibraryDirective: hasLibraryDirective,
-      hasPartOfDirective: hasPartOfDirective,
       imports: imports,
       informativeBytes: writeUnitInformative(unit),
+      libraryAugmentationDirective: libraryAugmentationDirective,
+      libraryDirective: libraryDirective,
       lineStarts: Uint32List.fromList(unit.lineInfo.lineStarts),
       macroClasses: [],
-      partOfName: partOfName,
-      partOfUri: partOfUriStr,
       parts: parts,
+      partOfNameDirective: partOfNameDirective,
+      partOfUriDirective: partOfUriDirective,
     );
 
     return CiderUnlinkedUnit(

@@ -26552,8 +26552,16 @@ class NotebookDocumentSyncOptions implements ToJsonable {
     }
     final notebookSelectorJson = json['notebookSelector'];
     final notebookSelector = (notebookSelectorJson as List<Object?>)
-        .map((item) => NotebookDocumentSyncOptionsNotebookSelector.fromJson(
-            item as Map<String, Object?>))
+        .map((item) => NotebookDocumentSyncOptionsNotebookSelector.canParse(
+                item, nullLspJsonReporter)
+            ? Either2<NotebookDocumentSyncOptionsNotebookSelector, NotebookDocumentSyncOptionsNotebookSelector2>.t1(
+                NotebookDocumentSyncOptionsNotebookSelector.fromJson(
+                    item as Map<String, Object?>))
+            : (NotebookDocumentSyncOptionsNotebookSelector2.canParse(item, nullLspJsonReporter)
+                ? Either2<NotebookDocumentSyncOptionsNotebookSelector,
+                        NotebookDocumentSyncOptionsNotebookSelector2>.t2(
+                    NotebookDocumentSyncOptionsNotebookSelector2.fromJson(item as Map<String, Object?>))
+                : (throw '''$item was not one of (NotebookDocumentSyncOptionsNotebookSelector, NotebookDocumentSyncOptionsNotebookSelector2)''')))
         .toList();
     final saveJson = json['save'];
     final save = saveJson as bool?;
@@ -26564,7 +26572,9 @@ class NotebookDocumentSyncOptions implements ToJsonable {
   }
 
   /// The notebooks to be synced
-  final List<NotebookDocumentSyncOptionsNotebookSelector> notebookSelector;
+  final List<
+      Either2<NotebookDocumentSyncOptionsNotebookSelector,
+          NotebookDocumentSyncOptionsNotebookSelector2>> notebookSelector;
 
   /// Whether save notification should be forwarded to the server. Will only be
   /// honored if mode === `notebook`.
@@ -26572,8 +26582,7 @@ class NotebookDocumentSyncOptions implements ToJsonable {
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
-    __result['notebookSelector'] =
-        notebookSelector.map((item) => item.toJson()).toList();
+    __result['notebookSelector'] = notebookSelector;
     if (save != null) {
       __result['save'] = save;
     }
@@ -26595,10 +26604,12 @@ class NotebookDocumentSyncOptions implements ToJsonable {
         }
         if (!((notebookSelector is List<Object?> &&
             (notebookSelector.every((item) =>
-                NotebookDocumentSyncOptionsNotebookSelector.canParse(
-                    item, reporter)))))) {
+                (NotebookDocumentSyncOptionsNotebookSelector.canParse(
+                        item, reporter) ||
+                    NotebookDocumentSyncOptionsNotebookSelector2.canParse(
+                        item, reporter))))))) {
           reporter.reportError(
-              'must be of type List<NotebookDocumentSyncOptionsNotebookSelector>');
+              'must be of type List<Either2<NotebookDocumentSyncOptionsNotebookSelector, NotebookDocumentSyncOptionsNotebookSelector2>>');
           return false;
         }
       } finally {
@@ -26628,8 +26639,12 @@ class NotebookDocumentSyncOptions implements ToJsonable {
       return listEqual(
               notebookSelector,
               other.notebookSelector,
-              (NotebookDocumentSyncOptionsNotebookSelector a,
-                      NotebookDocumentSyncOptionsNotebookSelector b) =>
+              (Either2<NotebookDocumentSyncOptionsNotebookSelector,
+                              NotebookDocumentSyncOptionsNotebookSelector2>
+                          a,
+                      Either2<NotebookDocumentSyncOptionsNotebookSelector,
+                              NotebookDocumentSyncOptionsNotebookSelector2>
+                          b) =>
                   a == b) &&
           save == other.save &&
           true;
@@ -26715,6 +26730,74 @@ class NotebookDocumentSyncOptionsCells implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class NotebookDocumentSyncOptionsCells2 implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    NotebookDocumentSyncOptionsCells2.canParse,
+    NotebookDocumentSyncOptionsCells2.fromJson,
+  );
+
+  NotebookDocumentSyncOptionsCells2({
+    required this.language,
+  });
+  static NotebookDocumentSyncOptionsCells2 fromJson(Map<String, Object?> json) {
+    final languageJson = json['language'];
+    final language = languageJson as String;
+    return NotebookDocumentSyncOptionsCells2(
+      language: language,
+    );
+  }
+
+  final String language;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    __result['language'] = language;
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('language');
+      try {
+        if (!obj.containsKey('language')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final language = obj['language'];
+        if (language == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(language is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type NotebookDocumentSyncOptionsCells2');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is NotebookDocumentSyncOptionsCells2 &&
+        other.runtimeType == NotebookDocumentSyncOptionsCells2) {
+      return language == other.language && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => language.hashCode;
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     NotebookDocumentSyncOptionsNotebookSelector.canParse,
@@ -26722,34 +26805,33 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
   );
 
   NotebookDocumentSyncOptionsNotebookSelector({
-    required this.cells,
-    this.notebookDocument,
+    this.cells,
+    required this.notebookDocument,
   });
   static NotebookDocumentSyncOptionsNotebookSelector fromJson(
       Map<String, Object?> json) {
     final cellsJson = json['cells'];
-    final cells = (cellsJson as List<Object?>)
-        .map((item) => NotebookDocumentSyncOptionsCells.fromJson(
+    final cells = (cellsJson as List<Object?>?)
+        ?.map((item) => NotebookDocumentSyncOptionsCells.fromJson(
             item as Map<String, Object?>))
         .toList();
     final notebookDocumentJson = json['notebookDocument'];
-    final notebookDocument = notebookDocumentJson == null
-        ? null
-        : ((NotebookDocumentFilter1.canParse(notebookDocumentJson, nullLspJsonReporter) ||
-                NotebookDocumentFilter2.canParse(
-                    notebookDocumentJson, nullLspJsonReporter) ||
-                NotebookDocumentFilter3.canParse(
-                    notebookDocumentJson, nullLspJsonReporter))
-            ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t1(
-                NotebookDocumentFilter1.canParse(notebookDocumentJson, nullLspJsonReporter)
-                    ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(
-                        NotebookDocumentFilter1.fromJson(
-                            notebookDocumentJson as Map<String, Object?>))
-                    : (NotebookDocumentFilter2.canParse(notebookDocumentJson, nullLspJsonReporter)
-                        ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t2(
-                            NotebookDocumentFilter2.fromJson(notebookDocumentJson as Map<String, Object?>))
-                        : (NotebookDocumentFilter3.canParse(notebookDocumentJson, nullLspJsonReporter) ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookDocumentJson as Map<String, Object?>)) : (throw '''$notebookDocumentJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
-            : (notebookDocumentJson is String ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t2(notebookDocumentJson) : (throw '''$notebookDocumentJson was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)''')));
+    final notebookDocument = (NotebookDocumentFilter1.canParse(
+                notebookDocumentJson, nullLspJsonReporter) ||
+            NotebookDocumentFilter2.canParse(
+                notebookDocumentJson, nullLspJsonReporter) ||
+            NotebookDocumentFilter3.canParse(
+                notebookDocumentJson, nullLspJsonReporter))
+        ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t1(
+            NotebookDocumentFilter1.canParse(notebookDocumentJson, nullLspJsonReporter)
+                ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(
+                    NotebookDocumentFilter1.fromJson(
+                        notebookDocumentJson as Map<String, Object?>))
+                : (NotebookDocumentFilter2.canParse(notebookDocumentJson, nullLspJsonReporter)
+                    ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t2(
+                        NotebookDocumentFilter2.fromJson(notebookDocumentJson as Map<String, Object?>))
+                    : (NotebookDocumentFilter3.canParse(notebookDocumentJson, nullLspJsonReporter) ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookDocumentJson as Map<String, Object?>)) : (throw '''$notebookDocumentJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
+        : (notebookDocumentJson is String ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t2(notebookDocumentJson) : (throw '''$notebookDocumentJson was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)'''));
     return NotebookDocumentSyncOptionsNotebookSelector(
       cells: cells,
       notebookDocument: notebookDocument,
@@ -26757,21 +26839,21 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
   }
 
   /// The cells of the matching notebook to be synced.
-  final List<NotebookDocumentSyncOptionsCells> cells;
+  final List<NotebookDocumentSyncOptionsCells>? cells;
 
   /// The notebook to be synced If a string value is provided it matches against
   /// the notebook type. '*' matches every notebook.
   final Either2<
       Either3<NotebookDocumentFilter1, NotebookDocumentFilter2,
           NotebookDocumentFilter3>,
-      String>? notebookDocument;
+      String> notebookDocument;
 
   Map<String, Object?> toJson() {
     var __result = <String, Object?>{};
-    __result['cells'] = cells.map((item) => item.toJson()).toList();
-    if (notebookDocument != null) {
-      __result['notebookDocument'] = notebookDocument;
+    if (cells != null) {
+      __result['cells'] = cells?.map((item) => item.toJson()).toList();
     }
+    __result['notebookDocument'] = notebookDocument;
     return __result;
   }
 
@@ -26779,18 +26861,12 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
     if (obj is Map<String, Object?>) {
       reporter.push('cells');
       try {
-        if (!obj.containsKey('cells')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
         final cells = obj['cells'];
-        if (cells == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!((cells is List<Object?> &&
-            (cells.every((item) =>
-                NotebookDocumentSyncOptionsCells.canParse(item, reporter)))))) {
+        if (cells != null &&
+            !((cells is List<Object?> &&
+                (cells.every((item) =>
+                    NotebookDocumentSyncOptionsCells.canParse(
+                        item, reporter)))))) {
           reporter.reportError(
               'must be of type List<NotebookDocumentSyncOptionsCells>');
           return false;
@@ -26800,14 +26876,19 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
       }
       reporter.push('notebookDocument');
       try {
+        if (!obj.containsKey('notebookDocument')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
         final notebookDocument = obj['notebookDocument'];
-        if (notebookDocument != null &&
-            !(((NotebookDocumentFilter1.canParse(notebookDocument, reporter) ||
-                    NotebookDocumentFilter2.canParse(
-                        notebookDocument, reporter) ||
-                    NotebookDocumentFilter3.canParse(
-                        notebookDocument, reporter)) ||
-                notebookDocument is String))) {
+        if (notebookDocument == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(((NotebookDocumentFilter1.canParse(notebookDocument, reporter) ||
+                NotebookDocumentFilter2.canParse(notebookDocument, reporter) ||
+                NotebookDocumentFilter3.canParse(notebookDocument, reporter)) ||
+            notebookDocument is String))) {
           reporter.reportError(
               'must be of type Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>');
           return false;
@@ -26849,6 +26930,140 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    NotebookDocumentSyncOptionsNotebookSelector2.canParse,
+    NotebookDocumentSyncOptionsNotebookSelector2.fromJson,
+  );
+
+  NotebookDocumentSyncOptionsNotebookSelector2({
+    required this.cells,
+    this.notebookDocument,
+  });
+  static NotebookDocumentSyncOptionsNotebookSelector2 fromJson(
+      Map<String, Object?> json) {
+    final cellsJson = json['cells'];
+    final cells = (cellsJson as List<Object?>)
+        .map((item) => NotebookDocumentSyncOptionsCells2.fromJson(
+            item as Map<String, Object?>))
+        .toList();
+    final notebookDocumentJson = json['notebookDocument'];
+    final notebookDocument = notebookDocumentJson == null
+        ? null
+        : ((NotebookDocumentFilter1.canParse(notebookDocumentJson, nullLspJsonReporter) ||
+                NotebookDocumentFilter2.canParse(
+                    notebookDocumentJson, nullLspJsonReporter) ||
+                NotebookDocumentFilter3.canParse(
+                    notebookDocumentJson, nullLspJsonReporter))
+            ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t1(
+                NotebookDocumentFilter1.canParse(notebookDocumentJson, nullLspJsonReporter)
+                    ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(
+                        NotebookDocumentFilter1.fromJson(
+                            notebookDocumentJson as Map<String, Object?>))
+                    : (NotebookDocumentFilter2.canParse(notebookDocumentJson, nullLspJsonReporter)
+                        ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t2(
+                            NotebookDocumentFilter2.fromJson(notebookDocumentJson as Map<String, Object?>))
+                        : (NotebookDocumentFilter3.canParse(notebookDocumentJson, nullLspJsonReporter) ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookDocumentJson as Map<String, Object?>)) : (throw '''$notebookDocumentJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
+            : (notebookDocumentJson is String ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t2(notebookDocumentJson) : (throw '''$notebookDocumentJson was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)''')));
+    return NotebookDocumentSyncOptionsNotebookSelector2(
+      cells: cells,
+      notebookDocument: notebookDocument,
+    );
+  }
+
+  /// The cells of the matching notebook to be synced.
+  final List<NotebookDocumentSyncOptionsCells2> cells;
+
+  /// The notebook to be synced If a string value is provided it matches against
+  /// the notebook type. '*' matches every notebook.
+  final Either2<
+      Either3<NotebookDocumentFilter1, NotebookDocumentFilter2,
+          NotebookDocumentFilter3>,
+      String>? notebookDocument;
+
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
+    __result['cells'] = cells.map((item) => item.toJson()).toList();
+    if (notebookDocument != null) {
+      __result['notebookDocument'] = notebookDocument;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('cells');
+      try {
+        if (!obj.containsKey('cells')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final cells = obj['cells'];
+        if (cells == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!((cells is List<Object?> &&
+            (cells.every((item) => NotebookDocumentSyncOptionsCells2.canParse(
+                item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<NotebookDocumentSyncOptionsCells2>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('notebookDocument');
+      try {
+        final notebookDocument = obj['notebookDocument'];
+        if (notebookDocument != null &&
+            !(((NotebookDocumentFilter1.canParse(notebookDocument, reporter) ||
+                    NotebookDocumentFilter2.canParse(
+                        notebookDocument, reporter) ||
+                    NotebookDocumentFilter3.canParse(
+                        notebookDocument, reporter)) ||
+                notebookDocument is String))) {
+          reporter.reportError(
+              'must be of type Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError(
+          'must be of type NotebookDocumentSyncOptionsNotebookSelector2');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is NotebookDocumentSyncOptionsNotebookSelector2 &&
+        other.runtimeType == NotebookDocumentSyncOptionsNotebookSelector2) {
+      return listEqual(
+              cells,
+              other.cells,
+              (NotebookDocumentSyncOptionsCells2 a,
+                      NotebookDocumentSyncOptionsCells2 b) =>
+                  a == b) &&
+          notebookDocument == other.notebookDocument &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        lspHashCode(cells),
+        notebookDocument,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 /// Registration options specific to a notebook.
 ///  @since 3.17.0
 class NotebookDocumentSyncRegistrationOptions
@@ -26872,8 +27087,16 @@ class NotebookDocumentSyncRegistrationOptions
     final id = idJson as String?;
     final notebookSelectorJson = json['notebookSelector'];
     final notebookSelector = (notebookSelectorJson as List<Object?>)
-        .map((item) => NotebookDocumentSyncOptionsNotebookSelector.fromJson(
-            item as Map<String, Object?>))
+        .map((item) => NotebookDocumentSyncOptionsNotebookSelector.canParse(
+                item, nullLspJsonReporter)
+            ? Either2<NotebookDocumentSyncOptionsNotebookSelector, NotebookDocumentSyncOptionsNotebookSelector2>.t1(
+                NotebookDocumentSyncOptionsNotebookSelector.fromJson(
+                    item as Map<String, Object?>))
+            : (NotebookDocumentSyncOptionsNotebookSelector2.canParse(item, nullLspJsonReporter)
+                ? Either2<NotebookDocumentSyncOptionsNotebookSelector,
+                        NotebookDocumentSyncOptionsNotebookSelector2>.t2(
+                    NotebookDocumentSyncOptionsNotebookSelector2.fromJson(item as Map<String, Object?>))
+                : (throw '''$item was not one of (NotebookDocumentSyncOptionsNotebookSelector, NotebookDocumentSyncOptionsNotebookSelector2)''')))
         .toList();
     final saveJson = json['save'];
     final save = saveJson as bool?;
@@ -26889,7 +27112,9 @@ class NotebookDocumentSyncRegistrationOptions
   final String? id;
 
   /// The notebooks to be synced
-  final List<NotebookDocumentSyncOptionsNotebookSelector> notebookSelector;
+  final List<
+      Either2<NotebookDocumentSyncOptionsNotebookSelector,
+          NotebookDocumentSyncOptionsNotebookSelector2>> notebookSelector;
 
   /// Whether save notification should be forwarded to the server. Will only be
   /// honored if mode === `notebook`.
@@ -26900,8 +27125,7 @@ class NotebookDocumentSyncRegistrationOptions
     if (id != null) {
       __result['id'] = id;
     }
-    __result['notebookSelector'] =
-        notebookSelector.map((item) => item.toJson()).toList();
+    __result['notebookSelector'] = notebookSelector;
     if (save != null) {
       __result['save'] = save;
     }
@@ -26933,10 +27157,12 @@ class NotebookDocumentSyncRegistrationOptions
         }
         if (!((notebookSelector is List<Object?> &&
             (notebookSelector.every((item) =>
-                NotebookDocumentSyncOptionsNotebookSelector.canParse(
-                    item, reporter)))))) {
+                (NotebookDocumentSyncOptionsNotebookSelector.canParse(
+                        item, reporter) ||
+                    NotebookDocumentSyncOptionsNotebookSelector2.canParse(
+                        item, reporter))))))) {
           reporter.reportError(
-              'must be of type List<NotebookDocumentSyncOptionsNotebookSelector>');
+              'must be of type List<Either2<NotebookDocumentSyncOptionsNotebookSelector, NotebookDocumentSyncOptionsNotebookSelector2>>');
           return false;
         }
       } finally {
@@ -26968,8 +27194,12 @@ class NotebookDocumentSyncRegistrationOptions
           listEqual(
               notebookSelector,
               other.notebookSelector,
-              (NotebookDocumentSyncOptionsNotebookSelector a,
-                      NotebookDocumentSyncOptionsNotebookSelector b) =>
+              (Either2<NotebookDocumentSyncOptionsNotebookSelector,
+                              NotebookDocumentSyncOptionsNotebookSelector2>
+                          a,
+                      Either2<NotebookDocumentSyncOptionsNotebookSelector,
+                              NotebookDocumentSyncOptionsNotebookSelector2>
+                          b) =>
                   a == b) &&
           save == other.save &&
           true;

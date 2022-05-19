@@ -6019,6 +6019,7 @@ CompileTimeErrorCode:
       implicitly uses the same version as the defining compilation unit:
 
       ```dart
+      %uri="lib/part.dart"
       part of 'test.dart';
       ```
 
@@ -10939,6 +10940,7 @@ CompileTimeErrorCode:
       by URI:
 
       ```dart
+      %uri="lib/part_file.dart"
       part of 'test.dart';
       ```
   POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:

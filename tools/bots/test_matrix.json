@@ -183,6 +183,11 @@
     "dart2wasm_hostasserts": [
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
+      "out/ReleaseX64/dart_precompiled_runtime",
+      "out/ReleaseX64/dart2wasm.snapshot",
+      "out/ReleaseX64/dart2wasm_asserts.snapshot",
+      "out/ReleaseX64/dart2wasm_outline.dill",
+      "out/ReleaseX64/dart2wasm_platform.dill",
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
@@ -1473,8 +1478,10 @@
         "vm-kernel-precomp-linux-release-simarm64",
         "vm-kernel-precomp-linux-release-simriscv32",
         "vm-kernel-precomp-linux-release-simriscv64",
+        "vm-kernel-precomp-mac-product-x64",
         "vm-kernel-precomp-mac-release-simarm64",
         "vm-kernel-precomp-mac-release-simarm64c",
+        "vm-kernel-precomp-win-product-x64",
         "vm-kernel-precomp-win-release-x64",
         "vm-kernel-precomp-win-release-x64c"
       ],
@@ -3029,7 +3036,7 @@
             "corelib",
             "web/wasm"
           ],
-          "shards": 30,
+          "shards": 3,
           "fileset": "dart2wasm_hostasserts"
         }
       ]

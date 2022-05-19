@@ -17,6 +17,7 @@ dependencies:
   front_end: any
   js_ast: any
   js_runtime: any
+  js_shared: any
   kernel: any
 
 dev_dependencies:

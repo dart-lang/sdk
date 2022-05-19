@@ -195,6 +195,22 @@ abstract class ParseStringResult {
   CompilationUnit get unit;
 }
 
+/// The type of [InvalidResult] returned when the file is a part, and its
+/// containing library is not known.
+///
+/// Clients may not extend, implement or mix-in this class.
+///
+/// TODO(scheglov) Add an error that points at the `part of` location.
+abstract class PartWithoutLibraryResult
+    implements
+        InvalidResult,
+        SomeErrorsResult,
+        SomeResolvedUnitResult,
+        SomeUnitElementResult {
+  /// The absolute and normalized path of the file.
+  String get path;
+}
+
 /// The result of building resolved AST(s) for the whole library.
 ///
 /// Clients may not extend, implement or mix-in this class.

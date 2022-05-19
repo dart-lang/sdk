@@ -86,6 +86,7 @@ abstract class ConstantValue {
 
   List<ConstantValue> getDependencies();
 
+  // TODO(48820): Add type parameters.
   accept(ConstantValueVisitor visitor, arg);
 
   /// The value of this constant in Dart syntax, if possible.

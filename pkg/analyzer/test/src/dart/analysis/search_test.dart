@@ -2526,24 +2526,6 @@ class A {}
     expect(c.id, endsWith('c.dart;C'));
   }
 
-  test_subtypes_class_partWithoutLibrary() async {
-    await resolveTestCode('''
-part of lib;
-
-class A {}
-class B extends A {}
-''');
-    var a = findElement.class_('A');
-
-    List<SubtypeResult> subtypes =
-        await driver.search.subtypes(SearchedFiles(), type: a);
-    expect(subtypes, hasLength(1));
-
-    SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
-    expect(b.libraryUri, testUriStr);
-    expect(b.id, '$testUriStr;$testUriStr;B');
-  }
-
   test_subtypes_enum() async {
     await resolveTestCode('''
 class A {}

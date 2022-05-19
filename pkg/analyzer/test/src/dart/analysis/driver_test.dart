@@ -2734,21 +2734,15 @@ Future<int> f;
   }
 
   test_part_getResult_noLibrary() async {
-    var c = convertPath('/test/lib/c.dart');
-    newFile(c, r'''
+    final c = newFile('/test/lib/c.dart', r'''
 part of a;
 class C {}
-var a = new A();
-var b = new B();
 ''');
 
-    driver.addFile(c);
-
-    // There is no library which c.dart is a part of, so it has unresolved
-    // A and B references.
-    ResolvedUnitResult result = await driver.getResultValid(c);
-    expect(result.errors, isNotEmpty);
-    expect(result.unit, isNotNull);
+    // There is no library which c.dart is a part of, so invalid result.
+    final result = await driver.getResult(c.path);
+    result as PartWithoutLibraryResult;
+    expect(result.path, c.path);
   }
 
   test_part_getUnitElement_afterLibrary() async {
@@ -2829,28 +2823,14 @@ var b = new B();
   }
 
   test_part_getUnitElement_noLibrary() async {
-    var c = convertPath('/test/lib/c.dart');
-    newFile(c, r'''
+    final c = newFile('/test/lib/c.dart', r'''
 part of a;
-var a = new A();
-var b = new B();
 ''');
 
-    driver.addFile(c);
-
-    // We don't know the library of c.dart, but we should get a result.
-    // The types "A" and "B" are unresolved.
-    {
-      var result = await driver.getUnitElement(c);
-      result as UnitElementResult;
-      var partUnit = result.element;
-
-      expect(partUnit.topLevelVariables[0].name, 'a');
-      assertType(partUnit.topLevelVariables[0].type, 'dynamic');
-
-      expect(partUnit.topLevelVariables[1].name, 'b');
-      assertType(partUnit.topLevelVariables[1].type, 'dynamic');
-    }
+    // We don't know the library of c.dart, so invalid result.
+    var result = await driver.getUnitElement(c.path);
+    result as PartWithoutLibraryResult;
+    expect(result.path, c.path);
   }
 
   test_part_results_afterLibrary() async {
@@ -2889,15 +2869,16 @@ var b = new B();
 
     // Update a.dart so that c.dart is not a part.
     {
+      allResults.clear();
+
       modifyFile(a, '// does not use c.dart anymore');
       driver.changeFile(a);
       await waitForIdleWithoutExceptions();
 
-      // Now c.dart does not have a library context, so A and B cannot be
-      // resolved, so there are errors.
-      var result =
-          allResults.whereType<ErrorsResult>().lastWhere((r) => r.path == c);
-      expect(result.errors, isNotEmpty);
+      // Now c.dart does not know the library, so invalid result.
+      allResults
+          .whereType<PartWithoutLibraryResult>()
+          .lastWhere((r) => r.path == c);
     }
   }
 
@@ -2949,11 +2930,29 @@ var b = new B();
 
     await waitForIdleWithoutExceptions();
 
-    // There is no library which c.dart is a part of, so it has unresolved
-    // A and B references.
-    var result =
-        allResults.whereType<ErrorsResult>().lastWhere((r) => r.path == c);
-    expect(result.errors, isNotEmpty);
+    // We don't know the library for `c.dart`, so report an invalid result.
+    allResults
+        .whereType<PartWithoutLibraryResult>()
+        .lastWhere((result) => result.path == c);
+  }
+
+  test_part_results_noLibrary_priority() async {
+    var c = newFile('/test/lib/c.dart', r'''
+part of a;
+class C {}
+var a = new A();
+var b = new B();
+''');
+
+    driver.addFile(c.path);
+    driver.priorityFiles = [c.path];
+
+    await waitForIdleWithoutExceptions();
+
+    // We don't know the library for `c.dart`, so report an invalid result.
+    allResults
+        .whereType<PartWithoutLibraryResult>()
+        .lastWhere((result) => result.path == c.path);
   }
 
   test_part_results_priority_beforeLibrary() async {

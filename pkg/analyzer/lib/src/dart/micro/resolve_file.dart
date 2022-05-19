@@ -579,7 +579,7 @@ class FileResolver {
           file.exists,
           file.getContent(),
           file.lineInfo,
-          file.unlinkedUnit.hasPartOfDirective,
+          file.isPart,
           fileResult.unit,
           fileResult.errors,
         );

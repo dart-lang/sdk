@@ -8,7 +8,7 @@ library dart2js.js_emitter.startup_emitter.model_emitter;
 
 import 'dart:convert' show JsonEncoder;
 
-import 'package:js_runtime/shared/embedded_names.dart'
+import 'package:js_runtime/synced/embedded_names.dart'
     show
         ARRAY_RTI_PROPERTY,
         DEFERRED_INITIALIZED,

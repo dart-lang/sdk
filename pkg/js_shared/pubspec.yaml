@@ -1,0 +1,10 @@
+name: js_shared
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+
+dev_dependencies:
+  expect: any
+  _fe_analyzer_shared: any

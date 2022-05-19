@@ -6,7 +6,7 @@
 
 library dart2js.js_emitter.class_stub_generator;
 
-import 'package:js_runtime/shared/embedded_names.dart'
+import 'package:js_runtime/synced/embedded_names.dart'
     show TearOffParametersPropertyNames;
 
 import '../common/elements.dart' show CommonElements;

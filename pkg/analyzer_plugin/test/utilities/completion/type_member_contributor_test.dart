@@ -3068,16 +3068,17 @@ void main() {C.^ print("something");}''');
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource('/home/test/lib/a.dart', '''
+    final a = newFile('/home/test/lib/a.dart', '''
         library libA;
         import 'b.dart';
-        part "$testFile";
+        part 'test.dart';
         class A { }
         var m;''');
     addTestSource('''
         part of libA;
         class B { B.bar(int x); }
         main() {new ^}''');
+    await resolveFile(a.path);
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);

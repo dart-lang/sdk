@@ -270,15 +270,20 @@ const a = 1;
   }
 
   test_annotation_onDirective_partOf() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    final a = newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
 ''');
+
     addTestFile(r'''
 @a
 part of 'a.dart';
 
 const a = 1;
 ''');
+
+    // Make sure that the part knows its library.
+    contextFor(a.path).currentSession.getParsedUnit(a.path);
+
     await resolveTestFile();
 
     var directive = findNode.partOf('a.dart');
