@@ -35,16 +35,17 @@ class PercentileCalculator {
       return 0;
     }
     var targetIndex = _valueCount * percentile / 100;
-    var values = _counts.keys.toList()..sort();
+    var entries = _counts.entries.toList()
+      ..sort((first, second) => first.key.compareTo(second.key));
     // The number of values represented by walking the counts.
     var accumulation = 0;
-    for (var i = 0; i < values.length; i++) {
-      var value = values[i];
-      accumulation += _counts[value]!;
+    for (var i = 0; i < entries.length; i++) {
+      var entry = entries[i];
+      accumulation += entry.value;
       if (accumulation >= targetIndex) {
         // We've now accounted for [targetIndex] values, which includes the
         // median value.
-        return value;
+        return entry.key;
       }
     }
     throw StateError('');
@@ -53,6 +54,7 @@ class PercentileCalculator {
   /// Return a string that is suitable for sending to the analytics service.
   String toAnalyticsString() {
     var buffer = StringBuffer();
+    buffer.write(_valueCount);
     buffer.write('[');
     for (var p = 5; p <= 100; p += 5) {
       if (p > 5) {
