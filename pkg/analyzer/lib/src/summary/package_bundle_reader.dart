@@ -65,7 +65,7 @@ class InSummarySource extends BasicSource {
   /// The summary file where this source was defined.
   final String summaryPath;
 
-  InSummarySource(Uri uri, this.summaryPath) : super(uri);
+  InSummarySource(super.uri, this.summaryPath);
 
   @override
   TimestampedData<String> get contents => TimestampedData<String>(0, '');

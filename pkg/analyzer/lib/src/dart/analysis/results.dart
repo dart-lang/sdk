@@ -40,9 +40,8 @@ class ErrorsResultImpl extends FileResultImpl implements ErrorsResult {
   @override
   final List<AnalysisError> errors;
 
-  ErrorsResultImpl(AnalysisSession session, String path, Uri uri,
-      LineInfo lineInfo, bool isPart, this.errors)
-      : super(session, path, uri, lineInfo, isPart);
+  ErrorsResultImpl(super.session, super.path, super.uri, super.lineInfo,
+      super.isPart, this.errors);
 }
 
 class FileResultImpl extends AnalysisResultImpl implements FileResult {
@@ -59,8 +58,7 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   final bool isPart;
 
   FileResultImpl(
-      AnalysisSession session, this.path, this.uri, this.lineInfo, this.isPart)
-      : super(session);
+      super.session, this.path, this.uri, this.lineInfo, this.isPart);
 }
 
 class LibraryElementResultImpl implements LibraryElementResult {
@@ -75,7 +73,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
   @override
   final List<ParsedUnitResult> units;
 
-  ParsedLibraryResultImpl(AnalysisSession session, this.units) : super(session);
+  ParsedLibraryResultImpl(super.session, this.units);
 
   @override
   ElementDeclarationResult? getElementDeclaration(Element element) {
@@ -198,8 +196,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   @override
   final List<ResolvedUnitResult> units;
 
-  ResolvedLibraryResultImpl(AnalysisSession session, this.element, this.units)
-      : super(session);
+  ResolvedLibraryResultImpl(super.session, this.element, this.units);
 
   @override
   TypeProvider get typeProvider => element.typeProvider;
@@ -278,9 +275,8 @@ class UnitElementResultImpl extends FileResultImpl
   @override
   final CompilationUnitElement element;
 
-  UnitElementResultImpl(AnalysisSession session, String path, Uri uri,
-      LineInfo lineInfo, bool isPart, this.element)
-      : super(session, path, uri, lineInfo, isPart);
+  UnitElementResultImpl(super.session, super.path, super.uri, super.lineInfo,
+      super.isPart, this.element);
 }
 
 /// A visitor which locates the [AstNode] which declares [element].

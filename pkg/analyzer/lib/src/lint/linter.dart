@@ -869,7 +869,7 @@ class _LintCode extends LintCode {
     return registry[name + message] ??= _LintCode._(name, message);
   }
 
-  _LintCode._(String name, String message) : super(name, message);
+  _LintCode._(super.name, super.message);
 }
 
 /// The state of a [LinterNameInScopeResolutionResult].

@@ -76,8 +76,7 @@ class _InheritanceDataComputer extends DataComputer<String> {
 class _InheritanceDataExtractor extends AstDataExtractor<String> {
   final inheritance = InheritanceManager3();
 
-  _InheritanceDataExtractor(Uri uri, Map<Id, ActualData<String>> actualMap)
-      : super(uri, actualMap);
+  _InheritanceDataExtractor(super.uri, super.actualMap);
 
   @override
   String? computeElementValue(Id id, Element element) {

@@ -53,9 +53,7 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
   AssignedVariablesForTesting<AstNode, PromotableElement>?
       _currentAssignedVariables;
 
-  _AssignedVariablesDataExtractor(
-      Uri uri, Map<Id, ActualData<_Data>> actualMap, this._flowResult)
-      : super(uri, actualMap);
+  _AssignedVariablesDataExtractor(super.uri, super.actualMap, this._flowResult);
 
   @override
   _Data? computeNodeValue(Id id, AstNode node) {

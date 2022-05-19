@@ -4917,14 +4917,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   const CompileTimeErrorCode(
     String name,
     String problemMessage, {
-    String? correctionMessage,
-    bool hasPublishedDocs = false,
-    bool isUnresolvedIdentifier = false,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          correctionMessage: correctionMessage,
-          hasPublishedDocs: hasPublishedDocs,
-          isUnresolvedIdentifier: isUnresolvedIdentifier,
           name: name,
           problemMessage: problemMessage,
           uniqueName: 'CompileTimeErrorCode.${uniqueName ?? name}',
@@ -5022,14 +5019,11 @@ class LanguageCode extends ErrorCode {
   const LanguageCode(
     String name,
     String problemMessage, {
-    String? correctionMessage,
-    bool hasPublishedDocs = false,
-    bool isUnresolvedIdentifier = false,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          correctionMessage: correctionMessage,
-          hasPublishedDocs: hasPublishedDocs,
-          isUnresolvedIdentifier: isUnresolvedIdentifier,
           name: name,
           problemMessage: problemMessage,
           uniqueName: 'LanguageCode.${uniqueName ?? name}',
@@ -5127,14 +5121,11 @@ class StaticWarningCode extends AnalyzerErrorCode {
   const StaticWarningCode(
     String name,
     String problemMessage, {
-    String? correctionMessage,
-    bool hasPublishedDocs = false,
-    bool isUnresolvedIdentifier = false,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          correctionMessage: correctionMessage,
-          hasPublishedDocs: hasPublishedDocs,
-          isUnresolvedIdentifier: isUnresolvedIdentifier,
           name: name,
           problemMessage: problemMessage,
           uniqueName: 'StaticWarningCode.${uniqueName ?? name}',

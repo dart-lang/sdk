@@ -15,24 +15,15 @@ class ClassDeclarationImpl extends macro.ClassDeclarationImpl {
   late final ClassElement element;
 
   ClassDeclarationImpl._({
-    required int id,
-    required macro.IdentifierImpl identifier,
-    required List<macro.TypeParameterDeclarationImpl> typeParameters,
-    required List<macro.TypeAnnotationImpl> interfaces,
-    required bool isAbstract,
-    required bool isExternal,
-    required List<macro.TypeAnnotationImpl> mixins,
-    required macro.TypeAnnotationImpl? superclass,
-  }) : super(
-          id: id,
-          identifier: identifier,
-          typeParameters: typeParameters,
-          interfaces: interfaces,
-          isAbstract: isAbstract,
-          isExternal: isExternal,
-          mixins: mixins,
-          superclass: superclass,
-        );
+    required super.id,
+    required super.identifier,
+    required super.typeParameters,
+    required super.interfaces,
+    required super.isAbstract,
+    required super.isExternal,
+    required super.mixins,
+    required super.superclass,
+  });
 }
 
 class DeclarationBuilder {
@@ -287,31 +278,21 @@ class DeclarationBuilderFromNode {
 
 class FieldDeclarationImpl extends macro.FieldDeclarationImpl {
   FieldDeclarationImpl({
-    required int id,
-    required macro.IdentifierImpl identifier,
-    required bool isExternal,
-    required bool isFinal,
-    required bool isLate,
-    required macro.TypeAnnotationImpl type,
-    required macro.IdentifierImpl definingClass,
-    required bool isStatic,
-  }) : super(
-          id: id,
-          identifier: identifier,
-          isExternal: isExternal,
-          isFinal: isFinal,
-          isLate: isLate,
-          type: type,
-          definingClass: definingClass,
-          isStatic: isStatic,
-        );
+    required super.id,
+    required super.identifier,
+    required super.isExternal,
+    required super.isFinal,
+    required super.isLate,
+    required super.type,
+    required super.definingClass,
+    required super.isStatic,
+  });
 }
 
 class IdentifierImpl extends macro.IdentifierImpl {
   late final Element? element;
 
-  IdentifierImpl({required int id, required String name})
-      : super(id: id, name: name);
+  IdentifierImpl({required super.id, required super.name});
 }
 
 extension<T> on T? {

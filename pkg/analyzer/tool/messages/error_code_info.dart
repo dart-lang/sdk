@@ -236,24 +236,15 @@ List<String> _splitText(
 /// analyzer's `messages.yaml` file.
 class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
   AnalyzerErrorCodeInfo(
-      {String? comment,
-      String? correctionMessage,
-      String? documentation,
-      bool hasPublishedDocs = false,
-      bool isUnresolvedIdentifier = false,
-      required String problemMessage,
-      String? sharedName})
-      : super(
-            comment: comment,
-            correctionMessage: correctionMessage,
-            documentation: documentation,
-            hasPublishedDocs: hasPublishedDocs,
-            isUnresolvedIdentifier: isUnresolvedIdentifier,
-            problemMessage: problemMessage,
-            sharedName: sharedName);
+      {super.comment,
+      super.correctionMessage,
+      super.documentation,
+      super.hasPublishedDocs,
+      super.isUnresolvedIdentifier,
+      required super.problemMessage,
+      super.sharedName});
 
-  AnalyzerErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
-      : super.fromYaml(yaml);
+  AnalyzerErrorCodeInfo.fromYaml(super.yaml) : super.fromYaml();
 }
 
 /// Data tables mapping between CFE errors and their corresponding automatically
@@ -531,10 +522,10 @@ class FrontEndErrorCodeInfo extends ErrorCodeInfo {
   /// The index of the error in the analyzer's `fastaAnalyzerErrorCodes` table.
   final int? index;
 
-  FrontEndErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
+  FrontEndErrorCodeInfo.fromYaml(super.yaml)
       : analyzerCode = _decodeAnalyzerCode(yaml['analyzerCode']),
         index = yaml['index'] as int?,
-        super.fromYaml(yaml);
+        super.fromYaml();
 
   @override
   Map<Object?, Object?> toYaml() => {

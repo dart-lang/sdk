@@ -51,11 +51,7 @@ class _ReachabilityDataExtractor
     extends AstDataExtractor<Set<_ReachabilityAssertion>> {
   final FlowAnalysisDataForTesting _flowResult;
 
-  _ReachabilityDataExtractor(
-      Uri uri,
-      Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap,
-      this._flowResult)
-      : super(uri, actualMap);
+  _ReachabilityDataExtractor(super.uri, super.actualMap, this._flowResult);
 
   @override
   Set<_ReachabilityAssertion>? computeNodeValue(Id id, AstNode node) {

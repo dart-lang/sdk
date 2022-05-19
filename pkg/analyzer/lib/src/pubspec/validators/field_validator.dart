@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:yaml/yaml.dart';
@@ -17,8 +15,7 @@ class FieldValidator extends BasePubspecValidator {
     'web',
   ];
 
-  FieldValidator(ResourceProvider provider, Source source)
-      : super(provider, source);
+  FieldValidator(super.provider, super.source);
 
   /// Validate fields.
   void validate(ErrorReporter reporter, Map<dynamic, YamlNode> contents) {

@@ -275,9 +275,9 @@ class ConflictingFlags extends ValidationResult {
   /// The string at [previousStringIndex] requested the opposite.
   final bool requestedValue;
 
-  ConflictingFlags(int stringIndex, this.previousStringIndex, this.feature,
+  ConflictingFlags(super.stringIndex, this.previousStringIndex, this.feature,
       this.requestedValue)
-      : super._(stringIndex);
+      : super._();
 
   @override
   String get flag => feature.stringForValue(requestedValue);
@@ -381,7 +381,7 @@ class IllegalUseOfExpiredFlag extends ValidationResult {
   /// Information about the feature associated with the error.
   final ExperimentalFeature feature;
 
-  IllegalUseOfExpiredFlag(int flagIndex, this.feature) : super._(flagIndex);
+  IllegalUseOfExpiredFlag(super.flagIndex, this.feature) : super._();
 
   @override
   String get flag => feature.stringForValue(!feature.isEnabledByDefault);
@@ -405,7 +405,7 @@ class UnnecessaryUseOfExpiredFlag extends ValidationResult {
   /// Information about the feature associated with the warning.
   final ExperimentalFeature feature;
 
-  UnnecessaryUseOfExpiredFlag(int flagIndex, this.feature) : super._(flagIndex);
+  UnnecessaryUseOfExpiredFlag(super.flagIndex, this.feature) : super._();
 
   @override
   String get flag => feature.stringForValue(feature.isEnabledByDefault);
@@ -423,7 +423,7 @@ class UnrecognizedFlag extends ValidationResult {
   @override
   final String flag;
 
-  UnrecognizedFlag(int flagIndex, this.flag) : super._(flagIndex);
+  UnrecognizedFlag(super.flagIndex, this.flag) : super._();
 
   @override
   bool get isError => true;

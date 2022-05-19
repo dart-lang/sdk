@@ -197,6 +197,5 @@ class Documentation {
 class DocumentationWithSummary extends Documentation {
   final String summary;
 
-  DocumentationWithSummary({required String full, required this.summary})
-      : super(full: full);
+  DocumentationWithSummary({required super.full, required this.summary});
 }

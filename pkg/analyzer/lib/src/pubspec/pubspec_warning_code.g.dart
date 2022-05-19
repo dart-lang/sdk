@@ -146,14 +146,11 @@ class PubspecWarningCode extends ErrorCode {
   const PubspecWarningCode(
     String name,
     String problemMessage, {
-    String? correctionMessage,
-    bool hasPublishedDocs = false,
-    bool isUnresolvedIdentifier = false,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          correctionMessage: correctionMessage,
-          hasPublishedDocs: hasPublishedDocs,
-          isUnresolvedIdentifier: isUnresolvedIdentifier,
           name: name,
           problemMessage: problemMessage,
           uniqueName: 'PubspecWarningCode.${uniqueName ?? name}',

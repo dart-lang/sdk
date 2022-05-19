@@ -328,8 +328,7 @@ class _FolderData extends _ResourceData {
 
 /// An in-memory implementation of [File].
 class _MemoryFile extends _MemoryResource implements File {
-  _MemoryFile(MemoryResourceProvider provider, String path)
-      : super(provider, path);
+  _MemoryFile(super.provider, super.path);
 
   @override
   bool get exists {
@@ -425,8 +424,7 @@ class _MemoryFile extends _MemoryResource implements File {
 
 /// An in-memory implementation of [Folder].
 class _MemoryFolder extends _MemoryResource implements Folder {
-  _MemoryFolder(MemoryResourceProvider provider, String path)
-      : super(provider, path);
+  _MemoryFolder(super.provider, super.path);
 
   @override
   bool get exists {
