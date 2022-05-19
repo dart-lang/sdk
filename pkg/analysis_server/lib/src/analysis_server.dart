@@ -439,6 +439,8 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// Handle a [request] that was read from the communication channel.
   void handleRequest(Request request) {
+    analyticsManager.startedRequest(
+        request: request, startTime: DateTime.now());
     performance.logRequestTiming(request.clientRequestTime);
     // Because we don't `await` the execution of the handlers, we wrap the
     // execution in order to have one central place to handle exceptions.
@@ -510,6 +512,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Send the given [response] to the client.
   void sendResponse(Response response) {
     channel.sendResponse(response);
+    analyticsManager.sentResponse(response: response);
     cancellationTokens.remove(response.id);
   }
 

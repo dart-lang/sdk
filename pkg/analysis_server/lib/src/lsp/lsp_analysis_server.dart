@@ -343,6 +343,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   /// Handle a [message] that was read from the communication channel.
   void handleMessage(Message message) {
+    var startTime = DateTime.now();
     performance.logRequestTiming(message.clientRequestTime);
     runZonedGuarded(() async {
       try {
@@ -367,6 +368,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
             );
 
             if (message is RequestMessage) {
+              analyticsManager.startedRequestMessage(
+                  request: message, startTime: startTime);
               await _handleRequestMessage(message, messageInfo);
             } else if (message is NotificationMessage) {
               await _handleNotificationMessage(message, messageInfo);
@@ -567,7 +570,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void sendErrorResponse(Message message, ResponseError error) {
     if (message is RequestMessage) {
-      channel.sendResponse(ResponseMessage(
+      sendResponse(ResponseMessage(
           id: message.id, error: error, jsonrpc: jsonRpcVersion));
     } else if (message is ResponseMessage) {
       // For bad response messages where we can't respond with an error, send it
@@ -618,6 +621,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Send the given [response] to the client.
   void sendResponse(ResponseMessage response) {
     channel.sendResponse(response);
+    analyticsManager.sentResponseMessage(response: response);
   }
 
   @override
@@ -800,7 +804,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     if (result.isError) {
       sendErrorResponse(message, result.error);
     } else {
-      channel.sendResponse(ResponseMessage(
+      sendResponse(ResponseMessage(
         id: message.id,
         result: result.result,
         jsonrpc: jsonRpcVersion,

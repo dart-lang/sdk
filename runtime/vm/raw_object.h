@@ -2896,6 +2896,13 @@ class UntaggedPointerBase : public UntaggedInstance {
   uint8_t* data_;
 
  private:
+  template <typename T>
+  friend void CopyTypedDataBaseWithSafepointChecks(
+      Thread*,
+      const T&,
+      const T&,
+      intptr_t);  // Access _data for memmove with safepoint checkins.
+
   RAW_HEAP_OBJECT_IMPLEMENTATION(PointerBase);
 };
 
@@ -2918,6 +2925,11 @@ class UntaggedTypedDataBase : public UntaggedPointerBase {
       intptr_t,
       ExternalTypedDataPtr,
       ExternalTypedDataPtr);  // initialize fields.
+  friend void InitializeExternalTypedDataWithSafepointChecks(
+      Thread*,
+      intptr_t,
+      const ExternalTypedData&,
+      const ExternalTypedData&);  // initialize fields.
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypedDataBase);
 };

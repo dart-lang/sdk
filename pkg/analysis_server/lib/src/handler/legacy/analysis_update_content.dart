@@ -23,6 +23,7 @@ class AnalysisUpdateContentHandler extends LegacyHandler {
     for (var file in params.files.keys) {
       if (!server.isAbsoluteAndNormalized(file)) {
         sendResponse(Response.invalidFilePathFormat(request, file));
+        return;
       }
     }
 

@@ -293,6 +293,46 @@ void InitializeExternalTypedData(intptr_t cid,
   raw_to->data_ = buffer;
 }
 
+template <typename T>
+void CopyTypedDataBaseWithSafepointChecks(Thread* thread,
+                                          const T& from,
+                                          const T& to,
+                                          intptr_t length) {
+  constexpr intptr_t kChunkSize = 100 * 1024;
+
+  const intptr_t chunks = length / kChunkSize;
+  const intptr_t remainder = length % kChunkSize;
+
+  // Notice we re-load the data pointer, since T may be TypedData in which case
+  // the interior pointer may change after checking into safepoints.
+  for (intptr_t i = 0; i < chunks; ++i) {
+    memmove(to.ptr().untag()->data_ + i * kChunkSize,
+            from.ptr().untag()->data_ + i * kChunkSize, kChunkSize);
+
+    thread->CheckForSafepoint();
+  }
+  if (remainder > 0) {
+    memmove(to.ptr().untag()->data_ + chunks * kChunkSize,
+            from.ptr().untag()->data_ + chunks * kChunkSize, remainder);
+  }
+}
+
+void InitializeExternalTypedDataWithSafepointChecks(
+    Thread* thread,
+    intptr_t cid,
+    const ExternalTypedData& from,
+    const ExternalTypedData& to) {
+  const intptr_t length_in_elements = from.Length();
+  const intptr_t length_in_bytes =
+      TypedData::ElementSizeInBytes(cid) * length_in_elements;
+
+  uint8_t* to_data = static_cast<uint8_t*>(malloc(length_in_bytes));
+  to.ptr().untag()->data_ = to_data;
+  to.ptr().untag()->length_ = Smi::New(length_in_elements);
+
+  CopyTypedDataBaseWithSafepointChecks(thread, from, to, length_in_bytes);
+}
+
 void InitializeTypedDataView(TypedDataViewPtr obj) {
   obj.untag()->typed_data_ = TypedDataBase::null();
   obj.untag()->offset_in_bytes_ = 0;
@@ -462,8 +502,10 @@ class SlowForwardMap : public ForwardMapBase {
   void AddWeakReference(const WeakReference& from) {
     weak_references_.Add(&WeakReference::Handle(from.ptr()));
   }
-  void AddExternalTypedData(ExternalTypedDataPtr to) {
-    external_typed_data_.Add(&ExternalTypedData::Handle(to));
+  const ExternalTypedData& AddExternalTypedData(ExternalTypedDataPtr to) {
+    auto to_handle = &ExternalTypedData::Handle(to);
+    external_typed_data_.Add(to_handle);
+    return *to_handle;
   }
   void AddObjectToRehash(const Object& to) {
     objects_to_rehash_.Add(&Object::Handle(to.ptr()));
@@ -848,6 +890,7 @@ class SlowObjectCopyBase : public ObjectCopyBase {
     if (Array::UseCardMarkingForAllocation(array_length)) {
       for (; offset < end_offset; offset += kCompressedWordSize) {
         ForwardCompressedLargeArrayPointer(src, dst, offset);
+        thread_->CheckForSafepoint();
       }
     } else {
       for (; offset < end_offset; offset += kCompressedWordSize) {
@@ -949,9 +992,11 @@ class SlowObjectCopyBase : public ObjectCopyBase {
       to.untag()->SetCardRememberedBitUnsynchronized();
     }
     if (IsExternalTypedDataClassId(cid)) {
-      InitializeExternalTypedData(cid, ExternalTypedData::RawCast(from.ptr()),
-                                  ExternalTypedData::RawCast(to));
-      slow_forward_map_.AddExternalTypedData(ExternalTypedData::RawCast(to));
+      const auto& external_to = slow_forward_map_.AddExternalTypedData(
+          ExternalTypedData::RawCast(to));
+      InitializeExternalTypedDataWithSafepointChecks(
+          thread_, cid, ExternalTypedData::Cast(from), external_to);
+      return external_to.ptr();
     } else if (IsTypedDataViewClassId(cid)) {
       // We set the views backing store to `null` to satisfy an assertion in
       // GCCompactor::VisitTypedDataViewPointers().
@@ -1281,16 +1326,26 @@ class ObjectCopy : public Base {
 #endif
   }
 
-  void CopyTypedData(typename Types::TypedData from,
-                     typename Types::TypedData to) {
-    auto raw_from = UntagTypedData(from);
-    auto raw_to = UntagTypedData(to);
+  void CopyTypedData(TypedDataPtr from, TypedDataPtr to) {
+    auto raw_from = from.untag();
+    auto raw_to = to.untag();
     const intptr_t cid = Types::GetTypedDataPtr(from)->GetClassId();
     raw_to->length_ = raw_from->length_;
     raw_to->RecomputeDataField();
     const intptr_t length =
         TypedData::ElementSizeInBytes(cid) * Smi::Value(raw_from->length_);
     memmove(raw_to->data_, raw_from->data_, length);
+  }
+
+  void CopyTypedData(const TypedData& from, const TypedData& to) {
+    auto raw_from = from.ptr().untag();
+    auto raw_to = to.ptr().untag();
+    const intptr_t cid = Types::GetTypedDataPtr(from)->GetClassId();
+    raw_to->length_ = raw_from->length_;
+    raw_to->RecomputeDataField();
+    const intptr_t length =
+        TypedData::ElementSizeInBytes(cid) * Smi::Value(raw_from->length_);
+    CopyTypedDataBaseWithSafepointChecks(Base::thread_, from, to, length);
   }
 
   void CopyTypedDataView(typename Types::TypedDataView from,
@@ -1457,6 +1512,13 @@ class FastObjectCopy : public ObjectCopy<FastObjectCopyBase> {
           return root_copy;
         }
         fast_forward_map_.fill_cursor_ += 2;
+
+        // To maintain responsiveness we regularly check whether safepoints are
+        // requested - if so, we bail to slow path which will then checkin.
+        if (thread_->IsSafepointRequested()) {
+          exception_msg_ = kFastAllocationFailed;
+          return root_copy;
+        }
       }
 
       // Possibly forward values of [WeakProperty]s if keys became reachable.
@@ -1626,6 +1688,9 @@ class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase> {
         if (exception_msg_ != nullptr) {
           return Marker();
         }
+        // To maintain responsiveness we regularly check whether safepoints are
+        // requested.
+        thread_->CheckForSafepoint();
       }
 
       // Possibly forward values of [WeakProperty]s if keys became reachable.
