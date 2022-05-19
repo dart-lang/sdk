@@ -261,7 +261,7 @@ class DeclarationBuilderFromNode {
     return macro.TypeParameterDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: _identifier(node.name),
-      bound: node.bound?.mapOrNull(_typeAnnotation),
+      bound: node.bound.mapOrNull(_typeAnnotation),
     );
   }
 
