@@ -2852,11 +2852,11 @@ class PreTranslationAnalysis extends js.BaseVisitor<bool> {
 
   @override
   bool visitTry(js.Try node) {
+    if (node.finallyPart != null) hasFinally = true;
     bool body = visit(node.body);
     bool catchPart = (node.catchPart == null) ? false : visit(node.catchPart);
     bool finallyPart =
         (node.finallyPart == null) ? false : visit(node.finallyPart);
-    if (finallyPart != null) hasFinally = true;
     return body || catchPart || finallyPart;
   }
 
