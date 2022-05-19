@@ -299,7 +299,9 @@ dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https:/
 
 [ $compiler == dartkp && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
 dart/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart/isolates/fast_object_copy_test*: SkipSlow
 dart_2/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart_2/isolates/fast_object_copy_test*: SkipSlow
 
 [ $compiler == dartkp && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 || $builder_tag == tsan) ]
 dart/regress_45898_test: Pass, Slow
