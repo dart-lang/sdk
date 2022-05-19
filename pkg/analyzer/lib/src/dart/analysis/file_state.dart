@@ -126,13 +126,15 @@ class FileState {
 
   UnlinkedUnit? _unlinked2;
 
+  FileStateKind? _kind;
+
   /// Files that reference this file.
   final List<FileState> referencingFiles = [];
 
   List<FileState?>? _importedFiles;
   List<FileState?>? _exportedFiles;
-  List<FileState?>? _partedFiles;
-  List<FileState>? _libraryFiles;
+  List<FileState?> _partedFiles = [];
+  List<FileState> _libraryFiles = [];
 
   Set<FileState>? _directReferencedFiles;
   Set<FileState>? _directReferencedLibraries;
@@ -242,16 +244,17 @@ class FileState {
         _unlinked2!.partOfUriDirective != null;
   }
 
+  FileStateKind get kind => _kind!;
+
   /// If the file [isPart], return a currently know library the file is a part
   /// of. Return `null` if a library is not known, for example because we have
   /// not processed a library file yet.
   FileState? get library {
-    _fsState.readPartsForLibraries();
-    List<FileState>? libraries = _fsState._partToLibraries[this];
-    if (libraries == null || libraries.isEmpty) {
-      return null;
+    final kind = _kind;
+    if (kind is PartKnownFileStateKind) {
+      return kind.library;
     } else {
-      return libraries.first;
+      return null;
     }
   }
 
@@ -268,10 +271,7 @@ class FileState {
   /// The list of files files that this library consists of, i.e. this library
   /// file itself and its [partedFiles].
   List<FileState> get libraryFiles {
-    return _libraryFiles ??= [
-      this,
-      ...partedFiles.whereNotNull(),
-    ];
+    return _libraryFiles;
   }
 
   /// Return information about line in the file.
@@ -279,20 +279,7 @@ class FileState {
 
   /// The list of files this library file references as parts.
   List<FileState?> get partedFiles {
-    return _partedFiles ??= _unlinked2!.parts.map((uri) {
-      return _fileForRelativeUri(uri).map(
-        (file) {
-          if (file != null) {
-            file.referencingFiles.add(this);
-            _fsState._partToLibraries
-                .putIfAbsent(file, () => <FileState>[])
-                .add(this);
-          }
-          return file;
-        },
-        (_) => null,
-      );
-    }).toList();
+    return _partedFiles;
   }
 
   /// The external names referenced by the file.
@@ -410,18 +397,11 @@ class FileState {
       _libraryCycle?.invalidate();
 
       // If this is a part, invalidate the libraries.
-      var libraries = _fsState._partToLibraries[this];
-      if (libraries != null) {
-        for (var library in libraries) {
-          library.libraryCycle.invalidate();
+      final kind = _kind;
+      if (kind is PartKnownFileStateKind) {
+        for (final library in kind._libraries) {
+          library._libraryCycle?.invalidate();
         }
-      }
-    }
-
-    // This file is potentially not a library for its previous parts anymore.
-    if (_partedFiles != null) {
-      for (var part in _partedFiles!) {
-        _fsState._partToLibraries[part]?.remove(this);
       }
     }
 
@@ -434,10 +414,9 @@ class FileState {
     _directReferencedFiles = null;
     _directReferencedLibraries = null;
 
-    // Read parts on demand.
-    _fsState._librariesWithoutPartsRead.add(this);
-    _partedFiles = null;
-    _libraryFiles = null;
+    // Read parts eagerly to link parts to libraries.
+    _updateKind();
+    _updatePartedFiles();
 
     // Update mapping from subtyped names to files.
     for (var name in _driverUnlinkedUnit!.subtypedNames) {
@@ -581,6 +560,114 @@ class FileState {
     removeForOne(_partedFiles);
   }
 
+  void _updateKind() {
+    /// This file is a part (was not part, or no kind at all).
+    /// Now we might be able to update its kind to a known part.
+    void updateLibrariesWithThisPart() {
+      for (final maybeLibrary in _fsState._pathToFile.values) {
+        if (maybeLibrary.kind is LibraryFileStateKind) {
+          if (maybeLibrary.partedFiles.contains(this)) {
+            maybeLibrary._updatePartedFiles();
+            maybeLibrary._libraryCycle?.invalidate();
+          }
+        }
+      }
+    }
+
+    final libraryAugmentationDirective = unlinked2.libraryAugmentationDirective;
+    final partOfNameDirective = unlinked2.partOfNameDirective;
+    final partOfUriDirective = unlinked2.partOfUriDirective;
+    if (libraryAugmentationDirective != null) {
+      // TODO(scheglov) This code does not have enough tests.
+      _kind = LibraryAugmentationUnknownFileStateKind(
+        file: this,
+        directive: libraryAugmentationDirective,
+      );
+      _fileForRelativeUri(libraryAugmentationDirective.uri);
+    } else if (unlinked2.libraryDirective != null) {
+      _kind = LibraryFileStateKind(
+        file: this,
+      );
+    } else if (partOfNameDirective != null) {
+      if (_kind is! PartKnownFileStateKind) {
+        _kind = PartUnknownNameFileStateKind(
+          file: this,
+          directive: partOfNameDirective,
+        );
+        updateLibrariesWithThisPart();
+      }
+    } else if (partOfUriDirective != null) {
+      if (_kind is! PartKnownFileStateKind) {
+        _kind = PartUnknownUriFileStateKind(
+          file: this,
+          directive: partOfUriDirective,
+        );
+        _fileForRelativeUri(partOfUriDirective.uri);
+        updateLibrariesWithThisPart();
+      }
+    } else {
+      _kind = LibraryFileStateKind(
+        file: this,
+      );
+    }
+  }
+
+  void _updatePartedFiles() {
+    // Disconnect all parts of this library.
+    for (final part in _partedFiles) {
+      if (part != null) {
+        final partKind = part.kind;
+        if (partKind is PartKnownFileStateKind) {
+          partKind._libraries.remove(this);
+          // If no libraries, switch to unknown.
+          if (partKind._libraries.isEmpty) {
+            final partOfNameDirective = part.unlinked2.partOfNameDirective;
+            final partOfUriDirective = part.unlinked2.partOfUriDirective;
+            if (partOfNameDirective != null) {
+              part._kind = PartUnknownNameFileStateKind(
+                file: part,
+                directive: partOfNameDirective,
+              );
+            } else if (partOfUriDirective != null) {
+              part._kind = PartUnknownUriFileStateKind(
+                file: part,
+                directive: partOfUriDirective,
+              );
+            }
+          }
+        }
+      }
+    }
+
+    _partedFiles = unlinked2.parts.map((uri) {
+      return _fileForRelativeUri(uri).map(
+        (part) {
+          if (part != null) {
+            part.referencingFiles.add(this);
+            // Either add this as a library, or switch from unknown.
+            final kind = part._kind;
+            if (kind is PartKnownFileStateKind) {
+              kind._libraries.add(this);
+            } else if (kind is PartUnknownNameFileStateKind ||
+                kind is PartUnknownUriFileStateKind) {
+              part._kind = PartKnownFileStateKind(
+                file: part,
+                library: this,
+              );
+            }
+          }
+          return part;
+        },
+        (_) => null,
+      );
+    }).toList();
+
+    _libraryFiles = [
+      this,
+      ...partedFiles.whereNotNull(),
+    ];
+  }
+
   static UnlinkedUnit serializeAstUnlinked2(CompilationUnit unit) {
     UnlinkedLibraryDirective? libraryDirective;
     UnlinkedLibraryAugmentationDirective? libraryAugmentationDirective;
@@ -722,6 +809,14 @@ class FileState {
   }
 }
 
+abstract class FileStateKind {
+  final FileState file;
+
+  FileStateKind({
+    required this.file,
+  });
+}
+
 enum FileStateRefreshResult {
   /// No changes to the content, so no changes at all.
   nothing,
@@ -779,14 +874,6 @@ class FileSystemState {
 
   /// Mapping from a path to the corresponding [FileState].
   final Map<String, FileState> _pathToFile = {};
-
-  /// We don't read parts until requested, but if we need to know the
-  /// library for a file, we need to read parts of every file to know
-  /// which libraries reference this part.
-  final List<FileState> _librariesWithoutPartsRead = [];
-
-  /// Mapping from a part to the libraries it is a part of.
-  final Map<FileState, List<FileState>> _partToLibraries = {};
 
   /// The map of subtyped names to files where these names are subtyped.
   final Map<String, Set<FileState>> _subtypedNameToFiles = {};
@@ -905,7 +992,7 @@ class FileSystemState {
     final externalSummaries = this.externalSummaries;
     if (externalSummaries != null) {
       String uriStr = uri.toString();
-      if (externalSummaries.hasLinkedLibrary(uriStr)) {
+      if (externalSummaries.uriToSummaryPath.containsKey(uriStr)) {
         return Either2.t2(ExternalLibrary._(uri));
       }
     }
@@ -969,19 +1056,6 @@ class FileSystemState {
     _fileContentCache.invalidate(path);
   }
 
-  void readPartsForLibraries() {
-    // Make a copy, because reading new files will update it.
-    var libraryToProcess = _librariesWithoutPartsRead.toList();
-
-    // We will process these files, so clear it now.
-    // It will be filled with new files during the loop below.
-    _librariesWithoutPartsRead.clear();
-
-    for (var library in libraryToProcess) {
-      library.partedFiles;
-    }
-  }
-
   /// Remove the file with the given [path].
   void removeFile(String path) {
     markFileForReading(path);
@@ -995,8 +1069,6 @@ class FileSystemState {
     knownFiles.clear();
     _hasUriForPath.clear();
     _pathToFile.clear();
-    _librariesWithoutPartsRead.clear();
-    _partToLibraries.clear();
     _subtypedNameToFiles.clear();
   }
 
@@ -1078,4 +1150,65 @@ class FileUriProperties {
   bool get isDartInternal => (_flags & _isDartInternal) != 0;
 
   bool get isSrc => (_flags & _isSrc) != 0;
+}
+
+class LibraryAugmentationKnownFileStateKind extends FileStateKind {
+  final FileState augmented;
+
+  LibraryAugmentationKnownFileStateKind({
+    required super.file,
+    required this.augmented,
+  });
+}
+
+/// A library augmentation when the augmented target is unknown, e.g.
+/// the provided URI cannot be resolved.
+class LibraryAugmentationUnknownFileStateKind extends FileStateKind {
+  final UnlinkedLibraryAugmentationDirective directive;
+
+  LibraryAugmentationUnknownFileStateKind({
+    required super.file,
+    required this.directive,
+  });
+}
+
+class LibraryFileStateKind extends FileStateKind {
+  LibraryFileStateKind({
+    required super.file,
+  });
+}
+
+class PartKnownFileStateKind extends FileStateKind {
+  final List<FileState> _libraries = [];
+
+  PartKnownFileStateKind({
+    required super.file,
+    required FileState library,
+  }) {
+    _libraries.add(library);
+  }
+
+  FileState get library => _libraries.first;
+}
+
+/// The file is a part, but its library is unknown.
+/// We don't know the library with this name.
+class PartUnknownNameFileStateKind extends FileStateKind {
+  final UnlinkedPartOfNameDirective directive;
+
+  PartUnknownNameFileStateKind({
+    required super.file,
+    required this.directive,
+  });
+}
+
+/// The file is a part, but its library is unknown.
+/// When we don't understand the URI.
+class PartUnknownUriFileStateKind extends FileStateKind {
+  final UnlinkedPartOfUriDirective directive;
+
+  PartUnknownUriFileStateKind({
+    required super.file,
+    required this.directive,
+  });
 }

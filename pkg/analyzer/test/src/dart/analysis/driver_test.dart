@@ -2509,29 +2509,6 @@ import 'a.dart';
     expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
   }
 
-  test_parseFileSync_doesNotReadPartedFiles() async {
-    var a = convertPath('/test/lib/a.dart');
-    var b = convertPath('/test/lib/b.dart');
-
-    newFile(a, r'''
-part of my;
-''');
-    newFile(b, r'''
-library my;
-part 'a.dart';
-''');
-
-    expect(driver.fsState.knownFilePaths, isEmpty);
-
-    // Don't read `a.dart` when parse.
-    driver.parseFileSync(b);
-    expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
-
-    // Still don't read `a.dart` when parse the second time.
-    driver.parseFileSync(b);
-    expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
-  }
-
   test_parseFileSync_languageVersion() async {
     var path = convertPath('/test/lib/test.dart');
 
