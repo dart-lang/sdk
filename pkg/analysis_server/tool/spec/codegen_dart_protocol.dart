@@ -584,7 +584,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         for (var field in type.fields) {
           var fieldNameString = literalString(field.name);
           var fieldAccessor = 'json[$fieldNameString]';
-          var jsonPath = 'jsonPath + ${literalString('.${field.name}')}';
+          var jsonPath = literalString('\$jsonPath.${field.name}');
           var fieldValue = field.value;
           if (fieldValue is String) {
             var valueString = literalString(fieldValue);

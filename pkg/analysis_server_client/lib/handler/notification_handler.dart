@@ -7,7 +7,6 @@
 // "pkg/analysis_server/tool/spec/generate_files".
 
 // ignore_for_file: constant_identifier_names
-// ignore_for_file: prefer_interpolation_to_compose_strings
 
 import 'package:analysis_server_client/protocol.dart';
 
