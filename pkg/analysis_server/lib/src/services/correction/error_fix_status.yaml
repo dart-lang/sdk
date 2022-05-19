@@ -327,7 +327,7 @@ CompileTimeErrorCode.DUPLICATE_PART:
   status: needsEvaluation
 CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
   status: needsEvaluation
-CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR: 
+CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR:
   status: noFix
   since: 2.17
 CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED:
@@ -956,15 +956,12 @@ CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT:
   status: hasFix
 CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT:
   status: hasFix
-  issue: https://github.com/dart-lang/sdk/issues/47643
 CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED:
-  status: needsFix
+  status: hasFix
   since: 2.17
-  issue: https://github.com/dart-lang/sdk/issues/48481
 CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED:
-  status: needsFix
+  status: hasFix
   since: 2.17
-  issue: https://github.com/dart-lang/sdk/issues/48481
 CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER:
   status: hasFix
 CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD:
@@ -1881,7 +1878,7 @@ LintCode.use_colored_box:
 LintCode.use_decorated_box:
   status: needsEvaluation
 LintCode.use_enums:
-    status: hasFix
+  status: hasFix
 LintCode.use_full_hex_values_for_flutter_colors:
   status: hasFix
 LintCode.use_function_type_syntax_for_parameters:

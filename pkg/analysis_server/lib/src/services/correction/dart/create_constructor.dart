@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -14,7 +15,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class CreateConstructor extends CorrectionProducer {
   /// The name of the constructor being created.
   /// TODO(migration) We set this node when we have the change.
-  late ConstructorName _constructorName;
+  late String _constructorName;
 
   @override
   List<Object> get fixArguments => [_constructorName];
@@ -24,6 +25,7 @@ class CreateConstructor extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    var node = this.node;
     final argumentList = node.parent is ArgumentList ? node.parent : node;
     if (argumentList is ArgumentList) {
       var instanceCreation = argumentList.parent;
@@ -31,28 +33,32 @@ class CreateConstructor extends CorrectionProducer {
         await _proposeFromInstanceCreation(builder, instanceCreation);
       }
     } else {
-      await _proposeFromConstructorName(builder);
+      if (node is SimpleIdentifier) {
+        var parent = node.parent;
+        if (parent is ConstructorName) {
+          await _proposeFromConstructorName(builder, node, parent);
+          return;
+        }
+      }
+      var parent = node.thisOrAncestorOfType<EnumConstantDeclaration>();
+      if (parent != null) {
+        await _proposeFromEnumConstantDeclaration(builder, parent.name, parent);
+      }
     }
   }
 
-  Future<void> _proposeFromConstructorName(ChangeBuilder builder) async {
-    var name = node;
-    if (name is! SimpleIdentifier) {
-      return;
-    }
-
+  Future<void> _proposeFromConstructorName(ChangeBuilder builder,
+      SimpleIdentifier name, ConstructorName constructorName) async {
     InstanceCreationExpression? instanceCreation;
-    if (name.parent is ConstructorName) {
-      _constructorName = name.parent as ConstructorName;
-      if (_constructorName.name == name) {
-        // Type.name
-        if (_constructorName.parent is InstanceCreationExpression) {
-          instanceCreation =
-              _constructorName.parent as InstanceCreationExpression;
-          // new Type.name()
-          if (instanceCreation.constructorName != _constructorName) {
-            return;
-          }
+    _constructorName = constructorName.toSource();
+    if (constructorName.name == name) {
+      var grandParent = constructorName.parent;
+      // Type.name
+      if (grandParent is InstanceCreationExpression) {
+        instanceCreation = grandParent;
+        // new Type.name()
+        if (grandParent.constructorName != constructorName) {
+          return;
         }
       }
     }
@@ -63,7 +69,7 @@ class CreateConstructor extends CorrectionProducer {
     }
 
     // prepare target interface type
-    var targetType = _constructorName.type.type;
+    var targetType = constructorName.type.type;
     if (targetType is! InterfaceType) {
       return;
     }
@@ -91,28 +97,65 @@ class CreateConstructor extends CorrectionProducer {
       return;
     }
 
-    var targetFile = targetElement.source.fullName;
-    final instanceCreation_final = instanceCreation;
-    await builder.addDartFileEdit(targetFile, (builder) {
-      builder.addInsertion(targetLocation.offset, (builder) {
-        builder.write(targetLocation.prefix);
-        builder.writeConstructorDeclaration(targetElement.name,
-            argumentList: instanceCreation_final.argumentList,
-            constructorName: name,
-            constructorNameGroupName: 'NAME');
-        builder.write(targetLocation.suffix);
-      });
-      if (targetFile == file) {
-        builder.addLinkedPosition(range.node(name), 'NAME');
-      }
-    });
+    await _write(builder, name, targetElement, targetLocation,
+        constructorName: name, argumentList: instanceCreation.argumentList);
+  }
+
+  Future<void> _proposeFromEnumConstantDeclaration(ChangeBuilder builder,
+      SimpleIdentifier name, EnumConstantDeclaration parent) async {
+    var grandParent = parent.parent;
+    if (grandParent is! EnumDeclaration) {
+      return;
+    }
+    var targetElement = grandParent.declaredElement;
+    if (targetElement == null) {
+      return;
+    }
+
+    // prepare target interface type
+    var targetResult = await sessionHelper.getElementDeclaration(targetElement);
+    if (targetResult == null) {
+      return;
+    }
+
+    var targetNode = targetResult.node;
+    if (targetNode is! EnumDeclaration) {
+      return;
+    }
+
+    var targetUnit = targetResult.resolvedUnit;
+    if (targetUnit == null) {
+      return;
+    }
+
+    // prepare location
+    var targetLocation = CorrectionUtils(targetUnit)
+        .prepareEnumNewConstructorLocation(targetNode);
+    if (targetLocation == null) {
+      return;
+    }
+
+    var arguments = parent.arguments;
+    _constructorName =
+        '${targetNode.name}${arguments?.constructorSelector ?? ''}';
+
+    await _write(
+      builder,
+      name,
+      targetElement,
+      targetLocation,
+      isConst: true,
+      constructorName: arguments?.constructorSelector?.name,
+      argumentList: arguments?.argumentList,
+    );
   }
 
   Future<void> _proposeFromInstanceCreation(ChangeBuilder builder,
       InstanceCreationExpression instanceCreation) async {
-    _constructorName = instanceCreation.constructorName;
+    var constructorName = instanceCreation.constructorName;
+    _constructorName = constructorName.toSource();
     // should be synthetic default constructor
-    var constructorElement = _constructorName.staticElement;
+    var constructorElement = constructorName.staticElement;
     if (constructorElement == null ||
         !constructorElement.isDefaultConstructor ||
         !constructorElement.isSynthetic) {
@@ -151,6 +194,32 @@ class CreateConstructor extends CorrectionProducer {
             argumentList: instanceCreation.argumentList);
         builder.write(targetLocation.suffix);
       });
+    });
+  }
+
+  Future<void> _write(
+    ChangeBuilder builder,
+    SimpleIdentifier name,
+    ClassElement targetElement,
+    InsertionLocation targetLocation, {
+    SimpleIdentifier? constructorName,
+    bool isConst = false,
+    ArgumentList? argumentList,
+  }) async {
+    var targetFile = targetElement.source.fullName;
+    await builder.addDartFileEdit(targetFile, (builder) {
+      builder.addInsertion(targetLocation.offset, (builder) {
+        builder.write(targetLocation.prefix);
+        builder.writeConstructorDeclaration(targetElement.name,
+            isConst: isConst,
+            argumentList: argumentList,
+            constructorName: constructorName,
+            constructorNameGroupName: 'NAME');
+        builder.write(targetLocation.suffix);
+      });
+      if (targetFile == file) {
+        builder.addLinkedPosition(range.node(name), 'NAME');
+      }
     });
   }
 }
