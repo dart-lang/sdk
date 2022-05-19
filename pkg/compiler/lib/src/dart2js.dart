@@ -16,6 +16,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import '../compiler_api.dart' as api;
 import '../compiler_api_unmigrated.dart' as api_unmigrated;
 import 'commandline_options.dart';
+import 'common/ram_usage.dart';
 import 'options.dart' show CompilerOptions, FeatureOptions;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
@@ -933,7 +934,8 @@ Future<api.CompilationResult> compile(List<String> argv,
       RandomAccessFileOutputProvider(out, sourceMapOut,
           onInfo: diagnosticHandler.info, onFailure: fail);
 
-  api.CompilationResult compilationDone(api.CompilationResult result) {
+  Future<api.CompilationResult> compilationDone(
+      api.CompilationResult result) async {
     if (!result.isSuccess) {
       fail('Compilation failed.');
     }
@@ -1060,7 +1062,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     print('$processName '
         '${_formatCharacterCount(inputSize)} $inputName to '
         '${_formatCharacterCount(outputSize)} $outputName in '
-        '${_formatDurationAsSeconds(wallclock.elapsed)} seconds');
+        '${_formatDurationAsSeconds(wallclock.elapsed)} seconds using '
+        '${await currentHeapCapacityInMb()} of memory');
     if (primaryOutputSize != null) {
       diagnosticHandler
           .info('${_formatCharacterCount(primaryOutputSize)} $outputName '
