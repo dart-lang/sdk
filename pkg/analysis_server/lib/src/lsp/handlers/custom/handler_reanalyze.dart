@@ -8,6 +8,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 class ReanalyzeHandler extends MessageHandler<void, void> {
   ReanalyzeHandler(super.server);
+
   @override
   Method get handlesMessage => CustomMethods.reanalyze;
 
@@ -16,7 +17,7 @@ class ReanalyzeHandler extends MessageHandler<void, void> {
 
   @override
   Future<ErrorOr<void>> handle(
-      void _, MessageInfo message, CancellationToken token) async {
+      void params, MessageInfo message, CancellationToken token) async {
     server.reanalyze();
     return success(null);
   }

@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 class DiagnosticServerHandler
     extends MessageHandler<void, DartDiagnosticServer> {
   DiagnosticServerHandler(super.server);
+
   @override
   Method get handlesMessage => CustomMethods.diagnosticServer;
 
@@ -17,7 +18,7 @@ class DiagnosticServerHandler
 
   @override
   Future<ErrorOr<DartDiagnosticServer>> handle(
-      void _, MessageInfo message, CancellationToken token) async {
+      void params, MessageInfo message, CancellationToken token) async {
     final diagnosticServer = server.diagnosticServer;
     if (diagnosticServer == null) {
       return error(ServerErrorCodes.FeatureDisabled,

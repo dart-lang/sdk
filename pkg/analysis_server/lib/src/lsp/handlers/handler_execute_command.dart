@@ -18,6 +18,7 @@ import 'package:analysis_server/src/lsp/progress.dart';
 class ExecuteCommandHandler
     extends MessageHandler<ExecuteCommandParams, Object?> {
   final Map<String, CommandHandler> commandHandlers;
+
   ExecuteCommandHandler(super.server)
       : commandHandlers = {
           Commands.sortMembers: SortMembersCommandHandler(server),
@@ -37,7 +38,7 @@ class ExecuteCommandHandler
 
   @override
   Future<ErrorOr<Object?>> handle(ExecuteCommandParams params,
-      MessageInfo message, CancellationToken cancellationToken) async {
+      MessageInfo message, CancellationToken token) async {
     final handler = commandHandlers[params.command];
     if (handler == null) {
       return error(ServerErrorCodes.UnknownCommand,
@@ -50,6 +51,6 @@ class ExecuteCommandHandler
         : server.clientCapabilities?.workDoneProgress ?? false
             ? ProgressReporter.serverCreated(server)
             : ProgressReporter.noop;
-    return handler.handle(params.arguments, progress, cancellationToken);
+    return handler.handle(params.arguments, progress, token);
   }
 }

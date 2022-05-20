@@ -12,6 +12,7 @@ class RejectMessageHandler extends MessageHandler<Object?, void> {
   final Method handlesMessage;
   final ErrorCodes errorCode;
   final String errorMessage;
+
   RejectMessageHandler(
       super.server, this.handlesMessage, this.errorCode, this.errorMessage);
 
@@ -20,7 +21,7 @@ class RejectMessageHandler extends MessageHandler<Object?, void> {
 
   @override
   ErrorOr<void> handle(
-      Object? _, MessageInfo message, CancellationToken token) {
+      Object? params, MessageInfo message, CancellationToken token) {
     return error(errorCode, errorMessage, null);
   }
 }

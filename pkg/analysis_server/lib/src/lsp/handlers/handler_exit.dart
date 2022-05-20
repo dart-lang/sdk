@@ -23,7 +23,7 @@ class ExitMessageHandler extends MessageHandler<void, void> {
 
   @override
   Future<ErrorOr<void>> handle(
-      void _, MessageInfo message, CancellationToken token) async {
+      void params, MessageInfo message, CancellationToken token) async {
     // Set a flag that the server shutdown is being controlled here to ensure
     // that the normal code that shuts down the server when the channel closes
     // does not fire.

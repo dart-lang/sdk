@@ -936,34 +936,33 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  void listenAnalysisDriver(analysis.AnalysisDriver analysisDriver) {
+  void listenAnalysisDriver(analysis.AnalysisDriver driver) {
     // TODO(dantup): Is this required, or covered by
     // addContextsToDeclarationsTracker? The original server does not appear to
     // have an equivalent call.
-    final analysisContext = analysisDriver.analysisContext;
+    final analysisContext = driver.analysisContext;
     if (analysisContext != null) {
       analysisServer.declarationsTracker?.addContext(analysisContext);
     }
 
-    analysisDriver.results.listen((result) {
+    driver.results.listen((result) {
       if (result is FileResult) {
         _handleFileResult(result);
       }
     });
-    analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
-    analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
+    driver.exceptions.listen(analysisServer.logExceptionResult);
+    driver.priorityFiles = analysisServer.priorityFiles.toList();
   }
 
   @override
-  void pubspecChanged(String pubspecPath) {
-    analysisServer.pubPackageService.fetchPackageVersionsViaPubOutdated(
-        pubspecPath,
-        pubspecWasModified: true);
+  void pubspecChanged(String path) {
+    analysisServer.pubPackageService
+        .fetchPackageVersionsViaPubOutdated(path, pubspecWasModified: true);
   }
 
   @override
-  void pubspecRemoved(String pubspecPath) {
-    analysisServer.pubPackageService.flushPackageCaches(pubspecPath);
+  void pubspecRemoved(String path) {
+    analysisServer.pubPackageService.flushPackageCaches(path);
   }
 
   @override

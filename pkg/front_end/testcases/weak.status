@@ -16,12 +16,12 @@ general/flutter_issue64155: SemiFuzzFailure # Looks similar to https://dart-revi
 general/no_such_method_forwarder: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242444
 general/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/with_dependencies/issue_43084/issue_43084: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242543
+inference_update_1/horizontal_inference_extension_method: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/245004
 late_lowering/issue41436b: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242445
 late_lowering/issue41436c/issue41436c: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242445
 late_lowering/late_override: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242445
 late_lowering/private_members: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242285
 macros/multiple_imports: SemiFuzzFailure # probably augment imports that isn't split correctly.
-nnbd_mixed/const_canonical_type: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
 nnbd_mixed/hierarchy/in_dill_out_in/in_out_in: SemiFuzzFailure # lots of stuff --- not digging in for now
 nnbd_mixed/hierarchy/in_out_dill_in/in_out_in: SemiFuzzFailure # lots of stuff --- not digging in for now
 nnbd_mixed/hierarchy/in_out_in: SemiFuzzFailure # lots of stuff --- not digging in for now

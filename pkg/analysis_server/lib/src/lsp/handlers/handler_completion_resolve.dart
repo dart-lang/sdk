@@ -33,18 +33,18 @@ class CompletionResolveHandler
 
   @override
   Future<ErrorOr<CompletionItem>> handle(
-    CompletionItem item,
+    CompletionItem params,
     MessageInfo message,
     CancellationToken token,
   ) async {
-    final resolutionInfo = item.data;
+    final resolutionInfo = params.data;
 
     if (resolutionInfo is DartSuggestionSetCompletionItemResolutionInfo) {
-      return resolveDartSuggestionSetCompletion(item, resolutionInfo, token);
+      return resolveDartSuggestionSetCompletion(params, resolutionInfo, token);
     } else if (resolutionInfo is PubPackageCompletionItemResolutionInfo) {
-      return resolvePubPackageCompletion(item, resolutionInfo, token);
+      return resolvePubPackageCompletion(params, resolutionInfo, token);
     } else {
-      return success(item);
+      return success(params);
     }
   }
 
