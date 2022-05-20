@@ -10,6 +10,6 @@ void main() {
 
 class Class {
   static void test() {
-    /*2:Function.test*/ throw '>ExceptionMarker<';
+    /*2:Class.test*/ throw '>ExceptionMarker<';
   }
 }
