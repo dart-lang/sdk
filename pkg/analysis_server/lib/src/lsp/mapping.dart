@@ -813,7 +813,7 @@ lsp.Diagnostic pluginToDiagnostic(
     tags: getDiagnosticTags(supportedTags, error),
     relatedInformation: relatedInformation,
     // Only include codeDescription if the client explicitly supports it
-    // (a minor optimization to avoid unnecessary payload/(de)serialisation).
+    // (a minor optimization to avoid unnecessary payload/(de)serialization).
     codeDescription: clientSupportsCodeDescription && documentationUrl != null
         ? CodeDescription(href: documentationUrl)
         : null,

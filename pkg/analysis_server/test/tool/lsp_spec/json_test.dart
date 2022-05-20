@@ -92,7 +92,7 @@ void main() {
       );
     });
 
-    test('serialises enums to their underlying values', () {
+    test('serializes enums to their underlying values', () {
       final foldingRange = FoldingRange(
           startLine: 1,
           startCharacter: 2,
@@ -374,9 +374,9 @@ void main() {
       expect(message.params, isNull);
     });
 
-    test('deserialises subtypes into the correct class', () {
-      // Create some JSON that includes a VersionedTextDocumentIdenfitier but
-      // where the class definition only references a TextDocumentIdemntifier.
+    test('deserializes subtypes into the correct class', () {
+      // Create some JSON that includes a VersionedTextDocumentIdentifier but
+      // where the class definition only references a TextDocumentIdentifier.
       final input = jsonEncode(TextDocumentPositionParams(
         textDocument: VersionedTextDocumentIdentifier(
             version: 111, uri: 'file:///foo/bar.dart'),

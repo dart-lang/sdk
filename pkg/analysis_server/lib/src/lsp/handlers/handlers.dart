@@ -232,8 +232,8 @@ abstract class ServerStateMessageHandler {
     try {
       final result = await handler.handleMessage(message, messageInfo, token);
       // Do a final check before returning the result, because if the request was
-      // cancelled we can save the overhead of serialising everything to JSON
-      // and the client to deserialising the same in order to read the ID to see
+      // cancelled we can save the overhead of serializing everything to JSON
+      // and the client to deserializing the same in order to read the ID to see
       // that it was a request it didn't need (in the case of completions this
       // can be quite large).
       await Future.delayed(Duration.zero);

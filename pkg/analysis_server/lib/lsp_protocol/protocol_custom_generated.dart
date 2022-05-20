@@ -7,7 +7,6 @@
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
 // ignore_for_file: annotate_overrides
-// ignore_for_file: no_leading_underscores_for_local_identifiers
 // ignore_for_file: prefer_is_not_operator
 // ignore_for_file: unnecessary_parenthesis
 
@@ -41,9 +40,9 @@ class AnalyzerStatusParams implements ToJsonable {
   final bool isAnalyzing;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['isAnalyzing'] = isAnalyzing;
-    return __result;
+    var result = <String, Object?>{};
+    result['isAnalyzing'] = isAnalyzing;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -114,10 +113,10 @@ class ClosingLabel implements ToJsonable {
   final Range range;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['label'] = label;
-    __result['range'] = range.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['label'] = label;
+    result['range'] = range.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -202,8 +201,8 @@ class CompletionItemResolutionInfo implements ToJsonable {
   }
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    return __result;
+    var result = <String, Object?>{};
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -251,9 +250,9 @@ class DartDiagnosticServer implements ToJsonable {
   final int port;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['port'] = port;
-    return __result;
+    var result = <String, Object?>{};
+    result['port'] = port;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -351,15 +350,15 @@ class DartSuggestionSetCompletionItemResolutionInfo
   final int rOffset;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['displayUri'] = displayUri;
-    __result['file'] = file;
-    __result['iLength'] = iLength;
-    __result['libId'] = libId;
-    __result['offset'] = offset;
-    __result['rLength'] = rLength;
-    __result['rOffset'] = rOffset;
-    return __result;
+    var result = <String, Object?>{};
+    result['displayUri'] = displayUri;
+    result['file'] = file;
+    result['iLength'] = iLength;
+    result['libId'] = libId;
+    result['offset'] = offset;
+    result['rLength'] = rLength;
+    result['rOffset'] = rOffset;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -576,22 +575,22 @@ class Element implements ToJsonable {
   final String? typeParameters;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['kind'] = kind;
-    __result['name'] = name;
+    var result = <String, Object?>{};
+    result['kind'] = kind;
+    result['name'] = name;
     if (parameters != null) {
-      __result['parameters'] = parameters;
+      result['parameters'] = parameters;
     }
     if (range != null) {
-      __result['range'] = range?.toJson();
+      result['range'] = range?.toJson();
     }
     if (returnType != null) {
-      __result['returnType'] = returnType;
+      result['returnType'] = returnType;
     }
     if (typeParameters != null) {
-      __result['typeParameters'] = typeParameters;
+      result['typeParameters'] = typeParameters;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -774,30 +773,29 @@ class FlutterOutline implements ToJsonable {
   final String? variableName;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (attributes != null) {
-      __result['attributes'] =
-          attributes?.map((item) => item.toJson()).toList();
+      result['attributes'] = attributes?.map((item) => item.toJson()).toList();
     }
     if (children != null) {
-      __result['children'] = children?.map((item) => item.toJson()).toList();
+      result['children'] = children?.map((item) => item.toJson()).toList();
     }
     if (className != null) {
-      __result['className'] = className;
+      result['className'] = className;
     }
-    __result['codeRange'] = codeRange.toJson();
+    result['codeRange'] = codeRange.toJson();
     if (dartElement != null) {
-      __result['dartElement'] = dartElement?.toJson();
+      result['dartElement'] = dartElement?.toJson();
     }
-    __result['kind'] = kind;
+    result['kind'] = kind;
     if (label != null) {
-      __result['label'] = label;
+      result['label'] = label;
     }
-    __result['range'] = range.toJson();
+    result['range'] = range.toJson();
     if (variableName != null) {
-      __result['variableName'] = variableName;
+      result['variableName'] = variableName;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1000,13 +998,13 @@ class FlutterOutlineAttribute implements ToJsonable {
   final Range? valueRange;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['label'] = label;
-    __result['name'] = name;
+    var result = <String, Object?>{};
+    result['label'] = label;
+    result['name'] = name;
     if (valueRange != null) {
-      __result['valueRange'] = valueRange?.toJson();
+      result['valueRange'] = valueRange?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1128,16 +1126,16 @@ class IncomingMessage implements Message, ToJsonable {
   final Object? params;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (clientRequestTime != null) {
-      __result['clientRequestTime'] = clientRequestTime;
+      result['clientRequestTime'] = clientRequestTime;
     }
-    __result['jsonrpc'] = jsonrpc;
-    __result['method'] = method.toJson();
+    result['jsonrpc'] = jsonrpc;
+    result['method'] = method.toJson();
     if (params != null) {
-      __result['params'] = params;
+      result['params'] = params;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1250,12 +1248,12 @@ class Message implements ToJsonable {
   final String jsonrpc;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (clientRequestTime != null) {
-      __result['clientRequestTime'] = clientRequestTime;
+      result['clientRequestTime'] = clientRequestTime;
     }
-    __result['jsonrpc'] = jsonrpc;
-    return __result;
+    result['jsonrpc'] = jsonrpc;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1350,16 +1348,16 @@ class NotificationMessage implements IncomingMessage, ToJsonable {
   final Object? params;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (clientRequestTime != null) {
-      __result['clientRequestTime'] = clientRequestTime;
+      result['clientRequestTime'] = clientRequestTime;
     }
-    __result['jsonrpc'] = jsonrpc;
-    __result['method'] = method.toJson();
+    result['jsonrpc'] = jsonrpc;
+    result['method'] = method.toJson();
     if (params != null) {
-      __result['params'] = params;
+      result['params'] = params;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1479,14 +1477,14 @@ class Outline implements ToJsonable {
   final Range range;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (children != null) {
-      __result['children'] = children?.map((item) => item.toJson()).toList();
+      result['children'] = children?.map((item) => item.toJson()).toList();
     }
-    __result['codeRange'] = codeRange.toJson();
-    __result['element'] = element.toJson();
-    __result['range'] = range.toJson();
-    return __result;
+    result['codeRange'] = codeRange.toJson();
+    result['element'] = element.toJson();
+    result['range'] = range.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1612,9 +1610,9 @@ class PubPackageCompletionItemResolutionInfo
   final String packageName;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['packageName'] = packageName;
-    return __result;
+    var result = <String, Object?>{};
+    result['packageName'] = packageName;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1688,10 +1686,10 @@ class PublishClosingLabelsParams implements ToJsonable {
   final String uri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['labels'] = labels.map((item) => item.toJson()).toList();
-    __result['uri'] = uri;
-    return __result;
+    var result = <String, Object?>{};
+    result['labels'] = labels.map((item) => item.toJson()).toList();
+    result['uri'] = uri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1788,10 +1786,10 @@ class PublishFlutterOutlineParams implements ToJsonable {
   final String uri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['outline'] = outline.toJson();
-    __result['uri'] = uri;
-    return __result;
+    var result = <String, Object?>{};
+    result['outline'] = outline.toJson();
+    result['uri'] = uri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1883,10 +1881,10 @@ class PublishOutlineParams implements ToJsonable {
   final String uri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['outline'] = outline.toJson();
-    __result['uri'] = uri;
-    return __result;
+    var result = <String, Object?>{};
+    result['outline'] = outline.toJson();
+    result['uri'] = uri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1997,17 +1995,17 @@ class RequestMessage implements IncomingMessage, ToJsonable {
   final Object? params;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (clientRequestTime != null) {
-      __result['clientRequestTime'] = clientRequestTime;
+      result['clientRequestTime'] = clientRequestTime;
     }
-    __result['id'] = id;
-    __result['jsonrpc'] = jsonrpc;
-    __result['method'] = method.toJson();
+    result['id'] = id;
+    result['jsonrpc'] = jsonrpc;
+    result['method'] = method.toJson();
     if (params != null) {
-      __result['params'] = params;
+      result['params'] = params;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -2142,13 +2140,13 @@ class ResponseError implements ToJsonable {
   final String message;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['code'] = code.toJson();
+    var result = <String, Object?>{};
+    result['code'] = code.toJson();
     if (data != null) {
-      __result['data'] = data;
+      result['data'] = data;
     }
-    __result['message'] = message;
-    return __result;
+    result['message'] = message;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -2276,20 +2274,20 @@ class ResponseMessage implements Message, ToJsonable {
   final Object? result;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var map = <String, Object?>{};
     if (clientRequestTime != null) {
-      __result['clientRequestTime'] = clientRequestTime;
+      map['clientRequestTime'] = clientRequestTime;
     }
-    __result['id'] = id;
-    __result['jsonrpc'] = jsonrpc;
+    map['id'] = id;
+    map['jsonrpc'] = jsonrpc;
     if (error != null && result != null) {
       throw 'result and error cannot both be set';
     } else if (error != null) {
-      __result['error'] = error;
+      map['error'] = error;
     } else {
-      __result['result'] = result;
+      map['result'] = result;
     }
-    return __result;
+    return map;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -2415,11 +2413,11 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
   final Range range;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['insertTextFormat'] = insertTextFormat.toJson();
-    __result['newText'] = newText;
-    __result['range'] = range.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['insertTextFormat'] = insertTextFormat.toJson();
+    result['newText'] = newText;
+    result['range'] = range.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -2532,12 +2530,12 @@ class ValidateRefactorResult implements ToJsonable {
   final bool valid;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (message != null) {
-      __result['message'] = message;
+      result['message'] = message;
     }
-    __result['valid'] = valid;
-    return __result;
+    result['valid'] = valid;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {

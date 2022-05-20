@@ -7,7 +7,6 @@
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
 // ignore_for_file: annotate_overrides
-// ignore_for_file: no_leading_underscores_for_local_identifiers
 // ignore_for_file: prefer_is_not_operator
 // ignore_for_file: unnecessary_parenthesis
 
@@ -59,11 +58,11 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
   final Range range;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['annotationId'] = annotationId;
-    __result['newText'] = newText;
-    __result['range'] = range.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['annotationId'] = annotationId;
+    result['newText'] = newText;
+    result['range'] = range.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -180,12 +179,12 @@ class ApplyWorkspaceEditParams implements ToJsonable {
   final String? label;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['edit'] = edit.toJson();
+    var result = <String, Object?>{};
+    result['edit'] = edit.toJson();
     if (label != null) {
-      __result['label'] = label;
+      result['label'] = label;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -284,15 +283,15 @@ class ApplyWorkspaceEditResult implements ToJsonable {
   final String? failureReason;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['applied'] = applied;
+    var result = <String, Object?>{};
+    result['applied'] = applied;
     if (failedChange != null) {
-      __result['failedChange'] = failedChange;
+      result['failedChange'] = failedChange;
     }
     if (failureReason != null) {
-      __result['failureReason'] = failureReason;
+      result['failureReason'] = failureReason;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -389,11 +388,11 @@ class CallHierarchyClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -462,10 +461,10 @@ class CallHierarchyIncomingCall implements ToJsonable {
   final List<Range> fromRanges;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['from'] = from.toJson();
-    __result['fromRanges'] = fromRanges.map((item) => item.toJson()).toList();
-    return __result;
+    var result = <String, Object?>{};
+    result['from'] = from.toJson();
+    result['fromRanges'] = fromRanges.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -584,15 +583,15 @@ class CallHierarchyIncomingCallsParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['item'] = item.toJson();
+    var result = <String, Object?>{};
+    result['item'] = item.toJson();
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -744,22 +743,22 @@ class CallHierarchyItem implements ToJsonable {
   final String uri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (data != null) {
-      __result['data'] = data;
+      result['data'] = data;
     }
     if (detail != null) {
-      __result['detail'] = detail;
+      result['detail'] = detail;
     }
-    __result['kind'] = kind.toJson();
-    __result['name'] = name;
-    __result['range'] = range.toJson();
-    __result['selectionRange'] = selectionRange.toJson();
+    result['kind'] = kind.toJson();
+    result['name'] = name;
+    result['range'] = range.toJson();
+    result['selectionRange'] = selectionRange.toJson();
     if (tags != null) {
-      __result['tags'] = tags?.map((item) => item.toJson()).toList();
+      result['tags'] = tags?.map((item) => item.toJson()).toList();
     }
-    __result['uri'] = uri;
-    return __result;
+    result['uri'] = uri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -938,11 +937,11 @@ class CallHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1011,10 +1010,10 @@ class CallHierarchyOutgoingCall implements ToJsonable {
   final CallHierarchyItem to;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['fromRanges'] = fromRanges.map((item) => item.toJson()).toList();
-    __result['to'] = to.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['fromRanges'] = fromRanges.map((item) => item.toJson()).toList();
+    result['to'] = to.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1133,15 +1132,15 @@ class CallHierarchyOutgoingCallsParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['item'] = item.toJson();
+    var result = <String, Object?>{};
+    result['item'] = item.toJson();
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1259,13 +1258,13 @@ class CallHierarchyPrepareParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    var result = <String, Object?>{};
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1390,15 +1389,15 @@ class CallHierarchyRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (id != null) {
-      __result['id'] = id;
+      result['id'] = id;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1496,9 +1495,9 @@ class CancelParams implements ToJsonable {
   final Either2<int, String> id;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['id'] = id;
-    return __result;
+    var result = <String, Object?>{};
+    result['id'] = id;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1583,15 +1582,15 @@ class ChangeAnnotation implements ToJsonable {
   final bool? needsConfirmation;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (description != null) {
-      __result['description'] = description;
+      result['description'] = description;
     }
-    __result['label'] = label;
+    result['label'] = label;
     if (needsConfirmation != null) {
-      __result['needsConfirmation'] = needsConfirmation;
+      result['needsConfirmation'] = needsConfirmation;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1735,26 +1734,26 @@ class ClientCapabilities implements ToJsonable {
   final WorkspaceClientCapabilities? workspace;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (experimental != null) {
-      __result['experimental'] = experimental;
+      result['experimental'] = experimental;
     }
     if (general != null) {
-      __result['general'] = general?.toJson();
+      result['general'] = general?.toJson();
     }
     if (notebookDocument != null) {
-      __result['notebookDocument'] = notebookDocument?.toJson();
+      result['notebookDocument'] = notebookDocument?.toJson();
     }
     if (textDocument != null) {
-      __result['textDocument'] = textDocument?.toJson();
+      result['textDocument'] = textDocument?.toJson();
     }
     if (window != null) {
-      __result['window'] = window?.toJson();
+      result['window'] = window?.toJson();
     }
     if (workspace != null) {
-      __result['workspace'] = workspace?.toJson();
+      result['workspace'] = workspace?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -1964,31 +1963,31 @@ class CodeAction implements ToJsonable {
   final String title;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (command != null) {
-      __result['command'] = command?.toJson();
+      result['command'] = command?.toJson();
     }
     if (data != null) {
-      __result['data'] = data;
+      result['data'] = data;
     }
     if (diagnostics != null) {
-      __result['diagnostics'] =
+      result['diagnostics'] =
           diagnostics?.map((item) => item.toJson()).toList();
     }
     if (disabled != null) {
-      __result['disabled'] = disabled?.toJson();
+      result['disabled'] = disabled?.toJson();
     }
     if (edit != null) {
-      __result['edit'] = edit?.toJson();
+      result['edit'] = edit?.toJson();
     }
     if (isPreferred != null) {
-      __result['isPreferred'] = isPreferred;
+      result['isPreferred'] = isPreferred;
     }
     if (kind != null) {
-      __result['kind'] = kind?.toJson();
+      result['kind'] = kind?.toJson();
     }
-    __result['title'] = title;
-    return __result;
+    result['title'] = title;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -2197,29 +2196,29 @@ class CodeActionClientCapabilities implements ToJsonable {
   final CodeActionClientCapabilitiesResolveSupport? resolveSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (codeActionLiteralSupport != null) {
-      __result['codeActionLiteralSupport'] = codeActionLiteralSupport?.toJson();
+      result['codeActionLiteralSupport'] = codeActionLiteralSupport?.toJson();
     }
     if (dataSupport != null) {
-      __result['dataSupport'] = dataSupport;
+      result['dataSupport'] = dataSupport;
     }
     if (disabledSupport != null) {
-      __result['disabledSupport'] = disabledSupport;
+      result['disabledSupport'] = disabledSupport;
     }
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (honorsChangeAnnotations != null) {
-      __result['honorsChangeAnnotations'] = honorsChangeAnnotations;
+      result['honorsChangeAnnotations'] = honorsChangeAnnotations;
     }
     if (isPreferredSupport != null) {
-      __result['isPreferredSupport'] = isPreferredSupport;
+      result['isPreferredSupport'] = isPreferredSupport;
     }
     if (resolveSupport != null) {
-      __result['resolveSupport'] = resolveSupport?.toJson();
+      result['resolveSupport'] = resolveSupport?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -2363,9 +2362,9 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
   final CodeActionLiteralSupportCodeActionKind codeActionKind;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['codeActionKind'] = codeActionKind.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['codeActionKind'] = codeActionKind.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -2439,9 +2438,9 @@ class CodeActionClientCapabilitiesResolveSupport implements ToJsonable {
   final List<String> properties;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['properties'] = properties;
-    return __result;
+    var result = <String, Object?>{};
+    result['properties'] = properties;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -2543,15 +2542,15 @@ class CodeActionContext implements ToJsonable {
   final CodeActionTriggerKind? triggerKind;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['diagnostics'] = diagnostics.map((item) => item.toJson()).toList();
+    var result = <String, Object?>{};
+    result['diagnostics'] = diagnostics.map((item) => item.toJson()).toList();
     if (only != null) {
-      __result['only'] = only?.map((item) => item.toJson()).toList();
+      result['only'] = only?.map((item) => item.toJson()).toList();
     }
     if (triggerKind != null) {
-      __result['triggerKind'] = triggerKind?.toJson();
+      result['triggerKind'] = triggerKind?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -2654,9 +2653,9 @@ class CodeActionDisabled implements ToJsonable {
   final String reason;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['reason'] = reason;
-    return __result;
+    var result = <String, Object?>{};
+    result['reason'] = reason;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -2808,9 +2807,9 @@ class CodeActionLiteralSupportCodeActionKind implements ToJsonable {
   final List<CodeActionKind> valueSet;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
-    return __result;
+    var result = <String, Object?>{};
+    result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -2904,18 +2903,18 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (codeActionKinds != null) {
-      __result['codeActionKinds'] =
+      result['codeActionKinds'] =
           codeActionKinds?.map((item) => item.toJson()).toList();
     }
     if (resolveProvider != null) {
-      __result['resolveProvider'] = resolveProvider;
+      result['resolveProvider'] = resolveProvider;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -3049,17 +3048,17 @@ class CodeActionParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['context'] = context.toJson();
+    var result = <String, Object?>{};
+    result['context'] = context.toJson();
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['range'] = range.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    result['range'] = range.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -3225,19 +3224,19 @@ class CodeActionRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (codeActionKinds != null) {
-      __result['codeActionKinds'] =
+      result['codeActionKinds'] =
           codeActionKinds?.map((item) => item.toJson()).toList();
     }
-    __result['documentSelector'] = documentSelector;
+    result['documentSelector'] = documentSelector;
     if (resolveProvider != null) {
-      __result['resolveProvider'] = resolveProvider;
+      result['resolveProvider'] = resolveProvider;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -3382,9 +3381,9 @@ class CodeDescription implements ToJsonable {
   final String href;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['href'] = href;
-    return __result;
+    var result = <String, Object?>{};
+    result['href'] = href;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -3474,15 +3473,15 @@ class CodeLens implements ToJsonable {
   final Range range;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (command != null) {
-      __result['command'] = command?.toJson();
+      result['command'] = command?.toJson();
     }
     if (data != null) {
-      __result['data'] = data;
+      result['data'] = data;
     }
-    __result['range'] = range.toJson();
-    return __result;
+    result['range'] = range.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -3565,11 +3564,11 @@ class CodeLensClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -3636,14 +3635,14 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (resolveProvider != null) {
-      __result['resolveProvider'] = resolveProvider;
+      result['resolveProvider'] = resolveProvider;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -3745,15 +3744,15 @@ class CodeLensParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['textDocument'] = textDocument.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -3865,15 +3864,15 @@ class CodeLensRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (resolveProvider != null) {
-      __result['resolveProvider'] = resolveProvider;
+      result['resolveProvider'] = resolveProvider;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -3974,11 +3973,11 @@ class CodeLensWorkspaceClientCapabilities implements ToJsonable {
   final bool? refreshSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (refreshSupport != null) {
-      __result['refreshSupport'] = refreshSupport;
+      result['refreshSupport'] = refreshSupport;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -4060,12 +4059,12 @@ class Color implements ToJsonable {
   final num red;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['alpha'] = alpha;
-    __result['blue'] = blue;
-    __result['green'] = green;
-    __result['red'] = red;
-    return __result;
+    var result = <String, Object?>{};
+    result['alpha'] = alpha;
+    result['blue'] = blue;
+    result['green'] = green;
+    result['red'] = red;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -4201,10 +4200,10 @@ class ColorInformation implements ToJsonable {
   final Range range;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['color'] = color.toJson();
-    __result['range'] = range.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['color'] = color.toJson();
+    result['range'] = range.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -4315,16 +4314,16 @@ class ColorPresentation implements ToJsonable {
   final TextEdit? textEdit;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (additionalTextEdits != null) {
-      __result['additionalTextEdits'] =
+      result['additionalTextEdits'] =
           additionalTextEdits?.map((item) => item.toJson()).toList();
     }
-    __result['label'] = label;
+    result['label'] = label;
     if (textEdit != null) {
-      __result['textEdit'] = textEdit?.toJson();
+      result['textEdit'] = textEdit?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -4464,17 +4463,17 @@ class ColorPresentationParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['color'] = color.toJson();
+    var result = <String, Object?>{};
+    result['color'] = color.toJson();
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['range'] = range.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    result['range'] = range.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -4625,13 +4624,13 @@ class Command implements ToJsonable {
   final String title;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (arguments != null) {
-      __result['arguments'] = arguments;
+      result['arguments'] = arguments;
     }
-    __result['command'] = command;
-    __result['title'] = title;
-    return __result;
+    result['command'] = command;
+    result['title'] = title;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -4783,26 +4782,26 @@ class CompletionClientCapabilities implements ToJsonable {
   final InsertTextMode? insertTextMode;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (completionItem != null) {
-      __result['completionItem'] = completionItem?.toJson();
+      result['completionItem'] = completionItem?.toJson();
     }
     if (completionItemKind != null) {
-      __result['completionItemKind'] = completionItemKind?.toJson();
+      result['completionItemKind'] = completionItemKind?.toJson();
     }
     if (completionList != null) {
-      __result['completionList'] = completionList?.toJson();
+      result['completionList'] = completionList?.toJson();
     }
     if (contextSupport != null) {
-      __result['contextSupport'] = contextSupport;
+      result['contextSupport'] = contextSupport;
     }
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (insertTextMode != null) {
-      __result['insertTextMode'] = insertTextMode?.toJson();
+      result['insertTextMode'] = insertTextMode?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -5029,39 +5028,39 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
   final CompletionItemTagSupport? tagSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (commitCharactersSupport != null) {
-      __result['commitCharactersSupport'] = commitCharactersSupport;
+      result['commitCharactersSupport'] = commitCharactersSupport;
     }
     if (deprecatedSupport != null) {
-      __result['deprecatedSupport'] = deprecatedSupport;
+      result['deprecatedSupport'] = deprecatedSupport;
     }
     if (documentationFormat != null) {
-      __result['documentationFormat'] =
+      result['documentationFormat'] =
           documentationFormat?.map((item) => item.toJson()).toList();
     }
     if (insertReplaceSupport != null) {
-      __result['insertReplaceSupport'] = insertReplaceSupport;
+      result['insertReplaceSupport'] = insertReplaceSupport;
     }
     if (insertTextModeSupport != null) {
-      __result['insertTextModeSupport'] = insertTextModeSupport?.toJson();
+      result['insertTextModeSupport'] = insertTextModeSupport?.toJson();
     }
     if (labelDetailsSupport != null) {
-      __result['labelDetailsSupport'] = labelDetailsSupport;
+      result['labelDetailsSupport'] = labelDetailsSupport;
     }
     if (preselectSupport != null) {
-      __result['preselectSupport'] = preselectSupport;
+      result['preselectSupport'] = preselectSupport;
     }
     if (resolveSupport != null) {
-      __result['resolveSupport'] = resolveSupport?.toJson();
+      result['resolveSupport'] = resolveSupport?.toJson();
     }
     if (snippetSupport != null) {
-      __result['snippetSupport'] = snippetSupport;
+      result['snippetSupport'] = snippetSupport;
     }
     if (tagSupport != null) {
-      __result['tagSupport'] = tagSupport?.toJson();
+      result['tagSupport'] = tagSupport?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -5252,11 +5251,11 @@ class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
   final List<CompletionItemKind>? valueSet;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (valueSet != null) {
-      __result['valueSet'] = valueSet?.map((item) => item.toJson()).toList();
+      result['valueSet'] = valueSet?.map((item) => item.toJson()).toList();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -5329,11 +5328,11 @@ class CompletionClientCapabilitiesCompletionList implements ToJsonable {
   final List<String>? itemDefaults;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (itemDefaults != null) {
-      __result['itemDefaults'] = itemDefaults;
+      result['itemDefaults'] = itemDefaults;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -5407,12 +5406,12 @@ class CompletionContext implements ToJsonable {
   final CompletionTriggerKind triggerKind;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (triggerCharacter != null) {
-      __result['triggerCharacter'] = triggerCharacter;
+      result['triggerCharacter'] = triggerCharacter;
     }
-    __result['triggerKind'] = triggerKind.toJson();
-    return __result;
+    result['triggerKind'] = triggerKind.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -5730,64 +5729,64 @@ class CompletionItem implements ToJsonable {
   final String? textEditText;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (additionalTextEdits != null) {
-      __result['additionalTextEdits'] =
+      result['additionalTextEdits'] =
           additionalTextEdits?.map((item) => item.toJson()).toList();
     }
     if (command != null) {
-      __result['command'] = command?.toJson();
+      result['command'] = command?.toJson();
     }
     if (commitCharacters != null) {
-      __result['commitCharacters'] = commitCharacters;
+      result['commitCharacters'] = commitCharacters;
     }
     if (data != null) {
-      __result['data'] = data?.toJson();
+      result['data'] = data?.toJson();
     }
     if (deprecated != null) {
-      __result['deprecated'] = deprecated;
+      result['deprecated'] = deprecated;
     }
     if (detail != null) {
-      __result['detail'] = detail;
+      result['detail'] = detail;
     }
     if (documentation != null) {
-      __result['documentation'] = documentation;
+      result['documentation'] = documentation;
     }
     if (filterText != null) {
-      __result['filterText'] = filterText;
+      result['filterText'] = filterText;
     }
     if (insertText != null) {
-      __result['insertText'] = insertText;
+      result['insertText'] = insertText;
     }
     if (insertTextFormat != null) {
-      __result['insertTextFormat'] = insertTextFormat?.toJson();
+      result['insertTextFormat'] = insertTextFormat?.toJson();
     }
     if (insertTextMode != null) {
-      __result['insertTextMode'] = insertTextMode?.toJson();
+      result['insertTextMode'] = insertTextMode?.toJson();
     }
     if (kind != null) {
-      __result['kind'] = kind?.toJson();
+      result['kind'] = kind?.toJson();
     }
-    __result['label'] = label;
+    result['label'] = label;
     if (labelDetails != null) {
-      __result['labelDetails'] = labelDetails?.toJson();
+      result['labelDetails'] = labelDetails?.toJson();
     }
     if (preselect != null) {
-      __result['preselect'] = preselect;
+      result['preselect'] = preselect;
     }
     if (sortText != null) {
-      __result['sortText'] = sortText;
+      result['sortText'] = sortText;
     }
     if (tags != null) {
-      __result['tags'] = tags?.map((item) => item.toJson()).toList();
+      result['tags'] = tags?.map((item) => item.toJson()).toList();
     }
     if (textEdit != null) {
-      __result['textEdit'] = textEdit;
+      result['textEdit'] = textEdit;
     }
     if (textEditText != null) {
-      __result['textEditText'] = textEditText;
+      result['textEditText'] = textEditText;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -6095,9 +6094,9 @@ class CompletionItemInsertTextModeSupport implements ToJsonable {
   final List<InsertTextMode> valueSet;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
-    return __result;
+    var result = <String, Object?>{};
+    result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -6231,14 +6230,14 @@ class CompletionItemLabelDetails implements ToJsonable {
   final String? detail;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (description != null) {
-      __result['description'] = description;
+      result['description'] = description;
     }
     if (detail != null) {
-      __result['detail'] = detail;
+      result['detail'] = detail;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -6312,9 +6311,9 @@ class CompletionItemResolveSupport implements ToJsonable {
   final List<String> properties;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['properties'] = properties;
-    return __result;
+    var result = <String, Object?>{};
+    result['properties'] = properties;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -6414,9 +6413,9 @@ class CompletionItemTagSupport implements ToJsonable {
   final List<CompletionItemTag> valueSet;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
-    return __result;
+    var result = <String, Object?>{};
+    result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -6522,13 +6521,13 @@ class CompletionList implements ToJsonable {
   final List<CompletionItem> items;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['isIncomplete'] = isIncomplete;
+    var result = <String, Object?>{};
+    result['isIncomplete'] = isIncomplete;
     if (itemDefaults != null) {
-      __result['itemDefaults'] = itemDefaults?.toJson();
+      result['itemDefaults'] = itemDefaults?.toJson();
     }
-    __result['items'] = items.map((item) => item.toJson()).toList();
-    return __result;
+    result['items'] = items.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -6637,10 +6636,10 @@ class CompletionListEditRange implements ToJsonable {
   final Range replace;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['insert'] = insert.toJson();
-    __result['replace'] = replace.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['insert'] = insert.toJson();
+    result['replace'] = replace.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -6768,20 +6767,20 @@ class CompletionListItemDefaults implements ToJsonable {
   final InsertTextMode? insertTextMode;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (commitCharacters != null) {
-      __result['commitCharacters'] = commitCharacters;
+      result['commitCharacters'] = commitCharacters;
     }
     if (editRange != null) {
-      __result['editRange'] = editRange;
+      result['editRange'] = editRange;
     }
     if (insertTextFormat != null) {
-      __result['insertTextFormat'] = insertTextFormat?.toJson();
+      result['insertTextFormat'] = insertTextFormat?.toJson();
     }
     if (insertTextMode != null) {
-      __result['insertTextMode'] = insertTextMode?.toJson();
+      result['insertTextMode'] = insertTextMode?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -6942,23 +6941,23 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (allCommitCharacters != null) {
-      __result['allCommitCharacters'] = allCommitCharacters;
+      result['allCommitCharacters'] = allCommitCharacters;
     }
     if (completionItem != null) {
-      __result['completionItem'] = completionItem?.toJson();
+      result['completionItem'] = completionItem?.toJson();
     }
     if (resolveProvider != null) {
-      __result['resolveProvider'] = resolveProvider;
+      result['resolveProvider'] = resolveProvider;
     }
     if (triggerCharacters != null) {
-      __result['triggerCharacters'] = triggerCharacters;
+      result['triggerCharacters'] = triggerCharacters;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -7079,11 +7078,11 @@ class CompletionOptionsCompletionItem implements ToJsonable {
   final bool? labelDetailsSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (labelDetailsSupport != null) {
-      __result['labelDetailsSupport'] = labelDetailsSupport;
+      result['labelDetailsSupport'] = labelDetailsSupport;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -7192,19 +7191,19 @@ class CompletionParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (context != null) {
-      __result['context'] = context?.toJson();
+      result['context'] = context?.toJson();
     }
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -7395,24 +7394,24 @@ class CompletionRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (allCommitCharacters != null) {
-      __result['allCommitCharacters'] = allCommitCharacters;
+      result['allCommitCharacters'] = allCommitCharacters;
     }
     if (completionItem != null) {
-      __result['completionItem'] = completionItem?.toJson();
+      result['completionItem'] = completionItem?.toJson();
     }
-    __result['documentSelector'] = documentSelector;
+    result['documentSelector'] = documentSelector;
     if (resolveProvider != null) {
-      __result['resolveProvider'] = resolveProvider;
+      result['resolveProvider'] = resolveProvider;
     }
     if (triggerCharacters != null) {
-      __result['triggerCharacters'] = triggerCharacters;
+      result['triggerCharacters'] = triggerCharacters;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -7598,14 +7597,14 @@ class ConfigurationItem implements ToJsonable {
   final String? section;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (scopeUri != null) {
-      __result['scopeUri'] = scopeUri;
+      result['scopeUri'] = scopeUri;
     }
     if (section != null) {
-      __result['section'] = section;
+      result['section'] = section;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -7677,9 +7676,9 @@ class ConfigurationParams implements ToJsonable {
   final List<ConfigurationItem> items;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['items'] = items.map((item) => item.toJson()).toList();
-    return __result;
+    var result = <String, Object?>{};
+    result['items'] = items.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -7779,16 +7778,16 @@ class CreateFile implements ToJsonable {
   final String uri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (annotationId != null) {
-      __result['annotationId'] = annotationId;
+      result['annotationId'] = annotationId;
     }
-    __result['kind'] = kind;
+    result['kind'] = kind;
     if (options != null) {
-      __result['options'] = options?.toJson();
+      result['options'] = options?.toJson();
     }
-    __result['uri'] = uri;
-    return __result;
+    result['uri'] = uri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -7910,14 +7909,14 @@ class CreateFileOptions implements ToJsonable {
   final bool? overwrite;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (ignoreIfExists != null) {
-      __result['ignoreIfExists'] = ignoreIfExists;
+      result['ignoreIfExists'] = ignoreIfExists;
     }
     if (overwrite != null) {
-      __result['overwrite'] = overwrite;
+      result['overwrite'] = overwrite;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -7995,9 +7994,9 @@ class CreateFilesParams implements ToJsonable {
   final List<FileCreate> files;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['files'] = files.map((item) => item.toJson()).toList();
-    return __result;
+    var result = <String, Object?>{};
+    result['files'] = files.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -8075,14 +8074,14 @@ class DeclarationClientCapabilities implements ToJsonable {
   final bool? linkSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (linkSupport != null) {
-      __result['linkSupport'] = linkSupport;
+      result['linkSupport'] = linkSupport;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -8158,11 +8157,11 @@ class DeclarationOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -8261,16 +8260,16 @@ class DeclarationParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -8407,15 +8406,15 @@ class DeclarationRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (id != null) {
-      __result['id'] = id;
+      result['id'] = id;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -8517,14 +8516,14 @@ class DefinitionClientCapabilities implements ToJsonable {
   final bool? linkSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (linkSupport != null) {
-      __result['linkSupport'] = linkSupport;
+      result['linkSupport'] = linkSupport;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -8600,11 +8599,11 @@ class DefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -8702,16 +8701,16 @@ class DefinitionParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -8836,12 +8835,12 @@ class DefinitionRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -8952,16 +8951,16 @@ class DeleteFile implements ToJsonable {
   final String uri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (annotationId != null) {
-      __result['annotationId'] = annotationId;
+      result['annotationId'] = annotationId;
     }
-    __result['kind'] = kind;
+    result['kind'] = kind;
     if (options != null) {
-      __result['options'] = options?.toJson();
+      result['options'] = options?.toJson();
     }
-    __result['uri'] = uri;
-    return __result;
+    result['uri'] = uri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -9083,14 +9082,14 @@ class DeleteFileOptions implements ToJsonable {
   final bool? recursive;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (ignoreIfNotExists != null) {
-      __result['ignoreIfNotExists'] = ignoreIfNotExists;
+      result['ignoreIfNotExists'] = ignoreIfNotExists;
     }
     if (recursive != null) {
-      __result['recursive'] = recursive;
+      result['recursive'] = recursive;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -9168,9 +9167,9 @@ class DeleteFilesParams implements ToJsonable {
   final List<FileDelete> files;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['files'] = files.map((item) => item.toJson()).toList();
-    return __result;
+    var result = <String, Object?>{};
+    result['files'] = files.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -9312,32 +9311,32 @@ class Diagnostic implements ToJsonable {
   final List<DiagnosticTag>? tags;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (code != null) {
-      __result['code'] = code;
+      result['code'] = code;
     }
     if (codeDescription != null) {
-      __result['codeDescription'] = codeDescription?.toJson();
+      result['codeDescription'] = codeDescription?.toJson();
     }
     if (data != null) {
-      __result['data'] = data;
+      result['data'] = data;
     }
-    __result['message'] = message;
-    __result['range'] = range.toJson();
+    result['message'] = message;
+    result['range'] = range.toJson();
     if (relatedInformation != null) {
-      __result['relatedInformation'] =
+      result['relatedInformation'] =
           relatedInformation?.map((item) => item.toJson()).toList();
     }
     if (severity != null) {
-      __result['severity'] = severity?.toJson();
+      result['severity'] = severity?.toJson();
     }
     if (source != null) {
-      __result['source'] = source;
+      result['source'] = source;
     }
     if (tags != null) {
-      __result['tags'] = tags?.map((item) => item.toJson()).toList();
+      result['tags'] = tags?.map((item) => item.toJson()).toList();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -9528,14 +9527,14 @@ class DiagnosticClientCapabilities implements ToJsonable {
   final bool? relatedDocumentSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (relatedDocumentSupport != null) {
-      __result['relatedDocumentSupport'] = relatedDocumentSupport;
+      result['relatedDocumentSupport'] = relatedDocumentSupport;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -9638,16 +9637,16 @@ class DiagnosticOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool workspaceDiagnostics;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (identifier != null) {
-      __result['identifier'] = identifier;
+      result['identifier'] = identifier;
     }
-    __result['interFileDependencies'] = interFileDependencies;
+    result['interFileDependencies'] = interFileDependencies;
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    __result['workspaceDiagnostics'] = workspaceDiagnostics;
-    return __result;
+    result['workspaceDiagnostics'] = workspaceDiagnostics;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -9809,20 +9808,20 @@ class DiagnosticRegistrationOptions
   final bool workspaceDiagnostics;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (id != null) {
-      __result['id'] = id;
+      result['id'] = id;
     }
     if (identifier != null) {
-      __result['identifier'] = identifier;
+      result['identifier'] = identifier;
     }
-    __result['interFileDependencies'] = interFileDependencies;
+    result['interFileDependencies'] = interFileDependencies;
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    __result['workspaceDiagnostics'] = workspaceDiagnostics;
-    return __result;
+    result['workspaceDiagnostics'] = workspaceDiagnostics;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -9978,10 +9977,10 @@ class DiagnosticRelatedInformation implements ToJsonable {
   final String message;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['location'] = location.toJson();
-    __result['message'] = message;
-    return __result;
+    var result = <String, Object?>{};
+    result['location'] = location.toJson();
+    result['message'] = message;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -10070,9 +10069,9 @@ class DiagnosticServerCancellationData implements ToJsonable {
   final bool retriggerRequest;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['retriggerRequest'] = retriggerRequest;
-    return __result;
+    var result = <String, Object?>{};
+    result['retriggerRequest'] = retriggerRequest;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -10217,11 +10216,11 @@ class DiagnosticWorkspaceClientCapabilities implements ToJsonable {
   final bool? refreshSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (refreshSupport != null) {
-      __result['refreshSupport'] = refreshSupport;
+      result['refreshSupport'] = refreshSupport;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -10282,11 +10281,11 @@ class DidChangeConfigurationClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -10346,9 +10345,9 @@ class DidChangeConfigurationParams implements ToJsonable {
   final Object? settings;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['settings'] = settings;
-    return __result;
+    var result = <String, Object?>{};
+    result['settings'] = settings;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -10419,10 +10418,10 @@ class DidChangeNotebookDocumentParams implements ToJsonable {
   final VersionedNotebookDocumentIdentifier notebookDocument;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['change'] = change.toJson();
-    __result['notebookDocument'] = notebookDocument.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['change'] = change.toJson();
+    result['notebookDocument'] = notebookDocument.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -10548,10 +10547,10 @@ class DidChangeTextDocumentParams implements ToJsonable {
   final VersionedTextDocumentIdentifier textDocument;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['contentChanges'] = contentChanges;
-    __result['textDocument'] = textDocument.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['contentChanges'] = contentChanges;
+    result['textDocument'] = textDocument.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -10668,14 +10667,14 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
   final bool? relativePatternSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (relativePatternSupport != null) {
-      __result['relativePatternSupport'] = relativePatternSupport;
+      result['relativePatternSupport'] = relativePatternSupport;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -10753,9 +10752,9 @@ class DidChangeWatchedFilesParams implements ToJsonable {
   final List<FileEvent> changes;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['changes'] = changes.map((item) => item.toJson()).toList();
-    return __result;
+    var result = <String, Object?>{};
+    result['changes'] = changes.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -10829,9 +10828,9 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
   final List<FileSystemWatcher> watchers;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['watchers'] = watchers.map((item) => item.toJson()).toList();
-    return __result;
+    var result = <String, Object?>{};
+    result['watchers'] = watchers.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -10904,9 +10903,9 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
   final WorkspaceFoldersChangeEvent event;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['event'] = event.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['event'] = event.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -10987,11 +10986,11 @@ class DidCloseNotebookDocumentParams implements ToJsonable {
   final NotebookDocumentIdentifier notebookDocument;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['cellTextDocuments'] =
+    var result = <String, Object?>{};
+    result['cellTextDocuments'] =
         cellTextDocuments.map((item) => item.toJson()).toList();
-    __result['notebookDocument'] = notebookDocument.toJson();
-    return __result;
+    result['notebookDocument'] = notebookDocument.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -11086,9 +11085,9 @@ class DidCloseTextDocumentParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['textDocument'] = textDocument.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['textDocument'] = textDocument.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -11167,11 +11166,11 @@ class DidOpenNotebookDocumentParams implements ToJsonable {
   final NotebookDocument notebookDocument;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['cellTextDocuments'] =
+    var result = <String, Object?>{};
+    result['cellTextDocuments'] =
         cellTextDocuments.map((item) => item.toJson()).toList();
-    __result['notebookDocument'] = notebookDocument.toJson();
-    return __result;
+    result['notebookDocument'] = notebookDocument.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -11265,9 +11264,9 @@ class DidOpenTextDocumentParams implements ToJsonable {
   final TextDocumentItem textDocument;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['textDocument'] = textDocument.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['textDocument'] = textDocument.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -11337,9 +11336,9 @@ class DidSaveNotebookDocumentParams implements ToJsonable {
   final NotebookDocumentIdentifier notebookDocument;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['notebookDocument'] = notebookDocument.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['notebookDocument'] = notebookDocument.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -11416,12 +11415,12 @@ class DidSaveTextDocumentParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (text != null) {
-      __result['text'] = text;
+      result['text'] = text;
     }
-    __result['textDocument'] = textDocument.toJson();
-    return __result;
+    result['textDocument'] = textDocument.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -11501,11 +11500,11 @@ class DocumentColorClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -11566,11 +11565,11 @@ class DocumentColorOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -11658,15 +11657,15 @@ class DocumentColorParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['textDocument'] = textDocument.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -11784,15 +11783,15 @@ class DocumentColorRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (id != null) {
-      __result['id'] = id;
+      result['id'] = id;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -11931,21 +11930,21 @@ class DocumentDiagnosticParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (identifier != null) {
-      __result['identifier'] = identifier;
+      result['identifier'] = identifier;
     }
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
     if (previousResultId != null) {
-      __result['previousResultId'] = previousResultId;
+      result['previousResultId'] = previousResultId;
     }
-    __result['textDocument'] = textDocument.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -12112,9 +12111,9 @@ class DocumentDiagnosticReportPartialResult implements ToJsonable {
           UnchangedDocumentDiagnosticReport>> relatedDocuments;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['relatedDocuments'] = relatedDocuments;
-    return __result;
+    var result = <String, Object?>{};
+    result['relatedDocuments'] = relatedDocuments;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -12200,11 +12199,11 @@ class DocumentFormattingClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -12267,11 +12266,11 @@ class DocumentFormattingOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -12352,13 +12351,13 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['options'] = options.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    var result = <String, Object?>{};
+    result['options'] = options.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -12475,12 +12474,12 @@ class DocumentFormattingRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -12575,12 +12574,12 @@ class DocumentHighlight implements ToJsonable {
   final Range range;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (kind != null) {
-      __result['kind'] = kind?.toJson();
+      result['kind'] = kind?.toJson();
     }
-    __result['range'] = range.toJson();
-    return __result;
+    result['range'] = range.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -12660,11 +12659,11 @@ class DocumentHighlightClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -12759,11 +12758,11 @@ class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -12862,16 +12861,16 @@ class DocumentHighlightParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -13001,12 +13000,12 @@ class DocumentHighlightRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -13119,18 +13118,18 @@ class DocumentLink implements ToJsonable {
   final String? tooltip;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (data != null) {
-      __result['data'] = data;
+      result['data'] = data;
     }
-    __result['range'] = range.toJson();
+    result['range'] = range.toJson();
     if (target != null) {
-      __result['target'] = target;
+      result['target'] = target;
     }
     if (tooltip != null) {
-      __result['tooltip'] = tooltip;
+      result['tooltip'] = tooltip;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -13233,14 +13232,14 @@ class DocumentLinkClientCapabilities implements ToJsonable {
   final bool? tooltipSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (tooltipSupport != null) {
-      __result['tooltipSupport'] = tooltipSupport;
+      result['tooltipSupport'] = tooltipSupport;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -13322,14 +13321,14 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (resolveProvider != null) {
-      __result['resolveProvider'] = resolveProvider;
+      result['resolveProvider'] = resolveProvider;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -13432,15 +13431,15 @@ class DocumentLinkParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['textDocument'] = textDocument.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -13556,15 +13555,15 @@ class DocumentLinkRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (resolveProvider != null) {
-      __result['resolveProvider'] = resolveProvider;
+      result['resolveProvider'] = resolveProvider;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -13659,11 +13658,11 @@ class DocumentOnTypeFormattingClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -13736,12 +13735,12 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
   final List<String>? moreTriggerCharacter;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['firstTriggerCharacter'] = firstTriggerCharacter;
+    var result = <String, Object?>{};
+    result['firstTriggerCharacter'] = firstTriggerCharacter;
     if (moreTriggerCharacter != null) {
-      __result['moreTriggerCharacter'] = moreTriggerCharacter;
+      result['moreTriggerCharacter'] = moreTriggerCharacter;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -13854,12 +13853,12 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['ch'] = ch;
-    __result['options'] = options.toJson();
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['ch'] = ch;
+    result['options'] = options.toJson();
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -14014,13 +14013,13 @@ class DocumentOnTypeFormattingRegistrationOptions
   final List<String>? moreTriggerCharacter;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
-    __result['firstTriggerCharacter'] = firstTriggerCharacter;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
+    result['firstTriggerCharacter'] = firstTriggerCharacter;
     if (moreTriggerCharacter != null) {
-      __result['moreTriggerCharacter'] = moreTriggerCharacter;
+      result['moreTriggerCharacter'] = moreTriggerCharacter;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -14127,11 +14126,11 @@ class DocumentRangeFormattingClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -14195,11 +14194,11 @@ class DocumentRangeFormattingOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -14288,14 +14287,14 @@ class DocumentRangeFormattingParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['options'] = options.toJson();
-    __result['range'] = range.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    var result = <String, Object?>{};
+    result['options'] = options.toJson();
+    result['range'] = range.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -14432,12 +14431,12 @@ class DocumentRangeFormattingRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -14586,24 +14585,24 @@ class DocumentSymbol implements ToJsonable {
   final List<SymbolTag>? tags;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (children != null) {
-      __result['children'] = children?.map((item) => item.toJson()).toList();
+      result['children'] = children?.map((item) => item.toJson()).toList();
     }
     if (deprecated != null) {
-      __result['deprecated'] = deprecated;
+      result['deprecated'] = deprecated;
     }
     if (detail != null) {
-      __result['detail'] = detail;
+      result['detail'] = detail;
     }
-    __result['kind'] = kind.toJson();
-    __result['name'] = name;
-    __result['range'] = range.toJson();
-    __result['selectionRange'] = selectionRange.toJson();
+    result['kind'] = kind.toJson();
+    result['name'] = name;
+    result['range'] = range.toJson();
+    result['selectionRange'] = selectionRange.toJson();
     if (tags != null) {
-      __result['tags'] = tags?.map((item) => item.toJson()).toList();
+      result['tags'] = tags?.map((item) => item.toJson()).toList();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -14828,24 +14827,24 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
   final DocumentSymbolClientCapabilitiesTagSupport? tagSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (hierarchicalDocumentSymbolSupport != null) {
-      __result['hierarchicalDocumentSymbolSupport'] =
+      result['hierarchicalDocumentSymbolSupport'] =
           hierarchicalDocumentSymbolSupport;
     }
     if (labelSupport != null) {
-      __result['labelSupport'] = labelSupport;
+      result['labelSupport'] = labelSupport;
     }
     if (symbolKind != null) {
-      __result['symbolKind'] = symbolKind?.toJson();
+      result['symbolKind'] = symbolKind?.toJson();
     }
     if (tagSupport != null) {
-      __result['tagSupport'] = tagSupport?.toJson();
+      result['tagSupport'] = tagSupport?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -14972,11 +14971,11 @@ class DocumentSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   final List<SymbolKind>? valueSet;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (valueSet != null) {
-      __result['valueSet'] = valueSet?.map((item) => item.toJson()).toList();
+      result['valueSet'] = valueSet?.map((item) => item.toJson()).toList();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -15044,9 +15043,9 @@ class DocumentSymbolClientCapabilitiesTagSupport implements ToJsonable {
   final List<SymbolTag> valueSet;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
-    return __result;
+    var result = <String, Object?>{};
+    result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -15127,14 +15126,14 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (label != null) {
-      __result['label'] = label;
+      result['label'] = label;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -15237,15 +15236,15 @@ class DocumentSymbolParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['textDocument'] = textDocument.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -15363,15 +15362,15 @@ class DocumentSymbolRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (label != null) {
-      __result['label'] = label;
+      result['label'] = label;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -15544,11 +15543,11 @@ class ExecuteCommandClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -15616,12 +15615,12 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['commands'] = commands;
+    var result = <String, Object?>{};
+    result['commands'] = commands;
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -15726,15 +15725,15 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (arguments != null) {
-      __result['arguments'] = arguments;
+      result['arguments'] = arguments;
     }
-    __result['command'] = command;
+    result['command'] = command;
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -15840,12 +15839,12 @@ class ExecuteCommandRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['commands'] = commands;
+    var result = <String, Object?>{};
+    result['commands'] = commands;
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -15937,12 +15936,12 @@ class ExecutionSummary implements ToJsonable {
   final bool? success;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['executionOrder'] = executionOrder;
+    var result = <String, Object?>{};
+    result['executionOrder'] = executionOrder;
     if (success != null) {
-      __result['success'] = success;
+      result['success'] = success;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -16105,9 +16104,9 @@ class FileCreate implements ToJsonable {
   final String uri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['uri'] = uri;
-    return __result;
+    var result = <String, Object?>{};
+    result['uri'] = uri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -16175,9 +16174,9 @@ class FileDelete implements ToJsonable {
   final String uri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['uri'] = uri;
-    return __result;
+    var result = <String, Object?>{};
+    result['uri'] = uri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -16251,10 +16250,10 @@ class FileEvent implements ToJsonable {
   final String uri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['type'] = type;
-    __result['uri'] = uri;
-    return __result;
+    var result = <String, Object?>{};
+    result['type'] = type;
+    result['uri'] = uri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -16384,29 +16383,29 @@ class FileOperationClientCapabilities implements ToJsonable {
   final bool? willRename;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (didCreate != null) {
-      __result['didCreate'] = didCreate;
+      result['didCreate'] = didCreate;
     }
     if (didDelete != null) {
-      __result['didDelete'] = didDelete;
+      result['didDelete'] = didDelete;
     }
     if (didRename != null) {
-      __result['didRename'] = didRename;
+      result['didRename'] = didRename;
     }
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (willCreate != null) {
-      __result['willCreate'] = willCreate;
+      result['willCreate'] = willCreate;
     }
     if (willDelete != null) {
-      __result['willDelete'] = willDelete;
+      result['willDelete'] = willDelete;
     }
     if (willRename != null) {
-      __result['willRename'] = willRename;
+      result['willRename'] = willRename;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -16551,12 +16550,12 @@ class FileOperationFilter implements ToJsonable {
   final String? scheme;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['pattern'] = pattern.toJson();
+    var result = <String, Object?>{};
+    result['pattern'] = pattern.toJson();
     if (scheme != null) {
-      __result['scheme'] = scheme;
+      result['scheme'] = scheme;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -16689,26 +16688,26 @@ class FileOperationOptions implements ToJsonable {
   final FileOperationRegistrationOptions? willRename;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (didCreate != null) {
-      __result['didCreate'] = didCreate?.toJson();
+      result['didCreate'] = didCreate?.toJson();
     }
     if (didDelete != null) {
-      __result['didDelete'] = didDelete?.toJson();
+      result['didDelete'] = didDelete?.toJson();
     }
     if (didRename != null) {
-      __result['didRename'] = didRename?.toJson();
+      result['didRename'] = didRename?.toJson();
     }
     if (willCreate != null) {
-      __result['willCreate'] = willCreate?.toJson();
+      result['willCreate'] = willCreate?.toJson();
     }
     if (willDelete != null) {
-      __result['willDelete'] = willDelete?.toJson();
+      result['willDelete'] = willDelete?.toJson();
     }
     if (willRename != null) {
-      __result['willRename'] = willRename?.toJson();
+      result['willRename'] = willRename?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -16879,15 +16878,15 @@ class FileOperationPattern implements ToJsonable {
   final FileOperationPatternOptions? options;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['glob'] = glob;
+    var result = <String, Object?>{};
+    result['glob'] = glob;
     if (matches != null) {
-      __result['matches'] = matches?.toJson();
+      result['matches'] = matches?.toJson();
     }
     if (options != null) {
-      __result['options'] = options?.toJson();
+      result['options'] = options?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -17015,11 +17014,11 @@ class FileOperationPatternOptions implements ToJsonable {
   final bool? ignoreCase;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (ignoreCase != null) {
-      __result['ignoreCase'] = ignoreCase;
+      result['ignoreCase'] = ignoreCase;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -17083,9 +17082,9 @@ class FileOperationRegistrationOptions implements ToJsonable {
   final List<FileOperationFilter> filters;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['filters'] = filters.map((item) => item.toJson()).toList();
-    return __result;
+    var result = <String, Object?>{};
+    result['filters'] = filters.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -17165,10 +17164,10 @@ class FileRename implements ToJsonable {
   final String oldUri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['newUri'] = newUri;
-    __result['oldUri'] = oldUri;
-    return __result;
+    var result = <String, Object?>{};
+    result['newUri'] = newUri;
+    result['oldUri'] = oldUri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -17270,12 +17269,12 @@ class FileSystemWatcher implements ToJsonable {
   final WatchKind? kind;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['globPattern'] = globPattern;
+    var result = <String, Object?>{};
+    result['globPattern'] = globPattern;
     if (kind != null) {
-      __result['kind'] = kind?.toJson();
+      result['kind'] = kind?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -17407,22 +17406,22 @@ class FoldingRange implements ToJsonable {
   final int startLine;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (collapsedText != null) {
-      __result['collapsedText'] = collapsedText;
+      result['collapsedText'] = collapsedText;
     }
     if (endCharacter != null) {
-      __result['endCharacter'] = endCharacter;
+      result['endCharacter'] = endCharacter;
     }
-    __result['endLine'] = endLine;
+    result['endLine'] = endLine;
     if (kind != null) {
-      __result['kind'] = kind?.toJson();
+      result['kind'] = kind?.toJson();
     }
     if (startCharacter != null) {
-      __result['startCharacter'] = startCharacter;
+      result['startCharacter'] = startCharacter;
     }
-    __result['startLine'] = startLine;
-    return __result;
+    result['startLine'] = startLine;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -17601,23 +17600,23 @@ class FoldingRangeClientCapabilities implements ToJsonable {
   final int? rangeLimit;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (foldingRange != null) {
-      __result['foldingRange'] = foldingRange?.toJson();
+      result['foldingRange'] = foldingRange?.toJson();
     }
     if (foldingRangeKind != null) {
-      __result['foldingRangeKind'] = foldingRangeKind?.toJson();
+      result['foldingRangeKind'] = foldingRangeKind?.toJson();
     }
     if (lineFoldingOnly != null) {
-      __result['lineFoldingOnly'] = lineFoldingOnly;
+      result['lineFoldingOnly'] = lineFoldingOnly;
     }
     if (rangeLimit != null) {
-      __result['rangeLimit'] = rangeLimit;
+      result['rangeLimit'] = rangeLimit;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -17736,11 +17735,11 @@ class FoldingRangeClientCapabilitiesFoldingRange implements ToJsonable {
   final bool? collapsedText;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (collapsedText != null) {
-      __result['collapsedText'] = collapsedText;
+      result['collapsedText'] = collapsedText;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -17805,11 +17804,11 @@ class FoldingRangeClientCapabilitiesFoldingRangeKind implements ToJsonable {
   final List<FoldingRangeKind>? valueSet;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (valueSet != null) {
-      __result['valueSet'] = valueSet?.map((item) => item.toJson()).toList();
+      result['valueSet'] = valueSet?.map((item) => item.toJson()).toList();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -17908,11 +17907,11 @@ class FoldingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -18000,15 +17999,15 @@ class FoldingRangeParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['textDocument'] = textDocument.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -18126,15 +18125,15 @@ class FoldingRangeRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (id != null) {
-      __result['id'] = id;
+      result['id'] = id;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -18260,19 +18259,19 @@ class FormattingOptions implements ToJsonable {
   final bool? trimTrailingWhitespace;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (insertFinalNewline != null) {
-      __result['insertFinalNewline'] = insertFinalNewline;
+      result['insertFinalNewline'] = insertFinalNewline;
     }
-    __result['insertSpaces'] = insertSpaces;
-    __result['tabSize'] = tabSize;
+    result['insertSpaces'] = insertSpaces;
+    result['tabSize'] = tabSize;
     if (trimFinalNewlines != null) {
-      __result['trimFinalNewlines'] = trimFinalNewlines;
+      result['trimFinalNewlines'] = trimFinalNewlines;
     }
     if (trimTrailingWhitespace != null) {
-      __result['trimTrailingWhitespace'] = trimTrailingWhitespace;
+      result['trimTrailingWhitespace'] = trimTrailingWhitespace;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -18429,13 +18428,13 @@ class FullDocumentDiagnosticReport implements ToJsonable {
   final String? resultId;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['items'] = items.map((item) => item.toJson()).toList();
-    __result['kind'] = kind;
+    var result = <String, Object?>{};
+    result['items'] = items.map((item) => item.toJson()).toList();
+    result['kind'] = kind;
     if (resultId != null) {
-      __result['resultId'] = resultId;
+      result['resultId'] = resultId;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -18590,21 +18589,21 @@ class GeneralClientCapabilities implements ToJsonable {
   final GeneralClientCapabilitiesStaleRequestSupport? staleRequestSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (markdown != null) {
-      __result['markdown'] = markdown?.toJson();
+      result['markdown'] = markdown?.toJson();
     }
     if (positionEncodings != null) {
-      __result['positionEncodings'] =
+      result['positionEncodings'] =
           positionEncodings?.map((item) => item.toJson()).toList();
     }
     if (regularExpressions != null) {
-      __result['regularExpressions'] = regularExpressions?.toJson();
+      result['regularExpressions'] = regularExpressions?.toJson();
     }
     if (staleRequestSupport != null) {
-      __result['staleRequestSupport'] = staleRequestSupport?.toJson();
+      result['staleRequestSupport'] = staleRequestSupport?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -18724,10 +18723,10 @@ class GeneralClientCapabilitiesStaleRequestSupport implements ToJsonable {
   final List<String> retryOnContentModified;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['cancel'] = cancel;
-    __result['retryOnContentModified'] = retryOnContentModified;
-    return __result;
+    var result = <String, Object?>{};
+    result['cancel'] = cancel;
+    result['retryOnContentModified'] = retryOnContentModified;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -18836,12 +18835,12 @@ class Hover implements ToJsonable {
   final Range? range;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['contents'] = contents;
+    var result = <String, Object?>{};
+    result['contents'] = contents;
     if (range != null) {
-      __result['range'] = range?.toJson();
+      result['range'] = range?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -18933,15 +18932,15 @@ class HoverClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (contentFormat != null) {
-      __result['contentFormat'] =
+      result['contentFormat'] =
           contentFormat?.map((item) => item.toJson()).toList();
     }
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -19021,11 +19020,11 @@ class HoverOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -19105,13 +19104,13 @@ class HoverParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    var result = <String, Object?>{};
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -19223,12 +19222,12 @@ class HoverRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -19320,14 +19319,14 @@ class ImplementationClientCapabilities implements ToJsonable {
   final bool? linkSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (linkSupport != null) {
-      __result['linkSupport'] = linkSupport;
+      result['linkSupport'] = linkSupport;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -19403,11 +19402,11 @@ class ImplementationOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -19506,16 +19505,16 @@ class ImplementationParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -19653,15 +19652,15 @@ class ImplementationRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (id != null) {
-      __result['id'] = id;
+      result['id'] = id;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -19848,33 +19847,33 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   final List<WorkspaceFolder>? workspaceFolders;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['capabilities'] = capabilities.toJson();
+    var result = <String, Object?>{};
+    result['capabilities'] = capabilities.toJson();
     if (clientInfo != null) {
-      __result['clientInfo'] = clientInfo?.toJson();
+      result['clientInfo'] = clientInfo?.toJson();
     }
     if (initializationOptions != null) {
-      __result['initializationOptions'] = initializationOptions;
+      result['initializationOptions'] = initializationOptions;
     }
     if (locale != null) {
-      __result['locale'] = locale;
+      result['locale'] = locale;
     }
-    __result['processId'] = processId;
+    result['processId'] = processId;
     if (rootPath != null) {
-      __result['rootPath'] = rootPath;
+      result['rootPath'] = rootPath;
     }
-    __result['rootUri'] = rootUri;
+    result['rootUri'] = rootUri;
     if (trace != null) {
-      __result['trace'] = trace;
+      result['trace'] = trace;
     }
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
     if (workspaceFolders != null) {
-      __result['workspaceFolders'] =
+      result['workspaceFolders'] =
           workspaceFolders?.map((item) => item.toJson()).toList();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -20064,12 +20063,12 @@ class InitializeParamsClientInfo implements ToJsonable {
   final String? version;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['name'] = name;
+    var result = <String, Object?>{};
+    result['name'] = name;
     if (version != null) {
-      __result['version'] = version;
+      result['version'] = version;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -20161,12 +20160,12 @@ class InitializeResult implements ToJsonable {
   final InitializeResultServerInfo? serverInfo;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['capabilities'] = capabilities.toJson();
+    var result = <String, Object?>{};
+    result['capabilities'] = capabilities.toJson();
     if (serverInfo != null) {
-      __result['serverInfo'] = serverInfo?.toJson();
+      result['serverInfo'] = serverInfo?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -20255,12 +20254,12 @@ class InitializeResultServerInfo implements ToJsonable {
   final String? version;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['name'] = name;
+    var result = <String, Object?>{};
+    result['name'] = name;
     if (version != null) {
-      __result['version'] = version;
+      result['version'] = version;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -20330,8 +20329,8 @@ class InitializedParams implements ToJsonable {
   }
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    return __result;
+    var result = <String, Object?>{};
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -20472,28 +20471,28 @@ class InlayHint implements ToJsonable {
   final Either2<MarkupContent, String>? tooltip;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (data != null) {
-      __result['data'] = data;
+      result['data'] = data;
     }
     if (kind != null) {
-      __result['kind'] = kind?.toJson();
+      result['kind'] = kind?.toJson();
     }
-    __result['label'] = label;
+    result['label'] = label;
     if (paddingLeft != null) {
-      __result['paddingLeft'] = paddingLeft;
+      result['paddingLeft'] = paddingLeft;
     }
     if (paddingRight != null) {
-      __result['paddingRight'] = paddingRight;
+      result['paddingRight'] = paddingRight;
     }
-    __result['position'] = position.toJson();
+    result['position'] = position.toJson();
     if (textEdits != null) {
-      __result['textEdits'] = textEdits?.map((item) => item.toJson()).toList();
+      result['textEdits'] = textEdits?.map((item) => item.toJson()).toList();
     }
     if (tooltip != null) {
-      __result['tooltip'] = tooltip;
+      result['tooltip'] = tooltip;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -20667,14 +20666,14 @@ class InlayHintClientCapabilities implements ToJsonable {
   final InlayHintClientCapabilitiesResolveSupport? resolveSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (resolveSupport != null) {
-      __result['resolveSupport'] = resolveSupport?.toJson();
+      result['resolveSupport'] = resolveSupport?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -20754,9 +20753,9 @@ class InlayHintClientCapabilitiesResolveSupport implements ToJsonable {
   final List<String> properties;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['properties'] = properties;
-    return __result;
+    var result = <String, Object?>{};
+    result['properties'] = properties;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -20906,18 +20905,18 @@ class InlayHintLabelPart implements ToJsonable {
   final String value;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (command != null) {
-      __result['command'] = command?.toJson();
+      result['command'] = command?.toJson();
     }
     if (location != null) {
-      __result['location'] = location?.toJson();
+      result['location'] = location?.toJson();
     }
     if (tooltip != null) {
-      __result['tooltip'] = tooltip;
+      result['tooltip'] = tooltip;
     }
-    __result['value'] = value;
-    return __result;
+    result['value'] = value;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -21037,14 +21036,14 @@ class InlayHintOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (resolveProvider != null) {
-      __result['resolveProvider'] = resolveProvider;
+      result['resolveProvider'] = resolveProvider;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -21140,13 +21139,13 @@ class InlayHintParams implements WorkDoneProgressParams, ToJsonable {
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['range'] = range.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    var result = <String, Object?>{};
+    result['range'] = range.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -21280,18 +21279,18 @@ class InlayHintRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (id != null) {
-      __result['id'] = id;
+      result['id'] = id;
     }
     if (resolveProvider != null) {
-      __result['resolveProvider'] = resolveProvider;
+      result['resolveProvider'] = resolveProvider;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -21406,11 +21405,11 @@ class InlayHintWorkspaceClientCapabilities implements ToJsonable {
   final bool? refreshSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (refreshSupport != null) {
-      __result['refreshSupport'] = refreshSupport;
+      result['refreshSupport'] = refreshSupport;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -21473,11 +21472,11 @@ class InlineValueClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -21546,10 +21545,10 @@ class InlineValueContext implements ToJsonable {
   final Range stoppedLocation;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['frameId'] = frameId;
-    __result['stoppedLocation'] = stoppedLocation.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['frameId'] = frameId;
+    result['stoppedLocation'] = stoppedLocation.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -21654,12 +21653,12 @@ class InlineValueEvaluatableExpression implements ToJsonable {
   final Range range;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (expression != null) {
-      __result['expression'] = expression;
+      result['expression'] = expression;
     }
-    __result['range'] = range.toJson();
-    return __result;
+    result['range'] = range.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -21743,11 +21742,11 @@ class InlineValueOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -21838,14 +21837,14 @@ class InlineValueParams implements WorkDoneProgressParams, ToJsonable {
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['context'] = context.toJson();
-    __result['range'] = range.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    var result = <String, Object?>{};
+    result['context'] = context.toJson();
+    result['range'] = range.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -21991,15 +21990,15 @@ class InlineValueRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (id != null) {
-      __result['id'] = id;
+      result['id'] = id;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -22102,10 +22101,10 @@ class InlineValueText implements ToJsonable {
   final String text;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['range'] = range.toJson();
-    __result['text'] = text;
-    return __result;
+    var result = <String, Object?>{};
+    result['range'] = range.toJson();
+    result['text'] = text;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -22214,13 +22213,13 @@ class InlineValueVariableLookup implements ToJsonable {
   final String? variableName;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['caseSensitiveLookup'] = caseSensitiveLookup;
-    __result['range'] = range.toJson();
+    var result = <String, Object?>{};
+    result['caseSensitiveLookup'] = caseSensitiveLookup;
+    result['range'] = range.toJson();
     if (variableName != null) {
-      __result['variableName'] = variableName;
+      result['variableName'] = variableName;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -22331,11 +22330,11 @@ class InlineValueWorkspaceClientCapabilities implements ToJsonable {
   final bool? refreshSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (refreshSupport != null) {
-      __result['refreshSupport'] = refreshSupport;
+      result['refreshSupport'] = refreshSupport;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -22411,11 +22410,11 @@ class InsertReplaceEdit implements ToJsonable {
   final Range replace;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['insert'] = insert.toJson();
-    __result['newText'] = newText;
-    __result['replace'] = replace.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['insert'] = insert.toJson();
+    result['newText'] = newText;
+    result['replace'] = replace.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -22606,11 +22605,11 @@ class LinkedEditingRangeClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -22673,11 +22672,11 @@ class LinkedEditingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -22758,13 +22757,13 @@ class LinkedEditingRangeParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    var result = <String, Object?>{};
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -22890,15 +22889,15 @@ class LinkedEditingRangeRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (id != null) {
-      __result['id'] = id;
+      result['id'] = id;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -23006,12 +23005,12 @@ class LinkedEditingRanges implements ToJsonable {
   final String? wordPattern;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['ranges'] = ranges.map((item) => item.toJson()).toList();
+    var result = <String, Object?>{};
+    result['ranges'] = ranges.map((item) => item.toJson()).toList();
     if (wordPattern != null) {
-      __result['wordPattern'] = wordPattern;
+      result['wordPattern'] = wordPattern;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -23098,10 +23097,10 @@ class Location implements ToJsonable {
   final String uri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['range'] = range.toJson();
-    __result['uri'] = uri;
-    return __result;
+    var result = <String, Object?>{};
+    result['range'] = range.toJson();
+    result['uri'] = uri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -23220,14 +23219,14 @@ class LocationLink implements ToJsonable {
   final String targetUri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (originSelectionRange != null) {
-      __result['originSelectionRange'] = originSelectionRange?.toJson();
+      result['originSelectionRange'] = originSelectionRange?.toJson();
     }
-    __result['targetRange'] = targetRange.toJson();
-    __result['targetSelectionRange'] = targetSelectionRange.toJson();
-    __result['targetUri'] = targetUri;
-    return __result;
+    result['targetRange'] = targetRange.toJson();
+    result['targetSelectionRange'] = targetSelectionRange.toJson();
+    result['targetUri'] = targetUri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -23356,10 +23355,10 @@ class LogMessageParams implements ToJsonable {
   final MessageType type;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['message'] = message;
-    __result['type'] = type.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['message'] = message;
+    result['type'] = type.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -23454,12 +23453,12 @@ class LogTraceParams implements ToJsonable {
   final String? verbose;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['message'] = message;
+    var result = <String, Object?>{};
+    result['message'] = message;
     if (verbose != null) {
-      __result['verbose'] = verbose;
+      result['verbose'] = verbose;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -23557,15 +23556,15 @@ class MarkdownClientCapabilities implements ToJsonable {
   final String? version;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (allowedTags != null) {
-      __result['allowedTags'] = allowedTags;
+      result['allowedTags'] = allowedTags;
     }
-    __result['parser'] = parser;
+    result['parser'] = parser;
     if (version != null) {
-      __result['version'] = version;
+      result['version'] = version;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -23689,10 +23688,10 @@ class MarkupContent implements ToJsonable {
   final String value;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['kind'] = kind.toJson();
-    __result['value'] = value;
-    return __result;
+    var result = <String, Object?>{};
+    result['kind'] = kind.toJson();
+    result['value'] = value;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -23817,9 +23816,9 @@ class MessageActionItem implements ToJsonable {
   final String title;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['title'] = title;
-    return __result;
+    var result = <String, Object?>{};
+    result['title'] = title;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -24269,14 +24268,14 @@ class Moniker implements ToJsonable {
   final UniquenessLevel unique;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['identifier'] = identifier;
+    var result = <String, Object?>{};
+    result['identifier'] = identifier;
     if (kind != null) {
-      __result['kind'] = kind?.toJson();
+      result['kind'] = kind?.toJson();
     }
-    __result['scheme'] = scheme;
-    __result['unique'] = unique.toJson();
-    return __result;
+    result['scheme'] = scheme;
+    result['unique'] = unique.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -24400,11 +24399,11 @@ class MonikerClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -24498,11 +24497,11 @@ class MonikerOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -24600,16 +24599,16 @@ class MonikerParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -24734,12 +24733,12 @@ class MonikerRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -24851,16 +24850,16 @@ class NotebookCell implements ToJsonable {
   final Object? metadata;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['document'] = document;
+    var result = <String, Object?>{};
+    result['document'] = document;
     if (executionSummary != null) {
-      __result['executionSummary'] = executionSummary?.toJson();
+      result['executionSummary'] = executionSummary?.toJson();
     }
-    __result['kind'] = kind.toJson();
+    result['kind'] = kind.toJson();
     if (metadata != null) {
-      __result['metadata'] = metadata;
+      result['metadata'] = metadata;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -24982,13 +24981,13 @@ class NotebookCellArrayChange implements ToJsonable {
   final int start;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (cells != null) {
-      __result['cells'] = cells?.map((item) => item.toJson()).toList();
+      result['cells'] = cells?.map((item) => item.toJson()).toList();
     }
-    __result['deleteCount'] = deleteCount;
-    __result['start'] = start;
-    return __result;
+    result['deleteCount'] = deleteCount;
+    result['start'] = start;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -25156,12 +25155,12 @@ class NotebookCellTextDocumentFilter implements ToJsonable {
       String> notebook;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (language != null) {
-      __result['language'] = language;
+      result['language'] = language;
     }
-    __result['notebook'] = notebook;
-    return __result;
+    result['notebook'] = notebook;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -25278,15 +25277,15 @@ class NotebookDocument implements ToJsonable {
   final int version;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['cells'] = cells.map((item) => item.toJson()).toList();
+    var result = <String, Object?>{};
+    result['cells'] = cells.map((item) => item.toJson()).toList();
     if (metadata != null) {
-      __result['metadata'] = metadata;
+      result['metadata'] = metadata;
     }
-    __result['notebookType'] = notebookType;
-    __result['uri'] = uri;
-    __result['version'] = version;
-    return __result;
+    result['notebookType'] = notebookType;
+    result['uri'] = uri;
+    result['version'] = version;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -25431,14 +25430,14 @@ class NotebookDocumentChangeEvent implements ToJsonable {
   final Object? metadata;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (cells != null) {
-      __result['cells'] = cells?.toJson();
+      result['cells'] = cells?.toJson();
     }
     if (metadata != null) {
-      __result['metadata'] = metadata;
+      result['metadata'] = metadata;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -25525,18 +25524,18 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
   final List<NotebookDocumentChangeEventTextContent>? textContent;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (data != null) {
-      __result['data'] = data?.map((item) => item.toJson()).toList();
+      result['data'] = data?.map((item) => item.toJson()).toList();
     }
     if (structure != null) {
-      __result['structure'] = structure?.toJson();
+      result['structure'] = structure?.toJson();
     }
     if (textContent != null) {
-      __result['textContent'] =
+      result['textContent'] =
           textContent?.map((item) => item.toJson()).toList();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -25660,15 +25659,15 @@ class NotebookDocumentChangeEventCellsStructure implements ToJsonable {
   final List<TextDocumentItem>? didOpen;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['array'] = array.toJson();
+    var result = <String, Object?>{};
+    result['array'] = array.toJson();
     if (didClose != null) {
-      __result['didClose'] = didClose?.map((item) => item.toJson()).toList();
+      result['didClose'] = didClose?.map((item) => item.toJson()).toList();
     }
     if (didOpen != null) {
-      __result['didOpen'] = didOpen?.map((item) => item.toJson()).toList();
+      result['didOpen'] = didOpen?.map((item) => item.toJson()).toList();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -25790,10 +25789,10 @@ class NotebookDocumentChangeEventTextContent implements ToJsonable {
   final VersionedTextDocumentIdentifier document;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['changes'] = changes;
-    __result['document'] = document.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['changes'] = changes;
+    result['document'] = document.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -25903,9 +25902,9 @@ class NotebookDocumentClientCapabilities implements ToJsonable {
   final NotebookDocumentSyncClientCapabilities synchronization;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['synchronization'] = synchronization.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['synchronization'] = synchronization.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -25989,15 +25988,15 @@ class NotebookDocumentFilter1 implements ToJsonable {
   final String? scheme;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['notebookType'] = notebookType;
+    var result = <String, Object?>{};
+    result['notebookType'] = notebookType;
     if (pattern != null) {
-      __result['pattern'] = pattern;
+      result['pattern'] = pattern;
     }
     if (scheme != null) {
-      __result['scheme'] = scheme;
+      result['scheme'] = scheme;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -26105,15 +26104,15 @@ class NotebookDocumentFilter2 implements ToJsonable {
   final String scheme;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (notebookType != null) {
-      __result['notebookType'] = notebookType;
+      result['notebookType'] = notebookType;
     }
     if (pattern != null) {
-      __result['pattern'] = pattern;
+      result['pattern'] = pattern;
     }
-    __result['scheme'] = scheme;
-    return __result;
+    result['scheme'] = scheme;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -26221,15 +26220,15 @@ class NotebookDocumentFilter3 implements ToJsonable {
   final String? scheme;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (notebookType != null) {
-      __result['notebookType'] = notebookType;
+      result['notebookType'] = notebookType;
     }
-    __result['pattern'] = pattern;
+    result['pattern'] = pattern;
     if (scheme != null) {
-      __result['scheme'] = scheme;
+      result['scheme'] = scheme;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -26325,9 +26324,9 @@ class NotebookDocumentIdentifier implements ToJsonable {
   final String uri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['uri'] = uri;
-    return __result;
+    var result = <String, Object?>{};
+    result['uri'] = uri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -26400,11 +26399,11 @@ class NotebookDocumentSyncClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -26498,12 +26497,12 @@ class NotebookDocumentSyncOptions implements ToJsonable {
   final bool? save;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['notebookSelector'] = notebookSelector;
+    var result = <String, Object?>{};
+    result['notebookSelector'] = notebookSelector;
     if (save != null) {
-      __result['save'] = save;
+      result['save'] = save;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -26599,9 +26598,9 @@ class NotebookDocumentSyncOptionsCells implements ToJsonable {
   final String language;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['language'] = language;
-    return __result;
+    var result = <String, Object?>{};
+    result['language'] = language;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -26667,9 +26666,9 @@ class NotebookDocumentSyncOptionsCells2 implements ToJsonable {
   final String language;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['language'] = language;
-    return __result;
+    var result = <String, Object?>{};
+    result['language'] = language;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -26766,12 +26765,12 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
       String> notebookDocument;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (cells != null) {
-      __result['cells'] = cells?.map((item) => item.toJson()).toList();
+      result['cells'] = cells?.map((item) => item.toJson()).toList();
     }
-    __result['notebookDocument'] = notebookDocument;
-    return __result;
+    result['notebookDocument'] = notebookDocument;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -26899,12 +26898,12 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
       String>? notebookDocument;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['cells'] = cells.map((item) => item.toJson()).toList();
+    var result = <String, Object?>{};
+    result['cells'] = cells.map((item) => item.toJson()).toList();
     if (notebookDocument != null) {
-      __result['notebookDocument'] = notebookDocument;
+      result['notebookDocument'] = notebookDocument;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -27038,15 +27037,15 @@ class NotebookDocumentSyncRegistrationOptions
   final bool? save;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (id != null) {
-      __result['id'] = id;
+      result['id'] = id;
     }
-    __result['notebookSelector'] = notebookSelector;
+    result['notebookSelector'] = notebookSelector;
     if (save != null) {
-      __result['save'] = save;
+      result['save'] = save;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -27173,10 +27172,10 @@ class OptionalVersionedTextDocumentIdentifier
   final int? version;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['uri'] = uri;
-    __result['version'] = version;
-    return __result;
+    var result = <String, Object?>{};
+    result['uri'] = uri;
+    result['version'] = version;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -27287,12 +27286,12 @@ class ParameterInformation implements ToJsonable {
   final String label;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (documentation != null) {
-      __result['documentation'] = documentation;
+      result['documentation'] = documentation;
     }
-    __result['label'] = label;
-    return __result;
+    result['label'] = label;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -27462,11 +27461,11 @@ class PartialResultParams implements ToJsonable {
   final Either2<int, String>? partialResultToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -27530,10 +27529,10 @@ class PlaceholderAndRange implements ToJsonable {
   final Range range;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['placeholder'] = placeholder;
-    __result['range'] = range.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['placeholder'] = placeholder;
+    result['range'] = range.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -27632,10 +27631,10 @@ class Position implements ToJsonable {
   final int line;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['character'] = character;
-    __result['line'] = line;
-    return __result;
+    var result = <String, Object?>{};
+    result['character'] = character;
+    result['line'] = line;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -27769,10 +27768,10 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -27897,10 +27896,10 @@ class PreviousResultId implements ToJsonable {
   final String value;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['uri'] = uri;
-    __result['value'] = value;
-    return __result;
+    var result = <String, Object?>{};
+    result['uri'] = uri;
+    result['value'] = value;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -27998,10 +27997,10 @@ class ProgressParams<T> implements ToJsonable {
   final Object? value;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['token'] = token;
-    __result['value'] = value;
-    return __result;
+    var result = <String, Object?>{};
+    result['token'] = token;
+    result['value'] = value;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -28110,23 +28109,23 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
   final bool? versionSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (codeDescriptionSupport != null) {
-      __result['codeDescriptionSupport'] = codeDescriptionSupport;
+      result['codeDescriptionSupport'] = codeDescriptionSupport;
     }
     if (dataSupport != null) {
-      __result['dataSupport'] = dataSupport;
+      result['dataSupport'] = dataSupport;
     }
     if (relatedInformation != null) {
-      __result['relatedInformation'] = relatedInformation;
+      result['relatedInformation'] = relatedInformation;
     }
     if (tagSupport != null) {
-      __result['tagSupport'] = tagSupport?.toJson();
+      result['tagSupport'] = tagSupport?.toJson();
     }
     if (versionSupport != null) {
-      __result['versionSupport'] = versionSupport;
+      result['versionSupport'] = versionSupport;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -28244,9 +28243,9 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
   final List<DiagnosticTag> valueSet;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
-    return __result;
+    var result = <String, Object?>{};
+    result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -28336,13 +28335,13 @@ class PublishDiagnosticsParams implements ToJsonable {
   final int? version;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['diagnostics'] = diagnostics.map((item) => item.toJson()).toList();
-    __result['uri'] = uri;
+    var result = <String, Object?>{};
+    result['diagnostics'] = diagnostics.map((item) => item.toJson()).toList();
+    result['uri'] = uri;
     if (version != null) {
-      __result['version'] = version;
+      result['version'] = version;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -28454,10 +28453,10 @@ class Range implements ToJsonable {
   final Position start;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['end'] = end.toJson();
-    __result['start'] = start.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['end'] = end.toJson();
+    result['start'] = start.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -28544,11 +28543,11 @@ class ReferenceClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -28607,9 +28606,9 @@ class ReferenceContext implements ToJsonable {
   final bool includeDeclaration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['includeDeclaration'] = includeDeclaration;
-    return __result;
+    var result = <String, Object?>{};
+    result['includeDeclaration'] = includeDeclaration;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -28677,11 +28676,11 @@ class ReferenceOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -28786,17 +28785,17 @@ class ReferenceParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['context'] = context.toJson();
+    var result = <String, Object?>{};
+    result['context'] = context.toJson();
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -28941,12 +28940,12 @@ class ReferenceRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -29044,13 +29043,13 @@ class Registration implements ToJsonable {
   final Object? registerOptions;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['id'] = id;
-    __result['method'] = method;
+    var result = <String, Object?>{};
+    result['id'] = id;
+    result['method'] = method;
     if (registerOptions != null) {
-      __result['registerOptions'] = registerOptions;
+      result['registerOptions'] = registerOptions;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -29142,10 +29141,10 @@ class RegistrationParams implements ToJsonable {
   final List<Registration> registrations;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['registrations'] =
+    var result = <String, Object?>{};
+    result['registrations'] =
         registrations.map((item) => item.toJson()).toList();
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -29225,12 +29224,12 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
   final String? version;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['engine'] = engine;
+    var result = <String, Object?>{};
+    result['engine'] = engine;
     if (version != null) {
-      __result['version'] = version;
+      result['version'] = version;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -29363,16 +29362,16 @@ class RelatedFullDocumentDiagnosticReport
   final String? resultId;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['items'] = items.map((item) => item.toJson()).toList();
-    __result['kind'] = kind;
+    var result = <String, Object?>{};
+    result['items'] = items.map((item) => item.toJson()).toList();
+    result['kind'] = kind;
     if (relatedDocuments != null) {
-      __result['relatedDocuments'] = relatedDocuments;
+      result['relatedDocuments'] = relatedDocuments;
     }
     if (resultId != null) {
-      __result['resultId'] = resultId;
+      result['resultId'] = resultId;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -29551,13 +29550,13 @@ class RelatedUnchangedDocumentDiagnosticReport
   final String resultId;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['kind'] = kind;
+    var result = <String, Object?>{};
+    result['kind'] = kind;
     if (relatedDocuments != null) {
-      __result['relatedDocuments'] = relatedDocuments;
+      result['relatedDocuments'] = relatedDocuments;
     }
-    __result['resultId'] = resultId;
-    return __result;
+    result['resultId'] = resultId;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -29695,10 +29694,10 @@ class RelativePattern implements ToJsonable {
   final String pattern;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['baseUri'] = baseUri;
-    __result['pattern'] = pattern;
-    return __result;
+    var result = <String, Object?>{};
+    result['baseUri'] = baseUri;
+    result['pattern'] = pattern;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -29823,21 +29822,21 @@ class RenameClientCapabilities implements ToJsonable {
   final PrepareSupportDefaultBehavior? prepareSupportDefaultBehavior;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (honorsChangeAnnotations != null) {
-      __result['honorsChangeAnnotations'] = honorsChangeAnnotations;
+      result['honorsChangeAnnotations'] = honorsChangeAnnotations;
     }
     if (prepareSupport != null) {
-      __result['prepareSupport'] = prepareSupport;
+      result['prepareSupport'] = prepareSupport;
     }
     if (prepareSupportDefaultBehavior != null) {
-      __result['prepareSupportDefaultBehavior'] =
+      result['prepareSupportDefaultBehavior'] =
           prepareSupportDefaultBehavior?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -29976,17 +29975,17 @@ class RenameFile implements ToJsonable {
   final RenameFileOptions? options;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (annotationId != null) {
-      __result['annotationId'] = annotationId;
+      result['annotationId'] = annotationId;
     }
-    __result['kind'] = kind;
-    __result['newUri'] = newUri;
-    __result['oldUri'] = oldUri;
+    result['kind'] = kind;
+    result['newUri'] = newUri;
+    result['oldUri'] = oldUri;
     if (options != null) {
-      __result['options'] = options?.toJson();
+      result['options'] = options?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -30128,14 +30127,14 @@ class RenameFileOptions implements ToJsonable {
   final bool? overwrite;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (ignoreIfExists != null) {
-      __result['ignoreIfExists'] = ignoreIfExists;
+      result['ignoreIfExists'] = ignoreIfExists;
     }
     if (overwrite != null) {
-      __result['overwrite'] = overwrite;
+      result['overwrite'] = overwrite;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -30214,9 +30213,9 @@ class RenameFilesParams implements ToJsonable {
   final List<FileRename> files;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['files'] = files.map((item) => item.toJson()).toList();
-    return __result;
+    var result = <String, Object?>{};
+    result['files'] = files.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -30293,14 +30292,14 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (prepareProvider != null) {
-      __result['prepareProvider'] = prepareProvider;
+      result['prepareProvider'] = prepareProvider;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -30403,14 +30402,14 @@ class RenameParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['newName'] = newName;
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    var result = <String, Object?>{};
+    result['newName'] = newName;
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -30549,15 +30548,15 @@ class RenameRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (prepareProvider != null) {
-      __result['prepareProvider'] = prepareProvider;
+      result['prepareProvider'] = prepareProvider;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -30688,11 +30687,11 @@ class SaveOptions implements ToJsonable {
   final bool? includeText;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (includeText != null) {
-      __result['includeText'] = includeText;
+      result['includeText'] = includeText;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -30760,12 +30759,12 @@ class SelectionRange implements ToJsonable {
   final Range range;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (parent != null) {
-      __result['parent'] = parent?.toJson();
+      result['parent'] = parent?.toJson();
     }
-    __result['range'] = range.toJson();
-    return __result;
+    result['range'] = range.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -30847,11 +30846,11 @@ class SelectionRangeClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -30912,11 +30911,11 @@ class SelectionRangeOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -31013,16 +31012,16 @@ class SelectionRangeParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['positions'] = positions.map((item) => item.toJson()).toList();
-    __result['textDocument'] = textDocument.toJson();
+    result['positions'] = positions.map((item) => item.toJson()).toList();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -31162,15 +31161,15 @@ class SelectionRangeRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (id != null) {
-      __result['id'] = id;
+      result['id'] = id;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -31356,12 +31355,12 @@ class SemanticTokens implements ToJsonable {
   final String? resultId;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['data'] = data;
+    var result = <String, Object?>{};
+    result['data'] = data;
     if (resultId != null) {
-      __result['resultId'] = resultId;
+      result['resultId'] = resultId;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -31524,27 +31523,27 @@ class SemanticTokensClientCapabilities implements ToJsonable {
   final List<String> tokenTypes;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (augmentsSyntaxTokens != null) {
-      __result['augmentsSyntaxTokens'] = augmentsSyntaxTokens;
+      result['augmentsSyntaxTokens'] = augmentsSyntaxTokens;
     }
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    __result['formats'] = formats.map((item) => item.toJson()).toList();
+    result['formats'] = formats.map((item) => item.toJson()).toList();
     if (multilineTokenSupport != null) {
-      __result['multilineTokenSupport'] = multilineTokenSupport;
+      result['multilineTokenSupport'] = multilineTokenSupport;
     }
     if (overlappingTokenSupport != null) {
-      __result['overlappingTokenSupport'] = overlappingTokenSupport;
+      result['overlappingTokenSupport'] = overlappingTokenSupport;
     }
-    __result['requests'] = requests.toJson();
+    result['requests'] = requests.toJson();
     if (serverCancelSupport != null) {
-      __result['serverCancelSupport'] = serverCancelSupport;
+      result['serverCancelSupport'] = serverCancelSupport;
     }
-    __result['tokenModifiers'] = tokenModifiers;
-    __result['tokenTypes'] = tokenTypes;
-    return __result;
+    result['tokenModifiers'] = tokenModifiers;
+    result['tokenTypes'] = tokenTypes;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -31745,11 +31744,11 @@ class SemanticTokensClientCapabilitiesFull implements ToJsonable {
   final bool? delta;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (delta != null) {
-      __result['delta'] = delta;
+      result['delta'] = delta;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -31800,8 +31799,8 @@ class SemanticTokensClientCapabilitiesRange implements ToJsonable {
   }
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    return __result;
+    var result = <String, Object?>{};
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -31879,14 +31878,14 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
   final Either2<bool, SemanticTokensClientCapabilitiesRange>? range;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (full != null) {
-      __result['full'] = full;
+      result['full'] = full;
     }
     if (range != null) {
-      __result['range'] = range;
+      result['range'] = range;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -31975,12 +31974,12 @@ class SemanticTokensDelta implements ToJsonable {
   final String? resultId;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['edits'] = edits.map((item) => item.toJson()).toList();
+    var result = <String, Object?>{};
+    result['edits'] = edits.map((item) => item.toJson()).toList();
     if (resultId != null) {
-      __result['resultId'] = resultId;
+      result['resultId'] = resultId;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -32102,16 +32101,16 @@ class SemanticTokensDeltaParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['previousResultId'] = previousResultId;
-    __result['textDocument'] = textDocument.toJson();
+    result['previousResultId'] = previousResultId;
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -32229,9 +32228,9 @@ class SemanticTokensDeltaPartialResult implements ToJsonable {
   final List<SemanticTokensEdit> edits;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['edits'] = edits.map((item) => item.toJson()).toList();
-    return __result;
+    var result = <String, Object?>{};
+    result['edits'] = edits.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -32317,13 +32316,13 @@ class SemanticTokensEdit implements ToJsonable {
   final int start;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (data != null) {
-      __result['data'] = data;
+      result['data'] = data;
     }
-    __result['deleteCount'] = deleteCount;
-    __result['start'] = start;
-    return __result;
+    result['deleteCount'] = deleteCount;
+    result['start'] = start;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -32437,10 +32436,10 @@ class SemanticTokensLegend implements ToJsonable {
   final List<String> tokenTypes;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['tokenModifiers'] = tokenModifiers;
-    __result['tokenTypes'] = tokenTypes;
-    return __result;
+    var result = <String, Object?>{};
+    result['tokenModifiers'] = tokenModifiers;
+    result['tokenTypes'] = tokenTypes;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -32575,18 +32574,18 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (full != null) {
-      __result['full'] = full;
+      result['full'] = full;
     }
-    __result['legend'] = legend.toJson();
+    result['legend'] = legend.toJson();
     if (range != null) {
-      __result['range'] = range;
+      result['range'] = range;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -32698,11 +32697,11 @@ class SemanticTokensOptionsFull implements ToJsonable {
   final bool? delta;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (delta != null) {
-      __result['delta'] = delta;
+      result['delta'] = delta;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -32751,8 +32750,8 @@ class SemanticTokensOptionsRange implements ToJsonable {
   }
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    return __result;
+    var result = <String, Object?>{};
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -32830,15 +32829,15 @@ class SemanticTokensParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['textDocument'] = textDocument.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -32934,9 +32933,9 @@ class SemanticTokensPartialResult implements ToJsonable {
   final List<int> data;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['data'] = data;
-    return __result;
+    var result = <String, Object?>{};
+    result['data'] = data;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -33039,16 +33038,16 @@ class SemanticTokensRangeParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['range'] = range.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    result['range'] = range.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -33226,22 +33225,22 @@ class SemanticTokensRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (full != null) {
-      __result['full'] = full;
+      result['full'] = full;
     }
     if (id != null) {
-      __result['id'] = id;
+      result['id'] = id;
     }
-    __result['legend'] = legend.toJson();
+    result['legend'] = legend.toJson();
     if (range != null) {
-      __result['range'] = range;
+      result['range'] = range;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -33392,11 +33391,11 @@ class SemanticTokensWorkspaceClientCapabilities implements ToJsonable {
   final bool? refreshSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (refreshSupport != null) {
-      __result['refreshSupport'] = refreshSupport;
+      result['refreshSupport'] = refreshSupport;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -34083,115 +34082,115 @@ class ServerCapabilities implements ToJsonable {
   final Either2<bool, WorkspaceSymbolOptions>? workspaceSymbolProvider;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (callHierarchyProvider != null) {
-      __result['callHierarchyProvider'] = callHierarchyProvider;
+      result['callHierarchyProvider'] = callHierarchyProvider;
     }
     if (codeActionProvider != null) {
-      __result['codeActionProvider'] = codeActionProvider;
+      result['codeActionProvider'] = codeActionProvider;
     }
     if (codeLensProvider != null) {
-      __result['codeLensProvider'] = codeLensProvider?.toJson();
+      result['codeLensProvider'] = codeLensProvider?.toJson();
     }
     if (colorProvider != null) {
-      __result['colorProvider'] = colorProvider;
+      result['colorProvider'] = colorProvider;
     }
     if (completionProvider != null) {
-      __result['completionProvider'] = completionProvider?.toJson();
+      result['completionProvider'] = completionProvider?.toJson();
     }
     if (declarationProvider != null) {
-      __result['declarationProvider'] = declarationProvider;
+      result['declarationProvider'] = declarationProvider;
     }
     if (definitionProvider != null) {
-      __result['definitionProvider'] = definitionProvider;
+      result['definitionProvider'] = definitionProvider;
     }
     if (diagnosticProvider != null) {
-      __result['diagnosticProvider'] = diagnosticProvider;
+      result['diagnosticProvider'] = diagnosticProvider;
     }
     if (documentFormattingProvider != null) {
-      __result['documentFormattingProvider'] = documentFormattingProvider;
+      result['documentFormattingProvider'] = documentFormattingProvider;
     }
     if (documentHighlightProvider != null) {
-      __result['documentHighlightProvider'] = documentHighlightProvider;
+      result['documentHighlightProvider'] = documentHighlightProvider;
     }
     if (documentLinkProvider != null) {
-      __result['documentLinkProvider'] = documentLinkProvider?.toJson();
+      result['documentLinkProvider'] = documentLinkProvider?.toJson();
     }
     if (documentOnTypeFormattingProvider != null) {
-      __result['documentOnTypeFormattingProvider'] =
+      result['documentOnTypeFormattingProvider'] =
           documentOnTypeFormattingProvider?.toJson();
     }
     if (documentRangeFormattingProvider != null) {
-      __result['documentRangeFormattingProvider'] =
+      result['documentRangeFormattingProvider'] =
           documentRangeFormattingProvider;
     }
     if (documentSymbolProvider != null) {
-      __result['documentSymbolProvider'] = documentSymbolProvider;
+      result['documentSymbolProvider'] = documentSymbolProvider;
     }
     if (executeCommandProvider != null) {
-      __result['executeCommandProvider'] = executeCommandProvider?.toJson();
+      result['executeCommandProvider'] = executeCommandProvider?.toJson();
     }
     if (experimental != null) {
-      __result['experimental'] = experimental;
+      result['experimental'] = experimental;
     }
     if (foldingRangeProvider != null) {
-      __result['foldingRangeProvider'] = foldingRangeProvider;
+      result['foldingRangeProvider'] = foldingRangeProvider;
     }
     if (hoverProvider != null) {
-      __result['hoverProvider'] = hoverProvider;
+      result['hoverProvider'] = hoverProvider;
     }
     if (implementationProvider != null) {
-      __result['implementationProvider'] = implementationProvider;
+      result['implementationProvider'] = implementationProvider;
     }
     if (inlayHintProvider != null) {
-      __result['inlayHintProvider'] = inlayHintProvider;
+      result['inlayHintProvider'] = inlayHintProvider;
     }
     if (inlineValueProvider != null) {
-      __result['inlineValueProvider'] = inlineValueProvider;
+      result['inlineValueProvider'] = inlineValueProvider;
     }
     if (linkedEditingRangeProvider != null) {
-      __result['linkedEditingRangeProvider'] = linkedEditingRangeProvider;
+      result['linkedEditingRangeProvider'] = linkedEditingRangeProvider;
     }
     if (monikerProvider != null) {
-      __result['monikerProvider'] = monikerProvider;
+      result['monikerProvider'] = monikerProvider;
     }
     if (notebookDocumentSync != null) {
-      __result['notebookDocumentSync'] = notebookDocumentSync;
+      result['notebookDocumentSync'] = notebookDocumentSync;
     }
     if (positionEncoding != null) {
-      __result['positionEncoding'] = positionEncoding?.toJson();
+      result['positionEncoding'] = positionEncoding?.toJson();
     }
     if (referencesProvider != null) {
-      __result['referencesProvider'] = referencesProvider;
+      result['referencesProvider'] = referencesProvider;
     }
     if (renameProvider != null) {
-      __result['renameProvider'] = renameProvider;
+      result['renameProvider'] = renameProvider;
     }
     if (selectionRangeProvider != null) {
-      __result['selectionRangeProvider'] = selectionRangeProvider;
+      result['selectionRangeProvider'] = selectionRangeProvider;
     }
     if (semanticTokensProvider != null) {
-      __result['semanticTokensProvider'] = semanticTokensProvider;
+      result['semanticTokensProvider'] = semanticTokensProvider;
     }
     if (signatureHelpProvider != null) {
-      __result['signatureHelpProvider'] = signatureHelpProvider?.toJson();
+      result['signatureHelpProvider'] = signatureHelpProvider?.toJson();
     }
     if (textDocumentSync != null) {
-      __result['textDocumentSync'] = textDocumentSync;
+      result['textDocumentSync'] = textDocumentSync;
     }
     if (typeDefinitionProvider != null) {
-      __result['typeDefinitionProvider'] = typeDefinitionProvider;
+      result['typeDefinitionProvider'] = typeDefinitionProvider;
     }
     if (typeHierarchyProvider != null) {
-      __result['typeHierarchyProvider'] = typeHierarchyProvider;
+      result['typeHierarchyProvider'] = typeHierarchyProvider;
     }
     if (workspace != null) {
-      __result['workspace'] = workspace?.toJson();
+      result['workspace'] = workspace?.toJson();
     }
     if (workspaceSymbolProvider != null) {
-      __result['workspaceSymbolProvider'] = workspaceSymbolProvider;
+      result['workspaceSymbolProvider'] = workspaceSymbolProvider;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -34798,14 +34797,14 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
   final WorkspaceFoldersServerCapabilities? workspaceFolders;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (fileOperations != null) {
-      __result['fileOperations'] = fileOperations?.toJson();
+      result['fileOperations'] = fileOperations?.toJson();
     }
     if (workspaceFolders != null) {
-      __result['workspaceFolders'] = workspaceFolders?.toJson();
+      result['workspaceFolders'] = workspaceFolders?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -34885,9 +34884,9 @@ class SetTraceParams implements ToJsonable {
   final String value;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['value'] = value;
-    return __result;
+    var result = <String, Object?>{};
+    result['value'] = value;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -34956,9 +34955,9 @@ class ShowDocumentClientCapabilities implements ToJsonable {
   final bool support;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['support'] = support;
-    return __result;
+    var result = <String, Object?>{};
+    result['support'] = support;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -35056,18 +35055,18 @@ class ShowDocumentParams implements ToJsonable {
   final String uri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (external != null) {
-      __result['external'] = external;
+      result['external'] = external;
     }
     if (selection != null) {
-      __result['selection'] = selection?.toJson();
+      result['selection'] = selection?.toJson();
     }
     if (takeFocus != null) {
-      __result['takeFocus'] = takeFocus;
+      result['takeFocus'] = takeFocus;
     }
-    __result['uri'] = uri;
-    return __result;
+    result['uri'] = uri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -35175,9 +35174,9 @@ class ShowDocumentResult implements ToJsonable {
   final bool success;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['success'] = success;
-    return __result;
+    var result = <String, Object?>{};
+    result['success'] = success;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -35251,10 +35250,10 @@ class ShowMessageParams implements ToJsonable {
   final MessageType type;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['message'] = message;
-    __result['type'] = type.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['message'] = message;
+    result['type'] = type.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -35347,11 +35346,11 @@ class ShowMessageRequestClientCapabilities implements ToJsonable {
       messageActionItem;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (messageActionItem != null) {
-      __result['messageActionItem'] = messageActionItem?.toJson();
+      result['messageActionItem'] = messageActionItem?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -35418,11 +35417,11 @@ class ShowMessageRequestClientCapabilitiesMessageActionItem
   final bool? additionalPropertiesSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (additionalPropertiesSupport != null) {
-      __result['additionalPropertiesSupport'] = additionalPropertiesSupport;
+      result['additionalPropertiesSupport'] = additionalPropertiesSupport;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -35502,13 +35501,13 @@ class ShowMessageRequestParams implements ToJsonable {
   final MessageType type;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (actions != null) {
-      __result['actions'] = actions?.map((item) => item.toJson()).toList();
+      result['actions'] = actions?.map((item) => item.toJson()).toList();
     }
-    __result['message'] = message;
-    __result['type'] = type.toJson();
-    return __result;
+    result['message'] = message;
+    result['type'] = type.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -35647,15 +35646,15 @@ class SignatureHelp implements ToJsonable {
   final List<SignatureInformation> signatures;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (activeParameter != null) {
-      __result['activeParameter'] = activeParameter;
+      result['activeParameter'] = activeParameter;
     }
     if (activeSignature != null) {
-      __result['activeSignature'] = activeSignature;
+      result['activeSignature'] = activeSignature;
     }
-    __result['signatures'] = signatures.map((item) => item.toJson()).toList();
-    return __result;
+    result['signatures'] = signatures.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -35774,17 +35773,17 @@ class SignatureHelpClientCapabilities implements ToJsonable {
       signatureInformation;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (contextSupport != null) {
-      __result['contextSupport'] = contextSupport;
+      result['contextSupport'] = contextSupport;
     }
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (signatureInformation != null) {
-      __result['signatureInformation'] = signatureInformation?.toJson();
+      result['signatureInformation'] = signatureInformation?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -35897,18 +35896,18 @@ class SignatureHelpClientCapabilitiesSignatureInformation
   final SignatureInformationParameterInformation? parameterInformation;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (activeParameterSupport != null) {
-      __result['activeParameterSupport'] = activeParameterSupport;
+      result['activeParameterSupport'] = activeParameterSupport;
     }
     if (documentationFormat != null) {
-      __result['documentationFormat'] =
+      result['documentationFormat'] =
           documentationFormat?.map((item) => item.toJson()).toList();
     }
     if (parameterInformation != null) {
-      __result['parameterInformation'] = parameterInformation?.toJson();
+      result['parameterInformation'] = parameterInformation?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -36042,16 +36041,16 @@ class SignatureHelpContext implements ToJsonable {
   final SignatureHelpTriggerKind triggerKind;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (activeSignatureHelp != null) {
-      __result['activeSignatureHelp'] = activeSignatureHelp?.toJson();
+      result['activeSignatureHelp'] = activeSignatureHelp?.toJson();
     }
-    __result['isRetrigger'] = isRetrigger;
+    result['isRetrigger'] = isRetrigger;
     if (triggerCharacter != null) {
-      __result['triggerCharacter'] = triggerCharacter;
+      result['triggerCharacter'] = triggerCharacter;
     }
-    __result['triggerKind'] = triggerKind.toJson();
-    return __result;
+    result['triggerKind'] = triggerKind.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -36189,17 +36188,17 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (retriggerCharacters != null) {
-      __result['retriggerCharacters'] = retriggerCharacters;
+      result['retriggerCharacters'] = retriggerCharacters;
     }
     if (triggerCharacters != null) {
-      __result['triggerCharacters'] = triggerCharacters;
+      result['triggerCharacters'] = triggerCharacters;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -36325,16 +36324,16 @@ class SignatureHelpParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (context != null) {
-      __result['context'] = context?.toJson();
+      result['context'] = context?.toJson();
     }
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -36485,18 +36484,18 @@ class SignatureHelpRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (retriggerCharacters != null) {
-      __result['retriggerCharacters'] = retriggerCharacters;
+      result['retriggerCharacters'] = retriggerCharacters;
     }
     if (triggerCharacters != null) {
-      __result['triggerCharacters'] = triggerCharacters;
+      result['triggerCharacters'] = triggerCharacters;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -36679,19 +36678,18 @@ class SignatureInformation implements ToJsonable {
   final List<ParameterInformation>? parameters;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (activeParameter != null) {
-      __result['activeParameter'] = activeParameter;
+      result['activeParameter'] = activeParameter;
     }
     if (documentation != null) {
-      __result['documentation'] = documentation;
+      result['documentation'] = documentation;
     }
-    __result['label'] = label;
+    result['label'] = label;
     if (parameters != null) {
-      __result['parameters'] =
-          parameters?.map((item) => item.toJson()).toList();
+      result['parameters'] = parameters?.map((item) => item.toJson()).toList();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -36807,11 +36805,11 @@ class SignatureInformationParameterInformation implements ToJsonable {
   final bool? labelOffsetSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (labelOffsetSupport != null) {
-      __result['labelOffsetSupport'] = labelOffsetSupport;
+      result['labelOffsetSupport'] = labelOffsetSupport;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -36917,11 +36915,11 @@ class StaticRegistrationOptions implements ToJsonable {
   final String? id;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (id != null) {
-      __result['id'] = id;
+      result['id'] = id;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -37033,20 +37031,20 @@ class SymbolInformation implements ToJsonable {
   final List<SymbolTag>? tags;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (containerName != null) {
-      __result['containerName'] = containerName;
+      result['containerName'] = containerName;
     }
     if (deprecated != null) {
-      __result['deprecated'] = deprecated;
+      result['deprecated'] = deprecated;
     }
-    __result['kind'] = kind.toJson();
-    __result['location'] = location.toJson();
-    __result['name'] = name;
+    result['kind'] = kind.toJson();
+    result['location'] = location.toJson();
+    result['name'] = name;
     if (tags != null) {
-      __result['tags'] = tags?.map((item) => item.toJson()).toList();
+      result['tags'] = tags?.map((item) => item.toJson()).toList();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -37286,10 +37284,10 @@ class TextDocumentChangeRegistrationOptions
   final TextDocumentSyncKind syncKind;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
-    __result['syncKind'] = syncKind.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
+    result['syncKind'] = syncKind.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -37687,98 +37685,98 @@ class TextDocumentClientCapabilities implements ToJsonable {
   final TypeHierarchyClientCapabilities1? typeHierarchy;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (callHierarchy != null) {
-      __result['callHierarchy'] = callHierarchy?.toJson();
+      result['callHierarchy'] = callHierarchy?.toJson();
     }
     if (codeAction != null) {
-      __result['codeAction'] = codeAction?.toJson();
+      result['codeAction'] = codeAction?.toJson();
     }
     if (codeLens != null) {
-      __result['codeLens'] = codeLens?.toJson();
+      result['codeLens'] = codeLens?.toJson();
     }
     if (colorProvider != null) {
-      __result['colorProvider'] = colorProvider?.toJson();
+      result['colorProvider'] = colorProvider?.toJson();
     }
     if (completion != null) {
-      __result['completion'] = completion?.toJson();
+      result['completion'] = completion?.toJson();
     }
     if (declaration != null) {
-      __result['declaration'] = declaration?.toJson();
+      result['declaration'] = declaration?.toJson();
     }
     if (definition != null) {
-      __result['definition'] = definition?.toJson();
+      result['definition'] = definition?.toJson();
     }
     if (diagnostic != null) {
-      __result['diagnostic'] = diagnostic?.toJson();
+      result['diagnostic'] = diagnostic?.toJson();
     }
     if (documentHighlight != null) {
-      __result['documentHighlight'] = documentHighlight?.toJson();
+      result['documentHighlight'] = documentHighlight?.toJson();
     }
     if (documentLink != null) {
-      __result['documentLink'] = documentLink?.toJson();
+      result['documentLink'] = documentLink?.toJson();
     }
     if (documentSymbol != null) {
-      __result['documentSymbol'] = documentSymbol?.toJson();
+      result['documentSymbol'] = documentSymbol?.toJson();
     }
     if (foldingRange != null) {
-      __result['foldingRange'] = foldingRange?.toJson();
+      result['foldingRange'] = foldingRange?.toJson();
     }
     if (formatting != null) {
-      __result['formatting'] = formatting?.toJson();
+      result['formatting'] = formatting?.toJson();
     }
     if (hover != null) {
-      __result['hover'] = hover?.toJson();
+      result['hover'] = hover?.toJson();
     }
     if (implementation != null) {
-      __result['implementation'] = implementation?.toJson();
+      result['implementation'] = implementation?.toJson();
     }
     if (inlayHint != null) {
-      __result['inlayHint'] = inlayHint?.toJson();
+      result['inlayHint'] = inlayHint?.toJson();
     }
     if (inlineValue != null) {
-      __result['inlineValue'] = inlineValue?.toJson();
+      result['inlineValue'] = inlineValue?.toJson();
     }
     if (linkedEditingRange != null) {
-      __result['linkedEditingRange'] = linkedEditingRange?.toJson();
+      result['linkedEditingRange'] = linkedEditingRange?.toJson();
     }
     if (moniker != null) {
-      __result['moniker'] = moniker?.toJson();
+      result['moniker'] = moniker?.toJson();
     }
     if (onTypeFormatting != null) {
-      __result['onTypeFormatting'] = onTypeFormatting?.toJson();
+      result['onTypeFormatting'] = onTypeFormatting?.toJson();
     }
     if (publishDiagnostics != null) {
-      __result['publishDiagnostics'] = publishDiagnostics?.toJson();
+      result['publishDiagnostics'] = publishDiagnostics?.toJson();
     }
     if (rangeFormatting != null) {
-      __result['rangeFormatting'] = rangeFormatting?.toJson();
+      result['rangeFormatting'] = rangeFormatting?.toJson();
     }
     if (references != null) {
-      __result['references'] = references?.toJson();
+      result['references'] = references?.toJson();
     }
     if (rename != null) {
-      __result['rename'] = rename?.toJson();
+      result['rename'] = rename?.toJson();
     }
     if (selectionRange != null) {
-      __result['selectionRange'] = selectionRange?.toJson();
+      result['selectionRange'] = selectionRange?.toJson();
     }
     if (semanticTokens != null) {
-      __result['semanticTokens'] = semanticTokens?.toJson();
+      result['semanticTokens'] = semanticTokens?.toJson();
     }
     if (signatureHelp != null) {
-      __result['signatureHelp'] = signatureHelp?.toJson();
+      result['signatureHelp'] = signatureHelp?.toJson();
     }
     if (synchronization != null) {
-      __result['synchronization'] = synchronization?.toJson();
+      result['synchronization'] = synchronization?.toJson();
     }
     if (typeDefinition != null) {
-      __result['typeDefinition'] = typeDefinition?.toJson();
+      result['typeDefinition'] = typeDefinition?.toJson();
     }
     if (typeHierarchy != null) {
-      __result['typeHierarchy'] = typeHierarchy?.toJson();
+      result['typeHierarchy'] = typeHierarchy?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -38269,13 +38267,13 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
   final String text;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['range'] = range.toJson();
+    var result = <String, Object?>{};
+    result['range'] = range.toJson();
     if (rangeLength != null) {
-      __result['rangeLength'] = rangeLength;
+      result['rangeLength'] = rangeLength;
     }
-    __result['text'] = text;
-    return __result;
+    result['text'] = text;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -38377,9 +38375,9 @@ class TextDocumentContentChangeEvent2 implements ToJsonable {
   final String text;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['text'] = text;
-    return __result;
+    var result = <String, Object?>{};
+    result['text'] = text;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -38467,10 +38465,10 @@ class TextDocumentEdit implements ToJsonable {
   final OptionalVersionedTextDocumentIdentifier textDocument;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['edits'] = edits;
-    __result['textDocument'] = textDocument.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['edits'] = edits;
+    result['textDocument'] = textDocument.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -38598,17 +38596,17 @@ class TextDocumentFilter implements ToJsonable {
   final String? scheme;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (language != null) {
-      __result['language'] = language;
+      result['language'] = language;
     }
     if (pattern != null) {
-      __result['pattern'] = pattern;
+      result['pattern'] = pattern;
     }
     if (scheme != null) {
-      __result['scheme'] = scheme;
+      result['scheme'] = scheme;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -38701,9 +38699,9 @@ class TextDocumentIdentifier implements ToJsonable {
   final String uri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['uri'] = uri;
-    return __result;
+    var result = <String, Object?>{};
+    result['uri'] = uri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -38792,12 +38790,12 @@ class TextDocumentItem implements ToJsonable {
   final int version;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['languageId'] = languageId;
-    __result['text'] = text;
-    __result['uri'] = uri;
-    __result['version'] = version;
-    return __result;
+    var result = <String, Object?>{};
+    result['languageId'] = languageId;
+    result['text'] = text;
+    result['uri'] = uri;
+    result['version'] = version;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -38979,10 +38977,10 @@ class TextDocumentPositionParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -39174,9 +39172,9 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   final List<TextDocumentFilter>? documentSelector;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
-    return __result;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -39290,12 +39288,12 @@ class TextDocumentSaveRegistrationOptions
   final bool? includeText;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (includeText != null) {
-      __result['includeText'] = includeText;
+      result['includeText'] = includeText;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -39402,20 +39400,20 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
   final bool? willSaveWaitUntil;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (didSave != null) {
-      __result['didSave'] = didSave;
+      result['didSave'] = didSave;
     }
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (willSave != null) {
-      __result['willSave'] = willSave;
+      result['willSave'] = willSave;
     }
     if (willSaveWaitUntil != null) {
-      __result['willSaveWaitUntil'] = willSaveWaitUntil;
+      result['willSaveWaitUntil'] = willSaveWaitUntil;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -39592,23 +39590,23 @@ class TextDocumentSyncOptions implements ToJsonable {
   final bool? willSaveWaitUntil;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (change != null) {
-      __result['change'] = change?.toJson();
+      result['change'] = change?.toJson();
     }
     if (openClose != null) {
-      __result['openClose'] = openClose;
+      result['openClose'] = openClose;
     }
     if (save != null) {
-      __result['save'] = save;
+      result['save'] = save;
     }
     if (willSave != null) {
-      __result['willSave'] = willSave;
+      result['willSave'] = willSave;
     }
     if (willSaveWaitUntil != null) {
-      __result['willSaveWaitUntil'] = willSaveWaitUntil;
+      result['willSaveWaitUntil'] = willSaveWaitUntil;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -39734,10 +39732,10 @@ class TextEdit implements ToJsonable {
   final Range range;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['newText'] = newText;
-    __result['range'] = range.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['newText'] = newText;
+    result['range'] = range.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -39858,14 +39856,14 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
   final bool? linkSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (linkSupport != null) {
-      __result['linkSupport'] = linkSupport;
+      result['linkSupport'] = linkSupport;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -39941,11 +39939,11 @@ class TypeDefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -40044,16 +40042,16 @@ class TypeDefinitionParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -40191,15 +40189,15 @@ class TypeDefinitionRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (id != null) {
-      __result['id'] = id;
+      result['id'] = id;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -40296,11 +40294,11 @@ class TypeHierarchyClientCapabilities1 implements ToJsonable {
   final bool? dynamicRegistration;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -40417,22 +40415,22 @@ class TypeHierarchyItem implements ToJsonable {
   final String uri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (data != null) {
-      __result['data'] = data;
+      result['data'] = data;
     }
     if (detail != null) {
-      __result['detail'] = detail;
+      result['detail'] = detail;
     }
-    __result['kind'] = kind.toJson();
-    __result['name'] = name;
-    __result['range'] = range.toJson();
-    __result['selectionRange'] = selectionRange.toJson();
+    result['kind'] = kind.toJson();
+    result['name'] = name;
+    result['range'] = range.toJson();
+    result['selectionRange'] = selectionRange.toJson();
     if (tags != null) {
-      __result['tags'] = tags?.map((item) => item.toJson()).toList();
+      result['tags'] = tags?.map((item) => item.toJson()).toList();
     }
-    __result['uri'] = uri;
-    return __result;
+    result['uri'] = uri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -40611,11 +40609,11 @@ class TypeHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -40696,13 +40694,13 @@ class TypeHierarchyPrepareParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['position'] = position.toJson();
-    __result['textDocument'] = textDocument.toJson();
+    var result = <String, Object?>{};
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -40827,15 +40825,15 @@ class TypeHierarchyRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['documentSelector'] = documentSelector;
+    var result = <String, Object?>{};
+    result['documentSelector'] = documentSelector;
     if (id != null) {
-      __result['id'] = id;
+      result['id'] = id;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -40956,15 +40954,15 @@ class TypeHierarchySubtypesParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['item'] = item.toJson();
+    var result = <String, Object?>{};
+    result['item'] = item.toJson();
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -41087,15 +41085,15 @@ class TypeHierarchySupertypesParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['item'] = item.toJson();
+    var result = <String, Object?>{};
+    result['item'] = item.toJson();
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -41215,10 +41213,10 @@ class UnchangedDocumentDiagnosticReport implements ToJsonable {
   final String resultId;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['kind'] = kind;
-    __result['resultId'] = resultId;
-    return __result;
+    var result = <String, Object?>{};
+    result['kind'] = kind;
+    result['resultId'] = resultId;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -41353,10 +41351,10 @@ class Unregistration implements ToJsonable {
   final String method;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['id'] = id;
-    __result['method'] = method;
-    return __result;
+    var result = <String, Object?>{};
+    result['id'] = id;
+    result['method'] = method;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -41447,10 +41445,10 @@ class UnregistrationParams implements ToJsonable {
   final List<Unregistration> unregisterations;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['unregisterations'] =
+    var result = <String, Object?>{};
+    result['unregisterations'] =
         unregisterations.map((item) => item.toJson()).toList();
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -41531,10 +41529,10 @@ class VersionedNotebookDocumentIdentifier implements ToJsonable {
   final int version;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['uri'] = uri;
-    __result['version'] = version;
-    return __result;
+    var result = <String, Object?>{};
+    result['uri'] = uri;
+    result['version'] = version;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -41634,10 +41632,10 @@ class VersionedTextDocumentIdentifier
   final int version;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['uri'] = uri;
-    __result['version'] = version;
-    return __result;
+    var result = <String, Object?>{};
+    result['uri'] = uri;
+    result['version'] = version;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -41765,10 +41763,10 @@ class WillSaveTextDocumentParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['reason'] = reason.toJson();
-    __result['textDocument'] = textDocument.toJson();
-    return __result;
+    var result = <String, Object?>{};
+    result['reason'] = reason.toJson();
+    result['textDocument'] = textDocument.toJson();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -41886,17 +41884,17 @@ class WindowClientCapabilities implements ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (showDocument != null) {
-      __result['showDocument'] = showDocument?.toJson();
+      result['showDocument'] = showDocument?.toJson();
     }
     if (showMessage != null) {
-      __result['showMessage'] = showMessage?.toJson();
+      result['showMessage'] = showMessage?.toJson();
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -42032,19 +42030,19 @@ class WorkDoneProgressBegin implements ToJsonable {
   final String title;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (cancellable != null) {
-      __result['cancellable'] = cancellable;
+      result['cancellable'] = cancellable;
     }
-    __result['kind'] = kind;
+    result['kind'] = kind;
     if (message != null) {
-      __result['message'] = message;
+      result['message'] = message;
     }
     if (percentage != null) {
-      __result['percentage'] = percentage;
+      result['percentage'] = percentage;
     }
-    __result['title'] = title;
-    return __result;
+    result['title'] = title;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -42174,9 +42172,9 @@ class WorkDoneProgressCancelParams implements ToJsonable {
   final Either2<int, String> token;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['token'] = token;
-    return __result;
+    var result = <String, Object?>{};
+    result['token'] = token;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -42247,9 +42245,9 @@ class WorkDoneProgressCreateParams implements ToJsonable {
   final Either2<int, String> token;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['token'] = token;
-    return __result;
+    var result = <String, Object?>{};
+    result['token'] = token;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -42327,12 +42325,12 @@ class WorkDoneProgressEnd implements ToJsonable {
   final String? message;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['kind'] = kind;
+    var result = <String, Object?>{};
+    result['kind'] = kind;
     if (message != null) {
-      __result['message'] = message;
+      result['message'] = message;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -42498,11 +42496,11 @@ class WorkDoneProgressOptions implements ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -42681,11 +42679,11 @@ class WorkDoneProgressParams implements ToJsonable {
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -42781,18 +42779,18 @@ class WorkDoneProgressReport implements ToJsonable {
   final int? percentage;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (cancellable != null) {
-      __result['cancellable'] = cancellable;
+      result['cancellable'] = cancellable;
     }
-    __result['kind'] = kind;
+    result['kind'] = kind;
     if (message != null) {
-      __result['message'] = message;
+      result['message'] = message;
     }
     if (percentage != null) {
-      __result['percentage'] = percentage;
+      result['percentage'] = percentage;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -43034,50 +43032,50 @@ class WorkspaceClientCapabilities implements ToJsonable {
   final bool? workspaceFolders;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (applyEdit != null) {
-      __result['applyEdit'] = applyEdit;
+      result['applyEdit'] = applyEdit;
     }
     if (codeLens != null) {
-      __result['codeLens'] = codeLens?.toJson();
+      result['codeLens'] = codeLens?.toJson();
     }
     if (configuration != null) {
-      __result['configuration'] = configuration;
+      result['configuration'] = configuration;
     }
     if (diagnostics != null) {
-      __result['diagnostics'] = diagnostics?.toJson();
+      result['diagnostics'] = diagnostics?.toJson();
     }
     if (didChangeConfiguration != null) {
-      __result['didChangeConfiguration'] = didChangeConfiguration?.toJson();
+      result['didChangeConfiguration'] = didChangeConfiguration?.toJson();
     }
     if (didChangeWatchedFiles != null) {
-      __result['didChangeWatchedFiles'] = didChangeWatchedFiles?.toJson();
+      result['didChangeWatchedFiles'] = didChangeWatchedFiles?.toJson();
     }
     if (executeCommand != null) {
-      __result['executeCommand'] = executeCommand?.toJson();
+      result['executeCommand'] = executeCommand?.toJson();
     }
     if (fileOperations != null) {
-      __result['fileOperations'] = fileOperations?.toJson();
+      result['fileOperations'] = fileOperations?.toJson();
     }
     if (inlayHint != null) {
-      __result['inlayHint'] = inlayHint?.toJson();
+      result['inlayHint'] = inlayHint?.toJson();
     }
     if (inlineValue != null) {
-      __result['inlineValue'] = inlineValue?.toJson();
+      result['inlineValue'] = inlineValue?.toJson();
     }
     if (semanticTokens != null) {
-      __result['semanticTokens'] = semanticTokens?.toJson();
+      result['semanticTokens'] = semanticTokens?.toJson();
     }
     if (symbol != null) {
-      __result['symbol'] = symbol?.toJson();
+      result['symbol'] = symbol?.toJson();
     }
     if (workspaceEdit != null) {
-      __result['workspaceEdit'] = workspaceEdit?.toJson();
+      result['workspaceEdit'] = workspaceEdit?.toJson();
     }
     if (workspaceFolders != null) {
-      __result['workspaceFolders'] = workspaceFolders;
+      result['workspaceFolders'] = workspaceFolders;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -43366,19 +43364,19 @@ class WorkspaceDiagnosticParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (identifier != null) {
-      __result['identifier'] = identifier;
+      result['identifier'] = identifier;
     }
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['previousResultIds'] =
+    result['previousResultIds'] =
         previousResultIds.map((item) => item.toJson()).toList();
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -43504,9 +43502,9 @@ class WorkspaceDiagnosticReport implements ToJsonable {
           WorkspaceUnchangedDocumentDiagnosticReport>> items;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['items'] = items;
-    return __result;
+    var result = <String, Object?>{};
+    result['items'] = items;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -43605,9 +43603,9 @@ class WorkspaceDiagnosticReportPartialResult implements ToJsonable {
           WorkspaceUnchangedDocumentDiagnosticReport>> items;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['items'] = items;
-    return __result;
+    var result = <String, Object?>{};
+    result['items'] = items;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -43745,17 +43743,17 @@ class WorkspaceEdit implements ToJsonable {
       documentChanges;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (changeAnnotations != null) {
-      __result['changeAnnotations'] = changeAnnotations;
+      result['changeAnnotations'] = changeAnnotations;
     }
     if (changes != null) {
-      __result['changes'] = changes;
+      result['changes'] = changes;
     }
     if (documentChanges != null) {
-      __result['documentChanges'] = documentChanges;
+      result['documentChanges'] = documentChanges;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -43915,24 +43913,24 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
   final List<ResourceOperationKind>? resourceOperations;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (changeAnnotationSupport != null) {
-      __result['changeAnnotationSupport'] = changeAnnotationSupport?.toJson();
+      result['changeAnnotationSupport'] = changeAnnotationSupport?.toJson();
     }
     if (documentChanges != null) {
-      __result['documentChanges'] = documentChanges;
+      result['documentChanges'] = documentChanges;
     }
     if (failureHandling != null) {
-      __result['failureHandling'] = failureHandling?.toJson();
+      result['failureHandling'] = failureHandling?.toJson();
     }
     if (normalizesLineEndings != null) {
-      __result['normalizesLineEndings'] = normalizesLineEndings;
+      result['normalizesLineEndings'] = normalizesLineEndings;
     }
     if (resourceOperations != null) {
-      __result['resourceOperations'] =
+      result['resourceOperations'] =
           resourceOperations?.map((item) => item.toJson()).toList();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -44054,11 +44052,11 @@ class WorkspaceEditClientCapabilitiesChangeAnnotationSupport
   final bool? groupsOnLabel;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (groupsOnLabel != null) {
-      __result['groupsOnLabel'] = groupsOnLabel;
+      result['groupsOnLabel'] = groupsOnLabel;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -44127,10 +44125,10 @@ class WorkspaceFolder implements ToJsonable {
   final String uri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['name'] = name;
-    __result['uri'] = uri;
-    return __result;
+    var result = <String, Object?>{};
+    result['name'] = name;
+    result['uri'] = uri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -44229,10 +44227,10 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
   final List<WorkspaceFolder> removed;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['added'] = added.map((item) => item.toJson()).toList();
-    __result['removed'] = removed.map((item) => item.toJson()).toList();
-    return __result;
+    var result = <String, Object?>{};
+    result['added'] = added.map((item) => item.toJson()).toList();
+    result['removed'] = removed.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -44347,14 +44345,14 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
   final bool? supported;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (changeNotifications != null) {
-      __result['changeNotifications'] = changeNotifications;
+      result['changeNotifications'] = changeNotifications;
     }
     if (supported != null) {
-      __result['supported'] = supported;
+      result['supported'] = supported;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -44470,15 +44468,15 @@ class WorkspaceFullDocumentDiagnosticReport
   final int? version;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['items'] = items.map((item) => item.toJson()).toList();
-    __result['kind'] = kind;
+    var result = <String, Object?>{};
+    result['items'] = items.map((item) => item.toJson()).toList();
+    result['kind'] = kind;
     if (resultId != null) {
-      __result['resultId'] = resultId;
+      result['resultId'] = resultId;
     }
-    __result['uri'] = uri;
-    __result['version'] = version;
-    return __result;
+    result['uri'] = uri;
+    result['version'] = version;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -44665,17 +44663,17 @@ class WorkspaceSymbol implements ToJsonable {
   final List<SymbolTag>? tags;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (containerName != null) {
-      __result['containerName'] = containerName;
+      result['containerName'] = containerName;
     }
-    __result['kind'] = kind.toJson();
-    __result['location'] = location;
-    __result['name'] = name;
+    result['kind'] = kind.toJson();
+    result['location'] = location;
+    result['name'] = name;
     if (tags != null) {
-      __result['tags'] = tags?.map((item) => item.toJson()).toList();
+      result['tags'] = tags?.map((item) => item.toJson()).toList();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -44848,20 +44846,20 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
   final WorkspaceSymbolClientCapabilitiesTagSupport? tagSupport;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (dynamicRegistration != null) {
-      __result['dynamicRegistration'] = dynamicRegistration;
+      result['dynamicRegistration'] = dynamicRegistration;
     }
     if (resolveSupport != null) {
-      __result['resolveSupport'] = resolveSupport?.toJson();
+      result['resolveSupport'] = resolveSupport?.toJson();
     }
     if (symbolKind != null) {
-      __result['symbolKind'] = symbolKind?.toJson();
+      result['symbolKind'] = symbolKind?.toJson();
     }
     if (tagSupport != null) {
-      __result['tagSupport'] = tagSupport?.toJson();
+      result['tagSupport'] = tagSupport?.toJson();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -44971,9 +44969,9 @@ class WorkspaceSymbolClientCapabilitiesResolveSupport implements ToJsonable {
   final List<String> properties;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['properties'] = properties;
-    return __result;
+    var result = <String, Object?>{};
+    result['properties'] = properties;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -45052,11 +45050,11 @@ class WorkspaceSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   final List<SymbolKind>? valueSet;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (valueSet != null) {
-      __result['valueSet'] = valueSet?.map((item) => item.toJson()).toList();
+      result['valueSet'] = valueSet?.map((item) => item.toJson()).toList();
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -45124,9 +45122,9 @@ class WorkspaceSymbolClientCapabilitiesTagSupport implements ToJsonable {
   final List<SymbolTag> valueSet;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
-    return __result;
+    var result = <String, Object?>{};
+    result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -45196,9 +45194,9 @@ class WorkspaceSymbolLocation implements ToJsonable {
   final String uri;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['uri'] = uri;
-    return __result;
+    var result = <String, Object?>{};
+    result['uri'] = uri;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -45276,14 +45274,14 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (resolveProvider != null) {
-      __result['resolveProvider'] = resolveProvider;
+      result['resolveProvider'] = resolveProvider;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -45387,15 +45385,15 @@ class WorkspaceSymbolParams
   final Either2<int, String>? workDoneToken;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (partialResultToken != null) {
-      __result['partialResultToken'] = partialResultToken;
+      result['partialResultToken'] = partialResultToken;
     }
-    __result['query'] = query;
+    result['query'] = query;
     if (workDoneToken != null) {
-      __result['workDoneToken'] = workDoneToken;
+      result['workDoneToken'] = workDoneToken;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -45500,14 +45498,14 @@ class WorkspaceSymbolRegistrationOptions
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
+    var result = <String, Object?>{};
     if (resolveProvider != null) {
-      __result['resolveProvider'] = resolveProvider;
+      result['resolveProvider'] = resolveProvider;
     }
     if (workDoneProgress != null) {
-      __result['workDoneProgress'] = workDoneProgress;
+      result['workDoneProgress'] = workDoneProgress;
     }
-    return __result;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
@@ -45614,12 +45612,12 @@ class WorkspaceUnchangedDocumentDiagnosticReport
   final int? version;
 
   Map<String, Object?> toJson() {
-    var __result = <String, Object?>{};
-    __result['kind'] = kind;
-    __result['resultId'] = resultId;
-    __result['uri'] = uri;
-    __result['version'] = version;
-    return __result;
+    var result = <String, Object?>{};
+    result['kind'] = kind;
+    result['resultId'] = resultId;
+    result['uri'] = uri;
+    result['version'] = version;
+    return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {

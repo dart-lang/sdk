@@ -167,7 +167,6 @@ String generatedFileHeader(int year, {bool importCustom = false}) => '''
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
 // ignore_for_file: annotate_overrides
-// ignore_for_file: no_leading_underscores_for_local_identifiers
 // ignore_for_file: prefer_is_not_operator
 // ignore_for_file: unnecessary_parenthesis
 
@@ -276,7 +275,7 @@ List<AstNode> getCustomClasses() {
       [
         field('code', type: 'ErrorCodes'),
         field('message', type: 'string'),
-        // This is Object? normally, but since this class can be serialised
+        // This is Object? normally, but since this class can be serialized
         // we will crash if it data is set to something that can't be converted to
         // JSON (for ex. Uri) so this forces anyone setting this to convert to a
         // String.
