@@ -8,8 +8,8 @@ class E0 extends core::_Enum /*isEnum*/  {
   final field core::int bar;
   static const field self::E0 one = const self::E0::•(0, "one", 1, bar: 1);
   static const field self::E0 two = const self::E0::•(1, "two", 2, bar: 2);
-  const constructor •(core::int index, core::String name, core::int foo, {required core::int bar = null}) → self::E0
-    : self::E0::foo = foo, self::E0::bar = bar, super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name, core::int foo, {required core::int bar = null}) → self::E0
+    : self::E0::foo = foo, self::E0::bar = bar, super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "E0.${this.{core::_Enum::_name}{core::String}}";
@@ -19,8 +19,8 @@ class E1<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   final field self::E1::X% foo;
   static const field self::E1<core::String> one = const self::E1::•<core::String>(0, "one", foo: "1");
   static const field self::E1<core::int> two = const self::E1::•<core::int>(1, "two", foo: 2);
-  const constructor •(core::int index, core::String name, {required self::E1::X% foo = null}) → self::E1<self::E1::X%>
-    : self::E1::foo = foo, super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name, {required self::E1::X% foo = null}) → self::E1<self::E1::X%>
+    : self::E1::foo = foo, super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
@@ -33,8 +33,8 @@ class E2<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, Z
   static const field self::E2<core::int, core::String, core::double> one = const self::E2::•<core::int, core::String, core::double>(0, "one", 1, bar: "1", baz: 3.14);
   static const field self::E2<core::String, core::int, core::double> two = const self::E2::•<core::String, core::int, core::double>(1, "two", "2", baz: 3.14, bar: 2);
   static const field self::E2<core::double, core::bool, dynamic> three = const self::E2::•<core::double, core::bool, dynamic>(2, "three", 3.0, bar: false);
-  const constructor •(core::int index, core::String name, self::E2::X% foo, {required self::E2::Y% bar = null, has-declared-initializer self::E2::Z? baz = null}) → self::E2<self::E2::X%, self::E2::Y%, self::E2::Z%>
-    : self::E2::foo = foo, self::E2::bar = bar, self::E2::baz = baz, super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name, self::E2::X% foo, {required self::E2::Y% bar = null, has-declared-initializer self::E2::Z? baz = null}) → self::E2<self::E2::X%, self::E2::Y%, self::E2::Z%>
+    : self::E2::foo = foo, self::E2::bar = bar, self::E2::baz = baz, super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";

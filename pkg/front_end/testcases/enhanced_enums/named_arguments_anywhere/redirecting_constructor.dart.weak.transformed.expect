@@ -11,17 +11,17 @@ class C extends core::_Enum /*isEnum*/  {
   static const field self::C d = #C13;
   static const field self::C e = #C16;
   static const field self::C f = #C19;
-  const constructor •(core::int index, core::String name, core::int x, core::int y, {core::int z = #C21}) → self::C
-    : self::C::log = "x=${x}, y=${y}, z=${z}", super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name, core::int x, core::int y, {core::int z = #C21}) → self::C
+    : self::C::log = "x=${x}, y=${y}, z=${z}", super core::_Enum::•(#index, #name)
     ;
-  const constructor named1(core::int index, core::String name, core::int x, core::int y, core::int z) → self::C
-    : this self::C::•(index, name, x, y, z: z)
+  const constructor named1(core::int #index, core::String #name, core::int x, core::int y, core::int z) → self::C
+    : this self::C::•(#index, #name, x, y, z: z)
     ;
-  const constructor named2(core::int index, core::String name, core::int x, core::int y, core::int z) → self::C
-    : final core::int #t1 = index, final core::String #t2 = name, final core::int #t3 = x, final core::int #t4 = z, this self::C::•(#t1, #t2, #t3, y, z: #t4)
+  const constructor named2(core::int #index, core::String #name, core::int x, core::int y, core::int z) → self::C
+    : final core::int #t1 = #index, final core::String #t2 = #name, final core::int #t3 = x, final core::int #t4 = z, this self::C::•(#t1, #t2, #t3, y, z: #t4)
     ;
-  const constructor named3(core::int index, core::String name, core::int x, core::int y, core::int z) → self::C
-    : final core::int #t5 = index, final core::String #t6 = name, final core::int #t7 = z, this self::C::•(#t5, #t6, x, y, z: #t7)
+  const constructor named3(core::int #index, core::String #name, core::int x, core::int y, core::int z) → self::C
+    : final core::int #t5 = #index, final core::String #t6 = #name, final core::int #t7 = z, this self::C::•(#t5, #t6, x, y, z: #t7)
     ;
   method toString() → core::String
     return "C.${this.{core::_Enum::_name}{core::String}}";

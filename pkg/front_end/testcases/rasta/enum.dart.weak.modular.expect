@@ -6,8 +6,8 @@ class Foo extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Foo*>* values = #C7;
   static const field self::Foo* ec1 = #C3;
   static const field self::Foo* ec2 = #C6;
-  const constructor •(core::int* index, core::String* name) → self::Foo*
-    : super core::_Enum::•(index, name)
+  const constructor •(core::int* #index, core::String* #name) → self::Foo*
+    : super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String*
     return "Foo.${this.{core::_Enum::_name}{core::String}}";

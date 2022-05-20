@@ -39,8 +39,8 @@ class E1 extends core::_Enum implements self::I /*isEnum*/  {
   static const field core::List<self::E1> values = #C7;
   static const field self::E1 one = #C3;
   static const field self::E1 two = #C6;
-  const constructor •(core::int index, core::String name) → self::E1
-    : super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self::E1
+    : super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
@@ -50,8 +50,8 @@ class E2 extends core::_Enum implements self::I /*isEnum*/  {
   static const field core::List<self::E2> values = #C10;
   static const field self::E2 one = #C8;
   static const field self::E2 two = #C9;
-  const constructor •(core::int index, core::String name) → self::E2
-    : super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self::E2
+    : super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
@@ -60,8 +60,8 @@ class E3 extends core::_Enum implements self::I /*isEnum*/  {
   static const field core::List<self::E3> values = #C13;
   static const field self::E3 one = #C11;
   static const field self::E3 two = #C12;
-  const constructor •(core::int index, core::String name) → self::E3
-    : super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self::E3
+    : super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
@@ -71,8 +71,8 @@ class E4 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E4> values = #C16;
   static const field self::E4 one = #C14;
   static const field self::E4 two = #C15;
-  const constructor •(core::int index, core::String name) → self::E4
-    : super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self::E4
+    : super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "E4.${this.{core::_Enum::_name}{core::String}}";

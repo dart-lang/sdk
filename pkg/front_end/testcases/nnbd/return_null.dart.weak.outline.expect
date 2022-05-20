@@ -9,8 +9,8 @@ class Enum extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Enum> values = const <self::Enum>[self::Enum::a, self::Enum::b];
   static const field self::Enum a = const self::Enum::•(0, "a");
   static const field self::Enum b = const self::Enum::•(1, "b");
-  const constructor •(core::int index, core::String name) → self::Enum
-    : super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self::Enum
+    : super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "Enum.${this.{core::_Enum::_name}{core::String}}";

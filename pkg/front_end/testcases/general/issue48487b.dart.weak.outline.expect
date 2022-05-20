@@ -18,8 +18,8 @@ class T extends core::_Enum /*isEnum*/  {
   static const field self::T t = invalid-expression "pkg/front_end/testcases/general/issue48487b.dart:8:3: Error: Couldn't find constructor 'T'.
   t;
   ^";
-  const constructor named(core::int index, core::String name) → self::T
-    : super core::_Enum::•(index, name)
+  const constructor named(core::int #index, core::String #name) → self::T
+    : super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "T.${this.{core::_Enum::_name}{core::String}}";

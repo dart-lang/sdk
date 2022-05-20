@@ -16,8 +16,8 @@ import "dart:core" as core;
 class T extends core::_Enum /*isEnum*/  {
   static const field core::List<self::T> values = const <self::T>[self::T::t];
   static const field self::T t = const self::T::•(0, "t");
-  const constructor •(core::int index, core::String name) → self::T
-    : super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self::T
+    : super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "T.${this.{core::_Enum::_name}{core::String}}";

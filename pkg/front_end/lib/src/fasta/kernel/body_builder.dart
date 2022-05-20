@@ -1956,8 +1956,8 @@ class BodyBuilder extends StackListenerImpl
       }
       if (sourceClassBuilder is SourceEnumBuilder) {
         assert(constructor.function.positionalParameters.length >= 2 &&
-            constructor.function.positionalParameters[0].name == "index" &&
-            constructor.function.positionalParameters[1].name == "name");
+            constructor.function.positionalParameters[0].name == "#index" &&
+            constructor.function.positionalParameters[1].name == "#name");
         (positionalArguments ??= <Expression>[]).insertAll(0, [
           new VariableGetImpl(constructor.function.positionalParameters[0],
               forNullGuardedAccess: false),

@@ -32,8 +32,8 @@ class E1 extends self::_E1&_Enum&A /*isEnum*/  {
   static const field core::List<self::E1> values = #C7;
   static const field self::E1 one = #C3;
   static const field self::E1 two = #C6;
-  const constructor •(core::int index, core::String name) → self::E1
-    : super self::_E1&_Enum&A::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self::E1
+    : super self::_E1&_Enum&A::•(#index, #name)
     ;
   method toString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
@@ -56,8 +56,8 @@ class E2 extends self::_E2&_Enum&A&B /*isEnum*/  {
   static const field core::List<self::E2> values = #C10;
   static const field self::E2 one = #C8;
   static const field self::E2 two = #C9;
-  const constructor •(core::int index, core::String name) → self::E2
-    : super self::_E2&_Enum&A&B::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self::E2
+    : super self::_E2&_Enum&A&B::•(#index, #name)
     ;
   method toString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
@@ -73,8 +73,8 @@ class E3 extends self::_E3&_Enum&M /*isEnum*/  {
   static const field core::List<self::E3> values = #C13;
   static const field self::E3 one = #C11;
   static const field self::E3 two = #C12;
-  const constructor •(core::int index, core::String name) → self::E3
-    : super self::_E3&_Enum&M::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self::E3
+    : super self::_E3&_Enum&M::•(#index, #name)
     ;
   method toString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";

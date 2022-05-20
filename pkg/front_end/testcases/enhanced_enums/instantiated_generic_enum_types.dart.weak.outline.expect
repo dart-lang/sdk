@@ -7,8 +7,8 @@ class E<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   final field self::E::X% field;
   static const field self::E<core::int> one = const self::E::•<core::int>(0, "one", 1);
   static const field self::E<core::String> two = const self::E::•<core::String>(1, "two", "2");
-  const constructor •(core::int index, core::String name, self::E::X% field) → self::E<self::E::X%>
-    : self::E::field = field, super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name, self::E::X% field) → self::E<self::E::X%>
+    : self::E::field = field, super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
