@@ -86,6 +86,7 @@ import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
+import '../source/source_member_builder.dart';
 import '../source/source_procedure_builder.dart';
 import '../source/stack_listener_impl.dart'
     show StackListenerImpl, offsetForToken;
@@ -5766,6 +5767,25 @@ class BodyBuilder extends StackListenerImpl
       push(new IncompleteErrorGenerator(
           this, token, fasta.messageSuperAsIdentifier));
     }
+  }
+
+  @override
+  void handleAugmentSuperExpression(
+      Token augmentToken, Token superToken, IdentifierContext context) {
+    debugEvent("AugmentSuperExpression");
+    if (member is SourceMemberBuilder) {
+      SourceMemberBuilder sourceMemberBuilder = member as SourceMemberBuilder;
+      if (sourceMemberBuilder.isAugmentation) {
+        // TODO(johnniwinther): Implement augment super handling.
+        int fileOffset = augmentToken.charOffset;
+        push(forest.createAsExpression(fileOffset,
+            forest.createNullLiteral(fileOffset), const DynamicType(),
+            forNonNullableByDefault: libraryBuilder.isNonNullableByDefault));
+        return;
+      }
+    }
+    push(new IncompleteErrorGenerator(
+        this, augmentToken, fasta.messageInvalidAugmentSuper));
   }
 
   @override

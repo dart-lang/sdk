@@ -1,0 +1,109 @@
+NOTICE: Stream was rewritten by parser!
+
+augment ;void topLevelMethod() {
+augment super;(*synthetic*);
+}
+
+augment ;void topLevelMethodError() {
+augment int ;local;
+augment;
+}
+
+
+augment List<int> (){}get topLevelProperty {
+return [... augment ,super, augment ,super[0]];
+}
+
+augment ;void set topLevelProperty(List<int> value) {
+augment super;[0] = value[1];
+augment super = value;
+}
+
+void injectedTopLevelMethod() {
+augment super;(*synthetic*);
+augment super;
+augment int ;local;
+augment;
+}
+
+augment ;class Class {
+augment ;void instanceMethod() {
+augment super;(*synthetic*);
+}
+
+augment ;void instanceMethodErrors() {
+augment int ;local;
+augment;
+}
+
+augment int ;get instanceProperty {
+augment super;++*synthetic*;
+--augment ;super;
+return -augment ;super;
+}
+
+augment ;void set instanceProperty(int value) {
+augment super = value;
+}
+
+void injectedInstanceMethod() {
+augment super;(*synthetic*);
+augment super;
+augment int ;local;
+augment;
+}
+}
+
+augment[StringToken] ;[SyntheticToken]void[KeywordToken] topLevelMethod[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+augment[StringToken] super[KeywordToken];[SyntheticToken]([BeginToken][SyntheticStringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+augment[StringToken] ;[SyntheticToken]void[KeywordToken] topLevelMethodError[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+augment[StringToken] int[StringToken] ;[SyntheticToken]local[StringToken];[SimpleToken]
+augment[StringToken];[SimpleToken]
+}[SimpleToken]
+
+
+augment[StringToken] List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken] ([SyntheticBeginToken])[SyntheticToken]{[SyntheticBeginToken]}[SyntheticToken]get[KeywordToken] topLevelProperty[StringToken] {[BeginToken]
+return[KeywordToken] [[BeginToken]...[SimpleToken] augment[StringToken] ,[SyntheticToken]super[KeywordToken],[SimpleToken] augment[StringToken] ,[SyntheticToken]super[KeywordToken][[BeginToken]0[StringToken]][SimpleToken]][SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+augment[StringToken] ;[SyntheticToken]void[KeywordToken] set[KeywordToken] topLevelProperty[StringToken]([BeginToken]List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken] value[StringToken])[SimpleToken] {[BeginToken]
+augment[StringToken] super[KeywordToken];[SyntheticToken][[BeginToken]0[StringToken]][SimpleToken] =[SimpleToken] value[StringToken][[BeginToken]1[StringToken]][SimpleToken];[SimpleToken]
+augment[StringToken] super[KeywordToken] =[SimpleToken] value[StringToken];[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] injectedTopLevelMethod[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+augment[StringToken] super[KeywordToken];[SyntheticToken]([BeginToken][SyntheticStringToken])[SimpleToken];[SimpleToken]
+augment[StringToken] super[KeywordToken];[SimpleToken]
+augment[StringToken] int[StringToken] ;[SyntheticToken]local[StringToken];[SimpleToken]
+augment[StringToken];[SimpleToken]
+}[SimpleToken]
+
+augment[StringToken] ;[SyntheticToken]class[KeywordToken] Class[StringToken] {[BeginToken]
+augment[StringToken] ;[SyntheticToken]void[KeywordToken] instanceMethod[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+augment[StringToken] super[KeywordToken];[SyntheticToken]([BeginToken][SyntheticStringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+augment[StringToken] ;[SyntheticToken]void[KeywordToken] instanceMethodErrors[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+augment[StringToken] int[StringToken] ;[SyntheticToken]local[StringToken];[SimpleToken]
+augment[StringToken];[SimpleToken]
+}[SimpleToken]
+
+augment[StringToken] int[StringToken] ;[SyntheticToken]get[KeywordToken] instanceProperty[StringToken] {[BeginToken]
+augment[StringToken] super[KeywordToken];[SyntheticToken]++[SimpleToken][SyntheticStringToken];[SimpleToken]
+--[SimpleToken]augment[StringToken] ;[SyntheticToken]super[KeywordToken];[SimpleToken]
+return[KeywordToken] -[SimpleToken]augment[StringToken] ;[SyntheticToken]super[KeywordToken];[SimpleToken]
+}[SimpleToken]
+
+augment[StringToken] ;[SyntheticToken]void[KeywordToken] set[KeywordToken] instanceProperty[StringToken]([BeginToken]int[StringToken] value[StringToken])[SimpleToken] {[BeginToken]
+augment[StringToken] super[KeywordToken] =[SimpleToken] value[StringToken];[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] injectedInstanceMethod[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+augment[StringToken] super[KeywordToken];[SyntheticToken]([BeginToken][SyntheticStringToken])[SimpleToken];[SimpleToken]
+augment[StringToken] super[KeywordToken];[SimpleToken]
+augment[StringToken] int[StringToken] ;[SyntheticToken]local[StringToken];[SimpleToken]
+augment[StringToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken][SimpleToken]

@@ -6333,6 +6333,15 @@ const MessageCode messageInterpolationInUri = const MessageCode(
     problemMessage: r"""Can't use string interpolation in a URI.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidAugmentSuper = messageInvalidAugmentSuper;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidAugmentSuper = const MessageCode(
+    "InvalidAugmentSuper",
+    problemMessage:
+        r"""'augment super' is only allowed in member augmentations.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidAwaitFor = messageInvalidAwaitFor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -490,6 +490,8 @@ InterfaceCheck/example: Fail
 InterpolationInUri/example: Fail
 InvalidAssignmentWarning/analyzerCode: Fail
 InvalidAssignmentWarning/example: Fail
+InvalidAugmentSuper/analyzerCode: Fail
+InvalidAugmentSuper/example: Fail
 InvalidBreakTarget/analyzerCode: Fail
 InvalidBreakTarget/example: Fail
 InvalidCastFunctionExpr/example: Fail

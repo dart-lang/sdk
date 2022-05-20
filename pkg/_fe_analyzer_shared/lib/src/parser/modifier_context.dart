@@ -227,6 +227,7 @@ class ModifierContext {
     reportExtraneousModifier(externalToken);
     reportExtraneousModifier(requiredToken);
     reportExtraneousModifier(staticToken);
+    reportExtraneousModifier(augmentToken);
     return token;
   }
 

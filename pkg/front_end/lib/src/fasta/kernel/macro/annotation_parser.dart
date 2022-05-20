@@ -1968,6 +1968,12 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handleAugmentSuperExpression(
+      Token augmentToken, Token superToken, IdentifierContext context) {
+    _unsupported();
+  }
+
+  @override
   void handleSymbolVoid(Token token) {
     _unhandled();
   }

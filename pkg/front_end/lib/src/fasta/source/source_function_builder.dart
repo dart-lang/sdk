@@ -119,7 +119,7 @@ abstract class SourceFunctionBuilder
 
   void becomeNative(SourceLoader loader);
 
-  bool checkPatch(FunctionBuilder patch);
+  bool checkPatch(SourceFunctionBuilder patch);
 
   void reportPatchMismatch(Builder patch);
 }
@@ -492,8 +492,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  bool checkPatch(FunctionBuilder patch) {
-    if (!isExternal) {
+  bool checkPatch(SourceFunctionBuilder patch) {
+    if (!isExternal && !patch.libraryBuilder.isAugmentation) {
       patch.libraryBuilder.addProblem(
           messagePatchNonExternal, patch.charOffset, noLength, patch.fileUri!,
           context: [
