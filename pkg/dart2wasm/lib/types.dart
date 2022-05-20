@@ -117,27 +117,24 @@ class Types {
     throw "Unexpected DartType: $type";
   }
 
-  void _makeTypeList(
-      CodeGenerator codeGen, List<DartType> types, TreeNode node) {
+  void _makeTypeList(CodeGenerator codeGen, List<DartType> types) {
     w.ValueType listType = codeGen.makeList(
         types.map((t) => TypeLiteral(t)).toList(),
         translator.fixedLengthListClass,
-        InterfaceType(translator.typeClass, Nullability.nonNullable),
-        node);
+        InterfaceType(translator.typeClass, Nullability.nonNullable));
     translator.convertType(codeGen.function, listType, typeListExpectedType);
   }
 
-  void _makeInterfaceType(CodeGenerator codeGen, ClassInfo info,
-      InterfaceType type, TreeNode node) {
+  void _makeInterfaceType(
+      CodeGenerator codeGen, ClassInfo info, InterfaceType type) {
     w.Instructions b = codeGen.b;
     ClassInfo typeInfo = translator.classInfo[type.classNode]!;
     encodeNullability(b, type);
     b.i64_const(typeInfo.classId);
-    _makeTypeList(codeGen, type.typeArguments, node);
+    _makeTypeList(codeGen, type.typeArguments);
   }
 
-  void _makeFutureOrType(
-      CodeGenerator codeGen, FutureOrType type, TreeNode node) {
+  void _makeFutureOrType(CodeGenerator codeGen, FutureOrType type) {
     w.Instructions b = codeGen.b;
     w.DefinedFunction function = codeGen.function;
 
@@ -146,7 +143,7 @@ class Types {
     // undetermined nullability. To handle this, we emit the type argument, and
     // read back its nullability at runtime.
     if (type.nullability == Nullability.undetermined) {
-      w.ValueType typeArgumentType = makeType(codeGen, type.typeArgument, node);
+      w.ValueType typeArgumentType = makeType(codeGen, type.typeArgument);
       w.Local typeArgumentTemporary = codeGen.addLocal(typeArgumentType);
       b.local_tee(typeArgumentTemporary);
       b.struct_get(typeClassInfo.struct, FieldIndex.typeIsNullable);
@@ -154,15 +151,15 @@ class Types {
       translator.convertType(function, typeArgumentType, nonNullableTypeType);
     } else {
       encodeNullability(b, type);
-      makeType(codeGen, type.typeArgument, node);
+      makeType(codeGen, type.typeArgument);
     }
   }
 
   void _makeFunctionType(
-      CodeGenerator codeGen, ClassInfo info, FunctionType type, TreeNode node) {
+      CodeGenerator codeGen, ClassInfo info, FunctionType type) {
     w.Instructions b = codeGen.b;
     encodeNullability(b, type);
-    makeType(codeGen, type.returnType, node);
+    makeType(codeGen, type.returnType);
     if (type.positionalParameters.every(_isTypeConstant)) {
       translator.constants.instantiateConstant(
           codeGen.function,
@@ -170,7 +167,7 @@ class Types {
           translator.constants.makeTypeList(type.positionalParameters),
           typeListExpectedType);
     } else {
-      _makeTypeList(codeGen, type.positionalParameters, node);
+      _makeTypeList(codeGen, type.positionalParameters);
     }
     b.i64_const(type.requiredParameterCount);
     if (type.namedParameters.every((n) => _isTypeConstant(n.type))) {
@@ -197,8 +194,8 @@ class Types {
                   BoolLiteral(n.isRequired)
                 ])));
       }
-      w.ValueType namedParametersListType = codeGen.makeList(expressions,
-          translator.fixedLengthListClass, namedParameterType, node);
+      w.ValueType namedParametersListType = codeGen.makeList(
+          expressions, translator.fixedLengthListClass, namedParameterType);
       translator.convertType(codeGen.function, namedParametersListType,
           namedParametersExpectedType);
     }
@@ -207,7 +204,7 @@ class Types {
   /// Makes a `_Type` object on the stack.
   /// TODO(joshualitt): Refactor this logic to remove the dependency on
   /// CodeGenerator.
-  w.ValueType makeType(CodeGenerator codeGen, DartType type, TreeNode node) {
+  w.ValueType makeType(CodeGenerator codeGen, DartType type) {
     w.Instructions b = codeGen.b;
     if (_isTypeConstant(type)) {
       translator.constants.instantiateConstant(
@@ -221,38 +218,16 @@ class Types {
         type is FutureOrType ||
         type is FunctionType);
     if (type is TypeParameterType) {
-      if (type.parameter.parent is FunctionNode) {
-        // Type argument to function
-        w.Local? local = codeGen.typeLocals[type.parameter];
-        if (local != null) {
-          b.local_get(local);
-          translator.convertType(
-              codeGen.function, local.type, nonNullableTypeType);
-          return nonNullableTypeType;
-        } else {
-          codeGen.unimplemented(node, "Type parameter access inside lambda",
-              [nonNullableTypeType]);
-          return nonNullableTypeType;
-        }
-      }
-      // Type argument of class
-      Class cls = type.parameter.parent as Class;
-      ClassInfo info = translator.classInfo[cls]!;
-      int fieldIndex = translator.typeParameterIndex[type.parameter]!;
-      w.ValueType thisType = codeGen.visitThis(info.nonNullableType);
-      translator.convertType(codeGen.function, thisType, info.nonNullableType);
-      b.struct_get(info.struct, fieldIndex);
-      b.ref_as_non_null();
-      return nonNullableTypeType;
+      return codeGen.instantiateTypeParameter(type.parameter);
     }
     ClassInfo info = translator.classInfo[classForType(type)]!;
     translator.functions.allocateClass(info.classId);
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
     if (type is InterfaceType) {
-      _makeInterfaceType(codeGen, info, type, node);
+      _makeInterfaceType(codeGen, info, type);
     } else if (type is FutureOrType) {
-      _makeFutureOrType(codeGen, type, node);
+      _makeFutureOrType(codeGen, type);
     } else if (type is FunctionType) {
       if (isGenericFunction(type)) {
         // TODO(joshualitt): Implement generic function types and share most of
@@ -260,7 +235,7 @@ class Types {
         print("Not implemented: RTI ${type}");
         encodeNullability(b, type);
       } else {
-        _makeFunctionType(codeGen, info, type, node);
+        _makeFunctionType(codeGen, info, type);
       }
     } else {
       throw '`$type` should have already been handled.';

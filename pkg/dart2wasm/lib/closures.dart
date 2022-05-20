@@ -47,6 +47,9 @@ class Context {
   /// The variables captured by this context.
   final List<VariableDeclaration> variables = [];
 
+  /// The type parameters captured by this context.
+  final List<TypeParameter> typeParameters = [];
+
   /// Whether this context contains a captured `this`. Only member contexts can.
   bool containsThis = false;
 
@@ -57,7 +60,8 @@ class Context {
   /// generation.
   late w.Local currentLocal;
 
-  bool get isEmpty => variables.isEmpty && !containsThis;
+  bool get isEmpty =>
+      variables.isEmpty && typeParameters.isEmpty && !containsThis;
 
   int get parentFieldIndex {
     assert(parent != null);
@@ -74,7 +78,7 @@ class Context {
 
 /// A captured variable.
 class Capture {
-  final VariableDeclaration variable;
+  final TreeNode variable;
   late final Context context;
   late final int fieldIndex;
   bool written = false;
@@ -88,7 +92,7 @@ class Capture {
 /// tree for a member.
 class Closures {
   final CodeGenerator codeGen;
-  final Map<VariableDeclaration, Capture> captures = {};
+  final Map<TreeNode, Capture> captures = {};
   bool isThisCaptured = false;
   final Map<FunctionNode, Lambda> lambdas = {};
   final Map<TreeNode, Context> contexts = {};
@@ -97,6 +101,9 @@ class Closures {
   Closures(this.codeGen);
 
   Translator get translator => codeGen.translator;
+
+  late final w.ValueType typeType =
+      translator.classInfo[translator.typeClass]!.nullableType;
 
   void findCaptures(Member member) {
     var find = CaptureFinder(this, member);
@@ -144,6 +151,11 @@ class Closures {
               translator.translateType(variable.type).withNullability(true)));
           captures[variable]!.fieldIndex = index;
         }
+        for (TypeParameter parameter in context.typeParameters) {
+          int index = struct.fields.length;
+          struct.fields.add(w.FieldType(typeType));
+          captures[parameter]!.fieldIndex = index;
+        }
       }
     }
   }
@@ -152,7 +164,7 @@ class Closures {
 class CaptureFinder extends RecursiveVisitor {
   final Closures closures;
   final Member member;
-  final Map<VariableDeclaration, int> variableDepth = {};
+  final Map<TreeNode, int> variableDepth = {};
   int depth = 0;
 
   CaptureFinder(this.closures, this.member);
@@ -170,12 +182,23 @@ class CaptureFinder extends RecursiveVisitor {
     super.visitVariableDeclaration(node);
   }
 
-  void _visitVariableUse(VariableDeclaration variable) {
+  @override
+  void visitTypeParameter(TypeParameter node) {
+    if (node.parent is FunctionNode) {
+      if (depth > 0) {
+        variableDepth[node] = depth;
+      }
+    }
+    super.visitTypeParameter(node);
+  }
+
+  void _visitVariableUse(TreeNode variable) {
     int declDepth = variableDepth[variable] ?? 0;
     assert(declDepth <= depth);
     if (declDepth < depth) {
       closures.captures[variable] = Capture(variable);
-    } else if (variable.parent is FunctionDeclaration) {
+    } else if (variable is VariableDeclaration &&
+        variable.parent is FunctionDeclaration) {
       closures.closurizedFunctions.add(variable.parent as FunctionDeclaration);
     }
   }
@@ -213,13 +236,20 @@ class CaptureFinder extends RecursiveVisitor {
   void visitTypeParameterType(TypeParameterType node) {
     if (node.parameter.parent == member.enclosingClass) {
       _visitThis();
+    } else if (node.parameter.parent is FunctionNode) {
+      _visitVariableUse(node.parameter);
     }
+    super.visitTypeParameterType(node);
   }
 
   void _visitLambda(FunctionNode node) {
     if (node.positionalParameters.length != node.requiredParameterCount ||
         node.namedParameters.isNotEmpty) {
       throw "Not supported: Optional parameters for "
+          "function expression or local function at ${node.location}";
+    }
+    if (node.typeParameters.isNotEmpty) {
+      throw "Not supported: Type parameters for "
           "function expression or local function at ${node.location}";
     }
     int parameterCount = node.requiredParameterCount;
@@ -308,6 +338,16 @@ class ContextCollector extends RecursiveVisitor {
       capture.context = currentContext!;
     }
     super.visitVariableDeclaration(node);
+  }
+
+  @override
+  void visitTypeParameter(TypeParameter node) {
+    Capture? capture = closures.captures[node];
+    if (capture != null) {
+      currentContext!.typeParameters.add(node);
+      capture.context = currentContext!;
+    }
+    super.visitTypeParameter(node);
   }
 
   @override
