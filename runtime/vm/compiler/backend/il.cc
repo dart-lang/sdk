@@ -2405,6 +2405,12 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
                 new Range(RangeBoundary::FromConstant(shift_amount),
                           RangeBoundary::FromConstant(shift_amount)));
           }
+          if (!MayThrow()) {
+            ASSERT(!shift->MayThrow());
+          }
+          if (!CanDeoptimize()) {
+            ASSERT(!shift->CanDeoptimize());
+          }
           flow_graph->InsertBefore(this, shift, env(), FlowGraph::kValue);
           return shift;
         }
