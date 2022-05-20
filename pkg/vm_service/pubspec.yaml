@@ -12,14 +12,12 @@ environment:
 dependencies:
 
 dev_dependencies:
-  async: ^2.5.0
+  async: any
   expect: any
   lints: any
-  markdown: ^5.0.0
+  markdown: any
   mockito: any
-  path: ^1.8.0
-  process: ^4.0.0
-  pub_semver: ^2.0.0
-  test: ^1.16.0
-  test_package:
-    path: 'test/test_package'
+  path: any
+  pub_semver: any
+  test: any
+  test_package: any
