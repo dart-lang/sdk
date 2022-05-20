@@ -43,21 +43,6 @@ String cleanComment(String comment) {
   return comment.trim();
 }
 
-/// Improves comments in generated code to support where types may have been
-/// altered (for ex. with [getImprovedType] above).
-String? getImprovedComment(String interfaceName, String fieldName) {
-  const improvedComments = <String, Map<String, String>>{
-    'ResponseError': {
-      'data':
-          '// A string that contains additional information about the error. Can be omitted.',
-    },
-  };
-
-  final interface = improvedComments[interfaceName];
-
-  return interface != null ? interface[fieldName] : null;
-}
-
 /// Improves types in generated code, including:
 ///
 /// - Fixes up some enum types that are not as specific as they could be in the
@@ -96,22 +81,6 @@ String? getImprovedType(String interfaceName, String? fieldName) {
     'FoldingRange': {
       'kind': 'FoldingRangeKind',
     },
-    'ResponseError': {
-      'code': 'ErrorCodes',
-      // This is Object? normally, but since this class can be serialised
-      // we will crash if it data is set to something that can't be converted to
-      // JSON (for ex. Uri) so this forces anyone setting this to convert to a
-      // String.
-      'data': 'String',
-    },
-    'NotificationMessage': {
-      'method': 'Method',
-      'params': 'object',
-    },
-    'RequestMessage': {
-      'method': 'Method',
-      'params': 'object',
-    },
     'SymbolInformation': {
       'kind': 'SymbolKind',
     },
@@ -134,26 +103,30 @@ String? getImprovedType(String interfaceName, String? fieldName) {
   return interface != null ? interface[fieldName] : null;
 }
 
-List<String> getSpecialBaseTypes(Interface interface) {
-  if (interface.name == 'RequestMessage' ||
-      interface.name == 'NotificationMessage') {
-    return ['IncomingMessage'];
-  } else {
-    return [];
-  }
-}
-
 /// Removes types that are in the spec that we don't want to emit.
 bool includeTypeDefinitionInOutput(AstNode node) {
-  // InitializeError is not used for v3.0 (Feb 2017) and by dropping it we don't
-  // have to handle any cases where both a namespace and interfaces are declared
-  // with the same name.
-  return node.name != 'InitializeError' &&
-      // We don't use `InitializeErrorCodes` as it contains only one error code
-      // that has been deprecated and we've never used.
-      node.name != 'InitializeErrorCodes' &&
-      // We don't emit MarkedString because it gets mapped to a simple String
-      // when getting the .dartType for it.
-      // .startsWith() because there are inline types that will be generated.
-      !node.name.startsWith('MarkedString');
+  const ignoredTypes = {
+    // InitializeError is not used for v3.0 (Feb 2017) and by dropping it we don't
+    // have to handle any cases where both a namespace and interfaces are declared
+    // with the same name.
+    'InitializeError',
+    // We don't use `InitializeErrorCodes` as it contains only one error code
+    // that has been deprecated and we've never used.
+    'InitializeErrorCodes',
+    // Handled in custom classes now in preperation for JSON meta model which
+    // does not specify them.
+    'Message',
+    'RequestMessage',
+    'NotificationMessage',
+    'ResponseMessage',
+    'ResponseError',
+  };
+  const ignoredPrefixes = {
+    // We don't emit MarkedString because it gets mapped to a simple String
+    // when getting the .dartType for it.
+    'MarkedString'
+  };
+  final shouldIgnore = ignoredTypes.contains(node.name) ||
+      ignoredPrefixes.any((ignore) => node.name.startsWith(ignore));
+  return !shouldIgnore;
 }

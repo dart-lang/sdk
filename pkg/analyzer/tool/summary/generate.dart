@@ -183,8 +183,7 @@ class _BuilderGenerator extends _BaseGenerator {
   final idl_model.ClassDeclaration cls;
   List<String> constructorParams = <String>[];
 
-  _BuilderGenerator(idl_model.Idl idl, StringBuffer outBuffer, this.cls)
-      : super(idl, outBuffer);
+  _BuilderGenerator(super.idl, super.outBuffer, this.cls);
 
   String get builderName => '${name}Builder';
 
@@ -807,8 +806,7 @@ class _CodeGenerator {
 class _EnumReaderGenerator extends _BaseGenerator {
   final idl_model.EnumDeclaration enum_;
 
-  _EnumReaderGenerator(idl_model.Idl idl, StringBuffer outBuffer, this.enum_)
-      : super(idl, outBuffer);
+  _EnumReaderGenerator(super.idl, super.outBuffer, this.enum_);
 
   void generate() {
     String name = enum_.name;
@@ -835,8 +833,7 @@ class _EnumReaderGenerator extends _BaseGenerator {
 }
 
 class _FlatBufferSchemaGenerator extends _BaseGenerator {
-  _FlatBufferSchemaGenerator(idl_model.Idl idl, StringBuffer outBuffer)
-      : super(idl, outBuffer);
+  _FlatBufferSchemaGenerator(super.idl, super.outBuffer);
 
   void generate() {
     for (idl_model.EnumDeclaration enm in _idl.enums.values) {
@@ -928,8 +925,7 @@ class _FlatBufferSchemaGenerator extends _BaseGenerator {
 class _ImplGenerator extends _BaseGenerator {
   final idl_model.ClassDeclaration cls;
 
-  _ImplGenerator(idl_model.Idl idl, StringBuffer outBuffer, this.cls)
-      : super(idl, outBuffer);
+  _ImplGenerator(super.idl, super.outBuffer, this.cls);
 
   void generate() {
     String name = cls.name;
@@ -1036,8 +1032,7 @@ class _ImplGenerator extends _BaseGenerator {
 class _MixinGenerator extends _BaseGenerator {
   final idl_model.ClassDeclaration cls;
 
-  _MixinGenerator(idl_model.Idl idl, StringBuffer outBuffer, this.cls)
-      : super(idl, outBuffer);
+  _MixinGenerator(super.idl, super.outBuffer, this.cls);
 
   void generate() {
     String name = cls.name;
@@ -1126,8 +1121,7 @@ class _MixinGenerator extends _BaseGenerator {
 class _ReaderGenerator extends _BaseGenerator {
   final idl_model.ClassDeclaration cls;
 
-  _ReaderGenerator(idl_model.Idl idl, StringBuffer outBuffer, this.cls)
-      : super(idl, outBuffer);
+  _ReaderGenerator(super.idl, super.outBuffer, this.cls);
 
   void generateReader() {
     String name = cls.name;

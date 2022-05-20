@@ -2420,6 +2420,16 @@ void KernelReaderHelper::SkipExpression() {
       SkipName();        // read name.
       SkipExpression();  // read value.
       return;
+    case kAbstractSuperPropertyGet:
+      // Abstract super property getters must be converted into super property
+      // getters during mixin transformation.
+      UNREACHABLE();
+      break;
+    case kAbstractSuperPropertySet:
+      // Abstract super property setters must be converted into super property
+      // setters during mixin transformation.
+      UNREACHABLE();
+      break;
     case kSuperPropertyGet:
       ReadPosition();                      // read position.
       SkipName();                          // read name.
@@ -2482,6 +2492,11 @@ void KernelReaderHelper::SkipExpression() {
       ReadPosition();    // read position.
       SkipExpression();  // read expression.
       return;
+    case kAbstractSuperMethodInvocation:
+      // Abstract super method invocations must be converted into super
+      // method invocations during mixin transformation.
+      UNREACHABLE();
+      break;
     case kSuperMethodInvocation:
       ReadPosition();                      // read position.
       SkipName();                          // read name.

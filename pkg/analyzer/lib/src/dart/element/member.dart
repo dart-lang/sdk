@@ -138,12 +138,12 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   /// their bounds.  The [substitution] includes replacing [declaration] type
   /// parameters with the provided fresh [typeParameters].
   ExecutableMember(
-    TypeProviderImpl? typeProvider,
-    ExecutableElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
+    super.typeProvider,
+    ExecutableElement super.declaration,
+    super.substitution,
+    super.isLegacy,
     this.typeParameters,
-  ) : super(typeProvider, declaration, substitution, isLegacy);
+  );
 
   @override
   ExecutableElement get declaration => super.declaration as ExecutableElement;
@@ -286,18 +286,12 @@ class FieldFormalParameterMember extends ParameterMember
   }
 
   FieldFormalParameterMember._(
-    TypeProviderImpl? typeProvider,
-    FieldFormalParameterElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-    List<TypeParameterElement> typeParameters,
-  ) : super._(
-          typeProvider,
-          declaration,
-          substitution,
-          isLegacy,
-          typeParameters,
-        );
+    super.typeProvider,
+    FieldFormalParameterElement super.declaration,
+    super.substitution,
+    super.isLegacy,
+    super.typeParameters,
+  ) : super._();
 
   @override
   FieldElement? get field {
@@ -326,11 +320,11 @@ class FieldMember extends VariableMember implements FieldElement {
   /// Initialize a newly created element to represent a field, based on the
   /// [declaration], with applied [substitution].
   FieldMember(
-    TypeProviderImpl? typeProvider,
-    FieldElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-  ) : super(typeProvider, declaration, substitution, isLegacy);
+    super.typeProvider,
+    FieldElement super.declaration,
+    super.substitution,
+    super.isLegacy,
+  );
 
   @override
   FieldElement get declaration => super.declaration as FieldElement;
@@ -752,12 +746,12 @@ class MethodMember extends ExecutableMember implements MethodElement {
   }
 
   MethodMember._(
-    TypeProviderImpl? typeProvider,
-    MethodElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-    List<TypeParameterElement> typeParameters,
-  ) : super(typeProvider, declaration, substitution, isLegacy, typeParameters);
+    super.typeProvider,
+    MethodElement super.declaration,
+    super.substitution,
+    super.isLegacy,
+    super.typeParameters,
+  );
 
   @override
   MethodElement get declaration => super.declaration as MethodElement;
@@ -833,12 +827,12 @@ class ParameterMember extends VariableMember
   /// Initialize a newly created element to represent a parameter, based on the
   /// [declaration], with applied [substitution].
   ParameterMember._(
-    TypeProviderImpl? typeProvider,
-    ParameterElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
+    super.typeProvider,
+    ParameterElement super.declaration,
+    super.substitution,
+    super.isLegacy,
     this.typeParameters,
-  ) : super(typeProvider, declaration, substitution, isLegacy);
+  );
 
   @override
   ParameterElement get declaration => super.declaration as ParameterElement;
@@ -953,12 +947,12 @@ class PropertyAccessorMember extends ExecutableMember
   }
 
   PropertyAccessorMember._(
-    TypeProviderImpl? typeProvider,
-    PropertyAccessorElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-    List<TypeParameterElement> typeParameters,
-  ) : super(typeProvider, declaration, substitution, isLegacy, typeParameters);
+    super.typeProvider,
+    PropertyAccessorElement super.declaration,
+    super.substitution,
+    super.isLegacy,
+    super.typeParameters,
+  );
 
   @override
   PropertyAccessorElement? get correspondingGetter {
@@ -1064,18 +1058,12 @@ class SuperFormalParameterMember extends ParameterMember
   }
 
   SuperFormalParameterMember._(
-    TypeProviderImpl? typeProvider,
-    SuperFormalParameterElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-    List<TypeParameterElement> typeParameters,
-  ) : super._(
-          typeProvider,
-          declaration,
-          substitution,
-          isLegacy,
-          typeParameters,
-        );
+    super.typeProvider,
+    SuperFormalParameterElement super.declaration,
+    super.substitution,
+    super.isLegacy,
+    super.typeParameters,
+  ) : super._();
 
   @override
   bool get hasDefaultValue => declaration.hasDefaultValue;
@@ -1103,11 +1091,11 @@ class SuperFormalParameterMember extends ParameterMember
 class TopLevelVariableMember extends VariableMember
     implements TopLevelVariableElement {
   TopLevelVariableMember(
-    TypeProviderImpl? typeProvider,
-    VariableElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-  ) : super(typeProvider, declaration, substitution, isLegacy);
+    super.typeProvider,
+    super.declaration,
+    super.substitution,
+    super.isLegacy,
+  );
 
   @override
   TopLevelVariableElement get declaration =>
@@ -1162,11 +1150,11 @@ abstract class VariableMember extends Member implements VariableElement {
   /// Initialize a newly created element to represent a variable, based on the
   /// [declaration], with applied [substitution].
   VariableMember(
-    TypeProviderImpl? typeProvider,
-    VariableElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-  ) : super(typeProvider, declaration, substitution, isLegacy);
+    super.typeProvider,
+    VariableElement super.declaration,
+    super.substitution,
+    super.isLegacy,
+  );
 
   @override
   VariableElement get declaration => super.declaration as VariableElement;

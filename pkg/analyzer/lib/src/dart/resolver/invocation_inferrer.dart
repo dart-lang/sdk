@@ -58,18 +58,13 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
   final SimpleIdentifierImpl? constructorName;
 
   AnnotationInferrer(
-      {required ResolverVisitor resolver,
-      required AnnotationImpl node,
-      required ArgumentListImpl argumentList,
-      required DartType? contextType,
-      required List<WhyNotPromotedGetter> whyNotPromotedList,
+      {required super.resolver,
+      required super.node,
+      required super.argumentList,
+      required super.contextType,
+      required super.whyNotPromotedList,
       required this.constructorName})
-      : super._(
-            resolver: resolver,
-            node: node,
-            argumentList: argumentList,
-            contextType: contextType,
-            whyNotPromotedList: whyNotPromotedList);
+      : super._();
 
   @override
   bool get _isConst => true;
@@ -108,17 +103,11 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
 abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     extends InvocationInferrer<Node> {
   FullInvocationInferrer._(
-      {required ResolverVisitor resolver,
-      required Node node,
-      required ArgumentListImpl argumentList,
-      required DartType? contextType,
-      required List<WhyNotPromotedGetter> whyNotPromotedList})
-      : super(
-            resolver: resolver,
-            node: node,
-            argumentList: argumentList,
-            contextType: contextType,
-            whyNotPromotedList: whyNotPromotedList);
+      {required super.resolver,
+      required super.node,
+      required super.argumentList,
+      required super.contextType,
+      required super.whyNotPromotedList});
 
   AstNode get _errorNode => node;
 
@@ -310,17 +299,12 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 class FunctionExpressionInvocationInferrer
     extends InvocationExpressionInferrer<FunctionExpressionInvocationImpl> {
   FunctionExpressionInvocationInferrer(
-      {required ResolverVisitor resolver,
-      required FunctionExpressionInvocationImpl node,
-      required ArgumentListImpl argumentList,
-      required DartType? contextType,
-      required List<WhyNotPromotedGetter> whyNotPromotedList})
-      : super._(
-            resolver: resolver,
-            node: node,
-            argumentList: argumentList,
-            contextType: contextType,
-            whyNotPromotedList: whyNotPromotedList);
+      {required super.resolver,
+      required super.node,
+      required super.argumentList,
+      required super.contextType,
+      required super.whyNotPromotedList})
+      : super._();
 
   @override
   ExpressionImpl get _errorNode => node.function;
@@ -331,17 +315,12 @@ class FunctionExpressionInvocationInferrer
 class InstanceCreationInferrer
     extends FullInvocationInferrer<InstanceCreationExpressionImpl> {
   InstanceCreationInferrer(
-      {required ResolverVisitor resolver,
-      required InstanceCreationExpressionImpl node,
-      required ArgumentListImpl argumentList,
-      required DartType? contextType,
-      required List<WhyNotPromotedGetter> whyNotPromotedList})
-      : super._(
-            resolver: resolver,
-            node: node,
-            argumentList: argumentList,
-            contextType: contextType,
-            whyNotPromotedList: whyNotPromotedList);
+      {required super.resolver,
+      required super.node,
+      required super.argumentList,
+      required super.contextType,
+      required super.whyNotPromotedList})
+      : super._();
 
   @override
   ConstructorNameImpl get _errorNode => node.constructorName;
@@ -388,17 +367,12 @@ abstract class InvocationExpressionInferrer<
         Node extends InvocationExpressionImpl>
     extends FullInvocationInferrer<Node> {
   InvocationExpressionInferrer._(
-      {required ResolverVisitor resolver,
-      required Node node,
-      required ArgumentListImpl argumentList,
-      required DartType? contextType,
-      required List<WhyNotPromotedGetter> whyNotPromotedList})
-      : super._(
-            resolver: resolver,
-            node: node,
-            argumentList: argumentList,
-            contextType: contextType,
-            whyNotPromotedList: whyNotPromotedList);
+      {required super.resolver,
+      required super.node,
+      required super.argumentList,
+      required super.contextType,
+      required super.whyNotPromotedList})
+      : super._();
 
   @override
   Expression get _errorNode => node.function;
@@ -581,17 +555,12 @@ class InvocationInferrer<Node extends AstNodeImpl> {
 class MethodInvocationInferrer
     extends InvocationExpressionInferrer<MethodInvocationImpl> {
   MethodInvocationInferrer(
-      {required ResolverVisitor resolver,
-      required MethodInvocationImpl node,
-      required ArgumentListImpl argumentList,
-      required DartType? contextType,
-      required List<WhyNotPromotedGetter> whyNotPromotedList})
-      : super._(
-            resolver: resolver,
-            node: node,
-            argumentList: argumentList,
-            contextType: contextType,
-            whyNotPromotedList: whyNotPromotedList);
+      {required super.resolver,
+      required super.node,
+      required super.argumentList,
+      required super.contextType,
+      required super.whyNotPromotedList})
+      : super._();
 
   @override
   bool get _isIdentical {
@@ -645,8 +614,7 @@ class _DeferredParamInfo extends _ParamInfo {
   final Object parameterKey;
 
   _DeferredParamInfo(
-      ParameterElement? parameter, this.value, this.index, this.parameterKey)
-      : super(parameter);
+      super.parameter, this.value, this.index, this.parameterKey);
 }
 
 class _FunctionLiteralDependencies extends FunctionLiteralDependencies<

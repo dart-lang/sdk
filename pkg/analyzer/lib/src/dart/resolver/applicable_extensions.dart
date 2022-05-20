@@ -74,10 +74,9 @@ class _NotInstantiatedExtensionWithMember
   final ExecutableElement? getter;
   final ExecutableElement? setter;
 
-  _NotInstantiatedExtensionWithMember(ExtensionElement extension,
+  _NotInstantiatedExtensionWithMember(super.extension,
       {this.getter, this.setter})
-      : assert(getter != null || setter != null),
-        super(extension);
+      : assert(getter != null || setter != null);
 
   @override
   InstantiatedExtensionWithMember instantiate({
@@ -91,8 +90,7 @@ class _NotInstantiatedExtensionWithMember
 /// [_NotInstantiatedExtension] for any [ExtensionElement].
 class _NotInstantiatedExtensionWithoutMember
     extends _NotInstantiatedExtension<InstantiatedExtensionWithoutMember> {
-  _NotInstantiatedExtensionWithoutMember(ExtensionElement extension)
-      : super(extension);
+  _NotInstantiatedExtensionWithoutMember(super.extension);
 
   @override
   InstantiatedExtensionWithoutMember instantiate({

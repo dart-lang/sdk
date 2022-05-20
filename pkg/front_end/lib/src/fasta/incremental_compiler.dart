@@ -1978,7 +1978,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           typeParameters: typeDefinitions,
           positionalParameters: definitions.keys
               .map<VariableDeclaration>((name) =>
-                  new VariableDeclarationImpl(name, 0, type: definitions[name])
+                  new VariableDeclarationImpl(name, type: definitions[name])
                     ..fileOffset = cls?.fileOffset ??
                         extension?.fileOffset ??
                         libraryBuilder.library.fileOffset)

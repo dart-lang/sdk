@@ -3010,6 +3010,10 @@ class Precedence implements ExpressionVisitor<int> {
   int visitEqualsNull(EqualsNull node) => EQUALITY;
 
   @override
+  int visitAbstractSuperMethodInvocation(AbstractSuperMethodInvocation node) =>
+      CALLEE;
+
+  @override
   int visitSuperMethodInvocation(SuperMethodInvocation node) => CALLEE;
 
   @override
@@ -3102,6 +3106,13 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitFunctionTearOff(FunctionTearOff node) => PRIMARY;
+
+  @override
+  int visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) => PRIMARY;
+
+  @override
+  int visitAbstractSuperPropertySet(AbstractSuperPropertySet node) =>
+      EXPRESSION;
 
   @override
   int visitSuperPropertyGet(SuperPropertyGet node) => PRIMARY;

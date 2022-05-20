@@ -4132,16 +4132,16 @@ class TypeInferrerImpl implements TypeInferrer {
 
   /// Performs the core type inference algorithm for super method invocations.
   ExpressionInferenceResult inferSuperMethodInvocation(
-      SuperMethodInvocation expression,
+      Expression expression,
+      Name methodName,
+      ArgumentsImpl arguments,
       DartType typeContext,
       Procedure? procedure) {
+    int fileOffset = expression.fileOffset;
     ObjectAccessTarget target = procedure != null
         ? new ObjectAccessTarget.interfaceMember(procedure,
             isPotentiallyNullable: false)
         : const ObjectAccessTarget.missing();
-    int fileOffset = expression.fileOffset;
-    Name methodName = expression.name;
-    ArgumentsImpl arguments = expression.arguments as ArgumentsImpl;
     DartType receiverType = thisType!;
     bool isSpecialCasedBinaryOperator =
         isSpecialCasedBinaryOperatorForReceiverType(target, receiverType);
@@ -4155,7 +4155,7 @@ class TypeInferrerImpl implements TypeInferrer {
               as FunctionType;
     }
     if (isNonNullableByDefault &&
-        expression.name == equalsName &&
+        methodName == equalsName &&
         functionType.positionalParameters.length == 1) {
       // operator == always allows nullable arguments.
       functionType = new FunctionType([
@@ -4200,7 +4200,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
   /// Performs the core type inference algorithm for super property get.
   ExpressionInferenceResult inferSuperPropertyGet(
-      SuperPropertyGet expression, DartType typeContext, Member? member) {
+      Expression expression, Name name, DartType typeContext, Member? member) {
     ObjectAccessTarget readTarget = member != null
         ? new ObjectAccessTarget.interfaceMember(member,
             isPotentiallyNullable: false)
@@ -4215,7 +4215,7 @@ class TypeInferrerImpl implements TypeInferrer {
       return instantiateTearOff(inferredType, typeContext, expression);
     }
     flowAnalysis.thisOrSuperPropertyGet(
-        expression, expression.name.text, member, inferredType);
+        expression, name.text, member, inferredType);
     return new ExpressionInferenceResult(inferredType, expression);
   }
 

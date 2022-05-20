@@ -753,6 +753,19 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitAbstractSuperMethodInvocation(
+      AbstractSuperMethodInvocation node) {
+    Member? target = node.interfaceTarget;
+    if (target == null) {
+      checkUnresolvedInvocation(currentThisType!, node);
+      return handleDynamicCall(currentThisType!, node.arguments);
+    } else {
+      return handleCall(node.arguments, target.superGetterType,
+          receiver: getSuperReceiverType(target));
+    }
+  }
+
+  @override
   DartType visitSuperMethodInvocation(SuperMethodInvocation node) {
     Member? target = node.interfaceTarget;
     if (target == null) {
@@ -762,6 +775,32 @@ class TypeCheckingVisitor
       return handleCall(node.arguments, target.superGetterType,
           receiver: getSuperReceiverType(target));
     }
+  }
+
+  @override
+  DartType visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) {
+    Member? target = node.interfaceTarget;
+    if (target == null) {
+      checkUnresolvedInvocation(currentThisType!, node);
+      return const DynamicType();
+    } else {
+      Substitution receiver = getSuperReceiverType(target);
+      return receiver.substituteType(target.superGetterType);
+    }
+  }
+
+  @override
+  DartType visitAbstractSuperPropertySet(AbstractSuperPropertySet node) {
+    Member? target = node.interfaceTarget;
+    DartType value = visitExpression(node.value);
+    if (target != null) {
+      Substitution receiver = getSuperReceiverType(target);
+      checkAssignable(node.value, value,
+          receiver.substituteType(target.superSetterType, contravariant: true));
+    } else {
+      checkUnresolvedInvocation(currentThisType!, node);
+    }
+    return value;
   }
 
   @override

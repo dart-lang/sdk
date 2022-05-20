@@ -176,6 +176,18 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
+  TreeNode visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) {
+    return new AbstractSuperPropertyGet.byReference(
+        node.name, node.interfaceTargetReference);
+  }
+
+  @override
+  TreeNode visitAbstractSuperPropertySet(AbstractSuperPropertySet node) {
+    return new AbstractSuperPropertySet.byReference(
+        node.name, clone(node.value), node.interfaceTargetReference);
+  }
+
+  @override
   TreeNode visitSuperPropertyGet(SuperPropertyGet node) {
     return new SuperPropertyGet.byReference(
         node.name, node.interfaceTargetReference);
@@ -195,6 +207,13 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   @override
   TreeNode visitStaticSet(StaticSet node) {
     return new StaticSet.byReference(node.targetReference, clone(node.value));
+  }
+
+  @override
+  TreeNode visitAbstractSuperMethodInvocation(
+      AbstractSuperMethodInvocation node) {
+    return new AbstractSuperMethodInvocation.byReference(
+        node.name, clone(node.arguments), node.interfaceTargetReference);
   }
 
   @override

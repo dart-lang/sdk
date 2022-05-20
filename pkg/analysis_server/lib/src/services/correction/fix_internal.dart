@@ -230,6 +230,7 @@ class DartFixContributor implements FixContributor {
 /// Computer for Dart "fix all in file" fixes.
 class FixInFileProcessor {
   final DartFixContext context;
+
   FixInFileProcessor(this.context);
 
   Future<List<Fix>> compute() async {
@@ -1089,6 +1090,12 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT: [
       AddEnumConstant.new,
       ChangeTo.getterOrSetter,
+    ],
+    CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED: [
+      CreateConstructor.new,
+    ],
+    CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED: [
+      CreateConstructor.new,
     ],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [
       ChangeTo.getterOrSetter,

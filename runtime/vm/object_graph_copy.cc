@@ -12,6 +12,7 @@
 #include "vm/object_store.h"
 #include "vm/snapshot.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 
 #define Z zone_
 
@@ -422,7 +423,7 @@ class FastForwardMap : public ForwardMapBase {
     return raw_from_to_[id + 1];
   }
 
-  void Insert(ObjectPtr from, ObjectPtr to) {
+  void Insert(ObjectPtr from, ObjectPtr to, intptr_t size) {
     ASSERT(ForwardedObject(from) == Marker());
     ASSERT(raw_from_to_.length() == raw_from_to_.length());
     const auto id = raw_from_to_.length();
@@ -430,6 +431,7 @@ class FastForwardMap : public ForwardMapBase {
     raw_from_to_.Resize(id + 2);
     raw_from_to_[id] = from;
     raw_from_to_[id + 1] = to;
+    allocated_bytes += size;
   }
 
   void AddTransferable(TransferableTypedDataPtr from,
@@ -460,6 +462,7 @@ class FastForwardMap : public ForwardMapBase {
   GrowableArray<WeakPropertyPtr> raw_weak_properties_;
   GrowableArray<WeakReferencePtr> raw_weak_references_;
   intptr_t fill_cursor_ = 0;
+  intptr_t allocated_bytes = 0;
 
   DISALLOW_COPY_AND_ASSIGN(FastForwardMap);
 };
@@ -482,13 +485,14 @@ class SlowForwardMap : public ForwardMapBase {
     return from_to_[id + 1]->ptr();
   }
 
-  void Insert(ObjectPtr from, ObjectPtr to) {
+  void Insert(ObjectPtr from, ObjectPtr to, intptr_t size) {
     ASSERT(ForwardedObject(from) == Marker());
     const auto id = from_to_.length();
     SetObjectId(from, id);
     from_to_.Resize(id + 2);
     from_to_[id] = &Object::Handle(Z, from);
     from_to_[id + 1] = &Object::Handle(Z, to);
+    allocated_bytes += size;
   }
 
   void AddTransferable(const TransferableTypedData& from,
@@ -541,6 +545,7 @@ class SlowForwardMap : public ForwardMapBase {
   GrowableArray<const WeakProperty*> weak_properties_;
   GrowableArray<const WeakReference*> weak_references_;
   intptr_t fill_cursor_ = 0;
+  intptr_t allocated_bytes = 0;
 
   DISALLOW_COPY_AND_ASSIGN(SlowForwardMap);
 };
@@ -780,7 +785,7 @@ class FastObjectCopyBase : public ObjectCopyBase {
       const uword alloc = new_space_->TryAllocate(thread_, size);
       if (alloc != 0) {
         ObjectPtr to(reinterpret_cast<UntaggedObject*>(alloc));
-        fast_forward_map_.Insert(from, to);
+        fast_forward_map_.Insert(from, to, size);
 
         if (IsExternalTypedDataClassId(cid)) {
           SetNewSpaceTaggingWord(to, cid, header_size);
@@ -986,7 +991,7 @@ class SlowObjectCopyBase : public ObjectCopyBase {
       size = from.ptr().untag()->HeapSize();
     }
     ObjectPtr to = AllocateObject(cid, size);
-    slow_forward_map_.Insert(from.ptr(), to);
+    slow_forward_map_.Insert(from.ptr(), to, size);
     UpdateLengthField(cid, from.ptr(), to);
     if (cid == kArrayCid && !Heap::IsAllocatableInNewSpace(size)) {
       to.untag()->SetCardRememberedBitUnsynchronized();
@@ -1847,6 +1852,10 @@ class ObjectGraphCopier {
     return result.ptr();
   }
 
+  intptr_t allocated_bytes() { return allocated_bytes_; }
+
+  intptr_t copied_objects() { return copied_objects_; }
+
  private:
   ObjectPtr CopyObjectGraphInternal(const Object& root,
                                     const char* volatile* exception_msg) {
@@ -1885,6 +1894,11 @@ class ObjectGraphCopier {
             result_array.SetAt(2, fast_object_copy_.tmp_);
             HandlifyExternalTypedData();
             HandlifyTransferables();
+            allocated_bytes_ =
+                fast_object_copy_.fast_forward_map_.allocated_bytes;
+            copied_objects_ =
+                fast_object_copy_.fast_forward_map_.fill_cursor_ / 2 -
+                /*null_entry=*/1;
             return result_array.ptr();
           }
 
@@ -1924,6 +1938,9 @@ class ObjectGraphCopier {
     result_array.SetAt(0, result);
     result_array.SetAt(1, slow_object_copy_.objects_to_rehash_);
     result_array.SetAt(2, slow_object_copy_.expandos_to_rehash_);
+    allocated_bytes_ = slow_object_copy_.slow_forward_map_.allocated_bytes;
+    copied_objects_ =
+        slow_object_copy_.slow_forward_map_.fill_cursor_ / 2 - /*null_entry=*/1;
     return result_array.ptr();
   }
 
@@ -1940,6 +1957,7 @@ class ObjectGraphCopier {
     HandlifyExpandosToReHash();
     HandlifyFromToObjects();
     slow_forward_map.fill_cursor_ = fast_forward_map.fill_cursor_;
+    slow_forward_map.allocated_bytes = fast_forward_map.allocated_bytes;
   }
 
   void MakeUninitializedNewSpaceObjectsGCSafe() {
@@ -2029,12 +2047,23 @@ class ObjectGraphCopier {
   Zone* zone_;
   FastObjectCopy fast_object_copy_;
   SlowObjectCopy slow_object_copy_;
+  intptr_t copied_objects_ = 0;
+  intptr_t allocated_bytes_ = 0;
 };
 
 ObjectPtr CopyMutableObjectGraph(const Object& object) {
   auto thread = Thread::Current();
+  TIMELINE_DURATION(thread, Isolate, "CopyMutableObjectGraph");
   ObjectGraphCopier copier(thread);
-  return copier.CopyObjectGraph(object);
+  ObjectPtr result = copier.CopyObjectGraph(object);
+#if defined(SUPPORT_TIMELINE)
+  if (tbes.enabled()) {
+    tbes.SetNumArguments(2);
+    tbes.FormatArgument(0, "CopiedObjects", "%" Pd, copier.copied_objects());
+    tbes.FormatArgument(1, "AllocatedBytes", "%" Pd, copier.allocated_bytes());
+  }
+#endif
+  return result;
 }
 
 }  // namespace dart

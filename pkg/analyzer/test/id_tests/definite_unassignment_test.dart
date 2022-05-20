@@ -62,8 +62,7 @@ class _DefiniteUnassignmentDataExtractor extends AstDataExtractor<String> {
   final FlowAnalysisDataForTesting _flowResult;
 
   _DefiniteUnassignmentDataExtractor(
-      Uri uri, Map<Id, ActualData<String>> actualMap, this._flowResult)
-      : super(uri, actualMap);
+      super.uri, super.actualMap, this._flowResult);
 
   @override
   String? computeNodeValue(Id id, AstNode node) {

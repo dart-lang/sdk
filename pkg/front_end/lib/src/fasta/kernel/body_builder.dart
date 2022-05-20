@@ -86,6 +86,7 @@ import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
+import '../source/source_member_builder.dart';
 import '../source/source_procedure_builder.dart';
 import '../source/stack_listener_impl.dart'
     show StackListenerImpl, offsetForToken;
@@ -3265,8 +3266,7 @@ class BodyBuilder extends StackListenerImpl
     bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
     bool isRequired = (currentLocalVariableModifiers & requiredMask) != 0;
     assert(isConst == (constantContext == ConstantContext.inferred));
-    VariableDeclaration variable = new VariableDeclarationImpl(
-        identifier.name, functionNestingLevel,
+    VariableDeclaration variable = new VariableDeclarationImpl(identifier.name,
         forSyntheticToken: identifier.token.isSynthetic,
         initializer: initializer,
         type: currentLocalVariableType,
@@ -4383,8 +4383,7 @@ class BodyBuilder extends StackListenerImpl
           fileUri: uri)
         ..hasDeclaredInitializer = (initializerStart != null);
     }
-    VariableDeclaration variable =
-        parameter.build(libraryBuilder, functionNestingLevel);
+    VariableDeclaration variable = parameter.build(libraryBuilder);
     Expression? initializer = name?.initializer;
     if (initializer != null) {
       if (member is RedirectingFactoryBuilder) {
@@ -4568,11 +4567,10 @@ class BodyBuilder extends StackListenerImpl
       int parameterCount = catchParameters!.parameters!.length;
       if (parameterCount > 0) {
         exception = catchParameters.parameters![0];
-        exception.build(libraryBuilder, functionNestingLevel).type =
-            exceptionType;
+        exception.build(libraryBuilder).type = exceptionType;
         if (parameterCount > 1) {
           stackTrace = catchParameters.parameters![1];
-          stackTrace.build(libraryBuilder, functionNestingLevel).type =
+          stackTrace.build(libraryBuilder).type =
               coreTypes.stackTraceRawType(libraryBuilder.nonNullable);
         }
       }
@@ -5772,6 +5770,25 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  void handleAugmentSuperExpression(
+      Token augmentToken, Token superToken, IdentifierContext context) {
+    debugEvent("AugmentSuperExpression");
+    if (member is SourceMemberBuilder) {
+      SourceMemberBuilder sourceMemberBuilder = member as SourceMemberBuilder;
+      if (sourceMemberBuilder.isAugmentation) {
+        // TODO(johnniwinther): Implement augment super handling.
+        int fileOffset = augmentToken.charOffset;
+        push(forest.createAsExpression(fileOffset,
+            forest.createNullLiteral(fileOffset), const DynamicType(),
+            forNonNullableByDefault: libraryBuilder.isNonNullableByDefault));
+        return;
+      }
+    }
+    push(new IncompleteErrorGenerator(
+        this, augmentToken, fasta.messageInvalidAugmentSuper));
+  }
+
+  @override
   void handleNamedArgument(Token colon) {
     debugEvent("NamedArgument");
     assert(checkState(colon, [
@@ -5803,8 +5820,7 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("FunctionName");
     Identifier name = pop() as Identifier;
     Token nameToken = name.token;
-    VariableDeclaration variable = new VariableDeclarationImpl(
-        name.name, functionNestingLevel,
+    VariableDeclaration variable = new VariableDeclarationImpl(name.name,
         forSyntheticToken: nameToken.isSynthetic,
         isFinal: true,
         isLocalFunction: true)
@@ -6171,8 +6187,7 @@ class BodyBuilder extends StackListenerImpl
       }
     } else {
       VariableDeclaration variable = elements.syntheticVariableDeclaration =
-          forest.createVariableDeclaration(
-              offsetForToken(forToken), null, functionNestingLevel,
+          forest.createVariableDeclaration(offsetForToken(forToken), null,
               isFinal: true);
       if (lvalue is Generator) {
         /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
@@ -7644,37 +7659,49 @@ class FormalParameters {
 
   FunctionNode buildFunctionNode(
       SourceLibraryBuilder library,
-      TypeBuilder? returnType,
-      List<TypeVariableBuilder>? typeParameters,
+      TypeBuilder? returnTypeBuilder,
+      List<TypeVariableBuilder>? typeVariableBuilders,
       AsyncMarker asyncModifier,
       Statement body,
       int fileEndOffset) {
-    // TODO(johnniwinther): Avoid creating a FunctionTypeBuilder to create
-    // the function. The function type is not written as a type by the user
-    // and shouldn't be checked as such.
-    FunctionType type = toFunctionType(
-            returnType, const NullabilityBuilder.omitted(), typeParameters)
-        .build(library, TypeUse.functionSignature) as FunctionType;
+    DartType returnType =
+        returnTypeBuilder?.build(library, TypeUse.returnType) ??
+            const DynamicType();
+    int requiredParameterCount = 0;
     List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
     List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
     if (parameters != null) {
-      for (FormalParameterBuilder parameter in parameters!) {
-        if (parameter.isNamed) {
-          namedParameters.add(parameter.variable!);
-        } else {
-          positionalParameters.add(parameter.variable!);
+      for (FormalParameterBuilder formal in parameters!) {
+        VariableDeclaration parameter = formal.build(
+          library,
+        );
+        if (formal.isPositional) {
+          positionalParameters.add(parameter);
+          if (formal.isRequiredPositional) requiredParameterCount++;
+        } else if (formal.isNamed) {
+          namedParameters.add(parameter);
         }
       }
       namedParameters.sort((VariableDeclaration a, VariableDeclaration b) {
         return a.name!.compareTo(b.name!);
       });
     }
+
+    List<TypeParameter>? typeParameters;
+    if (typeVariableBuilders != null) {
+      typeParameters = <TypeParameter>[];
+      for (TypeVariableBuilder t in typeVariableBuilders) {
+        typeParameters.add(t.parameter);
+        // Build the bound to detect cycles in typedefs.
+        t.bound?.build(library, TypeUse.typeParameterBound);
+      }
+    }
     return new FunctionNode(body,
-        typeParameters: type.typeParameters,
+        typeParameters: typeParameters,
         positionalParameters: positionalParameters,
         namedParameters: namedParameters,
-        requiredParameterCount: type.requiredParameterCount,
-        returnType: type.returnType,
+        requiredParameterCount: requiredParameterCount,
+        returnType: returnType,
         asyncMarker: asyncModifier)
       ..fileOffset = charOffset
       ..fileEndOffset = fileEndOffset;

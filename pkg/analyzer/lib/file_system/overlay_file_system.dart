@@ -119,8 +119,7 @@ class OverlayResourceProvider implements ResourceProvider {
 class _OverlayFile extends _OverlayResource implements File {
   /// Initialize a newly created file to have the given [provider] and to
   /// correspond to the given [file] from the provider's base resource provider.
-  _OverlayFile(OverlayResourceProvider provider, File file)
-      : super(provider, file);
+  _OverlayFile(super.provider, File super.file);
 
   @Deprecated('Use watch() instead')
   @override
@@ -234,8 +233,7 @@ class _OverlayFolder extends _OverlayResource implements Folder {
   /// Initialize a newly created folder to have the given [provider] and to
   /// correspond to the given [folder] from the provider's base resource
   /// provider.
-  _OverlayFolder(OverlayResourceProvider provider, Folder folder)
-      : super(provider, folder);
+  _OverlayFolder(super.provider, Folder super.folder);
 
   @Deprecated('Use watch() instead')
   @override

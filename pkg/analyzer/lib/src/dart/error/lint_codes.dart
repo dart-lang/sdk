@@ -13,10 +13,9 @@ class LintCode extends ErrorCode {
   const LintCode(
     String name,
     String problemMessage, {
-    String? correctionMessage,
+    super.correctionMessage,
     String? uniqueName,
   }) : super(
-          correctionMessage: correctionMessage,
           problemMessage: problemMessage,
           name: name,
           uniqueName: uniqueName ?? 'LintCode.$name',
@@ -44,11 +43,9 @@ class LintCode extends ErrorCode {
 /// The primary difference from [LintCode]s is that these codes cannot be
 /// suppressed with `// ignore:` or `// ignore_for_file:` comments.
 class SecurityLintCode extends LintCode {
-  const SecurityLintCode(String name, String problemMessage,
-      {String? uniqueName, String? correctionMessage})
-      : super(name, problemMessage,
-            uniqueName: uniqueName ?? 'LintCode.$name',
-            correctionMessage: correctionMessage);
+  const SecurityLintCode(super.name, super.problemMessage,
+      {String? uniqueName, super.correctionMessage})
+      : super(uniqueName: uniqueName ?? 'LintCode.$name');
 
   @override
   bool get isIgnorable => false;

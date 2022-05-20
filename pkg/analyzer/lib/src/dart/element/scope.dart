@@ -9,7 +9,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart' as impl;
 
 /// The scope defined by a class.
 class ClassScope extends EnclosedScope {
-  ClassScope(Scope parent, ClassElement element) : super(parent) {
+  ClassScope(super.parent, ClassElement element) {
     element.accessors.forEach(_addPropertyAccessor);
     element.methods.forEach(_addGetter);
   }
@@ -17,8 +17,7 @@ class ClassScope extends EnclosedScope {
 
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
-  ConstructorInitializerScope(Scope parent, ConstructorElement element)
-      : super(parent) {
+  ConstructorInitializerScope(super.parent, ConstructorElement element) {
     element.parameters.forEach(_addGetter);
   }
 }
@@ -71,9 +70,9 @@ class EnclosedScope implements Scope {
 /// The scope defined by an extension.
 class ExtensionScope extends EnclosedScope {
   ExtensionScope(
-    Scope parent,
+    super.parent,
     ExtensionElement element,
-  ) : super(parent) {
+  ) {
     element.accessors.forEach(_addPropertyAccessor);
     element.methods.forEach(_addGetter);
   }
@@ -81,9 +80,9 @@ class ExtensionScope extends EnclosedScope {
 
 class FormalParameterScope extends EnclosedScope {
   FormalParameterScope(
-    Scope parent,
+    super.parent,
     List<ParameterElement> elements,
-  ) : super(parent) {
+  ) {
     for (var parameter in elements) {
       if (parameter is! FieldFormalParameterElement &&
           parameter is! SuperFormalParameterElement) {
@@ -125,7 +124,7 @@ class LibraryScope extends EnclosedScope {
 }
 
 class LocalScope extends EnclosedScope {
-  LocalScope(Scope parent) : super(parent);
+  LocalScope(super.parent);
 
   void add(Element element) {
     _addGetter(element);
@@ -236,9 +235,9 @@ class PrefixScope implements Scope {
 
 class TypeParameterScope extends EnclosedScope {
   TypeParameterScope(
-    Scope parent,
+    super.parent,
     List<TypeParameterElement> elements,
-  ) : super(parent) {
+  ) {
     elements.forEach(_addGetter);
   }
 }

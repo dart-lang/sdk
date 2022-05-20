@@ -47,9 +47,7 @@ class _NullabilityDataComputer extends DataComputer<String> {
 class _NullabilityDataExtractor extends AstDataExtractor<String> {
   final TypeSystem _typeSystem;
 
-  _NullabilityDataExtractor(
-      Uri uri, Map<Id, ActualData<String>> actualMap, this._typeSystem)
-      : super(uri, actualMap);
+  _NullabilityDataExtractor(super.uri, super.actualMap, this._typeSystem);
 
   @override
   String? computeNodeValue(Id id, AstNode node) {

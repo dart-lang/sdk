@@ -5826,6 +5826,9 @@ class Parser {
         return parseThisExpression(token, context);
       } else if (identical(value, "super")) {
         return parseSuperExpression(token, context);
+      } else if (identical(value, "augment") &&
+          optional('super', token.next!.next!)) {
+        return parseAugmentSuperExpression(token, context);
       } else if (identical(value, "new")) {
         return parseNewExpression(token);
       } else if (identical(value, "const")) {
@@ -5961,6 +5964,21 @@ class Parser {
       listener.handleSend(superToken, token.next!);
     } else if (optional("?.", next)) {
       reportRecoverableError(next, codes.messageSuperNullAware);
+    }
+    return token;
+  }
+
+  Token parseAugmentSuperExpression(Token token, IdentifierContext context) {
+    Token augmentToken = token = token.next!;
+    assert(optional('augment', token));
+    Token superToken = token = token.next!;
+    assert(optional('super', token));
+    listener.handleAugmentSuperExpression(augmentToken, superToken, context);
+    Token next = token.next!;
+    if (optional('(', next)) {
+      listener.handleNoTypeArguments(next);
+      token = parseArguments(token);
+      listener.handleSend(augmentToken, token.next!);
     }
     return token;
   }
@@ -6948,7 +6966,9 @@ class Parser {
     Token? varFinalOrConst;
 
     if (isModifier(next)) {
-      if (optional('var', next) ||
+      if (optional('augment', next) && optional('super', next.next!)) {
+        return parseExpressionStatement(start);
+      } else if (optional('var', next) ||
           optional('final', next) ||
           optional('const', next)) {
         varFinalOrConst = token = token.next!;

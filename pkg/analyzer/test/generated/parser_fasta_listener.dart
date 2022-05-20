@@ -30,7 +30,7 @@ import 'package:test/test.dart';
 class ForwardingTestListener extends ForwardingListener {
   final _stack = <String>[];
 
-  ForwardingTestListener([Listener? listener]) : super(listener);
+  ForwardingTestListener([super.listener]);
 
   void begin(String event) {
     expect(event, isNotNull);

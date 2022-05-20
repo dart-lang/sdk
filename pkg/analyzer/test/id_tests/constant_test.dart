@@ -55,8 +55,7 @@ class ConstantsDataComputer extends DataComputer<String> {
 }
 
 class ConstantsDataExtractor extends AstDataExtractor<String> {
-  ConstantsDataExtractor(Uri uri, Map<Id, ActualData<String>> actualMap)
-      : super(uri, actualMap);
+  ConstantsDataExtractor(super.uri, super.actualMap);
 
   @override
   String? computeNodeValue(Id id, AstNode node) {

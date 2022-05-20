@@ -56,7 +56,7 @@ class OperationPerformanceDataImpl_int
   @override
   int value = 0;
 
-  OperationPerformanceDataImpl_int(String name) : super(name);
+  OperationPerformanceDataImpl_int(super.name);
 
   void add(int item) {
     value += item;

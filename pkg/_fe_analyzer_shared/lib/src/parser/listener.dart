@@ -1770,6 +1770,11 @@ class Listener implements UnescapeErrorListener {
     logEvent("SuperExpression");
   }
 
+  void handleAugmentSuperExpression(
+      Token augmentToken, Token superToken, IdentifierContext context) {
+    logEvent("AugmentSuperExpression");
+  }
+
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {}
 
   void endSwitchCase(

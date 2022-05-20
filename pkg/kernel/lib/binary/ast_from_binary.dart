@@ -2001,6 +2001,10 @@ class BinaryBuilder {
         return _readInstanceSet();
       case Tag.DynamicSet:
         return _readDynamicSet();
+      case Tag.AbstractSuperPropertyGet:
+        return _readAbstractSuperPropertyGet();
+      case Tag.AbstractSuperPropertySet:
+        return _readAbstractSuperPropertySet();
       case Tag.SuperPropertyGet:
         return _readSuperPropertyGet();
       case Tag.SuperPropertySet:
@@ -2033,6 +2037,8 @@ class BinaryBuilder {
         return _readEqualsNull();
       case Tag.EqualsCall:
         return _readEqualsCall();
+      case Tag.AbstractSuperMethodInvocation:
+        return _readAbstractSuperMethodInvocation();
       case Tag.SuperMethodInvocation:
         return _readSuperMethodInvocation();
       case Tag.StaticInvocation:
@@ -2209,6 +2215,22 @@ class BinaryBuilder {
       ..fileOffset = offset;
   }
 
+  Expression _readAbstractSuperPropertyGet() {
+    int offset = readOffset();
+    addTransformerFlag(TransformerFlag.superCalls);
+    return new AbstractSuperPropertyGet.byReference(
+        readName(), readNullableInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readAbstractSuperPropertySet() {
+    int offset = readOffset();
+    addTransformerFlag(TransformerFlag.superCalls);
+    return new AbstractSuperPropertySet.byReference(
+        readName(), readExpression(), readNullableInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
   Expression _readSuperPropertyGet() {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
@@ -2344,6 +2366,14 @@ class BinaryBuilder {
     return new EqualsCall.byReference(readExpression(), readExpression(),
         functionType: readDartType() as FunctionType,
         interfaceTargetReference: readNonNullInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readAbstractSuperMethodInvocation() {
+    int offset = readOffset();
+    addTransformerFlag(TransformerFlag.superCalls);
+    return new AbstractSuperMethodInvocation.byReference(
+        readName(), readArguments(), readNullableInstanceMemberReference())
       ..fileOffset = offset;
   }
 

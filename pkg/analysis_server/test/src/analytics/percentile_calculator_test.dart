@@ -8,12 +8,12 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(PercentileTest);
+    defineReflectiveTests(PercentileCalculatorTest);
   });
 }
 
 @reflectiveTest
-class PercentileTest {
+class PercentileCalculatorTest {
   var calculator = PercentileCalculator();
 
   void test_clear() {
@@ -22,12 +22,12 @@ class PercentileTest {
     }
     calculator.clear();
     expect(calculator.toAnalyticsString(),
-        '[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]');
+        '0[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]');
   }
 
   void test_toAnalyticsString_empty() {
     expect(calculator.toAnalyticsString(),
-        '[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]');
+        '0[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]');
   }
 
   void test_toAnalyticsString_evenDistribution() {
@@ -35,6 +35,6 @@ class PercentileTest {
       calculator.addValue(i);
     }
     expect(calculator.toAnalyticsString(),
-        '[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]');
+        '100[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]');
   }
 }

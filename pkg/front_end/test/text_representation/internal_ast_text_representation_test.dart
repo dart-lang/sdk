@@ -516,8 +516,8 @@ const library test:dummy::Typedef<void>.foo(0, bar: 1)''');
 
 void _testFunctionDeclarationImpl() {
   testStatement(
-      new FunctionDeclarationImpl(new VariableDeclarationImpl('foo', 0),
-          new FunctionNode(new Block([]))),
+      new FunctionDeclarationImpl(
+          new VariableDeclarationImpl('foo'), new FunctionNode(new Block([]))),
       '''
 dynamic foo() {}''');
 }
@@ -591,7 +591,7 @@ void _testExpressionInvocation() {
 
 void _testNamedFunctionExpressionJudgment() {
   testExpression(
-      new NamedFunctionExpressionJudgment(new VariableDeclarationImpl('foo', 0,
+      new NamedFunctionExpressionJudgment(new VariableDeclarationImpl('foo',
           initializer:
               new FunctionExpression(new FunctionNode(new Block([]))))),
       '''
@@ -687,13 +687,13 @@ return 0;''');
 }
 
 void _testVariableDeclarationImpl() {
-  testStatement(new VariableDeclarationImpl('foo', 0), '''
+  testStatement(new VariableDeclarationImpl('foo'), '''
 dynamic foo;''');
   testStatement(
-      new VariableDeclarationImpl('foo', 0, initializer: new IntLiteral(0)), '''
+      new VariableDeclarationImpl('foo', initializer: new IntLiteral(0)), '''
 dynamic foo = 0;''');
   testStatement(
-      new VariableDeclarationImpl('foo', 0,
+      new VariableDeclarationImpl('foo',
           type: const VoidType(),
           initializer: new IntLiteral(0),
           isFinal: true,
@@ -701,20 +701,20 @@ dynamic foo = 0;''');
       '''
 required final void foo;''');
   testStatement(
-      new VariableDeclarationImpl('foo', 0,
+      new VariableDeclarationImpl('foo',
           type: const VoidType(), initializer: new IntLiteral(0), isLate: true),
       '''
 late void foo = 0;''');
   testStatement(
-      new VariableDeclarationImpl('foo', 0,
+      new VariableDeclarationImpl('foo',
           type: const VoidType(), initializer: new IntLiteral(0))
-        ..lateGetter = new VariableDeclarationImpl('foo#getter', 0),
+        ..lateGetter = new VariableDeclarationImpl('foo#getter'),
       '''
 late void foo = 0;''');
   testStatement(
-      new VariableDeclarationImpl('foo', 0,
+      new VariableDeclarationImpl('foo',
           type: const VoidType(), initializer: new IntLiteral(0))
-        ..lateGetter = new VariableDeclarationImpl('foo#getter', 0)
+        ..lateGetter = new VariableDeclarationImpl('foo#getter')
         ..lateType = const DynamicType(),
       '''
 late dynamic foo = 0;''');

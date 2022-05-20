@@ -46,9 +46,7 @@ class _InferredTypeArgumentsDataComputer extends DataComputer<List<DartType>> {
 
 class _InferredTypeArgumentsDataExtractor
     extends AstDataExtractor<List<DartType>> {
-  _InferredTypeArgumentsDataExtractor(
-      Uri uri, Map<Id, ActualData<List<DartType>>> actualMap)
-      : super(uri, actualMap);
+  _InferredTypeArgumentsDataExtractor(super.uri, super.actualMap);
 
   @override
   List<DartType>? computeNodeValue(Id id, AstNode node) {

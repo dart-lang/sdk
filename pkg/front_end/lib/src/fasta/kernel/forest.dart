@@ -646,8 +646,7 @@ class Forest {
 
   /// Creates [VariableDeclaration] for a variable named [name] at the given
   /// [functionNestingLevel].
-  VariableDeclaration createVariableDeclaration(
-      int fileOffset, String? name, int functionNestingLevel,
+  VariableDeclaration createVariableDeclaration(int fileOffset, String? name,
       {Expression? initializer,
       DartType? type,
       bool isFinal: false,
@@ -657,7 +656,7 @@ class Forest {
       bool isLocalFunction: false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
-    return new VariableDeclarationImpl(name, functionNestingLevel,
+    return new VariableDeclarationImpl(name,
         type: type,
         initializer: initializer,
         isFinal: isFinal,

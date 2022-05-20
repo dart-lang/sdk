@@ -19,6 +19,7 @@ dependencies:
   js_runtime: any
   js_shared: any
   kernel: any
+  vm_service: any
 
 dev_dependencies:
   args: any

@@ -3309,6 +3309,9 @@ SuperAsIdentifier:
   problemMessage: "Expected identifier, but got 'super'."
   analyzerCode: SUPER_AS_EXPRESSION
 
+InvalidAugmentSuper:
+  problemMessage: "'augment super' is only allowed in member augmentations."
+
 SuperAsExpression:
   problemMessage: "Can't use 'super' as an expression."
   correctionMessage: "To delegate a constructor to a super constructor, put the super call as an initializer."

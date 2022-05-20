@@ -153,7 +153,7 @@ vars = {
   "term_glyph_rev": "d0f205c67ea70eea47b9f41c8440129a72a9c86e",
   "test_descriptor_rev": "ead23c1e7df079ac0f6457a35f7a71432892e527",
   "test_process_rev": "3e695bcfeab551473ddc288970f345f30e5e1375",
-  "test_reflective_loader_rev": "fcfce37666672edac849d2af6dffc0f8df236a94",
+  "test_reflective_loader_rev": "8d0de01bbe852fea1f8e33aba907abcba50a8a1e",
   "test_rev": "d54846bc2b5cfa4e1445fda85c5e48a00940aa68",
   "typed_data_rev": "8b19e29bcf4077147de4d67adeabeb48270c65eb",
   "usage_rev": "e85d575d6decb921c57a43b9844bba3607479f56",

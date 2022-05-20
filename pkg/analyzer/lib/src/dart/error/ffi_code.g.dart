@@ -461,14 +461,11 @@ class FfiCode extends AnalyzerErrorCode {
   const FfiCode(
     String name,
     String problemMessage, {
-    String? correctionMessage,
-    bool hasPublishedDocs = false,
-    bool isUnresolvedIdentifier = false,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          correctionMessage: correctionMessage,
-          hasPublishedDocs: hasPublishedDocs,
-          isUnresolvedIdentifier: isUnresolvedIdentifier,
           name: name,
           problemMessage: problemMessage,
           uniqueName: 'FfiCode.${uniqueName ?? name}',

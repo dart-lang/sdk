@@ -94,7 +94,7 @@ class PhysicalResourceProvider implements ResourceProvider {
 
 /// A `dart:io` based implementation of [File].
 class _PhysicalFile extends _PhysicalResource implements File {
-  _PhysicalFile(io.File file) : super(file);
+  _PhysicalFile(io.File super.file);
 
   @Deprecated('Use watch() instead')
   @override
@@ -207,7 +207,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
 
 /// A `dart:io` based implementation of [Folder].
 class _PhysicalFolder extends _PhysicalResource implements Folder {
-  _PhysicalFolder(io.Directory directory) : super(directory);
+  _PhysicalFolder(io.Directory super.directory);
 
   @Deprecated('Use watch() instead')
   @override

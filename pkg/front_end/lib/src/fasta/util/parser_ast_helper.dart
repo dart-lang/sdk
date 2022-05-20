@@ -2411,6 +2411,17 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleAugmentSuperExpression(
+      Token augmentToken, Token superToken, IdentifierContext context) {
+    AugmentSuperExpressionHandle data = new AugmentSuperExpressionHandle(
+        ParserAstType.HANDLE,
+        augmentToken: augmentToken,
+        superToken: superToken,
+        context: context);
+    seen(data);
+  }
+
+  @override
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     SwitchCaseBegin data = new SwitchCaseBegin(ParserAstType.BEGIN,
         labelCount: labelCount,
@@ -6922,6 +6933,25 @@ class SuperExpressionHandle extends ParserAstNode {
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
+        "context": context,
+      };
+}
+
+class AugmentSuperExpressionHandle extends ParserAstNode {
+  final Token augmentToken;
+  final Token superToken;
+  final IdentifierContext context;
+
+  AugmentSuperExpressionHandle(ParserAstType type,
+      {required this.augmentToken,
+      required this.superToken,
+      required this.context})
+      : super("AugmentSuperExpression", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "augmentToken": augmentToken,
+        "superToken": superToken,
         "context": context,
       };
 }

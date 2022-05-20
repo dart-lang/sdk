@@ -37,14 +37,11 @@ class AnalysisOptionsErrorCode extends ErrorCode {
   const AnalysisOptionsErrorCode(
     String name,
     String problemMessage, {
-    String? correctionMessage,
-    bool hasPublishedDocs = false,
-    bool isUnresolvedIdentifier = false,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          correctionMessage: correctionMessage,
-          hasPublishedDocs: hasPublishedDocs,
-          isUnresolvedIdentifier: isUnresolvedIdentifier,
           name: name,
           problemMessage: problemMessage,
           uniqueName: 'AnalysisOptionsErrorCode.${uniqueName ?? name}',
@@ -90,14 +87,11 @@ class AnalysisOptionsHintCode extends ErrorCode {
   const AnalysisOptionsHintCode(
     String name,
     String problemMessage, {
-    String? correctionMessage,
-    bool hasPublishedDocs = false,
-    bool isUnresolvedIdentifier = false,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          correctionMessage: correctionMessage,
-          hasPublishedDocs: hasPublishedDocs,
-          isUnresolvedIdentifier: isUnresolvedIdentifier,
           name: name,
           problemMessage: problemMessage,
           uniqueName: 'AnalysisOptionsHintCode.${uniqueName ?? name}',
@@ -240,14 +234,11 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   const AnalysisOptionsWarningCode(
     String name,
     String problemMessage, {
-    String? correctionMessage,
-    bool hasPublishedDocs = false,
-    bool isUnresolvedIdentifier = false,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          correctionMessage: correctionMessage,
-          hasPublishedDocs: hasPublishedDocs,
-          isUnresolvedIdentifier: isUnresolvedIdentifier,
           name: name,
           problemMessage: problemMessage,
           uniqueName: 'AnalysisOptionsWarningCode.${uniqueName ?? name}',

@@ -142,12 +142,11 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   @override
   String get fullNameForErrors => name;
 
-  VariableDeclaration build(
-      SourceLibraryBuilder library, int functionNestingLevel) {
+  VariableDeclaration build(SourceLibraryBuilder library) {
     if (variable == null) {
       DartType? builtType = type?.build(library, TypeUse.parameterType);
       variable = new VariableDeclarationImpl(
-          name == noNameSentinel ? null : name, functionNestingLevel,
+          name == noNameSentinel ? null : name,
           type: builtType,
           isFinal: isFinal,
           isConst: false,

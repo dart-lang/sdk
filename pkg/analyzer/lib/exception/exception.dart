@@ -96,8 +96,8 @@ class CaughtException implements Exception {
 /// This is still considered an exceptional situation and will be sent to crash
 /// reporting.
 class SilentException extends CaughtException {
-  SilentException(String message, Object exception, StackTrace stackTrace)
-      : super.withMessage(message, exception, stackTrace);
+  SilentException(String super.message, super.exception, super.stackTrace)
+      : super.withMessage();
 
   /// Create a [SilentException] to wrap a [CaughtException], adding a
   /// [message].

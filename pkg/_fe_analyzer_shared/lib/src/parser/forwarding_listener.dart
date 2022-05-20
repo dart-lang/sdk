@@ -1748,6 +1748,12 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleAugmentSuperExpression(
+      Token augmentToken, Token superToken, IdentifierContext context) {
+    listener?.handleAugmentSuperExpression(augmentToken, superToken, context);
+  }
+
+  @override
   void handleSymbolVoid(Token token) {
     listener?.handleSymbolVoid(token);
   }

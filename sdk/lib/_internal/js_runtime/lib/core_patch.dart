@@ -2174,8 +2174,24 @@ class _BigIntImpl implements BigInt {
   /// ```
   int get bitLength {
     if (_used == 0) return 0;
-    if (_isNegative) return (~this).bitLength;
-    return _digitBits * (_used - 1) + _digits[_used - 1].bitLength;
+    final highBits = _digits[_used - 1];
+    assert(highBits != 0);
+    int length = _digitBits * (_used - 1) + highBits.bitLength;
+    if (!_isNegative) return length;
+
+    // `this` is negative, i.e. `-x` for the magnitude `x`. We want to find the
+    // bit length of `~this` or equivalently `-this-1`.
+    //
+    //     -this-1 == -(-x)-1 == x-1
+    //
+    // `x-1` will have the same bit length as `x` unless `x` is power of two
+    // (e.g. 0x1000-1 = 0x0FFF). The magnitude is a power of two if the high
+    // digit is a power of two and all the other digits are zero.
+    if (highBits & (highBits - 1) != 0) return length;
+    for (int i = _used - 2; i >= 0; i--) {
+      if (_digits[i] != 0) return length;
+    }
+    return length - 1;
   }
 
   /// Truncating division operator.

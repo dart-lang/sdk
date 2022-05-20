@@ -83,7 +83,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  AbstractClassElementImpl(String name, int offset) : super(name, offset);
+  AbstractClassElementImpl(String super.name, super.offset);
 
   /// Set the accessors contained in this class to the given [accessors].
   set accessors(List<PropertyAccessorElement> accessors) {
@@ -563,7 +563,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  ClassElementImpl(String name, int offset) : super(name, offset);
+  ClassElementImpl(super.name, super.offset);
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -1278,7 +1278,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   /// Initialize a newly created synthetic field element to have the given
   /// [name] and [offset].
-  ConstFieldElementImpl(String name, int offset) : super(name, offset);
+  ConstFieldElementImpl(super.name, super.offset);
 
   @override
   Expression? get constantInitializer {
@@ -1293,7 +1293,7 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
     with ConstVariableElement {
   /// Initialize a newly created local variable element to have the given [name]
   /// and [offset].
-  ConstLocalVariableElementImpl(String name, int offset) : super(name, offset);
+  ConstLocalVariableElementImpl(super.name, super.offset);
 }
 
 /// A concrete implementation of a [ConstructorElement].
@@ -1331,7 +1331,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   /// Initialize a newly created constructor element to have the given [name]
   /// and [offset].
-  ConstructorElementImpl(String name, int offset) : super(name, offset);
+  ConstructorElementImpl(super.name, super.offset);
 
   /// Return the constant initializers for this element, which will be empty if
   /// there are no initializers, or `null` if there was an error in the source.
@@ -1501,8 +1501,7 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
     with ConstVariableElement {
   /// Initialize a newly created synthetic top-level variable element to have
   /// the given [name] and [offset].
-  ConstTopLevelVariableElementImpl(String name, int offset)
-      : super(name, offset);
+  ConstTopLevelVariableElementImpl(super.name, super.offset);
 
   @override
   Expression? get constantInitializer {
@@ -1568,14 +1567,10 @@ class DefaultFieldFormalParameterElementImpl
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   DefaultFieldFormalParameterElementImpl({
-    required String name,
-    required int nameOffset,
-    required ParameterKind parameterKind,
-  }) : super(
-          name: name,
-          nameOffset: nameOffset,
-          parameterKind: parameterKind,
-        );
+    required super.name,
+    required super.nameOffset,
+    required super.parameterKind,
+  });
 
   @override
   String? get defaultValueCode {
@@ -1589,14 +1584,10 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   DefaultParameterElementImpl({
-    required String? name,
-    required int nameOffset,
-    required ParameterKind parameterKind,
-  }) : super(
-          name: name,
-          nameOffset: nameOffset,
-          parameterKind: parameterKind,
-        );
+    required super.name,
+    required super.nameOffset,
+    required super.parameterKind,
+  });
 
   @override
   String? get defaultValueCode {
@@ -1609,14 +1600,10 @@ class DefaultSuperFormalParameterElementImpl
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   DefaultSuperFormalParameterElementImpl({
-    required String name,
-    required int nameOffset,
-    required ParameterKind parameterKind,
-  }) : super(
-          name: name,
-          nameOffset: nameOffset,
-          parameterKind: parameterKind,
-        );
+    required super.name,
+    required super.nameOffset,
+    required super.parameterKind,
+  });
 
   @override
   String? get defaultValueCode {
@@ -2724,7 +2711,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  EnumElementImpl(String name, int offset) : super(name, offset);
+  EnumElementImpl(super.name, super.offset);
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -2860,8 +2847,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 
   /// Initialize a newly created executable element to have the given [name] and
   /// [offset].
-  ExecutableElementImpl(String name, int offset, {Reference? reference})
-      : super(name, offset, reference: reference);
+  ExecutableElementImpl(String super.name, super.offset, {super.reference});
 
   @override
   Element get enclosingElement => super.enclosingElement!;
@@ -3096,7 +3082,7 @@ class ExtensionElementImpl extends _ExistingElementImpl
   /// Initialize a newly created extension element to have the given [name] at
   /// the given [offset] in the file that contains the declaration of this
   /// element.
-  ExtensionElementImpl(String? name, int nameOffset) : super(name, nameOffset);
+  ExtensionElementImpl(super.name, super.nameOffset);
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -3268,7 +3254,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   /// Initialize a newly created synthetic field element to have the given
   /// [name] at the given [offset].
-  FieldElementImpl(String name, int offset) : super(name, offset);
+  FieldElementImpl(super.name, super.offset);
 
   @override
   FieldElement get declaration => this;
@@ -3339,14 +3325,10 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   FieldFormalParameterElementImpl({
-    required String name,
-    required int nameOffset,
-    required ParameterKind parameterKind,
-  }) : super(
-          name: name,
-          nameOffset: nameOffset,
-          parameterKind: parameterKind,
-        );
+    required String super.name,
+    required super.nameOffset,
+    required super.parameterKind,
+  });
 
   /// Initializing formals are visible only in the "formal parameter
   /// initializer scope", which is the current scope of the initializer list
@@ -3370,7 +3352,7 @@ class FunctionElementImpl extends ExecutableElementImpl
     implements FunctionElement, FunctionTypedElementImpl {
   /// Initialize a newly created function element to have the given [name] and
   /// [offset].
-  FunctionElementImpl(String name, int offset) : super(name, offset);
+  FunctionElementImpl(super.name, super.offset);
 
   /// Initialize a newly created function element to have no name and the given
   /// [nameOffset]. This is used for function expressions, that have no name.
@@ -3628,9 +3610,8 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   /// [onSwitchStatement] should be `true` if this label is associated with a
   /// `switch` statement and [onSwitchMember] should be `true` if this label is
   /// associated with a `switch` member.
-  LabelElementImpl(String name, int nameOffset, this._onSwitchStatement,
-      this._onSwitchMember)
-      : super(name, nameOffset);
+  LabelElementImpl(String super.name, super.nameOffset, this._onSwitchStatement,
+      this._onSwitchMember);
 
   @override
   String get displayName => name;
@@ -3663,8 +3644,8 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
 
   LibraryAugmentationElementImpl({
     required this.augmented,
-    required int nameOffset,
-  }) : super(name: null, nameOffset: nameOffset);
+    required super.nameOffset,
+  }) : super(name: null);
 
   @override
   // TODO: implement accessibleExtensions
@@ -4274,7 +4255,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
 
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
-  LocalVariableElementImpl(String name, int offset) : super(name, offset);
+  LocalVariableElementImpl(super.name, super.offset);
 
   @override
   String get identifier {
@@ -4320,7 +4301,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
-  MethodElementImpl(String name, int offset) : super(name, offset);
+  MethodElementImpl(super.name, super.offset);
 
   @override
   MethodElement get declaration => prototype ?? this;
@@ -4391,7 +4372,7 @@ class MixinElementImpl extends ClassElementImpl {
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  MixinElementImpl(String name, int offset) : super(name, offset);
+  MixinElementImpl(super.name, super.offset);
 
   @override
   bool get isAbstract => true;
@@ -4816,8 +4797,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
     with _HasLibraryMixin {
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
-  NonParameterVariableElementImpl(String name, int offset)
-      : super(name, offset);
+  NonParameterVariableElementImpl(String super.name, super.offset);
 
   @override
   Element get enclosingElement => super.enclosingElement!;
@@ -5087,8 +5067,7 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
 
   /// Initialize a newly created method element to have the given [name] and
   /// [nameOffset].
-  PrefixElementImpl(String name, int nameOffset, {Reference? reference})
-      : super(name, nameOffset, reference: reference);
+  PrefixElementImpl(String super.name, super.nameOffset, {super.reference});
 
   @override
   String get displayName => name;
@@ -5143,7 +5122,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
-  PropertyAccessorElementImpl(String name, int offset) : super(name, offset);
+  PropertyAccessorElementImpl(super.name, super.offset);
 
   /// Initialize a newly created synthetic property accessor element to be
   /// associated with the given [variable].
@@ -5394,7 +5373,7 @@ abstract class PropertyInducingElementImpl
 
   /// Initialize a newly created synthetic element to have the given [name] and
   /// [offset].
-  PropertyInducingElementImpl(String name, int offset) : super(name, offset);
+  PropertyInducingElementImpl(super.name, super.offset);
 
   bool get hasTypeInferred => hasModifier(Modifier.HAS_TYPE_INFERRED);
 
@@ -5542,14 +5521,10 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   SuperFormalParameterElementImpl({
-    required String name,
-    required int nameOffset,
-    required ParameterKind parameterKind,
-  }) : super(
-          name: name,
-          nameOffset: nameOffset,
-          parameterKind: parameterKind,
-        );
+    required String super.name,
+    required super.nameOffset,
+    required super.parameterKind,
+  });
 
   /// Super parameters are visible only in the initializer list scope,
   /// and introduce final variables.
@@ -5601,7 +5576,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     implements TopLevelVariableElement {
   /// Initialize a newly created synthetic top-level variable element to have
   /// the given [name] and [offset].
-  TopLevelVariableElementImpl(String name, int offset) : super(name, offset);
+  TopLevelVariableElementImpl(super.name, super.offset);
 
   @override
   TopLevelVariableElement get declaration => this;
@@ -5645,7 +5620,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   ElementImpl? _aliasedElement;
   DartType? _aliasedType;
 
-  TypeAliasElementImpl(String name, int nameOffset) : super(name, nameOffset);
+  TypeAliasElementImpl(String super.name, super.nameOffset);
 
   @override
   ElementImpl? get aliasedElement {
@@ -5847,7 +5822,7 @@ class TypeParameterElementImpl extends ElementImpl
 
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
-  TypeParameterElementImpl(String name, int offset) : super(name, offset);
+  TypeParameterElementImpl(String super.name, super.offset);
 
   /// Initialize a newly created synthetic type parameter element to have the
   /// given [name], and with [synthetic] set to true.
@@ -5960,7 +5935,7 @@ abstract class UriReferencedElementImpl extends _ExistingElementImpl
 
   /// Initialize a newly created import element to have the given [name] and
   /// [offset]. The offset may be `-1` if the element is synthetic.
-  UriReferencedElementImpl(String? name, int offset) : super(name, offset);
+  UriReferencedElementImpl(super.name, super.offset);
 
   /// Return the URI that is specified by this directive.
   @override
@@ -6001,7 +5976,7 @@ abstract class VariableElementImpl extends ElementImpl
 
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
-  VariableElementImpl(String? name, int offset) : super(name, offset);
+  VariableElementImpl(super.name, super.offset);
 
   /// If this element represents a constant variable, and it has an initializer,
   /// a copy of the initializer for the constant.  Otherwise `null`.
@@ -6111,8 +6086,7 @@ abstract class VariableElementImpl extends ElementImpl
 }
 
 abstract class _ExistingElementImpl extends ElementImpl with _HasLibraryMixin {
-  _ExistingElementImpl(String? name, int offset, {Reference? reference})
-      : super(name, offset, reference: reference);
+  _ExistingElementImpl(super.name, super.offset, {super.reference});
 }
 
 mixin _HasLibraryMixin on ElementImpl {

@@ -1593,14 +1593,11 @@ class ParserErrorCode extends ErrorCode {
   const ParserErrorCode(
     String name,
     String problemMessage, {
-    String? correctionMessage,
-    bool hasPublishedDocs = false,
-    bool isUnresolvedIdentifier = false,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          correctionMessage: correctionMessage,
-          hasPublishedDocs: hasPublishedDocs,
-          isUnresolvedIdentifier: isUnresolvedIdentifier,
           name: name,
           problemMessage: problemMessage,
           uniqueName: 'ParserErrorCode.${uniqueName ?? name}',

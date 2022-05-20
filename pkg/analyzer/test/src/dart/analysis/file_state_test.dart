@@ -36,6 +36,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FileSystemStateTest);
     defineReflectiveTests(FileSystemState_BazelWorkspaceTest);
+    defineReflectiveTests(FileSystemState_PubPackageTest);
   });
 }
 
@@ -115,6 +116,585 @@ class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
     var innerFile = fsState.getFileForUri(innerUri2).t1!;
     expect(innerFile.path, innerPath);
     expect(innerFile.uri, innerUri);
+  }
+}
+
+@reflectiveTest
+class FileSystemState_PubPackageTest extends PubPackageResolutionTest {
+  FileState fileStateFor(File file) {
+    return fsStateFor(file).getFileForPath(file.path);
+  }
+
+  FileSystemState fsStateFor(File file) {
+    return driverFor(file.path).fsState;
+  }
+
+  test_newFile_library_includePart_withoutPartOf() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+// no part of
+''');
+
+    final aState = fileStateFor(a);
+    aState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+    });
+
+    // Library `a.dart` includes `b.dart` as a part.
+    _assertPartedFiles(aState, [b]);
+
+    // But `b.dart` thinks that it is a library itself.
+    final bState = fileStateFor(b);
+    bState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+    });
+
+    // Refreshing the library does not change this.
+    aState.refresh();
+    _assertPartedFiles(aState, [b]);
+    bState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+    });
+  }
+
+  test_newFile_libraryAugmentation_invalid() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'da:';
+''');
+
+    final aState = fileStateFor(a);
+    aState.assertKind((kind) {
+      kind as LibraryAugmentationUnknownFileStateKind;
+    });
+  }
+
+  /// TODO(scheglov) implement
+  @FailingTest(reason: 'No import augment directive')
+  test_newFile_libraryAugmentation_valid() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'a.dart';
+''');
+
+    final bState = fileStateFor(b);
+    bState.assertKind((kind) {
+      kind as LibraryAugmentationKnownFileStateKind;
+      final aState = fileStateFor(a);
+      expect(kind.augmented, same(aState));
+    });
+  }
+
+  test_newFile_libraryDirective() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library my;
+''');
+
+    final aState = fileStateFor(a);
+    aState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+    });
+  }
+
+  test_newFile_noDirectives() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+
+    final aState = fileStateFor(a);
+    aState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+    });
+  }
+
+  test_newFile_partOfName() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library my.lib;
+part 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of my.lib;
+''');
+
+    final bState = fileStateFor(b);
+
+    // We don't know the library initially.
+    // Even though the library file exists, we have not seen it yet.
+    bState.assertKind((kind) {
+      kind as PartUnknownNameFileStateKind;
+      expect(kind.directive.name, 'my.lib');
+    });
+
+    // Read the library file.
+    final aState = fileStateFor(a);
+    aState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+    });
+    _assertPartedFiles(aState, [b]);
+
+    // Now the part knows its library.
+    bState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, same(aState));
+    });
+  }
+
+  test_newFile_partOfName_differentName() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library my.lib;
+part 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of other.lib;
+''');
+
+    final bState = fileStateFor(b);
+
+    // We don't know the library initially.
+    // Even though the library file exists, we have not seen it yet.
+    bState.assertKind((kind) {
+      kind as PartUnknownNameFileStateKind;
+      expect(kind.directive.name, 'other.lib');
+    });
+
+    // Read the library file.
+    final aState = fileStateFor(a);
+    aState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+    });
+    _assertPartedFiles(aState, [b]);
+
+    // Now the part knows its library.
+    // The name of the library in the part file does not matter.
+    // What counts is that the library includes it.
+    bState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, same(aState));
+    });
+  }
+
+  test_newFile_partOfName_twoLibraries() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part 'c.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part 'c.dart';
+''');
+
+    final c = newFile('$testPackageLibPath/c.dart', r'''
+part of 'doesNotMatter.dart';
+''');
+
+    final aState = fileStateFor(a);
+    _assertPartedFiles(aState, [c]);
+
+    // We set the library while reading `a.dart` file.
+    final cState = fileStateFor(c);
+    cState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, aState);
+    });
+
+    // Reading `b.dart` does not update the part.
+    final bState = fileStateFor(b);
+    _assertPartedFiles(bState, [c]);
+    cState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, aState);
+    });
+
+    // Refreshing `b.dart` does not update the part.
+    bState.refresh();
+    cState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, aState);
+    });
+
+    // Exclude the part from `a.dart` - switches to `b.dart` as its library.
+    newFile(a.path, '');
+    aState.refresh();
+    cState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, bState);
+    });
+
+    // Exclude the part from `b.dart` as well - switches to unknown.
+    newFile(b.path, '');
+    bState.refresh();
+    cState.assertKind((kind) {
+      kind as PartUnknownUriFileStateKind;
+    });
+  }
+
+  test_newFile_partOfUri_doesNotExist() async {
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+
+    final bState = fileStateFor(b);
+
+    // If the library does not part the file, it does not matter what the
+    // part file says - the part file will not be analyzed during the library
+    // analysis.
+    bState.assertKind((kind) {
+      kind as PartUnknownUriFileStateKind;
+    });
+
+    // Create the library that includes the part file.
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    // The library file has already been read because of `part of uri`.
+    // So, we explicitly refresh it.
+    final aState = fileStateFor(a);
+    aState.refresh();
+    _assertPartedFiles(aState, [b]);
+
+    // Now the part file knows its library.
+    bState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, same(aState));
+    });
+
+    // Refreshing the part file does not break the kind.
+    bState.refresh();
+    bState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, same(aState));
+    });
+  }
+
+  test_newFile_partOfUri_exists_hasPart() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+
+    final bState = fileStateFor(b);
+    bState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      // We have not read the library file explicitly yet.
+      // But it was read because of the `part of` directive.
+      final aState = fileStateFor(a);
+      _assertPartedFiles(aState, [b]);
+      expect(kind.library, same(aState));
+    });
+
+    // Refreshing the part file does not break the kind.
+    bState.refresh();
+    bState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      final aState = fileStateFor(a);
+      expect(kind.library, same(aState));
+    });
+  }
+
+  test_newFile_partOfUri_exists_noPart() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+
+    final bState = fileStateFor(b);
+
+    // If the library does not part the file, it does not matter what the
+    // part file says - the part file will not be analyzed during the library
+    // analysis.
+    bState.assertKind((kind) {
+      kind as PartUnknownUriFileStateKind;
+    });
+  }
+
+  test_newFile_partOfUri_invalid() async {
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'da:';
+''');
+
+    final bState = fileStateFor(b);
+
+    // The URI is invalid, so there is no way to discover the library.
+    bState.assertKind((kind) {
+      kind as PartUnknownUriFileStateKind;
+      expect(kind.directive.uri, 'da:');
+    });
+
+    // But reading a library that includes this part will update it.
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+    final aState = fileStateFor(a);
+    _assertPartedFiles(aState, [b]);
+
+    bState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, same(aState));
+    });
+  }
+
+  test_refresh_library_removePart_partOfName() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part of my;
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of my;
+''');
+
+    final c = newFile('$testPackageLibPath/c.dart', r'''
+library my;
+part 'a.dart';
+part 'b.dart';
+''');
+
+    final cState = fileStateFor(c);
+    cState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+    });
+    _assertPartedFiles(cState, [a, b]);
+
+    final aState = fileStateFor(a);
+    final bState = fileStateFor(b);
+
+    // Both part files know the library.
+    aState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, cState);
+    });
+    bState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, cState);
+    });
+
+    newFile(c.path, r'''
+library my;
+part 'b.dart';
+''');
+
+    // Stop referencing `a.dart` part file.
+    cState.refresh();
+    _assertPartedFiles(cState, [b]);
+
+    // So, the `a.dart` does not know its library anymore.
+    // But `b.dart` still knows it.
+    aState.assertKind((kind) {
+      kind as PartUnknownNameFileStateKind;
+    });
+    bState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, cState);
+    });
+  }
+
+  test_refresh_library_removePart_partOfUri() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+''');
+
+    final c = newFile('$testPackageLibPath/c.dart', r'''
+library my;
+part 'a.dart';
+part 'b.dart';
+''');
+
+    final cState = fileStateFor(c);
+    cState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+    });
+    _assertPartedFiles(cState, [a, b]);
+
+    final aState = fileStateFor(a);
+    final bState = fileStateFor(b);
+
+    // Both part files know the library.
+    aState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, cState);
+    });
+    bState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, cState);
+    });
+
+    newFile(c.path, r'''
+library my;
+part 'b.dart';
+''');
+
+    // Stop referencing `a.dart` part file.
+    cState.refresh();
+    _assertPartedFiles(cState, [b]);
+
+    // So, the `a.dart` does not know its library anymore.
+    // But `b.dart` still knows it.
+    aState.assertKind((kind) {
+      kind as PartUnknownUriFileStateKind;
+    });
+    bState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, cState);
+    });
+  }
+
+  test_refresh_library_to_partOfName() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    // No `part of`, so it is a library.
+    final b = newFile('$testPackageLibPath/b.dart', '');
+
+    final aState = fileStateFor(a);
+    _assertPartedFiles(aState, [b]);
+
+    final aCycle_1 = aState.libraryCycle;
+
+    // No `part of`, so it is a library.
+    // It does not matter, that `a.dart` tried to use it as part.
+    final bState = fileStateFor(b);
+    bState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+    });
+
+    // Make it a part.
+    newFile(b.path, r'''
+part of my.lib;
+''');
+
+    // We will discover the library, by asking each of them.
+    bState.refresh();
+    bState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, same(aState));
+    });
+
+    // The file `b.dart` was something else, but now it is a known part.
+    // This affects libraries that include it.
+    final aCycle_2 = aState.libraryCycle;
+    expect(aCycle_2.apiSignature, isNot(aCycle_1.apiSignature));
+  }
+
+  test_refresh_library_to_partOfName_noLibrary() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library my;
+''');
+
+    final aState = fileStateFor(a);
+    aState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+    });
+
+    newFile(a.path, r'''
+part of my;
+''');
+
+    aState.refresh();
+
+    // No library that includes it, so it stays unknown.
+    aState.assertKind((kind) {
+      kind as PartUnknownNameFileStateKind;
+      expect(kind.directive.name, 'my');
+    });
+  }
+
+  test_refresh_library_to_partOfUri() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+library b;
+''');
+
+    final aState = fileStateFor(a);
+    _assertPartedFiles(aState, [b]);
+
+    final aCycle_1 = aState.libraryCycle;
+
+    final bState = fileStateFor(b);
+    bState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+    });
+
+    newFile(b.path, r'''
+part of 'a.dart';
+''');
+
+    // We will discover the library, by asking each of them.
+    bState.refresh();
+    bState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, same(aState));
+    });
+
+    // The file `b.dart` was something else, but now it is a known part.
+    // This affects libraries that include it.
+    final aCycle_2 = aState.libraryCycle;
+    expect(aCycle_2.apiSignature, isNot(aCycle_1.apiSignature));
+  }
+
+  test_refresh_partOfUri_to_library() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+
+    final aState = fileStateFor(a);
+    aState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+    });
+    _assertPartedFiles(aState, [b]);
+
+    final aCycle_1 = aState.libraryCycle;
+
+    // There is `part of` in `b.dart`, so it is a part.
+    final bState = fileStateFor(b);
+    bState.assertKind((kind) {
+      kind as PartKnownFileStateKind;
+      expect(kind.library, aState);
+    });
+
+    // There are no directives in `b.dart`, so it is a library.
+    newFile(b.path, r'''
+// no part of
+''');
+    bState.refresh();
+    bState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+    });
+
+    // Library `a.dart` still considers `b.dart` its part.
+    _assertPartedFiles(aState, [b]);
+
+    // The library cycle for `a.dart` is different now.
+    final aCycle_2 = aState.libraryCycle;
+    expect(aCycle_2.apiSignature, isNot(aCycle_1.apiSignature));
+  }
+
+  void _assertPartedFiles(FileState fileState, List<File> expected) {
+    final actualFiles = fileState.partedFiles.map((part) {
+      if (part != null) {
+        return getFile(part.path);
+      }
+    }).toList();
+    expect(actualFiles, expected);
   }
 }
 
@@ -955,6 +1535,13 @@ class _SourceMock implements Source {
   @override
   noSuchMethod(Invocation invocation) {
     throw StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+}
+
+extension on FileState {
+  void assertKind(void Function(FileStateKind kind) f) {
+    expect(kind.file, same(this));
+    f(kind);
   }
 }
 

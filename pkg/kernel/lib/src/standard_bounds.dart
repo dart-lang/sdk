@@ -1042,7 +1042,8 @@ mixin StandardBounds {
         intersectNullabilities(f.declaredNullability, g.declaredNullability),
         namedParameters: namedParameters,
         typeParameters: typeParameters,
-        requiredParameterCount: minPos);
+        requiredParameterCount:
+            math.min(f.requiredParameterCount, g.requiredParameterCount));
   }
 
   /// Computes the nullability-aware lower bound of two function types.
