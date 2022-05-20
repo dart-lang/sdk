@@ -316,10 +316,6 @@ _extra_builder(
     category = "vm|kernel-precomp|d",
 )
 _extra_builder(
-    "vm-kernel-precomp-linux-product-x64",
-    category = "vm|kernel-precomp|p",
-)
-_extra_builder(
     "vm-kernel-precomp-linux-release-simarm",
     category = "vm|kernel-precomp|a32",
 )
@@ -381,19 +377,19 @@ _extra_builder(
 
 # vm|product
 _nightly_builder(
-    "vm-kernel-linux-product-x64",
+    "vm-kernel-precomp-linux-product-x64",
     category = "vm|product|l",
     channels = ["try"],
 )
 _nightly_builder(
-    "vm-kernel-mac-product-x64",
+    "vm-kernel-precomp-mac-product-x64",
     category = "vm|product|m",
     channels = ["try"],
     dimensions = mac,
     properties = pinned_xcode,
 )
 _nightly_builder(
-    "vm-kernel-win-product-x64",
+    "vm-kernel-precomp-win-product-x64",
     category = "vm|product|w",
     channels = ["try"],
     dimensions = windows,
