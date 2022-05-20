@@ -1589,10 +1589,6 @@ class VariableDeclarationImpl extends VariableDeclaration {
   /// the kernel.
   final bool isImplicitlyTyped;
 
-  // TODO(ahe): Remove this field. We can get rid of it by recording closure
-  // mutation in [BodyBuilder].
-  final int functionNestingLevel;
-
   // TODO(ahe): Remove this field. It's only used locally when compiling a
   // method, and this can thus be tracked in a [Set] (actually, tracking this
   // information in a [List] is probably even faster as the average size will
@@ -1615,7 +1611,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
   /// used.
   bool isStaticLate;
 
-  VariableDeclarationImpl(String? name, this.functionNestingLevel,
+  VariableDeclarationImpl(String? name,
       {this.forSyntheticToken: false,
       bool hasDeclaredInitializer: false,
       Expression? initializer,
@@ -1645,7 +1641,6 @@ class VariableDeclarationImpl extends VariableDeclaration {
 
   VariableDeclarationImpl.forEffect(Expression initializer)
       : forSyntheticToken = false,
-        functionNestingLevel = 0,
         isImplicitlyTyped = false,
         isLocalFunction = false,
         isStaticLate = false,
@@ -1653,7 +1648,6 @@ class VariableDeclarationImpl extends VariableDeclaration {
 
   VariableDeclarationImpl.forValue(Expression initializer)
       : forSyntheticToken = false,
-        functionNestingLevel = 0,
         isImplicitlyTyped = true,
         isLocalFunction = false,
         isStaticLate = false,

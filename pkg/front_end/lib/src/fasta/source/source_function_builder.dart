@@ -343,7 +343,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     }
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
-        VariableDeclaration parameter = formal.build(libraryBuilder, 0);
+        VariableDeclaration parameter = formal.build(libraryBuilder);
         if (needsCheckVisitor != null) {
           if (parameter.type.accept(needsCheckVisitor)) {
             parameter.isCovariantByClass = true;
@@ -378,8 +378,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       // Replace illegal parameters by single dummy parameter.
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
-      VariableDeclaration parameter =
-          new VariableDeclarationImpl("#synthetic", 0);
+      VariableDeclaration parameter = new VariableDeclarationImpl("#synthetic");
       function.positionalParameters.clear();
       function.positionalParameters.add(parameter);
       parameter.parent = function;

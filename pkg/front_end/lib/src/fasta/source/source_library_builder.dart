@@ -4791,7 +4791,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         case TypeUse.typeParameterDefaultType:
         case TypeUse.defaultTypeAsTypeArgument:
         case TypeUse.deferredTypeError:
-        case TypeUse.functionSignature:
           break;
       }
     }

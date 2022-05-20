@@ -131,12 +131,9 @@ enum TypeUse {
   ///
   typedefAlias,
 
-  /// An internally created function type used when build local functions.
-  functionSignature,
-
   /// The this type of an enum.
-  // TODO(johnniwinther): This is doesn't currently have the correct value
-  // and/or well-boundedness checking.
+  // TODO(johnniwinther): This doesn't currently have the correct value and/or
+  //  well-boundedness checking.
   enumSelfType,
 
   /// A type used as a type literal.
