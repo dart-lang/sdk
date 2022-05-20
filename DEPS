@@ -58,7 +58,7 @@ vars = {
   # Checkout extra javascript engines for testing or benchmarking.
   # d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:10.2.78",
+  "d8_tag": "version:10.4.31",
   "jsshell_tag": "version:95.0",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -124,7 +124,7 @@ vars = {
   "linter_rev": "a8529c6692922b45bc287543b355c90d7b1286d3", # 1.24.0
   "lints_rev": "8294e5648ab49474541527e2911e72e4c5aefe55",
   "logging_rev": "dfbe88b890c3b4f7bc06da5a7b3b43e9e263b688",
-  "markdown_rev": "7479783f0493f6717e1d7ae31cb37d39a91026b2",
+  "markdown_rev": "5699cafa9ef004875fd7de8ae9ea00e5295e87a4", # 5.0.0
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "matcher_rev": "07595a7739d47a8315caba5a8e58fb9ae3d81261",
   "mime_rev": "c2c5ffd594674f32dc277521369da1557a1622d3",
@@ -135,7 +135,6 @@ vars = {
   "platform_rev": "1ffad63428bbd1b3ecaa15926bacfb724023648c",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "c40cc32eabecb9d60f1045d1403108d968805f9a",
-  "process_rev": "2546dfef7ba839b1514e0c9045344692eb47b771",
   "protobuf_rev": "b149f801cf7a5e959cf1dbf72d61068ac275f24b",
   "pub_rev": "51435efcd574b7bc18d47a5dd620cb9759dea8f8",
   "pub_semver_rev": "ea6c54019948dc03042c595ce9413e17aaf7aa38",
@@ -380,8 +379,6 @@ deps = {
       Var("dart_git") + "pool.git" + "@" + Var("pool_rev"),
   Var("dart_root") + "/third_party/pkg/protobuf":
        Var("dart_git") + "protobuf.git" + "@" + Var("protobuf_rev"),
-  Var("dart_root") + "/third_party/pkg/process":
-       Var("dart_git") + "process.dart.git" + "@" + Var("process_rev"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
       Var("dart_git") + "pub_semver.git" + "@" + Var("pub_semver_rev"),
   Var("dart_root") + "/third_party/pkg/pub":
