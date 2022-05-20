@@ -3772,7 +3772,20 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   Constant visitStaticSet(StaticSet node) => defaultExpression(node);
 
   @override
+  Constant visitAbstractSuperMethodInvocation(
+          AbstractSuperMethodInvocation node) =>
+      defaultExpression(node);
+
+  @override
   Constant visitSuperMethodInvocation(SuperMethodInvocation node) =>
+      defaultExpression(node);
+
+  @override
+  Constant visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) =>
+      defaultExpression(node);
+
+  @override
+  Constant visitAbstractSuperPropertySet(AbstractSuperPropertySet node) =>
       defaultExpression(node);
 
   @override

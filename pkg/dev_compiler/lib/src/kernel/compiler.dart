@@ -4780,8 +4780,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
+  js_ast.Expression visitAbstractSuperPropertyGet(
+      AbstractSuperPropertyGet node) {
+    return _emitSuperPropertyGet(node.interfaceTarget);
+  }
+
+  @override
   js_ast.Expression visitSuperPropertyGet(SuperPropertyGet node) {
-    var target = node.interfaceTarget;
+    return _emitSuperPropertyGet(node.interfaceTarget);
+  }
+
+  js_ast.Expression _emitSuperPropertyGet(Member target) {
     if (_reifyTearoff(target)) {
       if (_superAllowed) {
         var jsTarget = _emitSuperTarget(target);
@@ -4794,10 +4803,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
+  js_ast.Expression visitAbstractSuperPropertySet(
+      AbstractSuperPropertySet node) {
+    return _emitSuperPropertySet(node.interfaceTarget, node.value);
+  }
+
+  @override
   js_ast.Expression visitSuperPropertySet(SuperPropertySet node) {
-    var target = node.interfaceTarget;
+    return _emitSuperPropertySet(node.interfaceTarget, node.value);
+  }
+
+  js_ast.Expression _emitSuperPropertySet(Member target, Expression value) {
     var jsTarget = _emitSuperTarget(target, setter: true);
-    return _visitExpression(node.value).toAssignExpression(jsTarget);
+    return _visitExpression(value).toAssignExpression(jsTarget);
   }
 
   @override
@@ -5404,10 +5422,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   // TODO(jmesserly): optimize super operators for kernel
   @override
+  js_ast.Expression visitAbstractSuperMethodInvocation(
+      AbstractSuperMethodInvocation node) {
+    return _emitSuperMethodInvocation(node.interfaceTarget, node.arguments);
+  }
+
+  @override
   js_ast.Expression visitSuperMethodInvocation(SuperMethodInvocation node) {
-    var target = node.interfaceTarget;
-    return js_ast.Call(_emitSuperTarget(target),
-        _emitArgumentList(node.arguments, target: target));
+    return _emitSuperMethodInvocation(node.interfaceTarget, node.arguments);
+  }
+
+  js_ast.Expression _emitSuperMethodInvocation(
+      Member target, Arguments arguments) {
+    return js_ast.Call(
+        _emitSuperTarget(target), _emitArgumentList(arguments, target: target));
   }
 
   /// Emits the [js_ast.PropertyAccess] for accessors or method calls to

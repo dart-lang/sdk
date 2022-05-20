@@ -4772,6 +4772,99 @@ class InstanceSet extends Expression {
   }
 }
 
+/// Expression of form `super.foo` occurring in a mixin declaration.
+///
+/// In this setting, the target is looked up on the types in the mixin 'on'
+/// clause and are therefore not necessary the runtime targets of the read. An
+/// [AbstractSuperPropertyGet] must be converted into a [SuperPropertyGet] to
+/// statically bind the target.
+///
+/// For instance
+///
+///    abstract class Interface {
+///      get getter;
+///    }
+///    mixin Mixin on Interface {
+///      get getter {
+///        // This is an [AbstractSuperPropertyGet] with interface target
+///        // `Interface.getter`.
+///        return super.getter;
+///      }
+///    }
+///    class Super implements Interface {
+///      // This is the target when `Mixin` is applied to `Class`.
+///      get getter => 42;
+///    }
+///    class Class extends Super with Mixin {}
+///
+/// This may invoke a getter, read a field, or tear off a method.
+class AbstractSuperPropertyGet extends Expression {
+  Name name;
+
+  Reference? interfaceTargetReference;
+
+  AbstractSuperPropertyGet(Name name, [Member? interfaceTarget])
+      : this.byReference(name, getMemberReferenceGetter(interfaceTarget));
+
+  AbstractSuperPropertyGet.byReference(
+      this.name, this.interfaceTargetReference);
+
+  Member? get interfaceTarget => interfaceTargetReference?.asMember;
+
+  void set interfaceTarget(Member? member) {
+    interfaceTargetReference = getMemberReferenceGetter(member);
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    Member? interfaceTarget = this.interfaceTarget;
+    if (interfaceTarget == null) {
+      // TODO(johnniwinther): SuperPropertyGet without a target should be
+      // replaced by invalid expressions.
+      return const DynamicType();
+    }
+    Class declaringClass = interfaceTarget.enclosingClass!;
+    if (declaringClass.typeParameters.isEmpty) {
+      return interfaceTarget.getterType;
+    }
+    List<DartType>? receiverArguments = context.typeEnvironment
+        .getTypeArgumentsAsInstanceOf(context.thisType!, declaringClass);
+    return Substitution.fromPairs(
+            declaringClass.typeParameters, receiverArguments!)
+        .substituteType(interfaceTarget.getterType);
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitAbstractSuperPropertyGet(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitAbstractSuperPropertyGet(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    interfaceTarget?.acceptReference(v);
+    name.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {}
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
+
+  @override
+  String toString() {
+    return "AbstractSuperPropertyGet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('super.{abstract}');
+    printer.writeInterfaceMemberName(interfaceTargetReference, name);
+  }
+}
+
 /// Expression of form `super.field`.
 ///
 /// This may invoke a getter, read a field, or tear off a method.
@@ -4838,6 +4931,103 @@ class SuperPropertyGet extends Expression {
   void toTextInternal(AstPrinter printer) {
     printer.write('super.');
     printer.writeInterfaceMemberName(interfaceTargetReference, name);
+  }
+}
+
+/// Expression of form `super.foo = x` occurring in a mixin declaration.
+///
+/// In this setting, the target is looked up on the types in the mixin 'on'
+/// clause and are therefore not necessary the runtime targets of the
+/// assignment. An [AbstractSuperPropertySet] must be converted into a
+/// [SuperPropertySet] to statically bind the target.
+///
+/// For instance
+///
+///    abstract class Interface {
+///      void set setter(value);
+///    }
+///    mixin Mixin on Interface {
+///      void set setter(value) {
+///        // This is an [AbstractSuperPropertySet] with interface target
+///        // `Interface.setter`.
+///        super.setter = value;
+///      }
+///    }
+///    class Super implements Interface {
+///      // This is the target when `Mixin` is applied to `Class`.
+///      void set setter(value) {}
+///    }
+///    class Class extends Super with Mixin {}
+///
+/// This may invoke a setter or assign a field.
+class AbstractSuperPropertySet extends Expression {
+  Name name;
+  Expression value;
+
+  Reference? interfaceTargetReference;
+
+  AbstractSuperPropertySet(Name name, Expression value, Member? interfaceTarget)
+      : this.byReference(
+            name, value, getMemberReferenceSetter(interfaceTarget));
+
+  AbstractSuperPropertySet.byReference(
+      this.name, this.value, this.interfaceTargetReference) {
+    value.parent = this;
+  }
+
+  Member? get interfaceTarget => interfaceTargetReference?.asMember;
+
+  void set interfaceTarget(Member? member) {
+    interfaceTargetReference = getMemberReferenceSetter(member);
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      value.getStaticType(context);
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitAbstractSuperPropertySet(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitAbstractSuperPropertySet(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    interfaceTarget?.acceptReference(v);
+    name.accept(v);
+    value.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
+    if (value != null) {
+      value = v.transform(value);
+      value.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
+    if (value != null) {
+      value = v.transform(value);
+      value.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "AbstractSuperPropertySet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('super.{abstract}');
+    printer.writeInterfaceMemberName(interfaceTargetReference, name);
+    printer.write(' = ');
+    printer.writeExpression(value);
   }
 }
 
@@ -6155,6 +6345,121 @@ class EqualsCall extends Expression {
     printer.writeExpression(left, minimumPrecedence: minimumPrecedence);
     printer.write(' == ');
     printer.writeExpression(right, minimumPrecedence: minimumPrecedence + 1);
+  }
+}
+
+/// Expression of form `super.foo(x)` occurring in a mixin declaration.
+///
+/// In this setting, the target is looked up on the types in the mixin 'on'
+/// clause and are therefore not necessary the runtime targets of the
+/// invocation. An [AbstractSuperMethodInvocation] must be converted into
+/// a [SuperMethodInvocation] to statically bind the target.
+///
+/// For instance
+///
+///    abstract class Interface {
+///      void method();
+///    }
+///    mixin Mixin on Interface {
+///      void method() {
+///        // This is an [AbstractSuperMethodInvocation] with interface target
+///        // `Interface.method`.
+///        super.method(); // This targets Super.method.
+///      }
+///    }
+///    class Super implements Interface {
+///      // This is the target when `Mixin` is applied to `Class`.
+///      void method() {}
+///    }
+///    class Class extends Super with Mixin {}
+///
+class AbstractSuperMethodInvocation extends InvocationExpression {
+  @override
+  Name name;
+
+  @override
+  Arguments arguments;
+
+  Reference? interfaceTargetReference;
+
+  AbstractSuperMethodInvocation(Name name, Arguments arguments,
+      [Procedure? interfaceTarget])
+      : this.byReference(
+            name,
+            arguments,
+            // An invocation doesn't refer to the setter.
+            getMemberReferenceGetter(interfaceTarget));
+
+  AbstractSuperMethodInvocation.byReference(
+      this.name, this.arguments, this.interfaceTargetReference) {
+    arguments.parent = this;
+  }
+
+  Procedure? get interfaceTarget => interfaceTargetReference?.asProcedure;
+
+  void set interfaceTarget(Procedure? target) {
+    // An invocation doesn't refer to the setter.
+    interfaceTargetReference = getMemberReferenceGetter(target);
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    Procedure? interfaceTarget = this.interfaceTarget;
+    if (interfaceTarget == null) return const DynamicType();
+    Class superclass = interfaceTarget.enclosingClass!;
+    List<DartType>? receiverTypeArguments = context.typeEnvironment
+        .getTypeArgumentsAsInstanceOf(context.thisType!, superclass);
+    DartType returnType = Substitution.fromPairs(
+            superclass.typeParameters, receiverTypeArguments!)
+        .substituteType(interfaceTarget.function.returnType);
+    return Substitution.fromPairs(
+            interfaceTarget.function.typeParameters, arguments.types)
+        .substituteType(returnType);
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) =>
+      v.visitAbstractSuperMethodInvocation(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitAbstractSuperMethodInvocation(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    interfaceTarget?.acceptReference(v);
+    name.accept(v);
+    arguments.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
+    if (arguments != null) {
+      arguments = v.transform(arguments);
+      arguments.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
+    if (arguments != null) {
+      arguments = v.transform(arguments);
+      arguments.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "AbstractSuperMethodInvocation(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('super.{abstract}');
+    printer.writeInterfaceMemberName(interfaceTargetReference, name);
+    printer.writeArguments(arguments);
   }
 }
 

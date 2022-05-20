@@ -748,6 +748,16 @@ void ScopeBuilder::VisitExpression() {
       helper_.SkipName();      // read name.
       VisitExpression();       // read value.
       return;
+    case kAbstractSuperPropertyGet:
+      // Abstract super property getters must be converted into super property
+      // getters during mixin transformation.
+      UNREACHABLE();
+      break;
+    case kAbstractSuperPropertySet:
+      // Abstract super property setters must be converted into super property
+      // setters during mixin transformation.
+      UNREACHABLE();
+      break;
     case kSuperPropertyGet:
       HandleLoadReceiver();
       helper_.ReadPosition();                      // read position.
@@ -817,6 +827,11 @@ void ScopeBuilder::VisitExpression() {
       helper_.ReadPosition();  // read position.
       VisitExpression();       // read expression.
       return;
+    case kAbstractSuperMethodInvocation:
+      // Abstract super method invocations must be converted into super
+      // method invocations during mixin transformation.
+      UNREACHABLE();
+      break;
     case kSuperMethodInvocation:
       HandleLoadReceiver();
       helper_.ReadPosition();  // read position.

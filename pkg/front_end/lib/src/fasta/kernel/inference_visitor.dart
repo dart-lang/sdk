@@ -1196,6 +1196,8 @@ class InferenceVisitor
       return new LocalForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is PropertySet) {
       return new PropertyForInVariable(syntheticAssignment);
+    } else if (syntheticAssignment is AbstractSuperPropertySet) {
+      return new AbstractSuperPropertyForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is SuperPropertySet) {
       return new SuperPropertyForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is StaticSet) {
@@ -6149,6 +6151,21 @@ class InferenceVisitor
   }
 
   @override
+  ExpressionInferenceResult visitAbstractSuperMethodInvocation(
+      AbstractSuperMethodInvocation node, DartType typeContext) {
+    if (node.interfaceTarget != null) {
+      inferrer.instrumentation?.record(
+          inferrer.uriForInstrumentation,
+          node.fileOffset,
+          'target',
+          new InstrumentationValueForMember(node.interfaceTarget!));
+    }
+    assert(node.interfaceTarget == null || node.interfaceTarget is Procedure);
+    return inferrer.inferSuperMethodInvocation(node, node.name,
+        node.arguments as ArgumentsImpl, typeContext, node.interfaceTarget);
+  }
+
+  @override
   ExpressionInferenceResult visitSuperMethodInvocation(
       SuperMethodInvocation node, DartType typeContext) {
     if (node.interfaceTarget != null) {
@@ -6159,8 +6176,22 @@ class InferenceVisitor
           new InstrumentationValueForMember(node.interfaceTarget!));
     }
     assert(node.interfaceTarget == null || node.interfaceTarget is Procedure);
-    return inferrer.inferSuperMethodInvocation(
-        node, typeContext, node.interfaceTarget);
+    return inferrer.inferSuperMethodInvocation(node, node.name,
+        node.arguments as ArgumentsImpl, typeContext, node.interfaceTarget);
+  }
+
+  @override
+  ExpressionInferenceResult visitAbstractSuperPropertyGet(
+      AbstractSuperPropertyGet node, DartType typeContext) {
+    if (node.interfaceTarget != null) {
+      inferrer.instrumentation?.record(
+          inferrer.uriForInstrumentation,
+          node.fileOffset,
+          'target',
+          new InstrumentationValueForMember(node.interfaceTarget!));
+    }
+    return inferrer.inferSuperPropertyGet(
+        node, node.name, typeContext, node.interfaceTarget);
   }
 
   @override
@@ -6174,7 +6205,33 @@ class InferenceVisitor
           new InstrumentationValueForMember(node.interfaceTarget!));
     }
     return inferrer.inferSuperPropertyGet(
-        node, typeContext, node.interfaceTarget);
+        node, node.name, typeContext, node.interfaceTarget);
+  }
+
+  @override
+  ExpressionInferenceResult visitAbstractSuperPropertySet(
+      AbstractSuperPropertySet node, DartType typeContext) {
+    DartType receiverType = inferrer.classHierarchy.getTypeAsInstanceOf(
+        inferrer.thisType!,
+        inferrer.thisType!.classNode.supertype!.classNode,
+        inferrer.libraryBuilder.library)!;
+
+    ObjectAccessTarget writeTarget = node.interfaceTarget != null
+        ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget!,
+            isPotentiallyNullable: false)
+        : const ObjectAccessTarget.missing();
+    DartType writeContext = inferrer.getSetterType(writeTarget, receiverType);
+    if (node.interfaceTarget != null) {
+      writeContext = inferrer.computeTypeFromSuperClass(
+          node.interfaceTarget!.enclosingClass!, writeContext);
+    }
+    ExpressionInferenceResult rhsResult = inferrer
+        .inferExpression(node.value, writeContext, true, isVoidAllowed: true);
+    rhsResult = inferrer.ensureAssignableResult(writeContext, rhsResult,
+        fileOffset: node.fileOffset, isVoidAllowed: writeContext is VoidType);
+    Expression rhs = rhsResult.expression;
+    node.value = rhs..parent = node;
+    return new ExpressionInferenceResult(rhsResult.inferredType, node);
   }
 
   @override
@@ -7153,6 +7210,46 @@ class PropertyForInVariable implements ForInVariable {
     propertySet.value = rhs..parent = propertySet;
     ExpressionInferenceResult result = inferrer.inferExpression(
         propertySet, const UnknownType(), !inferrer.isTopLevel,
+        isVoidAllowed: true);
+    return result.expression;
+  }
+}
+
+class AbstractSuperPropertyForInVariable implements ForInVariable {
+  final AbstractSuperPropertySet superPropertySet;
+
+  DartType? _writeType;
+
+  AbstractSuperPropertyForInVariable(this.superPropertySet);
+
+  @override
+  DartType computeElementType(TypeInferrerImpl inferrer) {
+    DartType receiverType = inferrer.thisType!;
+    ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
+        receiverType, superPropertySet.name, superPropertySet.fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
+        instrumented: true);
+    if (writeTarget.isInstanceMember || writeTarget.isObjectMember) {
+      superPropertySet.interfaceTarget = writeTarget.member;
+    }
+    return _writeType = inferrer.getSetterType(writeTarget, receiverType);
+  }
+
+  @override
+  Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
+    Expression rhs = inferrer.ensureAssignable(
+        inferrer.computeGreatestClosure(_writeType!),
+        rhsType,
+        superPropertySet.value,
+        errorTemplate: templateForInLoopElementTypeNotAssignable,
+        nullabilityErrorTemplate:
+            templateForInLoopElementTypeNotAssignableNullability,
+        nullabilityPartErrorTemplate:
+            templateForInLoopElementTypeNotAssignablePartNullability,
+        isVoidAllowed: true);
+    superPropertySet.value = rhs..parent = superPropertySet;
+    ExpressionInferenceResult result = inferrer.inferExpression(
+        superPropertySet, const UnknownType(), !inferrer.isTopLevel,
         isVoidAllowed: true);
     return result.expression;
   }

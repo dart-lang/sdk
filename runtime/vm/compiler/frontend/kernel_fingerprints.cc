@@ -412,6 +412,16 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       BuildHash(ReadNameAsSetterName().Hash());  // read name.
       CalculateExpressionFingerprint();          // read value.
       return;
+    case kAbstractSuperPropertyGet:
+      // Abstract super property getters must be converted into super property
+      // getters during mixin transformation.
+      UNREACHABLE();
+      break;
+    case kAbstractSuperPropertySet:
+      // Abstract super property setters must be converted into super property
+      // setters during mixin transformation.
+      UNREACHABLE();
+      break;
     case kSuperPropertyGet:
       ReadPosition();                            // read position.
       BuildHash(ReadNameAsGetterName().Hash());  // read name.
@@ -474,6 +484,11 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       ReadPosition();                    // read position.
       CalculateExpressionFingerprint();  // read expression.
       return;
+    case kAbstractSuperMethodInvocation:
+      // Abstract super method invocations must be converted into super
+      // method invocations during mixin transformation.
+      UNREACHABLE();
+      break;
     case kSuperMethodInvocation:
       ReadPosition();                            // read position.
       BuildHash(ReadNameAsMethodName().Hash());  // read name.

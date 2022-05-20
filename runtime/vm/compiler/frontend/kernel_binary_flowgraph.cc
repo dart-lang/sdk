@@ -1172,6 +1172,16 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildInstanceSet(position);
     case kDynamicSet:
       return BuildDynamicSet(position);
+    case kAbstractSuperPropertyGet:
+      // Abstract super property getters must be converted into super property
+      // getters during mixin transformation.
+      UNREACHABLE();
+      break;
+    case kAbstractSuperPropertySet:
+      // Abstract super property setters must be converted into super property
+      // setters during mixin transformation.
+      UNREACHABLE();
+      break;
     case kSuperPropertyGet:
       return BuildSuperPropertyGet(position);
     case kSuperPropertySet:
@@ -1192,6 +1202,11 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildEqualsCall(position);
     case kEqualsNull:
       return BuildEqualsNull(position);
+    case kAbstractSuperMethodInvocation:
+      // Abstract super method invocations must be converted into super
+      // method invocations during mixin transformation.
+      UNREACHABLE();
+      break;
     case kSuperMethodInvocation:
       return BuildSuperMethodInvocation(position);
     case kStaticInvocation:
