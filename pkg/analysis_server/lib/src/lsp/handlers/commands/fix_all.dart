@@ -19,7 +19,7 @@ class FixAllCommandHandler extends SimpleEditCommandHandler {
 
   @override
   Future<ErrorOr<void>> handle(List<Object?>? arguments,
-      ProgressReporter reporter, CancellationToken cancellationToken) async {
+      ProgressReporter progress, CancellationToken cancellationToken) async {
     if (arguments == null || arguments.length != 1 || arguments[0] is! String) {
       return ErrorOr.error(ResponseError(
         code: ServerErrorCodes.InvalidCommandArguments,

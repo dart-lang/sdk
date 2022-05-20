@@ -417,7 +417,7 @@ Future<List<AstNode>> getSpecClasses(ArgResults args) async {
   // Generate an enum for all of the request methods to avoid strings.
   types.add(extractMethodsEnum(spec));
 
-  // Extract additional inline types that are specificed online in the `results`
+  // Extract additional inline types that are specified online in the `results`
   // section of the doc.
   types.addAll(extractResultsInlineTypes(spec));
   return types;
@@ -472,7 +472,7 @@ Future<String> _fetchIncludes(String spec, Uri baseUri) async {
     final fullUri = baseUri.resolve(relativeUri);
     final response = await http.get(fullUri);
     if (response.statusCode != 200) {
-      throw 'Faild to fetch $fullUri (${response.statusCode} ${response.reasonPhrase})';
+      throw 'Failed to fetch $fullUri (${response.statusCode} ${response.reasonPhrase})';
     }
     includeStrings[relativeUri] = response.body;
   }

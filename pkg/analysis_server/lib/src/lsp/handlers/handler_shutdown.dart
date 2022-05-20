@@ -8,6 +8,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 class ShutdownMessageHandler extends MessageHandler<void, void> {
   ShutdownMessageHandler(super.server);
+
   @override
   Method get handlesMessage => Method.shutdown;
 
@@ -15,7 +16,8 @@ class ShutdownMessageHandler extends MessageHandler<void, void> {
   LspJsonHandler<void> get jsonHandler => NullJsonHandler;
 
   @override
-  ErrorOr<void> handle(void _, MessageInfo message, CancellationToken token) {
+  ErrorOr<void> handle(
+      void params, MessageInfo message, CancellationToken token) {
     // Move to the Shutting Down state so we won't process any more
     // requests and the Exit notification will know it was a clean shutdown.
     server.messageHandler = ShuttingDownStateMessageHandler(server);

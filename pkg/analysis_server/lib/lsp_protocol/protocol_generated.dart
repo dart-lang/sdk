@@ -2778,7 +2778,8 @@ class CodeActionKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is CodeActionKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is CodeActionKind && other._value == _value;
 }
 
 class CodeActionLiteralSupportCodeActionKind implements ToJsonable {
@@ -3354,8 +3355,8 @@ class CodeActionTriggerKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) =>
-      o is CodeActionTriggerKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is CodeActionTriggerKind && other._value == _value;
 }
 
 /// Structure to capture a description for an error code.
@@ -6192,7 +6193,8 @@ class CompletionItemKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is CompletionItemKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is CompletionItemKind && other._value == _value;
 }
 
 /// Additional details for a completion item label.
@@ -6385,7 +6387,8 @@ class CompletionItemTag implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is CompletionItemTag && o._value == _value;
+  bool operator ==(Object other) =>
+      other is CompletionItemTag && other._value == _value;
 }
 
 class CompletionItemTagSupport implements ToJsonable {
@@ -7563,8 +7566,8 @@ class CompletionTriggerKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) =>
-      o is CompletionTriggerKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is CompletionTriggerKind && other._value == _value;
 }
 
 class ConfigurationItem implements ToJsonable {
@@ -10145,7 +10148,8 @@ class DiagnosticSeverity implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is DiagnosticSeverity && o._value == _value;
+  bool operator ==(Object other) =>
+      other is DiagnosticSeverity && other._value == _value;
 }
 
 /// The diagnostic tags.
@@ -10179,7 +10183,8 @@ class DiagnosticTag implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is DiagnosticTag && o._value == _value;
+  bool operator ==(Object other) =>
+      other is DiagnosticTag && other._value == _value;
 }
 
 /// Workspace client capabilities specific to diagnostic pull requests.
@@ -12065,8 +12070,8 @@ class DocumentDiagnosticReportKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) =>
-      o is DocumentDiagnosticReportKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is DocumentDiagnosticReportKind && other._value == _value;
 }
 
 /// A partial result for a document diagnostic report.
@@ -12726,8 +12731,8 @@ class DocumentHighlightKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) =>
-      o is DocumentHighlightKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is DocumentHighlightKind && other._value == _value;
 }
 
 class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
@@ -15514,7 +15519,8 @@ class ErrorCodes implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is ErrorCodes && o._value == _value;
+  bool operator ==(Object other) =>
+      other is ErrorCodes && other._value == _value;
 }
 
 class ExecuteCommandClientCapabilities implements ToJsonable {
@@ -16040,7 +16046,8 @@ class FailureHandlingKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is FailureHandlingKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is FailureHandlingKind && other._value == _value;
 }
 
 /// The file event type.
@@ -16071,7 +16078,8 @@ class FileChangeType implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is FileChangeType && o._value == _value;
+  bool operator ==(Object other) =>
+      other is FileChangeType && other._value == _value;
 }
 
 /// Represents information on a file/folder create.
@@ -16980,8 +16988,8 @@ class FileOperationPatternKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) =>
-      o is FileOperationPatternKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is FileOperationPatternKind && other._value == _value;
 }
 
 /// Matching options for the file operation pattern.
@@ -17873,7 +17881,8 @@ class FoldingRangeKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is FoldingRangeKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is FoldingRangeKind && other._value == _value;
 }
 
 class FoldingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
@@ -20823,7 +20832,8 @@ class InlayHintKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is InlayHintKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is InlayHintKind && other._value == _value;
 }
 
 /// An inlay hint label part allows for interactive and composite labels of
@@ -22529,7 +22539,8 @@ class InsertTextFormat implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is InsertTextFormat && o._value == _value;
+  bool operator ==(Object other) =>
+      other is InsertTextFormat && other._value == _value;
 }
 
 /// How whitespace and indentation is handled during completion item insertion.
@@ -22566,7 +22577,8 @@ class InsertTextMode implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is InsertTextMode && o._value == _value;
+  bool operator ==(Object other) =>
+      other is InsertTextMode && other._value == _value;
 }
 
 class LinkedEditingRangeClientCapabilities implements ToJsonable {
@@ -23780,7 +23792,8 @@ class MarkupKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is MarkupKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is MarkupKind && other._value == _value;
 }
 
 class MessageActionItem implements ToJsonable {
@@ -23881,7 +23894,8 @@ class MessageType implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is MessageType && o._value == _value;
+  bool operator ==(Object other) =>
+      other is MessageType && other._value == _value;
 }
 
 /// Valid LSP methods known at the time of code generation from the spec.
@@ -24207,7 +24221,7 @@ class Method implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is Method && o._value == _value;
+  bool operator ==(Object other) => other is Method && other._value == _value;
 }
 
 /// Moniker definition to match LSIF 0.5 moniker definition.
@@ -24457,7 +24471,8 @@ class MonikerKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is MonikerKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is MonikerKind && other._value == _value;
 }
 
 class MonikerOptions implements WorkDoneProgressOptions, ToJsonable {
@@ -25084,7 +25099,8 @@ class NotebookCellKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is NotebookCellKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is NotebookCellKind && other._value == _value;
 }
 
 /// A notebook cell text document filter denotes a cell text document by
@@ -27720,7 +27736,8 @@ class PositionEncodingKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is PositionEncodingKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is PositionEncodingKind && other._value == _value;
 }
 
 class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
@@ -27846,8 +27863,8 @@ class PrepareSupportDefaultBehavior implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) =>
-      o is PrepareSupportDefaultBehavior && o._value == _value;
+  bool operator ==(Object other) =>
+      other is PrepareSupportDefaultBehavior && other._value == _value;
 }
 
 /// A previous result id in a workspace pull request.
@@ -30646,8 +30663,8 @@ class ResourceOperationKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) =>
-      o is ResourceOperationKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is ResourceOperationKind && other._value == _value;
 }
 
 class SaveOptions implements ToJsonable {
@@ -31255,8 +31272,8 @@ class SemanticTokenModifiers implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) =>
-      o is SemanticTokenModifiers && o._value == _value;
+  bool operator ==(Object other) =>
+      other is SemanticTokenModifiers && other._value == _value;
 }
 
 class SemanticTokenTypes implements ToJsonable {
@@ -31303,7 +31320,8 @@ class SemanticTokenTypes implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is SemanticTokenTypes && o._value == _value;
+  bool operator ==(Object other) =>
+      other is SemanticTokenTypes && other._value == _value;
 }
 
 class SemanticTokens implements ToJsonable {
@@ -36599,8 +36617,8 @@ class SignatureHelpTriggerKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) =>
-      o is SignatureHelpTriggerKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is SignatureHelpTriggerKind && other._value == _value;
 }
 
 /// Represents the signature of something callable. A signature can have a
@@ -37200,7 +37218,8 @@ class SymbolKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is SymbolKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is SymbolKind && other._value == _value;
 }
 
 /// Symbol tags are extra annotations that tweak the rendering of a symbol.
@@ -37226,7 +37245,8 @@ class SymbolTag implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is SymbolTag && o._value == _value;
+  bool operator ==(Object other) =>
+      other is SymbolTag && other._value == _value;
 }
 
 /// Describe options to be used when registering for text document change
@@ -39232,8 +39252,8 @@ class TextDocumentSaveReason implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) =>
-      o is TextDocumentSaveReason && o._value == _value;
+  bool operator ==(Object other) =>
+      other is TextDocumentSaveReason && other._value == _value;
 }
 
 class TextDocumentSaveRegistrationOptions
@@ -39503,7 +39523,8 @@ class TextDocumentSyncKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is TextDocumentSyncKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is TextDocumentSyncKind && other._value == _value;
 }
 
 class TextDocumentSyncOptions implements ToJsonable {
@@ -39802,7 +39823,8 @@ class TokenFormat implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is TokenFormat && o._value == _value;
+  bool operator ==(Object other) =>
+      other is TokenFormat && other._value == _value;
 }
 
 class TypeDefinitionClientCapabilities implements ToJsonable {
@@ -41297,7 +41319,8 @@ class UniquenessLevel implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is UniquenessLevel && o._value == _value;
+  bool operator ==(Object other) =>
+      other is UniquenessLevel && other._value == _value;
 }
 
 /// General parameters to unregister a capability.
@@ -41708,7 +41731,8 @@ class WatchKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
-  bool operator ==(Object o) => o is WatchKind && o._value == _value;
+  bool operator ==(Object other) =>
+      other is WatchKind && other._value == _value;
 }
 
 /// The parameters send in a will save text document notification.

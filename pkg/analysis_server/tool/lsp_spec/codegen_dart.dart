@@ -465,12 +465,13 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
       firstValueType is LiteralType ? firstValueType.type : firstValueType;
   final typeOfValues =
       resolveTypeAlias(requiredValueType, resolveEnumClasses: true);
+  final namespaceName = namespace.name;
 
   buffer
-    ..writeln('class ${namespace.name} implements ToJsonable {')
+    ..writeln('class $namespaceName implements ToJsonable {')
     ..indent()
-    ..writeIndentedln('const ${namespace.name}$constructorName(this._value);')
-    ..writeIndentedln('const ${namespace.name}.fromJson(this._value);')
+    ..writeIndentedln('const $namespaceName$constructorName(this._value);')
+    ..writeIndentedln('const $namespaceName.fromJson(this._value);')
     ..writeln()
     ..writeIndentedln('final ${typeOfValues.dartTypeWithTypeArgs} _value;')
     ..writeln()
@@ -506,7 +507,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     }
     _writeDocCommentsAndAnnotations(buffer, cons);
     buffer.writeIndentedln(
-        'static const ${_makeValidIdentifier(cons.name)} = ${namespace.name}$constructorName(${cons.valueAsLiteral});');
+        'static const ${_makeValidIdentifier(cons.name)} = $namespaceName$constructorName(${cons.valueAsLiteral});');
   });
   buffer
     ..writeln()
@@ -517,7 +518,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     ..writeIndentedln('@override int get hashCode => _value.hashCode;')
     ..writeln()
     ..writeIndentedln(
-        'bool operator ==(Object o) => o is ${namespace.name} && o._value == _value;')
+        'bool operator ==(Object other) => other is $namespaceName && other._value == _value;')
     ..outdent()
     ..writeln('}')
     ..writeln();
@@ -1012,9 +1013,11 @@ class IndentableStringBuffer extends StringBuffer {
   final int _indentSpaces = 2;
 
   int get totalIndent => _indentLevel * _indentSpaces;
+
   String get _indentString => ' ' * totalIndent;
 
   void indent() => _indentLevel++;
+
   void outdent() => _indentLevel--;
 
   void writeIndented(Object obj) {

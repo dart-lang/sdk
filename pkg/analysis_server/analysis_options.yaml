@@ -12,7 +12,6 @@ analyzer:
     # Lints from the recommended set that conflict w/ analyzer style or will
     # require some work to reach compliance.
     # See: https://github.com/dart-lang/sdk/issues/48785
-    avoid_renaming_method_parameters: ignore
     camel_case_types: ignore
     constant_identifier_names: ignore
     file_names: ignore

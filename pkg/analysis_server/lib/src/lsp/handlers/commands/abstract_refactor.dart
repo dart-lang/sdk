@@ -139,7 +139,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler {
 
   @override
   Future<ErrorOr<void>> handle(List<Object?>? arguments,
-      ProgressReporter reporter, CancellationToken cancellationToken) async {
+      ProgressReporter progress, CancellationToken cancellationToken) async {
     if (arguments == null ||
         arguments.length != 6 ||
         arguments[0] is! String || // kind
@@ -169,7 +169,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler {
     final options = arguments[5] as Map<String, Object?>?;
 
     return execute(path, kind, offset, length, options, cancellationToken,
-        reporter, docVersion);
+        progress, docVersion);
   }
 }
 
