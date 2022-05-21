@@ -975,15 +975,26 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a map from indexed members to [V] values from this data source,
-  /// calling [f] to read each value from the data source. If [emptyAsNull] is
-  /// `true`, `null` is returned instead of an empty map.
+  /// calling [f] to read each value from the data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeMemberMap].
-  Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(MemberEntity member),
-      {bool emptyAsNull = false}) {
+  @override
+  Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(MemberEntity member)) {
+    return readMemberMapOrNull<K, V>(f) ?? {};
+  }
+
+  /// Reads a map from indexed members to [V] values from this data source,
+  /// calling [f] to read each value from the data source.
+  /// `null` is returned instead of an empty map.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeMemberMap].
+  @override
+  Map<K, V> readMemberMapOrNull<K extends MemberEntity, V>(
+      V f(MemberEntity member)) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
+    if (count == 0) return null;
     Map<K, V> map = {};
     for (int i = 0; i < count; i++) {
       MemberEntity member = readMember();

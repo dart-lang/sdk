@@ -61,6 +61,10 @@ abstract class DataSinkWriter {
   void writeTypeVariable(
       covariant TypeVariableEntity value); // IndexedTypeVariable
 
+  void writeMemberMap<V>(
+      Map<MemberEntity, V>? map, void f(MemberEntity member, V value),
+      {bool allowNull = false});
+
   void writeLibrary(covariant LibraryEntity value); // IndexedLibrary
   void writeLibraryOrNull(covariant LibraryEntity? value); // IndexedLibrary
 
@@ -100,6 +104,10 @@ abstract class DataSourceReader {
   ClassEntity readClass(); // IndexedClass
   ClassEntity? readClassOrNull(); // IndexedClass
   TypeVariableEntity readTypeVariable(); // IndexedTypeVariable
+
+  Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(MemberEntity member));
+  Map<K, V>? readMemberMapOrNull<K extends MemberEntity, V>(
+      V f(MemberEntity member));
 
   LibraryEntity readLibrary(); // IndexedLibrary;
   LibraryEntity? readLibraryOrNull(); // IndexedLibrary;
