@@ -444,6 +444,31 @@ analyzer:
     await verifyDiagnostics('final dynamicbar;');
   }
 
+  Future<void> test_todos_asWarnings() async {
+    newFile(analysisOptionsPath, '''
+analyzer:
+  errors:
+    # Increase the severity of TODOs.
+    todo: warning
+    fixme: warning
+''');
+
+    const contents = '''
+    // TODO: This
+    // FIXME: This
+    String a = "";
+    ''';
+    newFile(mainFilePath, contents);
+
+    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    // Don't set showTodos in config, because they should show even without this
+    // setting if they are upgraded to warnings/errors.
+    await initialize();
+    final initialDiagnostics = await firstDiagnosticsUpdate;
+    expect(initialDiagnostics, hasLength(2));
+    expect(initialDiagnostics!.map((d) => d.code).toSet(), {'todo', 'fixme'});
+  }
+
   Future<void> test_todos_boolean() async {
     // TODOs only show up if there's also some code in the file.
     const contents = '''
