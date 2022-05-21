@@ -1019,9 +1019,18 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   bool _shouldSendError(protocol.AnalysisError error) {
+    // Non-TODOs are always shown.
     if (error.type.name != ErrorType.TODO.name) {
       return true;
     }
+
+    // TODOs that are upgraded from INFO are always shown.
+    if (error.severity.name != ErrorSeverity.INFO.name) {
+      return true;
+    }
+
+    // Otherwise, show TODOs based on client configuration (either showing all,
+    // or specific types of TODOs).
     if (analysisServer.clientConfiguration.global.showAllTodos) {
       return true;
     }
