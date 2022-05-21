@@ -432,8 +432,8 @@ class E extends core::_Enum /*isEnum*/  {
   static const field core::List<uns::E> values = #C8;
   static const field uns::E e1 = #C3;
   static const field uns::E e2 = #C6;
-  const constructor •(core::int index, core::String name) → uns::E
-    : super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name) → uns::E
+    : super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";

@@ -6,8 +6,8 @@ class Enum extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Enum> values = const <self::Enum>[self::Enum::e1, self::Enum::e2];
   static const field self::Enum e1 = const self::Enum::•(0, "e1");
   static const field self::Enum e2 = const self::Enum::•(1, "e2");
-  const constructor •(core::int index, core::String name) → self::Enum
-    : super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self::Enum
+    : super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "Enum.${this.{core::_Enum::_name}{core::String}}";

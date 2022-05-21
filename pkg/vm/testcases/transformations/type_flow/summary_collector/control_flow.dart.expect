@@ -16,9 +16,9 @@ t1 = _Call direct [dart.core::Object.] (%this)
 RESULT: _T {}?
 ------------ TestEnum. ------------
 %this = _Parameter #0 [_T (#lib::TestEnum)+]
-%index = _Parameter #1 [_T (dart.core::int)+?]
-%name = _Parameter #2 [_T (dart.core::String)+?]
-t3 = _Call direct [dart.core::_Enum.] (%this, %index, %name)
+%#index = _Parameter #1 [_T (dart.core::int)+?]
+%#name = _Parameter #2 [_T (dart.core::String)+?]
+t3 = _Call direct [dart.core::_Enum.] (%this, %#index, %#name)
 RESULT: _T {}?
 ------------ TestEnum.toString ------------
 %this = _Parameter #0 [_T (#lib::TestEnum)+]

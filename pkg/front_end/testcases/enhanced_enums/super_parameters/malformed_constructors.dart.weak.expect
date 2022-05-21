@@ -35,11 +35,11 @@ Try using a constructor or factory that is 'const'.
 Try using a constructor or factory that is 'const'.
   element;
   ^";
-  constructor •(core::int index, core::String name) → self::E1
-    : super core::_Enum::•(index, name)
+  constructor •(core::int #index, core::String #name) → self::E1
+    : super core::_Enum::•(#index, #name)
     ;
-  constructor named(core::int index, core::String name) → self::E1
-    : super core::_Enum::•(index, name)
+  constructor named(core::int #index, core::String #name) → self::E1
+    : super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
@@ -54,12 +54,12 @@ class E2 extends core::_Enum /*isEnum*/  {
   static const field self::E2 two = invalid-expression "pkg/front_end/testcases/enhanced_enums/super_parameters/malformed_constructors.dart:17:23: Error: Enum constructors can't contain super-initializers.
   const E2.named2() : super(42, \"42\"); // Error.
                       ^";
-  const constructor named1(core::int index, core::String name) → self::E2
+  const constructor named1(core::int #index, core::String #name) → self::E2
     : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/enhanced_enums/super_parameters/malformed_constructors.dart:16:23: Error: Enum constructors can't contain super-initializers.
   const E2.named1() : super(); // Error.
                       ^"
     ;
-  const constructor named2(core::int index, core::String name) → self::E2
+  const constructor named2(core::int #index, core::String #name) → self::E2
     : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/enhanced_enums/super_parameters/malformed_constructors.dart:17:23: Error: Enum constructors can't contain super-initializers.
   const E2.named2() : super(42, \"42\"); // Error.
                       ^"

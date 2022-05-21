@@ -11,17 +11,17 @@ class C extends core::_Enum /*isEnum*/  {
   static const field self::C d = const self::C::named1(3, "d", 1, 2, 3);
   static const field self::C e = const self::C::named2(4, "e", 1, 2, 3);
   static const field self::C f = const self::C::named3(5, "f", 1, 2, 3);
-  const constructor •(core::int index, core::String name, core::int x, core::int y, {core::int z = 42}) → self::C
-    : self::C::log = "x=${x}, y=${y}, z=${z}", super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name, core::int x, core::int y, {core::int z = 42}) → self::C
+    : self::C::log = "x=${x}, y=${y}, z=${z}", super core::_Enum::•(#index, #name)
     ;
-  const constructor named1(core::int index, core::String name, core::int x, core::int y, core::int z) → self::C
-    : this self::C::•(index, name, x, y, z: z)
+  const constructor named1(core::int #index, core::String #name, core::int x, core::int y, core::int z) → self::C
+    : this self::C::•(#index, #name, x, y, z: z)
     ;
-  const constructor named2(core::int index, core::String name, core::int x, core::int y, core::int z) → self::C
-    : final core::int #t8 = index, final core::String #t9 = name, final core::int #t10 = x, final core::int #t11 = z, this self::C::•(#t8, #t9, #t10, y, z: #t11)
+  const constructor named2(core::int #index, core::String #name, core::int x, core::int y, core::int z) → self::C
+    : final core::int #t8 = #index, final core::String #t9 = #name, final core::int #t10 = x, final core::int #t11 = z, this self::C::•(#t8, #t9, #t10, y, z: #t11)
     ;
-  const constructor named3(core::int index, core::String name, core::int x, core::int y, core::int z) → self::C
-    : final core::int #t12 = index, final core::String #t13 = name, final core::int #t14 = z, this self::C::•(#t12, #t13, x, y, z: #t14)
+  const constructor named3(core::int #index, core::String #name, core::int x, core::int y, core::int z) → self::C
+    : final core::int #t12 = #index, final core::String #t13 = #name, final core::int #t14 = z, this self::C::•(#t12, #t13, x, y, z: #t14)
     ;
   method toString() → core::String
     return "C.${this.{core::_Enum::_name}{core::String}}";

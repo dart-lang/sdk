@@ -24,8 +24,8 @@ class FooEnum extends core::_Enum /*isEnum*/  {
   static const field self::FooEnum A = #C4;
   static const field self::FooEnum B = #C7;
   static const field self::FooEnum C = #C10;
-  const constructor •(core::int index, core::String name) → self::FooEnum
-    : super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self::FooEnum
+    : super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "FooEnum.${this.{core::_Enum::_name}{core::String}}";

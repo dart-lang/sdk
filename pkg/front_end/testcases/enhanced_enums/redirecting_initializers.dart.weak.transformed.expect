@@ -23,11 +23,11 @@ class E1 extends core::_Enum /*isEnum*/  {
   final field core::int foo;
   static const field self::E1 one = #C4;
   static const field self::E1 two = #C7;
-  const constructor •(core::int index, core::String name, core::int foo) → self::E1
-    : self::E1::foo = foo, super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name, core::int foo) → self::E1
+    : self::E1::foo = foo, super core::_Enum::•(#index, #name)
     ;
-  const constructor named(core::int index, core::String name, core::int value) → self::E1
-    : this self::E1::•(index, name, value)
+  const constructor named(core::int #index, core::String #name, core::int value) → self::E1
+    : this self::E1::•(#index, #name, value)
     ;
   method toString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
@@ -43,10 +43,10 @@ Try removing the extra positional arguments.
 Try removing the extra positional arguments.
   const E2.named(int value) : this(value, value); // Error.
                                   ^";
-  const constructor •(core::int index, core::String name, core::int foo) → self::E2
-    : self::E2::foo = foo, super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name, core::int foo) → self::E2
+    : self::E2::foo = foo, super core::_Enum::•(#index, #name)
     ;
-  const constructor named(core::int index, core::String name, core::int value) → self::E2
+  const constructor named(core::int #index, core::String #name, core::int value) → self::E2
     : self::E2::foo = null, final dynamic #t1 = invalid-expression "pkg/front_end/testcases/enhanced_enums/redirecting_initializers.dart:22:35: Error: Too many positional arguments: 3 allowed, but 4 found.
 Try removing the extra positional arguments.
   const E2.named(int value) : this(value, value); // Error.

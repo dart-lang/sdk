@@ -7,8 +7,8 @@ class E extends core::_Enum /*isEnum*/  {
   final field core::String field;
   static const field self::E one = const self::E::•(0, "one", "foo");
   static const field self::E two = const self::E::•(1, "two", "bar");
-  const constructor •(core::int index, core::String name, core::String field) → self::E
-    : self::E::field = field, super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name, core::String field) → self::E
+    : self::E::field = field, super core::_Enum::•(#index, #name)
     ;
   @core::override
   method toString() → core::String

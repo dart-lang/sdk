@@ -8162,7 +8162,7 @@ class ShiftInt64OpInstr : public ShiftIntegerOpInstr {
     return kNotSpeculative;
   }
   virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool MayThrow() const { return true; }
+  virtual bool MayThrow() const { return !IsShiftCountInRange(); }
 
   virtual Representation representation() const { return kUnboxedInt64; }
 

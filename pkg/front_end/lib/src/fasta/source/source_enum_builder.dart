@@ -318,7 +318,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
                     FormalParameterKind.requiredPositional,
                     0,
                     intType,
-                    "index",
+                    "#index",
                     libraryBuilder,
                     charOffset),
                 new FormalParameterBuilder(
@@ -326,7 +326,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
                     FormalParameterKind.requiredPositional,
                     0,
                     stringType,
-                    "name",
+                    "#name",
                     libraryBuilder,
                     charOffset)
               ],
@@ -352,7 +352,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
                   FormalParameterKind.requiredPositional,
                   /* modifiers = */ 0,
                   stringType,
-                  "name",
+                  "#name",
                   libraryBuilder,
                   charOffset));
           member.formals!.insert(
@@ -362,7 +362,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
                   FormalParameterKind.requiredPositional,
                   /* modifiers = */ 0,
                   intType,
-                  "index",
+                  "#index",
                   libraryBuilder,
                   charOffset));
         }
