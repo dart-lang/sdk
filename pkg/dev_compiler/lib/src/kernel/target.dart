@@ -57,6 +57,7 @@ class DevCompilerTarget extends Target {
   @override
   List<String> get extraRequiredLibraries => const [
         'dart:_runtime',
+        'dart:_dart2js_runtime_metrics',
         'dart:_debugger',
         'dart:_foreign_helper',
         'dart:_interceptors',
