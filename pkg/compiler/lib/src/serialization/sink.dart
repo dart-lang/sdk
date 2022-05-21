@@ -810,6 +810,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readMemberMap].
+  @override
   void writeMemberMap<V>(
       Map<MemberEntity, V> map, void f(MemberEntity member, V value),
       {bool allowNull = false}) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library js_backend.backend.annotations;
 
 import 'package:kernel/ast.dart' as ir;
@@ -14,7 +12,7 @@ import '../ir/annotations.dart';
 import '../ir/util.dart';
 import '../kernel/dart2js_target.dart';
 import '../options.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../util/enumset.dart';
 
 class PragmaAnnotation {
@@ -213,7 +211,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
   Map<PragmaAnnotation, EnumSet<PragmaAnnotation>> reportedExclusions = {};
   for (PragmaAnnotation annotation
       in annotations.iterable(PragmaAnnotation.values)) {
-    Set<PragmaAnnotation> implies = PragmaAnnotation.implies[annotation];
+    Set<PragmaAnnotation>? implies = PragmaAnnotation.implies[annotation];
     if (implies != null) {
       for (PragmaAnnotation other in implies) {
         if (annotations.contains(other)) {
@@ -225,7 +223,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
         }
       }
     }
-    Set<PragmaAnnotation> excludes = PragmaAnnotation.excludes[annotation];
+    Set<PragmaAnnotation>? excludes = PragmaAnnotation.excludes[annotation];
     if (excludes != null) {
       for (PragmaAnnotation other in excludes) {
         if (annotations.contains(other) &&
@@ -239,7 +237,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
         }
       }
     }
-    Set<PragmaAnnotation> requires = PragmaAnnotation.requires[annotation];
+    Set<PragmaAnnotation>? requires = PragmaAnnotation.requires[annotation];
     if (requires != null) {
       for (PragmaAnnotation other in requires) {
         if (!annotations.contains(other)) {
@@ -309,30 +307,30 @@ abstract class AnnotationsData {
   /// What should the compiler do with parameter type assertions in [member].
   ///
   /// If [member] is `null`, the default policy is returned.
-  CheckPolicy getParameterCheckPolicy(MemberEntity member);
+  CheckPolicy getParameterCheckPolicy(MemberEntity? member);
 
   /// What should the compiler do with implicit downcasts in [member].
   ///
   /// If [member] is `null`, the default policy is returned.
-  CheckPolicy getImplicitDowncastCheckPolicy(MemberEntity member);
+  CheckPolicy getImplicitDowncastCheckPolicy(MemberEntity? member);
 
   /// What the compiler should do with a boolean value in a condition context
   /// in [member] when the language specification says it is a runtime error for
   /// it to be null.
   ///
   /// If [member] is `null`, the default policy is returned.
-  CheckPolicy getConditionCheckPolicy(MemberEntity member);
+  CheckPolicy getConditionCheckPolicy(MemberEntity? member);
 
   /// Whether should the compiler do with explicit casts in [member].
   ///
   /// If [member] is `null`, the default policy is returned.
-  CheckPolicy getExplicitCastCheckPolicy(MemberEntity member);
+  CheckPolicy getExplicitCastCheckPolicy(MemberEntity? member);
 
   /// What should the compiler do with index bounds checks `[]`, `[]=` and
   /// `removeLast()` operations in the body of [member].
   ///
   /// If [member] is `null`, the default policy is returned.
-  CheckPolicy getIndexBoundsCheckPolicy(MemberEntity member);
+  CheckPolicy getIndexBoundsCheckPolicy(MemberEntity? member);
 }
 
 class AnnotationsDataImpl implements AnnotationsData {
@@ -378,7 +376,7 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   bool _hasPragma(MemberEntity member, PragmaAnnotation annotation) {
-    EnumSet<PragmaAnnotation> set = pragmaAnnotations[member];
+    EnumSet<PragmaAnnotation>? set = pragmaAnnotations[member];
     return set != null && set.contains(annotation);
   }
 
@@ -415,7 +413,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     pragmaAnnotations
         .forEach((MemberEntity member, EnumSet<PragmaAnnotation> set) {
       if (set.contains(PragmaAnnotation.noInline)) {
-        f(member);
+        f(member as FunctionEntity);
       }
     });
   }
@@ -425,7 +423,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     pragmaAnnotations
         .forEach((MemberEntity member, EnumSet<PragmaAnnotation> set) {
       if (set.contains(PragmaAnnotation.tryInline)) {
-        f(member);
+        f(member as FunctionEntity);
       }
     });
   }
@@ -435,7 +433,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     pragmaAnnotations
         .forEach((MemberEntity member, EnumSet<PragmaAnnotation> set) {
       if (set.contains(PragmaAnnotation.noThrows)) {
-        f(member);
+        f(member as FunctionEntity);
       }
     });
   }
@@ -445,15 +443,15 @@ class AnnotationsDataImpl implements AnnotationsData {
     pragmaAnnotations
         .forEach((MemberEntity member, EnumSet<PragmaAnnotation> set) {
       if (set.contains(PragmaAnnotation.noSideEffects)) {
-        f(member);
+        f(member as FunctionEntity);
       }
     });
   }
 
   @override
-  CheckPolicy getParameterCheckPolicy(MemberEntity member) {
+  CheckPolicy getParameterCheckPolicy(MemberEntity? member) {
     if (member != null) {
-      EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
+      EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
       if (annotations != null) {
         if (annotations.contains(PragmaAnnotation.typesTrust)) {
           return CheckPolicy.trusted;
@@ -470,9 +468,9 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   @override
-  CheckPolicy getImplicitDowncastCheckPolicy(MemberEntity member) {
+  CheckPolicy getImplicitDowncastCheckPolicy(MemberEntity? member) {
     if (member != null) {
-      EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
+      EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
       if (annotations != null) {
         if (annotations.contains(PragmaAnnotation.typesTrust)) {
           return CheckPolicy.trusted;
@@ -489,9 +487,9 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   @override
-  CheckPolicy getConditionCheckPolicy(MemberEntity member) {
+  CheckPolicy getConditionCheckPolicy(MemberEntity? member) {
     if (member != null) {
-      EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
+      EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
       if (annotations != null) {
         if (annotations.contains(PragmaAnnotation.typesTrust)) {
           return CheckPolicy.trusted;
@@ -508,9 +506,9 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   @override
-  CheckPolicy getExplicitCastCheckPolicy(MemberEntity member) {
+  CheckPolicy getExplicitCastCheckPolicy(MemberEntity? member) {
     if (member != null) {
-      EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
+      EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
       if (annotations != null) {
         if (annotations.contains(PragmaAnnotation.asTrust)) {
           return CheckPolicy.trusted;
@@ -523,9 +521,9 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   @override
-  CheckPolicy getIndexBoundsCheckPolicy(MemberEntity member) {
+  CheckPolicy getIndexBoundsCheckPolicy(MemberEntity? member) {
     if (member != null) {
-      EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
+      EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
       if (annotations != null) {
         if (annotations.contains(PragmaAnnotation.indexBoundsTrust)) {
           return CheckPolicy.trusted;
