@@ -38,6 +38,21 @@ void main() {
 }
 ''';
 
+const String _todoAsWarningAnalysisOptions = '''
+analyzer:
+  errors:
+    # Increase the severity of TODOs.
+    todo: warning
+    fixme: warning
+''';
+
+const String _todoAsWarningCodeSnippet = '''
+void main() {
+  // TODO: Implement this
+  // FIXME: Fix this
+}
+''';
+
 void defineAnalysisError() {
   group('contextMessages', () {
     test('none', () {
@@ -354,6 +369,33 @@ void defineAnalyze() {
     expect(result.exitCode, 1);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('1 issue found.'));
+  });
+
+  test('TODOs hidden by default', () async {
+    p = project(
+      mainSrc: _todoAsWarningCodeSnippet,
+    );
+    var result = await p.run(['analyze', p.dirPath]);
+
+    expect(result.exitCode, equals(0));
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('No issues found!'));
+  });
+
+  test('TODOs shown if > INFO', () async {
+    p = project(
+      mainSrc: _todoAsWarningCodeSnippet,
+      analysisOptions: _todoAsWarningAnalysisOptions,
+    );
+    var result = await p.run(['analyze', p.dirPath]);
+
+    expect(result.exitCode, equals(0));
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('lib/main.dart:2:6 '));
+    expect(result.stdout, contains('TODO: Implement this - todo'));
+    expect(result.stdout, contains('lib/main.dart:3:6 '));
+    expect(result.stdout, contains('FIXME: Fix this - fixme'));
+    expect(result.stdout, contains('2 issues found.'));
   });
 
   test('--sdk-path value does not exist', () async {

@@ -147,9 +147,10 @@ class AnalyzeCommand extends DartdevCommand {
     );
 
     server.onErrors.listen((FileAnalysisErrors fileErrors) {
-      // Record the issues found (but filter out to do comments).
-      errors.addAll(fileErrors.errors
-          .where((AnalysisError error) => error.type != 'TODO'));
+      // Record the issues found (but filter out to do comments unless they've
+      // been upgraded from INFO).
+      errors.addAll(fileErrors.errors.where((AnalysisError error) =>
+          error.type != 'TODO' || error.severity != 'INFO'));
     });
 
     await server.start();
