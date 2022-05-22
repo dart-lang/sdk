@@ -267,7 +267,7 @@ footer .sdk-version {
 
 .nav-inner ul {
   /* a max-height is added to each element at runtime. */
-  transition: max-height 0.5s ease-out;
+  transition: max-height 0.25s ease-out;
 }
 
 .nav-inner ul.collapsed {
