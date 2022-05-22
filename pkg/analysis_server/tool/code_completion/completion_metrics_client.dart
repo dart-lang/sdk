@@ -39,7 +39,7 @@ Future<void> main(List<String> args) async {
   var options = CompletionMetricsOptions(result);
   var stopwatch = Stopwatch()..start();
   var client = _AnalysisServerClient(Directory(_sdk.sdkPath), targets);
-  CompletionClientMetricsComputer(rootPath, options, client).computeMetrics();
+  _CompletionClientMetricsComputer(rootPath, options, client).computeMetrics();
   stopwatch.stop();
 
   var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
@@ -126,95 +126,6 @@ bool _validArguments(ArgParser parser, ArgResults result) {
     return false;
   }
   return validateDir(parser, result.rest[0]);
-}
-
-class CompletionClientMetricsComputer extends CompletionMetricsComputer {
-  final _AnalysisServerClient client;
-
-  final CompletionMetrics targetMetric = CompletionMetrics();
-
-  final metrics = CompletionMetrics();
-
-  CompletionClientMetricsComputer(super.rootPath, super.options, this.client);
-
-  @override
-  Future<void> applyOverlay(
-    AnalysisContext context,
-    String filePath,
-    ExpectedCompletion expectedCompletion,
-  ) async {
-    if (options.overlay != OverlayMode.none) {
-      final overlayContent = CompletionMetricsComputer.getOverlayContent(
-        resolvedUnitResult.content,
-        expectedCompletion,
-        options.overlay,
-        options.prefixLength,
-      );
-
-      provider.setOverlay(
-        filePath,
-        content: overlayContent,
-        modificationStamp: overlayModificationStamp++,
-      );
-      await client.addOverlay(filePath, overlayContent);
-    }
-  }
-
-  @override
-  Future<void> computeMetrics() async {
-    await client.start();
-    await super.computeMetrics();
-    await client.shutdown();
-
-    // A row containing the name, median, p90, and p95 scores in [computer].
-    List<String> m9095Row(PercentileComputer computer) => [
-          computer.name,
-          computer.median.toString(),
-          computer.p90.toString(),
-          computer.p95.toString(),
-        ];
-
-    var table = [
-      ['', 'median', 'p90', 'p95'],
-      m9095Row(metrics.totalPercentileComputer),
-      m9095Row(metrics.requestResponsePercentileComputer),
-      m9095Row(metrics.decodePercentileComputer),
-      m9095Row(metrics.deserializePercentileComputer),
-    ];
-
-    rightJustifyColumns(table, range(1, table[0].length));
-    printTable(table);
-  }
-
-  @override
-  Future<void> computeSuggestionsAndMetrics(
-    ExpectedCompletion expectedCompletion,
-    AnalysisContext context,
-    DocumentationCache documentationCache,
-  ) async {
-    var stopwatch = Stopwatch()..start();
-    var suggestionsData = await client.requestCompletion(
-        expectedCompletion.filePath, expectedCompletion.offset, 1000);
-    stopwatch.stop();
-    var metadata = suggestionsData.metadata;
-
-    metrics.totalPercentileComputer.addValue(stopwatch.elapsedMilliseconds);
-    metrics.requestResponsePercentileComputer
-        .addValue(metadata.requestResponseDuration);
-    metrics.decodePercentileComputer.addValue(metadata.decodeDuration);
-    metrics.deserializePercentileComputer
-        .addValue(metadata.deserializeDuration);
-  }
-
-  @override
-  Future<void> removeOverlay(String filePath) async {
-    if (options.overlay != OverlayMode.none) {
-      await client.removeOverlay(filePath);
-    }
-  }
-
-  @override
-  void setupForResolution(AnalysisContext context) {}
 }
 
 class CompletionMetrics {
@@ -531,6 +442,95 @@ class _AnalysisServerClient {
     return _streamControllers.putIfAbsent(
         streamId, () => StreamController<Map<String, dynamic>>.broadcast());
   }
+}
+
+class _CompletionClientMetricsComputer extends CompletionMetricsComputer {
+  final _AnalysisServerClient client;
+
+  final CompletionMetrics targetMetric = CompletionMetrics();
+
+  final metrics = CompletionMetrics();
+
+  _CompletionClientMetricsComputer(super.rootPath, super.options, this.client);
+
+  @override
+  Future<void> applyOverlay(
+    AnalysisContext context,
+    String filePath,
+    ExpectedCompletion expectedCompletion,
+  ) async {
+    if (options.overlay != OverlayMode.none) {
+      final overlayContent = CompletionMetricsComputer.getOverlayContent(
+        resolvedUnitResult.content,
+        expectedCompletion,
+        options.overlay,
+        options.prefixLength,
+      );
+
+      provider.setOverlay(
+        filePath,
+        content: overlayContent,
+        modificationStamp: overlayModificationStamp++,
+      );
+      await client.addOverlay(filePath, overlayContent);
+    }
+  }
+
+  @override
+  Future<void> computeMetrics() async {
+    await client.start();
+    await super.computeMetrics();
+    await client.shutdown();
+
+    // A row containing the name, median, p90, and p95 scores in [computer].
+    List<String> m9095Row(PercentileComputer computer) => [
+          computer.name,
+          computer.median.toString(),
+          computer.p90.toString(),
+          computer.p95.toString(),
+        ];
+
+    var table = [
+      ['', 'median', 'p90', 'p95'],
+      m9095Row(metrics.totalPercentileComputer),
+      m9095Row(metrics.requestResponsePercentileComputer),
+      m9095Row(metrics.decodePercentileComputer),
+      m9095Row(metrics.deserializePercentileComputer),
+    ];
+
+    rightJustifyColumns(table, range(1, table[0].length));
+    printTable(table);
+  }
+
+  @override
+  Future<void> computeSuggestionsAndMetrics(
+    ExpectedCompletion expectedCompletion,
+    AnalysisContext context,
+    DocumentationCache documentationCache,
+  ) async {
+    var stopwatch = Stopwatch()..start();
+    var suggestionsData = await client.requestCompletion(
+        expectedCompletion.filePath, expectedCompletion.offset, 1000);
+    stopwatch.stop();
+    var metadata = suggestionsData.metadata;
+
+    metrics.totalPercentileComputer.addValue(stopwatch.elapsedMilliseconds);
+    metrics.requestResponsePercentileComputer
+        .addValue(metadata.requestResponseDuration);
+    metrics.decodePercentileComputer.addValue(metadata.decodeDuration);
+    metrics.deserializePercentileComputer
+        .addValue(metadata.deserializeDuration);
+  }
+
+  @override
+  Future<void> removeOverlay(String filePath) async {
+    if (options.overlay != OverlayMode.none) {
+      await client.removeOverlay(filePath);
+    }
+  }
+
+  @override
+  void setupForResolution(AnalysisContext context) {}
 }
 
 class _RequestError {

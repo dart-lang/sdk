@@ -32,6 +32,9 @@ class TypeDefinitionHandler
       TypeDefinitionParams.jsonHandler;
 
   @override
+  // The private type in the return type is dictated by the signature of the
+  // super-method and the class's super-class.
+  // ignore: library_private_types_in_public_api
   Future<ErrorOr<_LocationsOrLinks>> handle(TypeDefinitionParams params,
       MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {

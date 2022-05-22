@@ -47,104 +47,6 @@ abstract class CompletionSuggestionBuilder {
   CompletionSuggestion build();
 }
 
-/// The implementation of [CompletionSuggestionBuilder] that is based on
-/// [ElementCompletionData] and location specific information.
-class CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
-  final ElementCompletionData element;
-
-  @override
-  final CompletionSuggestionKind kind;
-
-  @override
-  final int relevance;
-
-  final String? completionOverride;
-  final String? libraryUriStr;
-  final bool isNotImported;
-
-  CompletionSuggestionBuilderImpl({
-    required this.element,
-    required this.kind,
-    required this.completionOverride,
-    required this.relevance,
-    required this.libraryUriStr,
-    required this.isNotImported,
-  });
-
-  @override
-  String get completion => completionOverride ?? element.completion;
-
-  /// TODO(scheglov) implement better key for not-yet-imported
-  @override
-  String get key {
-    var key = completion;
-    if (element.element.kind == protocol.ElementKind.CONSTRUCTOR) {
-      key = '$key()';
-    }
-    return key;
-  }
-
-  @override
-  String get textToMatch => completion;
-
-  @override
-  CompletionSuggestion build() {
-    return CompletionSuggestion(
-      kind,
-      relevance,
-      completion,
-      completion.length /*selectionOffset*/,
-      0 /*selectionLength*/,
-      element.isDeprecated,
-      false /*isPotential*/,
-      element: element.element,
-      docSummary: element.documentation?.summary,
-      docComplete: element.documentation?.full,
-      declaringType: element.declaringType,
-      returnType: element.returnType,
-      requiredParameterCount: element.requiredParameterCount,
-      hasNamedParameters: element.hasNamedParameters,
-      parameterNames: element.parameterNames,
-      parameterTypes: element.parameterTypes,
-      defaultArgumentListString: element.defaultArgumentList?.text,
-      defaultArgumentListTextRanges: element.defaultArgumentList?.ranges,
-      libraryUri: libraryUriStr,
-      isNotImported: isNotImported ? true : null,
-    );
-  }
-}
-
-/// Information about an [Element] that does not depend on the location where
-/// this element is suggested. For some often used elements, such as classes,
-/// it might be cached, so created only once.
-class ElementCompletionData {
-  final String completion;
-  final bool isDeprecated;
-  final String? declaringType;
-  final String? returnType;
-  final List<String>? parameterNames;
-  final List<String>? parameterTypes;
-  final int? requiredParameterCount;
-  final bool? hasNamedParameters;
-  CompletionDefaultArgumentList? defaultArgumentList;
-  final _ElementDocumentation? documentation;
-  final protocol.Element element;
-
-  ElementCompletionData({
-    required this.completion,
-    required this.isDeprecated,
-    required this.declaringType,
-    required this.returnType,
-    required this.parameterNames,
-    required this.parameterTypes,
-    required this.requiredParameterCount,
-    required this.hasNamedParameters,
-    required this.defaultArgumentList,
-    required this.documentation,
-    required this.element,
-  });
-}
-
 /// This class provides suggestions based upon the visible instance members in
 /// an interface type.
 class MemberSuggestionBuilder {
@@ -1308,7 +1210,7 @@ class SuggestionBuilder {
       completion = '$prefix.$completion';
     }
 
-    return CompletionSuggestionBuilderImpl(
+    return _CompletionSuggestionBuilderImpl(
       element: elementData,
       kind: kind,
       completionOverride: completion,
@@ -1319,7 +1221,7 @@ class SuggestionBuilder {
   }
 
   /// The non-caching implementation of [_getElementCompletionData].
-  ElementCompletionData? _createElementCompletionData(Element element) {
+  _ElementCompletionData? _createElementCompletionData(Element element) {
     // Do not include operators in suggestions.
     if (element is ExecutableElement && element.isOperator) {
       return null;
@@ -1372,7 +1274,7 @@ class SuggestionBuilder {
           element, requiredParameters, namedParameters);
     }
 
-    return ElementCompletionData(
+    return _ElementCompletionData(
       completion: completion,
       isDeprecated: element.hasOrInheritsDeprecated,
       declaringType: declaringType,
@@ -1417,10 +1319,10 @@ class SuggestionBuilder {
     return null;
   }
 
-  /// Return [ElementCompletionData] for the [element], or `null` if the
+  /// Return [_ElementCompletionData] for the [element], or `null` if the
   /// element cannot be suggested for completion.
-  ElementCompletionData? _getElementCompletionData(Element element) {
-    ElementCompletionData? result;
+  _ElementCompletionData? _getElementCompletionData(Element element) {
+    _ElementCompletionData? result;
 
     var hasCompletionData = element.ifTypeOrNull<HasCompletionData>();
     if (hasCompletionData != null) {
@@ -1545,6 +1447,7 @@ abstract class SuggestionListener {
 /// [CompletionSuggestionBuilder] that is based on a [CompletionSuggestion].
 class ValueCompletionSuggestionBuilder implements CompletionSuggestionBuilder {
   final CompletionSuggestion _suggestion;
+
   final String? _textToMatchOverride;
 
   ValueCompletionSuggestionBuilder(
@@ -1571,6 +1474,104 @@ class ValueCompletionSuggestionBuilder implements CompletionSuggestionBuilder {
   CompletionSuggestion build() {
     return _suggestion;
   }
+}
+
+/// The implementation of [CompletionSuggestionBuilder] that is based on
+/// [ElementCompletionData] and location specific information.
+class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
+  final _ElementCompletionData element;
+
+  @override
+  final CompletionSuggestionKind kind;
+
+  @override
+  final int relevance;
+
+  final String? completionOverride;
+  final String? libraryUriStr;
+  final bool isNotImported;
+
+  _CompletionSuggestionBuilderImpl({
+    required this.element,
+    required this.kind,
+    required this.completionOverride,
+    required this.relevance,
+    required this.libraryUriStr,
+    required this.isNotImported,
+  });
+
+  @override
+  String get completion => completionOverride ?? element.completion;
+
+  /// TODO(scheglov) implement better key for not-yet-imported
+  @override
+  String get key {
+    var key = completion;
+    if (element.element.kind == protocol.ElementKind.CONSTRUCTOR) {
+      key = '$key()';
+    }
+    return key;
+  }
+
+  @override
+  String get textToMatch => completion;
+
+  @override
+  CompletionSuggestion build() {
+    return CompletionSuggestion(
+      kind,
+      relevance,
+      completion,
+      completion.length /*selectionOffset*/,
+      0 /*selectionLength*/,
+      element.isDeprecated,
+      false /*isPotential*/,
+      element: element.element,
+      docSummary: element.documentation?.summary,
+      docComplete: element.documentation?.full,
+      declaringType: element.declaringType,
+      returnType: element.returnType,
+      requiredParameterCount: element.requiredParameterCount,
+      hasNamedParameters: element.hasNamedParameters,
+      parameterNames: element.parameterNames,
+      parameterTypes: element.parameterTypes,
+      defaultArgumentListString: element.defaultArgumentList?.text,
+      defaultArgumentListTextRanges: element.defaultArgumentList?.ranges,
+      libraryUri: libraryUriStr,
+      isNotImported: isNotImported ? true : null,
+    );
+  }
+}
+
+/// Information about an [Element] that does not depend on the location where
+/// this element is suggested. For some often used elements, such as classes,
+/// it might be cached, so created only once.
+class _ElementCompletionData {
+  final String completion;
+  final bool isDeprecated;
+  final String? declaringType;
+  final String? returnType;
+  final List<String>? parameterNames;
+  final List<String>? parameterTypes;
+  final int? requiredParameterCount;
+  final bool? hasNamedParameters;
+  CompletionDefaultArgumentList? defaultArgumentList;
+  final _ElementDocumentation? documentation;
+  final protocol.Element element;
+
+  _ElementCompletionData({
+    required this.completion,
+    required this.isDeprecated,
+    required this.declaringType,
+    required this.returnType,
+    required this.parameterNames,
+    required this.parameterTypes,
+    required this.requiredParameterCount,
+    required this.hasNamedParameters,
+    required this.defaultArgumentList,
+    required this.documentation,
+    required this.element,
+  });
 }
 
 class _ElementDocumentation {

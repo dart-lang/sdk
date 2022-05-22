@@ -843,6 +843,8 @@ class PluginSession {
 
   /// A table mapping the id's of requests to the functions used to handle the
   /// response to those requests.
+  @visibleForTesting
+  // ignore: library_private_types_in_public_api
   Map<String, _PendingRequest> pendingRequests = <String, _PendingRequest>{};
 
   /// A boolean indicating whether the plugin is compatible with the version of

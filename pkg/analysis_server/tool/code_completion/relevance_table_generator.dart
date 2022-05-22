@@ -174,7 +174,7 @@ bool validateDir(ArgParser parser, String dirPath) {
 /// An object that records the data used to compute the tables.
 class RelevanceData {
   /// A table mapping element kinds and keywords to counts by context.
-  Map<String, Map<_Kind, int>> byKind = {};
+  final Map<String, Map<_Kind, int>> _byKind = {};
 
   /// Initialize a newly created set of relevance data to be empty.
   RelevanceData();
@@ -184,7 +184,7 @@ class RelevanceData {
   RelevanceData.fromJson(String encoded) {
     var map = json.decode(encoded) as Map<String, dynamic>;
     for (var contextEntry in map.entries) {
-      var contextMap = byKind.putIfAbsent(contextEntry.key, () => {});
+      var contextMap = _byKind.putIfAbsent(contextEntry.key, () => {});
       for (var kindEntry
           in (contextEntry.value as Map<String, dynamic>).entries) {
         _Kind kind;
@@ -204,8 +204,8 @@ class RelevanceData {
   /// Add the data from the given relevance [data] to this set of relevance
   /// data.
   void addData(RelevanceData data) {
-    for (var contextEntry in data.byKind.entries) {
-      var contextMap = byKind.putIfAbsent(contextEntry.key, () => {});
+    for (var contextEntry in data._byKind.entries) {
+      var contextMap = _byKind.putIfAbsent(contextEntry.key, () => {});
       for (var kindEntry in contextEntry.value.entries) {
         var kind = kindEntry.key;
         contextMap[kind] = (contextMap[kind] ?? 0) + kindEntry.value;
@@ -216,14 +216,14 @@ class RelevanceData {
   /// Record that an element of the given [kind] was found in the given
   /// [context].
   void recordElementKind(String context, ElementKind kind) {
-    var contextMap = byKind.putIfAbsent(context, () => {});
+    var contextMap = _byKind.putIfAbsent(context, () => {});
     var key = _ElementKind(kind);
     contextMap[key] = (contextMap[key] ?? 0) + 1;
   }
 
   /// Record that the given [keyword] was found in the given [context].
   void recordKeyword(String context, Keyword keyword) {
-    var contextMap = byKind.putIfAbsent(context, () => {});
+    var contextMap = _byKind.putIfAbsent(context, () => {});
     var key = _Keyword(keyword);
     contextMap[key] = (contextMap[key] ?? 0) + 1;
   }
@@ -231,7 +231,7 @@ class RelevanceData {
   /// Convert this data to a JSON encoded format.
   String toJson() {
     var map = <String, Map<String, String>>{};
-    for (var contextEntry in byKind.entries) {
+    for (var contextEntry in _byKind.entries) {
       var kindMap = <String, String>{};
       for (var kindEntry in contextEntry.value.entries) {
         kindMap[kindEntry.key.uniqueKey] = kindEntry.value.toString();
@@ -1525,7 +1525,7 @@ class RelevanceTableWriter {
 const defaultElementKindRelevance = {
 ''');
 
-    var byKind = data.byKind;
+    var byKind = data._byKind;
     var entries = byKind.entries.toList()
       ..sort((first, second) => first.key.compareTo(second.key));
     for (var entry in entries) {
@@ -1601,7 +1601,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 const defaultKeywordRelevance = {
 ''');
 
-    var byKind = data.byKind;
+    var byKind = data._byKind;
     var entries = byKind.entries.toList()
       ..sort((first, second) => first.key.compareTo(second.key));
     for (var entry in entries) {

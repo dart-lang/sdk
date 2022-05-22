@@ -17,7 +17,6 @@ analyzer:
     file_names: ignore
     hash_and_equals: ignore
     implementation_imports: ignore
-    library_private_types_in_public_api: ignore
     non_constant_identifier_names: ignore
     overridden_fields: ignore
     prefer_function_declarations_over_variables: ignore

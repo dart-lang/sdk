@@ -16,14 +16,14 @@ class GoogleAnalyticsManager implements AnalyticsManager {
 
   /// Data about the current session, or `null` if the [startUp] method has not
   /// been invoked.
-  _SessionData? sessionData;
+  _SessionData? _sessionData;
 
   /// A map from the id of a request to data about the request.
-  Map<String, _ActiveRequestData> activeRequests = {};
+  final Map<String, _ActiveRequestData> _activeRequests = {};
 
   /// A map from the name of a request to data about all such requests that have
   /// been responded to.
-  Map<String, _RequestData> completedRequests = {};
+  final Map<String, _RequestData> _completedRequests = {};
 
   /// Initialize a newly created analytics manager to report to the [analytics]
   /// service.
@@ -47,7 +47,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
 
   @override
   void shutdown() {
-    final sessionData = this.sessionData;
+    final sessionData = _sessionData;
     if (sessionData == null) {
       return;
     }
@@ -65,7 +65,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
       'plugins': '',
     });
     // Send response data.
-    for (var data in completedRequests.values) {
+    for (var data in _completedRequests.values) {
       analytics.sendEvent('language_server', 'request', parameters: {
         'latency': data.latencyTimes.toAnalyticsString(),
         'name': data.method,
@@ -82,14 +82,14 @@ class GoogleAnalyticsManager implements AnalyticsManager {
 
   @override
   void startedRequest({required Request request, required DateTime startTime}) {
-    activeRequests[request.id] = _ActiveRequestData(
+    _activeRequests[request.id] = _ActiveRequestData(
         request.method, request.clientRequestTime, startTime);
   }
 
   @override
   void startedRequestMessage(
       {required RequestMessage request, required DateTime startTime}) {
-    activeRequests[request.id.asString] = _ActiveRequestData(
+    _activeRequests[request.id.asString] = _ActiveRequestData(
         request.method.toString(), request.clientRequestTime, startTime);
   }
 
@@ -100,7 +100,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
       required String clientId,
       required String? clientVersion,
       required String sdkVersion}) {
-    sessionData = _SessionData(
+    _sessionData = _SessionData(
         startTime: time,
         commandLineArguments: arguments.join(' '),
         clientId: clientId,
@@ -111,7 +111,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
   /// Record that the request with the given [id] was responded to at the given
   /// [sendTime].
   void _recordResponseData(String id, DateTime sendTime) {
-    var data = activeRequests.remove(id);
+    var data = _activeRequests.remove(id);
     if (data == null) {
       return;
     }
@@ -120,7 +120,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
     var clientRequestTime = data.clientRequestTime;
     var startTime = data.startTime.millisecondsSinceEpoch;
 
-    var requestData = completedRequests.putIfAbsent(
+    var requestData = _completedRequests.putIfAbsent(
         requestName, () => _RequestData(requestName));
 
     if (clientRequestTime != null) {

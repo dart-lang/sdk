@@ -210,7 +210,7 @@ class ContextManagerImpl implements ContextManager {
   ///
   /// This is used when a new build is requested to cancel any in-progress
   /// rebuild and wait for it to terminate before starting the next.
-  final _CancellingTaskQueue currentContextRebuild = _CancellingTaskQueue();
+  final _CancellingTaskQueue _currentContextRebuild = _CancellingTaskQueue();
 
   ContextManagerImpl(
       this.resourceProvider,
@@ -579,7 +579,7 @@ class ContextManagerImpl implements ContextManager {
       callbacks.afterContextsCreated();
     }
 
-    return currentContextRebuild.queue(performContextRebuildGuarded);
+    return _currentContextRebuild.queue(performContextRebuildGuarded);
   }
 
   /// Clean up and destroy the context associated with the given folder.
