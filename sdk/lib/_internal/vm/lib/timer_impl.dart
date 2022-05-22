@@ -437,14 +437,14 @@ class _Timer implements Timer {
     if (!_receivePortActive) {
       _createTimerHandler();
     }
-    VMLibraryHooks.eventHandlerSendData(null, _sendPort!, wakeupTime);
+    VMLibraryHooks.eventHandlerSendData(_TIMEOUT_EVENT, _sendPort!, wakeupTime);
     _scheduledWakeupTime = wakeupTime;
   }
 
   // Cancel pending wakeups in the event handler.
   static void _cancelWakeup() {
     if (_sendPort != null) {
-      VMLibraryHooks.eventHandlerSendData(null, _sendPort!, _NO_TIMER);
+      VMLibraryHooks.eventHandlerSendData(_TIMEOUT_EVENT, _sendPort!, _NO_TIMER);
       _scheduledWakeupTime = 0;
     }
   }
