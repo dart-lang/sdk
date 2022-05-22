@@ -22,9 +22,9 @@ class CodeFragmentParser {
   int delta = 0;
 
   /// The tokens being parsed.
-  late List<_Token> tokens;
+  late List<_Token> _tokens;
 
-  /// The index in the [tokens] of the next token to be consumed.
+  /// The index in the [_tokens] of the next token to be consumed.
   int currentIndex = 0;
 
   /// Initialize a newly created parser to report errors to the [errorReporter].
@@ -33,12 +33,12 @@ class CodeFragmentParser {
 
   /// Return the current token, or `null` if the end of the tokens has been
   /// reached.
-  _Token? get currentToken =>
-      currentIndex < tokens.length ? tokens[currentIndex] : null;
+  _Token? get _currentToken =>
+      currentIndex < _tokens.length ? _tokens[currentIndex] : null;
 
   /// Advance to the next token.
   void advance() {
-    if (currentIndex < tokens.length) {
+    if (currentIndex < _tokens.length) {
       currentIndex++;
     }
   }
@@ -56,7 +56,7 @@ class CodeFragmentParser {
       // The error has already been reported.
       return null;
     }
-    tokens = scannedTokens;
+    _tokens = scannedTokens;
     currentIndex = 0;
     var accessors = <Accessor>[];
     var accessor = _parseAccessor();
@@ -64,8 +64,8 @@ class CodeFragmentParser {
       return accessors;
     }
     accessors.add(accessor);
-    while (currentIndex < tokens.length) {
-      var token = currentToken;
+    while (currentIndex < _tokens.length) {
+      var token = _currentToken;
       if (token == null) {
         return accessors;
       }
@@ -98,11 +98,11 @@ class CodeFragmentParser {
       // The error has already been reported.
       return null;
     }
-    tokens = scannedTokens;
+    _tokens = scannedTokens;
     currentIndex = 0;
     var expression = _parseLogicalAndExpression();
-    if (currentIndex < tokens.length) {
-      var token = tokens[currentIndex];
+    if (currentIndex < _tokens.length) {
+      var token = _tokens[currentIndex];
       errorReporter.reportErrorForOffset(TransformSetErrorCode.unexpectedToken,
           token.offset + delta, token.length, [token.kind.displayName]);
       return null;
@@ -128,12 +128,12 @@ class CodeFragmentParser {
       return buffer.toString();
     }
 
-    var token = currentToken;
+    var token = _currentToken;
     if (token == null) {
       var offset = 0;
       var length = 0;
-      if (tokens.isNotEmpty) {
-        var last = tokens.last;
+      if (_tokens.isNotEmpty) {
+        var last = _tokens.last;
         offset = last.offset;
         length = last.length;
       }
@@ -231,10 +231,10 @@ class CodeFragmentParser {
     if (expression == null) {
       return null;
     }
-    if (currentIndex >= tokens.length) {
+    if (currentIndex >= _tokens.length) {
       return expression;
     }
-    var kind = currentToken?.kind;
+    var kind = _currentToken?.kind;
     if (kind == _TokenKind.equal || kind == _TokenKind.notEqual) {
       advance();
       var operator =
@@ -257,11 +257,11 @@ class CodeFragmentParser {
     if (leftOperand == null) {
       return null;
     }
-    if (currentIndex >= tokens.length) {
+    if (currentIndex >= _tokens.length) {
       return leftOperand;
     }
     var expression = leftOperand;
-    var kind = currentToken?.kind;
+    var kind = _currentToken?.kind;
     while (kind == _TokenKind.and) {
       advance();
       var rightOperand = _parseEqualityExpression();
@@ -269,10 +269,10 @@ class CodeFragmentParser {
         return null;
       }
       expression = BinaryExpression(expression, Operator.and, rightOperand);
-      if (currentIndex >= tokens.length) {
+      if (currentIndex >= _tokens.length) {
         return expression;
       }
-      kind = currentToken?.kind;
+      kind = _currentToken?.kind;
     }
     return expression;
   }
@@ -282,7 +282,7 @@ class CodeFragmentParser {
   /// <primaryExpression> ::=
   ///   <identifier> | <string>
   Expression? _parsePrimaryExpression() {
-    var token = currentToken;
+    var token = _currentToken;
     if (token != null) {
       var kind = token.kind;
       if (kind == _TokenKind.identifier) {
@@ -308,8 +308,8 @@ class CodeFragmentParser {
     int offset;
     int length;
     if (token == null) {
-      if (tokens.isNotEmpty) {
-        token = tokens[tokens.length - 1];
+      if (_tokens.isNotEmpty) {
+        token = _tokens[_tokens.length - 1];
         offset = token.offset + delta;
         length = token.length;
       } else {

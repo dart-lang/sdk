@@ -12,7 +12,7 @@ import '../analysis_abstract.dart';
 import '../analysis_server_base.dart';
 
 class AbstractSearchDomainTest extends PubPackageAnalysisServerTest {
-  final Map<String, _ResultSet> resultSets = {};
+  final Map<String, _ResultSet> _resultSets = {};
   String? searchId;
   List<SearchResult> results = <SearchResult>[];
   late SearchResult result;
@@ -68,10 +68,10 @@ class AbstractSearchDomainTest extends PubPackageAnalysisServerTest {
     if (notification.event == SEARCH_NOTIFICATION_RESULTS) {
       var params = SearchResultsParams.fromNotification(notification);
       var id = params.id;
-      var resultSet = resultSets[id];
+      var resultSet = _resultSets[id];
       if (resultSet == null) {
         resultSet = _ResultSet(id);
-        resultSets[id] = resultSet;
+        _resultSets[id] = resultSet;
       }
       resultSet.results.addAll(params.results);
       resultSet.done = params.isLast;
@@ -85,7 +85,7 @@ class AbstractSearchDomainTest extends PubPackageAnalysisServerTest {
   }
 
   Future waitForSearchResults() {
-    var resultSet = resultSets[searchId];
+    var resultSet = _resultSets[searchId];
     if (resultSet != null && resultSet.done) {
       results = resultSet.results;
       return Future.value();

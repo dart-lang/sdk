@@ -146,7 +146,7 @@ class RelevanceData {
   Map<int, int> tokenDistances = {};
 
   /// A table mapping percentage data names to the percentage data collected.
-  Map<String, _PercentageData> percentageData = {};
+  final Map<String, _PercentageData> _percentageData = {};
 
   /// Initialize a newly created set of relevance data to be empty.
   RelevanceData();
@@ -189,7 +189,7 @@ class RelevanceData {
   /// found. If [wasPositive] is `true` then the data point is a positive data
   /// point.
   void recordPercentage(String name, bool wasPositive) {
-    var data = percentageData.putIfAbsent(name, () => _PercentageData());
+    var data = _percentageData.putIfAbsent(name, () => _PercentageData());
     data.addDataPoint(wasPositive);
   }
 
@@ -1903,7 +1903,7 @@ class RelevanceMetricsComputer {
     sink.writeln();
     _writeCounts(sink, data.simpleCounts);
     sink.writeln();
-    _writePercentageData(sink, data.percentageData);
+    _writePercentageData(sink, data._percentageData);
     sink.writeln();
     _writeSideBySide(sink, [data.byTokenType, data.byElementKind],
         ['Token Types', 'Element Kinds']);

@@ -30,7 +30,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
   /// The [_VisibilityTracker] tracks the set of elements already added in the
   /// completion list, this object helps prevents suggesting elements that have
   /// been shadowed by local declarations.
-  _VisibilityTracker visibilityTracker = _VisibilityTracker();
+  final _VisibilityTracker _visibilityTracker = _VisibilityTracker();
 
   LocalReferenceContributor(super.request, super.builder);
 
@@ -68,7 +68,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
           try {
             builder.laterReplacesEarlier = false;
             var localVisitor = _LocalVisitor(
-                request, builder, visibilityTracker,
+                request, builder, _visibilityTracker,
                 suggestLocalFields: suggestLocalFields);
             localVisitor.visit(node);
           } finally {
@@ -100,7 +100,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
     if (!isFunctionalArgument) {
       for (var accessor in type.accessors) {
         if (!accessor.isStatic) {
-          if (visibilityTracker._isVisible(accessor.declaration)) {
+          if (_visibilityTracker._isVisible(accessor.declaration)) {
             if (accessor.isGetter) {
               if (opType.includeReturnValueSuggestions) {
                 memberBuilder.addSuggestionForAccessor(
@@ -120,7 +120,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
     }
     for (var method in type.methods) {
       if (!method.isStatic) {
-        if (visibilityTracker._isVisible(method.declaration)) {
+        if (_visibilityTracker._isVisible(method.declaration)) {
           if (!method.returnType.isVoid) {
             if (opType.includeReturnValueSuggestions) {
               memberBuilder.addSuggestionForMethod(
