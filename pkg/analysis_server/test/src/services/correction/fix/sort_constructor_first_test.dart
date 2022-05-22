@@ -80,10 +80,6 @@ class SortConstructorFirstTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.sort_constructors_first;
 
-  @FailingTest(
-    reason: 'The beginToken is the comment, which has no previous token.',
-    issue: 'https://github.com/dart-lang/sdk/issues/48966',
-  )
   Future<void> test_hasComment() async {
     await resolveTestCode('''
 class A {
@@ -101,10 +97,6 @@ class A {
 ''');
   }
 
-  @FailingTest(
-    reason: 'The beginToken is the comment, which has no previous token.',
-    issue: 'https://github.com/dart-lang/sdk/issues/48966',
-  )
   Future<void> test_hasComment_hasMetadata_afterComment() async {
     await resolveTestCode('''
 const a = 0;
