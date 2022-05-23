@@ -74,12 +74,14 @@ class _AllowedCommentVisitor extends SimpleAstVisitor {
     }
   }
 
-  Iterable<Token> _getPrecedingComments(Token token) sync* {
+  Iterable<Token> _getPrecedingComments(Token token) {
+    var tokens = <Token>[];
     Token? comment = token.precedingComments;
     while (comment != null) {
-      yield comment;
+      tokens.add(comment);
       comment = comment.next;
     }
+    return tokens;
   }
 
   void _visitComment(Token comment) {
