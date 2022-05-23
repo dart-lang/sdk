@@ -89,12 +89,17 @@ class Bid {
 Iterable<AssignmentExpression> _getAssignmentExpressionsInConstructorBody(
     ConstructorDeclaration node) {
   var body = node.body;
-  var statements =
-      (body is BlockFunctionBody) ? body.block.statements : <Statement>[];
-  return statements
-      .whereType<ExpressionStatement>()
-      .map((e) => e.expression)
-      .whereType<AssignmentExpression>();
+  if (body is! BlockFunctionBody) return [];
+  var assignments = <AssignmentExpression>[];
+  for (var statement in body.block.statements) {
+    if (statement is ExpressionStatement) {
+      var expression = statement.expression;
+      if (expression is AssignmentExpression) {
+        assignments.add(expression);
+      }
+    }
+  }
+  return assignments;
 }
 
 Iterable<ConstructorFieldInitializer>
@@ -189,26 +194,38 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    node.parameters.parameterElements
-        .where((p) => p != null && p.isInitializingFormal)
-        .forEach(processElement);
+    var parameterElements = node.parameters.parameterElements;
+    for (var parameter in parameterElements) {
+      if (parameter?.isInitializingFormal ?? false) {
+        processElement(parameter);
+      }
+    }
 
-    _getAssignmentExpressionsInConstructorBody(node)
-        .where(isAssignmentExpressionToLint)
-        .map(_getRightElement)
-        .forEach(processElement);
+    var assignments = _getAssignmentExpressionsInConstructorBody(node);
+    for (var assignment in assignments) {
+      if (isAssignmentExpressionToLint(assignment)) {
+        processElement(_getRightElement(assignment));
+      }
+    }
 
-    _getConstructorFieldInitializersInInitializers(node)
-        .where(isConstructorFieldInitializerToLint)
-        .map((e) => (e.expression as SimpleIdentifier).staticElement)
-        .forEach(processElement);
+    var initializers = _getConstructorFieldInitializersInInitializers(node);
+    for (var initializer in initializers) {
+      if (isConstructorFieldInitializerToLint(initializer)) {
+        processElement(
+            (initializer.expression as SimpleIdentifier).staticElement);
+      }
+    }
 
-    _getAssignmentExpressionsInConstructorBody(node)
-        .where(isAssignmentExpressionToLint)
-        .forEach(rule.reportLint);
+    for (var assignment in assignments) {
+      if (isAssignmentExpressionToLint(assignment)) {
+        rule.reportLint(assignment);
+      }
+    }
 
-    _getConstructorFieldInitializersInInitializers(node)
-        .where(isConstructorFieldInitializerToLint)
-        .forEach(rule.reportLint);
+    for (var initializer in initializers) {
+      if (isConstructorFieldInitializerToLint(initializer)) {
+        rule.reportLint(initializer);
+      }
+    }
   }
 }
