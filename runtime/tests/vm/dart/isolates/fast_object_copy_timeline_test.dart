@@ -15,8 +15,10 @@ import 'package:expect/expect.dart';
 import '../timeline_utils.dart';
 
 final int wordSize = sizeOf<IntPtr>();
-final bool useCompressedPointers =
-    wordSize == 8 && (Platform.isAndroid || Platform.isIOS);
+final bool useCompressedPointers = wordSize == 8 &&
+    (Platform.isAndroid ||
+        Platform.isIOS ||
+        Platform.executable.contains('64C'));
 
 final int kAllocationSize = 2 * wordSize;
 final int headerSize = wordSize;
@@ -76,32 +78,29 @@ List<ObjectCopyOperation> getCopyOperations(
     List<TimelineEvent> events, String isolateId) {
   final copyOperations = <ObjectCopyOperation>[];
 
-  int? startTs = null;
-  int? startTts = null;
+  TimelineEvent? start = null;
 
   for (final e in events) {
     if (e.isolateId != isolateId) continue;
     if (e.name != 'CopyMutableObjectGraph') continue;
 
-    if (startTts != null) {
+    if (start != null) {
       if (!e.isEnd) throw 'Missing end of copy event';
 
-      final us = e.ts - startTs!;
-      final threadUs = e.tts! - startTts;
+      final us = e.ts - start.ts;
+      final threadUs = e.tts != null ? (e.tts! - start.tts!) : 0;
       copyOperations.add(ObjectCopyOperation(
           us,
           threadUs,
           int.parse(e.args['AllocatedBytes']!),
           int.parse(e.args['CopiedObjects']!)));
 
-      startTs = null;
-      startTts = null;
+      start = null;
       continue;
     }
 
     if (!e.isStart) throw 'Expected end of copy event';
-    startTs = e.ts;
-    startTts = e.tts;
+    start = e;
   }
   return copyOperations;
 }
