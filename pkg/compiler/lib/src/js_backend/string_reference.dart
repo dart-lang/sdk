@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 /// StringReferences are 'holes' in the generated JavaScript that are filled in
 /// by the emitter with code to access a large string.
 ///
@@ -64,7 +62,7 @@ library js_backend.string_reference;
 
 import '../constants/values.dart' show StringConstantValue;
 import '../js/js.dart' as js;
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../util/util.dart' show Hashing;
 import 'frequency_assignment.dart';
 import 'name_sequence.dart';
@@ -95,10 +93,10 @@ class StringReference extends js.DeferredExpression implements js.AstContainer {
 
   final StringConstantValue constant;
 
-  js.Expression _value;
+  js.Expression? _value;
 
   @override
-  final js.JavaScriptNodeSourceInformation sourceInformation;
+  final js.JavaScriptNodeSourceInformation? sourceInformation;
 
   StringReference(this.constant) : sourceInformation = null;
   StringReference._(this.constant, this._value, this.sourceInformation);
@@ -117,14 +115,15 @@ class StringReference extends js.DeferredExpression implements js.AstContainer {
   }
 
   set value(js.Expression value) {
-    assert(!isFinalized && value != null);
+    assert(!isFinalized);
+    assert((value as dynamic) != null); // TODO(48820): Remove when sound.
     _value = value;
   }
 
   @override
   js.Expression get value {
     assert(isFinalized, 'StringReference is unassigned');
-    return _value;
+    return _value!;
   }
 
   @override
@@ -137,14 +136,14 @@ class StringReference extends js.DeferredExpression implements js.AstContainer {
 
   @override
   StringReference withSourceInformation(
-      js.JavaScriptNodeSourceInformation newSourceInformation) {
+      js.JavaScriptNodeSourceInformation? newSourceInformation) {
     if (newSourceInformation == sourceInformation) return this;
     if (newSourceInformation == null) return this;
     return StringReference._(constant, _value, newSourceInformation);
   }
 
   @override
-  Iterable<js.Node> get containedNodes => isFinalized ? [_value] : const [];
+  Iterable<js.Node> get containedNodes => isFinalized ? [_value!] : const [];
 
   @override
   String nonfinalizedDebugText() {
@@ -175,23 +174,24 @@ class StringReference extends js.DeferredExpression implements js.AstContainer {
 /// and initializes the variable.
 class StringReferenceResource extends js.DeferredStatement
     implements js.AstContainer {
-  js.Statement _statement;
+  js.Statement? _statement;
 
   @override
-  final js.JavaScriptNodeSourceInformation sourceInformation;
+  final js.JavaScriptNodeSourceInformation? sourceInformation;
 
   StringReferenceResource() : sourceInformation = null;
   StringReferenceResource._(this._statement, this.sourceInformation);
 
   set statement(js.Statement statement) {
-    assert(!isFinalized && statement != null);
+    assert(!isFinalized);
+    assert((statement as dynamic) != null); // TODO(48820): Remove when sound.
     _statement = statement;
   }
 
   @override
   js.Statement get statement {
     assert(isFinalized, 'StringReferenceResource is unassigned');
-    return _statement;
+    return _statement!;
   }
 
   @override
@@ -199,14 +199,15 @@ class StringReferenceResource extends js.DeferredStatement
 
   @override
   StringReferenceResource withSourceInformation(
-      js.JavaScriptNodeSourceInformation newSourceInformation) {
+      js.JavaScriptNodeSourceInformation? newSourceInformation) {
     if (newSourceInformation == sourceInformation) return this;
     if (newSourceInformation == null) return this;
     return StringReferenceResource._(_statement, newSourceInformation);
   }
 
   @override
-  Iterable<js.Node> get containedNodes => isFinalized ? [_statement] : const [];
+  Iterable<js.Node> get containedNodes =>
+      isFinalized ? [_statement!] : const [];
 
   @override
   void visitChildren<T>(js.NodeVisitor<T> visitor) {
@@ -233,8 +234,8 @@ class StringReferenceFinalizerImpl implements StringReferenceFinalizer {
   final bool _minify;
   final int shortestSharedLength; // Configurable for testing.
 
-  /*late final*/ _StringReferenceCollectorVisitor _visitor;
-  StringReferenceResource _resource;
+  late final _StringReferenceCollectorVisitor _visitor;
+  StringReferenceResource? _resource;
 
   /// Maps the recipe (type expression) to the references with the same recipe.
   /// Much of the algorithm's state is stored in the _ReferenceSet objects.
@@ -295,20 +296,20 @@ class StringReferenceFinalizerImpl implements StringReferenceFinalizer {
     List<js.Property> properties = [];
     for (_ReferenceSet referenceSet in referenceSetsUsingProperties) {
       String string = referenceSet.constant.stringValue;
-      var propertyName = js.string(referenceSet.propertyName);
+      var propertyName = js.string(referenceSet.propertyName!);
       properties.add(js.Property(propertyName, js.string(string)));
-      var access = js.js('#.#', [holderLocalName, propertyName]);
+      js.Expression access = js.js('#.#', [holderLocalName, propertyName]);
       for (StringReference ref in referenceSet._references) {
         ref.value = access;
       }
     }
 
     if (properties.isEmpty) {
-      _resource.statement = js.Block.empty();
+      _resource!.statement = js.Block.empty();
     } else {
       js.Expression initializer =
           js.ObjectInitializer(properties, isOneLiner: false);
-      _resource.statement = js.js.statement(
+      _resource!.statement = js.js.statement(
           r'var # = #', [js.VariableDeclaration(holderLocalName), initializer]);
     }
   }
@@ -377,7 +378,7 @@ class StringReferenceFinalizerImpl implements StringReferenceFinalizer {
         referencesByFrequency[index].propertyName = name;
       } else {
         var refSet = referencesByFrequency[index];
-        refSet.propertyName = name + '_' + refSet.name;
+        refSet.propertyName = name + '_' + refSet.name!;
       }
     }
 
@@ -401,10 +402,10 @@ class _ReferenceSet {
   /// Characteristic name of the recipe - this can be used as a property name
   /// for emitting unminified code, and as a stable hash source for minified
   /// names.  [name] is `null` if [recipe] should always be generated at use.
-  String name;
+  String? name;
 
   /// Property name for 'indexing' into the precomputed types.
-  String propertyName;
+  String? propertyName;
 
   /// A stable hash code that can be used for picking stable minified names.
   int hash = 0;
