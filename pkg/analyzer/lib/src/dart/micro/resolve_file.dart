@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
@@ -61,26 +62,20 @@ class CiderSearchInfo {
 
 class CiderSearchMatch {
   final String path;
-  @deprecated
-  final List<CharacterLocation?> startPositions;
   final List<CiderSearchInfo> references;
 
-  CiderSearchMatch(this.path, this.startPositions, this.references);
+  CiderSearchMatch(this.path, this.references);
 
   @override
   bool operator ==(Object other) =>
       other is CiderSearchMatch &&
       path == other.path &&
-      const ListEquality<CharacterLocation?>()
-          // ignore: deprecated_member_use_from_same_package
-          .equals(startPositions, other.startPositions) &&
       const ListEquality<CiderSearchInfo>()
           .equals(references, other.references);
 
   @override
   String toString() {
-    // ignore: deprecated_member_use_from_same_package
-    return '($path, $startPositions)';
+    return '($path, $references)';
   }
 }
 
@@ -218,9 +213,6 @@ class FileResolver {
             references.add(CiderSearchMatch(
                 path,
                 matches
-                    .map((match) => lineInfo.getLocation(match.offset))
-                    .toList(),
-                matches
                     .map((match) => CiderSearchInfo(
                         lineInfo.getLocation(match.offset),
                         match.length,
@@ -235,6 +227,8 @@ class FileResolver {
       if (element is LocalVariableElement ||
           (element is ParameterElement && !element.isNamed)) {
         await collectReferences2(element.source!.fullName, performance!);
+      } else if (element is ImportElement) {
+        return await _searchReferences_Import(element);
       } else {
         var result = performance!.run('getFilesContaining', (performance) {
           return fsState!.getFilesContaining(element.displayName);
@@ -767,6 +761,27 @@ class FileResolver {
       contextObjects = null;
       libraryContext = null;
     }
+  }
+
+  Future<List<CiderSearchMatch>> _searchReferences_Import(
+      ImportElement element) async {
+    var results = <CiderSearchMatch>[];
+    LibraryElement libraryElement = element.library;
+    for (CompilationUnitElement unitElement in libraryElement.units) {
+      String unitPath = unitElement.source.fullName;
+      var unitResult = await resolve2(path: unitPath);
+      var visitor = ImportElementReferencesVisitor(element, unitElement);
+      unitResult.unit.accept(visitor);
+      var lineInfo = unitResult.lineInfo;
+      var infos = visitor.results
+          .map((searchResult) => CiderSearchInfo(
+              lineInfo.getLocation(searchResult.offset),
+              searchResult.length,
+              MatchKind.REFERENCE))
+          .toList();
+      results.add(CiderSearchMatch(unitPath, infos));
+    }
+    return results;
   }
 
   void _throwIfNotAbsoluteNormalizedPath(String path) {

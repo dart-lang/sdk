@@ -126,6 +126,69 @@ enum DeclarationKind {
   VARIABLE
 }
 
+/// Visitor that adds [SearchResult]s for references to the [importElement].
+class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
+  final List<SearchResult> results = <SearchResult>[];
+
+  final ImportElement importElement;
+  final CompilationUnitElement enclosingUnitElement;
+
+  late final Set<Element> importedElements;
+
+  ImportElementReferencesVisitor(
+      ImportElement element, this.enclosingUnitElement)
+      : importElement = element {
+    importedElements = element.namespace.definedNames.values.toSet();
+  }
+
+  @override
+  void visitExportDirective(ExportDirective node) {}
+
+  @override
+  void visitImportDirective(ImportDirective node) {}
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      return;
+    }
+    if (importElement.prefix != null) {
+      if (node.staticElement == importElement.prefix) {
+        var parent = node.parent;
+        if (parent is PrefixedIdentifier && parent.prefix == node) {
+          var element = parent.writeOrReadElement?.declaration;
+          if (importedElements.contains(element)) {
+            _addResultForPrefix(node, parent.identifier);
+          }
+        }
+        if (parent is MethodInvocation && parent.target == node) {
+          var element = parent.methodName.staticElement?.declaration;
+          if (importedElements.contains(element)) {
+            _addResultForPrefix(node, parent.methodName);
+          }
+        }
+      }
+    } else {
+      var element = node.writeOrReadElement?.declaration;
+      if (importedElements.contains(element)) {
+        _addResult(node.offset, 0);
+      }
+    }
+  }
+
+  void _addResult(int offset, int length) {
+    Element enclosingElement =
+        _getEnclosingElement(enclosingUnitElement, offset);
+    results.add(SearchResult._(enclosingElement, SearchResultKind.REFERENCE,
+        offset, length, true, false));
+  }
+
+  void _addResultForPrefix(SimpleIdentifier prefixNode, AstNode nextNode) {
+    int prefixOffset = prefixNode.offset;
+    _addResult(prefixOffset, nextNode.offset - prefixOffset);
+  }
+}
+
 /// Search support for an [AnalysisDriver].
 class Search {
   final AnalysisDriver _driver;
@@ -503,7 +566,7 @@ class Search {
       String unitPath = unitElement.source.fullName;
       var unitResult = await _driver.getResult(unitPath);
       if (unitResult is ResolvedUnitResult) {
-        var visitor = _ImportElementReferencesVisitor(element, unitElement);
+        var visitor = ImportElementReferencesVisitor(element, unitElement);
         unitResult.unit.accept(visitor);
         results.addAll(visitor.results);
       }
@@ -963,69 +1026,6 @@ class _FindDeclarations {
         _addDeclaration(file, element, element.name);
       }
     }
-  }
-}
-
-/// Visitor that adds [SearchResult]s for references to the [importElement].
-class _ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
-  final List<SearchResult> results = <SearchResult>[];
-
-  final ImportElement importElement;
-  final CompilationUnitElement enclosingUnitElement;
-
-  late final Set<Element> importedElements;
-
-  _ImportElementReferencesVisitor(
-      ImportElement element, this.enclosingUnitElement)
-      : importElement = element {
-    importedElements = element.namespace.definedNames.values.toSet();
-  }
-
-  @override
-  void visitExportDirective(ExportDirective node) {}
-
-  @override
-  void visitImportDirective(ImportDirective node) {}
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.inDeclarationContext()) {
-      return;
-    }
-    if (importElement.prefix != null) {
-      if (node.staticElement == importElement.prefix) {
-        var parent = node.parent;
-        if (parent is PrefixedIdentifier && parent.prefix == node) {
-          var element = parent.writeOrReadElement?.declaration;
-          if (importedElements.contains(element)) {
-            _addResultForPrefix(node, parent.identifier);
-          }
-        }
-        if (parent is MethodInvocation && parent.target == node) {
-          var element = parent.methodName.staticElement?.declaration;
-          if (importedElements.contains(element)) {
-            _addResultForPrefix(node, parent.methodName);
-          }
-        }
-      }
-    } else {
-      var element = node.writeOrReadElement?.declaration;
-      if (importedElements.contains(element)) {
-        _addResult(node.offset, 0);
-      }
-    }
-  }
-
-  void _addResult(int offset, int length) {
-    Element enclosingElement =
-        _getEnclosingElement(enclosingUnitElement, offset);
-    results.add(SearchResult._(enclosingElement, SearchResultKind.REFERENCE,
-        offset, length, true, false));
-  }
-
-  void _addResultForPrefix(SimpleIdentifier prefixNode, AstNode nextNode) {
-    int prefixOffset = prefixNode.offset;
-    _addResult(prefixOffset, nextNode.offset - prefixOffset);
   }
 }
 
