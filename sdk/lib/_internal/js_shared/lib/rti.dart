@@ -18,23 +18,15 @@ import 'dart:_foreign_helper'
         RAW_DART_FUNCTION_REF,
         TYPE_REF,
         LEGACY_TYPE_REF;
-
 import 'dart:_interceptors'
     show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
-
 import 'dart:_js_names' show unmangleGlobalNameIfPreservedAnyways;
-
-import 'dart:_js_embedded_names'
-    show
-        JsBuiltin,
-        JsGetName,
-        RtiUniverseFieldNames,
-        ARRAY_RTI_PROPERTY,
-        CONSTRUCTOR_RTI_CACHE_PROPERTY_NAME,
-        RTI_UNIVERSE,
-        TYPES;
-
+import 'dart:_js_shared_embedded_names';
 import 'dart:_recipe_syntax';
+
+/// The name of a property on the constructor function of Dart Object
+/// and interceptor types, used for caching Rti types.
+const CONSTRUCTOR_RTI_CACHE_PROPERTY_NAME = r'$ccache';
 
 // The top type `Object?` is used throughout this library even when values are
 // not nullable or have narrower types in order to avoid incurring type checks

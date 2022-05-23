@@ -5,6 +5,8 @@
 // @dart = 2.10
 
 import 'package:js_runtime/synced/embedded_names.dart';
+import 'package:js_shared/synced/embedded_names.dart'
+    show JsBuiltin, JsGetName, TYPES;
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';

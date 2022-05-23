@@ -6,7 +6,7 @@
 
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
-import 'package:js_runtime/synced/embedded_names.dart';
+import 'package:js_shared/synced/embedded_names.dart' show JsGetName;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
