@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
 import 'package:dart2js_tools/src/dart2js_mapping.dart';
+import 'package:dart2js_tools/src/util.dart';
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:source_maps/src/utils.dart';
@@ -58,10 +59,10 @@ Test processTestCode(String code, Iterable<String> configs) {
       }
     }
 
-    List<StackTraceLine> expectedLines = <StackTraceLine>[];
+    List<StackTraceLine> expectedLines = [];
     for (int stackTraceIndex
         in (stackTraceMap.keys.toList()..sort()).reversed) {
-      expectedLines.add(stackTraceMap[stackTraceIndex]);
+      expectedLines.add(stackTraceMap[stackTraceIndex]!);
     }
     expectationMap[config] = Expectations(expectedLines, unexpectedLines);
   });
@@ -75,7 +76,7 @@ Test processTestCode(String code, Iterable<String> configs) {
 typedef CompileFunc = Future<bool> Function(String, String);
 
 List<String> emptyPreamble(input, output) => const <String>[];
-String identityConverter(String name) => name;
+String? identityConverter(String? name) => name;
 
 /// Tests the stack trace of [test] using the expectations for [config].
 ///
@@ -105,8 +106,8 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
     List<LineException> beforeExceptions = const <LineException>[],
     List<LineException> afterExceptions = const <LineException>[],
     bool useJsMethodNamesOnAbsence = false,
-    String Function(String name) jsNameConverter = identityConverter,
-    Directory forcedTmpDir,
+    String? Function(String? name) jsNameConverter = identityConverter,
+    Directory? forcedTmpDir,
     int stackTraceLimit = 10,
     expandDart2jsInliningData = false}) async {
   Expect.isTrue(test.expectationMap.keys.contains(config),
@@ -124,7 +125,7 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
   Expect.isTrue(
       sourceMapFile.existsSync(), 'Source map not generated for $input');
   String sourceMapText = sourceMapFile.readAsStringSync();
-  SingleMapping sourceMap = parse(sourceMapText);
+  SingleMapping sourceMap = parseSingleMapping(jsonDecode(sourceMapText));
   String jsOutput = File(output).readAsStringSync();
 
   if (printJs) {
@@ -160,21 +161,18 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
 
   List<StackTraceLine> dartStackTrace = <StackTraceLine>[];
   for (StackTraceLine line in jsStackTrace) {
-    TargetEntry targetEntry = _findColumn(
-        line.lineNo - 1, line.columnNo - 1, _findLine(sourceMap, line));
+    TargetEntry? targetEntry = _findColumn(
+        line.lineNo! - 1, line.columnNo! - 1, _findLine(sourceMap, line));
     if (targetEntry == null || targetEntry.sourceUrlId == null) {
       dartStackTrace.add(line);
     } else {
-      String fileName;
-      if (targetEntry.sourceUrlId != null) {
-        fileName = sourceMap.urls[targetEntry.sourceUrlId];
-      }
-      int targetLine = targetEntry.sourceLine + 1;
-      int targetColumn = targetEntry.sourceColumn + 1;
+      String fileName = sourceMap.urls[targetEntry.sourceUrlId!];
+      int targetLine = targetEntry.sourceLine! + 1;
+      int targetColumn = targetEntry.sourceColumn! + 1;
 
       if (expandDart2jsInliningData) {
         SourceFile file = SourceFile.fromString(jsOutput);
-        int offset = file.getOffset(line.lineNo - 1, line.columnNo - 1);
+        int offset = file.getOffset(line.lineNo! - 1, line.columnNo! - 1);
         Map<int, List<FrameEntry>> frames =
             _loadInlinedFrameData(sourceMap, sourceMapText);
         List<int> indices = frames.keys.toList()..sort();
@@ -182,7 +180,7 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
         int depth = 0;
         outer:
         while (key >= 0) {
-          for (var frame in frames[indices[key]].reversed) {
+          for (var frame in frames[indices[key]]!.reversed) {
             if (frame.isEmpty) break outer;
             if (frame.isPush) {
               if (depth <= 0) {
@@ -192,9 +190,9 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
                     targetLine,
                     targetColumn,
                     isMapped: true));
-                fileName = frame.callUri;
-                targetLine = frame.callLine + 1;
-                targetColumn = frame.callColumn + 1;
+                fileName = frame.callUri!;
+                targetLine = frame.callLine! + 1;
+                targetColumn = frame.callColumn! + 1;
               } else {
                 depth--;
               }
@@ -208,9 +206,9 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
         targetEntry = findEnclosingFunction(jsOutput, file, offset, sourceMap);
       }
 
-      String methodName;
-      if (targetEntry.sourceNameId != null) {
-        methodName = sourceMap.names[targetEntry.sourceNameId];
+      String? methodName;
+      if (targetEntry!.sourceNameId != null) {
+        methodName = sourceMap.names[targetEntry.sourceNameId!];
       } else if (useJsMethodNamesOnAbsence) {
         methodName = jsNameConverter(line.methodName);
       }
@@ -221,7 +219,7 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
     }
   }
 
-  Expectations expectations = test.expectationMap[config];
+  Expectations expectations = test.expectationMap[config]!;
 
   int expectedIndex = 0;
   List<StackTraceLine> unexpectedLines = <StackTraceLine>[];
@@ -251,7 +249,7 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
       for (LineException exception in exceptions) {
         String fileName = exception.fileName;
         if (line.methodName == exception.methodName &&
-            line.fileName.endsWith(fileName)) {
+            line.fileName!.endsWith(fileName)) {
           found = true;
         }
       }
@@ -295,10 +293,10 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
 }
 
 class StackTraceLine {
-  String methodName;
-  String fileName;
-  int lineNo;
-  int columnNo;
+  String? methodName;
+  String? fileName;
+  int? lineNo;
+  int? columnNo;
   bool isMapped;
 
   StackTraceLine(this.methodName, this.fileName, this.lineNo, this.columnNo,
@@ -318,22 +316,22 @@ class StackTraceLine {
     text = text.trim();
     assert(text.startsWith('at '));
     text = text.substring('at '.length);
-    String methodName;
+    String? methodName;
     if (text.endsWith(')')) {
       int nameEnd = text.indexOf(' (');
       methodName = text.substring(0, nameEnd);
       text = text.substring(nameEnd + 2, text.length - 1);
     }
-    int lineNo;
-    int columnNo;
+    int? lineNo;
+    int? columnNo;
     String fileName;
     int lastColon = text.lastIndexOf(':');
     if (lastColon != -1) {
-      int lastValue = int.tryParse(text.substring(lastColon + 1));
+      int? lastValue = int.tryParse(text.substring(lastColon + 1));
       if (lastValue != null) {
         int secondToLastColon = text.lastIndexOf(':', lastColon - 1);
         if (secondToLastColon != -1) {
-          int secondToLastValue =
+          int? secondToLastValue =
               int.tryParse(text.substring(secondToLastColon + 1, lastColon));
           if (secondToLastValue != null) {
             lineNo = secondToLastValue;
@@ -385,14 +383,14 @@ class StackTraceLine {
 /// number is lower or equal to [line].
 ///
 /// Copied from [SingleMapping._findLine].
-TargetLineEntry _findLine(SingleMapping sourceMap, StackTraceLine stLine) {
-  String filename = stLine.fileName
-      .substring(stLine.fileName.lastIndexOf(RegExp('[\\/]')) + 1);
+TargetLineEntry? _findLine(SingleMapping sourceMap, StackTraceLine stLine) {
+  String filename = stLine.fileName!
+      .substring(stLine.fileName!.lastIndexOf(RegExp('[\\/]')) + 1);
   if (sourceMap.targetUrl != filename) return null;
-  return _findLineInternal(sourceMap, stLine.lineNo - 1);
+  return _findLineInternal(sourceMap, stLine.lineNo! - 1);
 }
 
-TargetLineEntry _findLineInternal(SingleMapping sourceMap, int line) {
+TargetLineEntry? _findLineInternal(SingleMapping sourceMap, int line) {
   int index = binarySearch(sourceMap.lines, (e) => e.line > line);
   return (index <= 0) ? null : sourceMap.lines[index - 1];
 }
@@ -404,7 +402,7 @@ TargetLineEntry _findLineInternal(SingleMapping sourceMap, int line) {
 /// the very last entry on that line.
 ///
 /// Copied from [SingleMapping._findColumn].
-TargetEntry _findColumn(int line, int column, TargetLineEntry lineEntry) {
+TargetEntry? _findColumn(int line, int column, TargetLineEntry? lineEntry) {
   if (lineEntry == null || lineEntry.entries.isEmpty) return null;
   if (lineEntry.line != line) return lineEntry.entries.last;
   var entries = lineEntry.entries;
@@ -434,9 +432,8 @@ class LineException {
 
 /// Search backwards in [sources] for a function declaration that includes the
 /// [start] offset.
-TargetEntry findEnclosingFunction(
+TargetEntry? findEnclosingFunction(
     String sources, SourceFile file, int start, SingleMapping mapping) {
-  if (sources == null) return null;
   var index = start;
   while (true) {
     index = nextDeclarationCandidate(sources, index);

@@ -1,6 +1,9 @@
+import 'dart:convert' show jsonDecode;
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
+import 'package:collection/collection.dart' show IterableNullableExtension;
+import 'package:dart2js_tools/src/util.dart';
 import 'package:expect/minitest.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart';
@@ -14,11 +17,12 @@ import 'package:source_maps/source_maps.dart';
 ProcessResult runD8AndStep(String outputPath, String testFileName,
     AnnotatedCode code, List<String> scriptD8Command) {
   var outputFile = path.join(outputPath, 'js.js');
-  SingleMapping sourceMap = parse(File('$outputFile.map').readAsStringSync());
+  var sourcemapText = File('$outputFile.map').readAsStringSync();
+  SingleMapping sourceMap = parseSingleMapping(jsonDecode(sourcemapText));
 
-  Set<int> mappedToLines = sourceMap.lines
+  Set<int?> mappedToLines = sourceMap.lines
       .map((entry) => entry.entries.map((entry) => entry.sourceLine).toSet())
-      .fold(<int>{}, (prev, e) => prev..addAll(e));
+      .fold(<int?>{}, (prev, e) => prev..addAll(e));
 
   for (Annotation annotation
       in code.annotations.where((a) => a.text.trim() == 'nm')) {
@@ -30,7 +34,7 @@ ProcessResult runD8AndStep(String outputPath, String testFileName,
     }
   }
 
-  List<String> breakpoints = [];
+  List<String?> breakpoints = [];
   // Annotations are 1-based, js breakpoints are 0-based.
   for (Annotation breakAt
       in code.annotations.where((a) => a.text.trim() == 'bl')) {
@@ -44,7 +48,7 @@ ProcessResult runD8AndStep(String outputPath, String testFileName,
   }
 
   File inspectorFile = File.fromUri(
-      sdkRoot.uri.resolve('pkg/sourcemap_testing/lib/src/js/inspector.js'));
+      sdkRoot!.uri.resolve('pkg/sourcemap_testing/lib/src/js/inspector.js'));
   if (!inspectorFile.existsSync()) throw "Couldn't find 'inspector.js'";
   var outInspectorPath = path.join(outputPath, 'inspector.js');
   inspectorFile.copySync(outInspectorPath);
@@ -65,7 +69,8 @@ void checkD8Steps(String outputPath, List<String> d8Output, AnnotatedCode code,
     {bool debug = false}) {
   var outputFilename = 'js.js';
   var outputFile = path.join(outputPath, outputFilename);
-  SingleMapping sourceMap = parse(File('$outputFile.map').readAsStringSync());
+  var sourcemapText = File('$outputFile.map').readAsStringSync();
+  SingleMapping sourceMap = parseSingleMapping(jsonDecode(sourcemapText));
 
   List<List<_DartStackTraceDataEntry>> result =
       _extractStackTraces(d8Output, sourceMap, outputFilename);
@@ -100,8 +105,8 @@ void checkD8Steps(String outputPath, List<String> d8Output, AnnotatedCode code,
     }
   }
 
-  List<List<String>> noBreaksStart = [];
-  List<List<String>> noBreaksEnd = [];
+  List<List<String>?> noBreaksStart = [];
+  List<List<String>?> noBreaksEnd = [];
   for (Annotation annotation in code.annotations
       .where((annotation) => annotation.text.trim().startsWith('nbb:'))) {
     String text = annotation.text.trim();
@@ -109,12 +114,9 @@ void checkD8Steps(String outputPath, List<String> d8Output, AnnotatedCode code,
     int stopNum1 = int.parse(split[1]);
     int stopNum2 = int.parse(split[2]);
     if (noBreaksStart.length <= stopNum1) noBreaksStart.length = stopNum1 + 1;
-    noBreaksStart[stopNum1] ??= [];
+    (noBreaksStart[stopNum1] ??= []).add('test.dart:${annotation.lineNo}:');
     if (noBreaksEnd.length <= stopNum2) noBreaksEnd.length = stopNum2 + 1;
-    noBreaksEnd[stopNum2] ??= [];
-
-    noBreaksStart[stopNum1].add('test.dart:${annotation.lineNo}:');
-    noBreaksEnd[stopNum2].add('test.dart:${annotation.lineNo}:');
+    (noBreaksEnd[stopNum2] ??= []).add('test.dart:${annotation.lineNo}:');
   }
 
   _checkRecordedStops(
@@ -147,8 +149,8 @@ void checkD8Steps(String outputPath, List<String> d8Output, AnnotatedCode code,
 void _checkRecordedStops(
     List<String> recordStops,
     List<String> expectedStops,
-    List<List<String>> noBreaksStart,
-    List<List<String>> noBreaksEnd,
+    List<List<String>?> noBreaksStart,
+    List<List<String>?> noBreaksEnd,
     bool debug) {
   // We want to find all expected lines in recorded lines in order, but allow
   // more in between in the recorded lines.
@@ -158,7 +160,7 @@ void _checkRecordedStops(
   int expectedIndex = 0;
   Set<String> aliveNoBreaks = {};
   if (noBreaksStart.isNotEmpty && noBreaksStart[0] != null) {
-    aliveNoBreaks.addAll(noBreaksStart[0]);
+    aliveNoBreaks.addAll(noBreaksStart[0]!);
   }
   int stopNumber = 0;
   for (String recorded in recordStops) {
@@ -168,11 +170,11 @@ void _checkRecordedStops(
       ++expectedIndex;
       if (noBreaksStart.length > expectedIndex &&
           noBreaksStart[expectedIndex] != null) {
-        aliveNoBreaks.addAll(noBreaksStart[expectedIndex]);
+        aliveNoBreaks.addAll(noBreaksStart[expectedIndex]!);
       }
       if (noBreaksEnd.length > expectedIndex &&
           noBreaksEnd[expectedIndex] != null) {
-        aliveNoBreaks.removeAll(noBreaksEnd[expectedIndex]);
+        aliveNoBreaks.removeAll(noBreaksEnd[expectedIndex]!);
       }
     } else {
       if (debug) {
@@ -241,7 +243,7 @@ void _debugPrint(List<_DartStackTraceDataEntry> trace, String outputPath) {
   }
 
   List<String> sideBySide(List<String> a, List<String> b, int columns) {
-    List<String> result = List<String>.filled(a.length, null);
+    List<String> result = List<String>.filled(a.length, '');
     for (int i = 0; i < a.length; ++i) {
       String left = a[i].padRight(columns).substring(0, columns);
       String right = b[i].padRight(columns).substring(0, columns);
@@ -267,7 +269,7 @@ void _debugPrint(List<_DartStackTraceDataEntry> trace, String outputPath) {
 }
 
 List<List<_DartStackTraceDataEntry>> _extractStackTraces(
-    lines, SingleMapping sourceMap, String outputFilename) {
+    List<String> lines, SingleMapping sourceMap, String outputFilename) {
   List<List<_DartStackTraceDataEntry>> result = [];
   bool inStackTrace = false;
   List<String> currentStackTrace = <String>[];
@@ -301,24 +303,24 @@ List<_DartStackTraceDataEntry> _extractStackTrace(
       continue;
     }
     Match m = ms.first;
-    int l = int.parse(m.group(1));
-    int c = int.parse(m.group(2));
-    SourceMapSpan span = _getColumnOrPredecessor(sourceMap, l, c);
+    int l = int.parse(m.group(1)!);
+    int c = int.parse(m.group(2)!);
+    SourceMapSpan? span = _getColumnOrPredecessor(sourceMap, l, c);
     if (span?.start == null) {
       result.add(_DartStackTraceDataEntry.errorWithJsPosition(
           "Source map not found for '$line'", l, c));
       continue;
     }
-    var file = span.sourceUrl?.pathSegments?.last ?? '(unknown file)';
+    var file = span!.sourceUrl?.pathSegments.last ?? '(unknown file)';
     result.add(_DartStackTraceDataEntry(
         file, span.start.line + 1, span.start.column + 1, l, c));
   }
   return result;
 }
 
-SourceMapSpan _getColumnOrPredecessor(
+SourceMapSpan? _getColumnOrPredecessor(
     SingleMapping sourceMap, int line, int column) {
-  SourceMapSpan span = sourceMap.spanFor(line, column);
+  SourceMapSpan? span = sourceMap.spanFor(line, column);
   if (span == null && line > 0) {
     span = sourceMap.spanFor(line - 1, 999999);
   }
@@ -326,10 +328,10 @@ SourceMapSpan _getColumnOrPredecessor(
 }
 
 class _DartStackTraceDataEntry {
-  final String file;
+  final String? file;
   final int line;
   final int column;
-  final String errorString;
+  final String? errorString;
   final int jsLine;
   final int jsColumn;
 
@@ -351,7 +353,7 @@ class _DartStackTraceDataEntry {
   bool get isError => errorString != null;
 
   @override
-  String toString() => isError ? errorString : '$file:$line:$column';
+  String toString() => isError ? errorString! : '$file:$line:$column';
 }
 
 class _PointMapping {
@@ -367,18 +369,21 @@ class _PointMapping {
 ///
 /// The "magic 4" below is taken from
 /// https://github.com/ChromeDevTools/devtools-frontend/blob/fa18d70a995f06cb73365b2e5b8ae974cf60bd3a/front_end/sources/JavaScriptSourceFrame.js#L1520-L1523
-String _getJsBreakpointLine(
+String? _getJsBreakpointLine(
     String testFileName, SingleMapping sourceMap, int breakOnLine) {
   List<_PointMapping> mappingsOnLines = [];
   for (var line in sourceMap.lines) {
     for (var entry in line.entries) {
-      if (entry.sourceLine == null) continue;
-      if (entry.sourceLine >= breakOnLine &&
-          entry.sourceLine < breakOnLine + 4 &&
-          entry.sourceUrlId != null &&
-          sourceMap.urls[entry.sourceUrlId] == testFileName) {
-        mappingsOnLines.add(_PointMapping(
-            entry.sourceLine, entry.sourceColumn, line.line, entry.column));
+      final sourceLine = entry.sourceLine;
+      if (sourceLine == null) continue;
+      final sourceColumn = entry.sourceColumn!;
+      final sourceUrlId = entry.sourceUrlId;
+      if (sourceLine >= breakOnLine &&
+          sourceLine < breakOnLine + 4 &&
+          sourceUrlId != null &&
+          sourceMap.urls[sourceUrlId] == testFileName) {
+        mappingsOnLines.add(
+            _PointMapping(sourceLine, sourceColumn, line.line, entry.column));
       }
     }
   }
@@ -399,14 +404,14 @@ String _getJsBreakpointLine(
 }
 
 /// Input and output is expected to be 0-based.
-String _getJsBreakpointLineAndColumn(String testFileName,
+String? _getJsBreakpointLineAndColumn(String testFileName,
     SingleMapping sourceMap, int breakOnLine, int breakOnColumn) {
   for (var line in sourceMap.lines) {
     for (var entry in line.entries) {
       if (entry.sourceLine == breakOnLine &&
           entry.sourceColumn == breakOnColumn &&
           entry.sourceUrlId != null &&
-          sourceMap.urls[entry.sourceUrlId] == testFileName) {
+          sourceMap.urls[entry.sourceUrlId!] == testFileName) {
         return '${line.line}:${entry.column}';
       }
     }
@@ -415,7 +420,7 @@ String _getJsBreakpointLineAndColumn(String testFileName,
 }
 
 ProcessResult _runD8(String outInspectorPath, List<String> scriptD8Command,
-    String debugAction, List<String> breakpoints) {
+    String debugAction, List<String?> breakpoints) {
   var outInspectorPathRelative = path.relative(outInspectorPath);
   ProcessResult runResult = Process.runSync(d8Executable, [
     '--enable-inspector',
@@ -423,7 +428,7 @@ ProcessResult _runD8(String outInspectorPath, List<String> scriptD8Command,
     ...scriptD8Command,
     '--',
     debugAction,
-    ...breakpoints.where((s) => s != null)
+    ...breakpoints.whereNotNull()
   ]);
   if (runResult.exitCode != 0) {
     print(runResult.stderr);
@@ -433,8 +438,8 @@ ProcessResult _runD8(String outInspectorPath, List<String> scriptD8Command,
   return runResult;
 }
 
-File _cachedD8File;
-Directory _cachedSdkRoot;
+File? _cachedD8File;
+Directory? _cachedSdkRoot;
 File getD8File() {
   File attemptFileFromDir(Directory dir) {
     if (Platform.isWindows) {
@@ -472,7 +477,7 @@ File getD8File() {
   return _cachedD8File ??= search();
 }
 
-Directory get sdkRoot {
+Directory? get sdkRoot {
   getD8File();
   return _cachedSdkRoot;
 }
