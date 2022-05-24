@@ -32,6 +32,41 @@ void testOptions() {
   // Filter invalid configurations when not passing a named configuration.
   configurations = parseConfigurations(['--arch=simarm', '--system=android']);
   Expect.isEmpty(configurations);
+
+  // Special handling for *-options.
+  configuration = parseConfiguration([
+    '--dart2js-options=a b c',
+    '--vm-options=d e f',
+    '--shared-options=g h i'
+  ]);
+  Expect.listEquals(configuration.dart2jsOptions, ['a', 'b', 'c']);
+  Expect.listEquals(configuration.vmOptions, ['d', 'e', 'f']);
+  Expect.listEquals(configuration.sharedOptions,
+      ['g', 'h', 'i', '-Dtest_runner.configuration=custom-configuration-1']);
+
+  // Reproduction arguments.
+  configurations = parseConfigurations([
+    '--progress=status',
+    '--report',
+    '--time',
+    '--silent-failures',
+    '--write-results',
+    '--write-logs',
+    '--clean-exit',
+    '-nvalid-dart2js-chrome,valid-dart2js-safari',
+    '--reset-browser-configuration',
+    '--no-batch',
+    'web',
+    '--copy-coredumps',
+    '--chrome=third_party/browsers/chrome/chrome/google-chrome',
+    '--output-directory=/path/to/dir',
+  ]);
+  Expect.equals(2, configurations.length);
+  for (var configuration in configurations) {
+    Expect.listEquals(
+        ['-n', 'valid-dart2js-chrome,valid-dart2js-safari', '--no-batch'],
+        configuration.reproducingArguments);
+  }
 }
 
 void testValidation() {
@@ -42,16 +77,16 @@ void testValidation() {
       ['--timeout=1,2'], 'Integer value expected for option "--timeout".');
 
   expectValidationError(['--progress=unknown'],
-      'Unknown value "unknown" for option "--progress".');
+      '"unknown" is not an allowed value for option "progress".');
   // Don't allow multiple.
   expectValidationError(['--progress=compact,silent'],
-      'Only a single value is allowed for option "--progress".');
+      '"compact,silent" is not an allowed value for option "progress".');
 
-  expectValidationError(
-      ['--nnbd=unknown'], 'Unknown value "unknown" for option "--nnbd".');
+  expectValidationError(['--nnbd=unknown'],
+      '"unknown" is not an allowed value for option "nnbd".');
   // Don't allow multiple.
   expectValidationError(['--nnbd=weak,strong'],
-      'Only a single value is allowed for option "--nnbd".');
+      '"weak,strong" is not an allowed value for option "nnbd".');
 
   // Don't allow invalid named configurations.
   expectValidationError(['-ninvalid-vm-android-simarm'],

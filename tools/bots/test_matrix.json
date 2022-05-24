@@ -2661,7 +2661,7 @@
           "name": "dart2js tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
-            "--exclude_suite=observatory_ui"
+            "--exclude-suite=observatory_ui"
           ],
           "shards": 6,
           "fileset": "web_platform_hostasserts"
@@ -2725,7 +2725,7 @@
           "arguments": [
             "-ndart2js-${system}-${runtime}",
             "--reset-browser-configuration",
-            "--exclude_suite=observatory_ui"
+            "--exclude-suite=observatory_ui"
           ],
           "shards": 6,
           "fileset": "web_platform"
@@ -2785,7 +2785,7 @@
           "name": "dart2js tests",
           "arguments": [
             "-ndart2js-minified-linux-d8",
-            "--exclude_suite=observatory_ui"
+            "--exclude-suite=observatory_ui"
           ],
           "shards": 6,
           "fileset": "web_platform"
@@ -2815,7 +2815,7 @@
           "name": "dart2js production tests",
           "arguments": [
             "-ndart2js-production-linux-d8",
-            "--exclude_suite=observatory_ui"
+            "--exclude-suite=observatory_ui"
           ],
           "shards": 6,
           "fileset": "web_platform"
@@ -2865,7 +2865,7 @@
           "arguments": [
             "-ndart2js-minified-csp-linux-chrome",
             "--reset-browser-configuration",
-            "--exclude_suite=observatory_ui"
+            "--exclude-suite=observatory_ui"
           ],
           "shards": 4,
           "fileset": "web_platform"
