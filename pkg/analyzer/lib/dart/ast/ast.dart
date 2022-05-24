@@ -2733,6 +2733,7 @@ abstract class ImplicitCallReference implements MethodReferenceExpression {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ImportDirective implements NamespaceDirective {
+  @Deprecated('This kind of syntactic equality is rarely useful')
   static Comparator<ImportDirective> COMPARATOR =
       (ImportDirective import1, ImportDirective import2) {
     //

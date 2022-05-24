@@ -6383,6 +6383,58 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
     _prefix?.accept(visitor);
     combinators.accept(visitor);
   }
+
+  /// Return `true` if the non-URI components of the two directives are
+  /// syntactically identical. URIs are checked outside to see if they resolve
+  /// to the same absolute URI, so to the same library, regardless of the used
+  /// syntax (absolute, relative, not normalized).
+  static bool areSyntacticallyIdenticalExceptUri(
+    ImportDirective node1,
+    ImportDirective node2,
+  ) {
+    if (node1.prefix?.name != node2.prefix?.name) {
+      return false;
+    }
+
+    bool areSameNames(
+      List<SimpleIdentifier> names1,
+      List<SimpleIdentifier> names2,
+    ) {
+      if (names1.length != names2.length) {
+        return false;
+      }
+      for (var i = 0; i < names1.length; i++) {
+        if (names1[i].name != names2[i].name) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    final combinators1 = node1.combinators;
+    final combinators2 = node2.combinators;
+    if (combinators1.length != combinators2.length) {
+      return false;
+    }
+    for (var i = 0; i < combinators1.length; i++) {
+      final combinator1 = combinators1[i];
+      final combinator2 = combinators2[i];
+      if (combinator1 is HideCombinator && combinator2 is HideCombinator) {
+        if (!areSameNames(combinator1.hiddenNames, combinator2.hiddenNames)) {
+          return false;
+        }
+      } else if (combinator1 is ShowCombinator &&
+          combinator2 is ShowCombinator) {
+        if (!areSameNames(combinator1.shownNames, combinator2.shownNames)) {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }
 
 /// An index expression.

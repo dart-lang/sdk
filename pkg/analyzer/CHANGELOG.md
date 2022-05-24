@@ -1,5 +1,6 @@
 ## 4.2.0-dev
 * Update SDK constraints to `>=2.17.0 <3.0.0`.
+* Deprecated `ImportDirective.COMPARATOR`, use appropriate custom logic, if necessary.
 
 ## 4.1.0
 * Deprecated `ParameterElement.isNotOptional`, use `isRequired` instead.
