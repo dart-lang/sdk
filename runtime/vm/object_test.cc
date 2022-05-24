@@ -5838,7 +5838,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSON) {
 }
 
 ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 4096;
   char buffer[kBufferSize];
   Isolate* isolate = Isolate::Current();

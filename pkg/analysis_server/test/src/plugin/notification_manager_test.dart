@@ -90,7 +90,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     _verifyNavigationParams(serverParams);
   }
 
-  void test_handlePluginNotification_occurences() {
+  void test_handlePluginNotification_occurrences() {
     manager.setSubscriptions({
       server.AnalysisService.OCCURRENCES: {fileA, fileB}
     });

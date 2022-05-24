@@ -22,7 +22,7 @@ void setup() {
 
 class B {
   // We need to define a foo method so that dart2js sees it. Because the
-  // only occurences of 'foo' is on B, a Dart class, no interceptor is used.  It
+  // only occurrences of 'foo' is on B, a Dart class, no interceptor is used.  It
   // thinks all calls will either go to this method, or throw a
   // NoSuchMethodError. It is possible that the native class will shadow a
   // method, but it will not shadow 'foo' because the name is either 'mangled'

@@ -27,7 +27,7 @@ static ObjectPtr ExecuteScript(const char* script, bool allow_errors = false) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NoCalls) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript =
@@ -59,7 +59,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NoCalls) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_SimpleCall) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript =
@@ -107,7 +107,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_SimpleCall) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_ForceCompile) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript =
@@ -157,7 +157,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_ForceCompile) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript =
@@ -203,7 +203,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript =
@@ -250,7 +250,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript =
@@ -302,7 +302,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NestedFunctions) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript =
@@ -362,7 +362,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NestedFunctions) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_RestrictedRange) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript =
@@ -496,7 +496,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_SimpleCall) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 2048;
   char buffer[kBufferSize];
   const char* kScript =
@@ -551,7 +551,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_SimpleCall) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 4096;
   char buffer[kBufferSize];
   const char* kScript =
@@ -675,7 +675,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 2048;
   char buffer[kBufferSize];
   const char* kScript =
@@ -731,7 +731,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript =
@@ -779,7 +779,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue35453_NoSuchMethod) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript =
@@ -828,7 +828,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue35453_NoSuchMethod) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue47017_Assert) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript =
@@ -873,7 +873,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue47017_Assert) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue47021_StaticOnlyClasses) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 2048;
   char buffer[kBufferSize];
   const char* kScript =
@@ -1025,7 +1025,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue47021_StaticOnlyClasses) {
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_IssueCov341_LateFinalVars) {
   // https://github.com/dart-lang/coverage/issues/341
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript =
@@ -1076,7 +1076,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_IssueCov341_LateFinalVars) {
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_IssueCov386_EnhancedEnums) {
   // https://github.com/dart-lang/coverage/issues/386
   // https://github.com/dart-lang/coverage/issues/377
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript =
@@ -1121,7 +1121,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_IssueCov386_EnhancedEnums) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Regress95008_RedirectingFactory) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript = R"(
@@ -1175,7 +1175,7 @@ main() {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_BranchCoverage_if) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript = R"(
@@ -1231,7 +1231,7 @@ main() {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_BranchCoverage_loops) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript = R"(
@@ -1297,7 +1297,7 @@ main() {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_BranchCoverage_switch) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript = R"(
@@ -1351,7 +1351,7 @@ main() {
 }
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_BranchCoverage_try) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
   char buffer[kBufferSize];
   const char* kScript = R"(

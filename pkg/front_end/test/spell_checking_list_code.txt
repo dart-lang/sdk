@@ -871,7 +871,6 @@ observe
 obstruct
 occasionally
 occupied
-occurences
 offending
 ogham
 oked

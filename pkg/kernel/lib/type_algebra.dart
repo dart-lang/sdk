@@ -284,7 +284,7 @@ abstract class Substitution {
   /// *not* correspond to a sequence of two substitutions. For example,
   /// combining `{T -> List<G>}` with `{G -> String}` does not correspond to
   /// `{T -> List<String>}` because the result from substituting `T` is not
-  /// searched for occurences of `G`.
+  /// searched for occurrences of `G`.
   static Substitution combine(Substitution first, Substitution second) {
     if (first == _NullSubstitution.instance) return second;
     if (second == _NullSubstitution.instance) return first;
