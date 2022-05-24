@@ -24,6 +24,7 @@ import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;
 import 'dump_info_javascript_monitor.dart';
 import 'elements/entities.dart';
+import 'elements/entity_utils.dart' as entity_utils;
 import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
@@ -663,14 +664,16 @@ class KernelInfoCollector {
     List<ClosureInfo> nestedClosures = <ClosureInfo>[];
     localFunctionInfoCollector.localFunctions.forEach((key, value) {
       FunctionEntity closureEntity;
+      int closureOrder = value.order;
       environment.forEachNestedClosure(memberEntity, (closure) {
-        if (closure.enclosingClass.name == value.name) {
+        if (closure.enclosingClass.name == value.name &&
+            (closureOrder-- == 0)) {
           closureEntity = closure;
         }
       });
       final closureClassEntity = closureEntity.enclosingClass;
-      final closureInfo =
-          ClosureInfo(name: value.name, outputUnit: null, size: null);
+      final closureInfo = ClosureInfo(
+          name: value.disambiguatedName, outputUnit: null, size: null);
       state.entityToInfo[closureClassEntity] = closureInfo;
 
       FunctionEntity callMethod = closedWorld.elementEnvironment
@@ -691,6 +694,32 @@ class KernelInfoCollector {
   }
 }
 
+/// Maps JWorld Entity objects to disambiguated names in order to map them
+/// to/from Kernel.
+///
+/// This is primarily used for naming closure objects, which rely on Entity
+/// object identity to determine uniqueness.
+///
+/// Note: this relies on the Kernel traversal order to determine order, which
+/// may change in the future.
+class EntityDisambiguator {
+  final nameFrequencies = <String, int>{};
+  final entityNames = <Entity, String>{};
+
+  String name(Entity entity) {
+    final disambiguatedName = entityNames[entity];
+    if (disambiguatedName != null) {
+      return disambiguatedName;
+    }
+    nameFrequencies[entity.name] = (nameFrequencies[entity.name] ?? -1) + 1;
+    final order = nameFrequencies[entity.name];
+    entityNames[entity] =
+        order == 0 ? entity.name : '${entity.name}%${order - 1}';
+
+    return entityNames[entity];
+  }
+}
+
 /// Annotates [KernelInfoCollector] with info extracted from closed-world
 /// analysis.
 class DumpInfoAnnotator {
@@ -699,6 +728,7 @@ class DumpInfoAnnotator {
   final JClosedWorld closedWorld;
   final GlobalTypeInferenceResults _globalInferenceResults;
   final DumpInfoTask dumpInfoTask;
+  final entityDisambiguator = EntityDisambiguator();
 
   JElementEnvironment get environment => closedWorld.elementEnvironment;
 
@@ -901,8 +931,9 @@ class DumpInfoAnnotator {
   }
 
   ClosureInfo visitClosureClass(ClassEntity element) {
+    final disambiguatedElementName = entityDisambiguator.name(element);
     final kClosureInfos = kernelInfo.state.info.closures
-        .where((info) => info.name == element.name)
+        .where((info) => info.name == disambiguatedElementName)
         .toList();
     assert(
         kClosureInfos.length == 1,
@@ -916,7 +947,8 @@ class DumpInfoAnnotator {
     FunctionEntity callMethod = closedWorld.elementEnvironment
         .lookupClassMember(element, Identifiers.call);
 
-    visitFunction(callMethod, element.name);
+    final functionInfo = visitFunction(callMethod, disambiguatedElementName);
+    if (functionInfo == null) return null;
 
     kClosureInfo.treeShakenStatus = TreeShakenStatus.Live;
     return kClosureInfo;
@@ -926,8 +958,8 @@ class DumpInfoAnnotator {
   // not always be valid. Check and validate later.
   FunctionInfo visitFunction(FunctionEntity function, String parentName) {
     int size = dumpInfoTask.sizeOf(function);
-    // TODO(sigmund): consider adding a small info to represent unreachable
-    // code here.
+    if (size == 0 && !shouldKeep(function)) return null;
+
     var compareName = function.name;
     if (function.isConstructor) {
       compareName = compareName == ""
@@ -1477,63 +1509,36 @@ class DumpInfoStateData {
 
 class LocalFunctionInfo {
   final ir.LocalFunction localFunction;
-  final List<ir.TreeNode> hierarchy;
   final String name;
+  final int order;
   bool isInvoked = false;
 
-  LocalFunctionInfo._(this.localFunction, this.hierarchy, this.name);
+  LocalFunctionInfo(this.localFunction, this.name, this.order);
 
-  factory LocalFunctionInfo(ir.LocalFunction localFunction) {
-    String name = '';
-    ir.TreeNode node = localFunction;
-    final hierarchy = <ir.TreeNode>[];
-    bool inClosure = false;
-    while (node != null) {
-      // Only consider nodes used for resolving a closure's full name.
-      if (node is ir.FunctionDeclaration) {
-        hierarchy.add(node);
-        name = '_${node.variable.name}' + name;
-        inClosure = false;
-      } else if (node is ir.FunctionExpression) {
-        hierarchy.add(node);
-        name = (inClosure ? '_' : '_closure') + name;
-        inClosure = true;
-      } else if (node is ir.Member) {
-        hierarchy.add(node);
-        var cleanName = node.toStringInternal();
-        if (cleanName.endsWith('.'))
-          cleanName = cleanName.substring(0, cleanName.length - 1);
-        final isFactory = node is ir.Procedure && node.isFactory;
-        if (isFactory) {
-          cleanName = cleanName.replaceAll('.', '\$');
-          cleanName = '${node.enclosingClass.toStringInternal()}_' + cleanName;
-        } else {
-          cleanName = cleanName.replaceAll('.', '_');
-        }
-        name = cleanName + name;
-        inClosure = false;
-      }
-      node = node.parent;
-    }
-
-    return LocalFunctionInfo._(localFunction, hierarchy, name);
-  }
+  get disambiguatedName => order == 0 ? name : '$name%${order - 1}';
 }
 
 class LocalFunctionInfoCollector extends ir.RecursiveVisitor<void> {
   final localFunctions = <ir.LocalFunction, LocalFunctionInfo>{};
+  final localFunctionNames = <String, int>{};
+
+  LocalFunctionInfo generateLocalFunctionInfo(ir.LocalFunction localFunction) {
+    final name = _computeClosureName(localFunction);
+    localFunctionNames[name] = (localFunctionNames[name] ?? -1) + 1;
+    return LocalFunctionInfo(localFunction, name, localFunctionNames[name]);
+  }
 
   @override
   void visitFunctionExpression(ir.FunctionExpression node) {
     assert(localFunctions[node] == null);
-    localFunctions[node] = LocalFunctionInfo(node);
+    localFunctions[node] = generateLocalFunctionInfo(node);
     defaultExpression(node);
   }
 
   @override
   void visitFunctionDeclaration(ir.FunctionDeclaration node) {
     assert(localFunctions[node] == null);
-    localFunctions[node] = LocalFunctionInfo(node);
+    localFunctions[node] = generateLocalFunctionInfo(node);
     defaultStatement(node);
   }
 
@@ -1543,4 +1548,58 @@ class LocalFunctionInfoCollector extends ir.RecursiveVisitor<void> {
       visitFunctionDeclaration(node.localFunction);
     localFunctions[node.localFunction].isInvoked = true;
   }
+}
+
+// Returns a non-unique name for the given closure element.
+//
+// Must be kept logically identical to js_model/element_map_impl.dart.
+String _computeClosureName(ir.TreeNode treeNode) {
+  String reconstructConstructorName(ir.Member node) {
+    String className = node.enclosingClass.name;
+    if (node.name.text == '') {
+      return className;
+    } else {
+      return '$className\$${node.name}';
+    }
+  }
+
+  var parts = <String>[];
+  // First anonymous is called 'closure', outer ones called '' to give a
+  // compound name where increasing nesting level corresponds to extra
+  // underscores.
+  var anonymous = 'closure';
+  ir.TreeNode current = treeNode;
+  while (current != null) {
+    var node = current;
+    if (node is ir.FunctionExpression) {
+      parts.add(anonymous);
+      anonymous = '';
+    } else if (node is ir.FunctionDeclaration) {
+      String name = node.variable.name;
+      if (name != null && name != "") {
+        parts.add(entity_utils.operatorNameToIdentifier(name));
+      } else {
+        parts.add(anonymous);
+        anonymous = '';
+      }
+    } else if (node is ir.Class) {
+      parts.add(node.name);
+      break;
+    } else if (node is ir.Procedure) {
+      if (node.kind == ir.ProcedureKind.Factory) {
+        parts.add(reconstructConstructorName(node));
+      } else {
+        parts.add(entity_utils.operatorNameToIdentifier(node.name.text));
+      }
+    } else if (node is ir.Constructor) {
+      parts.add(reconstructConstructorName(node));
+      break;
+    } else if (node is ir.Field) {
+      // Add the field name for closures in field initializers.
+      String name = node.name?.text;
+      if (name != null) parts.add(name);
+    }
+    current = current.parent;
+  }
+  return parts.reversed.join('_');
 }
