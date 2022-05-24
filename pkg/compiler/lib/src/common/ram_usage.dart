@@ -18,10 +18,11 @@
 import 'dart:developer';
 import 'package:vm_service/vm_service_io.dart' as vm_service_io;
 
-Future<int> _currentHeapCapacity() async {
+Future<int?> _currentHeapCapacity() async {
   final info =
       await Service.controlWebServer(enable: true, silenceOutput: true);
-  final observatoryUri = info.serverUri!;
+  final observatoryUri = info.serverUri;
+  if (observatoryUri == null) return null;
   final wsUri = 'ws://${observatoryUri.authority}${observatoryUri.path}ws';
   final vmService = await vm_service_io.vmServiceConnectUri(wsUri);
   int sum = 0;
@@ -35,5 +36,6 @@ Future<int> _currentHeapCapacity() async {
 
 Future<String> currentHeapCapacityInMb() async {
   final capacity = await _currentHeapCapacity();
+  if (capacity == null) return "N/A MB";
   return "${(capacity / (1024 * 1024)).toStringAsFixed(3)} MB";
 }
