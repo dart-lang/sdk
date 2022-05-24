@@ -19,7 +19,7 @@ testReplaceAll(Pattern Function(Pattern) wrap) {
   // Test with the replaced string at the end.
   Expect.equals("abcabdaXX", "abcabdae".replaceAll(wrap("e"), "XX"));
 
-  // Test when there are no occurence of the string to replace.
+  // Test when there are no occurrence of the string to replace.
   Expect.equals("abcabdae", "abcabdae".replaceAll(wrap("f"), "XX"));
 
   // Test when the string to change is the empty string.
@@ -69,7 +69,7 @@ testReplaceAllMapped(Pattern Function(Pattern) wrap) {
   // Test with the replaced string at the end.
   Expect.equals("abcabda[e]", "abcabdae".replaceAllMapped(wrap("e"), mark));
 
-  // Test when there are no occurence of the string to replace.
+  // Test when there are no occurrence of the string to replace.
   Expect.equals("abcabdae", "abcabdae".replaceAllMapped(wrap("f"), mark));
 
   // Test when the string to change is the empty string.
@@ -109,7 +109,7 @@ testSplitMapJoin(Pattern Function(Pattern) wrap) {
   Expect.equals("<abcabda>[e]<>",
       "abcabdae".splitMapJoin(wrap("e"), onMatch: mark, onNonMatch: rest));
 
-  // Test when there are no occurence of the string to replace.
+  // Test when there are no occurrence of the string to replace.
   Expect.equals("<abcabdae>",
       "abcabdae".splitMapJoin(wrap("f"), onMatch: mark, onNonMatch: rest));
 

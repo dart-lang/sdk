@@ -321,7 +321,7 @@ void testReplaceAll() {
   Expect.equals(
       "toABtoCDtoEto", "fromABfromCDfromEfrom".replaceAll("from", "to"));
 
-  // Test when there are no occurence of the string to replace.
+  // Test when there are no occurrence of the string to replace.
   Expect.equals("ABC", "ABC".replaceAll("from", "to"));
 
   // Test when the string to change is the empty string.

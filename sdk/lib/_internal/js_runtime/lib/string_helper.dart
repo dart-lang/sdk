@@ -190,7 +190,7 @@ String stringReplaceAllGeneral(
   return result.toString();
 }
 
-/// Replaces all non-overlapping occurences of [pattern] in [receiver] with
+/// Replaces all non-overlapping occurrences of [pattern] in [receiver] with
 /// [replacement].  This should be replace with
 /// (String.prototype.replaceAll)[https://github.com/tc39/proposal-string-replace-all]
 /// when available.

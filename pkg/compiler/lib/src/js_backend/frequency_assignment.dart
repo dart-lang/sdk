@@ -42,7 +42,7 @@ void naiveFrequencyAssignment(
 ///
 /// - [hashOf]: Function returning a stable hash code for item `i`.
 ///
-/// - [countOf]: Function returning the frequency or number of occurences of
+/// - [countOf]: Function returning the frequency or number of occurrences of
 ///   item `i`.
 ///
 /// - [assign]: Function to register the assignment of a name to item `i`.
