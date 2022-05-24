@@ -6729,6 +6729,7 @@ class CompletionListItemDefaults implements ToJsonable {
 
   CompletionListItemDefaults({
     this.commitCharacters,
+    this.data,
     this.editRange,
     this.insertTextFormat,
     this.insertTextMode,
@@ -6738,6 +6739,8 @@ class CompletionListItemDefaults implements ToJsonable {
     final commitCharacters = (commitCharactersJson as List<Object?>?)
         ?.map((item) => item as String)
         .toList();
+    final dataJson = json['data'];
+    final data = dataJson;
     final editRangeJson = json['editRange'];
     final editRange = editRangeJson == null
         ? null
@@ -6759,6 +6762,7 @@ class CompletionListItemDefaults implements ToJsonable {
         : null;
     return CompletionListItemDefaults(
       commitCharacters: commitCharacters,
+      data: data,
       editRange: editRange,
       insertTextFormat: insertTextFormat,
       insertTextMode: insertTextMode,
@@ -6768,6 +6772,10 @@ class CompletionListItemDefaults implements ToJsonable {
   /// A default commit character set.
   ///  @since 3.17.0
   final List<String>? commitCharacters;
+
+  /// A default data value.
+  ///  @since 3.17.0
+  final Object? data;
 
   /// A default edit range
   ///  @since 3.17.0
@@ -6785,6 +6793,9 @@ class CompletionListItemDefaults implements ToJsonable {
     var result = <String, Object?>{};
     if (commitCharacters != null) {
       result['commitCharacters'] = commitCharacters;
+    }
+    if (data != null) {
+      result['data'] = data;
     }
     if (editRange != null) {
       result['editRange'] = editRange;
@@ -6860,6 +6871,7 @@ class CompletionListItemDefaults implements ToJsonable {
         other.runtimeType == CompletionListItemDefaults) {
       return listEqual(commitCharacters, other.commitCharacters,
               (String a, String b) => a == b) &&
+          data == other.data &&
           editRange == other.editRange &&
           insertTextFormat == other.insertTextFormat &&
           insertTextMode == other.insertTextMode &&
@@ -6871,6 +6883,7 @@ class CompletionListItemDefaults implements ToJsonable {
   @override
   int get hashCode => Object.hash(
         lspHashCode(commitCharacters),
+        data,
         editRange,
         insertTextFormat,
         insertTextMode,
@@ -26487,13 +26500,17 @@ class NotebookDocumentSyncClientCapabilities implements ToJsonable {
 
   NotebookDocumentSyncClientCapabilities({
     this.dynamicRegistration,
+    this.executionSummarySupport,
   });
   static NotebookDocumentSyncClientCapabilities fromJson(
       Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final executionSummarySupportJson = json['executionSummarySupport'];
+    final executionSummarySupport = executionSummarySupportJson as bool?;
     return NotebookDocumentSyncClientCapabilities(
       dynamicRegistration: dynamicRegistration,
+      executionSummarySupport: executionSummarySupport,
     );
   }
 
@@ -26503,10 +26520,16 @@ class NotebookDocumentSyncClientCapabilities implements ToJsonable {
   /// capability as well.
   final bool? dynamicRegistration;
 
+  /// The client supports sending execution summary data per cell.
+  final bool? executionSummarySupport;
+
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
       result['dynamicRegistration'] = dynamicRegistration;
+    }
+    if (executionSummarySupport != null) {
+      result['executionSummarySupport'] = executionSummarySupport;
     }
     return result;
   }
@@ -26517,6 +26540,17 @@ class NotebookDocumentSyncClientCapabilities implements ToJsonable {
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
         if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+          reporter.reportError('must be of type bool');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('executionSummarySupport');
+      try {
+        final executionSummarySupport = obj['executionSummarySupport'];
+        if (executionSummarySupport != null &&
+            !(executionSummarySupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -26535,13 +26569,18 @@ class NotebookDocumentSyncClientCapabilities implements ToJsonable {
   bool operator ==(Object other) {
     if (other is NotebookDocumentSyncClientCapabilities &&
         other.runtimeType == NotebookDocumentSyncClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
+      return dynamicRegistration == other.dynamicRegistration &&
+          executionSummarySupport == other.executionSummarySupport &&
+          true;
     }
     return false;
   }
 
   @override
-  int get hashCode => dynamicRegistration.hashCode;
+  int get hashCode => Object.hash(
+        dynamicRegistration,
+        executionSummarySupport,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -26691,7 +26730,7 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
 
   NotebookDocumentSyncOptionsNotebookSelector({
     this.cells,
-    required this.notebookDocument,
+    required this.notebook,
   });
   static NotebookDocumentSyncOptionsNotebookSelector fromJson(
       Map<String, Object?> json) {
@@ -26701,26 +26740,25 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
             NotebookDocumentSyncOptionsNotebookSelectorCells.fromJson(
                 item as Map<String, Object?>))
         .toList();
-    final notebookDocumentJson = json['notebookDocument'];
-    final notebookDocument = (NotebookDocumentFilter1.canParse(
-                notebookDocumentJson, nullLspJsonReporter) ||
+    final notebookJson = json['notebook'];
+    final notebook = (NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter) ||
             NotebookDocumentFilter2.canParse(
-                notebookDocumentJson, nullLspJsonReporter) ||
-            NotebookDocumentFilter3.canParse(
-                notebookDocumentJson, nullLspJsonReporter))
+                notebookJson, nullLspJsonReporter) ||
+            NotebookDocumentFilter3.canParse(notebookJson, nullLspJsonReporter))
         ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t1(
-            NotebookDocumentFilter1.canParse(notebookDocumentJson, nullLspJsonReporter)
-                ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(
-                    NotebookDocumentFilter1.fromJson(
-                        notebookDocumentJson as Map<String, Object?>))
-                : (NotebookDocumentFilter2.canParse(notebookDocumentJson, nullLspJsonReporter)
-                    ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t2(
-                        NotebookDocumentFilter2.fromJson(notebookDocumentJson as Map<String, Object?>))
-                    : (NotebookDocumentFilter3.canParse(notebookDocumentJson, nullLspJsonReporter) ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookDocumentJson as Map<String, Object?>)) : (throw '''$notebookDocumentJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
-        : (notebookDocumentJson is String ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t2(notebookDocumentJson) : (throw '''$notebookDocumentJson was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)'''));
+            NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter)
+                ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(NotebookDocumentFilter1.fromJson(
+                    notebookJson as Map<String, Object?>))
+                : (NotebookDocumentFilter2.canParse(notebookJson, nullLspJsonReporter)
+                    ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t2(NotebookDocumentFilter2.fromJson(
+                        notebookJson as Map<String, Object?>))
+                    : (NotebookDocumentFilter3.canParse(notebookJson, nullLspJsonReporter)
+                        ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookJson as Map<String, Object?>))
+                        : (throw '''$notebookJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
+        : (notebookJson is String ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t2(notebookJson) : (throw '''$notebookJson was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)'''));
     return NotebookDocumentSyncOptionsNotebookSelector(
       cells: cells,
-      notebookDocument: notebookDocument,
+      notebook: notebook,
     );
   }
 
@@ -26732,14 +26770,14 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
   final Either2<
       Either3<NotebookDocumentFilter1, NotebookDocumentFilter2,
           NotebookDocumentFilter3>,
-      String> notebookDocument;
+      String> notebook;
 
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (cells != null) {
       result['cells'] = cells?.map((item) => item.toJson()).toList();
     }
-    result['notebookDocument'] = notebookDocument;
+    result['notebook'] = notebook;
     return result;
   }
 
@@ -26760,21 +26798,21 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
       } finally {
         reporter.pop();
       }
-      reporter.push('notebookDocument');
+      reporter.push('notebook');
       try {
-        if (!obj.containsKey('notebookDocument')) {
+        if (!obj.containsKey('notebook')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        final notebookDocument = obj['notebookDocument'];
-        if (notebookDocument == null) {
+        final notebook = obj['notebook'];
+        if (notebook == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(((NotebookDocumentFilter1.canParse(notebookDocument, reporter) ||
-                NotebookDocumentFilter2.canParse(notebookDocument, reporter) ||
-                NotebookDocumentFilter3.canParse(notebookDocument, reporter)) ||
-            notebookDocument is String))) {
+        if (!(((NotebookDocumentFilter1.canParse(notebook, reporter) ||
+                NotebookDocumentFilter2.canParse(notebook, reporter) ||
+                NotebookDocumentFilter3.canParse(notebook, reporter)) ||
+            notebook is String))) {
           reporter.reportError(
               'must be of type Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>');
           return false;
@@ -26800,7 +26838,7 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
               (NotebookDocumentSyncOptionsNotebookSelectorCells a,
                       NotebookDocumentSyncOptionsNotebookSelectorCells b) =>
                   a == b) &&
-          notebookDocument == other.notebookDocument &&
+          notebook == other.notebook &&
           true;
     }
     return false;
@@ -26809,7 +26847,7 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
   @override
   int get hashCode => Object.hash(
         lspHashCode(cells),
-        notebookDocument,
+        notebook,
       );
 
   @override
@@ -26824,7 +26862,7 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
 
   NotebookDocumentSyncOptionsNotebookSelector2({
     required this.cells,
-    this.notebookDocument,
+    this.notebook,
   });
   static NotebookDocumentSyncOptionsNotebookSelector2 fromJson(
       Map<String, Object?> json) {
@@ -26834,27 +26872,27 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
             NotebookDocumentSyncOptionsNotebookSelector2Cells.fromJson(
                 item as Map<String, Object?>))
         .toList();
-    final notebookDocumentJson = json['notebookDocument'];
-    final notebookDocument = notebookDocumentJson == null
+    final notebookJson = json['notebook'];
+    final notebook = notebookJson == null
         ? null
-        : ((NotebookDocumentFilter1.canParse(notebookDocumentJson, nullLspJsonReporter) ||
+        : ((NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter) ||
                 NotebookDocumentFilter2.canParse(
-                    notebookDocumentJson, nullLspJsonReporter) ||
+                    notebookJson, nullLspJsonReporter) ||
                 NotebookDocumentFilter3.canParse(
-                    notebookDocumentJson, nullLspJsonReporter))
+                    notebookJson, nullLspJsonReporter))
             ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t1(
-                NotebookDocumentFilter1.canParse(notebookDocumentJson, nullLspJsonReporter)
+                NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter)
                     ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(
                         NotebookDocumentFilter1.fromJson(
-                            notebookDocumentJson as Map<String, Object?>))
-                    : (NotebookDocumentFilter2.canParse(notebookDocumentJson, nullLspJsonReporter)
+                            notebookJson as Map<String, Object?>))
+                    : (NotebookDocumentFilter2.canParse(notebookJson, nullLspJsonReporter)
                         ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t2(
-                            NotebookDocumentFilter2.fromJson(notebookDocumentJson as Map<String, Object?>))
-                        : (NotebookDocumentFilter3.canParse(notebookDocumentJson, nullLspJsonReporter) ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookDocumentJson as Map<String, Object?>)) : (throw '''$notebookDocumentJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
-            : (notebookDocumentJson is String ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t2(notebookDocumentJson) : (throw '''$notebookDocumentJson was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)''')));
+                            NotebookDocumentFilter2.fromJson(notebookJson as Map<String, Object?>))
+                        : (NotebookDocumentFilter3.canParse(notebookJson, nullLspJsonReporter) ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookJson as Map<String, Object?>)) : (throw '''$notebookJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
+            : (notebookJson is String ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t2(notebookJson) : (throw '''$notebookJson was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)''')));
     return NotebookDocumentSyncOptionsNotebookSelector2(
       cells: cells,
-      notebookDocument: notebookDocument,
+      notebook: notebook,
     );
   }
 
@@ -26866,13 +26904,13 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
   final Either2<
       Either3<NotebookDocumentFilter1, NotebookDocumentFilter2,
           NotebookDocumentFilter3>,
-      String>? notebookDocument;
+      String>? notebook;
 
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['cells'] = cells.map((item) => item.toJson()).toList();
-    if (notebookDocument != null) {
-      result['notebookDocument'] = notebookDocument;
+    if (notebook != null) {
+      result['notebook'] = notebook;
     }
     return result;
   }
@@ -26901,16 +26939,14 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
       } finally {
         reporter.pop();
       }
-      reporter.push('notebookDocument');
+      reporter.push('notebook');
       try {
-        final notebookDocument = obj['notebookDocument'];
-        if (notebookDocument != null &&
-            !(((NotebookDocumentFilter1.canParse(notebookDocument, reporter) ||
-                    NotebookDocumentFilter2.canParse(
-                        notebookDocument, reporter) ||
-                    NotebookDocumentFilter3.canParse(
-                        notebookDocument, reporter)) ||
-                notebookDocument is String))) {
+        final notebook = obj['notebook'];
+        if (notebook != null &&
+            !(((NotebookDocumentFilter1.canParse(notebook, reporter) ||
+                    NotebookDocumentFilter2.canParse(notebook, reporter) ||
+                    NotebookDocumentFilter3.canParse(notebook, reporter)) ||
+                notebook is String))) {
           reporter.reportError(
               'must be of type Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>');
           return false;
@@ -26936,7 +26972,7 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
               (NotebookDocumentSyncOptionsNotebookSelector2Cells a,
                       NotebookDocumentSyncOptionsNotebookSelector2Cells b) =>
                   a == b) &&
-          notebookDocument == other.notebookDocument &&
+          notebook == other.notebook &&
           true;
     }
     return false;
@@ -26945,7 +26981,7 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
   @override
   int get hashCode => Object.hash(
         lspHashCode(cells),
-        notebookDocument,
+        notebook,
       );
 
   @override
@@ -27852,7 +27888,8 @@ class PositionEncodingKind implements ToJsonable {
       other is PositionEncodingKind && other._value == _value;
 }
 
-class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
+class PrepareRenameParams
+    implements TextDocumentPositionParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     PrepareRenameParams.canParse,
     PrepareRenameParams.fromJson,
@@ -27861,6 +27898,7 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
   PrepareRenameParams({
     required this.position,
     required this.textDocument,
+    this.workDoneToken,
   });
   static PrepareRenameParams fromJson(Map<String, Object?> json) {
     final positionJson = json['position'];
@@ -27868,9 +27906,18 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
+        ? null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return PrepareRenameParams(
       position: position,
       textDocument: textDocument,
+      workDoneToken: workDoneToken,
     );
   }
 
@@ -27880,10 +27927,16 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
+  /// An optional token that a server can use to report work done progress.
+  final Either2<int, String>? workDoneToken;
+
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
+    if (workDoneToken != null) {
+      result['workDoneToken'] = workDoneToken;
+    }
     return result;
   }
 
@@ -27925,6 +27978,17 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
       } finally {
         reporter.pop();
       }
+      reporter.push('workDoneToken');
+      try {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
+          reporter.reportError('must be of type Either2<int, String>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       return true;
     } else {
       reporter.reportError('must be of type PrepareRenameParams');
@@ -27938,6 +28002,7 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
         other.runtimeType == PrepareRenameParams) {
       return position == other.position &&
           textDocument == other.textDocument &&
+          workDoneToken == other.workDoneToken &&
           true;
     }
     return false;
@@ -27947,6 +28012,7 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
   int get hashCode => Object.hash(
         position,
         textDocument,
+        workDoneToken,
       );
 
   @override
@@ -27963,7 +28029,7 @@ class PrepareSupportDefaultBehavior implements ToJsonable {
     return obj is int;
   }
 
-  /// The client's default behavior is to select the identifier according the to
+  /// The client's default behavior is to select the identifier according to the
   /// language's syntax rule.
   static const Identifier = PrepareSupportDefaultBehavior(1);
 
@@ -31415,6 +31481,9 @@ class SemanticTokenTypes implements ToJsonable {
 
   static const class_ = SemanticTokenTypes('class');
   static const comment = SemanticTokenTypes('comment');
+
+  /// @since 3.17.0
+  static const decorator = SemanticTokenTypes('decorator');
   static const enum_ = SemanticTokenTypes('enum');
   static const enumMember = SemanticTokenTypes('enumMember');
   static const event = SemanticTokenTypes('event');
@@ -42822,6 +42891,9 @@ class WorkDoneProgressParams implements ToJsonable {
     }
     if (MonikerParams.canParse(json, nullLspJsonReporter)) {
       return MonikerParams.fromJson(json);
+    }
+    if (PrepareRenameParams.canParse(json, nullLspJsonReporter)) {
+      return PrepareRenameParams.fromJson(json);
     }
     if (TypeDefinitionParams.canParse(json, nullLspJsonReporter)) {
       return TypeDefinitionParams.fromJson(json);
