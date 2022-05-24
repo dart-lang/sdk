@@ -4,7 +4,7 @@
 
 library _foreign_helper;
 
-import 'dart:_js_embedded_names' show JsGetName, JsBuiltin;
+import 'dart:_js_shared_embedded_names' show JsGetName, JsBuiltin;
 import 'dart:_rti' show Rti;
 
 /// Emits a JavaScript code fragment parametrized by arguments.
@@ -215,13 +215,14 @@ external String JS_GET_NAME(JsGetName name);
 
 /// Reads an embedded global.
 ///
-/// The [name] should be a constant defined in the `_embedded_names` library.
+/// The [name] should be a constant defined in the `_embedded_names` or
+/// `_js_shared_embedded_names` library.
 external JS_EMBEDDED_GLOBAL(String typeDescription, String name);
 
 /// Instructs the compiler to execute the [builtinName] action at the call-site.
 ///
-/// The [builtin] should be a constant defined in the `_embedded_names`
-/// library.
+/// The [builtin] should be a constant defined in the
+/// `_js_shared_embedded_names` library.
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
 external JS_BUILTIN(String typeDescription, JsBuiltin builtin,

@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir show DartType, Member, TreeNode;
 
+import '../constants/values.dart' show ConstantValue;
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType;
 
@@ -84,6 +85,8 @@ abstract class DataSinkWriter {
 
   void writeList<E extends Object>(Iterable<E>? values, void f(E value),
       {bool allowNull = false});
+
+  void writeConstant(ConstantValue value);
 }
 
 /// Migrated interface for methods of DataSourceReader.
@@ -129,4 +132,6 @@ abstract class DataSourceReader {
 
   List<E> readList<E extends Object>(E f());
   List<E>? readListOrNull<E extends Object>(E f());
+
+  ConstantValue readConstant();
 }

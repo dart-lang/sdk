@@ -386,6 +386,9 @@
       "_js_embedded_names": {
         "uri": "_internal/js_runtime/lib/synced/embedded_names.dart"
       },
+      "_js_shared_embedded_names": {
+        "uri": "_internal/js_shared/lib/synced/embedded_names.dart"
+      },
       "_async_await_error_codes": {
         "uri": "_internal/js_runtime/lib/synced/async_await_error_codes.dart"
       },

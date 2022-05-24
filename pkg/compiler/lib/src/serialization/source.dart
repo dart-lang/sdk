@@ -1098,6 +1098,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a constant value from this data source.
+  @override
   ConstantValue readConstant() {
     _checkDataKind(DataKind.constant);
     return _readConstant();

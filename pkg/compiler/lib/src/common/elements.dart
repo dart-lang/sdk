@@ -915,7 +915,7 @@ abstract class CommonElements {
   // From dart:_js_embedded_names
 
   late final ClassEntity jsGetNameEnum = _findClass(
-      _env.lookupLibrary(Uris.dart__js_embedded_names, required: true),
+      _env.lookupLibrary(Uris.dart__js_shared_embedded_names, required: true),
       'JsGetName')!;
 
   /// Returns `true` if [member] is a "foreign helper", that is, a member whose
@@ -1185,7 +1185,7 @@ class JCommonElements extends CommonElements {
       'NativeTypedArrayOfDouble')!;
 
   late final ClassEntity jsBuiltinEnum = _findClass(
-      _env.lookupLibrary(Uris.dart__js_embedded_names, required: true),
+      _env.lookupLibrary(Uris.dart__js_shared_embedded_names, required: true),
       'JsBuiltin')!;
 
   bool isForeign(MemberEntity element) => element.library == foreignLibrary;

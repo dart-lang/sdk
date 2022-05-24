@@ -10,7 +10,6 @@ import 'dart:convert' show JsonEncoder;
 
 import 'package:js_runtime/synced/embedded_names.dart'
     show
-        ARRAY_RTI_PROPERTY,
         DEFERRED_INITIALIZED,
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
@@ -19,18 +18,22 @@ import 'package:js_runtime/synced/embedded_names.dart'
         INTERCEPTORS_BY_TAG,
         IS_HUNK_INITIALIZED,
         IS_HUNK_LOADED,
-        JsGetName,
         LEAF_TAGS,
         MANGLED_GLOBAL_NAMES,
         MANGLED_NAMES,
         METADATA,
         NATIVE_SUPERCLASS_TAG_NAME,
-        RTI_UNIVERSE,
-        RtiUniverseFieldNames,
         RUNTIME_METRICS,
         STARTUP_METRICS,
         TearOffParametersPropertyNames,
-        TYPE_TO_INTERCEPTOR_MAP,
+        TYPE_TO_INTERCEPTOR_MAP;
+
+import 'package:js_shared/synced/embedded_names.dart'
+    show
+        ARRAY_RTI_PROPERTY,
+        JsGetName,
+        RTI_UNIVERSE,
+        RtiUniverseFieldNames,
         TYPES;
 
 import 'package:js_ast/src/precedence.dart' as js_precedence;

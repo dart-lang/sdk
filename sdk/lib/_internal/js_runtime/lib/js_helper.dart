@@ -6,25 +6,23 @@ library _js_helper;
 
 import 'dart:_js_embedded_names'
     show
-        ARRAY_RTI_PROPERTY,
         CURRENT_SCRIPT,
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
         DEFERRED_PART_HASHES,
         GET_ISOLATE_TAG,
         INITIALIZE_LOADED_HUNK,
-        INTERCEPTED_NAMES,
         INTERCEPTORS_BY_TAG,
         IS_HUNK_LOADED,
         IS_HUNK_INITIALIZED,
-        JsBuiltin,
-        JsGetName,
         LEAF_TAGS,
         NATIVE_SUPERCLASS_TAG_NAME,
         RUNTIME_METRICS,
         STARTUP_METRICS,
         STATIC_FUNCTION_NAME_PROPERTY_NAME,
         TearOffParametersPropertyNames;
+
+import 'dart:_js_shared_embedded_names' show JsBuiltin, JsGetName;
 
 import 'dart:collection';
 

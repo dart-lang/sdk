@@ -396,7 +396,7 @@ void func() {
     var element = await _findElement(6, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(bPath, [CharacterLocation(4, 11)],
+      CiderSearchMatch(bPath,
           [CiderSearchInfo(CharacterLocation(4, 11), 1, MatchKind.REFERENCE)])
     ];
     expect(result, unorderedEquals(expected));
@@ -418,8 +418,8 @@ class A {
     var element = await _findElement(16, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [CharacterLocation(5, 5)],
-          [CiderSearchInfo(CharacterLocation(5, 5), 3, MatchKind.WRITE)])
+      CiderSearchMatch(
+          aPath, [CiderSearchInfo(CharacterLocation(5, 5), 3, MatchKind.WRITE)])
     ];
     expect(result, expected);
   }
@@ -438,7 +438,7 @@ foo(String str) {}
     var element = await _findElement(11, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [CharacterLocation(2, 3)],
+      CiderSearchMatch(aPath,
           [CiderSearchInfo(CharacterLocation(2, 3), 3, MatchKind.REFERENCE)])
     ];
     expect(result, unorderedEquals(expected));
@@ -465,7 +465,7 @@ main() {
     var element = await _findElement(20, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(bPath, [CharacterLocation(5, 15)],
+      CiderSearchMatch(bPath,
           [CiderSearchInfo(CharacterLocation(5, 15), 3, MatchKind.REFERENCE)])
     ];
     expect(result, unorderedEquals(expected));
@@ -485,7 +485,7 @@ class A {
     var element = await _findElement(39, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [CharacterLocation(4, 11)],
+      CiderSearchMatch(aPath,
           [CiderSearchInfo(CharacterLocation(4, 11), 3, MatchKind.REFERENCE)])
     ];
     expect(result, unorderedEquals(expected));
@@ -519,9 +519,9 @@ main() {
     var element = await _findElement(17, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(bPath, [CharacterLocation(5, 5)],
+      CiderSearchMatch(bPath,
           [CiderSearchInfo(CharacterLocation(5, 5), 4, MatchKind.REFERENCE)]),
-      CiderSearchMatch(aPath, [CharacterLocation(7, 4)],
+      CiderSearchMatch(aPath,
           [CiderSearchInfo(CharacterLocation(7, 4), 4, MatchKind.REFERENCE)])
     ];
     expect(result, unorderedEquals(expected));
@@ -548,8 +548,8 @@ main() {
     var element = await _findElement(21, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(bPath, [CharacterLocation(5, 5)],
-          [CiderSearchInfo(CharacterLocation(5, 5), 5, MatchKind.WRITE)])
+      CiderSearchMatch(
+          bPath, [CiderSearchInfo(CharacterLocation(5, 5), 5, MatchKind.WRITE)])
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -576,7 +576,7 @@ main() {
     var element = await _findElement(19, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(bPath, [CharacterLocation(4, 13)],
+      CiderSearchMatch(bPath,
           [CiderSearchInfo(CharacterLocation(4, 13), 3, MatchKind.REFERENCE)])
     ];
     expect(result, unorderedEquals(expected));
@@ -604,7 +604,7 @@ main() {
     var element = await _findElement(20, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(bPath, [CharacterLocation(4, 3)],
+      CiderSearchMatch(bPath,
           [CiderSearchInfo(CharacterLocation(4, 3), 3, MatchKind.WRITE)]),
     ];
     expect(result, unorderedEquals(expected));
@@ -625,8 +625,8 @@ void func() {
     var element = await _findElement(10, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(aPath, [CharacterLocation(4, 11)],
-          [CiderSearchInfo(CharacterLocation(4, 11), 1, MatchKind.READ)])
+      CiderSearchMatch(
+          aPath, [CiderSearchInfo(CharacterLocation(4, 11), 1, MatchKind.READ)])
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -645,21 +645,11 @@ class Foo<T> {
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(aPath, [
-        CharacterLocation(2, 8),
-        CharacterLocation(4, 12)
-      ], [
-        CiderSearchInfo(CharacterLocation(2, 8), 5, MatchKind.WRITE),
-        CiderSearchInfo(CharacterLocation(4, 12), 5, MatchKind.WRITE)
+        CiderSearchInfo(CharacterLocation(2, 8), 1, MatchKind.REFERENCE),
+        CiderSearchInfo(CharacterLocation(4, 12), 1, MatchKind.REFERENCE)
       ])
     ];
-    expect(result.map((e) => e.path),
-        unorderedEquals(expected.map((e) => e.path)));
-    // ignore: deprecated_member_use_from_same_package
-    expect(
-        // ignore: deprecated_member_use_from_same_package
-        result.map((e) => e.startPositions),
-        // ignore: deprecated_member_use_from_same_package
-        unorderedEquals(expected.map((e) => e.startPositions)));
+    expect(result, expected);
   }
 
   test_findReferences_typedef() async {
@@ -679,7 +669,7 @@ void f(func o) {}
     var element = await _findElement(8, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(bPath, [CharacterLocation(3, 8)],
+      CiderSearchMatch(bPath,
           [CiderSearchInfo(CharacterLocation(3, 8), 4, MatchKind.REFERENCE)])
     ];
     expect(result, unorderedEquals(expected));

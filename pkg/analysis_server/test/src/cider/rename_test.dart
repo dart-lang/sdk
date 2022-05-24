@@ -651,6 +651,131 @@ void f() {
         [ReplaceInfo('bar', CharacterLocation(1, 1), 3)]);
   }
 
+  void test_rename_import() async {
+    var testCode = '''
+import 'dart:async';
+^import 'dart:math' show Random, min hide max;
+void f() {
+  Future f;
+  Random r;
+  min(1, 2);
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+import 'dart:async';
+import 'dart:math' as newName show Random, min hide max;
+void f() {
+  Future f;
+  newName.Random r;
+  newName.min(1, 2);
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_import_hasCurlyBrackets() async {
+    var testCode = r'''
+// test
+^import 'dart:async';
+void f() {
+  Future f;
+  print('Future type: ${Future}');
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult(r'''
+// test
+import 'dart:async' as newName;
+void f() {
+  newName.Future f;
+  print('Future type: ${newName.Future}');
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_import_noCurlyBrackets() async {
+    var testCode = r'''
+// test
+^import 'dart:async';
+void f() {
+  Future f;
+  print('Future type: $Future');
+}
+''';
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult(r'''
+// test
+import 'dart:async' as newName;
+void f() {
+  newName.Future f;
+  print('Future type: ${newName.Future}');
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_import_onPrefixElement() async {
+    var testCode = '''
+import 'dart:async' as test;
+import 'dart:math' as test;
+void f() {
+  test.Future f;
+  ^test.pi;
+  test.e;
+}
+''';
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+import 'dart:async' as test;
+import 'dart:math' as newName;
+void f() {
+  test.Future f;
+  newName.pi;
+  newName.e;
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_import_prefix() async {
+    var testCode = '''
+import 'dart:math' as test;
+^import 'dart:async' as test;
+void f() {
+  test.max(1, 2);
+  test.Future f;
+}
+''';
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+import 'dart:math' as test;
+import 'dart:async' as newName;
+void f() {
+  test.max(1, 2);
+  newName.Future f;
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_import_remove_prefix() async {
+    var testCode = '''
+import 'dart:math' as test;
+^import 'dart:async' as test;
+void f() {
+  test.Future f;
+}
+''';
+
+    var result = await _rename(testCode, '');
+    _assertTestChangeResult('''
+import 'dart:math' as test;
+import 'dart:async';
+void f() {
+  Future f;
+}
+''', result!.replaceMatches.first.matches);
+  }
+
   void test_rename_local() async {
     var testCode = '''
 void foo() {

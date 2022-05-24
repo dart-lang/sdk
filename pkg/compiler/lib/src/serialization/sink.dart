@@ -925,6 +925,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   }
 
   /// Writes the constant [value] to this data sink.
+  @override
   void writeConstant(ConstantValue value) {
     _writeDataKind(DataKind.constant);
     _writeConstant(value);
