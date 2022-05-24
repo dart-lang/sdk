@@ -6,7 +6,7 @@ name: test_runner
 # This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 environment:
-  sdk: "^2.3.0"
+  sdk: "^2.9.0"
 dependencies:
   args: any
   dart2js_tools: any

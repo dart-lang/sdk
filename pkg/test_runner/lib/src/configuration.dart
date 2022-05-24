@@ -450,7 +450,7 @@ class TestConfiguration {
   /// We allow our code to have been cross compiled, i.e., that there is an X
   /// in front of the arch. We don't allow both a cross compiled and a normal
   /// version to be present (except if you specifically pass in the
-  /// build_directory).
+  /// build-directory).
   String _calculateDirectory() {
     // Capitalize the mode name.
     var result =

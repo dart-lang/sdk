@@ -105,7 +105,7 @@ abstract class RuntimeConfiguration {
   }
 
   String get dartPrecompiledBinaryFileName {
-    // Controlled by user with the option "--dart_precompiled".
+    // Controlled by user with the option "--dart-precompiled".
     var dartExecutable = _configuration.dartPrecompiledPath;
 
     if (dartExecutable == null || dartExecutable == '') {

@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 
 import 'configuration.dart';
@@ -29,64 +31,31 @@ const _defaultTestSelectors = [
   'ffi_2'
 ];
 
-/// Specifies a single command line option.
-///
-/// The name of the specification is used as the key for the option in the Map
-/// returned from [OptionsParser.parse].
-class _Option {
-  // TODO(rnystrom): Some string options use "" to mean "no value" and others
-  // use null. Clean that up.
-  _Option(this.name, this.description,
+extension _IntOption on ArgParser {
+  void addIntegerOption(String name,
       {String abbr,
-      List<String> values,
+      String help,
+      String valueHelp,
+      Iterable<String> allowed,
+      Map<String, String> allowedHelp,
       String defaultsTo,
-      bool allowMultiple,
-      bool hide})
-      : abbreviation = abbr,
-        values = values ?? [],
-        defaultValue = defaultsTo,
-        type = _OptionValueType.string,
-        allowMultiple = allowMultiple ?? true,
-        verboseOnly = hide ?? false;
-
-  _Option.bool(this.name, this.description, {String abbr, bool hide})
-      : abbreviation = abbr,
-        values = [],
-        defaultValue = false,
-        type = _OptionValueType.bool,
-        allowMultiple = false,
-        verboseOnly = hide ?? false;
-
-  _Option.int(this.name, this.description,
-      {String abbr, int defaultsTo, bool hide})
-      : abbreviation = abbr,
-        values = [],
-        defaultValue = defaultsTo,
-        type = _OptionValueType.int,
-        allowMultiple = false,
-        verboseOnly = hide ?? false;
-
-  final String name;
-  final String description;
-  final String abbreviation;
-  final List<String> values;
-  final Object defaultValue;
-  final _OptionValueType type;
-
-  /// Whether a comma-separated list of values is permitted.
-  final bool allowMultiple;
-
-  /// Only show this option in the verbose help.
-  final bool verboseOnly;
-
-  /// The shortest command line argument used to refer to this option.
-  String get shortCommand => abbreviation != null ? "-$abbreviation" : command;
-
-  /// The canonical long command line argument used to refer to this option.
-  String get command => "--${name.replaceAll('_', '-')}";
+      bool mandatory = false,
+      bool hide = false,
+      List<String> aliases = const []}) {
+    addOption(name,
+        abbr: abbr,
+        help: help,
+        valueHelp: valueHelp,
+        allowed: allowed,
+        allowedHelp: allowedHelp,
+        defaultsTo: defaultsTo, callback: (value) {
+      if (value != null) {
+        int.tryParse(value) ??
+            _fail('Integer value expected for option "--$name".');
+      }
+    }, mandatory: mandatory, hide: hide, aliases: aliases);
+  }
 }
-
-enum _OptionValueType { bool, int, string }
 
 /// Parses command line arguments and produces a test runner configuration.
 class OptionsParser {
@@ -95,12 +64,15 @@ class OptionsParser {
 
   OptionsParser([this._testMatrixFile = 'tools/bots/test_matrix.json']);
 
-  static final List<_Option> _options = [
-    _Option('mode', 'Mode in which to run the tests.',
-        abbr: 'm', values: ['all', ...Mode.names]),
-    _Option(
-        'compiler',
-        '''How the Dart code should be compiled or statically processed.
+  static final ArgParser parser = ArgParser()
+    ..addMultiOption('mode',
+        abbr: 'm',
+        allowed: ['all', ...Mode.names],
+        help: 'Mode in which to run the tests.')
+    ..addMultiOption('compiler',
+        abbr: 'c',
+        allowed: Compiler.names,
+        help: '''How the Dart code should be compiled or statically processed.
 none:                 Do not compile the Dart code.
 dart2js:              Compile to JavaScript using dart2js.
 dart2analyzer:        Perform static analysis on Dart code using the analyzer.
@@ -114,12 +86,11 @@ dartkp:               Compile the Dart code into Kernel and then Kernel into
                       AOT snapshot before running the test.
 spec_parser:          Parse Dart code using the specification parser.
 fasta:                Compile using CFE for errors, but do not run.
-''',
-        abbr: 'c',
-        values: Compiler.names),
-    _Option(
-        'runtime',
-        '''Where the tests should be run.
+''')
+    ..addMultiOption('runtime',
+        abbr: 'r',
+        allowed: Runtime.names,
+        help: '''Where the tests should be run.
 vm:               Run Dart code on the standalone Dart VM.
 dart_precompiled: Run a precompiled snapshot on the VM without a JIT.
 d8:               Run JavaScript from the command line using v8.
@@ -133,246 +104,313 @@ ie10:
 ie11:
 chromeOnAndroid:  Run JavaScript in the specified browser.
 
-none:             No runtime, compile only.''',
-        abbr: 'r',
-        values: Runtime.names),
-    _Option(
-        'arch',
-        '''The architecture to run tests for.
+none:             No runtime, compile only.''')
+    ..addMultiOption('arch',
+        abbr: 'a',
+        allowed: ['all', ...Architecture.names],
+        defaultsTo: [Architecture.x64.name],
+        hide: true,
+        help: '''The architecture to run tests for.
 
 Allowed values are:
 all
 ia32, x64
 arm, arm64, simarm, simarm64, arm_x64
-riscv32, riscv64, simriscv32, simriscv64''',
-        abbr: 'a',
-        values: ['all', ...Architecture.names],
-        defaultsTo: Architecture.x64.name,
-        hide: true),
-    _Option('system', 'The operating system to run tests on.',
+riscv32, riscv64, simriscv32, simriscv64''')
+    ..addOption('system',
         abbr: 's',
-        values: ['all', ...System.names],
+        allowed: ['all', ...System.names],
         defaultsTo: Platform.operatingSystem,
-        hide: true),
-    _Option('sanitizer', 'Sanitizer in which to run the tests.',
-        defaultsTo: Sanitizer.none.name, values: ['all', ...Sanitizer.names]),
-    _Option(
-        'named_configuration',
-        '''The named test configuration that supplies the values for all
-test options, specifying how tests should be run.''',
+        hide: true,
+        help: 'The operating system to run tests on.')
+    ..addMultiOption('sanitizer',
+        allowed: ['all', ...Sanitizer.names],
+        defaultsTo: [Sanitizer.none.name],
+        help: 'Sanitizer in which to run the tests.')
+    ..addMultiOption('named-configuration',
         abbr: 'n',
-        hide: true),
-    _Option.bool(
-        'build', 'Build the necessary targets to test this configuration'),
+        aliases: ['named_configuration'],
+        hide: true,
+        help: '''The named test configuration that supplies the values for all
+test options, specifying how tests should be run.''')
+    ..addFlag('build',
+        help: 'Build the necessary targets to test this configuration')
     // TODO(sigmund): rename flag once we migrate all dart2js bots to the test
     // matrix.
-    _Option.bool('host_checked', 'Run compiler with assertions enabled.',
-        hide: true),
-    _Option.bool('minified', 'Enable minification in the compiler.',
-        hide: true),
-    _Option.bool('csp', 'Run tests under Content Security Policy restrictions.',
-        hide: true),
-    _Option.bool('fast_tests',
-        'Only run tests that are not marked `Slow` or `Timeout`.'),
-    _Option.bool('enable_asserts',
-        'Pass the --enable-asserts flag to dart2js or to the vm.'),
-    _Option.bool('use_cfe', 'Pass the --use-cfe flag to analyzer', hide: true),
-    _Option.bool('analyzer_use_fasta_parser',
-        'Pass the --use-fasta-parser flag to analyzer',
-        hide: true),
-
-    _Option.bool('hot_reload', 'Run hot reload stress tests.', hide: true),
-    _Option.bool('hot_reload_rollback', 'Run hot reload rollback stress tests.',
-        hide: true),
-    _Option.bool(
-        'use_blobs', 'Use mmap instead of shared libraries for precompilation.',
-        hide: true),
-    _Option.bool('use_elf',
-        'Directly generate an ELF shared libraries for precompilation.',
-        hide: true),
-    _Option.bool('use_qemu', 'Use qemu to test arm32 on x64 host machines.',
-        hide: true),
-    _Option.bool('keep_generated_files', 'Keep any generated files.',
-        abbr: 'k'),
-    _Option.int('timeout', 'Timeout in seconds.', abbr: 't'),
-    _Option(
-        'progress',
-        '''Progress indication mode.
+    ..addFlag('host-checked',
+        aliases: ['host_checked'],
+        hide: true,
+        help: 'Run compiler with assertions enabled.')
+    ..addFlag('minified',
+        hide: true, help: 'Enable minification in the compiler.')
+    ..addFlag('csp',
+        hide: true,
+        help: 'Run tests under Content Security Policy restrictions.')
+    ..addFlag('fast-tests',
+        aliases: ['fast_tests'],
+        hide: true,
+        help: 'Only run tests that are not marked `Slow` or `Timeout`.')
+    ..addFlag('enable-asserts',
+        aliases: ['enable_asserts'],
+        help: 'Pass the --enable-asserts flag to dart2js or to the vm.')
+    ..addFlag('use-cfe',
+        aliases: ['use_cfe'],
+        hide: true,
+        help: 'Pass the --use-cfe flag to analyzer')
+    ..addFlag('analyzer-use-fasta-parser',
+        aliases: ['analyzer_use_fasta_parser'],
+        hide: true,
+        help: 'Pass the --use-fasta-parser flag to analyzer')
+    ..addFlag('hot-reload', hide: true, help: 'Run hot reload stress tests.')
+    ..addFlag('hot-reload-rollback',
+        hide: true, help: 'Run hot reload rollback stress tests.')
+    ..addFlag('use-blobs',
+        aliases: ['use_blobs'],
+        hide: true,
+        help: 'Use mmap instead of shared libraries for precompilation.')
+    ..addFlag(
+      'use-elf',
+      aliases: ['use_elf'],
+      hide: true,
+      help: 'Directly generate an ELF shared libraries for precompilation.',
+    )
+    ..addFlag('use-qemu',
+        aliases: ['use_qemu'],
+        hide: true,
+        help: 'Use qemu to test arm32 on x64 host machines.')
+    ..addFlag('keep-generated-files',
+        abbr: 'k', hide: true, help: 'Keep any generated files.')
+    ..addIntegerOption('timeout', abbr: 't', help: 'Timeout in seconds.')
+    ..addOption('progress',
+        abbr: 'p',
+        allowed: Progress.names,
+        defaultsTo: Progress.compact.name,
+        help: '''Progress indication mode.
 
 Allowed values are:
-compact, color, line, verbose, silent, status, buildbot''',
-        abbr: 'p',
-        values: Progress.names,
-        defaultsTo: Progress.compact.name,
-        allowMultiple: false),
-    _Option('step_name', 'Step name for use by -pbuildbot.', hide: true),
-    _Option.bool('report',
-        'Print a summary report of the number of tests, by expectation.',
-        hide: true),
-    _Option.bool('report_failures', 'Print a summary of the tests that failed.',
-        hide: true),
-    _Option.int('tasks', 'The number of parallel tasks to run.',
-        abbr: 'j', defaultsTo: Platform.numberOfProcessors),
-    _Option.int('shards',
-        'The number of instances that the tests will be sharded over.',
-        defaultsTo: 1, hide: true),
-    _Option.int(
-        'shard', 'The index of this instance when running in sharded mode.',
-        defaultsTo: 1, hide: true),
-    _Option.bool('help', 'Print list of options.', abbr: 'h'),
-    _Option.int('repeat', 'How many times each test is run', defaultsTo: 1),
-    _Option.bool('verbose', 'Verbose output.', abbr: 'v'),
-    _Option.bool('verify-ir', 'Verify kernel IR.', hide: true),
-    _Option.bool('no-tree-shake', 'Disable kernel IR tree shaking.',
-        hide: true),
-    _Option.bool('list', 'List tests only, do not run them.'),
-    _Option.bool('find-configurations', 'Find matching configurations.'),
-    _Option.bool('list-configurations', 'Output list of configurations.'),
-    _Option.bool('list_status_files',
-        'List status files for test-suites. Do not run any test suites.',
-        hide: true),
-    _Option.bool('clean_exit', 'Exit 0 if tests ran and results were output.',
-        hide: true),
-    _Option.bool(
-        'silent_failures',
-        "Don't complain about failing tests. This is useful when in "
-            "combination with --write-results.",
-        hide: true),
-    _Option.bool('report_in_json',
-        'When listing with --list, output result summary in JSON.',
-        hide: true),
-    _Option.bool('time', 'Print timing information after running tests.'),
-    _Option('dart', 'Path to dart executable.', hide: true),
-    _Option('gen-snapshot', 'Path to gen_snapshot executable.', hide: true),
-    _Option('firefox', 'Path to firefox browser executable.', hide: true),
-    _Option('chrome', 'Path to chrome browser executable.', hide: true),
-    _Option('safari', 'Path to safari browser executable.', hide: true),
-    _Option.bool('use_sdk', '''Use compiler or runtime from the SDK.'''),
-    _Option(
-        'nnbd',
-        '''Which set of non-nullable type features to use.
-
-Allowed values are: legacy, weak, strong''',
-        values: NnbdMode.names,
+compact, color, line, verbose, silent, status, buildbot''')
+    ..addOption('step-name',
+        aliases: ['step_name'],
+        hide: true,
+        help: 'Step name for use by -pbuildbot.')
+    ..addFlag('report',
+        hide: true,
+        help: 'Print a summary report of the number of tests, by expectation.')
+    ..addFlag('report-failures',
+        aliases: ['report_failures'],
+        hide: true,
+        help: 'Print a summary of the tests that failed.')
+    ..addOption('tasks',
+        abbr: 'j',
+        defaultsTo: Platform.numberOfProcessors.toString(),
+        help: 'The number of parallel tasks to run.')
+    ..addIntegerOption('shards',
+        defaultsTo: '1',
+        hide: true,
+        help: 'The number of instances that the tests will be sharded over.')
+    ..addIntegerOption('shard',
+        defaultsTo: '1',
+        hide: true,
+        help: 'The index of this instance when running in sharded mode.')
+    ..addFlag('help', abbr: 'h', help: 'Print list of options.')
+    ..addIntegerOption('repeat',
+        defaultsTo: '1', help: 'How many times each test is run')
+    ..addFlag('verbose', abbr: 'v', help: 'Verbose output.')
+    ..addFlag('verify-ir',
+        aliases: ['verify_ir'], hide: true, help: 'Verify kernel IR.')
+    ..addFlag('no-tree-shake',
+        aliases: ['no_tree_shake'],
+        hide: true,
+        help: 'Disable kernel IR tree shaking.')
+    ..addFlag('list', help: 'List tests only, do not run them.')
+    ..addFlag('find-configurations',
+        aliases: ['find_configurations'], help: 'Find matching configurations.')
+    ..addFlag('list-configurations',
+        aliases: ['list_configurations'],
+        help: 'Output list of configurations.')
+    ..addFlag('list-status-files',
+        aliases: ['list_status_files'],
+        hide: true,
+        help: 'List status files for test suites. Do not run any test suites.')
+    ..addFlag('clean-exit',
+        aliases: ['clean_exit'],
+        hide: true,
+        help: 'Exit 0 if tests ran and results were output.')
+    ..addFlag('silent-failures',
+        aliases: ['silent_failures'],
+        hide: true,
+        help: "Don't complain about failing tests. This is useful when in "
+            "combination with --write-results.")
+    ..addFlag('report-in-json',
+        aliases: ['report_in_json'],
+        hide: true,
+        help: 'When listing with --list, output result summary in JSON.')
+    ..addFlag('time', help: 'Print timing information after running tests.')
+    ..addOption('dart', hide: true, help: 'Path to dart executable.')
+    ..addOption('gen-snapshot',
+        aliases: ['gen_snapshot'],
+        hide: true,
+        help: 'Path to gen_snapshot executable.')
+    ..addOption('firefox',
+        hide: true, help: 'Path to firefox browser executable.')
+    ..addOption('chrome',
+        hide: true, help: 'Path to chrome browser executable.')
+    ..addOption('safari',
+        hide: true, help: 'Path to safari browser executable.')
+    ..addFlag('use-sdk',
+        aliases: ['use_sdk'], help: 'Use compiler or runtime from the SDK.')
+    ..addOption('nnbd',
+        allowed: NnbdMode.names,
         defaultsTo: NnbdMode.legacy.name,
-        allowMultiple: false),
+        help: '''Which set of non-nullable type features to use.
+
+Allowed values are: legacy, weak, strong''')
     // TODO(rnystrom): This does not appear to be used. Remove?
-    _Option('build_directory',
-        'The name of the build directory, where products are placed.',
-        hide: true),
-    _Option('output_directory',
-        'The name of the output directory for storing log files.',
-        defaultsTo: "logs", hide: true),
-    _Option.bool('no_batch', 'Do not run tests in batch mode.', hide: true),
-    _Option.bool('write_debug_log',
-        'Don\'t write debug messages to stdout but rather to a logfile.',
-        hide: true),
-    _Option.bool(
-        'write_results',
-        'Write results to a "${TestUtils.resultsFileName}" json file '
-            'located at the debug_output_directory.',
-        hide: true),
-    _Option.bool(
-        'write_logs',
-        'Include the stdout and stderr of tests that don\'t match expectations '
-            'in the "${TestUtils.logsFileName}" file',
-        hide: true),
-    _Option.bool(
-        'reset_browser_configuration',
-        '''Browser specific reset of configuration.
+    ..addOption('build-directory',
+        aliases: ['build_directory'],
+        help: 'The name of the build directory, where products are placed.',
+        hide: true)
+    ..addOption('output-directory',
+        aliases: ['output_directory'],
+        defaultsTo: "logs",
+        hide: true,
+        help: 'The name of the output directory for storing log files.')
+    ..addFlag('no-batch',
+        aliases: ['no_batch'],
+        hide: true,
+        help: "Don't run tests in batch mode.")
+    ..addFlag('write-debug-log',
+        aliases: ['write_debug_log'],
+        hide: true,
+        help: "Don't write debug messages to stdout but rather to a logfile.")
+    ..addFlag('write-results',
+        aliases: ['write_results'],
+        hide: true,
+        help: 'Write results to a "${TestUtils.resultsFileName}" json file '
+            'located at the debug-output-directory.')
+    ..addFlag('write-logs',
+        aliases: ['write_logs'],
+        hide: true,
+        help: 'Write failing test stdout and stderr to to the '
+            '"${TestUtils.logsFileName}" file')
+    ..addFlag('reset-browser-configuration',
+        aliases: ['reset_browser_configuration'],
+        hide: true,
+        help: '''Browser specific reset of configuration.
 
 Warning: Using this option may remove your bookmarks and other
-settings.''',
-        hide: true),
-    _Option.bool(
-        'copy_coredumps',
-        '''If we see a crash that we did not expect, copy the core dumps to
-"/tmp".''',
-        hide: true),
-    _Option.bool('rr', '''Run VM tests under rr and save traces from crashes''',
-        hide: true),
-    _Option(
-        'local_ip',
-        '''IP address the HTTP servers should listen on. This address is also
-used for browsers to connect to.''',
-        defaultsTo: '127.0.0.1',
-        hide: true),
-    _Option.int('test_server_port', 'Port for test http server.',
-        defaultsTo: 0, hide: true),
-    _Option.int('test_server_cross_origin_port',
-        'Port for test http server cross origin.',
-        defaultsTo: 0, hide: true),
-    _Option.int(
-        'test_driver_error_port', 'Port for http test driver server errors.',
-        defaultsTo: 0, hide: true),
-    _Option('test_list', 'File containing a list of tests to be executed.',
-        hide: true),
-    _Option('tests', 'A newline separated list of tests to be executed.'),
-    _Option(
-        'builder_tag',
-        '''Machine specific options that is not captured by the regular test
+settings.''')
+    ..addFlag('copy-coredumps',
+        aliases: ['copy_coredumps'],
+        hide: true,
+        help: 'Copy core dumps to "/tmp" when an unexpected crash occurs.')
+    ..addFlag('rr',
+        hide: true,
+        help: '''Run VM tests under rr and save traces from crashes''')
+    ..addOption('local-ip',
+        aliases: ['local_ip'],
+        hide: true,
+        help: '''IP address the HTTP servers should listen on. This address is
+also used for browsers to connect to.''',
+        defaultsTo: '127.0.0.1')
+    ..addIntegerOption('test-server-port',
+        aliases: ['test_server_port'],
+        hide: true,
+        defaultsTo: '0',
+        help: 'Port for test http server.')
+    ..addIntegerOption('test-server-cross-origin-port',
+        aliases: ['test_server_cross_origin_port'],
+        hide: true,
+        help: 'Port for test http server cross origin.',
+        defaultsTo: '0')
+    ..addIntegerOption('test-driver-error-port',
+        aliases: ['test_driver_error_port'],
+        hide: true,
+        help: 'Port for http test driver server errors.',
+        defaultsTo: '0')
+    ..addOption('test-list',
+        aliases: ['test_list'],
+        hide: true,
+        help: 'File containing a list of tests to be executed.')
+    ..addOption('tests',
+        help: 'A newline separated list of tests to be executed.')
+    ..addOption('builder-tag',
+        aliases: ['builder_tag'],
+        help:
+            '''Machine specific options that is not captured by the regular test
 options. Used to be able to make sane updates to the status files.''',
-        hide: true),
-    _Option('vm_options', 'Extra options to send to the VM when running.',
-        hide: true),
-    _Option('dart2js_options', 'Extra options for dart2js compilation step.',
-        hide: true),
-    _Option('shared_options', 'Extra shared options.', hide: true),
-    _Option('enable-experiment', 'Experiment flags to enable.'),
-    _Option(
-        'babel',
-        '''Transforms dart2js output with Babel. The value must be
+        hide: true)
+    ..addMultiOption('vm-options',
+        aliases: ['vm_options'],
+        hide: true,
+        help: 'Extra options to send to the VM when running.')
+    ..addMultiOption('dart2js-options',
+        aliases: ['dart2js_options'],
+        hide: true,
+        help: 'Extra options for dart2js compilation step.')
+    ..addMultiOption('shared-options',
+        aliases: ['shared_options'], hide: true, help: 'Extra shared options.')
+    ..addMultiOption('enable-experiment',
+        aliases: ['experiments', 'enable_experiment'],
+        help: 'Experiment flags to enable.')
+    ..addOption('babel',
+        help: '''Transforms dart2js output with Babel. The value must be
 Babel options JSON.''',
-        hide: true),
-    _Option('suite_dir', 'Additional directory to add to the testing matrix.',
-        hide: true),
-    _Option('package_root', 'The package root to use for testing.', hide: true),
-    _Option('packages', 'The package spec file to use for testing.',
-        hide: true),
-    _Option(
-        'exclude_suite',
-        '''Exclude suites from default selector, only works when no selector
-has been specified on the command line.''',
-        hide: true),
-    _Option.bool('print_passing_stdout',
-        'Print the stdout of passing, as well as failing, tests.',
-        hide: true),
-    _Option('service_response_sizes_directory',
-        'Log VM service response sizes in CSV files in the provided directory',
-        hide: true),
-  ];
+        hide: true)
+    ..addOption('suite-dir',
+        aliases: ['suite_dir'],
+        hide: true,
+        help: 'Additional directory to add to the testing matrix.')
+    ..addOption('packages',
+        hide: true, help: 'The package spec file to use for testing.')
+    ..addOption('exclude-suite',
+        aliases: ['exclude_suite'],
+        hide: true,
+        help:
+            '''Exclude suites from default selector, only works when no selector
+has been specified on the command line.''')
+    ..addFlag('print-passing-stdout',
+        aliases: ['print_passing_stdout'],
+        hide: true,
+        help: 'Print the stdout of passing, as well as failing, tests.')
+    ..addOption('service-response-sizes-directory',
+        aliases: ['service_response_sizes_directory'],
+        hide: true,
+        help:
+            'Log VM service response size CSV files in the provided directory');
 
   /// For printing out reproducing command lines, we don't want to add these
   /// options.
-  static final _denylistedOptions = {
+  static const _denylistedOptions = {
     'build',
-    'build_directory',
+    'build-directory',
     'chrome',
-    'clean_exit',
-    'copy_coredumps',
+    'clean-exit',
+    'copy-coredumps',
     'dart',
-    'debug_output_directory',
+    'debug-output-directory',
     'drt',
-    'exclude_suite',
+    'exclude-suite',
     'firefox',
-    'local_ip',
-    'output_directory',
+    'local-ip',
+    'output-directory',
     'progress',
     'repeat',
     'report',
-    'report_failures',
+    'report-failures',
+    'reset-browser-configuration',
     'safari',
     'shard',
     'shards',
-    'silent_failures',
-    'step_name',
+    'silent-failures',
+    'step-name',
     'tasks',
     'tests',
     'time',
     'verbose',
-    'write_debug_log',
-    'write_logs',
-    'write_results',
+    'write-debug-log',
+    'write-logs',
+    'write-results',
   };
 
   /// The set of objects which the named configuration should imply.
@@ -385,22 +423,22 @@ has been specified on the command line.''',
     'timeout',
     'nnbd',
     'sanitizer',
-    'enable_asserts',
-    'use_cfe',
-    'analyzer_use_fasta_parser',
-    'use_elf',
-    'use_sdk',
-    'hot_reload',
-    'hot_reload_rollback',
-    'host_checked',
+    'enable-asserts',
+    'use-cfe',
+    'analyzer-use-fasta-parser',
+    'use-elf',
+    'use-sdk',
+    'hot-reload',
+    'hot-reload-rollback',
+    'host-checked',
     'csp',
     'minified',
-    'vm_options',
+    'vm-options',
     'dart2js_options',
     'experiments',
     'babel',
-    'builder_tag',
-    'use_qemu'
+    'builder-tag',
+    'use-qemu'
   };
 
   /// Parses a list of strings as test options.
@@ -410,186 +448,86 @@ has been specified on the command line.''',
   /// encountering the first non-option string, the rest of the arguments are
   /// stored in the returned Map under the 'rest' key.
   List<TestConfiguration> parse(List<String> arguments) {
-    // Help supersedes all other arguments.
-    if (arguments.contains("--help") || arguments.contains("-h")) {
-      _printHelp(
-          verbose: arguments.contains("--verbose") || arguments.contains("-v"));
+    ArgResults results;
+    try {
+      results = parser.parse(arguments);
+    } on FormatException catch (error) {
+      _fail(error.message);
+    }
+    if (results['help'] as bool) {
+      _printHelp(verbose: results['verbose'] as bool);
       return const [];
     }
+    var options = {for (var option in results.options) option: results[option]};
 
-    // Parse the command line arguments to a map.
-    var options = <String, dynamic>{};
-    for (var i = 0; i < arguments.length; i++) {
-      var arg = arguments[i];
-
-      // Extract name and value for options.
-      String command;
-      String value;
-      _Option option;
-
-      if (arg.startsWith("--")) {
-        // A long option name.
-        var equals = arg.indexOf("=");
-        if (equals != -1) {
-          // A long option with a value, like "--arch=ia32".
-          command = arg.substring(0, equals);
-          value = arg.substring(equals + 1);
-        } else {
-          command = arg;
-        }
-
-        option = _findByName(command.substring(2));
-      } else if (arg.startsWith("-")) {
-        // An abbreviated option.
-        if (arg.length == 1) {
-          _fail('Missing option name after "-".');
-        }
-
-        command = arg.substring(0, 2);
-
-        if (arg.length > 2) {
-          // An abbreviated option followed by a value, like "-aia32".
-          value = arg.substring(2);
-        }
-
-        option = _findByAbbreviation(command.substring(1));
-      } else {
-        // The argument does not start with "-" or "--" and is therefore not an
-        // option. Use it as a test selector pattern.
-        var patterns = options.putIfAbsent("selectors", () => <String>[]);
-
-        var allSuiteDirectories = [
-          ...testSuiteDirectories,
-          "tests/co19",
-          "tests/co19_2",
-        ];
-        // Allow passing in the full relative path to a test or directory and
-        // infer the selector from it. This lets users use tab completion on
-        // the command line.
-        for (var suiteDirectory in allSuiteDirectories) {
-          var path = suiteDirectory.toString();
-          if (arg.startsWith("$path/") || arg.startsWith("$path\\")) {
-            arg = arg.substring(path.lastIndexOf("/") + 1);
-
-            // Remove the `src/` subdirectories from the co19 and co19_2
-            // directories that do not appear in the test names.
-            if (arg.startsWith("co19")) {
-              arg = arg.replaceFirst(RegExp("src[/\]"), "");
-            }
-            break;
-          }
-        }
-
-        // If they tab complete to a single test, ignore the ".dart".
-        if (arg.endsWith(".dart")) arg = arg.substring(0, arg.length - 5);
-
-        patterns.add(arg);
-        continue;
-      }
-
-      if (option == null) {
-        _fail('Unknown command line option "$command".');
-      }
-
-      // If we need a value, look at the next argument.
-      if (value == null && option.type != _OptionValueType.bool) {
-        if (i + 1 >= arguments.length) {
-          _fail('Missing value for command line option "$command".');
-        }
-        value = arguments[++i];
-      }
-
-      // Multiple uses of a flag are an error, because there is no naturally
-      // correct way to handle conflicting options.
-      if (options.containsKey(option.name)) {
-        _fail('Already have value for command line option "$command".');
-      }
-
-      // Parse the value for the option.
-      switch (option.type) {
-        case _OptionValueType.bool:
-          if (value != null) {
-            _fail('Boolean flag "$command" does not take a value.');
-          }
-
-          options[option.name] = true;
-          break;
-
-        case _OptionValueType.int:
-          try {
-            options[option.name] = int.parse(value);
-          } on FormatException {
-            _fail('Integer value expected for option "$command".');
-          }
-          break;
-
-        case _OptionValueType.string:
-          // Validate against the allowed values.
-          if (option.values.isNotEmpty) {
-            validate(String value) {
-              if (!option.values.contains(value)) {
-                _fail('Unknown value "$value" for option "$command".');
-              }
-            }
-
-            if (option.allowMultiple) {
-              value.split(",").forEach(validate);
-            } else {
-              if (value.contains(",")) {
-                _fail('Only a single value is allowed for option "$command".');
-              }
-              validate(value);
-            }
-          }
-
-          // TODO(rnystrom): Store as a list instead of a comma-delimited
-          // string.
-          options[option.name] = value;
-          break;
-      }
-    }
-
-    if (options.containsKey('find-configurations')) {
+    if (options['find-configurations'] as bool) {
       findConfigurations(options);
       return const [];
     }
 
-    if (options.containsKey('list-configurations')) {
+    if (options['list-configurations'] as bool) {
       listConfigurations(options);
       return const [];
     }
 
     // If a named configuration was specified ensure no other options, which are
     // implied by the named configuration, were specified.
-    if (options['named_configuration'] is String) {
+    if (options['named-configuration'] is String) {
       for (var optionName in _namedConfigurationOptions) {
-        if (options.containsKey(optionName)) {
-          var namedConfig = options['named_configuration'];
+        if (results.wasParsed(optionName)) {
+          var namedConfig = options['named-configuration'];
           _fail("Can't pass '--$optionName' since it is determined by the "
               "named configuration '$namedConfig'.");
         }
       }
     }
 
-    // Apply default values for unspecified options.
-    for (var option in _options) {
-      if (!options.containsKey(option.name)) {
-        options[option.name] = option.defaultValue;
+    var allSuiteDirectories = [
+      ...testSuiteDirectories,
+      "tests/co19",
+      "tests/co19_2",
+    ];
+
+    var selectors = <String>[];
+    for (var selector in results.rest) {
+      // Allow passing in the full relative path to a test or directory and
+      // infer the selector from it. This lets users use tab completion on
+      // the command line.
+      for (var suiteDirectory in allSuiteDirectories) {
+        var path = suiteDirectory.toString();
+        if (selector.startsWith("$path/") || selector.startsWith("$path\\")) {
+          selector = selector.substring(path.lastIndexOf("/") + 1);
+
+          // Remove the `src/` subdirectories from the co19 and co19_2
+          // directories that do not appear in the test names.
+          if (selector.startsWith("co19")) {
+            selector = selector.replaceFirst(RegExp("src[/\]"), "");
+          }
+          break;
+        }
       }
+
+      // If they tab complete to a single test, ignore the ".dart".
+      if (selector.endsWith(".dart")) {
+        selector = selector.substring(0, selector.length - 5);
+      }
+
+      selectors.add(selector);
     }
+    options['selectors'] = selectors;
 
     // Fetch list of tests to run, if option is present.
     var testList = options['test_list'];
     if (testList is String) {
-      options['test_list_contents'] = File(testList).readAsLinesSync();
+      options['test-list-contents'] = File(testList).readAsLinesSync();
     }
 
     var tests = options['tests'];
     if (tests is String) {
-      if (options.containsKey('test_list_contents')) {
+      if (options.containsKey('test-list-contents')) {
         _fail('--tests and --test-list cannot be used together');
       }
-      options['test_list_contents'] = LineSplitter.split(tests).toList();
+      options['test-list-contents'] = LineSplitter.split(tests).toList();
     }
 
     return _createConfigurations(options);
@@ -601,7 +539,7 @@ has been specified on the command line.''',
       Map<String, dynamic> data, bool usingNamedConfiguration) {
     var arguments = <String>[];
 
-    for (var option in _options) {
+    for (var option in parser.options.values) {
       var name = option.name;
       if (!data.containsKey(name) ||
           _denylistedOptions.contains(name) ||
@@ -611,7 +549,7 @@ has been specified on the command line.''',
       }
 
       var value = data[name];
-      if (data[name] == option.defaultValue ||
+      if (data[name] == option.defaultsTo ||
           (name == 'packages' &&
               value ==
                   Repository.uri
@@ -620,9 +558,15 @@ has been specified on the command line.''',
         continue;
       }
 
-      arguments.add(option.shortCommand);
-      if (option.type != _OptionValueType.bool) {
-        arguments.add(value.toString());
+      if (option.abbr != null) {
+        arguments.add('-${option.abbr}');
+      } else {
+        arguments.add('--${option.name}');
+      }
+      if (value is String) {
+        arguments.add(value);
+      } else if (value is List<String>) {
+        arguments.add(value.join(','));
       }
     }
 
@@ -675,26 +619,22 @@ has been specified on the command line.''',
 
     // Handles a string option containing a space-separated list of words.
     listOption(String name) {
-      var value = data[name] as String;
-      if (value == null) return const <String>[];
+      var value = data[name] as List<String>;
       return value
-          .split(" ")
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty)
+          .expand((element) => element
+              .split(" ")
+              .map((s) => s.trim())
+              .where((s) => s.isNotEmpty))
           .toList();
     }
 
-    var dart2jsOptions = listOption("dart2js_options");
-    var vmOptions = listOption("vm_options");
-    var sharedOptions = listOption("shared_options");
-
-    var experimentNames = data["enable-experiment"] as String;
-    var experiments = [
-      if (experimentNames != null) ...experimentNames.split(",")
-    ];
+    var dart2jsOptions = listOption("dart2js-options");
+    var vmOptions = listOption("vm-options");
+    var sharedOptions = listOption("shared-options");
+    var experiments = data["enable-experiment"] as List<String>;
 
     // JSON reporting implies listing and reporting.
-    if (data['report_in_json'] as bool) {
+    if (data['report-in-json'] as bool) {
       data['list'] = true;
       data['report'] = true;
     }
@@ -711,16 +651,8 @@ has been specified on the command line.''',
       _fail("Can only use '--system=all' with '--find-configurations'.");
     }
     var system = System.find(systemName);
-
-    var runtimeNames = data["runtime"] as String;
-    var runtimes = [
-      if (runtimeNames != null) ...runtimeNames.split(",").map(Runtime.find)
-    ];
-
-    var compilerNames = data["compiler"] as String;
-    var compilers = [
-      if (compilerNames != null) ...compilerNames.split(",").map(Compiler.find)
-    ];
+    var runtimes = [...(data["runtime"] as List<String>).map(Runtime.find)];
+    var compilers = [...(data["compiler"] as List<String>).map(Compiler.find)];
 
     // Pick default compilers or runtimes if only one or the other is provided.
     if (runtimes.isEmpty) {
@@ -746,54 +678,55 @@ has been specified on the command line.''',
           progress: progress,
           selectors: selectors,
           build: data["build"] as bool,
-          testList: data["test_list_contents"] as List<String>,
-          repeat: data["repeat"] as int,
-          batch: !(data["no_batch"] as bool),
-          copyCoreDumps: data["copy_coredumps"] as bool,
+          testList: data["test-list-contents"] as List<String>,
+          repeat: int.parse(data["repeat"] as String),
+          batch: !(data["no-batch"] as bool),
+          copyCoreDumps: data["copy-coredumps"] as bool,
           rr: data["rr"] as bool,
           isVerbose: data["verbose"] as bool,
           listTests: data["list"] as bool,
-          listStatusFiles: data["list_status_files"] as bool,
-          cleanExit: data["clean_exit"] as bool,
-          silentFailures: data["silent_failures"] as bool,
+          listStatusFiles: data["list-status-files"] as bool,
+          cleanExit: data["clean-exit"] as bool,
+          silentFailures: data["silent-failures"] as bool,
           printTiming: data["time"] as bool,
           printReport: data["report"] as bool,
-          reportFailures: data["report_failures"] as bool,
-          reportInJson: data["report_in_json"] as bool,
-          resetBrowser: data["reset_browser_configuration"] as bool,
-          writeDebugLog: data["write_debug_log"] as bool,
-          writeResults: data["write_results"] as bool,
-          writeLogs: data["write_logs"] as bool,
+          reportFailures: data["report-failures"] as bool,
+          reportInJson: data["report-in-json"] as bool,
+          resetBrowser: data["reset-browser-configuration"] as bool,
+          writeDebugLog: data["write-debug-log"] as bool,
+          writeResults: data["write-results"] as bool,
+          writeLogs: data["write-logs"] as bool,
           drtPath: data["drt"] as String,
           chromePath: data["chrome"] as String,
           safariPath: data["safari"] as String,
           firefoxPath: data["firefox"] as String,
           dartPath: data["dart"] as String,
-          dartPrecompiledPath: data["dart_precompiled"] as String,
+          dartPrecompiledPath: data["dart-precompiled"] as String,
           genSnapshotPath: data["gen-snapshot"] as String,
-          keepGeneratedFiles: data["keep_generated_files"] as bool,
-          taskCount: data["tasks"] as int,
-          shardCount: data["shards"] as int,
-          shard: data["shard"] as int,
-          stepName: data["step_name"] as String,
-          testServerPort: data["test_server_port"] as int,
+          keepGeneratedFiles: data["keep-generated-files"] as bool,
+          taskCount: int.parse(data["tasks"] as String),
+          shardCount: int.parse(data["shards"] as String),
+          shard: int.parse(data["shard"] as String),
+          stepName: data["step-name"] as String,
+          testServerPort: int.parse(data['test-server-port'] as String),
           testServerCrossOriginPort:
-              data['test_server_cross_origin_port'] as int,
-          testDriverErrorPort: data["test_driver_error_port"] as int,
-          localIP: data["local_ip"] as String,
+              int.parse(data['test-server-cross-origin-port'] as String),
+          testDriverErrorPort:
+              int.parse(data['test-driver-error-port'] as String),
+          localIP: data["local-ip"] as String,
           sharedOptions: <String>[
             ...sharedOptions,
             "-Dtest_runner.configuration=${innerConfiguration.name}"
           ],
           packages: data["packages"] as String,
           serviceResponseSizesDirectory:
-              data['service_response_sizes_directory'] as String,
-          suiteDirectory: data["suite_dir"] as String,
-          outputDirectory: data["output_directory"] as String,
+              data['service-response-sizes-directory'] as String,
+          suiteDirectory: data["suite-dir"] as String,
+          outputDirectory: data["output-directory"] as String,
           reproducingArguments:
               _reproducingCommand(data, namedConfiguration != null),
-          fastTestsOnly: data["fast_tests"] as bool,
-          printPassingStdout: data["print_passing_stdout"] as bool);
+          fastTestsOnly: data["fast-tests"] as bool,
+          printPassingStdout: data["print-passing-stdout"] as bool);
 
       if (configuration.validate()) {
         result.add(configuration);
@@ -802,9 +735,8 @@ has been specified on the command line.''',
       }
     }
 
-    var namedConfigurationOption = data["named_configuration"] as String;
-    if (namedConfigurationOption != null) {
-      var namedConfigurations = namedConfigurationOption.split(',');
+    var namedConfigurations = data["named-configuration"] as List<String>;
+    if (namedConfigurations.isNotEmpty) {
       var testMatrix = TestMatrix.fromPath(_testMatrixFile);
       for (var namedConfiguration in namedConfigurations) {
         var configuration = testMatrix.configurations.singleWhere(
@@ -813,8 +745,8 @@ has been specified on the command line.''',
         if (configuration == null) {
           var names = testMatrix.configurations
               .map((configuration) => configuration.name)
-              .toList();
-          names.sort();
+              .toList()
+            ..sort();
           _fail('The named configuration "$namedConfiguration" does not exist.'
               ' The following configurations are available:\n'
               '  * ${names.join('\n  * ')}');
@@ -824,33 +756,47 @@ has been specified on the command line.''',
       return result;
     }
 
+    var modes = data['mode'] as List<String>;
+    if (modes.contains('all')) {
+      modes = Mode.names;
+    }
     // Expand runtimes.
     var configurationNumber = 1;
     for (var runtime in runtimes) {
       // Expand architectures.
-      var architectures = data["arch"] as String;
-      if (architectures == "all") {
-        architectures =
-            "ia32,x64,x64c,simarm,simarm64,simarm64c,simriscv32,simriscv64";
+      var architectures = data["arch"] as List<String>;
+      if (architectures.contains("all")) {
+        architectures = [
+          "ia32",
+          "x64",
+          "x64c",
+          "simarm",
+          "simarm64",
+          "simarm64c",
+          "simriscv32",
+          "simriscv64"
+        ];
       }
 
-      for (var architectureName in architectures.split(",")) {
+      for (var architectureName in architectures) {
         var architecture = Architecture.find(architectureName);
 
         // Expand compilers.
         for (var compiler in compilers) {
           // Expand modes.
-          var modes = (data["mode"] as String) ?? compiler.defaultMode.name;
-          if (modes == "all") modes = "debug,release,product";
-          for (var modeName in modes.split(",")) {
+          for (var modeName
+              in modes.isEmpty ? [compiler.defaultMode.name] : modes) {
             var mode = Mode.find(modeName);
             // Expand sanitizers.
-            var sanitizers = (data["sanitizer"] as String) ?? "none";
-            if (sanitizers == "all") {
-              sanitizers = "none,asan,lsan,msan,tsan,ubsan";
+            var sanitizers = data["sanitizer"] as List<String>;
+            if (sanitizers.contains("all")) {
+              sanitizers = Sanitizer.names;
             }
-            for (var sanitizerName in sanitizers.split(",")) {
+            for (var sanitizerName in sanitizers) {
               var sanitizer = Sanitizer.find(sanitizerName);
+              var timeout = data["timeout"] != null
+                  ? int.parse(data["timeout"] as String)
+                  : null;
               var configuration = Configuration(
                   "custom-configuration-${configurationNumber++}",
                   architecture,
@@ -860,24 +806,24 @@ has been specified on the command line.''',
                   system,
                   nnbdMode: nnbdMode,
                   sanitizer: sanitizer,
-                  timeout: data["timeout"] as int,
-                  enableAsserts: data["enable_asserts"] as bool,
-                  useAnalyzerCfe: data["use_cfe"] as bool,
+                  timeout: timeout,
+                  enableAsserts: data['enable-asserts'] as bool,
+                  useAnalyzerCfe: data["use-cfe"] as bool,
                   useAnalyzerFastaParser:
-                      data["analyzer_use_fasta_parser"] as bool,
-                  useElf: data["use_elf"] as bool,
-                  useSdk: data["use_sdk"] as bool,
-                  useHotReload: data["hot_reload"] as bool,
-                  useHotReloadRollback: data["hot_reload_rollback"] as bool,
-                  isHostChecked: data["host_checked"] as bool,
+                      data["analyzer-use-fasta-parser"] as bool,
+                  useElf: data["use-elf"] as bool,
+                  useSdk: data["use-sdk"] as bool,
+                  useHotReload: data["hot-reload"] as bool,
+                  useHotReloadRollback: data["hot-reload-rollback"] as bool,
+                  isHostChecked: data["host-checked"] as bool,
                   isCsp: data["csp"] as bool,
                   isMinified: data["minified"] as bool,
                   vmOptions: vmOptions,
                   dart2jsOptions: dart2jsOptions,
                   experiments: experiments,
                   babel: data['babel'] as String,
-                  builderTag: data["builder_tag"] as String,
-                  useQemu: data["use_qemu"] as bool);
+                  builderTag: data["builder-tag"] as String,
+                  useQemu: data["use-qemu"] as bool);
               addConfiguration(configuration);
             }
           }
@@ -894,12 +840,12 @@ has been specified on the command line.''',
   Map<String, RegExp> _expandSelectors(Map<String, dynamic> configuration) {
     var selectors = configuration['selectors'];
 
-    if (selectors == null) {
-      if (configuration['suite_dir'] != null) {
-        var suitePath = Path(configuration['suite_dir'] as String);
+    if (selectors == null || (selectors as List).isEmpty) {
+      if (configuration['suite-dir'] != null) {
+        var suitePath = Path(configuration['suite-dir'] as String);
         selectors = [suitePath.filename];
-      } else if (configuration['test_list_contents'] != null) {
-        selectors = (configuration['test_list_contents'] as List<String>)
+      } else if (configuration['test-list-contents'] != null) {
+        selectors = (configuration['test-list-contents'] as List<String>)
             .map((t) => t.split('/').first)
             .toSet()
             .toList();
@@ -907,8 +853,8 @@ has been specified on the command line.''',
         selectors = _defaultTestSelectors.toList();
       }
 
-      var excludeSuites = configuration['exclude_suite'] != null
-          ? (configuration['exclude_suite'] as String).split(',')
+      var excludeSuites = configuration['exclude-suite'] != null
+          ? (configuration['exclude-suite'] as String).split(',')
           : [];
       for (var exclude in excludeSuites) {
         if ((selectors as List).contains(exclude)) {
@@ -943,9 +889,7 @@ has been specified on the command line.''',
 
   /// Print out usage information.
   void _printHelp({bool verbose}) {
-    var buffer = StringBuffer();
-
-    buffer.writeln('''The Dart SDK's internal test runner.
+    print('''The Dart SDK's internal test runner.
 
     Usage: dart tools/test.dart [options] [selector]
 
@@ -960,74 +904,7 @@ the test is run directly from source on the VM.
 
 Options:''');
 
-    for (var option in _options) {
-      if (!verbose && option.verboseOnly) continue;
-
-      if (option.abbreviation != null) {
-        buffer.write("-${option.abbreviation}, ");
-      } else {
-        buffer.write("    ");
-      }
-
-      buffer.write(option.command);
-
-      switch (option.type) {
-        case _OptionValueType.bool:
-          // No value.
-          break;
-        case _OptionValueType.int:
-          buffer.write("=<integer>");
-          break;
-        case _OptionValueType.string:
-          if (option.values.length > 6) {
-            // If there are many options, they won't fit nicely in one line and
-            // should be instead listed in the description.
-            buffer.write("=<...>");
-          } else if (option.values.isNotEmpty) {
-            buffer.write("=<${option.values.join('|')}>");
-          } else {
-            buffer.write("=<string>");
-          }
-          break;
-      }
-
-      if (option.type != _OptionValueType.bool &&
-          option.defaultValue != null &&
-          option.defaultValue != "") {
-        buffer.write(" (defaults to ${option.defaultValue})");
-      }
-
-      buffer.writeln();
-      buffer
-          .writeln("      ${option.description.replaceAll('\n', '\n      ')}");
-      buffer.writeln();
-    }
-
-    if (!verbose) {
-      buffer.write('Pass "--verbose" to see more options.');
-    }
-
-    print(buffer);
-  }
-
-  _Option _findByAbbreviation(String abbreviation) {
-    for (var option in _options) {
-      if (abbreviation == option.abbreviation) return option;
-    }
-
-    return null;
-  }
-
-  _Option _findByName(String name) {
-    for (var option in _options) {
-      if (name == option.name) return option;
-
-      // Allow hyphens instead of underscores as the separator since they are
-      // more common for command line flags.
-      if (name == option.name.replaceAll("_", "-")) return option;
-    }
-
-    return null;
+    print(parser.usage);
   }
 }
 
@@ -1056,58 +933,53 @@ void findConfigurations(Map<String, dynamic> options) {
     system = System.find(systemOption);
   }
 
-  var architectureOption = options['arch'] as String;
-  var architectures = const [Architecture.x64];
-  if (architectureOption == 'all') {
-    architectures = null;
-  } else if (architectureOption != null) {
-    architectures =
-        architectureOption.split(',').map(Architecture.find).toList();
-  }
+  var architectureOption = options['arch'] as List<String>;
+  var architectures = [
+    if (architectureOption.isEmpty)
+      Architecture.x64
+    else if (!architectureOption.contains('all'))
+      ...architectureOption.map(Architecture.find)
+  ];
 
-  var mode = Mode.release;
-  if (options.containsKey('mode')) {
-    mode = Mode.find(options['mode'] as String);
-  }
-
-  Compiler compiler;
-  if (options.containsKey('compiler')) {
-    compiler = Compiler.find(options['compiler'] as String);
-  }
-
-  Runtime runtime;
-  if (options.containsKey('runtime')) {
-    runtime = Runtime.find(options['runtime'] as String);
-  }
+  var modes = [
+    if (options.containsKey('mode'))
+      ...(options['mode'] as List<String>).map(Mode.find)
+    else
+      Mode.release
+  ];
+  var compilers = [...(options['compiler'] as List<String>).map(Compiler.find)];
+  var runtimes = [...(options['runtime'] as List<String>).map(Runtime.find)];
 
   NnbdMode nnbdMode;
   if (options.containsKey('nnbd')) {
     nnbdMode = NnbdMode.find(options['nnbd'] as String);
   }
 
-  var names = <String>[];
+  var names = SplayTreeSet<String>();
   for (var configuration in testMatrix.configurations) {
     if (system != null && configuration.system != system) continue;
-    if (architectures != null &&
+    if (architectures.isNotEmpty &&
         !architectures.contains(configuration.architecture)) {
       continue;
     }
-    if (mode != null && configuration.mode != mode) continue;
-    if (compiler != null && configuration.compiler != compiler) continue;
-    if (runtime != null && configuration.runtime != runtime) continue;
+    if (modes.isNotEmpty && !modes.contains(configuration.mode)) continue;
+    if (compilers.isNotEmpty && !compilers.contains(configuration.compiler)) {
+      continue;
+    }
+    if (runtimes.isNotEmpty && !runtimes.contains(configuration.runtime)) {
+      continue;
+    }
     if (nnbdMode != null && configuration.nnbdMode != nnbdMode) continue;
 
     names.add(configuration.name);
   }
 
-  names.sort();
-
   var filters = [
     if (system != null) "system=$system",
-    if (architectures != null) "arch=${architectures.join(',')}",
-    if (mode != null) "mode=$mode",
-    if (compiler != null) "compiler=$compiler",
-    if (runtime != null) "runtime=$runtime",
+    if (architectures.isNotEmpty) "arch=$architectures",
+    if (modes.isNotEmpty) "mode=$modes",
+    if (compilers.isNotEmpty) "compiler=$compilers",
+    if (runtimes.isNotEmpty) "runtime=$runtimes",
     if (nnbdMode != null) "nnbd=$nnbdMode",
   ];
 
