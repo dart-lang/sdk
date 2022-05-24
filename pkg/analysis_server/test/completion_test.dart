@@ -2130,9 +2130,9 @@ class Q {
 !4part 'x';''',
         <String>[
           '1+library',
-          "2+import \'\';",
-          "3+export \'\';",
-          "4+part \'\';",
+          "2+import '';",
+          "3+export '';",
+          "4+part '';",
           '5+as',
           '6+hide',
           '7+show',

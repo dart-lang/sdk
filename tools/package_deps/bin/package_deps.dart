@@ -3,12 +3,18 @@ import 'dart:io';
 import 'package:cli_util/cli_logging.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
 const validateDEPS = false;
 
+late final bool verbose;
+late SdkDeps sdkDeps;
+
 void main(List<String> arguments) {
   Logger logger = Logger.standard();
+
+  verbose = arguments.contains('-v') || arguments.contains('--verbose');
 
   // validate the cwd
   if (!FileSystemEntity.isFileSync('DEPS') ||
@@ -39,16 +45,11 @@ void main(List<String> arguments) {
 
   List<String> pkgPackages = packages.map((p) => p.packageName).toList();
 
-  // Manually added directories (outside of pkg/).
-  List<String> alsoValidate = [
-    'tools/package_deps',
-  ];
-
-  for (String p in alsoValidate) {
-    packages.add(Package(p));
-  }
-
   packages.sort();
+
+  // Parse information about the SDK DEPS file and DEP'd in packages.
+  sdkDeps = SdkDeps(File('DEPS'));
+  sdkDeps.parse();
 
   var validateFailure = false;
 
@@ -69,17 +70,11 @@ void main(List<String> arguments) {
     print('SDK DEPS');
     print('');
 
-    var sdkDeps = SdkDeps(File('DEPS'));
-    sdkDeps.parse();
-
     List<String> deps = [...sdkDeps.pkgs, ...sdkDeps.testedPkgs]..sort();
     for (var pkg in deps) {
       final tested = sdkDeps.testedPkgs.contains(pkg);
       print('package:$pkg${tested ? ' [tested]' : ''}');
     }
-
-    // TODO(devoncarew): Validate that published packages solve against the
-    // versions brought in from the DEPS file.
 
     // TODO(devoncarew): Find unused entries in the DEPS file.
 
@@ -108,15 +103,15 @@ class Package implements Comparable<Package> {
   Package(this.dir) {
     var pubspec = File(path.join(dir, 'pubspec.yaml'));
     var doc = yaml.loadYamlDocument(pubspec.readAsStringSync());
-    dynamic docContents = doc.contents.value;
-    _packageName = docContents['name'];
-    _publishToNone = docContents['publish_to'] == 'none';
+    dynamic contents = doc.contents.value;
+    _packageName = contents['name'];
+    _publishToNone = contents['publish_to'] == 'none';
 
     Set<String> process(String section, List<PubDep> target) {
-      if (docContents[section] != null) {
-        final value = Set<String>.from(docContents[section].keys);
+      if (contents[section] != null) {
+        final value = Set<String>.from(contents[section].keys);
 
-        var deps = docContents[section];
+        var deps = contents[section];
         for (var package in deps.keys) {
           target.add(PubDep.parse(package, deps[package]));
         }
@@ -162,8 +157,6 @@ class Package implements Comparable<Package> {
     _collectDartFiles(Directory(dir), files);
 
     for (var file in files) {
-      //print('  ${file.path}');
-
       var importedPackages = <String>{};
 
       for (var import in _collectImports(file)) {
@@ -288,6 +281,42 @@ class Package implements Comparable<Package> {
       }
     }
 
+    // Validate that the version of any package dep'd in works with our declared
+    // version ranges.
+    for (PubDep dep in [..._declaredPubDeps, ..._declaredDevPubDeps]) {
+      if (dep is! SemverPubDep) {
+        continue;
+      }
+
+      ResolvedDep resolvedDep = sdkDeps.resolve(dep.name)!;
+      if (resolvedDep.isMonoRepoPackage) {
+        continue;
+      }
+
+      if (verbose) {
+        print('  ${dep.name} (${dep.value}) resolves '
+            'to ${resolvedDep.version}');
+      }
+
+      var declaredDep = VersionConstraint.parse(dep.value);
+      var resolvedVersion = resolvedDep.version;
+      if (resolvedVersion == null) {
+        // Depending on a package without a declared version is only legal if
+        // the package is not published (i.e., pkg/dartdev depends on
+        // package:pub, which is not a published and versioned package).
+        if (publishable) {
+          out('  Published packages must depend on packages with valid versions.');
+          out('    dependency ${dep.name} does not declare a version');
+          fail = true;
+        }
+      } else if (!declaredDep.allows(resolvedVersion)) {
+        out('  $packageName depends on ${dep.name} with a range of '
+            '${dep.value}, but the version of ${resolvedDep.packageName} '
+            'in the repo is ${resolvedDep.version}.');
+        fail = true;
+      }
+    }
+
     // Validate that non-published packages use relative a (relative) path dep
     // for pkg/ packages.
     if (!publishable) {
@@ -398,7 +427,7 @@ String _printSet(Set<String> value) {
   var list = value.toList()..sort();
   list = list.map((item) => 'package:$item').toList();
   if (list.length > 1) {
-    return list.sublist(0, list.length - 1).join(', ') + ' and ' + list.last;
+    return '${list.sublist(0, list.length - 1).join(', ')} and ${list.last}';
   } else {
     return list.join(', ');
   }
@@ -410,9 +439,20 @@ class SdkDeps {
   List<String> pkgs = [];
   List<String> testedPkgs = [];
 
+  final Map<String, ResolvedDep> _resolvedPackageVersions = {};
+
   SdkDeps(this.file);
 
   void parse() {
+    _parseDepsFile();
+    _parseRepoPackageVersions();
+  }
+
+  ResolvedDep? resolve(String packageName) {
+    return _resolvedPackageVersions[packageName];
+  }
+
+  void _parseDepsFile() {
     // Var("dart_root") + "/third_party/pkg/dart2js_info":
     final pkgRegExp = RegExp(r'"/third_party/pkg/(\S+)"');
 
@@ -432,6 +472,43 @@ class SdkDeps {
 
     pkgs.sort();
     testedPkgs.sort();
+  }
+
+  void _parseRepoPackageVersions() {
+    _findPackages(Directory('pkg'));
+    _findPackages(Directory(path.join('third_party', 'devtools')));
+    _findPackages(Directory(path.join('third_party', 'pkg')));
+    _findPackages(Directory(path.join('third_party', 'pkg_tested')));
+
+    if (verbose) {
+      print('Package versions in the SDK:');
+      for (var package in _resolvedPackageVersions.values) {
+        print('  ${package.packageName} at version ${package.version} '
+            '[${package.relativePath}]');
+      }
+      print('');
+    }
+  }
+
+  void _findPackages(Directory dir) {
+    var pubspec = File(path.join(dir.path, 'pubspec.yaml'));
+    if (pubspec.existsSync()) {
+      var doc = yaml.loadYamlDocument(pubspec.readAsStringSync());
+      dynamic contents = doc.contents.value;
+      var name = contents['name'];
+      var version = contents['version'];
+      var dep = ResolvedDep(
+        packageName: name,
+        relativePath: path.relative(dir.path),
+        version: version == null ? null : Version.parse(version),
+      );
+      _resolvedPackageVersions[name] = dep;
+    } else {
+      // Continue to recurse.
+      for (var subDir in dir.listSync().whereType<Directory>()) {
+        _findPackages(subDir);
+      }
+    }
   }
 }
 
@@ -478,4 +555,21 @@ class PathPubDep extends PubDep {
 
 class UnhandledPubDep extends PubDep {
   UnhandledPubDep(String name) : super(name);
+}
+
+class ResolvedDep {
+  final String packageName;
+  final String relativePath;
+  final Version? version;
+
+  ResolvedDep({
+    required this.packageName,
+    required this.relativePath,
+    this.version,
+  });
+
+  bool get isMonoRepoPackage => relativePath.startsWith('pkg');
+
+  @override
+  String toString() => '$packageName: $version';
 }

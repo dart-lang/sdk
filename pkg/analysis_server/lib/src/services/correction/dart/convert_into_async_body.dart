@@ -43,7 +43,4 @@ class ConvertIntoAsyncBody extends CorrectionProducer {
       builder.convertFunctionFromSyncToAsync(body, typeProvider);
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ConvertIntoAsyncBody newInstance() => ConvertIntoAsyncBody();
 }

@@ -29,56 +29,6 @@ import 'package:yaml/yaml.dart';
 ///
 /// If [embedderYamlPath] is provided, then libraries from this file are
 /// appended to the libraries of the specified SDK.
-@Deprecated('Use buildSdkSummary2() instead')
-Uint8List buildSdkSummary({
-  required ResourceProvider resourceProvider,
-  required String sdkPath,
-  String? embedderYamlPath,
-}) {
-  var sdk = FolderBasedDartSdk(
-    resourceProvider,
-    resourceProvider.getFolder(sdkPath),
-  );
-
-  // Append libraries from the embedder.
-  if (embedderYamlPath != null) {
-    var file = resourceProvider.getFile(embedderYamlPath);
-    var content = file.readAsStringSync();
-    var map = loadYaml(content) as YamlMap;
-    var embedderSdk = EmbedderSdk(
-      resourceProvider,
-      {file.parent: map},
-      languageVersion: sdk.languageVersion,
-    );
-    for (var library in embedderSdk.sdkLibraries) {
-      var uriStr = library.shortName;
-      if (sdk.libraryMap.getLibrary(uriStr) == null) {
-        sdk.libraryMap.setLibrary(uriStr, library);
-      }
-    }
-  }
-
-  var librarySources = sdk.sdkLibraries.map((e) {
-    return sdk.mapDartUri(e.shortName)!;
-  }).toList();
-
-  var analysisContext = AnalysisContextImpl(
-    SynchronousSession(AnalysisOptionsImpl(), DeclaredVariables()),
-    SourceFactory([DartUriResolver(sdk)]),
-  );
-
-  return _Builder(
-    analysisContext,
-    sdk.allowedExperimentsJson,
-    sdk.languageVersion,
-    librarySources,
-  ).build();
-}
-
-/// Build summary for SDK at the given [sdkPath].
-///
-/// If [embedderYamlPath] is provided, then libraries from this file are
-/// appended to the libraries of the specified SDK.
 Future<Uint8List> buildSdkSummary2({
   required ResourceProvider resourceProvider,
   required String sdkPath,
@@ -121,7 +71,7 @@ Future<Uint8List> buildSdkSummary2({
     sdk.allowedExperimentsJson,
     sdk.languageVersion,
     librarySources,
-  ).build2();
+  ).build();
 }
 
 class _Builder {
@@ -145,8 +95,7 @@ class _Builder {
   }
 
   /// Build the linked bundle and return its bytes.
-  @deprecated
-  Uint8List build() {
+  Future<Uint8List> build() async {
     librarySources.forEach(_addLibrary);
 
     var elementFactory = LinkedElementFactory(
@@ -157,38 +106,7 @@ class _Builder {
       Reference.root(),
     );
 
-    var linkResult = link(elementFactory, inputLibraries);
-
-    var bundleBuilder = PackageBundleBuilder();
-    for (var library in inputLibraries) {
-      bundleBuilder.addLibrary(
-        library.uriStr,
-        library.units.map((e) => e.uriStr).toList(),
-      );
-    }
-    return bundleBuilder.finish(
-      resolutionBytes: linkResult.resolutionBytes,
-      sdk: PackageBundleSdk(
-        languageVersionMajor: languageVersion.major,
-        languageVersionMinor: languageVersion.minor,
-        allowedExperimentsJson: allowedExperimentsJson,
-      ),
-    );
-  }
-
-  /// Build the linked bundle and return its bytes.
-  Future<Uint8List> build2() async {
-    librarySources.forEach(_addLibrary);
-
-    var elementFactory = LinkedElementFactory(
-      context,
-      AnalysisSessionImpl(
-        _FakeAnalysisDriver(),
-      ),
-      Reference.root(),
-    );
-
-    var linkResult = await link2(elementFactory, inputLibraries);
+    var linkResult = await link(elementFactory, inputLibraries);
 
     var bundleBuilder = PackageBundleBuilder();
     for (var library in inputLibraries) {

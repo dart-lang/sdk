@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.call_structure;
 
 import '../common/names.dart' show Names;
@@ -85,7 +87,7 @@ class CallStructure {
   factory CallStructure.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     int argumentCount = source.readInt();
-    List<String> namedArguments = source.readStrings();
+    List<String> namedArguments = source.readStrings() /*!*/;
     int typeArgumentCount = source.readInt();
     source.end(tag);
     return CallStructure(argumentCount, namedArguments, typeArgumentCount);

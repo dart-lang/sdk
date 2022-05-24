@@ -3,10 +3,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/macros/compiler/request_channel.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
-import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/ast.dart' show Component;
+import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 import 'package:kernel/verifier.dart' show verifyComponent;
 import 'package:mockito/mockito.dart';
@@ -15,15 +17,6 @@ import 'package:test/test.dart';
 import 'package:vm/incremental_compiler.dart';
 
 import '../lib/frontend_server.dart';
-
-class _MockedCompiler extends Mock implements CompilerInterface {}
-
-class _MockedIncrementalCompiler extends Mock implements IncrementalCompiler {}
-
-class _MockedBinaryPrinterFactory extends Mock implements BinaryPrinterFactory {
-}
-
-class _MockedBinaryPrinter extends Mock implements BinaryPrinter {}
 
 void main() async {
   group('basic', () {
@@ -1798,6 +1791,214 @@ class BarState extends State<FizzWidget> {
       });
     });
 
+    group('binary protocol', () {
+      var fileContentMap = <Uri, String>{};
+
+      setUp(() {
+        fileContentMap = {};
+      });
+
+      void addFileCallbacks(RequestChannel requestChannel) {
+        requestChannel.add('file.exists', (uriStr) async {
+          final uri = Uri.parse(uriStr as String);
+          return fileContentMap.containsKey(uri);
+        });
+        requestChannel.add('file.readAsBytes', (uriStr) async {
+          final uri = Uri.parse(uriStr as String);
+          final content = fileContentMap[uri];
+          return content != null ? utf8.encode(content) : Uint8List(0);
+        });
+        requestChannel.add('file.readAsStringSync', (uriStr) async {
+          final uri = Uri.parse(uriStr as String);
+          return fileContentMap[uri] ?? '';
+        });
+      }
+
+      Future<ServerSocket> loopbackServerSocket() async {
+        try {
+          return await ServerSocket.bind(InternetAddress.loopbackIPv6, 0);
+        } on SocketException catch (_) {
+          return await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+        }
+      }
+
+      Uri registerKernelBlob(Uint8List bytes) {
+        bytes = Uint8List.fromList(bytes);
+        return (Isolate.current as dynamic).createUriForKernelBlob(bytes);
+      }
+
+      Future<void> runWithServer(
+        Future<void> Function(RequestChannel) f,
+      ) async {
+        final testFinished = Completer<void>();
+        final serverSocket = await loopbackServerSocket();
+
+        serverSocket.listen((socket) async {
+          final requestChannel = RequestChannel(socket);
+
+          try {
+            await f(requestChannel);
+          } finally {
+            requestChannel.sendRequest('stop', {});
+            socket.destroy();
+            serverSocket.close();
+            testFinished.complete();
+          }
+        });
+
+        final host = serverSocket.address.address;
+        final addressStr = '$host:${serverSocket.port}';
+        expect(await starter(['--binary-protocol-address=${addressStr}']), 0);
+
+        await testFinished.future;
+      }
+
+      group('dill.put', () {
+        test('not Map argument', () async {
+          await runWithServer((requestChannel) async {
+            try {
+              await requestChannel.sendRequest<Uint8List>('dill.put', 42);
+              fail('Expected RemoteException');
+            } on RemoteException {}
+          });
+        });
+
+        test('no field: uri', () async {
+          await runWithServer((requestChannel) async {
+            try {
+              await requestChannel.sendRequest<Uint8List>('dill.put', {});
+              fail('Expected RemoteException');
+            } on RemoteException {}
+          });
+        });
+
+        test('no field: bytes', () async {
+          await runWithServer((requestChannel) async {
+            try {
+              await requestChannel.sendRequest<Uint8List>('dill.put', {
+                'uri': 'vm:dill',
+              });
+              fail('Expected RemoteException');
+            } on RemoteException {}
+          });
+        });
+
+        test('OK', () async {
+          await runWithServer((requestChannel) async {
+            await requestChannel.sendRequest<Uint8List>('dill.put', {
+              'uri': 'vm:dill',
+              'bytes': Uint8List(256),
+            });
+          });
+        });
+      });
+
+      group('dill.remove', () {
+        test('not Map argument', () async {
+          await runWithServer((requestChannel) async {
+            try {
+              await requestChannel.sendRequest<Uint8List>('dill.remove', 42);
+              fail('Expected RemoteException');
+            } on RemoteException {}
+          });
+        });
+
+        test('no field: uri', () async {
+          await runWithServer((requestChannel) async {
+            try {
+              await requestChannel.sendRequest<Uint8List>('dill.remove', {});
+              fail('Expected RemoteException');
+            } on RemoteException {}
+          });
+        });
+
+        test('OK', () async {
+          await runWithServer((requestChannel) async {
+            await requestChannel.sendRequest<Uint8List>('dill.remove', {
+              'uri': 'vm:dill',
+            });
+          });
+        });
+      });
+
+      group('kernelForProgram', () {
+        test('not Map argument', () async {
+          await runWithServer((requestChannel) async {
+            try {
+              await requestChannel.sendRequest<Uint8List>(
+                'kernelForProgram',
+                42,
+              );
+              fail('Expected RemoteException');
+            } on RemoteException {}
+          });
+        });
+
+        test('no field: sdkSummary', () async {
+          await runWithServer((requestChannel) async {
+            try {
+              await requestChannel.sendRequest<Uint8List>(
+                'kernelForProgram',
+                {},
+              );
+              fail('Expected RemoteException');
+            } on RemoteException {}
+          });
+        });
+
+        test('no field: uri', () async {
+          await runWithServer((requestChannel) async {
+            try {
+              await requestChannel.sendRequest<Uint8List>('kernelForProgram', {
+                'sdkSummary': 'dill:vm',
+              });
+              fail('Expected RemoteException');
+            } on RemoteException {}
+          });
+        });
+
+        test('compiles', () async {
+          await runWithServer((requestChannel) async {
+            addFileCallbacks(requestChannel);
+
+            await requestChannel.sendRequest<void>('dill.put', {
+              'uri': 'dill:vm',
+              'bytes': File(
+                path.join(
+                  path.dirname(path.dirname(Platform.resolvedExecutable)),
+                  'lib',
+                  '_internal',
+                  'vm_platform_strong.dill',
+                ),
+              ).readAsBytesSync(),
+            });
+
+            fileContentMap[Uri.parse('file:///home/test/lib/test.dart')] = r'''
+import 'dart:isolate';
+void main(List<String> arguments, SendPort sendPort) {
+  sendPort.send(42);
+}
+''';
+
+            final kernelBytes = await requestChannel.sendRequest<Uint8List>(
+              'kernelForProgram',
+              {
+                'sdkSummary': 'dill:vm',
+                'uri': 'file:///home/test/lib/test.dart',
+              },
+            );
+
+            expect(kernelBytes, hasLength(greaterThan(200)));
+            final kernelUri = registerKernelBlob(kernelBytes);
+
+            final receivePort = ReceivePort();
+            await Isolate.spawnUri(kernelUri, [], receivePort.sendPort);
+            expect(await receivePort.first, 42);
+          });
+        });
+      });
+    });
+
     test('compile to JavaScript', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {\n}\n");
@@ -2897,30 +3098,15 @@ class CompilationResult {
   }
 }
 
-class Result {
-  String status;
-  List<String> sources;
-
-  Result(this.status, this.sources);
-
-  void expectNoErrors({String filename}) {
-    var result = CompilationResult.parse(status);
-    expect(result.errorsCount, equals(0));
-    if (filename != null) {
-      expect(result.filename, equals(filename));
-    }
-  }
-}
-
 class OutputParser {
-  OutputParser(this._receivedResults);
   bool expectSources = true;
-
   StreamController<Result> _receivedResults;
-  List<String> _receivedSources;
 
+  List<String> _receivedSources;
   String _boundaryKey;
+
   bool _readingSources;
+  OutputParser(this._receivedResults);
 
   void listener(String s) {
     if (_boundaryKey == null) {
@@ -2959,3 +3145,27 @@ class OutputParser {
     }
   }
 }
+
+class Result {
+  String status;
+  List<String> sources;
+
+  Result(this.status, this.sources);
+
+  void expectNoErrors({String filename}) {
+    var result = CompilationResult.parse(status);
+    expect(result.errorsCount, equals(0));
+    if (filename != null) {
+      expect(result.filename, equals(filename));
+    }
+  }
+}
+
+class _MockedBinaryPrinter extends Mock implements BinaryPrinter {}
+
+class _MockedBinaryPrinterFactory extends Mock implements BinaryPrinterFactory {
+}
+
+class _MockedCompiler extends Mock implements CompilerInterface {}
+
+class _MockedIncrementalCompiler extends Mock implements IncrementalCompiler {}

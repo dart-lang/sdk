@@ -1521,9 +1521,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       {List<Keyword> allowedKeywords = noKeywords}) {
     _recordElementKind(context, node);
     if (inGenericContext) {
-      _recordElementKind(context + ' - generic', node);
+      _recordElementKind('$context - generic', node);
     } else {
-      _recordElementKind(context + ' - non-generic', node);
+      _recordElementKind('$context - non-generic', node);
     }
     _recordReferenceDepth(node);
     _recordTokenDistance(node);
@@ -1807,10 +1807,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       String descriptor, DartType parameterType, DartType argumentType,
       {bool isContextType = false}) {
     if (argumentType == parameterType) {
-      data.recordTypeMatch('$descriptor', 'exact');
+      data.recordTypeMatch(descriptor, 'exact');
       data.recordTypeMatch('all', 'exact');
     } else if (typeSystem.isSubtypeOf(argumentType, parameterType)) {
-      data.recordTypeMatch('$descriptor', 'subtype');
+      data.recordTypeMatch(descriptor, 'subtype');
       data.recordTypeMatch('all', 'subtype');
       if (isContextType &&
           argumentType is InterfaceType &&
@@ -1835,10 +1835,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         data.recordDistance('Subtype of context type (all)', distance);
       }
     } else if (typeSystem.isSubtypeOf(parameterType, argumentType)) {
-      data.recordTypeMatch('$descriptor', 'supertype');
+      data.recordTypeMatch(descriptor, 'supertype');
       data.recordTypeMatch('all', 'supertype');
     } else {
-      data.recordTypeMatch('$descriptor', 'unrelated');
+      data.recordTypeMatch(descriptor, 'unrelated');
       data.recordTypeMatch('all', 'unrelated');
     }
   }

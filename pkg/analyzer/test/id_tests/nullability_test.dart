@@ -6,16 +6,13 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
-import 'package:test/test.dart';
 
 import '../util/id_testing_helper.dart';
 
@@ -28,19 +25,6 @@ main(List<String> args) async {
       onFailure: onFailure,
       runTest: runTestFor(
           const _NullabilityDataComputer(), [analyzerDefaultConfig]));
-}
-
-class FlowTestBase {
-  late final FlowAnalysisDataForTesting flowResult;
-
-  /// Resolve the given [code] and track nullability in the unit.
-  Future<void> trackCode(String code) async {
-    TestResult<String> testResult = await checkTests(code,
-        const _NullabilityDataComputer(), FeatureSet.latestLanguageVersion());
-    if (testResult.hasFailures) {
-      fail('Failure(s)');
-    }
-  }
 }
 
 class _NullabilityDataComputer extends DataComputer<String> {

@@ -15,7 +15,6 @@ import 'code_actions_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FixesCodeActionsTest);
-    defineReflectiveTests(FixesCodeActionsWithNullSafetyTest);
   });
 }
 
@@ -35,7 +34,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     Future foo;
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -77,7 +76,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     Future foo;
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -111,7 +110,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     final expectedCreatedFile =
         path.join(path.dirname(mainFilePath), 'newfile.dart');
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -142,10 +141,10 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     Future foo;
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final ofKind = (CodeActionKind kind) => getCodeActions(
+    ofKind(CodeActionKind kind) => getCodeActions(
           mainFileUri.toString(),
           range: rangeFromMarkers(content),
           kinds: [kind],
@@ -156,6 +155,85 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     expect(await ofKind(CodeActionKind('quickfix.remove')), isNotEmpty);
     expect(await ofKind(CodeActionKind('quickfix.other')), isEmpty);
     expect(await ofKind(CodeActionKind.Refactor), isEmpty);
+  }
+
+  Future<void> test_fixAll_notWhenNoBatchFix() async {
+    // Some fixes (for example 'create function foo') are not available in the
+    // batch processor, so should not generate fix-all-in-file fixes even if there
+    // are multiple instances.
+    const content = '''
+var a = [[foo]]();
+var b = bar();
+    ''';
+
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final allFixes = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+
+    // Expect only the single-fix, there should be no apply-all.
+    expect(allFixes, hasLength(1));
+    final fixTitle = allFixes.first.map((f) => f.title, (f) => f.title);
+    expect(fixTitle, equals("Create function 'foo'"));
+  }
+
+  Future<void> test_fixAll_notWhenSingle() async {
+    const content = '''
+void f(String a) {
+  [[print(a!)]];
+}
+    ''';
+
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final fixAction = findEditAction(
+        codeActions, CodeActionKind('quickfix'), "Remove '!'s in file");
+
+    // Should not appear if there was only a single error.
+    expect(fixAction, isNull);
+  }
+
+  Future<void> test_fixAll_whenMultiple() async {
+    const content = '''
+void f(String a) {
+  [[print(a!!)]];
+  print(a!!);
+}
+    ''';
+
+    const expectedContent = '''
+void f(String a) {
+  print(a);
+  print(a);
+}
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final fixAction = findEditAction(
+        codeActions, CodeActionKind('quickfix'), "Remove '!'s in file")!;
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyChanges(contents, fixAction.edit!.changes!);
+    expect(contents[mainFilePath], equals(expectedContent));
   }
 
   Future<void> test_ignoreDiagnosticForFile() async {
@@ -182,7 +260,7 @@ import 'dart:async';
 import 'dart:convert';
 
 Future foo;''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -217,7 +295,7 @@ import 'dart:async';
 import 'dart:convert';
 
 Future foo;''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -239,12 +317,48 @@ Future foo;''';
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
+  Future<void> test_noDuplicates_differentFix() async {
+    // For convenience, quick-fixes are usually returned for the entire line,
+    // though this can lead to duplicate entries (by title) when multiple
+    // diagnostics have their own fixes of the same type.
+    //
+    // Expect only the only one nearest to the start of the range to be returned.
+    const content = '''
+    main() {
+      var a = [];
+      print(a!!);^
+    }
+    ''';
+
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final removeNnaAction = findEditActions(codeActions,
+        CodeActionKind('quickfix.remove.nonNullAssertion'), "Remove the '!'");
+
+    // Expect only one of the fixes.
+    expect(removeNnaAction, hasLength(1));
+
+    // Ensure the action is for the diagnostic on the second bang which was
+    // closest to the range requested.
+    final secondBangPos =
+        positionFromOffset(withoutMarkers(content).indexOf('!);'), content);
+    expect(removeNnaAction.first.diagnostics, hasLength(1));
+    final diagStart = removeNnaAction.first.diagnostics!.first.range.start;
+    expect(diagStart, equals(secondBangPos));
+  }
+
   Future<void> test_noDuplicates_sameFix() async {
     const content = '''
     var a = [Test, Test, Te[[]]st];
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -264,7 +378,7 @@ Future foo;''';
     var a = [Test, Test, Te[[]]st];
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
         textDocumentCapabilities: withCodeActionKinds(
             emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -281,7 +395,7 @@ Future foo;''';
   }
 
   Future<void> test_nonDartFile() async {
-    newFile2(pubspecFilePath, simplePubspecContent);
+    newFile(pubspecFilePath, simplePubspecContent);
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -294,7 +408,7 @@ Future foo;''';
 
   Future<void> test_organizeImportsFix_namedOrganizeImports() async {
     registerLintRules();
-    newFile2(analysisOptionsPath, '''
+    newFile(analysisOptionsPath, '''
 linter:
   rules:
     - directives_ordering
@@ -316,7 +430,7 @@ import 'dart:io';
 Completer a;
 ProcessInfo b;
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -343,7 +457,7 @@ ProcessInfo b;
   Future<void> test_outsideRoot() async {
     final otherFilePath = convertPath('/home/otherProject/foo.dart');
     final otherFileUri = Uri.file(otherFilePath);
-    newFile2(otherFilePath, 'bad code to create error');
+    newFile(otherFilePath, 'bad code to create error');
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -387,7 +501,7 @@ ProcessInfo b;
           request is plugin.EditGetFixesParams ? pluginResult : null,
     );
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -437,7 +551,7 @@ ProcessInfo b;
           request is plugin.EditGetFixesParams ? pluginResult : null,
     );
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -475,7 +589,7 @@ class A {
 }
 ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -523,7 +637,7 @@ main() {
 useFunction(int g(a, b)) {}
 ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -552,126 +666,5 @@ useFunction(int g(a, b)) {}
     };
     applyDocumentChanges(contents, edit.documentChanges!);
     expect(contents[mainFilePath], equals(expectedContent));
-  }
-}
-
-@reflectiveTest
-class FixesCodeActionsWithNullSafetyTest extends AbstractCodeActionsTest {
-  @override
-  String get testPackageLanguageVersion => latestLanguageVersion;
-
-  Future<void> test_fixAll_notWhenNoBatchFix() async {
-    // Some fixes (for example 'create function foo') are not available in the
-    // batch processor, so should not generate fix-all-in-file fixes even if there
-    // are multiple instances.
-    const content = '''
-var a = [[foo]]();
-var b = bar();
-    ''';
-
-    newFile2(mainFilePath, withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
-    );
-
-    final allFixes = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
-
-    // Expect only the single-fix, there should be no apply-all.
-    expect(allFixes, hasLength(1));
-    final fixTitle = allFixes.first.map((f) => f.title, (f) => f.title);
-    expect(fixTitle, equals("Create function 'foo'"));
-  }
-
-  Future<void> test_fixAll_notWhenSingle() async {
-    const content = '''
-void f(String a) {
-  [[print(a!)]];
-}
-    ''';
-
-    newFile2(mainFilePath, withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
-    );
-
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
-    final fixAction = findEditAction(
-        codeActions, CodeActionKind('quickfix'), "Remove '!'s in file");
-
-    // Should not appear if there was only a single error.
-    expect(fixAction, isNull);
-  }
-
-  Future<void> test_fixAll_whenMultiple() async {
-    const content = '''
-void f(String a) {
-  [[print(a!!)]];
-  print(a!!);
-}
-    ''';
-
-    const expectedContent = '''
-void f(String a) {
-  print(a);
-  print(a);
-}
-    ''';
-    newFile2(mainFilePath, withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
-    );
-
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
-    final fixAction = findEditAction(
-        codeActions, CodeActionKind('quickfix'), "Remove '!'s in file")!;
-
-    // Ensure applying the changes will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(content),
-    };
-    applyChanges(contents, fixAction.edit!.changes!);
-    expect(contents[mainFilePath], equals(expectedContent));
-  }
-
-  Future<void> test_noDuplicates_differentFix() async {
-    // For convenience, quick-fixes are usually returned for the entire line,
-    // though this can lead to duplicate entries (by title) when multiple
-    // diagnostics have their own fixes of the same type.
-    //
-    // Expect only the only one nearest to the start of the range to be returned.
-    const content = '''
-    main() {
-      var a = [];
-      print(a!!);^
-    }
-    ''';
-
-    newFile2(mainFilePath, withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
-    );
-
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        position: positionFromMarker(content));
-    final removeNnaAction = findEditActions(codeActions,
-        CodeActionKind('quickfix.remove.nonNullAssertion'), "Remove the '!'");
-
-    // Expect only one of the fixes.
-    expect(removeNnaAction, hasLength(1));
-
-    // Ensure the action is for the diagnostic on the second bang which was
-    // closest to the range requested.
-    final secondBangPos =
-        positionFromOffset(withoutMarkers(content).indexOf('!);'), content);
-    expect(removeNnaAction.first.diagnostics, hasLength(1));
-    final diagStart = removeNnaAction.first.diagnostics!.first.range.start;
-    expect(diagStart, equals(secondBangPos));
   }
 }

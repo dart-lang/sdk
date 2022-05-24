@@ -87,7 +87,7 @@ class EncapsulateField extends CorrectionProducer {
         var typeCode = '';
         var typeAnnotation = variableList.type;
         if (typeAnnotation != null) {
-          typeCode = utils.getNodeText(typeAnnotation) + ' ';
+          typeCode = '${utils.getNodeText(typeAnnotation)} ';
         }
 
         // Write getter.
@@ -112,7 +112,4 @@ class EncapsulateField extends CorrectionProducer {
       });
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static EncapsulateField newInstance() => EncapsulateField();
 }

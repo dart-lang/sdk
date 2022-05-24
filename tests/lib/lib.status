@@ -12,7 +12,8 @@ developer/timeline_test: Skip # Not supported
 isolate/issue_24243_parent_isolate_test: Skip # Requires checked mode
 
 [ $runtime == d8 ]
-js/js_util/javascriptobject_extensions_test.dart: SkipByDesign # Uses dart:html.
+js/js_util/javascriptobject_extensions_test: SkipByDesign # Uses dart:html.
+js/static_interop_test/futurevaluetype_test: SkipByDesign # Uses dart:html.
 
 [ $runtime == dart_precompiled ]
 isolate/package_config_getter_test: SkipByDesign # AOT mode doesn't preserve package structure.
@@ -54,6 +55,7 @@ js/js_util/properties_test: SkipByDesign # Issue 42085. CSP policy disallows inj
 js/method_call_on_object_test: SkipByDesign # Issue 42085.
 js/mock_test/*: SkipByDesign # Issue 42085.
 js/parameters_test: SkipByDesign # Issue 42085.
+js/trust_types_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 
 [ $compiler != dart2js && $compiler != dartdevk ]
 web/*: SkipByDesign

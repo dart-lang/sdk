@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class DuplicateHiddenNameTest extends PubPackageResolutionTest {
   test_hidden() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}
 class B {}
 ''');

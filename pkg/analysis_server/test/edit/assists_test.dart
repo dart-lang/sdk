@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
@@ -12,8 +11,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
-import '../mocks.dart';
+import '../analysis_server_base.dart';
 import '../src/plugin/plugin_manager_test.dart';
 
 void main() {
@@ -23,7 +21,7 @@ void main() {
 }
 
 @reflectiveTest
-class AssistsTest extends AbstractAnalysisTest {
+class AssistsTest extends PubPackageAnalysisServerTest {
   late List<SourceChange> changes;
 
   Future<void> prepareAssists(String search, [int length = 0]) async {
@@ -32,8 +30,9 @@ class AssistsTest extends AbstractAnalysisTest {
   }
 
   Future<void> prepareAssistsAt(int offset, int length) async {
-    var request = EditGetAssistsParams(testFile, offset, length).toRequest('0');
-    var response = await waitResponse(request);
+    var request =
+        EditGetAssistsParams(testFile.path, offset, length).toRequest('0');
+    var response = await handleSuccessfulRequest(request);
     var result = EditGetAssistsResult.fromResponse(response);
     changes = result.assists;
   }
@@ -41,8 +40,7 @@ class AssistsTest extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
-    handler = EditDomainHandler(server);
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_fromPlugins() async {
@@ -68,10 +66,11 @@ class AssistsTest extends AbstractAnalysisTest {
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = EditGetAssistsParams('test.dart', 0, 0).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
@@ -79,10 +78,11 @@ class AssistsTest extends AbstractAnalysisTest {
     var request =
         EditGetAssistsParams(convertPath('/foo/../bar/test.dart'), 0, 0)
             .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
@@ -142,11 +142,11 @@ main() {
     for (var change in changes) {
       if (change.message == message) {
         var resultCode =
-            SourceEdit.applySequence(testCode, change.edits[0].edits);
+            SourceEdit.applySequence(testFileContent, change.edits[0].edits);
         expect(resultCode, expectedCode);
         return;
       }
     }
-    fail('Expected to find |$message| in\n' + changes.join('\n'));
+    fail('Expected to find |$message| in\n${changes.join('\n')}');
   }
 }

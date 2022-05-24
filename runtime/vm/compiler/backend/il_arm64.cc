@@ -1270,7 +1270,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Reserve space for the arguments that go on the stack (if any), then align.
   __ ReserveAlignedFrameSpace(marshaller_.RequiredStackSpaceInBytes());
 
-  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp1);
+  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp1, temp2);
 
   if (compiler::Assembler::EmittingComments()) {
     __ Comment(is_leaf_ ? "Leaf Call" : "Call");
@@ -3247,7 +3247,7 @@ class CheckStackOverflowSlowPath
                                      instruction()->deopt_id(),
                                      instruction()->source());
     } else {
-      __ CallRuntime(kStackOverflowRuntimeEntry, kNumSlowPathArgs);
+      __ CallRuntime(kInterruptOrStackOverflowRuntimeEntry, kNumSlowPathArgs);
       compiler->EmitCallsiteMetadata(
           instruction()->source(), instruction()->deopt_id(),
           UntaggedPcDescriptors::kOther, instruction()->locs(), env);
@@ -4832,7 +4832,7 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kBIT_NOT:
-      __ mvn(result, value);
+      __ mvn_(result, value);
       // Remove inverted smi-tag.
       __ andi(result, result, compiler::Immediate(~kSmiTagMask));
       break;
@@ -6145,7 +6145,7 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register out = locs()->out(0).reg();
   switch (op_kind()) {
     case Token::kBIT_NOT:
-      __ mvn(out, left);
+      __ mvn_(out, left);
       break;
     case Token::kNEGATE:
       __ sub(out, ZR, compiler::Operand(left));

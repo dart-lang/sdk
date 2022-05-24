@@ -1,4 +1,3 @@
-// @dart = 2.9
 import 'import_via_prefix_lib.dart' as prefix;
 
 main() {}

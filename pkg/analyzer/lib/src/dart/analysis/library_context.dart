@@ -4,6 +4,8 @@
 
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
+    as macro;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
@@ -20,7 +22,7 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
-import 'package:analyzer/src/summary2/link.dart' as link2;
+import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -31,7 +33,7 @@ var counterLoadedLibraries = 0;
 var timerBundleToBytes = Stopwatch(); // TODO(scheglov) use
 var timerInputLibraries = Stopwatch();
 var timerLinking = Stopwatch();
-var timerLoad2 = Stopwatch();
+var timerLoad = Stopwatch();
 
 /// Context information necessary to analyze one or more libraries within an
 /// [AnalysisDriver].
@@ -43,6 +45,7 @@ class LibraryContext {
   final ByteStore byteStore;
   final FileSystemState fileSystemState;
   final MacroKernelBuilder? macroKernelBuilder;
+  final macro.MultiMacroExecutor? macroExecutor;
   final SummaryDataStore store = SummaryDataStore();
 
   late final AnalysisContextImpl analysisContext;
@@ -57,7 +60,8 @@ class LibraryContext {
     required AnalysisOptionsImpl analysisOptions,
     required DeclaredVariables declaredVariables,
     required SourceFactory sourceFactory,
-    this.macroKernelBuilder,
+    required this.macroKernelBuilder,
+    required this.macroExecutor,
     required SummaryDataStore? externalSummaries,
   }) {
     var synchronousSession =
@@ -92,6 +96,10 @@ class LibraryContext {
     return element as CompilationUnitElement;
   }
 
+  void dispose() {
+    elementFactory.dispose();
+  }
+
   /// Get the [LibraryElement] for the given library.
   LibraryElement getLibraryElement(Uri uri) {
     _createElementFactoryTypeProvider();
@@ -104,8 +112,8 @@ class LibraryContext {
   }
 
   /// Load data required to access elements of the given [targetLibrary].
-  void load2(FileState targetLibrary) {
-    timerLoad2.start();
+  Future<void> load(FileState targetLibrary) async {
+    timerLoad.start();
     var librariesTotal = 0;
     var librariesLoaded = 0;
     var librariesLinked = 0;
@@ -114,7 +122,7 @@ class LibraryContext {
     var bytesGet = 0;
     var bytesPut = 0;
 
-    void loadBundle(LibraryCycle cycle) {
+    Future<void> loadBundle(LibraryCycle cycle) async {
       if (cycle.libraries.isEmpty ||
           elementFactory.hasLibrary(cycle.libraries.first.uriStr)) {
         return;
@@ -122,7 +130,9 @@ class LibraryContext {
 
       librariesTotal += cycle.libraries.length;
 
-      cycle.directDependencies.forEach(loadBundle);
+      for (var directDependency in cycle.directDependencies) {
+        await loadBundle(directDependency);
+      }
 
       var unitsInformativeBytes = <Uri, Uint8List>{};
       var macroLibraries = <MacroLibrary>[];
@@ -150,7 +160,7 @@ class LibraryContext {
         }
       }
 
-      var resolutionKey = cycle.transitiveSignature + '.linked_bundle';
+      var resolutionKey = '${cycle.transitiveSignature}.linked_bundle';
       var resolutionBytes = byteStore.get(resolutionKey);
 
       if (resolutionBytes == null) {
@@ -162,11 +172,11 @@ class LibraryContext {
 
         timerInputLibraries.start();
         inputsTimer.start();
-        var inputLibraries = <link2.LinkInputLibrary>[];
+        var inputLibraries = <LinkInputLibrary>[];
         for (var libraryFile in cycle.libraries) {
           var librarySource = libraryFile.source;
 
-          var inputUnits = <link2.LinkInputUnit>[];
+          var inputUnits = <LinkInputUnit>[];
           var partIndex = -1;
           for (var file in libraryFile.libraryFiles) {
             var isSynthetic = !file.exists;
@@ -179,7 +189,7 @@ class LibraryContext {
             partIndex++;
 
             inputUnits.add(
-              link2.LinkInputUnit(
+              LinkInputUnit(
                 // TODO(scheglov) bad, group part data
                 partDirectiveIndex: partIndex - 1,
                 partUriStr: partUriStr,
@@ -192,7 +202,7 @@ class LibraryContext {
           }
 
           inputLibraries.add(
-            link2.LinkInputLibrary(
+            LinkInputLibrary(
               source: librarySource,
               units: inputUnits,
             ),
@@ -201,12 +211,11 @@ class LibraryContext {
         inputsTimer.stop();
         timerInputLibraries.stop();
 
-        link2.LinkResult linkResult;
+        LinkResult linkResult;
         try {
           timerLinking.start();
-          // TODO(scheglov) Migrate when we are ready to switch to async.
-          // ignore: deprecated_member_use_from_same_package
-          linkResult = link2.link(elementFactory, inputLibraries);
+          linkResult = await link(elementFactory, inputLibraries,
+              macroExecutor: macroExecutor);
           librariesLinked += cycle.libraries.length;
           counterLinkedLibraries += inputLibraries.length;
           timerLinking.stop();
@@ -235,19 +244,38 @@ class LibraryContext {
 
       final macroKernelBuilder = this.macroKernelBuilder;
       if (macroKernelBuilder != null && macroLibraries.isNotEmpty) {
-        var macroKernelKey = cycle.transitiveSignature + '.macro_kernel';
-        var macroKernelBytes = macroKernelBuilder.build(
-          fileSystem: _MacroFileSystem(fileSystemState),
-          libraries: macroLibraries,
-        );
-        byteStore.put(macroKernelKey, macroKernelBytes);
-        bytesPut += macroKernelBytes.length;
+        var macroKernelKey = '${cycle.transitiveSignature}.macro_kernel';
+        var macroKernelBytes = byteStore.get(macroKernelKey);
+        if (macroKernelBytes == null) {
+          macroKernelBytes = await macroKernelBuilder.build(
+            fileSystem: _MacroFileSystem(fileSystemState),
+            libraries: macroLibraries,
+          );
+          byteStore.put(macroKernelKey, macroKernelBytes);
+          bytesPut += macroKernelBytes.length;
+        } else {
+          bytesGet += macroKernelBytes.length;
+        }
+
+        final macroExecutor = this.macroExecutor;
+        if (macroExecutor != null) {
+          var bundleMacroExecutor = BundleMacroExecutor(
+            macroExecutor: macroExecutor,
+            kernelBytes: macroKernelBytes,
+            libraries: cycle.libraries.map((e) => e.uri).toSet(),
+          );
+          for (var libraryFile in cycle.libraries) {
+            var libraryUriStr = libraryFile.uriStr;
+            var libraryElement = elementFactory.libraryOfUri2(libraryUriStr);
+            libraryElement.bundleMacroExecutor = bundleMacroExecutor;
+          }
+        }
       }
     }
 
-    logger.run('Prepare linked bundles', () {
+    await logger.runAsync('Prepare linked bundles', () async {
       var libraryCycle = targetLibrary.libraryCycle;
-      loadBundle(libraryCycle);
+      await loadBundle(libraryCycle);
       logger.writeln(
         '[librariesTotal: $librariesTotal]'
         '[librariesLoaded: $librariesLoaded]'
@@ -263,7 +291,7 @@ class LibraryContext {
     // exists without doing any work. But the type provider must be created.
     _createElementFactoryTypeProvider();
 
-    timerLoad2.stop();
+    timerLoad.stop();
   }
 
   /// Ensure that type provider is created.

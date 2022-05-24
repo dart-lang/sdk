@@ -1,4 +1,3 @@
-// @dart = 2.9
 extension Extension on String {
   static method() {}
   static get getter => null;

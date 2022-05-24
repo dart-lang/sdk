@@ -46,6 +46,7 @@ part of dart.ffi;
 /// Instances of a subclass of [Union] have reference semantics and are backed
 /// by native memory. The may allocated via allocation or loaded from a
 /// [Pointer], but cannot be created by a generative constructor.
+@Since('2.14')
 abstract class Union extends _Compound {
   /// Construct a reference to the [nullptr].
   ///

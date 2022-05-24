@@ -28,12 +28,12 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   /// Warning popups sent to the user.
   final shownWarnings = <lsp.ShowMessageParams>[];
 
-  MockLspServerChannel(bool _printMessages) {
-    if (_printMessages) {
+  MockLspServerChannel(bool printMessages) {
+    if (printMessages) {
       _serverToClient.stream
-          .listen((message) => print('<== ' + jsonEncode(message)));
+          .listen((message) => print('<== ${jsonEncode(message)}'));
       _clientToServer.stream
-          .listen((message) => print('==> ' + jsonEncode(message)));
+          .listen((message) => print('==> ${jsonEncode(message)}'));
     }
 
     // Keep track of any errors/warnings that are sent to the user with
@@ -75,9 +75,10 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   }
 
   @override
-  void listen(void Function(lsp.Message message) onMessage,
+  StreamSubscription<void> listen(void Function(lsp.Message message) onMessage,
       {Function? onError, void Function()? onDone}) {
-    _clientToServer.stream.listen(onMessage, onError: onError, onDone: onDone);
+    return _clientToServer.stream
+        .listen(onMessage, onError: onError, onDone: onDone);
   }
 
   @override

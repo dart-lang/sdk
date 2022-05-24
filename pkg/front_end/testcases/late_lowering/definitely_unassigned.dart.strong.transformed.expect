@@ -118,7 +118,7 @@ static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect = <T e
     return let final FutureOr<core::int>? #t2 = #local6 in #t2 == null ?{FutureOr<core::int>} throw new _in::LateError::localNI("local6") : #t2{FutureOr<core::int>};
   function #local6#set(FutureOr<core::int>local6#param) → dynamic
     return #local6 = local6#param;
-  lowered T? #local7;
+  lowered has-declared-initializer T? #local7;
   lowered core::bool #local7#isSet = false;
   function #local7#get() → T% {
     if(!#local7#isSet) {
@@ -173,7 +173,7 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldC
     return let final FutureOr<core::int>? #t4 = #local6 in #t4 == null ?{FutureOr<core::int>} throw new _in::LateError::localNI("local6") : #t4{FutureOr<core::int>};
   function #local6#set(FutureOr<core::int>local6#param) → dynamic
     return #local6 = local6#param;
-  lowered T? #local7;
+  lowered has-declared-initializer T? #local7;
   lowered core::bool #local7#isSet = false;
   function #local7#get() → T% {
     if(!#local7#isSet) {
@@ -245,7 +245,7 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
     return let final FutureOr<core::int>? #t7 = #local6 in #t7 == null ?{FutureOr<core::int>} throw new _in::LateError::localNI("local6") : #t7{FutureOr<core::int>};
   function #local6#set(FutureOr<core::int>local6#param) → dynamic
     return #local6 = local6#param;
-  lowered self::methodDirect::T? #local7;
+  lowered has-declared-initializer self::methodDirect::T? #local7;
   lowered core::bool #local7#isSet = false;
   function #local7#get() → self::methodDirect::T% {
     if(!#local7#isSet) {
@@ -300,7 +300,7 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
     return let final FutureOr<core::int>? #t9 = #local6 in #t9 == null ?{FutureOr<core::int>} throw new _in::LateError::localNI("local6") : #t9{FutureOr<core::int>};
   function #local6#set(FutureOr<core::int>local6#param) → dynamic
     return #local6 = local6#param;
-  lowered self::methodConditional::T? #local7;
+  lowered has-declared-initializer self::methodConditional::T? #local7;
   lowered core::bool #local7#isSet = false;
   function #local7#get() → self::methodConditional::T% {
     if(!#local7#isSet) {

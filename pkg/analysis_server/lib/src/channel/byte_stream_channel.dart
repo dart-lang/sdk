@@ -62,7 +62,7 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
   @override
   Future<Response> sendRequest(Request request) async {
     var id = request.id;
-    output.write(json.encode(request.toJson()) + '\n');
+    output.write('${json.encode(request.toJson())}\n');
     return await responseStream
         .firstWhere((Response response) => response.id == id);
   }

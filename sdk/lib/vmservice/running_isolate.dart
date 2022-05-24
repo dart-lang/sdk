@@ -14,7 +14,7 @@ class RunningIsolate implements MessageRouter {
 
   void onIsolateExit() {
     pendingMessagesReceivePorts.forEach((port) {
-      (port as RawReceivePort).close();
+      port.close();
     });
   }
 

@@ -68,7 +68,4 @@ class ReplaceWithNotNullAware extends CorrectionProducer {
       });
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ReplaceWithNotNullAware newInstance() => ReplaceWithNotNullAware();
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library js_backend.backend.codegen_listener;
 
 import 'dart:collection';
@@ -10,6 +12,7 @@ import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../common/names.dart' show Identifiers;
 import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../elements/entities_parameter_structure_methods.dart';
 import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueuerListener;
 import '../native/enqueue.dart';

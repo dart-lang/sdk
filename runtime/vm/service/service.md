@@ -2446,6 +2446,9 @@ class @Field extends @Object {
 
   // The owner of this field, which can be either a Library or a
   // Class.
+  //
+  // Note: the location of `owner` may not agree with `location` if this is a field
+  // from a mixin application, patched class, etc.
   @Object owner;
 
   // The declared type of this field.
@@ -2464,6 +2467,9 @@ class @Field extends @Object {
   bool static;
 
   // The location of this field in the source code.
+  //
+  // Note: this may not agree with the location of `owner` if this is a field
+  // from a mixin application, patched class, etc.
   SourceLocation location [optional];
 }
 ```
@@ -2477,6 +2483,9 @@ class Field extends Object {
 
   // The owner of this field, which can be either a Library or a
   // Class.
+  //
+  // Note: the location of `owner` may not agree with `location` if this is a field
+  // from a mixin application, patched class, etc.
   @Object owner;
 
   // The declared type of this field.
@@ -2495,6 +2504,9 @@ class Field extends Object {
   bool static;
 
   // The location of this field in the source code.
+  //
+  // Note: this may not agree with the location of `owner` if this is a field
+  // from a mixin application, patched class, etc.
   SourceLocation location [optional];
 
   // The value of this field, if the field is static. If uninitialized,
@@ -2561,6 +2573,10 @@ class @Function extends @Object {
   string name;
 
   // The owner of this function, which can be a Library, Class, or a Function.
+  //
+  // Note: the location of `owner` may not agree with `location` if this is a
+  // function from a mixin application, expression evaluation, patched class,
+  // etc.
   @Library|@Class|@Function owner;
 
   // Is this function static?
@@ -2573,6 +2589,9 @@ class @Function extends @Object {
   bool implicit;
 
   // The location of this function in the source code.
+  //
+  // Note: this may not agree with the location of `owner` if this is a function
+  // from a mixin application, expression evaluation, patched class, etc.
   SourceLocation location [optional];
 }
 ```
@@ -2586,6 +2605,10 @@ class Function extends Object {
   string name;
 
   // The owner of this function, which can be a Library, Class, or a Function.
+  //
+  // Note: the location of `owner` may not agree with `location` if this is a
+  // function from a mixin application, expression evaluation, patched class,
+  // etc.
   @Library|@Class|@Function owner;
 
   // Is this function static?
@@ -2598,6 +2621,9 @@ class Function extends Object {
   bool implicit;
 
   // The location of this function in the source code.
+  //
+  // Note: this may not agree with the location of `owner` if this is a function
+  // from a mixin application, expression evaluation, patched class, etc.
   SourceLocation location [optional];
 
   // The signature of the function.

@@ -92,18 +92,18 @@ class UpdateContentTest extends PubPackageAnalysisServerTest {
         ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
     );
 
-    var aaa = newFile2('$workspaceRootPath/aaa/lib/aaa.dart', r'''
+    var aaa = newFile('$workspaceRootPath/aaa/lib/aaa.dart', r'''
 void f(int _) {}
 ''');
 
-    var foo = newFile2('$workspaceRootPath/foo/lib/foo.dart', r'''
+    var foo = newFile('$workspaceRootPath/foo/lib/foo.dart', r'''
 import 'package:aaa/aaa.dart';
 void main() {
   f();
 }
 ''');
 
-    var bar = newFile2('$workspaceRootPath/bar/lib/bar.dart', r'''
+    var bar = newFile('$workspaceRootPath/bar/lib/bar.dart', r'''
 import 'package:aaa/aaa.dart';
 void main() {
   f();
@@ -168,7 +168,7 @@ void main() {
   }
 
   Future<void> test_overlayOnly() async {
-    var a = newFile2('$testPackageLibPath/a.dart', '');
+    var a = newFile('$testPackageLibPath/a.dart', '');
     var b = getFile('$testPackageLibPath/b.dart');
 
     await setRoots(included: [workspaceRootPath], excluded: []);

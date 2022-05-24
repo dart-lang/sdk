@@ -707,9 +707,8 @@ CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION:
 CompileTimeErrorCode.NON_BOOL_OPERAND:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR:
-  status: needsFix
+  status: hasFix
   since: 2.17
-  issue: https://github.com/dart-lang/sdk/issues/48479
 CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR:
@@ -954,7 +953,8 @@ CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER:
 CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT:
   status: hasFix
 CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT:
-  status: needsEvaluation
+  status: hasFix
+  issue: https://github.com/dart-lang/sdk/issues/47643
 CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED:
   status: needsFix
   since: 2.17
@@ -1418,6 +1418,8 @@ HintCode.UNIGNORABLE_IGNORE:
   status: needsEvaluation
 HintCode.UNNECESSARY_CAST:
   status: hasFix
+HintCode.UNNECESSARY_FINAL:
+  status: needsEvaluation
 HintCode.UNNECESSARY_IGNORE:
   status: needsEvaluation
 HintCode.UNNECESSARY_IMPORT:
@@ -1742,7 +1744,7 @@ LintCode.prefer_for_elements_to_map_fromIterable:
 LintCode.prefer_foreach:
   status: needsEvaluation
 LintCode.prefer_function_declarations_over_variables:
-  status: needsEvaluation
+  status: hasFix
 LintCode.prefer_generic_function_type_aliases:
   status: hasFix
 LintCode.prefer_if_elements_to_conditional_expressions:
@@ -2336,7 +2338,7 @@ ParserErrorCode.VAR_CLASS:
 ParserErrorCode.VAR_ENUM:
   status: needsEvaluation
 ParserErrorCode.VAR_RETURN_TYPE:
-  status: needsEvaluation
+  status: hasFix
 ParserErrorCode.VAR_TYPEDEF:
   status: needsEvaluation
 ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS:

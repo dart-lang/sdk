@@ -38,9 +38,9 @@ main(List<String> args) {
 
   for (var file in context.files) {
     print("=" * 40);
-    print('${file.path}');
+    print(file.path);
     print("-" * 40);
-    print('${file.content}');
+    print(file.content);
     print('');
     print('');
     print('');

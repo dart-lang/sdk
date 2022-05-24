@@ -7024,6 +7024,67 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
+    templateJsInteropStaticInteropTrustTypesUsageNotAllowed =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""JS interop class '#name' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk.""",
+        correctionMessageTemplate:
+            r"""Try removing the `@trustTypes` annotation.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropTrustTypesUsageNotAllowed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropStaticInteropTrustTypesUsageNotAllowed =
+    const Code<Message Function(String name)>(
+  "JsInteropStaticInteropTrustTypesUsageNotAllowed",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropTrustTypesUsageNotAllowed(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropStaticInteropTrustTypesUsageNotAllowed,
+      problemMessage:
+          """JS interop class '${name}' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk.""",
+      correctionMessage: """Try removing the `@trustTypes` annotation.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""JS interop class '#name' has an `@trustTypes` annotation, but no `@staticInterop` annotation.""",
+        correctionMessageTemplate:
+            r"""Try marking the class using `@staticInterop`.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop =
+    const Code<Message Function(String name)>(
+  "JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+      codeJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop,
+      problemMessage:
+          """JS interop class '${name}' has an `@trustTypes` annotation, but no `@staticInterop` annotation.""",
+      correctionMessage: """Try marking the class using `@staticInterop`.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
     templateJsInteropStaticInteropWithInstanceMembers =
     const Template<Message Function(String name)>(
         problemMessageTemplate:

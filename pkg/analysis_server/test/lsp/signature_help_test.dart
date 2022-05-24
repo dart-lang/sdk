@@ -11,7 +11,6 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SignatureHelpTest);
-    defineReflectiveTests(SignatureHelpWithNullSafetyTest);
   });
 }
 
@@ -411,6 +410,34 @@ void f() {
     );
   }
 
+  Future<void> test_params_requiredNamed() async {
+    // This test requires support for the "required" keyword.
+    final content = '''
+    /// Does foo.
+    foo(String s, {bool? b = true, required bool a}) {
+      foo(^);
+    }
+    ''';
+
+    final expectedLabel = 'foo(String s, {bool? b = true, required bool a})';
+    final expectedDoc = 'Does foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'bool? b = true'),
+        ParameterInformation(label: 'required bool a'),
+      ],
+    );
+  }
+
   Future<void> test_simple() async {
     final content = '''
     /// Does foo.
@@ -582,7 +609,7 @@ void f() {
     final expectedLabel = 'foo(String s, int i)';
     final expectedDoc = 'Does foo.';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
         textDocumentCapabilities: withSignatureHelpContentFormat(
             emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
@@ -593,41 +620,6 @@ void f() {
       [
         ParameterInformation(label: 'String s'),
         ParameterInformation(label: 'int i'),
-      ],
-    );
-  }
-}
-
-@reflectiveTest
-class SignatureHelpWithNullSafetyTest extends AbstractLspAnalysisServerTest
-    with SignatureHelpMixin {
-  @override
-  String get testPackageLanguageVersion => latestLanguageVersion;
-
-  Future<void> test_params_requiredNamed() async {
-    // This test requires support for the "required" keyword.
-    final content = '''
-    /// Does foo.
-    foo(String s, {bool? b = true, required bool a}) {
-      foo(^);
-    }
-    ''';
-
-    final expectedLabel = 'foo(String s, {bool? b = true, required bool a})';
-    final expectedDoc = 'Does foo.';
-
-    await initialize(
-        textDocumentCapabilities: withSignatureHelpContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    await testSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'bool? b = true'),
-        ParameterInformation(label: 'required bool a'),
       ],
     );
   }

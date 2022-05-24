@@ -9,7 +9,6 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart'
     show DartType, DynamicType, Expression, VariableDeclaration;
-import 'package:kernel/src/legacy_erasure.dart';
 
 import '../constant_context.dart' show ConstantContext;
 import '../kernel/body_builder.dart' show BodyBuilder;
@@ -147,9 +146,6 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       SourceLibraryBuilder library, int functionNestingLevel) {
     if (variable == null) {
       DartType? builtType = type?.build(library);
-      if (!library.isNonNullableByDefault && builtType != null) {
-        builtType = legacyErasure(builtType);
-      }
       variable = new VariableDeclarationImpl(
           name == noNameSentinel ? null : name, functionNestingLevel,
           type: builtType,
@@ -170,8 +166,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
-    // TODO(dmitryas):  It's not clear how [metadata] is used currently, and
-    // how it should be cloned.  Consider cloning it instead of reusing it.
+    // TODO(cstefantsova):  It's not clear how [metadata] is used currently,
+    // and how it should be cloned.  Consider cloning it instead of reusing it.
     return new FunctionTypeParameterBuilder(metadata, kind,
         type?.clone(newTypes, contextLibrary, contextDeclaration), name);
   }
@@ -285,8 +281,8 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
       List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
-    // TODO(dmitryas):  It's not clear how [metadata] is used currently, and
-    // how it should be cloned.  Consider cloning it instead of reusing it.
+    // TODO(cstefantsova):  It's not clear how [metadata] is used currently,
+    // and how it should be cloned.  Consider cloning it instead of reusing it.
     return new FunctionTypeParameterBuilder(metadata, kind,
         type?.clone(newTypes, contextLibrary, contextDeclaration), name);
   }

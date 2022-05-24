@@ -87,7 +87,7 @@ library;
 import self as self2;
 import "dart:core" as core;
 
-typedef F = () →? void;
+typedef F = () →* void;
 class A<T extends core::Object* = dynamic> extends core::Object {
   field core::int* field;
   synthetic constructor •() → self2::A<self2::A::T*>*
@@ -107,8 +107,8 @@ class B extends self2::A<core::String*> {
   synthetic constructor •() → self2::B*
     ;
 }
-static field core::List<core::String?>* l;
-static field core::String? s;
+static field core::List<core::String*>* l;
+static field core::String* s;
 static field core::String* t;
 static field core::int* field;
 static method method(() →* void f, {core::int* a}) → void

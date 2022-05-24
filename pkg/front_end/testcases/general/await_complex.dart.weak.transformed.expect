@@ -441,7 +441,7 @@ static method controlFlow() → dynamic /* futureValueType= dynamic */ /* origin
                 core::int #t33;
                 #L8:
                 while (true) {
-                  core::int i;
+                  has-declared-initializer core::int i;
                   if(#t32) {
                     #t32 = false;
                     [yield] let dynamic #t34 = asy::_awaitHelper(func<core::int>(0){(core::int) → FutureOr<core::int>}, :async_op_then, :async_op_error) in null;

@@ -10,7 +10,6 @@ import 'dart:convert';
 
 import 'package:async/async.dart';
 import 'package:mockito/mockito.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 

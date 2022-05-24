@@ -392,20 +392,10 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
 
   @override
   Future<MacroInstanceIdentifier> instantiateMacro(
-          MacroClassIdentifier macroClass,
-          String constructor,
-          Arguments arguments) =>
+          Uri library, String name, String constructor, Arguments arguments) =>
       _sendRequest((zoneId) => new InstantiateMacroRequest(
-          macroClass, constructor, arguments, RemoteInstance.uniqueId,
+          library, name, constructor, arguments, RemoteInstance.uniqueId,
           serializationZoneId: zoneId));
-
-  /// These calls are handled by the higher level executor.
-  @override
-  Future<MacroClassIdentifier> loadMacro(Uri library, String name,
-          {Uri? precompiledKernelUri}) =>
-      throw new StateError(
-          'This executor should be wrapped in a MultiMacroExecutor which will '
-          'handle load requests.');
 
   /// Sends [serializer.result] to [sendPort], possibly wrapping it in a
   /// [TransferableTypedData] object.

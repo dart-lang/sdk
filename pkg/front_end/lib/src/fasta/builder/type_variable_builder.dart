@@ -132,16 +132,18 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     }
     // If the bound is not set yet, the actual value is not important yet as it
     // will be set later.
-    bool needsPostUpdate = false;
+    bool needsPostUpdate = nullabilityBuilder.isOmitted &&
+            identical(parameter.bound, TypeParameter.unsetBoundSentinel) ||
+        library is SourceLibraryBuilder &&
+            library.hasPendingNullability(parameter.bound);
     Nullability nullability;
     if (nullabilityBuilder.isOmitted) {
-      if (!identical(parameter.bound, TypeParameter.unsetBoundSentinel)) {
+      if (needsPostUpdate) {
+        nullability = Nullability.legacy;
+      } else {
         nullability = library.isNonNullableByDefault
             ? TypeParameterType.computeNullabilityFromBound(parameter)
             : Nullability.legacy;
-      } else {
-        nullability = Nullability.legacy;
-        needsPostUpdate = true;
       }
     } else {
       nullability = nullabilityBuilder.build(library);
@@ -208,9 +210,9 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
       List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
-    // TODO(dmitryas): Figure out if using [charOffset] here is a good idea.
-    // An alternative is to use the offset of the node the cloned type variable
-    // is declared on.
+    // TODO(cstefantsova): Figure out if using [charOffset] here is a good
+    // idea.  An alternative is to use the offset of the node the cloned type
+    // variable is declared on.
     return new TypeVariableBuilder(name, parent!, charOffset, fileUri,
         bound: bound?.clone(newTypes, contextLibrary, contextDeclaration),
         variableVariance: variance,

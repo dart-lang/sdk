@@ -1,22 +1,12 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  synthetic constructor •() → self::Class*
+  synthetic constructor •() → self::Class
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-extension Extension on self::Class* {
+extension Extension on self::Class {
   method method0 = self::Extension|method0;
   tearoff method0 = self::Extension|get#method0;
   method method1 = self::Extension|method1;
@@ -27,21 +17,21 @@ extension Extension on self::Class* {
   tearoff method3 = self::Extension|get#method3;
   static method staticMethod = self::Extension|staticMethod;
 }
-static method Extension|method0(lowered final self::Class* #this, [dynamic a]) → dynamic
+static method Extension|method0(lowered final self::Class #this, [dynamic a]) → dynamic
   ;
-static method Extension|get#method0(lowered final self::Class* #this) → ([dynamic]) →* dynamic
+static method Extension|get#method0(lowered final self::Class #this) → ([dynamic]) → dynamic
   return ([dynamic a]) → dynamic => self::Extension|method0(#this, a);
-static method Extension|method1(lowered final self::Class* #this, [dynamic a]) → dynamic
+static method Extension|method1(lowered final self::Class #this, [has-declared-initializer dynamic a]) → dynamic
   ;
-static method Extension|get#method1(lowered final self::Class* #this) → ([dynamic]) →* dynamic
+static method Extension|get#method1(lowered final self::Class #this) → ([dynamic]) → dynamic
   return ([dynamic a]) → dynamic => self::Extension|method1(#this, a);
-static method Extension|method2(lowered final self::Class* #this, {dynamic b}) → dynamic
+static method Extension|method2(lowered final self::Class #this, {has-declared-initializer dynamic b}) → dynamic
   ;
-static method Extension|get#method2(lowered final self::Class* #this) → ({b: dynamic}) →* dynamic
+static method Extension|get#method2(lowered final self::Class #this) → ({b: dynamic}) → dynamic
   return ({dynamic b}) → dynamic => self::Extension|method2(#this, b: b);
-static method Extension|method3(lowered final self::Class* #this, {dynamic c}) → dynamic
+static method Extension|method3(lowered final self::Class #this, {has-declared-initializer dynamic c}) → dynamic
   ;
-static method Extension|get#method3(lowered final self::Class* #this) → ({c: dynamic}) →* dynamic
+static method Extension|get#method3(lowered final self::Class #this) → ({c: dynamic}) → dynamic
   return ({dynamic c}) → dynamic => self::Extension|method3(#this, c: c);
 static method Extension|staticMethod() → dynamic
   ;

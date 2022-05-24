@@ -14,15 +14,16 @@
 #include "vm/object.h"
 #include "vm/simulator.h"
 
-#if defined(DART_HOST_OS_IOS)
+#if !defined(TARGET_HOST_MISMATCH)
+#if defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_IOS)
 #include <libkern/OSCacheControl.h>
 #elif defined(DART_HOST_OS_WINDOWS)
 #include <processthreadsapi.h>
 #endif
-
-#if !defined(TARGET_HOST_MISMATCH)
-#include <sys/syscall.h> /* NOLINT */
-#include <unistd.h>      /* NOLINT */
+#if !defined(DART_HOST_OS_WINDOWS)
+#include <string.h>      /* NOLINT */
+#include <sys/utsname.h> /* NOLINT */
+#endif
 #endif
 
 // ARM version differences.
@@ -148,20 +149,27 @@ void HostCPUFeatures::Init() {
   CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
 
+  // QEMU may report host cpuinfo instead of emulated cpuinfo, use uname as a
+  // fallback for checking if CPU is AArch64 or ARMv7.
+  struct utsname uname_;
+  int ret_ = uname(&uname_);
+
   // Check for ARMv7, or aarch64.
   // It can be in either the Processor or Model information fields.
   if (CpuInfo::FieldContains(kCpuInfoProcessor, "aarch64") ||
       CpuInfo::FieldContains(kCpuInfoModel, "aarch64") ||
       CpuInfo::FieldContains(kCpuInfoArchitecture, "8") ||
-      CpuInfo::FieldContains(kCpuInfoArchitecture, "AArch64")) {
+      CpuInfo::FieldContains(kCpuInfoArchitecture, "AArch64") ||
+      (ret_ == 0 && (strstr(uname_.machine, "aarch64") != NULL ||
+                     strstr(uname_.machine, "arm64") != NULL ||
+                     strstr(uname_.machine, "armv8") != NULL))) {
     // pretend that this arm64 cpu is really an ARMv7
     is_arm64 = true;
   } else if (!CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv7") &&
              !CpuInfo::FieldContains(kCpuInfoModel, "ARMv7") &&
-             !CpuInfo::FieldContains(kCpuInfoArchitecture, "7")) {
-#if !defined(DART_RUN_IN_QEMU_ARMv7)
+             !CpuInfo::FieldContains(kCpuInfoArchitecture, "7") &&
+             !(ret_ == 0 && strstr(uname_.machine, "armv7") != NULL)) {
     FATAL("Unrecognized ARM CPU architecture.");
-#endif
   }
 
   // Has integer division.
@@ -206,7 +214,7 @@ void HostCPUFeatures::Init() {
 
 // Use the cross-compiler's predefined macros to determine whether we should
 // use the hard or soft float ABI.
-#if defined(__ARM_PCS_VFP) || defined(DART_RUN_IN_QEMU_ARMv7)
+#if defined(__ARM_PCS_VFP)
   hardfp_supported_ = true;
 #else
   hardfp_supported_ = false;

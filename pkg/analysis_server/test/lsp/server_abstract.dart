@@ -210,7 +210,7 @@ abstract class AbstractLspAnalysisServerTest
     newFolder(join(projectFolderPath, 'lib'));
     // Create a folder and file to aid testing that includes imports/completion.
     newFolder(join(projectFolderPath, 'lib', 'folder'));
-    newFile2(join(projectFolderPath, 'lib', 'file.dart'), '');
+    newFile(join(projectFolderPath, 'lib', 'file.dart'), '');
     mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
     mainFileUri = Uri.file(mainFilePath);
     pubspecFilePath = join(projectFolderPath, file_paths.pubspecYaml);
@@ -261,7 +261,7 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   void mergeJson(Map<String, dynamic> source, Map<String, dynamic> dest) {
-    source.keys.forEach((key) {
+    for (var key in source.keys) {
       var sourceValue = source[key];
       var destValue = dest[key];
       if (sourceValue is Map<String, dynamic> &&
@@ -270,7 +270,7 @@ mixin ClientCapabilitiesHelperMixin {
       } else {
         dest[key] = source[key];
       }
-    });
+    }
   }
 
   TextDocumentClientCapabilities
@@ -561,7 +561,7 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
       '${ExperimentStatus.currentVersion.major}.'
       '${ExperimentStatus.currentVersion.minor}';
 
-  String get testPackageLanguageVersion => '2.9';
+  String get testPackageLanguageVersion => latestLanguageVersion;
 
   void writePackageConfig(
     String projectFolderPath, {
@@ -612,7 +612,7 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
 
     var path = '$projectFolderPath/.dart_tool/package_config.json';
     var content = config.toContent(toUriStr: toUriStr);
-    newFile2(path, content);
+    newFile(path, content);
   }
 }
 
@@ -739,14 +739,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   void applyTextDocumentEdits(
       Map<String, String> oldFileContent, List<TextDocumentEdit> edits) {
-    edits.forEach((edit) {
+    for (var edit in edits) {
       final path = Uri.parse(edit.textDocument.uri).toFilePath();
       if (!oldFileContent.containsKey(path)) {
         throw 'Recieved edits for $path which was not provided as a file to be edited. '
             'Perhaps a CreateFile change was missing from the edits?';
       }
       oldFileContent[path] = applyTextDocumentEdit(oldFileContent[path]!, edit);
-    });
+    }
   }
 
   String applyTextEdit(String content,
@@ -910,18 +910,23 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   ) {
     documentChanges.map(
       // Validate versions on simple doc edits
-      (edits) => edits
-          .forEach((edit) => expectDocumentVersion(edit, expectedVersions)),
+      (edits) {
+        for (var edit in edits) {
+          expectDocumentVersion(edit, expectedVersions);
+        }
+      },
       // For resource changes, we only need to validate changes since
       // creates/renames/deletes do not supply versions.
-      (changes) => changes.forEach((change) {
-        change.map(
-          (edit) => expectDocumentVersion(edit, expectedVersions),
-          (create) => {},
-          (rename) {},
-          (delete) {},
-        );
-      }),
+      (changes) {
+        for (var change in changes) {
+          change.map(
+            (edit) => expectDocumentVersion(edit, expectedVersions),
+            (create) => {},
+            (rename) {},
+            (delete) {},
+          );
+        }
+      },
     );
   }
 
@@ -1151,11 +1156,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   Future<Either2<List<DocumentSymbol>, List<SymbolInformation>>>
-      getDocumentSymbols(String fileUri) {
+      getDocumentSymbols(Uri uri) {
     final request = makeRequest(
       Method.textDocument_documentSymbol,
       DocumentSymbolParams(
-        textDocument: TextDocumentIdentifier(uri: fileUri),
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
       ),
     );
     return expectSuccessfulResponseTo(

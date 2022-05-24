@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -47,7 +49,7 @@ abstract class NativeEnqueuer {
 
   /// Register [classes] as natively instantiated in [impactBuilder].
   void _registerTypeUses(
-      WorldImpactBuilder impactBuilder, Set<ClassEntity> classes, cause) {
+      WorldImpactBuilder impactBuilder, Set<ClassEntity> classes /*, cause*/) {
     for (ClassEntity cls in classes) {
       if (!_unusedClasses.contains(cls)) {
         // No need to add [classElement] to [impactBuilder]: it has already been
@@ -62,13 +64,13 @@ abstract class NativeEnqueuer {
 
   /// Registers the [nativeBehavior]. Adds the liveness of its instantiated
   /// types to the world.
-  void registerNativeBehavior(
-      WorldImpactBuilder impactBuilder, NativeBehavior nativeBehavior, cause) {
+  void registerNativeBehavior(WorldImpactBuilder impactBuilder,
+      NativeBehavior nativeBehavior, Object cause) {
     _processNativeBehavior(impactBuilder, nativeBehavior, cause);
   }
 
   void _processNativeBehavior(
-      WorldImpactBuilder impactBuilder, NativeBehavior behavior, cause) {
+      WorldImpactBuilder impactBuilder, NativeBehavior behavior, Object cause) {
     void registerInstantiation(InterfaceType type) {
       impactBuilder.registerTypeUse(TypeUse.nativeInstantiation(type));
     }
@@ -123,7 +125,7 @@ abstract class NativeEnqueuer {
     if (matchingClasses.isNotEmpty && _registeredClasses.isEmpty) {
       matchingClasses.addAll(_onFirstNativeClass(impactBuilder));
     }
-    _registerTypeUses(impactBuilder, matchingClasses, cause);
+    _registerTypeUses(impactBuilder, matchingClasses /*, cause*/);
 
     // Give an info so that library developers can compile with -v to find why
     // all the native classes are included.
@@ -188,7 +190,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuer {
     _nativeClasses.addAll(nativeClasses);
     _unusedClasses.addAll(nativeClasses);
     if (!enableLiveTypeAnalysis) {
-      _registerTypeUses(impactBuilder, _nativeClasses, 'forced');
+      _registerTypeUses(impactBuilder, _nativeClasses /*, 'forced'*/);
     }
     return impactBuilder;
   }
@@ -224,7 +226,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuer {
     _unusedClasses.addAll(_nativeClasses);
 
     if (!enableLiveTypeAnalysis) {
-      _registerTypeUses(impactBuilder, _nativeClasses, 'forced');
+      _registerTypeUses(impactBuilder, _nativeClasses /*, 'forced'*/);
     }
 
     // HACK HACK - add all the resolved classes.
@@ -237,14 +239,14 @@ class NativeCodegenEnqueuer extends NativeEnqueuer {
     if (matchingClasses.isNotEmpty && _registeredClasses.isEmpty) {
       matchingClasses.addAll(_onFirstNativeClass(impactBuilder));
     }
-    _registerTypeUses(impactBuilder, matchingClasses, 'was resolved');
+    _registerTypeUses(impactBuilder, matchingClasses /*, 'was resolved'*/);
     return impactBuilder;
   }
 
   @override
   void _registerTypeUses(
-      WorldImpactBuilder impactBuilder, Set<ClassEntity> classes, cause) {
-    super._registerTypeUses(impactBuilder, classes, cause);
+      WorldImpactBuilder impactBuilder, Set<ClassEntity> classes /*, cause*/) {
+    super._registerTypeUses(impactBuilder, classes /*, cause*/);
 
     for (ClassEntity classElement in classes) {
       // Add the information that this class is a subtype of its supertypes. The

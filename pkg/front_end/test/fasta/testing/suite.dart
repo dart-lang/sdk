@@ -117,6 +117,8 @@ import 'package:testing/testing.dart'
         StdioProcess;
 import 'package:vm/target/vm.dart' show VmTarget;
 
+import '../../incremental_suite.dart' show TestRecorderForTesting;
+
 import '../../testing_utils.dart' show checkEnvironment;
 import '../../utils/kernel_chain.dart'
     show
@@ -176,6 +178,10 @@ const String EXPECTATIONS = '''
     "group": "Fail"
   },
   {
+    "name": "semiFuzzFailureOnForceRebuildBodies",
+    "group": "Fail"
+  },
+  {
     "name": "SemiFuzzCrash",
     "group": "Fail"
   }
@@ -221,6 +227,8 @@ const List<Option> testOptionsSpecification = [
 final ExpectationSet staticExpectationSet =
     new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
 final Expectation semiFuzzFailure = staticExpectationSet["SemiFuzzFailure"];
+final Expectation semiFuzzFailureOnForceRebuildBodies =
+    staticExpectationSet["semiFuzzFailureOnForceRebuildBodies"];
 final Expectation semiFuzzCrash = staticExpectationSet["SemiFuzzCrash"];
 
 /// Options used for all tests within a given folder.
@@ -701,9 +709,11 @@ class FastaContext extends ChainContext with MatchContext {
     // If not semi-fuzzing we can't get semi-fuzz errors.
     if (!semiFuzz &&
         (outcomes.contains(semiFuzzFailure) ||
+            outcomes.contains(semiFuzzFailureOnForceRebuildBodies) ||
             outcomes.contains(semiFuzzCrash))) {
       result ??= new Set.from(outcomes);
       result.remove(semiFuzzFailure);
+      result.remove(semiFuzzFailureOnForceRebuildBodies);
       result.remove(semiFuzzCrash);
     }
 
@@ -1157,20 +1167,71 @@ class FuzzCompiles
 
     Component platform =
         context.loadPlatform(backendTarget, compilationSetup.options.nnbdMode);
-    Result<ComponentResult>? passResult = await performFileInvalidation(
+
+    final bool hasErrors;
+    {
+      bool foundErrors = false;
+      if ((result.component.problemsAsJson?.length ?? 0) > 0) {
+        foundErrors = true;
+      } else {
+        for (Library library in result.component.libraries) {
+          if ((library.problemsAsJson?.length ?? 0) > 0) {
+            foundErrors = true;
+            break;
+          }
+        }
+      }
+      hasErrors = foundErrors;
+    }
+
+    try {
+      Result<ComponentResult>? passResult = await performFileInvalidation(
+        compilationSetup,
+        platform,
+        uriTranslator,
+        context,
+        originalCompilationResult: result,
+        forceAndCheckRebuildBodiesOnly: false,
+      );
+      if (passResult != null) return passResult;
+
+      passResult = await performChunkReordering(
         compilationSetup,
         platform,
         uriTranslator,
         result,
         context,
-        originalFlag);
-    if (passResult != null) return passResult;
+      );
+      if (passResult != null) return passResult;
 
-    passResult = await performChunkReordering(compilationSetup, platform,
-        uriTranslator, result, context, originalFlag);
-    if (passResult != null) return passResult;
+      if (!hasErrors) {
+        // To get proper splitting (between dill and not dill builders) we need
+        // experimental invalidation - it doesn't work when there's errors
+        // though, so skip those up front.
+        // Note also that because of splitting and privacy this might fail with
+        // an error --- so it should probably be the last one. At some point we
+        // might swallow that so we can continue, but for now it will be good
+        // to know when it's not run because of that.
+        passResult = await performFileSplitting(
+          compilationSetup,
+          platform,
+          uriTranslator,
+          result,
+          context,
+        );
+        if (passResult != null) return passResult;
+      }
 
-    return pass(result);
+      return pass(result);
+    } finally {
+      if (originalFlag != null) {
+        context.explicitExperimentalFlags[
+            ExperimentalFlag.alternativeInvalidationStrategy] = originalFlag;
+      } else {
+        context.explicitExperimentalFlags
+            .remove(ExperimentalFlag.alternativeInvalidationStrategy);
+      }
+    }
   }
 
   /// Perform a number of compilations where each user-file is invalidated
@@ -1181,51 +1242,87 @@ class FuzzCompiles
       CompilationSetup compilationSetup,
       Component platform,
       UriTranslator uriTranslator,
-      ComponentResult result,
       FastaContext context,
-      bool? originalFlag) async {
+      {ComponentResult? originalCompilationResult,
+      required bool forceAndCheckRebuildBodiesOnly}) async {
     compilationSetup.errors.clear();
-    IncrementalCompiler incrementalCompiler =
-        new IncrementalCompiler.fromComponent(
+    SemiForceExperimentalInvalidationIncrementalCompiler incrementalCompiler =
+        new SemiForceExperimentalInvalidationIncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
+    incrementalCompiler.skipExperimentalInvalidationChecksForTesting =
+        forceAndCheckRebuildBodiesOnly;
     IncrementalCompilerResult incrementalCompilerResult =
         await incrementalCompiler.computeDelta();
     final Component component = incrementalCompilerResult.component;
+    print("Compiled and got ${component.libraries.length} libs");
     if (!canSerialize(component)) {
-      return new Result<ComponentResult>(result, semiFuzzFailure,
-          "Couldn't serialize initial component for fuzzing");
+      return new Result<ComponentResult>(originalCompilationResult,
+          semiFuzzFailure, "Couldn't serialize initial component for fuzzing");
     }
 
     final Set<Uri> userLibraries =
         createUserLibrariesImportUriSet(component, uriTranslator);
     final bool expectErrors = compilationSetup.errors.isNotEmpty;
+
+    if (expectErrors && forceAndCheckRebuildBodiesOnly) {
+      return new Result<ComponentResult>(
+          originalCompilationResult,
+          semiFuzzFailureOnForceRebuildBodies,
+          "Errors upon compilation not compatible "
+          "with forcing rebuild bodies. Got ${compilationSetup.errors}");
+    }
+
     List<Iterable<String>> originalErrors =
         new List<Iterable<String>>.from(compilationSetup.errors);
 
-    Set<Uri> intersectionUserLibraries =
-        result.userLibraries.intersection(userLibraries);
-    if (intersectionUserLibraries.length != userLibraries.length ||
-        userLibraries.length != result.userLibraries.length) {
-      return new Result<ComponentResult>(
-          result,
-          semiFuzzFailure,
-          "Got a different amount of user libraries on first compile "
-          "compared to 'original' compilation:\n\n"
-          "This compile:\n"
-          "${userLibraries.map((e) => e.toString()).join("\n")}\n\n"
-          "Original compile:\n"
-          "${result.userLibraries.map((e) => e.toString()).join("\n")}");
+    if (originalCompilationResult != null) {
+      Set<Uri> intersectionUserLibraries =
+          originalCompilationResult.userLibraries.intersection(userLibraries);
+      if (intersectionUserLibraries.length != userLibraries.length ||
+          userLibraries.length !=
+              originalCompilationResult.userLibraries.length) {
+        String originalCompileString = originalCompilationResult.userLibraries
+            .map((e) => e.toString())
+            .join("\n");
+        return new Result<ComponentResult>(
+            originalCompilationResult,
+            semiFuzzFailure,
+            "Got a different amount of user libraries on first compile "
+            "compared to 'original' compilation:\n\n"
+            "This compile:\n"
+            "${userLibraries.map((e) => e.toString()).join("\n")}\n\n"
+            "Original compile:\n"
+            "$originalCompileString");
+      }
     }
 
     compilationSetup.errors.clear();
     for (Uri importUri in userLibraries) {
+      print(" -> invalidating $importUri");
       incrementalCompiler.invalidate(importUri);
-      final IncrementalCompilerResult newResult =
-          await incrementalCompiler.computeDelta(fullComponent: true);
-      final Component newComponent = newResult.component;
-      if (!canSerialize(newComponent)) {
+      final IncrementalCompilerResult newResult;
+      try {
+        newResult = await incrementalCompiler.computeDelta(fullComponent: true);
+      } catch (e, st) {
         return new Result<ComponentResult>(
-            result, semiFuzzFailure, "Couldn't serialize fuzzed component");
+            originalCompilationResult,
+            semiFuzzCrash,
+            "Crashed with '$e' on recompilation after invalidating "
+            "'$importUri'.\n\n$st");
+      }
+      if (forceAndCheckRebuildBodiesOnly) {
+        bool didRebuildBodiesOnly =
+            incrementalCompiler.recorderForTesting.rebuildBodiesCount! > 0;
+        if (!didRebuildBodiesOnly) {
+          return new Result<ComponentResult>(originalCompilationResult,
+              semiFuzzFailure, "Didn't rebuild bodies only!");
+        }
+      }
+      final Component newComponent = newResult.component;
+      print(" -> and got ${newComponent.libraries.length} libs");
+      if (!canSerialize(newComponent)) {
+        return new Result<ComponentResult>(originalCompilationResult,
+            semiFuzzFailure, "Couldn't serialize fuzzed component");
       }
 
       final Set<Uri> newUserLibraries =
@@ -1237,7 +1334,7 @@ class FuzzCompiles
           String errorsString =
               originalErrors.map((error) => error.join('\n')).join('\n\n');
           return new Result<ComponentResult>(
-              result,
+              originalCompilationResult,
               semiFuzzFailure,
               "Expected these errors:\n${errorsString}\n\n"
               "but didn't get any after invalidating $importUri");
@@ -1246,7 +1343,7 @@ class FuzzCompiles
               .map((error) => error.join('\n'))
               .join('\n\n');
           return new Result<ComponentResult>(
-              result,
+              originalCompilationResult,
               semiFuzzFailure,
               "Unexpected errors:\n${errorsString}\n\n"
               "after invalidating $importUri");
@@ -1257,25 +1354,23 @@ class FuzzCompiles
           userLibraries.intersection(newUserLibraries);
       if (intersectionUserLibraries.length != newUserLibraries.length ||
           newUserLibraries.length != userLibraries.length) {
+        String originalCompileString = "";
+        if (originalCompilationResult != null) {
+          originalCompileString = "Original compile:\n" +
+              originalCompilationResult.userLibraries
+                  .map((e) => e.toString())
+                  .join("\n");
+        }
         return new Result<ComponentResult>(
-            result,
+            originalCompilationResult,
             semiFuzzFailure,
             "Got a different amount of user libraries on recompile "
             "compared to 'original' compilation after having invalidated "
             "$importUri.\n\n"
             "This compile:\n"
             "${newUserLibraries.map((e) => e.toString()).join("\n")}\n\n"
-            "Original compile:\n"
-            "${result.userLibraries.map((e) => e.toString()).join("\n")}");
+            "${originalCompileString}");
       }
-    }
-
-    if (originalFlag != null) {
-      context.explicitExperimentalFlags[
-          ExperimentalFlag.alternativeInvalidationStrategy] = originalFlag;
-    } else {
-      context.explicitExperimentalFlags
-          .remove(ExperimentalFlag.alternativeInvalidationStrategy);
     }
 
     return null;
@@ -1302,8 +1397,7 @@ class FuzzCompiles
       Component platform,
       UriTranslator uriTranslator,
       ComponentResult result,
-      FastaContext context,
-      bool? originalFlag) async {
+      FastaContext context) async {
     compilationSetup.errors.clear();
 
     FileSystem orgFileSystem = compilationSetup.options.fileSystem;
@@ -1430,14 +1524,152 @@ class FuzzCompiles
     compilationSetup.compilerOptions.fileSystem = orgFileSystem;
     return null;
   }
+
+  /// Splits all files into "sub files" that all import and export each other
+  /// so everything should still work (except for privacy).
+  /// Then invalidate one file at a time with forced experimental invalidation.
+  ///
+  /// Prerequisite: No errors should be present, as that doesn't work with
+  /// experimental invalidation.
+  Future<Result<ComponentResult>?> performFileSplitting(
+      CompilationSetup compilationSetup,
+      Component platform,
+      UriTranslator uriTranslator,
+      ComponentResult result,
+      FastaContext context) async {
+    FileSystem orgFileSystem = compilationSetup.options.fileSystem;
+    compilationSetup.options.clearFileSystemCache();
+    _FakeFileSystem fs = new _FakeFileSystem(orgFileSystem);
+    compilationSetup.compilerOptions.fileSystem = fs;
+    IncrementalCompiler incrementalCompiler =
+        new IncrementalCompiler.fromComponent(
+            new CompilerContext(compilationSetup.options), platform);
+    IncrementalCompilerResult initialResult =
+        await incrementalCompiler.computeDelta();
+    Component initialComponent = initialResult.component;
+    if (!canSerialize(initialComponent)) {
+      return new Result<ComponentResult>(result, semiFuzzFailure,
+          "Couldn't serialize initial component for fuzzing");
+    }
+
+    // Create lookup-table from file uri to whatever.
+    Map<Uri, LibraryBuilder> builders = {};
+    for (LibraryBuilder builder
+        in incrementalCompiler.kernelTargetForTesting!.loader.libraryBuilders) {
+      if (builder.importUri.isScheme("dart") && !builder.isSynthetic) continue;
+      if (builder.importUri.isScheme("package") &&
+          !builder.fileUri.toString().contains("/pkg/front_end/testcases/")) {
+        // A package uri where the file uri is *not* inside out testcases.
+        // This for instance ignores "package:expect/expect.dart" etc.
+        continue;
+      }
+      builders[builder.fileUri] = builder;
+      for (LibraryPart part in builder.library.parts) {
+        Uri thisPartUri = builder.importUri.resolve(part.partUri);
+        if (thisPartUri.isScheme("package")) {
+          thisPartUri = incrementalCompiler
+              .kernelTargetForTesting!.uriTranslator
+              .translate(thisPartUri)!;
+        }
+        builders[thisPartUri] = builder;
+      }
+    }
+
+    List<Uri> originalUris = List<Uri>.of(fs.data.keys);
+    for (Uri uri in originalUris) {
+      print("Work on $uri");
+      LibraryBuilder? builder = builders[uri];
+      if (builder == null) {
+        print("Skipping $uri -- couldn't find builder for it.");
+        continue;
+      }
+      Uint8List orgData = fs.data[uri] as Uint8List;
+      FuzzAstVisitorSorter fuzzAstVisitorSorter;
+      try {
+        fuzzAstVisitorSorter =
+            new FuzzAstVisitorSorter(orgData, builder.isNonNullableByDefault);
+      } on FormatException catch (e, st) {
+        // UTF-16-LE formatted test crashes `utf8.decode(bytes)` --- catch that
+        return new Result<ComponentResult>(
+            result,
+            semiFuzzCrash,
+            "$e\n\n"
+            "$st");
+      }
+
+      // Put each chunk into its own file.
+      StringBuffer headerSb = new StringBuffer();
+      List<FuzzAstVisitorSorterChunk> nonHeaderChunks = [];
+
+      for (FuzzAstVisitorSorterChunk chunk in fuzzAstVisitorSorter.chunks) {
+        if (chunk.originalType == FuzzOriginalType.Import ||
+            chunk.originalType == FuzzOriginalType.Export ||
+            chunk.originalType == FuzzOriginalType.LibraryName ||
+            chunk.originalType == FuzzOriginalType.Part ||
+            chunk.originalType == FuzzOriginalType.PartOf ||
+            chunk.originalType == FuzzOriginalType.LanguageVersion) {
+          headerSb.writeln(chunk.getSource());
+        } else {
+          nonHeaderChunks.add(chunk);
+        }
+      }
+
+      Uri getUriForChunk(int chunkNum) {
+        return uri.resolve(uri.pathSegments.last + ".split.$chunkNum.dart");
+      }
+
+      int totalSubFiles = nonHeaderChunks.length;
+      int currentSubFile = 0;
+      for (FuzzAstVisitorSorterChunk chunk in nonHeaderChunks) {
+        // We need to have special handling for dart versions, imports,
+        // exports, etc.
+        StringBuffer sb = new StringBuffer();
+        sb.writeln(headerSb.toString());
+        for (int i = 0; i < totalSubFiles; i++) {
+          if (i == currentSubFile) continue;
+          sb.writeln("import '${getUriForChunk(i)}';");
+          sb.writeln("export '${getUriForChunk(i)}';");
+        }
+        sb.writeln(chunk.getSource());
+        fs.data[getUriForChunk(currentSubFile)] =
+            utf8.encode(sb.toString()) as Uint8List;
+        currentSubFile++;
+      }
+
+      // Rewrite main file.
+      StringBuffer sb = new StringBuffer();
+      sb.writeln(headerSb.toString());
+      for (int i = 0; i < totalSubFiles; i++) {
+        sb.writeln("import '${getUriForChunk(i)}';");
+        sb.writeln("export '${getUriForChunk(i)}';");
+      }
+      fs.data[uri] = utf8.encode(sb.toString()) as Uint8List;
+    }
+
+    Result<ComponentResult>? passResult = await performFileInvalidation(
+      compilationSetup,
+      platform,
+      uriTranslator,
+      context,
+      originalCompilationResult: null,
+      forceAndCheckRebuildBodiesOnly: true,
+    );
+    if (passResult != null) return passResult;
+
+    compilationSetup.options.clearFileSystemCache();
+    compilationSetup.compilerOptions.fileSystem = orgFileSystem;
+    return null;
+  }
 }
 
 class FuzzAstVisitorSorterChunk {
+  final FuzzOriginalType originalType;
   final String data;
   final String? metadataAndComments;
   final int layer;
 
-  FuzzAstVisitorSorterChunk(this.data, this.metadataAndComments, this.layer);
+  FuzzAstVisitorSorterChunk(
+      this.originalType, this.data, this.metadataAndComments, this.layer);
 
   @override
   String toString() {
@@ -1453,6 +1685,23 @@ class FuzzAstVisitorSorterChunk {
 }
 
 enum FuzzSorterState { nonSortable, importExportSortable, sortableRest }
+
+enum FuzzOriginalType {
+  Import,
+  Export,
+  LanguageVersion,
+  AdditionalMetadata,
+  Class,
+  Mixin,
+  Enum,
+  Extension,
+  LibraryName,
+  Part,
+  PartOf,
+  TopLevelFields,
+  TopLevelMethod,
+  TypeDef,
+}
 
 class FuzzAstVisitorSorter extends ParserAstVisitor {
   final Uint8List bytes;
@@ -1471,6 +1720,7 @@ class FuzzAstVisitorSorter extends ParserAstVisitor {
           metadataStart!.charOffset, metadataEndInclusive!.charEnd);
       layer++;
       chunks.add(new FuzzAstVisitorSorterChunk(
+        FuzzOriginalType.AdditionalMetadata,
         "",
         metadata,
         layer,
@@ -1519,6 +1769,7 @@ class FuzzAstVisitorSorter extends ParserAstVisitor {
     if (hasLanguageVersion) {
       layer++;
       chunks.add(new FuzzAstVisitorSorterChunk(
+        FuzzOriginalType.LanguageVersion,
         asString.substring(
             fromToken.precedingComments!.charOffset, comment.charEnd),
         null,
@@ -1528,8 +1779,8 @@ class FuzzAstVisitorSorter extends ParserAstVisitor {
     }
   }
 
-  void handleData(
-      FuzzSorterState thisState, Token startInclusive, Token endInclusive) {
+  void handleData(FuzzOriginalType originalType, FuzzSorterState thisState,
+      Token startInclusive, Token endInclusive) {
     // Non-sortable things always gets a new layer.
     if (state != thisState || thisState == FuzzSorterState.nonSortable) {
       state = thisState;
@@ -1560,6 +1811,7 @@ class FuzzAstVisitorSorter extends ParserAstVisitor {
           metadataStart!.charOffset, metadataEndInclusive!.charEnd);
     }
     chunks.add(new FuzzAstVisitorSorterChunk(
+      originalType,
       asString.substring(startInclusive.charOffset, endInclusive.charEnd),
       metadata,
       layer,
@@ -1570,39 +1822,43 @@ class FuzzAstVisitorSorter extends ParserAstVisitor {
 
   @override
   void visitExport(ExportEnd node, Token startInclusive, Token endInclusive) {
-    handleData(
-        FuzzSorterState.importExportSortable, startInclusive, endInclusive);
+    handleData(FuzzOriginalType.Export, FuzzSorterState.importExportSortable,
+        startInclusive, endInclusive);
   }
 
   @override
   void visitImport(ImportEnd node, Token startInclusive, Token? endInclusive) {
-    handleData(
-        FuzzSorterState.importExportSortable, startInclusive, endInclusive!);
+    handleData(FuzzOriginalType.Import, FuzzSorterState.importExportSortable,
+        startInclusive, endInclusive!);
   }
 
   @override
   void visitClass(
       ClassDeclarationEnd node, Token startInclusive, Token endInclusive) {
     // TODO(jensj): Possibly sort stuff inside of this too.
-    handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
+    handleData(FuzzOriginalType.Class, FuzzSorterState.sortableRest,
+        startInclusive, endInclusive);
   }
 
   @override
   void visitEnum(EnumEnd node, Token startInclusive, Token endInclusive) {
-    handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
+    handleData(FuzzOriginalType.Enum, FuzzSorterState.sortableRest,
+        startInclusive, endInclusive);
   }
 
   @override
   void visitExtension(
       ExtensionDeclarationEnd node, Token startInclusive, Token endInclusive) {
     // TODO(jensj): Possibly sort stuff inside of this too.
-    handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
+    handleData(FuzzOriginalType.Extension, FuzzSorterState.sortableRest,
+        startInclusive, endInclusive);
   }
 
   @override
   void visitLibraryName(
       LibraryNameEnd node, Token startInclusive, Token endInclusive) {
-    handleData(FuzzSorterState.nonSortable, startInclusive, endInclusive);
+    handleData(FuzzOriginalType.LibraryName, FuzzSorterState.nonSortable,
+        startInclusive, endInclusive);
   }
 
   @override
@@ -1620,42 +1876,63 @@ class FuzzAstVisitorSorter extends ParserAstVisitor {
   void visitMixin(
       MixinDeclarationEnd node, Token startInclusive, Token endInclusive) {
     // TODO(jensj): Possibly sort stuff inside of this too.
-    handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
+    handleData(FuzzOriginalType.Mixin, FuzzSorterState.sortableRest,
+        startInclusive, endInclusive);
   }
 
   @override
   void visitNamedMixin(
       NamedMixinApplicationEnd node, Token startInclusive, Token endInclusive) {
     // TODO(jensj): Possibly sort stuff inside of this too.
-    handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
+    handleData(FuzzOriginalType.Mixin, FuzzSorterState.sortableRest,
+        startInclusive, endInclusive);
   }
 
   @override
   void visitPart(PartEnd node, Token startInclusive, Token endInclusive) {
-    handleData(FuzzSorterState.nonSortable, startInclusive, endInclusive);
+    handleData(FuzzOriginalType.Part, FuzzSorterState.nonSortable,
+        startInclusive, endInclusive);
   }
 
   @override
   void visitPartOf(PartOfEnd node, Token startInclusive, Token endInclusive) {
-    handleData(FuzzSorterState.nonSortable, startInclusive, endInclusive);
+    handleData(FuzzOriginalType.PartOf, FuzzSorterState.nonSortable,
+        startInclusive, endInclusive);
   }
 
   @override
   void visitTopLevelFields(
       TopLevelFieldsEnd node, Token startInclusive, Token endInclusive) {
-    handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
+    handleData(FuzzOriginalType.TopLevelFields, FuzzSorterState.sortableRest,
+        startInclusive, endInclusive);
   }
 
   @override
   void visitTopLevelMethod(
       TopLevelMethodEnd node, Token startInclusive, Token endInclusive) {
-    handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
+    handleData(FuzzOriginalType.TopLevelMethod, FuzzSorterState.sortableRest,
+        startInclusive, endInclusive);
   }
 
   @override
   void visitTypedef(TypedefEnd node, Token startInclusive, Token endInclusive) {
-    handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
+    handleData(FuzzOriginalType.TypeDef, FuzzSorterState.sortableRest,
+        startInclusive, endInclusive);
   }
+}
+
+class SemiForceExperimentalInvalidationIncrementalCompiler
+    extends IncrementalCompiler {
+  @override
+  final TestRecorderForTesting recorderForTesting =
+      new TestRecorderForTesting();
+
+  @override
+  bool skipExperimentalInvalidationChecksForTesting = true;
+
+  SemiForceExperimentalInvalidationIncrementalCompiler.fromComponent(
+      CompilerContext context, Component? componentToInitializeFrom)
+      : super.fromComponent(context, componentToInitializeFrom);
 }
 
 class _FakeFileSystem extends FileSystem {

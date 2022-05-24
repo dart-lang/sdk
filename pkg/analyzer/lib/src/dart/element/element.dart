@@ -40,6 +40,8 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
+import 'package:analyzer/src/summary2/macro.dart';
+import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:collection/collection.dart';
@@ -75,6 +77,9 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   /// This callback is set during mixins inference to handle reentrant calls.
   List<InterfaceType>? Function(AbstractClassElementImpl)?
       mixinInferenceCallback;
+
+  /// Errors registered while applying macros to this element.
+  List<MacroApplicationError> macroApplicationErrors = [];
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -127,6 +132,12 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   @override
   bool get isDartCoreEnum {
     return name == 'Enum' && library.isDartCore;
+  }
+
+  /// Return `true` if this class represents the class '_Enum' defined in the
+  /// dart:core library.
+  bool get isDartCoreEnumImpl {
+    return name == '_Enum' && library.isDartCore;
   }
 
   @override
@@ -1116,18 +1127,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   int get hashCode => source.hashCode;
 
-  @Deprecated('Not useful for clients')
-  @override
-  bool get hasLoadLibraryFunction {
-    final functions = this.functions;
-    for (int i = 0; i < functions.length; i++) {
-      if (functions[i].name == FunctionElement.LOAD_LIBRARY_NAME) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   @override
   String get identifier => '${source.uri}';
 
@@ -1185,12 +1184,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   TypeParameterizedElementMixin? get typeParameterContext => null;
-
-  @Deprecated('Use classes instead')
-  @override
-  List<ClassElement> get types {
-    return _classes;
-  }
 
   @override
   bool operator ==(Object other) =>
@@ -1460,7 +1453,7 @@ mixin ConstructorElementMixin implements ConstructorElement {
     }
     // no required parameters
     for (ParameterElement parameter in parameters) {
-      if (parameter.isNotOptional) {
+      if (parameter.isRequired) {
         return false;
       }
     }
@@ -1617,7 +1610,7 @@ class DefaultSuperFormalParameterElementImpl
       return super.evaluationResult;
     }
 
-    var superConstructorParameter = this.superConstructorParameter;
+    var superConstructorParameter = this.superConstructorParameter?.declaration;
     if (superConstructorParameter is ParameterElementImpl) {
       return superConstructorParameter.evaluationResult;
     }
@@ -2847,6 +2840,14 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     setModifier(Modifier.IMPLICIT_TYPE, hasImplicitReturnType);
   }
 
+  bool get invokesSuperSelf {
+    return hasModifier(Modifier.INVOKES_SUPER_SELF);
+  }
+
+  set invokesSuperSelf(bool value) {
+    setModifier(Modifier.INVOKES_SUPER_SELF, value);
+  }
+
   @override
   bool get isAbstract {
     return hasModifier(Modifier.ABSTRACT);
@@ -3560,10 +3561,6 @@ class ImportElementImpl extends UriReferencedElementImpl
         NamespaceBuilder().createImportNamespaceForDirective(this);
   }
 
-  @Deprecated('Use prefix.nameOffset instead')
-  @override
-  int get prefixOffset => prefix?.nameOffset ?? -1;
-
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitImportElement(this);
 
@@ -3644,6 +3641,8 @@ class LibraryElementImpl extends _ExistingElementImpl
   @override
   late TypeSystemImpl typeSystem;
 
+  late final List<Reference> exportedReferences;
+
   LibraryElementLinkedData? linkedData;
 
   @override
@@ -3689,6 +3688,9 @@ class LibraryElementImpl extends _ExistingElementImpl
 
   /// The scope of this library, `null` if it has not been created yet.
   LibraryScope? _scope;
+
+  /// The macro executor for the bundle to which this library belongs.
+  BundleMacroExecutor? bundleMacroExecutor;
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
@@ -3746,7 +3748,10 @@ class LibraryElementImpl extends _ExistingElementImpl
     final linkedData = this.linkedData;
     if (linkedData != null) {
       var elements = linkedData.elementFactory;
-      return _exportNamespace = elements.buildExportNamespace(source.uri);
+      return _exportNamespace = elements.buildExportNamespace(
+        source.uri,
+        exportedReferences,
+      );
     }
 
     return _exportNamespace!;
@@ -3773,21 +3778,6 @@ class LibraryElementImpl extends _ExistingElementImpl
 
   List<ExportElement> get exports_unresolved {
     return _exports;
-  }
-
-  @Deprecated('Support for dart-ext is replaced with FFI')
-  @override
-  bool get hasExtUri => false;
-
-  @Deprecated('Not useful for clients')
-  @override
-  bool get hasLoadLibraryFunction {
-    for (int i = 0; i < units.length; i++) {
-      if (units[i].hasLoadLibraryFunction) {
-        return true;
-      }
-    }
-    return false;
   }
 
   bool get hasPartOfDirective {
@@ -4354,29 +4344,32 @@ class Modifier implements Comparable<Modifier> {
   /// type being referred to is the return type.
   static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 16);
 
+  /// Indicates that the method invokes the super method with the same name.
+  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 17);
+
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 17);
+  static const Modifier LATE = Modifier('LATE', 18);
 
   /// Indicates that a class is a macro builder.
-  static const Modifier MACRO = Modifier('MACRO', 18);
+  static const Modifier MACRO = Modifier('MACRO', 19);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 19);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 20);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 20);
+  static const Modifier SETTER = Modifier('SETTER', 21);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 21);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 22);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 22);
+  static const Modifier STATIC = Modifier('STATIC', 23);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 23);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 24);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -4887,6 +4880,7 @@ mixin ParameterElementMixin implements ParameterElement {
   @override
   bool get isNamed => parameterKind.isNamed;
 
+  @Deprecated('Use isRequired instead')
   @override
   bool get isNotOptional => parameterKind.isRequired;
 
@@ -4901,6 +4895,9 @@ mixin ParameterElementMixin implements ParameterElement {
 
   @override
   bool get isPositional => parameterKind.isPositional;
+
+  @override
+  bool get isRequired => parameterKind.isRequired;
 
   @override
   bool get isRequiredNamed => parameterKind.isRequiredNamed;

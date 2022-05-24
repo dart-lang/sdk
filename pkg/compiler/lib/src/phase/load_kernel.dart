@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'dart:async';
 
 import 'package:front_end/src/fasta/kernel/utils.dart';
@@ -12,11 +14,12 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
 import 'package:kernel/target/targets.dart' hide DiagnosticReporter;
 
-import '../../compiler.dart' as api;
+import '../../compiler_api.dart' as api;
 import '../commandline_options.dart';
 import '../common.dart';
 import '../kernel/front_end_adapter.dart';
-import '../kernel/dart2js_target.dart' show Dart2jsTarget;
+import '../kernel/dart2js_target.dart'
+    show Dart2jsTarget, implicitlyUsedLibraries;
 import '../kernel/transformations/clone_mixin_methods_with_super.dart'
     as transformMixins show transformLibraries;
 import '../options.dart';
@@ -162,9 +165,11 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
   _inferNullSafetyMode(options, isStrongDill);
   _validateNullSafetyMode(options);
 
-  // Modular compiles do not include the platform on the input dill
-  // either.
-  if (options.platformBinaries != null) {
+  // When compiling modularly, a dill for the SDK will be provided. In those
+  // cases we ignore the implicit platform binary.
+  bool platformBinariesIncluded =
+      options.modularMode || options.hasModularAnalysisInputs;
+  if (options.platformBinaries != null && !platformBinariesIncluded) {
     var platformUri = options.platformBinaries
         .resolve(_getPlatformFilename(options, targetName));
     // Modular analysis can be run on the sdk by providing directly the
@@ -211,8 +216,12 @@ Future<_LoadFromSourceResult> _loadFromSource(
     fe.InitializedCompilerState initializedCompilerState,
     String targetName) async {
   bool verbose = false;
+  bool cfeConstants = options.features.cfeConstants.isEnabled;
+  Map<String, String> environment = cfeConstants ? options.environment : null;
   Target target = Dart2jsTarget(targetName, TargetFlags(),
-      options: options, canPerformGlobalTransforms: true);
+      options: options,
+      canPerformGlobalTransforms: true,
+      supportsUnevaluatedConstants: !cfeConstants);
   fe.FileSystem fileSystem = CompilerFileSystem(compilerInput);
   fe.Verbosity verbosity = options.verbosity;
   fe.DiagnosticMessageHandler onDiagnostic = (fe.DiagnosticMessage message) {
@@ -235,6 +244,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
       ..librariesSpecificationUri = options.librariesSpecificationUri
       ..packagesFileUri = options.packageConfig
       ..explicitExperimentalFlags = options.explicitExperimentalFlags
+      ..environmentDefines = environment
       ..verbose = verbose
       ..fileSystem = fileSystem
       ..onDiagnostic = onDiagnostic
@@ -264,6 +274,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
       dependencies,
       options.packageConfig,
       explicitExperimentalFlags: options.explicitExperimentalFlags,
+      environmentDefines: environment,
       nnbdMode:
           options.useLegacySubtyping ? fe.NnbdMode.Weak : fe.NnbdMode.Strong,
       invocationModes: options.cfeInvocationModes,
@@ -323,11 +334,20 @@ Output _createOutput(
 
     search(root);
 
-    // Libraries dependencies do not show implicit imports to `dart:core`.
-    var dartCore = component.libraries.firstWhere((lib) {
-      return lib.importUri.isScheme('dart') && lib.importUri.path == 'core';
-    });
-    search(dartCore);
+    // Libraries dependencies do not show implicit imports to certain internal
+    // libraries.
+    const Set<String> alwaysInclude = {
+      'dart:_internal',
+      'dart:core',
+      'dart:async',
+      ...implicitlyUsedLibraries,
+    };
+    for (String uri in alwaysInclude) {
+      Library library = component.libraries.firstWhere((lib) {
+        return '${lib.importUri}' == uri;
+      });
+      search(library);
+    }
 
     libraries = libraries.where(seen.contains);
   }

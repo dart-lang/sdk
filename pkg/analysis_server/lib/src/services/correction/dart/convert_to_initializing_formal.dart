@@ -35,21 +35,25 @@ class ConvertToInitializingFormal extends CorrectionProducer {
       if (block is! Block) {
         return;
       }
-      var right = node.rightHandSide;
-      if (right is! SimpleIdentifier) {
+      var parameter = _parameter(constructor, node.rightHandSide);
+      if (parameter == null) {
         return;
       }
-      var parameterElement = right.staticElement;
-      var parameter = _parameterForElement(constructor, parameterElement);
-      if (parameter is! SimpleFormalParameter) {
+      var identifier = parameter.identifier;
+      if (identifier == null) {
         return;
       }
-      var name = parameter.identifier?.name;
-      if (name == null) {
-        return;
-      }
+
+      var preserveType = parameter.type?.type != node.writeType;
+
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.node(parameter), 'this.$name');
+        if (preserveType) {
+          builder.addSimpleInsertion(identifier.offset, 'this.');
+        } else {
+          builder.addSimpleReplacement(
+              range.node(parameter), 'this.${identifier.name}');
+        }
+
         var statements = block.statements;
         var functionBody = block.parent;
         if (statements.length == 1 && functionBody is BlockFunctionBody) {
@@ -60,21 +64,30 @@ class ConvertToInitializingFormal extends CorrectionProducer {
         }
       });
     } else if (node is ConstructorFieldInitializer) {
-      var right = node.expression;
-      if (right is! SimpleIdentifier) {
+      var parameter = _parameter(constructor, node.expression);
+      if (parameter == null) {
         return;
       }
-      var parameterElement = right.staticElement;
-      var parameter = _parameterForElement(constructor, parameterElement);
-      if (parameter is! SimpleFormalParameter) {
+      var identifier = parameter.identifier;
+      if (identifier == null) {
         return;
       }
-      var name = parameter.identifier?.name;
-      if (name == null) {
+
+      var fieldElement = node.fieldName.staticElement;
+      if (fieldElement is! VariableElement) {
         return;
       }
+
+      var preserveType = parameter.type?.type != fieldElement.type;
+
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.node(parameter), 'this.$name');
+        if (preserveType) {
+          builder.addSimpleInsertion(identifier.offset, 'this.');
+        } else {
+          builder.addSimpleReplacement(
+              range.node(parameter), 'this.${identifier.name}');
+        }
+
         var initializers = constructor.initializers;
         if (initializers.length == 1) {
           builder.addDeletion(range.endEnd(constructor.parameters, node));
@@ -85,17 +98,17 @@ class ConvertToInitializingFormal extends CorrectionProducer {
     }
   }
 
-  FormalParameter? _parameterForElement(
-      ConstructorDeclaration constructor, Element? parameterElement) {
+  SimpleFormalParameter? _parameter(
+      ConstructorDeclaration constructor, Expression expression) {
+    if (expression is! SimpleIdentifier) {
+      return null;
+    }
+    var parameterElement = expression.staticElement;
     for (var parameter in constructor.parameters.parameters) {
       if (parameter.declaredElement == parameterElement) {
-        return parameter;
+        return parameter is SimpleFormalParameter ? parameter : null;
       }
     }
     return null;
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertToInitializingFormal newInstance() =>
-      ConvertToInitializingFormal();
 }

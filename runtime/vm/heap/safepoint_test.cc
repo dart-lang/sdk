@@ -316,27 +316,38 @@ class CheckinTask : public StateMachineTask {
 
     uword last_sync = OS::GetCurrentTimeMillis();
     while (!data()->IsIn(kPleaseExit)) {
+      OS::SleepMicros(100);  // Make test avoid consuming 100% CPU x kTaskCount.
       switch (data()->level) {
         case SafepointLevel::kGC: {
           // This thread should join only GC safepoint operations.
           RuntimeCallDeoptScope no_deopt(
               Thread::Current(), RuntimeCallDeoptAbility::kCannotLazyDeopt);
-          SafepointIfRequested(thread_, data()->gc_only_checkins);
+          if (SafepointIfRequested(thread_, data()->gc_only_checkins)) {
+            last_sync = OS::GetCurrentTimeMillis();
+          }
           break;
         }
         case SafepointLevel::kGCAndDeopt: {
           // This thread should join any safepoint operations.
-          SafepointIfRequested(thread_, data()->deopt_checkin);
+          if (SafepointIfRequested(thread_, data()->deopt_checkin)) {
+            last_sync = OS::GetCurrentTimeMillis();
+          }
           break;
         }
         case SafepointLevel::kNumLevels:
           UNREACHABLE();
       }
 
-      // If we are asked to join a deopt safepoint operation we will comply with
-      // that but only every second.
+      // If the main thread asks us to join a deopt safepoint but we are
+      // instructed to only really collaborate with GC safepoints we won't
+      // participate in the above cases (and therefore not register our
+      // check-in by increasing the checkin counts).
+      //
+      // After being quite sure to not have joined deopt safepoint if we only
+      // support GC safepoints, we will eventually comply here to make main
+      // thread continue.
       const auto now = OS::GetCurrentTimeMillis();
-      if ((now - last_sync) > 200) {
+      if ((now - last_sync) > 1000) {
         thread_->EnterSafepoint();
         thread_->ExitSafepoint();
         last_sync = now;
@@ -344,13 +355,14 @@ class CheckinTask : public StateMachineTask {
     }
   }
 
-  void SafepointIfRequested(Thread* thread, std::atomic<intptr_t>* checkins) {
-    OS::SleepMicros(10);
+  bool SafepointIfRequested(Thread* thread, std::atomic<intptr_t>* checkins) {
     if (thread->IsSafepointRequested()) {
       // Collaborates by checking into the safepoint.
       thread->BlockForSafepoint();
       (*checkins)++;
+      return true;
     }
+    return false;
   }
 };
 
@@ -392,11 +404,11 @@ ISOLATE_UNIT_TEST_CASE(SafepointOperation_SafepointPointTest) {
     }
     {
       { GcSafepointOperationScope safepoint_operation(thread); }
-      OS::SleepMicros(500);
+      OS::SleepMicros(1000);  // Wait for threads to exit safepoint
       { DeoptSafepointOperationScope safepoint_operation(thread); }
-      OS::SleepMicros(500);
+      OS::SleepMicros(1000);  // Wait for threads to exit safepoint
       { GcSafepointOperationScope safepoint_operation(thread); }
-      OS::SleepMicros(500);
+      OS::SleepMicros(1000);  // Wait for threads to exit safepoint
       { DeoptSafepointOperationScope safepoint_operation(thread); }
     }
     for (intptr_t i = 0; i < kTaskCount; i++) {

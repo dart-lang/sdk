@@ -632,13 +632,8 @@ class PluginManager {
         .getChildAssumingFolder(file_paths.dotDartTool)
         .getChildAssumingFile(file_paths.packageConfigJson);
     if (pubCommand != null) {
-      var vmPath = Platform.executable;
-      var pubPath = path.join(path.dirname(vmPath), 'pub');
-      if (Platform.isWindows) {
-        // Process.run requires the `.bat` suffix on Windows
-        pubPath = '$pubPath.bat';
-      }
-      var result = Process.runSync(pubPath, <String>[pubCommand],
+      var result = Process.runSync(
+          Platform.executable, <String>['pub', pubCommand],
           stderrEncoding: utf8,
           stdoutEncoding: utf8,
           workingDirectory: pluginFolder.path,

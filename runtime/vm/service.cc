@@ -4473,13 +4473,13 @@ static void GetHeapMap(Thread* thread, JSONStream* js) {
   auto isolate_group = thread->isolate_group();
   if (js->HasParam("gc")) {
     if (js->ParamIs("gc", "scavenge")) {
-      isolate_group->heap()->CollectGarbage(GCType::kScavenge,
+      isolate_group->heap()->CollectGarbage(thread, GCType::kScavenge,
                                             GCReason::kDebugging);
     } else if (js->ParamIs("gc", "mark-sweep")) {
-      isolate_group->heap()->CollectGarbage(GCType::kMarkSweep,
+      isolate_group->heap()->CollectGarbage(thread, GCType::kMarkSweep,
                                             GCReason::kDebugging);
     } else if (js->ParamIs("gc", "mark-compact")) {
-      isolate_group->heap()->CollectGarbage(GCType::kMarkCompact,
+      isolate_group->heap()->CollectGarbage(thread, GCType::kMarkCompact,
                                             GCReason::kDebugging);
     } else {
       PrintInvalidParamError(js, "gc");

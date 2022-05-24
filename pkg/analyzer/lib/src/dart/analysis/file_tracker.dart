@@ -126,18 +126,6 @@ class FileTracker {
     _pendingFiles.remove(path);
   }
 
-  /// Return the [FileState] suitable only when the file is used by itself.
-  /// If the file is in the set of changed files, it is refreshed first.
-  /// If the file is not in the set of changed files, it is not refreshed.
-  FileState getFile(String path) {
-    // Read any files that we were told were changed.
-    // But don't read the requested file explicitly.
-    // Read it only if it is in this set of changed files.
-    while (verifyChangedFilesIfNeeded()) {}
-
-    return _fsState.getFileForPath(path);
-  }
-
   /// Returns a boolean indicating whether the given [path] points to a file
   /// that requires analysis.
   bool isFilePending(String path) {

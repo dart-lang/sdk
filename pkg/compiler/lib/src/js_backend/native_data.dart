@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library js_backend.native_data;
 
 import 'package:kernel/ast.dart' as ir;
@@ -205,7 +207,7 @@ class NativeBasicData {
     bool isAllowInteropUsed = source.readBool();
     Map<ClassEntity, NativeClassTag> nativeClassTagInfo =
         source.readClassMap(() {
-      List<String> names = source.readStrings();
+      List<String> names = source.readStrings() /*!*/;
       bool isNonLeaf = source.readBool();
       return NativeClassTag.internal(names, isNonLeaf);
     });

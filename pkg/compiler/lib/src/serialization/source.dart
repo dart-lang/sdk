@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 part of 'serialization.dart';
 
 /// Interface handling [DataSourceReader] low-level data deserialization.
@@ -38,7 +40,7 @@ class DataSourceReader {
   final DataSource _sourceReader;
 
   static final List<ir.DartType> emptyListOfDartTypes =
-      List<ir.DartType>.filled(0, null, growable: false);
+      List<ir.DartType>.empty();
 
   final bool useDataKinds;
   DataSourceIndices importedIndices;
@@ -121,7 +123,7 @@ class DataSourceReader {
 
   ComponentLookup get componentLookup {
     assert(_componentLookup != null);
-    return _componentLookup;
+    return _componentLookup /*!*/;
   }
 
   /// Registers an [EntityLookup] object with this data source to support
@@ -133,7 +135,7 @@ class DataSourceReader {
 
   EntityLookup get entityLookup {
     assert(_entityLookup != null);
-    return _entityLookup;
+    return _entityLookup /*!*/;
   }
 
   /// Registers an [EntityReader] with this data source for non-default encoding
@@ -151,7 +153,7 @@ class DataSourceReader {
 
   LocalLookup get localLookup {
     assert(_localLookup != null);
-    return _localLookup;
+    return _localLookup /*!*/;
   }
 
   /// Registers a [CodegenReader] with this data source to support
@@ -261,7 +263,7 @@ class DataSourceReader {
     return _readString();
   }
 
-  String _readString() {
+  String /*!*/ _readString() {
     return _stringIndex.read(_sourceReader.readString);
   }
 
@@ -285,7 +287,7 @@ class DataSourceReader {
   List<String> readStrings({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<String> list = List<String>.filled(count, null);
+    List<String> list = List<String>.filled(count, '');
     for (int i = 0; i < count; i++) {
       list[i] = readString();
     }
@@ -631,28 +633,36 @@ class DataSourceReader {
     return list;
   }
 
-  /// Reads a type from this data source. If [allowNull], the returned type is
-  /// allowed to be `null`.
-  DartType readDartType({bool allowNull = false}) {
+  /// Reads a type from this data source.
+  DartType /*!*/ readDartType() {
     _checkDataKind(DataKind.dartType);
-    DartType type = DartType.readFromDataSource(this, []);
-    assert(type != null || allowNull);
-    return type;
+    return DartType.readFromDataSource(this, []);
   }
 
-  /// Reads a list of types from this data source. If [emptyAsNull] is `true`,
-  /// `null` is returned instead of an empty list.
+  /// Reads a nullable type from this data source.
+  DartType /*?*/ readDartTypeOrNull() {
+    _checkDataKind(DataKind.dartType);
+    return DartType.readFromDataSourceOrNull(this, []);
+  }
+
+  /// Reads a list of types from this data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeDartTypes].
-  List<DartType> readDartTypes({bool emptyAsNull = false}) {
+  List<DartType> readDartTypes() {
+    // Share the list when empty.
+    return readDartTypesOrNull() ?? const [];
+  }
+
+  /// Reads a list of types from this data source. Returns `null` instead of an
+  /// empty list.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeDartTypes].
+  List<DartType> /*?*/ readDartTypesOrNull() {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
-    List<DartType> list = List<DartType>.filled(count, null);
-    for (int i = 0; i < count; i++) {
-      list[i] = readDartType();
-    }
-    return list;
+    if (count == 0) return null;
+    return List.generate(count, (_) => readDartType(), growable: false);
   }
 
   /// Reads a kernel type node from this data source. If [allowNull], the
@@ -786,7 +796,8 @@ class DataSourceReader {
       List<ir.TypeParameter> functionTypeVariables) {
     int count = readInt();
     if (count == 0) return emptyListOfDartTypes;
-    List<ir.DartType> types = List<ir.DartType>.filled(count, null);
+    List<ir.DartType> types =
+        List<ir.DartType>.filled(count, const ir.InvalidType());
     for (int index = 0; index < count; index++) {
       types[index] = _readDartTypeNode(functionTypeVariables);
     }

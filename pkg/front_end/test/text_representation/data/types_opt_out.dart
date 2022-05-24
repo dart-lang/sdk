@@ -24,7 +24,7 @@ stringType(
     String /*normal|limited.String**/ /*verbose.dart.core::String**/ o) {}
 voidType(void /*void*/ o) {}
 dynamicType(dynamic /*dynamic*/ o) {}
-neverType(Never /*normal|limited.Null*/ /*verbose.Null*/ o) {}
+neverType(Never /*Never**/ o) {}
 objectType(
     Object /*normal|limited.Object**/ /*verbose.dart.core::Object**/ o) {}
 genericType1(

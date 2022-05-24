@@ -307,4 +307,12 @@ class Option<T> {
 
   T read(ParsedOptions parsedOptions) =>
       (isDefines ? parsedOptions.defines : parsedOptions.options[flag]) as T;
+
+  List<String> remove(List<String> arguments) {
+    arguments.remove(flag);
+    for (String alias in aliases) {
+      arguments.remove(alias);
+    }
+    return arguments;
+  }
 }

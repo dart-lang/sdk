@@ -136,6 +136,7 @@ body's
 bof
 bom
 bones
+bookkeeping
 bootstrap
 bother
 boundness
@@ -157,6 +158,7 @@ bypassing
 c
 caches
 calculations
+callbacks
 callee
 caller's
 callers
@@ -218,8 +220,10 @@ com
 combinations
 combinator
 combiner
+commands
 communicate
 communicates
+communicating
 communication
 compared
 compares
@@ -364,7 +368,6 @@ dispatched
 distribute
 diverged
 divided
-dmitryas
 doc
 docs
 doesn\'t
@@ -428,6 +431,7 @@ establish
 established
 estimate
 eval
+exchanging
 execute
 executor
 executors
@@ -501,6 +505,7 @@ former
 fortunately
 fourth
 framework
+freed
 freely
 freshly
 frontend
@@ -640,6 +645,7 @@ interior
 interleaved
 intermediate
 internet
+interop
 interpolations
 interrupted
 intersects
@@ -945,7 +951,9 @@ preprocess
 presented
 presubmit
 presumably
+presuming
 prev
+primarily
 prime
 printer
 printf
@@ -1050,6 +1058,7 @@ reflect
 reflectee
 reflective
 reg
+regenerations
 regis
 registering
 rehash
@@ -1167,6 +1176,8 @@ shr
 shrinking
 shru
 shut
+shutdown
+shuts
 shutting
 si
 sibling
@@ -1212,6 +1223,7 @@ specifics
 speeding
 spend
 spent
+spin
 spuriously
 sq
 sra
@@ -1422,6 +1434,8 @@ unpleasant
 unqualified
 unreachable
 unregister
+unregistered
+unregisters
 unseen
 unset
 unshadowed

@@ -5,24 +5,22 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 /// A [MessageHandler] that rejects specific tpyes of messages with a given
 /// error code/message.
-class RejectMessageHandler extends MessageHandler<Object?, Null> {
+class RejectMessageHandler extends MessageHandler<Object?, void> {
   @override
   final Method handlesMessage;
   final ErrorCodes errorCode;
   final String errorMessage;
-  RejectMessageHandler(LspAnalysisServer server, this.handlesMessage,
-      this.errorCode, this.errorMessage)
-      : super(server);
+  RejectMessageHandler(
+      super.server, this.handlesMessage, this.errorCode, this.errorMessage);
 
   @override
-  LspJsonHandler<Null> get jsonHandler => NullJsonHandler;
+  LspJsonHandler<void> get jsonHandler => NullJsonHandler;
 
   @override
-  ErrorOr<Null> handle(Object? _, CancellationToken token) {
+  ErrorOr<void> handle(Object? _, CancellationToken token) {
     return error(errorCode, errorMessage, null);
   }
 }

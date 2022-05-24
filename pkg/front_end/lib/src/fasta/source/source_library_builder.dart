@@ -186,7 +186,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   // List of types inferred in the outline.  Errors in these should be reported
   // differently than for specified types.
-  // TODO(dmitryas):  Find a way to mark inferred types.
+  // TODO(cstefantsova):  Find a way to mark inferred types.
   final Set<DartType> inferredTypes = new Set<DartType>.identity();
 
   // While the bounds of type parameters aren't compiled yet, we can't tell the
@@ -787,7 +787,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  @override
   Builder? addBuilder(String? name, Builder declaration, int charOffset,
       {Reference? getterReference, Reference? setterReference}) {
     // TODO(ahe): Set the parent correctly here. Could then change the
@@ -1566,8 +1565,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   void addSyntheticDeclarationOfNull() {
-    // TODO(dmitryas): Uncomment the following when the Null class is removed
-    // from the SDK.
+    // TODO(cstefantsova): Uncomment the following when the Null class is
+    // removed from the SDK.
     //addBuilder("Null", new NullTypeBuilder(const NullType(), this, -1), -1);
   }
 
@@ -3421,26 +3420,33 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // of the depth-first search.  Continue to the next one.
         continue;
       }
-      if (type.parameter.bound is TypeParameterType) {
+      DartType peeledBound = _peelOffFutureOr(type.parameter.bound);
+      if (peeledBound is TypeParameterType) {
         TypeParameterType current = type;
-        TypeParameterType? next = current.parameter.bound as TypeParameterType;
+        TypeParameterType? next = peeledBound;
+        bool isDirectDependency = identical(type.parameter.bound, peeledBound);
         while (next != null && getDeclaredNullability(next) == null) {
           stack[stackTop++] = current;
           setDeclaredNullability(current, marker);
 
           current = next;
-          if (current.parameter.bound is TypeParameterType) {
-            next = current.parameter.bound as TypeParameterType;
+          peeledBound = _peelOffFutureOr(current.parameter.bound);
+          isDirectDependency = isDirectDependency &&
+              identical(current.parameter.bound, peeledBound);
+          if (peeledBound is TypeParameterType) {
+            next = peeledBound;
             if (getDeclaredNullability(next) == marker) {
               setDeclaredNullability(next, Nullability.undetermined);
-              current.parameter.bound = const InvalidType();
-              current.parameter.defaultType = const InvalidType();
-              addProblem(
-                  templateCycleInTypeVariables.withArguments(
-                      next.parameter.name!, current.parameter.name!),
-                  pendingNullability.charOffset,
-                  next.parameter.name!.length,
-                  pendingNullability.fileUri);
+              if (isDirectDependency) {
+                current.parameter.bound = const InvalidType();
+                current.parameter.defaultType = const InvalidType();
+                addProblem(
+                    templateCycleInTypeVariables.withArguments(
+                        next.parameter.name!, current.parameter.name!),
+                    pendingNullability.charOffset,
+                    next.parameter.name!.length,
+                    pendingNullability.fileUri);
+              }
               next = null;
             }
           } else {
@@ -3561,7 +3567,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     bool isAliasedGenericFunctionType = false;
     if (bound is NamedTypeBuilder) {
       TypeDeclarationBuilder? declaration = bound.declaration;
-      // TODO(dmitryas): Unalias beyond the first layer for the check.
+      // TODO(cstefantsova): Unalias beyond the first layer for the check.
       if (declaration is TypeAliasBuilder) {
         TypeBuilder? rhsType = declaration.type;
         if (rhsType is FunctionTypeBuilder &&
@@ -4416,7 +4422,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     } else {
       return;
     }
-    // TODO(dmitryas): Find a better way than relying on [interfaceTarget].
+    // TODO(cstefantsova): Find a better way than relying on [interfaceTarget].
     Member? method =
         hierarchy.getDispatchTarget(klass, name) ?? interfaceTarget;
     // ignore: unnecessary_null_comparison
@@ -4602,13 +4608,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             extensionBuilder.extension.showHideClause ??
                 new ExtensionTypeShowHideClause();
 
-        // TODO(dmitryas): Handle private names.
+        // TODO(cstefantsova): Handle private names.
         List<Supertype> supertypes = membersBuilder.hierarchyBuilder
             .getNodeFromClass(onType.classNode)
             .superclasses;
         Map<String, Supertype> supertypesByName = <String, Supertype>{};
         for (Supertype supertype in supertypes) {
-          // TODO(dmitryas): Should only non-generic supertypes be allowed?
+          // TODO(cstefantsova): Should only non-generic supertypes be allowed?
           supertypesByName[supertype.classNode.name] = supertype;
         }
 
@@ -4636,12 +4642,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               if (setableMember.setterReference != null) {
                 showHideClause.shownSetters.add(setableMember.setterReference!);
               } else {
-                // TODO(dmitryas): Report an error.
+                // TODO(cstefantsova): Report an error.
               }
             } else if (setableMember.hasSetter) {
               showHideClause.shownSetters.add(setableMember.reference);
             } else {
-              // TODO(dmitryas): Report an error.
+              // TODO(cstefantsova): Report an error.
             }
           }
           if (getableMember == null && setableMember == null) {
@@ -4649,7 +4655,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               showHideClause.shownSupertypes
                   .add(supertypesByName[memberOrTypeName]!);
             } else {
-              // TODO(dmitryas): Report an error.
+              // TODO(cstefantsova): Report an error.
             }
           }
         }
@@ -4663,10 +4669,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             } else if (member.hasGetter) {
               showHideClause.shownGetters.add(member.reference);
             } else {
-              // TODO(dmitryas): Handle the erroneous case.
+              // TODO(cstefantsova): Handle the erroneous case.
             }
           } else {
-            // TODO(dmitryas): Handle the erroneous case.
+            // TODO(cstefantsova): Handle the erroneous case.
           }
         }
         for (String setterName in extensionBuilder
@@ -4679,15 +4685,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               if (member.setterReference != null) {
                 showHideClause.shownSetters.add(member.setterReference!);
               } else {
-                // TODO(dmitryas): Report an error.
+                // TODO(cstefantsova): Report an error.
               }
             } else if (member.hasSetter) {
               showHideClause.shownSetters.add(member.reference);
             } else {
-              // TODO(dmitryas): Report an error.
+              // TODO(cstefantsova): Report an error.
             }
           } else {
-            // TODO(dmitryas): Search for a non-setter and report an error.
+            // TODO(cstefantsova): Search for a non-setter and report an error.
           }
         }
         for (Operator operator in extensionBuilder
@@ -4697,11 +4703,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           if (member != null) {
             showHideClause.shownOperators.add(member.reference);
           } else {
-            // TODO(dmitryas): Handle the erroneous case.
+            // TODO(cstefantsova): Handle the erroneous case.
           }
         }
 
-        // TODO(dmitryas): Add a helper function to share logic between
+        // TODO(cstefantsova): Add a helper function to share logic between
         // handling the 'show' and 'hide' parts.
 
         // Handling elements of the 'hide' clause.
@@ -4729,12 +4735,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 showHideClause.hiddenSetters
                     .add(setableMember.setterReference!);
               } else {
-                // TODO(dmitryas): Report an error.
+                // TODO(cstefantsova): Report an error.
               }
             } else if (setableMember.hasSetter) {
               showHideClause.hiddenSetters.add(setableMember.reference);
             } else {
-              // TODO(dmitryas): Report an error.
+              // TODO(cstefantsova): Report an error.
             }
           }
           if (getableMember == null && setableMember == null) {
@@ -4742,7 +4748,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               showHideClause.hiddenSupertypes
                   .add(supertypesByName[memberOrTypeName]!);
             } else {
-              // TODO(dmitryas): Report an error.
+              // TODO(cstefantsova): Report an error.
             }
           }
         }
@@ -4756,10 +4762,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             } else if (member.hasGetter) {
               showHideClause.hiddenGetters.add(member.reference);
             } else {
-              // TODO(dmitryas): Handle the erroneous case.
+              // TODO(cstefantsova): Handle the erroneous case.
             }
           } else {
-            // TODO(dmitryas): Handle the erroneous case.
+            // TODO(cstefantsova): Handle the erroneous case.
           }
         }
         for (String setterName in extensionBuilder
@@ -4772,15 +4778,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               if (member.setterReference != null) {
                 showHideClause.hiddenSetters.add(member.setterReference!);
               } else {
-                // TODO(dmitryas): Report an error.
+                // TODO(cstefantsova): Report an error.
               }
             } else if (member.hasSetter) {
               showHideClause.hiddenSetters.add(member.reference);
             } else {
-              // TODO(dmitryas): Report an error.
+              // TODO(cstefantsova): Report an error.
             }
           } else {
-            // TODO(dmitryas): Search for a non-setter and report an error.
+            // TODO(cstefantsova): Search for a non-setter and report an error.
           }
         }
         for (Operator operator in extensionBuilder
@@ -4790,7 +4796,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           if (member != null) {
             showHideClause.hiddenOperators.add(member.reference);
           } else {
-            // TODO(dmitryas): Handle the erroneous case.
+            // TODO(cstefantsova): Handle the erroneous case.
           }
         }
 
@@ -4863,6 +4869,25 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Uri fileUri, int charOffset, TypeParameterType type) {
     _pendingNullabilities
         .add(new PendingNullability(fileUri, charOffset, type));
+  }
+
+  bool hasPendingNullability(DartType type) {
+    type = _peelOffFutureOr(type);
+    if (type is TypeParameterType) {
+      for (PendingNullability pendingNullability in _pendingNullabilities) {
+        if (pendingNullability.type == type) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  static DartType _peelOffFutureOr(DartType type) {
+    while (type is FutureOrType) {
+      type = type.typeArgument;
+    }
+    return type;
   }
 
   /// Performs delayed bounds checks on [TypedefType]s for the library
@@ -5409,6 +5434,11 @@ class PendingNullability {
   final TypeParameterType type;
 
   PendingNullability(this.fileUri, this.charOffset, this.type);
+
+  @override
+  String toString() {
+    return "PendingNullability(${fileUri}, ${charOffset}, ${type})";
+  }
 }
 
 class UncheckedTypedefType {

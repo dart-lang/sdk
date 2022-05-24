@@ -1085,7 +1085,7 @@ test() {
   }
 
   test_prefixedIdentifier_importPrefix() async {
-    newFile2(b, 'var b = 0;');
+    newFile(b, 'var b = 0;');
     var library = await buildTestLibrary(a, r'''
 import 'b.dart' as pb;
 
@@ -1099,7 +1099,7 @@ test() {
   }
 
   test_prefixedIdentifier_importPrefix_unresolvedIdentifier() async {
-    newFile2(b, '');
+    newFile(b, '');
     var library = await buildTestLibrary(a, r'''
 import 'b.dart' as pb;
 
@@ -1420,7 +1420,7 @@ class X {
   }
 
   test_class_constructor_factoryRedirect_named_prefixed() async {
-    newFile2(b, 'class A {}');
+    newFile(b, 'class A {}');
 
     var library = await buildTestLibrary(a, r'''
 import 'b.dart' as p;
@@ -1464,7 +1464,7 @@ class X {
   }
 
   test_class_constructor_factoryRedirect_unnamed_prefixed() async {
-    newFile2(b, 'class A {}');
+    newFile(b, 'class A {}');
 
     var library = await buildTestLibrary(a, r'''
 import 'b.dart' as p;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 /// Helper classes and methods to adapt between `package:compiler` and
 /// `package:front_end` APIs.
 library compiler.kernel.front_end_adapter;
@@ -10,7 +12,7 @@ import 'dart:async';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
-import '../../compiler.dart' as api;
+import '../../compiler_api.dart' as api;
 
 import '../common.dart';
 import '../io/source_file.dart';
@@ -115,7 +117,7 @@ void reportFrontEndMessage(
       : const [];
   switch (message.severity) {
     case fe.Severity.internalProblem:
-      throw mainMessage.message.computeMessage();
+      throw mainMessage.message.message;
     case fe.Severity.error:
       reporter.reportError(mainMessage, infos);
       break;

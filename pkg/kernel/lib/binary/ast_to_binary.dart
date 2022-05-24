@@ -1986,6 +1986,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitAwaitExpression(AwaitExpression node) {
     writeByte(Tag.AwaitExpression);
+    writeOffset(node.fileOffset);
     writeNode(node.operand);
   }
 
@@ -2260,7 +2261,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEqualsOffset);
     writeAnnotationList(node.annotations);
-    writeByte(node.flags);
+    writeUInt30(node.flags);
     writeStringReference(node.name ?? '');
     writeNode(node.type);
     writeOptionalNode(node.initializer);
@@ -2327,14 +2328,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitExtensionType(ExtensionType node) {
-    // TODO(dmitryas): Serialize ExtensionType.
+    // TODO(cstefantsova): Serialize ExtensionType.
     node.onType.accept(this);
   }
 
   @override
   void visitFutureOrType(FutureOrType node) {
-    // TODO(dmitryas): Remove special treatment of FutureOr when the VM supports
-    // the new encoding: just write the tag.
+    // TODO(cstefantsova): Remove special treatment of FutureOr when the VM
+    // supports the new encoding: just write the tag.
     assert(_knownCanonicalNameNonRootTops.isNotEmpty);
     CanonicalName root = _knownCanonicalNameNonRootTops.first;
     while (!root.isRoot) {
@@ -2352,8 +2353,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitNullType(NullType node) {
-    // TODO(dmitryas): Remove special treatment of Null when the VM supports the
-    // new encoding: just write the tag.
+    // TODO(cstefantsova): Remove special treatment of Null when the VM
+    // supports the new encoding: just write the tag.
     assert(_knownCanonicalNameNonRootTops.isNotEmpty);
     CanonicalName root = _knownCanonicalNameNonRootTops.first;
     while (!root.isRoot) {

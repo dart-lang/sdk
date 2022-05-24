@@ -174,10 +174,9 @@ class InvocationInferenceHelper {
       resolver: _resolver,
       node: node,
       argumentList: node.argumentList,
-      rawType: rawType,
       contextType: contextType,
       whyNotPromotedList: whyNotPromotedList,
-    ).resolveInvocation();
+    ).resolveInvocation(rawType: rawType);
 
     recordStaticType(node, returnType, contextType: contextType);
   }

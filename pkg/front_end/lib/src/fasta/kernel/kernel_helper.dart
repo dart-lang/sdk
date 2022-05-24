@@ -26,11 +26,11 @@ class DelayedDefaultValueCloner {
   //  variable types in default values be a compile time error?
   final Map<TypeParameter, DartType> _typeSubstitution;
 
-  /// The original function node.
-  final FunctionNode _original;
+  /// The original constructor or procedure.
+  final Member original;
 
-  /// The synthesized function node.
-  final FunctionNode _synthesized;
+  /// The synthesized constructor or procedure.
+  final Member synthesized;
 
   /// If `true`, the [_synthesized] is guaranteed to have the same parameters in
   /// the same order as [_original]. Otherwise [_original] is only guaranteed to
@@ -49,8 +49,12 @@ class DelayedDefaultValueCloner {
 
   CloneVisitorNotMembers? _cloner;
 
+  /// Set to `true` we default values have been cloned, ensuring that cloning
+  /// isn't performed twice.
+  bool _hasCloned = false;
+
   DelayedDefaultValueCloner(
-      this._typeSubstitution, this._original, this._synthesized,
+      this.original, this.synthesized, this._typeSubstitution,
       {this.identicalSignatures: true,
       List<int?>? positionalSuperParameters: null,
       List<String>? namedSuperParameters: null,
@@ -88,10 +92,12 @@ class DelayedDefaultValueCloner {
               // same order as the named parameters of [_synthesized].
               int superParameterIndex = 0;
               for (int namedParameterIndex = 0;
-                  namedParameterIndex < _synthesized.namedParameters.length &&
+                  namedParameterIndex <
+                          synthesized.function!.namedParameters.length &&
                       superParameterIndex < namedSuperParameters.length;
                   namedParameterIndex++) {
-                if (_synthesized.namedParameters[namedParameterIndex].name ==
+                if (synthesized
+                        .function!.namedParameters[namedParameterIndex].name ==
                     namedSuperParameters[superParameterIndex]) {
                   ++superParameterIndex;
                 }
@@ -100,6 +106,8 @@ class DelayedDefaultValueCloner {
             }());
 
   void cloneDefaultValues(TypeEnvironment typeEnvironment) {
+    if (_hasCloned) return;
+
     // TODO(ahe): It is unclear if it is legal to use type variables in
     // default values, but Fasta is currently allowing it, and the VM
     // accepts it. If it isn't legal, the we can speed this up by using a
@@ -109,6 +117,9 @@ class DelayedDefaultValueCloner {
     // for redirecting tear off lowerings, the argument count of the tear off
     // can be less than that of the redirection target or, in errors cases, be
     // unrelated.
+
+    FunctionNode _original = original.function!;
+    FunctionNode _synthesized = synthesized.function!;
 
     if (identicalSignatures) {
       assert(_positionalSuperParameters != null ||
@@ -199,6 +210,7 @@ class DelayedDefaultValueCloner {
         }
       }
     }
+    _hasCloned = true;
   }
 
   void _cloneInitializer(VariableDeclaration originalParameter,
@@ -215,16 +227,16 @@ class DelayedDefaultValueCloner {
       VariableDeclaration originalParameter,
       VariableDeclaration synthesizedParameter,
       TypeEnvironment typeEnvironment) {
-    Member member = _synthesized.parent as Member;
     Expression? originalParameterInitializer = originalParameter.initializer;
     DartType? originalParameterInitializerType = originalParameterInitializer
-        ?.getStaticType(new StaticTypeContext(member, typeEnvironment));
+        ?.getStaticType(new StaticTypeContext(synthesized, typeEnvironment));
     DartType synthesizedParameterType = synthesizedParameter.type;
     if (originalParameterInitializerType != null &&
         typeEnvironment.isSubtypeOf(originalParameterInitializerType,
             synthesizedParameterType, SubtypeCheckMode.withNullabilities)) {
       _cloneInitializer(originalParameter, synthesizedParameter);
     } else {
+      synthesizedParameter.hasDeclaredInitializer = false;
       if (synthesizedParameterType.isPotentiallyNonNullable) {
         _libraryBuilder.addProblem(
             templateOptionalSuperParameterWithoutInitializer.withArguments(
@@ -240,8 +252,8 @@ class DelayedDefaultValueCloner {
 
   @override
   String toString() {
-    return "DelayedDefaultValueCloner(original=${_original.parent}, "
-        "synthesized=${_synthesized.parent})";
+    return "DelayedDefaultValueCloner(original=${original}, "
+        "synthesized=${synthesized})";
   }
 }
 
@@ -260,10 +272,14 @@ class TypeDependency {
     for (int i = 0; i < original.function!.positionalParameters.length; i++) {
       VariableDeclaration synthesizedParameter =
           synthesized.function!.positionalParameters[i];
-      VariableDeclaration constructorParameter =
+      VariableDeclaration originalParameter =
           original.function!.positionalParameters[i];
       synthesizedParameter.type =
-          substitution.substituteType(constructorParameter.type);
+          substitution.substituteType(originalParameter.type);
+      if (!synthesizedParameter.hasDeclaredInitializer) {
+        synthesizedParameter.hasDeclaredInitializer =
+            originalParameter.hasDeclaredInitializer;
+      }
     }
     for (int i = 0; i < original.function!.namedParameters.length; i++) {
       VariableDeclaration synthesizedParameter =
@@ -272,6 +288,10 @@ class TypeDependency {
           original.function!.namedParameters[i];
       synthesizedParameter.type =
           substitution.substituteType(originalParameter.type);
+      if (!synthesizedParameter.hasDeclaredInitializer) {
+        synthesizedParameter.hasDeclaredInitializer =
+            originalParameter.hasDeclaredInitializer;
+      }
     }
     if (copyReturnType) {
       synthesized.function!.returnType =

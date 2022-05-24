@@ -32,7 +32,7 @@ class BasicWorkspacePackageTest extends WorkspacePackageTest {
   }
 
   void test_contains_differentWorkspace() {
-    newFile2('/workspace2/project/lib/file.dart', '');
+    newFile('/workspace2/project/lib/file.dart', '');
 
     var package = findPackage('/workspace/project/lib/code.dart')!;
     expect(
@@ -42,7 +42,7 @@ class BasicWorkspacePackageTest extends WorkspacePackageTest {
   }
 
   void test_contains_sameWorkspace() {
-    newFile2('/workspace/project/lib/file2.dart', '');
+    newFile('/workspace/project/lib/file2.dart', '');
 
     var package = findPackage('/workspace/project/lib/code.dart')!;
     expect(
@@ -60,7 +60,7 @@ class BasicWorkspacePackageTest extends WorkspacePackageTest {
   }
 
   void test_findPackageFor_includedFile() {
-    newFile2('/workspace/project/lib/file.dart', '');
+    newFile('/workspace/project/lib/file.dart', '');
 
     var package = findPackage('/workspace/project/lib/file.dart')!;
     expect(package, isNotNull);
@@ -69,7 +69,7 @@ class BasicWorkspacePackageTest extends WorkspacePackageTest {
   }
 
   void test_findPackageFor_unrelatedFile() {
-    newFile2('/workspace/project/lib/file.dart', '');
+    newFile('/workspace/project/lib/file.dart', '');
 
     var package = findPackage('/workspace2/project/lib/file.dart');
     expect(package, isNull);

@@ -107,4 +107,49 @@ testReturnTypeRefersToMultipleTypeVars(
   });
 }
 
+testUnnecessaryDueToNoDependency(T Function<T>(T Function(), T) f) {
+  f(() => 0, null).expectStaticType<Exactly<int?>>();
+}
+
+testUnnecessaryDueToExplicitParameterType(List<int> list) {
+  var a = list.fold(null, (int? x, y) => (x ?? 0) + y);
+  a.expectStaticType<Exactly<int?>>();
+}
+
+testUnnecessaryDueToExplicitParameterTypeNamed(
+    T Function<T>(T, T Function({required T x, required int y})) f) {
+  var a = f(null, ({int? x, required y}) => (x ?? 0) + y);
+  a.expectStaticType<Exactly<int?>>();
+}
+
+testParenthesized(void Function<T>(T, void Function(T)) f) {
+  f(0, ((x) {
+    x.expectStaticType<Exactly<int>>();
+  }));
+}
+
+testParenthesizedNamed(
+    void Function<T>({required T a, required void Function(T) b}) f) {
+  f(
+      a: 0,
+      b: ((x) {
+        x.expectStaticType<Exactly<int>>();
+      }));
+}
+
+testParenthesizedTwice(void Function<T>(T, void Function(T)) f) {
+  f(0, (((x) {
+    x.expectStaticType<Exactly<int>>();
+  })));
+}
+
+testParenthesizedTwiceNamed(
+    void Function<T>({required T a, required void Function(T) b}) f) {
+  f(
+      a: 0,
+      b: (((x) {
+        x.expectStaticType<Exactly<int>>();
+      })));
+}
+
 main() {}

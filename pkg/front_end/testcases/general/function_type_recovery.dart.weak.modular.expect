@@ -17,6 +17,6 @@ import "dart:core" as core;
 
 typedef F = ((core::String) → core::int) → core::int;
 static method main() → dynamic {
-  ((core::String) → core::int) →? core::int f = null;
-  ((core::int) → core::String) →? core::String g = null;
+  has-declared-initializer ((core::String) → core::int) →? core::int f = null;
+  has-declared-initializer ((core::int) → core::String) →? core::String g = null;
 }

@@ -2,11 +2,11 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extensions/issue40713.dart:22:8: Error: 'safeFirst' isn't a function or method and can't be invoked.
+// pkg/front_end/testcases/extensions/issue40713.dart:24:8: Error: 'safeFirst' isn't a function or method and can't be invoked.
 //   list.safeFirst();
 //        ^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/issue40713.dart:24:18: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/extensions/issue40713.dart:26:18: Error: Too few positional arguments: 1 required, 0 given.
 //   list2.safeFirst();
 //                  ^
 //
@@ -28,11 +28,11 @@ static method test() → void {
 }
 static method errors() → void {
   final core::List<core::Object*>* list = core::_GrowableList::•<core::Object*>(0);
-  invalid-expression "pkg/front_end/testcases/extensions/issue40713.dart:22:8: Error: 'safeFirst' isn't a function or method and can't be invoked.
+  invalid-expression "pkg/front_end/testcases/extensions/issue40713.dart:24:8: Error: 'safeFirst' isn't a function or method and can't be invoked.
   list.safeFirst();
        ^^^^^^^^^" in self::SafeAccess|get#safeFirst<core::Object*>(list){<unresolved>}.call();
   final core::List<(core::int*) →* void>* list2 = core::_GrowableList::•<(core::int*) →* void>(0);
-  invalid-expression "pkg/front_end/testcases/extensions/issue40713.dart:24:18: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/extensions/issue40713.dart:26:18: Error: Too few positional arguments: 1 required, 0 given.
   list2.safeFirst();
                  ^" in self::SafeAccess|get#safeFirst<(core::int*) →* void>(list2){<inapplicable>}.();
 }

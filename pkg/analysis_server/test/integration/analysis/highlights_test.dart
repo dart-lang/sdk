@@ -52,6 +52,7 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
     int? servicesPort,
   }) {
     return server.start(
+        dartSdkPath: dartSdkPath,
         diagnosticPort: diagnosticPort,
         servicesPort: servicesPort,
         useAnalysisHighlight2: true);

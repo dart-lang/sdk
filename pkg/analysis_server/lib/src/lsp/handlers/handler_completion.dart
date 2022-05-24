@@ -38,9 +38,8 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
   /// Whether to include symbols from libraries that have not been imported.
   final bool suggestFromUnimportedLibraries;
 
-  CompletionHandler(LspAnalysisServer server, LspInitializationOptions options)
-      : suggestFromUnimportedLibraries = options.suggestFromUnimportedLibraries,
-        super(server);
+  CompletionHandler(super.server, LspInitializationOptions options)
+      : suggestFromUnimportedLibraries = options.suggestFromUnimportedLibraries;
 
   @override
   Method get handlesMessage => Method.textDocument_completion;
@@ -61,108 +60,138 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     final triggerCharacter = params.context?.triggerCharacter;
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireResolvedUnit);
 
-    final lineInfo = await unit.map(
-      // If we don't have a unit, we can still try to obtain the line info from
-      // the server (this could be because the file is non-Dart, such as YAML or
-      // another handled by a plugin).
-      (error) => path.mapResult(getLineInfo),
-      (unit) => success(unit.lineInfo),
-    );
-    final offset =
-        await lineInfo.mapResult((lineInfo) => toOffset(lineInfo, pos));
-
-    return offset.mapResult((offset) async {
-      Future<ErrorOr<CompletionList>>? serverResultsFuture;
-      final pathContext = server.resourceProvider.pathContext;
-      final fileExtension = pathContext.extension(path.result);
-
-      final maxResults = server.clientConfiguration
-          .forResource(path.result)
-          .maxCompletionItems;
-
-      CompletionPerformance? completionPerformance;
-      if (fileExtension == '.dart' && !unit.isError) {
-        final result = unit.result;
-        var performanceOperation = OperationPerformanceImpl('<root>');
-        completionPerformance = CompletionPerformance(
-          operation: performanceOperation,
-          path: result.path,
-          content: result.content,
-          offset: offset,
-        );
-        server.performanceStats.completion.add(completionPerformance);
-
-        serverResultsFuture = _getServerDartItems(
-          clientCapabilities,
-          result,
-          completionPerformance,
-          performanceOperation,
-          offset,
-          triggerCharacter,
-          token,
-          maxResults: maxResults,
-        );
-      } else if (fileExtension == '.yaml') {
-        YamlCompletionGenerator? generator;
-        if (file_paths.isAnalysisOptionsYaml(pathContext, path.result)) {
-          generator = AnalysisOptionsGenerator(server.resourceProvider);
-        } else if (file_paths.isFixDataYaml(pathContext, path.result)) {
-          generator = FixDataGenerator(server.resourceProvider);
-        } else if (file_paths.isPubspecYaml(pathContext, path.result)) {
-          generator = PubspecGenerator(
-              server.resourceProvider, server.pubPackageService);
-        }
-        if (generator != null) {
-          serverResultsFuture = _getServerYamlItems(
-            generator,
-            clientCapabilities,
-            path.result,
-            lineInfo.result,
-            offset,
-            token,
-          );
-        }
-      }
-
-      serverResultsFuture ??=
-          Future.value(success(CompletionList(isIncomplete: false, items: [])));
-
-      final pluginResultsFuture = _getPluginResults(
-          clientCapabilities, lineInfo.result, path.result, offset);
-
-      // Await both server + plugin results together to allow async/IO to
-      // overlap.
-      final serverAndPluginResults =
-          await Future.wait([serverResultsFuture, pluginResultsFuture]);
-      final serverResults = serverAndPluginResults[0];
-      final pluginResults = serverAndPluginResults[1];
-
-      if (serverResults.isError) return serverResults;
-      if (pluginResults.isError) return pluginResults;
-
-      final untruncatedItems = serverResults.result.items
-          .followedBy(pluginResults.result.items)
-          .toList();
-
-      final truncatedItems = untruncatedItems.length > maxResults
-          ? (untruncatedItems..sort(sortTextComparer)).sublist(0, maxResults)
-          : untruncatedItems;
-
-      // If we're tracing performance (only Dart), record the number of results
-      // after truncation.
-      completionPerformance?.transmittedSuggestionCount = truncatedItems.length;
-
-      return success(CompletionList(
-        // If any set of the results is incomplete, the whole batch must be
-        // marked as such.
-        isIncomplete: serverResults.result.isIncomplete ||
-            pluginResults.result.isIncomplete ||
-            truncatedItems.length != untruncatedItems.length,
-        items: truncatedItems,
-      ));
+    // IMPORTANT:
+    // This handler is frequently called while the user is typing, which means
+    // during any `await` there is a good chance of the file contents being
+    // updated, but we must return results consistent with the file at the time
+    // this request started so that the client can compensate for any typing
+    // in the meantime.
+    //
+    // To do this, tell the server to lock requests until we have a resolved
+    // unit and LineInfo.
+    late ErrorOr<LineInfo> lineInfo;
+    late ErrorOr<ResolvedUnitResult> unit;
+    await server.lockRequestsWhile(() async {
+      unit = await path.mapResult(requireResolvedUnit);
+      lineInfo = await unit.map(
+        // If we don't have a unit, we can still try to obtain the line info from
+        // the server (this could be because the file is non-Dart, such as YAML or
+        // another handled by a plugin).
+        (error) => path.mapResult(getLineInfo),
+        (unit) => success(unit.lineInfo),
+      );
     });
+
+    if (token.isCancellationRequested) {
+      return cancelled();
+    }
+
+    // Map the offset, propagating the previous failure if we didn't have a
+    // valid LineInfo.
+    final offsetResult = !lineInfo.isError
+        ? toOffset(lineInfo.result, pos)
+        : failure<int>(lineInfo);
+
+    if (offsetResult.isError) {
+      return failure(offsetResult);
+    }
+    final offset = offsetResult.result;
+
+    Future<ErrorOr<CompletionList>>? serverResultsFuture;
+    final pathContext = server.resourceProvider.pathContext;
+    final fileExtension = pathContext.extension(path.result);
+
+    final maxResults =
+        server.clientConfiguration.forResource(path.result).maxCompletionItems;
+
+    CompletionPerformance? completionPerformance;
+    if (fileExtension == '.dart' && !unit.isError) {
+      final result = unit.result;
+      var performanceOperation = OperationPerformanceImpl('<root>');
+
+      serverResultsFuture = await performanceOperation.runAsync(
+        'request',
+        (performance) async {
+          final thisPerformance = CompletionPerformance(
+            operation: performance,
+            path: result.path,
+            content: result.content,
+            offset: offset,
+          );
+          completionPerformance = thisPerformance;
+          server.performanceStats.completion.add(thisPerformance);
+
+          return _getServerDartItems(
+            clientCapabilities,
+            unit.result,
+            thisPerformance,
+            performanceOperation,
+            offset,
+            triggerCharacter,
+            token,
+            maxResults: maxResults,
+          );
+        },
+      );
+    } else if (fileExtension == '.yaml') {
+      YamlCompletionGenerator? generator;
+      if (file_paths.isAnalysisOptionsYaml(pathContext, path.result)) {
+        generator = AnalysisOptionsGenerator(server.resourceProvider);
+      } else if (file_paths.isFixDataYaml(pathContext, path.result)) {
+        generator = FixDataGenerator(server.resourceProvider);
+      } else if (file_paths.isPubspecYaml(pathContext, path.result)) {
+        generator =
+            PubspecGenerator(server.resourceProvider, server.pubPackageService);
+      }
+      if (generator != null) {
+        serverResultsFuture = _getServerYamlItems(
+          generator,
+          clientCapabilities,
+          path.result,
+          lineInfo.result,
+          offset,
+          token,
+        );
+      }
+    }
+
+    serverResultsFuture ??=
+        Future.value(success(CompletionList(isIncomplete: false, items: [])));
+
+    final pluginResultsFuture = _getPluginResults(
+        clientCapabilities, lineInfo.result, path.result, offset);
+
+    // Await both server + plugin results together to allow async/IO to
+    // overlap.
+    final serverAndPluginResults =
+        await Future.wait([serverResultsFuture, pluginResultsFuture]);
+    final serverResults = serverAndPluginResults[0];
+    final pluginResults = serverAndPluginResults[1];
+
+    if (serverResults.isError) return serverResults;
+    if (pluginResults.isError) return pluginResults;
+
+    final untruncatedItems = serverResults.result.items
+        .followedBy(pluginResults.result.items)
+        .toList();
+
+    final truncatedItems = untruncatedItems.length > maxResults
+        ? (untruncatedItems..sort(sortTextComparer)).sublist(0, maxResults)
+        : untruncatedItems;
+
+    // If we're tracing performance (only Dart), record the number of results
+    // after truncation.
+    completionPerformance?.transmittedSuggestionCount = truncatedItems.length;
+
+    return success(CompletionList(
+      // If any set of the results is incomplete, the whole batch must be
+      // marked as such.
+      isIncomplete: serverResults.result.isIncomplete ||
+          pluginResults.result.isIncomplete ||
+          truncatedItems.length != untruncatedItems.length,
+      items: truncatedItems,
+    ));
   }
 
   /// Build a list of existing imports so we can filter out any suggestions
@@ -262,7 +291,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     LspClientCapabilities capabilities,
     ResolvedUnitResult unit,
     CompletionPerformance completionPerformance,
-    OperationPerformanceImpl operationPerformance,
+    OperationPerformanceImpl performance,
     int offset,
     String? triggerCharacter,
     CancellationToken token, {
@@ -271,245 +300,240 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     final useSuggestionSets =
         suggestFromUnimportedLibraries && capabilities.applyEdit;
 
-    return await operationPerformance.runAsync(
-      'request',
-      (performance) async {
-        final completionRequest = DartCompletionRequest.forResolvedUnit(
-          resolvedUnit: unit,
-          offset: offset,
-          dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(unit),
-          completionPreference: CompletionPreference.replace,
+    final completionRequest = DartCompletionRequest.forResolvedUnit(
+      resolvedUnit: unit,
+      offset: offset,
+      dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(unit),
+      completionPreference: CompletionPreference.replace,
+    );
+    final target = completionRequest.target;
+
+    if (triggerCharacter != null) {
+      if (!_triggerCharacterValid(offset, triggerCharacter, target)) {
+        return success(CompletionList(isIncomplete: false, items: []));
+      }
+    }
+
+    Set<ElementKind>? includedElementKinds;
+    Set<String>? includedElementNames;
+    List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags;
+    if (useSuggestionSets) {
+      includedElementKinds = <ElementKind>{};
+      includedElementNames = <String>{};
+      includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
+    }
+
+    try {
+      var contributor = DartCompletionManager(
+        budget: CompletionBudget(CompletionBudget.defaultDuration),
+        includedElementKinds: includedElementKinds,
+        includedElementNames: includedElementNames,
+        includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+      );
+
+      final serverSuggestions2 = await contributor.computeSuggestions(
+        completionRequest,
+        performance,
+      );
+
+      final serverSuggestions = serverSuggestions2.map((serverSuggestion) {
+        return serverSuggestion.build();
+      }).toList();
+
+      final insertLength = _computeInsertLength(
+        offset,
+        completionRequest.replacementOffset,
+        completionRequest.replacementLength,
+      );
+
+      if (token.isCancellationRequested) {
+        return cancelled();
+      }
+
+      /// completeFunctionCalls should be suppressed if the target is an
+      /// invocation that already has an argument list, otherwise we would
+      /// insert dupes.
+      final completeFunctionCalls = _hasExistingArgList(target.entity)
+          ? false
+          : server.clientConfiguration.global.completeFunctionCalls;
+
+      final results = serverSuggestions.map(
+        (item) {
+          var itemReplacementOffset =
+              item.replacementOffset ?? completionRequest.replacementOffset;
+          var itemReplacementLength =
+              item.replacementLength ?? completionRequest.replacementLength;
+          var itemInsertLength = insertLength;
+
+          // Recompute the insert length if it may be affected by the above.
+          if (item.replacementOffset != null ||
+              item.replacementLength != null) {
+            itemInsertLength = _computeInsertLength(
+                offset, itemReplacementOffset, itemInsertLength);
+          }
+
+          // Convert to LSP ranges using the LineInfo.
+          Range? replacementRange = toRange(
+              unit.lineInfo, itemReplacementOffset, itemReplacementLength);
+          Range? insertionRange =
+              toRange(unit.lineInfo, itemReplacementOffset, itemInsertLength);
+
+          return toCompletionItem(
+            capabilities,
+            unit.lineInfo,
+            item,
+            replacementRange: replacementRange,
+            insertionRange: insertionRange,
+            // TODO(dantup): Move commit characters to the main response
+            // and remove from each individual item (to reduce payload size)
+            // once the following change ships (and the Dart VS Code
+            // extension is updated to use it).
+            // https://github.com/microsoft/vscode-languageserver-node/issues/673
+            includeCommitCharacters:
+                server.clientConfiguration.global.previewCommitCharacters,
+            completeFunctionCalls: completeFunctionCalls,
+          );
+        },
+      ).toList();
+
+      // Now compute items in suggestion sets.
+      var includedSuggestionSets = <IncludedSuggestionSet>[];
+      final declarationsTracker = server.declarationsTracker;
+      if (declarationsTracker != null &&
+          includedElementKinds != null &&
+          includedElementNames != null &&
+          includedSuggestionRelevanceTags != null) {
+        computeIncludedSetList(
+          declarationsTracker,
+          completionRequest,
+          includedSuggestionSets,
+          includedElementNames,
         );
-        final target = completionRequest.target;
 
-        if (triggerCharacter != null) {
-          if (!_triggerCharacterValid(offset, triggerCharacter, target)) {
-            return success(CompletionList(isIncomplete: false, items: []));
-          }
-        }
+        // Build a fast lookup for imported symbols so that we can filter out
+        // duplicates.
+        final alreadyImportedSymbols = _buildLookupOfImportedSymbols(unit);
 
-        Set<ElementKind>? includedElementKinds;
-        Set<String>? includedElementNames;
-        List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags;
-        if (useSuggestionSets) {
-          includedElementKinds = <ElementKind>{};
-          includedElementNames = <String>{};
-          includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
-        }
-
-        try {
-          var contributor = DartCompletionManager(
-            budget: CompletionBudget(CompletionBudget.defaultDuration),
-            includedElementKinds: includedElementKinds,
-            includedElementNames: includedElementNames,
-            includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
-          );
-
-          final serverSuggestions2 = await contributor.computeSuggestions(
-            completionRequest,
-            performance,
-          );
-
-          final serverSuggestions = serverSuggestions2.map((serverSuggestion) {
-            return serverSuggestion.build();
-          }).toList();
-
-          final insertLength = _computeInsertLength(
-            offset,
-            completionRequest.replacementOffset,
-            completionRequest.replacementLength,
-          );
-
-          if (token.isCancellationRequested) {
-            return cancelled();
+        for (var includedSet in includedSuggestionSets) {
+          final library = declarationsTracker.getLibrary(includedSet.id);
+          if (library == null) {
+            break;
           }
 
-          /// completeFunctionCalls should be suppressed if the target is an
-          /// invocation that already has an argument list, otherwise we would
-          /// insert dupes.
-          final completeFunctionCalls = _hasExistingArgList(target.entity)
-              ? false
-              : server.clientConfiguration.global.completeFunctionCalls;
-
-          final results = serverSuggestions.map(
-            (item) {
-              var itemReplacementOffset =
-                  item.replacementOffset ?? completionRequest.replacementOffset;
-              var itemReplacementLength =
-                  item.replacementLength ?? completionRequest.replacementLength;
-              var itemInsertLength = insertLength;
-
-              // Recompute the insert length if it may be affected by the above.
-              if (item.replacementOffset != null ||
-                  item.replacementLength != null) {
-                itemInsertLength = _computeInsertLength(
-                    offset, itemReplacementOffset, itemInsertLength);
-              }
-
-              // Convert to LSP ranges using the LineInfo.
-              Range? replacementRange = toRange(
-                  unit.lineInfo, itemReplacementOffset, itemReplacementLength);
-              Range? insertionRange = toRange(
-                  unit.lineInfo, itemReplacementOffset, itemInsertLength);
-
-              return toCompletionItem(
-                capabilities,
-                unit.lineInfo,
-                item,
-                replacementRange: replacementRange,
-                insertionRange: insertionRange,
-                // TODO(dantup): Move commit characters to the main response
-                // and remove from each individual item (to reduce payload size)
-                // once the following change ships (and the Dart VS Code
-                // extension is updated to use it).
-                // https://github.com/microsoft/vscode-languageserver-node/issues/673
-                includeCommitCharacters:
-                    server.clientConfiguration.global.previewCommitCharacters,
-                completeFunctionCalls: completeFunctionCalls,
-              );
-            },
-          ).toList();
-
-          // Now compute items in suggestion sets.
-          var includedSuggestionSets = <IncludedSuggestionSet>[];
-          final declarationsTracker = server.declarationsTracker;
-          if (declarationsTracker != null &&
-              includedElementKinds != null &&
-              includedElementNames != null &&
-              includedSuggestionRelevanceTags != null) {
-            computeIncludedSetList(
-              declarationsTracker,
-              completionRequest,
-              includedSuggestionSets,
-              includedElementNames,
-            );
-
-            // Build a fast lookup for imported symbols so that we can filter out
-            // duplicates.
-            final alreadyImportedSymbols = _buildLookupOfImportedSymbols(unit);
-
-            includedSuggestionSets.forEach((includedSet) {
-              final library = declarationsTracker.getLibrary(includedSet.id);
-              if (library == null) {
-                return;
-              }
-
-              // Make a fast lookup for tag relevance.
-              final tagBoosts = <String, int>{};
-              includedSuggestionRelevanceTags!
-                  .forEach((t) => tagBoosts[t.tag] = t.relevanceBoost);
-
-              // Only specific types of child declarations should be included.
-              // This list matches what's in _protocolAvailableSuggestion in
-              // the DAS implementation.
-              bool shouldIncludeChild(Declaration child) =>
-                  child.kind == DeclarationKind.CONSTRUCTOR ||
-                  child.kind == DeclarationKind.ENUM_CONSTANT ||
-                  (child.kind == DeclarationKind.GETTER && child.isStatic) ||
-                  (child.kind == DeclarationKind.FIELD && child.isStatic);
-
-              // Collect declarations and their children.
-              final allDeclarations = library.declarations
-                  .followedBy(library.declarations.expand(
-                      (decl) => decl.children.where(shouldIncludeChild)))
-                  .toList();
-
-              final setResults = allDeclarations
-                  // Filter to only the kinds we should return.
-                  .where((item) => includedElementKinds!
-                      .contains(protocolElementKind(item.kind)))
-                  .where((item) {
-                // Check existing imports to ensure we don't already import
-                // this element (this exact element from its declaring
-                // library, not just something with the same name). If we do
-                // we'll want to skip it.
-                final declaringUri =
-                    item.parent?.locationLibraryUri ?? item.locationLibraryUri!;
-
-                // For enums and named constructors, only the parent enum/class is in
-                // the list of imported symbols so we use the parents name.
-                final nameKey = item.kind == DeclarationKind.ENUM_CONSTANT ||
-                        item.kind == DeclarationKind.CONSTRUCTOR
-                    ? item.parent!.name
-                    : item.name;
-                final key = _createImportedSymbolKey(nameKey, declaringUri);
-                final importingUris = alreadyImportedSymbols[key];
-
-                // Keep it only if:
-                // - no existing imports include it
-                //     (in which case all libraries will be offered as
-                //     auto-imports)
-                // - this is the first imported URI that includes it
-                //     (we don't want to repeat it for each imported library that
-                //     includes it)
-                return importingUris == null ||
-                    importingUris.first == '${library.uri}';
-              }).map((item) => declarationToCompletionItem(
-                        capabilities,
-                        unit.path,
-                        offset,
-                        includedSet,
-                        library,
-                        tagBoosts,
-                        unit.lineInfo,
-                        item,
-                        completionRequest.replacementOffset,
-                        insertLength,
-                        completionRequest.replacementLength,
-                        // TODO(dantup): Move commit characters to the main response
-                        // and remove from each individual item (to reduce payload size)
-                        // once the following change ships (and the Dart VS Code
-                        // extension is updated to use it).
-                        // https://github.com/microsoft/vscode-languageserver-node/issues/673
-                        includeCommitCharacters: server
-                            .clientConfiguration.global.previewCommitCharacters,
-                        completeFunctionCalls: completeFunctionCalls,
-                      ));
-              results.addAll(setResults);
-            });
+          // Make a fast lookup for tag relevance.
+          final tagBoosts = <String, int>{};
+          for (var t in includedSuggestionRelevanceTags) {
+            tagBoosts[t.tag] = t.relevanceBoost;
           }
 
-          // Add in any snippets.
-          final snippetsEnabled =
-              server.clientConfiguration.forResource(unit.path).enableSnippets;
-          // We can only produce edits with edit builders for files inside
-          // the root, so skip snippets entirely if not.
-          final isEditableFile =
-              unit.session.analysisContext.contextRoot.isAnalyzed(unit.path);
-          if (capabilities.completionSnippets &&
-              snippetsEnabled &&
-              isEditableFile) {
-            results.addAll(await _getDartSnippetItems(
-              clientCapabilities: capabilities,
-              unit: unit,
-              offset: offset,
-              lineInfo: unit.lineInfo,
-            ));
-          }
+          // Only specific types of child declarations should be included.
+          // This list matches what's in _protocolAvailableSuggestion in
+          // the DAS implementation.
+          bool shouldIncludeChild(Declaration child) =>
+              child.kind == DeclarationKind.CONSTRUCTOR ||
+              child.kind == DeclarationKind.ENUM_CONSTANT ||
+              (child.kind == DeclarationKind.GETTER && child.isStatic) ||
+              (child.kind == DeclarationKind.FIELD && child.isStatic);
 
-          // Perform fuzzy matching based on the identifier in front of the caret to
-          // reduce the size of the payload.
-          final fuzzyPattern = completionRequest.targetPrefix;
-          final fuzzyMatcher =
-              FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
-
-          final matchingResults = results
-              .where((e) => fuzzyMatcher.score(e.filterText ?? e.label) > 0)
+          // Collect declarations and their children.
+          final allDeclarations = library.declarations
+              .followedBy(library.declarations
+                  .expand((decl) => decl.children.where(shouldIncludeChild)))
               .toList();
 
-          // Transmitted count will be set after combining with plugins.
-          completionPerformance.computedSuggestionCount =
-              matchingResults.length;
+          final setResults = allDeclarations
+              // Filter to only the kinds we should return.
+              .where((item) => includedElementKinds!
+                  .contains(protocolElementKind(item.kind)))
+              .where((item) {
+            // Check existing imports to ensure we don't already import
+            // this element (this exact element from its declaring
+            // library, not just something with the same name). If we do
+            // we'll want to skip it.
+            final declaringUri =
+                item.parent?.locationLibraryUri ?? item.locationLibraryUri!;
 
-          return success(
-              CompletionList(isIncomplete: false, items: matchingResults));
-        } on AbortCompletion {
-          return success(CompletionList(isIncomplete: false, items: []));
-        } on InconsistentAnalysisException {
-          return success(CompletionList(isIncomplete: false, items: []));
+            // For enums and named constructors, only the parent enum/class is in
+            // the list of imported symbols so we use the parents name.
+            final nameKey = item.kind == DeclarationKind.ENUM_CONSTANT ||
+                    item.kind == DeclarationKind.CONSTRUCTOR
+                ? item.parent!.name
+                : item.name;
+            final key = _createImportedSymbolKey(nameKey, declaringUri);
+            final importingUris = alreadyImportedSymbols[key];
+
+            // Keep it only if:
+            // - no existing imports include it
+            //     (in which case all libraries will be offered as
+            //     auto-imports)
+            // - this is the first imported URI that includes it
+            //     (we don't want to repeat it for each imported library that
+            //     includes it)
+            return importingUris == null ||
+                importingUris.first == '${library.uri}';
+          }).map((item) => declarationToCompletionItem(
+                    capabilities,
+                    unit.path,
+                    offset,
+                    includedSet,
+                    library,
+                    tagBoosts,
+                    unit.lineInfo,
+                    item,
+                    completionRequest.replacementOffset,
+                    insertLength,
+                    completionRequest.replacementLength,
+                    // TODO(dantup): Move commit characters to the main response
+                    // and remove from each individual item (to reduce payload size)
+                    // once the following change ships (and the Dart VS Code
+                    // extension is updated to use it).
+                    // https://github.com/microsoft/vscode-languageserver-node/issues/673
+                    includeCommitCharacters: server
+                        .clientConfiguration.global.previewCommitCharacters,
+                    completeFunctionCalls: completeFunctionCalls,
+                  ));
+          results.addAll(setResults);
         }
-      },
-    );
+      }
+
+      // Add in any snippets.
+      final snippetsEnabled =
+          server.clientConfiguration.forResource(unit.path).enableSnippets;
+      // We can only produce edits with edit builders for files inside
+      // the root, so skip snippets entirely if not.
+      final isEditableFile =
+          unit.session.analysisContext.contextRoot.isAnalyzed(unit.path);
+      if (capabilities.completionSnippets &&
+          snippetsEnabled &&
+          isEditableFile) {
+        results.addAll(await _getDartSnippetItems(
+          clientCapabilities: capabilities,
+          unit: unit,
+          offset: offset,
+          lineInfo: unit.lineInfo,
+        ));
+      }
+
+      // Perform fuzzy matching based on the identifier in front of the caret to
+      // reduce the size of the payload.
+      final fuzzyPattern = completionRequest.targetPrefix;
+      final fuzzyMatcher =
+          FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
+
+      final matchingResults = results
+          .where((e) => fuzzyMatcher.score(e.filterText ?? e.label) > 0)
+          .toList();
+
+      // Transmitted count will be set after combining with plugins.
+      completionPerformance.computedSuggestionCount = matchingResults.length;
+
+      return success(
+          CompletionList(isIncomplete: false, items: matchingResults));
+    } on AbortCompletion {
+      return success(CompletionList(isIncomplete: false, items: []));
+    } on InconsistentAnalysisException {
+      return success(CompletionList(isIncomplete: false, items: []));
+    }
   }
 
   Future<ErrorOr<CompletionList>> _getServerYamlItems(

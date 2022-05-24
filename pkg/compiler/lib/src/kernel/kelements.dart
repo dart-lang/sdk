@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 /// Entity model for elements derived from Kernel IR.
 
 import 'package:kernel/ast.dart' as ir;
@@ -33,9 +35,9 @@ class KClass extends IndexedClass {
   @override
   final String name;
   @override
-  final bool isAbstract;
+  final bool /*!*/ isAbstract;
 
-  KClass(this.library, this.name, {this.isAbstract});
+  KClass(this.library, this.name, {/*required*/ this.isAbstract});
 
   @override
   bool get isClosure => false;
@@ -164,7 +166,7 @@ class KGenerativeConstructor extends KConstructor {
 
 class KFactoryConstructor extends KConstructor {
   @override
-  final bool isFromEnvironmentConstructor;
+  final bool /*!*/ isFromEnvironmentConstructor;
 
   KFactoryConstructor(
       KClass enclosingClass, Name name, ParameterStructure parameterStructure,
@@ -185,7 +187,9 @@ class KMethod extends KFunction {
 
   KMethod(KLibrary library, KClass enclosingClass, Name name,
       ParameterStructure parameterStructure, AsyncMarker asyncMarker,
-      {bool isStatic, bool isExternal, this.isAbstract})
+      {/*required*/ bool isStatic,
+      /*required*/ bool isExternal,
+      /*required*/ this.isAbstract})
       : super(library, enclosingClass, name, parameterStructure, asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
 
@@ -202,7 +206,9 @@ class KGetter extends KFunction {
 
   KGetter(KLibrary library, KClass enclosingClass, Name name,
       AsyncMarker asyncMarker,
-      {bool isStatic, bool isExternal, this.isAbstract})
+      {/*required*/ bool isStatic,
+      /*required*/ bool isExternal,
+      /*required*/ this.isAbstract})
       : super(library, enclosingClass, name, ParameterStructure.getter,
             asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
@@ -219,7 +225,9 @@ class KSetter extends KFunction {
   final bool isAbstract;
 
   KSetter(KLibrary library, KClass enclosingClass, Name name,
-      {bool isStatic, bool isExternal, this.isAbstract})
+      {/*required*/ bool isStatic,
+      /*required*/ bool isExternal,
+      /*required*/ this.isAbstract})
       : super(library, enclosingClass, name, ParameterStructure.setter,
             AsyncMarker.SYNC,
             isStatic: isStatic, isExternal: isExternal);
@@ -241,7 +249,9 @@ class KField extends KMember implements FieldEntity, IndexedField {
   final bool isConst;
 
   KField(KLibrary library, KClass enclosingClass, Name name,
-      {bool isStatic, this.isAssignable, this.isConst})
+      {/*required*/ bool isStatic,
+      /*required*/ this.isAssignable,
+      /*required*/ this.isConst})
       : super(library, enclosingClass, name, isStatic: isStatic);
 
   @override

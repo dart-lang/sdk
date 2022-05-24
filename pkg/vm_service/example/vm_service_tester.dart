@@ -10,7 +10,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
@@ -109,7 +108,7 @@ void main() {
     VM vm = await serviceClient.getVM();
     print('hostCPU=${vm.hostCPU}');
     print(await serviceClient.getVersion());
-    List<IsolateRef> isolates = await vm.isolates!;
+    List<IsolateRef> isolates = vm.isolates!;
     print(isolates);
 
     // Disable the json reserialization checks since custom services are not

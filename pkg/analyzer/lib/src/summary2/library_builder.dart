@@ -2,18 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
@@ -48,7 +52,6 @@ class LibraryBuilder {
   final Scope exportScope = Scope.top();
 
   final List<Export> exporters = [];
-  late final List<Reference> exports;
 
   LibraryBuilder._({
     required this.linker,
@@ -57,6 +60,10 @@ class LibraryBuilder {
     required this.element,
     required this.units,
   });
+
+  SourceFactory get _sourceFactory {
+    return linker.elementFactory.analysisContext.sourceFactory;
+  }
 
   void addExporters() {
     for (var element in element.exports) {
@@ -82,13 +89,16 @@ class LibraryBuilder {
       if (exportedBuilder != null) {
         exportedBuilder.exporters.add(export);
       } else {
-        var references = linker.elementFactory.exportsOfLibrary('$exportedUri');
-        for (var reference in references) {
-          var name = reference.name;
-          if (reference.isSetter) {
-            export.addToExportScope('$name=', reference);
-          } else {
-            export.addToExportScope(name, reference);
+        var exported = linker.elementFactory.libraryOfUri('$exportedUri');
+        if (exported != null) {
+          var exportedReferences = exported.exportedReferences;
+          for (var reference in exportedReferences) {
+            var name = reference.name;
+            if (reference.isSetter) {
+              export.addToExportScope('$name=', reference);
+            } else {
+              export.addToExportScope(name, reference);
+            }
           }
         }
       }
@@ -167,6 +177,64 @@ class LibraryBuilder {
     }
   }
 
+  Future<void> executeMacroTypesPhase() async {
+    if (!element.featureSet.isEnabled(Feature.macros)) {
+      return;
+    }
+
+    var applier = LibraryMacroApplier(this);
+    var augmentationLibrary = await applier.executeMacroTypesPhase();
+    if (augmentationLibrary == null) {
+      return;
+    }
+
+    var parseResult = parseString(
+      content: augmentationLibrary,
+      featureSet: element.featureSet,
+      throwIfDiagnostics: false,
+    );
+    var unitNode = parseResult.unit as ast.CompilationUnitImpl;
+
+    // For now we model augmentation libraries as parts.
+    var unitUri = uri.resolve('_macro_types.dart');
+    var unitElement = CompilationUnitElementImpl(
+      source: _sourceFactory.forUri2(unitUri)!,
+      librarySource: element.source,
+      lineInfo: parseResult.lineInfo,
+    )
+      ..enclosingElement = element
+      ..isSynthetic = true
+      ..uri = unitUri.toString();
+
+    var unitReference = reference.getChild('@unit').getChild('$unitUri');
+    _bindReference(unitReference, unitElement);
+
+    element.parts.add(unitElement);
+
+    ElementBuilder(
+      libraryBuilder: this,
+      unitReference: unitReference,
+      unitElement: unitElement,
+    ).buildDeclarationElements(unitNode);
+
+    units.add(
+      LinkingUnit(
+        isDefiningUnit: false,
+        reference: unitReference,
+        node: unitNode,
+        element: unitElement,
+      ),
+    );
+
+    linker.macroGeneratedUnits.add(
+      LinkMacroGeneratedUnit(
+        uri: unitUri,
+        content: parseResult.content,
+        unit: parseResult.unit,
+      ),
+    );
+  }
+
   void resolveConstructors() {
     ConstructorInitializerResolver(linker, element).resolve();
   }
@@ -190,8 +258,7 @@ class LibraryBuilder {
   }
 
   void storeExportScope() {
-    exports = exportScope.map.values.toList();
-    linker.elementFactory.setExportsOfLibrary('$uri', exports);
+    element.exportedReferences = exportScope.map.values.toList();
 
     var definedNames = <String, Element>{};
     for (var entry in exportScope.map.entries) {
@@ -280,7 +347,6 @@ class LibraryBuilder {
       unitElements.add(unitElement);
       linkingUnits.add(
         LinkingUnit(
-          input: inputUnit,
           isDefiningUnit: isDefiningUnit,
           reference: unitReference,
           node: unitNode,
@@ -311,14 +377,12 @@ class LibraryBuilder {
 }
 
 class LinkingUnit {
-  final LinkInputUnit input;
   final bool isDefiningUnit;
   final Reference reference;
   final ast.CompilationUnitImpl node;
   final CompilationUnitElementImpl element;
 
   LinkingUnit({
-    required this.input,
     required this.isDefiningUnit,
     required this.reference,
     required this.node,

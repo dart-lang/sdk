@@ -6,7 +6,6 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Position;
@@ -51,7 +50,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     return a.title.compareTo(b.title);
   };
 
-  CodeActionHandler(LspAnalysisServer server) : super(server);
+  CodeActionHandler(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_codeAction;

@@ -1,0 +1,214 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int field;
+  field core::int? nullableField = null;
+  constructor •(core::int field) → self::Class
+    : self::Class::field = field, super core::Object::•()
+    ;
+}
+class GenericClass<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::GenericClass<self::GenericClass::T%>
+    : super core::Object::•()
+    ;
+}
+extension Extension on self::Class {
+  get simpleSetter = self::Extension|get#simpleSetter;
+  get simpleNullableSetter = self::Extension|get#simpleNullableSetter;
+  get mutatingSetter = self::Extension|get#mutatingSetter;
+  get setterWithReturn = self::Extension|get#setterWithReturn;
+  get setterWithClosure = self::Extension|get#setterWithClosure;
+  method testInternal = self::Extension|testInternal;
+  tearoff testInternal = self::Extension|get#testInternal;
+  set simpleSetter = self::Extension|set#simpleSetter;
+  set simpleNullableSetter = self::Extension|set#simpleNullableSetter;
+  set mutatingSetter = self::Extension|set#mutatingSetter;
+  set setterWithReturn = self::Extension|set#setterWithReturn;
+  set setterWithClosure = self::Extension|set#setterWithClosure;
+}
+extension GenericExtension<T extends core::Object? = dynamic> on self::GenericClass<T%> {
+  set setter = self::GenericExtension|set#setter;
+}
+static method Extension|get#simpleSetter(lowered final self::Class #this) → core::int
+  return #this.{self::Class::field}{core::int};
+static method Extension|set#simpleSetter(lowered final self::Class #this, core::int value) → void {
+  #this.{self::Class::field} = value;
+}
+static method Extension|get#simpleNullableSetter(lowered final self::Class #this) → core::int?
+  return #this.{self::Class::nullableField}{core::int?};
+static method Extension|set#simpleNullableSetter(lowered final self::Class #this, core::int? value) → void {
+  #this.{self::Class::nullableField} = value;
+}
+static method Extension|get#mutatingSetter(lowered final self::Class #this) → core::int
+  return #this.{self::Class::field}{core::int};
+static method Extension|set#mutatingSetter(lowered final self::Class #this, core::int value) → void {
+  value = value.{core::num::+}(1){(core::num) → core::int};
+  #this.{self::Class::field} = value;
+}
+static method Extension|get#setterWithReturn(lowered final self::Class #this) → core::int
+  return #this.{self::Class::field}{core::int};
+static method Extension|set#setterWithReturn(lowered final self::Class #this, core::int value) → void {
+  if(value.{core::num::<}(0){(core::num) → core::bool}) {
+    #this.{self::Class::field} = value.{core::int::unary-}(){() → core::int};
+    return;
+  }
+  #this.{self::Class::field} = value;
+}
+static method Extension|get#setterWithClosure(lowered final self::Class #this) → core::int
+  return #this.{self::Class::field}{core::int};
+static method Extension|set#setterWithClosure(lowered final self::Class #this, core::int value) → void {
+  function abs(dynamic value) → dynamic {
+    return value{dynamic}.<(0) as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool ?{dynamic} value{dynamic}.unary-() : value;
+  }
+  #this.{self::Class::field} = abs(value){(dynamic) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+}
+static method Extension|testInternal(lowered final self::Class #this) → dynamic {
+  self::expect(1.{core::int::unary-}(){() → core::int}, #this.{self::Class::field}{core::int});
+  self::Extension|set#simpleSetter(#this, 0);
+  self::expect(0, #this.{self::Class::field}{core::int});
+  self::expect(1, let final core::int #t1 = 1 in let final void #t2 = self::Extension|set#simpleSetter(#this, #t1) in #t1);
+  self::Extension|set#mutatingSetter(#this, 0);
+  self::expect(1, #this.{self::Class::field}{core::int});
+  self::expect(2, let final core::int #t3 = 2 in let final void #t4 = self::Extension|set#mutatingSetter(#this, #t3) in #t3);
+  self::expect(3, #this.{self::Class::field}{core::int});
+  self::Extension|set#setterWithReturn(#this, 1);
+  self::expect(1, #this.{self::Class::field}{core::int});
+  self::Extension|set#setterWithReturn(#this, 2.{core::int::unary-}(){() → core::int});
+  self::expect(2, #this.{self::Class::field}{core::int});
+  self::expect(3, let final core::int #t5 = 3 in let final void #t6 = self::Extension|set#setterWithReturn(#this, #t5) in #t5);
+  self::expect(3, #this.{self::Class::field}{core::int});
+  self::expect(4.{core::int::unary-}(){() → core::int}, let final core::int #t7 = 4.{core::int::unary-}(){() → core::int} in let final void #t8 = self::Extension|set#setterWithReturn(#this, #t7) in #t7);
+  self::expect(4, #this.{self::Class::field}{core::int});
+  self::Extension|set#setterWithClosure(#this, 1);
+  self::expect(1, #this.{self::Class::field}{core::int});
+  self::Extension|set#setterWithClosure(#this, 2.{core::int::unary-}(){() → core::int});
+  self::expect(2, #this.{self::Class::field}{core::int});
+  self::expect(3, let final core::int #t9 = 3 in let final void #t10 = self::Extension|set#setterWithClosure(#this, #t9) in #t9);
+  self::expect(3, #this.{self::Class::field}{core::int});
+  self::expect(4.{core::int::unary-}(){() → core::int}, let final core::int #t11 = 4.{core::int::unary-}(){() → core::int} in let final void #t12 = self::Extension|set#setterWithClosure(#this, #t11) in #t11);
+  self::expect(4, #this.{self::Class::field}{core::int});
+}
+static method Extension|get#testInternal(lowered final self::Class #this) → () → dynamic
+  return () → dynamic => self::Extension|testInternal(#this);
+static method GenericExtension|set#setter<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|set#setter::T%> #this, self::GenericExtension|set#setter::T% value) → void {}
+static method main() → dynamic {
+  self::Class c = new self::Class::•(1.{core::int::unary-}(){() → core::int});
+  self::test(c, c);
+}
+static method test(self::Class c, self::Class? cn) → dynamic {
+  self::expect(1.{core::int::unary-}(){() → core::int}, c.{self::Class::field}{core::int});
+  self::Extension|set#simpleSetter(c, 0);
+  self::expect(0, c.{self::Class::field}{core::int});
+  self::expect(1, let final core::int #t13 = 1 in let final void #t14 = self::Extension|set#simpleSetter(c, #t13) in #t13);
+  self::Extension|set#simpleSetter(c, 2);
+  self::expect(2, c.{self::Class::field}{core::int});
+  self::expect(3, let final self::Class #t15 = c in let final core::int #t16 = 3 in let final void #t17 = self::Extension|set#simpleSetter(#t15, #t16) in #t16);
+  self::Extension|set#mutatingSetter(c, 0);
+  self::expect(1, c.{self::Class::field}{core::int});
+  self::expect(2, let final core::int #t18 = 2 in let final void #t19 = self::Extension|set#mutatingSetter(c, #t18) in #t18);
+  self::expect(3, c.{self::Class::field}{core::int});
+  self::Extension|set#mutatingSetter(c, 4);
+  self::expect(5, c.{self::Class::field}{core::int});
+  self::expect(6, let final self::Class #t20 = c in let final core::int #t21 = 6 in let final void #t22 = self::Extension|set#mutatingSetter(#t20, #t21) in #t21);
+  self::expect(7, c.{self::Class::field}{core::int});
+  self::Extension|set#setterWithReturn(c, 1);
+  self::expect(1, c.{self::Class::field}{core::int});
+  self::Extension|set#setterWithReturn(c, 2.{core::int::unary-}(){() → core::int});
+  self::expect(2, c.{self::Class::field}{core::int});
+  self::expect(3, let final core::int #t23 = 3 in let final void #t24 = self::Extension|set#setterWithReturn(c, #t23) in #t23);
+  self::expect(3, c.{self::Class::field}{core::int});
+  self::expect(4.{core::int::unary-}(){() → core::int}, let final core::int #t25 = 4.{core::int::unary-}(){() → core::int} in let final void #t26 = self::Extension|set#setterWithReturn(c, #t25) in #t25);
+  self::expect(4, c.{self::Class::field}{core::int});
+  self::Extension|set#setterWithReturn(c, 5);
+  self::expect(5, c.{self::Class::field}{core::int});
+  self::Extension|set#setterWithReturn(c, 6.{core::int::unary-}(){() → core::int});
+  self::expect(6, c.{self::Class::field}{core::int});
+  self::expect(7, let final self::Class #t27 = c in let final core::int #t28 = 7 in let final void #t29 = self::Extension|set#setterWithReturn(#t27, #t28) in #t28);
+  self::expect(7, c.{self::Class::field}{core::int});
+  self::expect(8.{core::int::unary-}(){() → core::int}, let final self::Class #t30 = c in let final core::int #t31 = 8.{core::int::unary-}(){() → core::int} in let final void #t32 = self::Extension|set#setterWithReturn(#t30, #t31) in #t31);
+  self::expect(8, c.{self::Class::field}{core::int});
+  self::Extension|set#setterWithClosure(c, 1);
+  self::expect(1, c.{self::Class::field}{core::int});
+  self::Extension|set#setterWithClosure(c, 2.{core::int::unary-}(){() → core::int});
+  self::expect(2, c.{self::Class::field}{core::int});
+  self::expect(3, let final core::int #t33 = 3 in let final void #t34 = self::Extension|set#setterWithClosure(c, #t33) in #t33);
+  self::expect(3, c.{self::Class::field}{core::int});
+  self::expect(4.{core::int::unary-}(){() → core::int}, let final core::int #t35 = 4.{core::int::unary-}(){() → core::int} in let final void #t36 = self::Extension|set#setterWithClosure(c, #t35) in #t35);
+  self::expect(4, c.{self::Class::field}{core::int});
+  self::Extension|set#setterWithClosure(c, 5);
+  self::expect(5, c.{self::Class::field}{core::int});
+  self::Extension|set#setterWithClosure(c, 6.{core::int::unary-}(){() → core::int});
+  self::expect(6, c.{self::Class::field}{core::int});
+  self::expect(7, let final self::Class #t37 = c in let final core::int #t38 = 7 in let final void #t39 = self::Extension|set#setterWithClosure(#t37, #t38) in #t38);
+  self::expect(7, c.{self::Class::field}{core::int});
+  self::expect(8.{core::int::unary-}(){() → core::int}, let final self::Class #t40 = c in let final core::int #t41 = 8.{core::int::unary-}(){() → core::int} in let final void #t42 = self::Extension|set#setterWithClosure(#t40, #t41) in #t41);
+  self::expect(8, c.{self::Class::field}{core::int});
+  self::Extension|set#simpleSetter(c, 0);
+  self::expect(0, let final self::Class? #t43 = cn in #t43 == null ?{core::int?} null : #t43{self::Class}.{self::Class::field}{core::int});
+  self::expect(1, let final self::Class? #t44 = cn in #t44 == null ?{core::int?} null : let final core::int #t45 = 1 in let final void #t46 = self::Extension|set#simpleSetter(#t44{self::Class}, #t45) in #t45);
+  self::Extension|set#simpleSetter(c, 2);
+  self::expect(2, let final self::Class? #t47 = cn in #t47 == null ?{core::int?} null : #t47{self::Class}.{self::Class::field}{core::int});
+  self::expect(3, let final self::Class #t48 = c in let final core::int #t49 = 3 in let final void #t50 = self::Extension|set#simpleSetter(#t48, #t49) in #t49);
+  self::Extension|set#mutatingSetter(c, 0);
+  self::expect(1, let final self::Class? #t51 = cn in #t51 == null ?{core::int?} null : #t51{self::Class}.{self::Class::field}{core::int});
+  self::expect(2, let final self::Class? #t52 = cn in #t52 == null ?{core::int?} null : let final core::int #t53 = 2 in let final void #t54 = self::Extension|set#mutatingSetter(#t52{self::Class}, #t53) in #t53);
+  self::expect(3, let final self::Class? #t55 = cn in #t55 == null ?{core::int?} null : #t55{self::Class}.{self::Class::field}{core::int});
+  self::Extension|set#mutatingSetter(c, 4);
+  self::expect(5, let final self::Class? #t56 = cn in #t56 == null ?{core::int?} null : #t56{self::Class}.{self::Class::field}{core::int});
+  self::expect(6, let final self::Class #t57 = c in let final core::int #t58 = 6 in let final void #t59 = self::Extension|set#mutatingSetter(#t57, #t58) in #t58);
+  self::expect(7, let final self::Class? #t60 = cn in #t60 == null ?{core::int?} null : #t60{self::Class}.{self::Class::field}{core::int});
+  let final self::Class? #t61 = cn in #t61 == null ?{core::int?} null : self::Extension|set#setterWithReturn(#t61{self::Class}, 1);
+  self::expect(1, let final self::Class? #t62 = cn in #t62 == null ?{core::int?} null : #t62{self::Class}.{self::Class::field}{core::int});
+  let final self::Class? #t63 = cn in #t63 == null ?{core::int?} null : self::Extension|set#setterWithReturn(#t63{self::Class}, 2.{core::int::unary-}(){() → core::int});
+  self::expect(2, let final self::Class? #t64 = cn in #t64 == null ?{core::int?} null : #t64{self::Class}.{self::Class::field}{core::int});
+  self::expect(3, let final self::Class? #t65 = cn in #t65 == null ?{core::int?} null : let final core::int #t66 = 3 in let final void #t67 = self::Extension|set#setterWithReturn(#t65{self::Class}, #t66) in #t66);
+  self::expect(3, let final self::Class? #t68 = cn in #t68 == null ?{core::int?} null : #t68{self::Class}.{self::Class::field}{core::int});
+  self::expect(4.{core::int::unary-}(){() → core::int}, let final self::Class? #t69 = cn in #t69 == null ?{core::int?} null : let final core::int #t70 = 4.{core::int::unary-}(){() → core::int} in let final void #t71 = self::Extension|set#setterWithReturn(#t69{self::Class}, #t70) in #t70);
+  self::expect(4, let final self::Class? #t72 = cn in #t72 == null ?{core::int?} null : #t72{self::Class}.{self::Class::field}{core::int});
+  self::Extension|set#setterWithReturn(c, 5);
+  self::expect(5, let final self::Class? #t73 = cn in #t73 == null ?{core::int?} null : #t73{self::Class}.{self::Class::field}{core::int});
+  self::Extension|set#setterWithReturn(c, 6.{core::int::unary-}(){() → core::int});
+  self::expect(6, let final self::Class? #t74 = cn in #t74 == null ?{core::int?} null : #t74{self::Class}.{self::Class::field}{core::int});
+  self::expect(7, let final self::Class #t75 = c in let final core::int #t76 = 7 in let final void #t77 = self::Extension|set#setterWithReturn(#t75, #t76) in #t76);
+  self::expect(7, let final self::Class? #t78 = cn in #t78 == null ?{core::int?} null : #t78{self::Class}.{self::Class::field}{core::int});
+  self::expect(8.{core::int::unary-}(){() → core::int}, let final self::Class #t79 = c in let final core::int #t80 = 8.{core::int::unary-}(){() → core::int} in let final void #t81 = self::Extension|set#setterWithReturn(#t79, #t80) in #t80);
+  self::expect(8, let final self::Class? #t82 = cn in #t82 == null ?{core::int?} null : #t82{self::Class}.{self::Class::field}{core::int});
+  let final self::Class? #t83 = cn in #t83 == null ?{core::int?} null : self::Extension|set#setterWithClosure(#t83{self::Class}, 1);
+  self::expect(1, let final self::Class? #t84 = cn in #t84 == null ?{core::int?} null : #t84{self::Class}.{self::Class::field}{core::int});
+  let final self::Class? #t85 = cn in #t85 == null ?{core::int?} null : self::Extension|set#setterWithClosure(#t85{self::Class}, 2.{core::int::unary-}(){() → core::int});
+  self::expect(2, let final self::Class? #t86 = cn in #t86 == null ?{core::int?} null : #t86{self::Class}.{self::Class::field}{core::int});
+  self::expect(3, let final self::Class? #t87 = cn in #t87 == null ?{core::int?} null : let final core::int #t88 = 3 in let final void #t89 = self::Extension|set#setterWithClosure(#t87{self::Class}, #t88) in #t88);
+  self::expect(3, let final self::Class? #t90 = cn in #t90 == null ?{core::int?} null : #t90{self::Class}.{self::Class::field}{core::int});
+  self::expect(4.{core::int::unary-}(){() → core::int}, let final self::Class? #t91 = cn in #t91 == null ?{core::int?} null : let final core::int #t92 = 4.{core::int::unary-}(){() → core::int} in let final void #t93 = self::Extension|set#setterWithClosure(#t91{self::Class}, #t92) in #t92);
+  self::expect(4, let final self::Class? #t94 = cn in #t94 == null ?{core::int?} null : #t94{self::Class}.{self::Class::field}{core::int});
+  self::Extension|set#setterWithClosure(c, 5);
+  self::expect(5, let final self::Class? #t95 = cn in #t95 == null ?{core::int?} null : #t95{self::Class}.{self::Class::field}{core::int});
+  self::Extension|set#setterWithClosure(c, 6.{core::int::unary-}(){() → core::int});
+  self::expect(6, let final self::Class? #t96 = cn in #t96 == null ?{core::int?} null : #t96{self::Class}.{self::Class::field}{core::int});
+  self::expect(7, let final self::Class #t97 = c in let final core::int #t98 = 7 in let final void #t99 = self::Extension|set#setterWithClosure(#t97, #t98) in #t98);
+  self::expect(7, let final self::Class? #t100 = cn in #t100 == null ?{core::int?} null : #t100{self::Class}.{self::Class::field}{core::int});
+  self::expect(8.{core::int::unary-}(){() → core::int}, let final self::Class #t101 = c in let final core::int #t102 = 8.{core::int::unary-}(){() → core::int} in let final void #t103 = self::Extension|set#setterWithClosure(#t101, #t102) in #t102);
+  self::expect(8, let final self::Class? #t104 = cn in #t104 == null ?{core::int?} null : #t104{self::Class}.{self::Class::field}{core::int});
+  c.{self::Class::nullableField} = null;
+  let final self::Class #t105 = c in self::Extension|get#simpleNullableSetter(#t105) == null ?{core::int} self::Extension|set#simpleNullableSetter(#t105, 1) : null;
+  self::expect(1, c.{self::Class::nullableField}{core::int?});
+  self::expect(1, let final self::Class #t106 = c in let final core::int? #t107 = self::Extension|get#simpleNullableSetter(#t106) in #t107 == null ?{core::int} let final core::int #t108 = 2 in let final void #t109 = self::Extension|set#simpleNullableSetter(#t106, #t108) in #t108 : #t107{core::int});
+  c.{self::Class::nullableField} = null;
+  self::expect(2, let final self::Class #t110 = c in let final core::int? #t111 = self::Extension|get#simpleNullableSetter(#t110) in #t111 == null ?{core::int} let final core::int #t112 = 2 in let final void #t113 = self::Extension|set#simpleNullableSetter(#t110, #t112) in #t112 : #t111{core::int});
+  let final self::Class? #t114 = cn in #t114 == null ?{Null} null : #t114{self::Class}.{self::Class::nullableField} = null;
+  let final self::Class? #t115 = cn in #t115 == null ?{core::int?} null : self::Extension|get#simpleNullableSetter(#t115) == null ?{core::int} self::Extension|set#simpleNullableSetter(#t115, 1) : null;
+  self::expect(1, let final self::Class? #t116 = cn in #t116 == null ?{core::int?} null : #t116{self::Class}.{self::Class::nullableField}{core::int?});
+  self::expect(1, let final self::Class? #t117 = cn in #t117 == null ?{core::int?} null : let final core::int? #t118 = self::Extension|get#simpleNullableSetter(#t117) in #t118 == null ?{core::int} let final core::int #t119 = 2 in let final void #t120 = self::Extension|set#simpleNullableSetter(#t117, #t119) in #t119 : #t118{core::int});
+  let final self::Class? #t121 = cn in #t121 == null ?{Null} null : #t121{self::Class}.{self::Class::nullableField} = null;
+  self::expect(2, let final self::Class? #t122 = cn in #t122 == null ?{core::int?} null : let final core::int? #t123 = self::Extension|get#simpleNullableSetter(#t122) in #t123 == null ?{core::int} let final core::int #t124 = 2 in let final void #t125 = self::Extension|set#simpleNullableSetter(#t122, #t124) in #t124 : #t123{core::int});
+  self::Extension|testInternal(new self::Class::•(1.{core::int::unary-}(){() → core::int}));
+  self::GenericClass<core::int> genericClass = new self::GenericClass::•<core::int>();
+  self::expect(1, let final self::GenericClass<core::int> #t126 = genericClass in let final core::int #t127 = 1 in let final void #t128 = self::GenericExtension|set#setter<core::int>(#t126, #t127) in #t127);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}

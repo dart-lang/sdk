@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library js_backend.runtime_types_resolution;
 
 import '../common.dart';
 import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../common/names.dart' show Identifiers;
 import '../elements/entities.dart';
+import '../elements/entities_parameter_structure_methods.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/runtime_type_analysis.dart';
@@ -139,7 +142,8 @@ class CallablePropertyNode extends CallableNode {
     if (property.memberName != selector.memberName) return false;
     if (type is FunctionType &&
         !selector.callStructure
-            .signatureApplies(ParameterStructure.fromType(type))) return false;
+            .signatureApplies(ParameterStructureMethods.fromType(type)))
+      return false;
     return true;
   }
 
@@ -256,6 +260,12 @@ class TypeVariableTests {
     _instantiationMap.forEach(f);
   }
 
+  Set<GenericInstantiation> instantiationsOf(Entity target) =>
+      _instantiationMap[target] ?? const {};
+
+  Set<InterfaceType> classInstantiationsOf(ClassEntity cls) =>
+      _classInstantiationMap[cls] ?? const {};
+
   ClassNode _getClassNode(ClassEntity cls) {
     return _classes.putIfAbsent(cls, () => ClassNode(cls));
   }
@@ -280,8 +290,9 @@ class TypeVariableTests {
             instanceName: instanceName,
             isNoSuchMethod: isNoSuchMethod);
       } else {
-        ParameterStructure parameterStructure = ParameterStructure.fromType(
-            _elementEnvironment.getLocalFunctionType(function));
+        ParameterStructure parameterStructure =
+            ParameterStructureMethods.fromType(
+                _elementEnvironment.getLocalFunctionType(function));
         node = MethodNode(function, parameterStructure, isCallTarget: true);
       }
       return node;
@@ -438,7 +449,7 @@ class TypeVariableTests {
 
     for (GenericInstantiation instantiation in _genericInstantiations) {
       ParameterStructure instantiationParameterStructure =
-          ParameterStructure.fromType(instantiation.functionType);
+          ParameterStructureMethods.fromType(instantiation.functionType);
       ClassEntity implementationClass = _commonElements
           .getInstantiationClass(instantiation.typeArguments.length);
 
@@ -552,12 +563,12 @@ class TypeVariableTests {
     TypeVariableEntity entity = variable.element;
     Entity declaration = entity.typeDeclaration;
     if (declaration is ClassEntity) {
-      _classInstantiationMap[declaration]?.forEach((InterfaceType type) {
+      classInstantiationsOf(declaration).forEach((InterfaceType type) {
         _addImplicitCheck(type.typeArguments[entity.index]);
       });
     } else {
-      _instantiationMap[declaration]
-          ?.forEach((GenericInstantiation instantiation) {
+      instantiationsOf(declaration)
+          .forEach((GenericInstantiation instantiation) {
         _addImplicitCheck(instantiation.typeArguments[entity.index]);
       });
       _world.forEachStaticTypeArgument(
@@ -596,7 +607,7 @@ class TypeVariableTests {
       // one of its type arguments in an is-check and add the arguments to the
       // set of is-checks.
       for (ClassEntity base in _classHierarchy.allSubtypesOf(cls)) {
-        _classInstantiationMap[base]?.forEach((InterfaceType subtype) {
+        classInstantiationsOf(base).forEach((InterfaceType subtype) {
           InterfaceType instance = _dartTypes.asInstanceOf(subtype, cls);
           assert(instance != null);
           _addImplicitChecks(instance.typeArguments);
@@ -886,6 +897,9 @@ abstract class RuntimeTypesNeedBuilder {
   /// Registers that a generic [instantiation] is used.
   void registerGenericInstantiation(GenericInstantiation instantiation);
 
+  /// Registers a [TypeVariableType] literal on this [RuntimeTypesNeedBuilder].
+  void registerTypeVariableLiteral(TypeVariableType variable);
+
   /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
   RuntimeTypesNeed computeRuntimeTypesNeed(
       KClosedWorld closedWorld, CompilerOptions options);
@@ -905,6 +919,9 @@ class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
 
   @override
   void registerGenericInstantiation(GenericInstantiation instantiation) {}
+
+  @override
+  void registerTypeVariableLiteral(TypeVariableType variable) {}
 
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
@@ -954,6 +971,18 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
   @override
   void registerGenericInstantiation(GenericInstantiation instantiation) {
     _genericInstantiations.add(instantiation);
+  }
+
+  @override
+  void registerTypeVariableLiteral(TypeVariableType variable) {
+    Entity typeDeclaration = variable.element.typeDeclaration;
+    if (typeDeclaration is ClassEntity) {
+      registerClassUsingTypeVariableLiteral(typeDeclaration);
+    } else if (typeDeclaration is FunctionEntity) {
+      registerMethodUsingTypeVariableLiteral(typeDeclaration);
+    } else if (typeDeclaration is Local) {
+      registerLocalFunctionUsingTypeVariableLiteral(typeDeclaration);
+    }
   }
 
   @override

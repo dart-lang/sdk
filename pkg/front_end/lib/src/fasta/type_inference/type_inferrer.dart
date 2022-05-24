@@ -916,8 +916,12 @@ class TypeInferrerImpl implements TypeInferrer {
     DartType onType = extension.onType;
     List<DartType> inferredTypes =
         new List<DartType>.filled(typeParameters.length, const UnknownType());
-    typeSchemaEnvironment.inferGenericFunctionOrType(null, typeParameters,
-        [onType], [receiverType], null, inferredTypes, libraryBuilder.library);
+    TypeConstraintGatherer gatherer =
+        typeSchemaEnvironment.setupGenericTypeInference(
+            null, typeParameters, null, libraryBuilder.library);
+    gatherer.constrainArguments([onType], [receiverType]);
+    typeSchemaEnvironment.upwardsInfer(
+        gatherer, typeParameters, inferredTypes, libraryBuilder.library);
     return inferredTypes;
   }
 
@@ -2283,12 +2287,15 @@ class TypeInferrerImpl implements TypeInferrer {
         explicitTypeArguments == null &&
         calleeTypeParameters.isNotEmpty;
     bool typeChecksNeeded = !isTopLevel;
+    bool useFormalAndActualTypes = typeChecksNeeded ||
+        isSpecialCasedBinaryOperator ||
+        isSpecialCasedTernaryOperator;
 
     List<DartType>? inferredTypes;
     Substitution? substitution;
     List<DartType>? formalTypes;
     List<DartType>? actualTypes;
-    if (inferenceNeeded || typeChecksNeeded) {
+    if (useFormalAndActualTypes) {
       formalTypes = [];
       actualTypes = [];
     }
@@ -2301,6 +2308,7 @@ class TypeInferrerImpl implements TypeInferrer {
       hoistedExpressions = localHoistedExpressions = <VariableDeclaration>[];
     }
 
+    TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
       // ignore: unnecessary_null_comparison
       if (isConst && typeContext != null) {
@@ -2313,16 +2321,15 @@ class TypeInferrerImpl implements TypeInferrer {
       }
       inferredTypes = new List<DartType>.filled(
           calleeTypeParameters.length, const UnknownType());
-      typeSchemaEnvironment.inferGenericFunctionOrType(
+      gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           isNonNullableByDefault
               ? calleeType.returnType
               : legacyErasure(calleeType.returnType),
           calleeTypeParameters,
-          null,
-          null,
           typeContext,
-          inferredTypes,
           libraryBuilder.library);
+      typeSchemaEnvironment.downwardsInfer(gatherer, calleeTypeParameters,
+          inferredTypes, libraryBuilder.library);
       substitution =
           Substitution.fromPairs(calleeTypeParameters, inferredTypes);
     } else if (explicitTypeArguments != null &&
@@ -2400,91 +2407,74 @@ class TypeInferrerImpl implements TypeInferrer {
           argument is Expression || argument is NamedExpression,
           "Expected the argument to be either an Expression "
           "or a NamedExpression, got '${argument.runtimeType}'.");
-      if (argument is Expression) {
-        int index = positionalIndex++;
-        DartType formalType = getPositionalParameterType(calleeType, index);
-        DartType inferredFormalType = substitution != null
-            ? substitution.substituteType(formalType)
-            : formalType;
-        DartType inferredType;
+      int index;
+      DartType formalType;
+      Expression argumentExpression;
+      bool isExpression = argument is Expression;
+      if (isExpression) {
+        index = positionalIndex++;
+        formalType = getPositionalParameterType(calleeType, index);
+        argumentExpression = arguments.positional[index];
+      } else {
+        index = namedIndex++;
+        NamedExpression namedArgument = arguments.named[index];
+        formalType = getNamedParameterType(calleeType, namedArgument.name);
+        argumentExpression = namedArgument.value;
+      }
+      DartType inferredFormalType = substitution != null
+          ? substitution.substituteType(formalType)
+          : formalType;
+      if (isExpression) {
         if (isImplicitExtensionMember && index == 0) {
           assert(
               receiverType != null,
               "No receiver type provided for implicit extension member "
               "invocation.");
           continue;
-        } else {
-          if (isSpecialCasedBinaryOperator) {
-            inferredFormalType = typeSchemaEnvironment
-                .getContextTypeOfSpecialCasedBinaryOperator(
-                    typeContext, receiverType!, inferredFormalType,
-                    isNonNullableByDefault: isNonNullableByDefault);
-          } else if (isSpecialCasedTernaryOperator) {
-            inferredFormalType = typeSchemaEnvironment
-                .getContextTypeOfSpecialCasedTernaryOperator(
-                    typeContext, receiverType!, inferredFormalType,
-                    isNonNullableByDefault: isNonNullableByDefault);
-          }
-          ExpressionInferenceResult result = inferExpression(
-              arguments.positional[index],
+        }
+        if (isSpecialCasedBinaryOperator) {
+          inferredFormalType =
+              typeSchemaEnvironment.getContextTypeOfSpecialCasedBinaryOperator(
+                  typeContext, receiverType!, inferredFormalType,
+                  isNonNullableByDefault: isNonNullableByDefault);
+        } else if (isSpecialCasedTernaryOperator) {
+          inferredFormalType =
+              typeSchemaEnvironment.getContextTypeOfSpecialCasedTernaryOperator(
+                  typeContext, receiverType!, inferredFormalType,
+                  isNonNullableByDefault: isNonNullableByDefault);
+        }
+      }
+      ExpressionInferenceResult result = inferExpression(
+          argumentExpression,
+          isNonNullableByDefault
+              ? inferredFormalType
+              : legacyErasure(inferredFormalType),
+          inferenceNeeded ||
+              isSpecialCasedBinaryOperator ||
+              isSpecialCasedTernaryOperator ||
+              typeChecksNeeded);
+      DartType inferredType = identical(result.inferredType, noInferredType) ||
               isNonNullableByDefault
-                  ? inferredFormalType
-                  : legacyErasure(inferredFormalType),
-              inferenceNeeded ||
-                  isSpecialCasedBinaryOperator ||
-                  isSpecialCasedTernaryOperator ||
-                  typeChecksNeeded);
-          inferredType = identical(result.inferredType, noInferredType) ||
-                  isNonNullableByDefault
-              ? result.inferredType
-              : legacyErasure(result.inferredType);
-          if (localHoistedExpressions != null &&
-              evaluationOrderIndex >= hoistingEndIndex) {
-            hoistedExpressions = null;
-          }
-          Expression expression =
-              _hoist(result.expression, inferredType, hoistedExpressions);
-          identicalInfo
-              ?.add(flowAnalysis.equalityOperand_end(expression, inferredType));
-          arguments.positional[index] = expression..parent = arguments;
-        }
-        if (inferenceNeeded || typeChecksNeeded) {
-          formalTypes!.add(formalType);
-          actualTypes!.add(inferredType);
-        }
+          ? result.inferredType
+          : legacyErasure(result.inferredType);
+      if (localHoistedExpressions != null &&
+          evaluationOrderIndex >= hoistingEndIndex) {
+        hoistedExpressions = null;
+      }
+      Expression expression =
+          _hoist(result.expression, inferredType, hoistedExpressions);
+      identicalInfo
+          ?.add(flowAnalysis.equalityOperand_end(expression, inferredType));
+      if (isExpression) {
+        arguments.positional[index] = expression..parent = arguments;
       } else {
-        assert(argument is NamedExpression);
-        int index = namedIndex++;
         NamedExpression namedArgument = arguments.named[index];
-        DartType formalType =
-            getNamedParameterType(calleeType, namedArgument.name);
-        DartType inferredFormalType = substitution != null
-            ? substitution.substituteType(formalType)
-            : formalType;
-        ExpressionInferenceResult result = inferExpression(
-            namedArgument.value,
-            isNonNullableByDefault
-                ? inferredFormalType
-                : legacyErasure(inferredFormalType),
-            inferenceNeeded ||
-                isSpecialCasedBinaryOperator ||
-                typeChecksNeeded);
-        DartType inferredType =
-            identical(result.inferredType, noInferredType) ||
-                    isNonNullableByDefault
-                ? result.inferredType
-                : legacyErasure(result.inferredType);
-        if (localHoistedExpressions != null &&
-            evaluationOrderIndex >= hoistingEndIndex) {
-          hoistedExpressions = null;
-        }
-        Expression expression =
-            _hoist(result.expression, inferredType, hoistedExpressions);
         namedArgument.value = expression..parent = namedArgument;
-        if (inferenceNeeded || typeChecksNeeded) {
-          formalTypes!.add(formalType);
-          actualTypes!.add(inferredType);
-        }
+      }
+      gatherer?.tryConstrainLower(formalType, inferredType);
+      if (useFormalAndActualTypes) {
+        formalTypes!.add(formalType);
+        actualTypes!.add(inferredType);
       }
     }
     if (identicalInfo != null) {
@@ -2546,8 +2536,10 @@ class TypeInferrerImpl implements TypeInferrer {
             named[1].fileOffset,
             name.length);
         arguments.named = [new NamedExpression(named[1].name, error)];
-        formalTypes!.removeLast();
-        actualTypes!.removeLast();
+        if (useFormalAndActualTypes) {
+          formalTypes!.removeLast();
+          actualTypes!.removeLast();
+        }
       }
     } else if (named.length > 2) {
       Map<String, NamedExpression> seenNames = <String, NamedExpression>{};
@@ -2566,8 +2558,10 @@ class TypeInferrerImpl implements TypeInferrer {
               expression.fileOffset,
               name.length)
             ..parent = prevNamedExpression;
-          formalTypes!.removeAt(namedTypeIndex);
-          actualTypes!.removeAt(namedTypeIndex);
+          if (useFormalAndActualTypes) {
+            formalTypes!.removeAt(namedTypeIndex);
+            actualTypes!.removeAt(namedTypeIndex);
+          }
         } else {
           seenNames[name] = expression;
           uniqueNamed.add(expression);
@@ -2580,14 +2574,8 @@ class TypeInferrerImpl implements TypeInferrer {
     }
 
     if (inferenceNeeded) {
-      typeSchemaEnvironment.inferGenericFunctionOrType(
-          calleeType.returnType,
-          calleeTypeParameters,
-          formalTypes,
-          actualTypes,
-          typeContext,
-          inferredTypes!,
-          libraryBuilder.library);
+      typeSchemaEnvironment.upwardsInfer(gatherer!, calleeTypeParameters,
+          inferredTypes!, libraryBuilder.library);
       assert(inferredTypes.every((type) => isKnown(type)),
           "Unknown type(s) in inferred types: $inferredTypes.");
       assert(inferredTypes.every((type) => !hasPromotedTypeVariable(type)),
@@ -3588,7 +3576,9 @@ class TypeInferrerImpl implements TypeInferrer {
 
   Expression _hoist(Expression expression, DartType type,
       List<VariableDeclaration>? hoistedExpressions) {
-    if (hoistedExpressions != null && expression is! ThisExpression) {
+    if (hoistedExpressions != null &&
+        expression is! ThisExpression &&
+        expression is! FunctionExpression) {
       VariableDeclaration variable = createVariable(expression, type);
       hoistedExpressions.add(variable);
       return createVariableGet(variable);
@@ -4130,14 +4120,11 @@ class TypeInferrerImpl implements TypeInferrer {
         List<DartType> inferredTypes = new List<DartType>.filled(
             typeParameters.length, const UnknownType());
         FunctionType instantiatedType = functionType.withoutTypeParameters;
-        typeSchemaEnvironment.inferGenericFunctionOrType(
-            instantiatedType,
-            typeParameters,
-            [],
-            [],
-            context,
-            inferredTypes,
-            libraryBuilder.library);
+        TypeConstraintGatherer gatherer =
+            typeSchemaEnvironment.setupGenericTypeInference(instantiatedType,
+                typeParameters, context, libraryBuilder.library);
+        typeSchemaEnvironment.upwardsInfer(
+            gatherer, typeParameters, inferredTypes, libraryBuilder.library);
         Substitution substitution =
             Substitution.fromPairs(typeParameters, inferredTypes);
         tearoffType = substitution.substituteType(instantiatedType);

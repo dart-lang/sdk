@@ -71,9 +71,12 @@ class Dart2jsTarget extends Target {
 
   final CompilerOptions? options;
   final bool canPerformGlobalTransforms;
+  final bool supportsUnevaluatedConstants;
 
   Dart2jsTarget(this.name, this.flags,
-      {this.options, this.canPerformGlobalTransforms = true});
+      {this.options,
+      this.canPerformGlobalTransforms = true,
+      this.supportsUnevaluatedConstants = true});
 
   @override
   bool get enableNoSuchMethodForwarders => true;
@@ -188,8 +191,9 @@ class Dart2jsTarget extends Target {
             .getTopLevelProcedure('dart:core', '_createInvocationMirror'),
         ir.Arguments(<ir.Expression>[
           ir.StringLiteral(name)..fileOffset = offset,
-          ir.ListLiteral(
-              arguments.types.map((t) => ir.TypeLiteral(t)).toList()),
+          ir.ListLiteral(arguments.types
+              .map<ir.Expression>((t) => ir.TypeLiteral(t))
+              .toList()),
           ir.ListLiteral(arguments.positional)..fileOffset = offset,
           ir.MapLiteral(List<ir.MapLiteralEntry>.from(
               arguments.named.map((ir.NamedExpression arg) {
@@ -223,13 +227,21 @@ class Dart2jsTarget extends Target {
   }
 
   @override
-  ConstantsBackend get constantsBackend =>
-      const Dart2jsConstantsBackend(supportsUnevaluatedConstants: true);
+  ConstantsBackend get constantsBackend => Dart2jsConstantsBackend(
+      supportsUnevaluatedConstants: supportsUnevaluatedConstants);
 
   @override
   DartLibrarySupport get dartLibrarySupport =>
       const Dart2jsDartLibrarySupport();
 }
+
+const implicitlyUsedLibraries = <String>[
+  'dart:_foreign_helper',
+  'dart:_interceptors',
+  'dart:_js_helper',
+  'dart:_late_helper',
+  'dart:js_util'
+];
 
 // TODO(sigmund): this "extraRequiredLibraries" needs to be removed...
 // compile-platform should just specify which libraries to compile instead.

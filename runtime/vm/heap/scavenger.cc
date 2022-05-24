@@ -1212,9 +1212,13 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
       if (UNLIKELY(class_id == kFinalizerEntryCid)) {
         FinalizerEntryPtr raw_entry =
             static_cast<FinalizerEntryPtr>(raw_object);
+        if (FLAG_trace_finalizers) {
+          THR_Print("Scavenger::IterateStoreBuffers Processing Entry %p\n",
+                    raw_entry->untag());
+        }
         // Detect `FinalizerEntry::value` promotion to update external space.
         //
-        // This treats old-space FinalizerEntry fields as strong. Values, deatch
+        // This treats old-space FinalizerEntry fields as strong. Values, detach
         // keys, and finalizers in new space won't be reclaimed until after they
         // are promoted.
         // This will only visit the strong references, end enqueue the entry.
@@ -1225,13 +1229,15 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
           const Heap::Space after_gc_space = SpaceForExternal(raw_entry);
           if (after_gc_space == Heap::kOld) {
             const intptr_t external_size = raw_entry->untag()->external_size_;
-            if (FLAG_trace_finalizers) {
-              THR_Print(
-                  "Scavenger %p Store buffer, promoting external size %" Pd
-                  " bytes from new to old space\n",
-                  visitor, external_size);
+            if (external_size > 0) {
+              if (FLAG_trace_finalizers) {
+                THR_Print(
+                    "Scavenger %p Store buffer, promoting external size %" Pd
+                    " bytes from new to old space\n",
+                    visitor, external_size);
+              }
+              visitor->isolate_group()->heap()->PromotedExternal(external_size);
             }
-            visitor->isolate_group()->heap()->PromotedExternal(external_size);
           }
         }
       } else {
@@ -1725,23 +1731,19 @@ uword ScavengerVisitorBase<parallel>::TryAllocateCopySlow(intptr_t size) {
   return tail_->TryAllocateGC(size);
 }
 
-void Scavenger::Scavenge(GCReason reason) {
+void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   int64_t start = OS::GetCurrentMonotonicMicros();
 
-  // Ensure that all threads for this isolate are at a safepoint (either stopped
-  // or in native code). If two threads are racing at this point, the loser
-  // will continue with its scavenge after waiting for the winner to complete.
-  // TODO(koda): Consider moving SafepointThreads into allocation failure/retry
-  // logic to avoid needless collections.
-  Thread* thread = Thread::Current();
-  GcSafepointOperationScope safepoint_scope(thread);
-
-  int64_t safe_point = OS::GetCurrentMonotonicMicros();
-  heap_->RecordTime(kSafePoint, safe_point - start);
+  ASSERT(thread->IsAtSafepoint());
 
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
   scavenging_ = true;
+
+  if (type == GCType::kEvacuate) {
+    // Forces the next scavenge to promote all the objects in the new space.
+    early_tenure_ = true;
+  }
 
   if (FLAG_verify_before_gc) {
     OS::PrintErr("Verifying before Scavenge...");
@@ -1804,6 +1806,11 @@ void Scavenger::Scavenge(GCReason reason) {
   // Done scavenging. Reset the marker.
   ASSERT(scavenging_);
   scavenging_ = false;
+
+  // It is possible for objects to stay in the new space
+  // if the VM cannot create more pages for these objects.
+  ASSERT((type != GCType::kEvacuate) || (UsedInWords() == 0) ||
+         failed_to_promote_);
 }
 
 intptr_t Scavenger::SerialScavenge(SemiSpace* from) {
@@ -1966,24 +1973,5 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
 }
 #endif  // !PRODUCT
-
-void Scavenger::Evacuate(GCReason reason) {
-  // We need a safepoint here to prevent allocation right before or right after
-  // the scavenge.
-  // The former can introduce an object that we might fail to collect.
-  // The latter means even if the scavenge promotes every object in the new
-  // space, the new allocation means the space is not empty,
-  // causing the assertion below to fail.
-  GcSafepointOperationScope scope(Thread::Current());
-
-  // Forces the next scavenge to promote all the objects in the new space.
-  early_tenure_ = true;
-
-  Scavenge(reason);
-
-  // It is possible for objects to stay in the new space
-  // if the VM cannot create more pages for these objects.
-  ASSERT((UsedInWords() == 0) || failed_to_promote_);
-}
 
 }  // namespace dart

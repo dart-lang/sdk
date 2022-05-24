@@ -68,7 +68,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
-static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#fact#tearOff::Y% a, {core::int? b, core::int c}) → mai::A<self::_#H#fact#tearOff::Y%>
+static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#fact#tearOff::Y% a, {core::int? b, has-declared-initializer core::int c}) → mai::A<self::_#H#fact#tearOff::Y%>
   return mai::A::fact<self::_#H#fact#tearOff::Y%>(a, b: b, c: c);
 static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<self::_#H#redirect#tearOff::Y%>
   return mai::A::_#redirect#tearOff<self::_#H#redirect#tearOff::Y%>();

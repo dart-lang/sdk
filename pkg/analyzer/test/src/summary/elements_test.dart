@@ -4563,6 +4563,78 @@ library
 ''');
   }
 
+  test_class_getter_invokesSuperSelf_getter() async {
+    var library = await buildLibrary(r'''
+class A {
+  int get foo {
+    super.foo;
+  }
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          synthetic foo @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          get foo @20 invokesSuperSelf
+            returnType: int
+''');
+  }
+
+  test_class_getter_invokesSuperSelf_getter_nestedInAssignment() async {
+    var library = await buildLibrary(r'''
+class A {
+  int get foo {
+    (super.foo).foo = 0;
+  }
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          synthetic foo @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          get foo @20 invokesSuperSelf
+            returnType: int
+''');
+  }
+
+  test_class_getter_invokesSuperSelf_setter() async {
+    var library = await buildLibrary(r'''
+class A {
+  int get foo {
+    super.foo = 0;
+  }
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          synthetic foo @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          get foo @20
+            returnType: int
+''');
+  }
+
   test_class_getter_native() async {
     var library = await buildLibrary('''
 class C {
@@ -4930,6 +5002,27 @@ library
         methods
           abstract f @62
             returnType: int
+''');
+  }
+
+  test_class_method_invokesSuperSelf() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo() {
+    super.foo();
+  }
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+        methods
+          foo @17 invokesSuperSelf
+            returnType: void
 ''');
   }
 
@@ -6168,6 +6261,60 @@ library
                 type: dynamic
               requiredPositional b @24
                 type: dynamic
+            returnType: void
+''');
+  }
+
+  test_class_setter_invokesSuperSelf_getter() async {
+    var library = await buildLibrary(r'''
+class A {
+  set foo(int _) {
+    super.foo;
+  }
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          synthetic foo @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          set foo @16
+            parameters
+              requiredPositional _ @24
+                type: int
+            returnType: void
+''');
+  }
+
+  test_class_setter_invokesSuperSelf_setter() async {
+    var library = await buildLibrary(r'''
+class A {
+  set foo(int _) {
+    super.foo = 0;
+  }
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          synthetic foo @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          set foo @16 invokesSuperSelf
+            parameters
+              requiredPositional _ @24
+                type: int
             returnType: void
 ''');
   }
@@ -30273,6 +30420,78 @@ mixin M {}
     expect(mixins[0].name, 'M');
   }
 
+  test_mixin_getter_invokesSuperSelf_getter() async {
+    var library = await buildLibrary(r'''
+mixin M on A {
+  int get foo {
+    super.foo;
+  }
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin M @6
+        superclassConstraints
+          Object
+        fields
+          synthetic foo @-1
+            type: int
+        accessors
+          get foo @25 invokesSuperSelf
+            returnType: int
+''');
+  }
+
+  test_mixin_getter_invokesSuperSelf_getter_nestedInAssignment() async {
+    var library = await buildLibrary(r'''
+mixin M on A {
+  int get foo {
+    (super.foo).foo = 0;
+  }
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin M @6
+        superclassConstraints
+          Object
+        fields
+          synthetic foo @-1
+            type: int
+        accessors
+          get foo @25 invokesSuperSelf
+            returnType: int
+''');
+  }
+
+  test_mixin_getter_invokesSuperSelf_setter() async {
+    var library = await buildLibrary(r'''
+mixin M on A {
+  int get foo {
+    super.foo = 0;
+  }
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin M @6
+        superclassConstraints
+          Object
+        fields
+          synthetic foo @-1
+            type: int
+        accessors
+          get foo @25
+            returnType: int
+''');
+  }
+
   test_mixin_implicitObjectSuperclassConstraint() async {
     var library = await buildLibrary(r'''
 mixin M {}
@@ -30438,6 +30657,27 @@ class B extends A<int> with M<int> {
 ''');
   }
 
+  test_mixin_method_invokesSuperSelf() async {
+    var library = await buildLibrary(r'''
+mixin M on A {
+  void foo() {
+    super.foo();
+  }
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin M @6
+        superclassConstraints
+          Object
+        methods
+          foo @22 invokesSuperSelf
+            returnType: void
+''');
+  }
+
   test_mixin_method_namedAsConstraint() async {
     var library = await buildLibrary(r'''
 class A {}
@@ -30458,6 +30698,60 @@ library
           A
         methods
           A @33
+            returnType: void
+''');
+  }
+
+  test_mixin_setter_invokesSuperSelf_getter() async {
+    var library = await buildLibrary(r'''
+mixin M on A {
+  set foo(int _) {
+    super.foo;
+  }
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin M @6
+        superclassConstraints
+          Object
+        fields
+          synthetic foo @-1
+            type: int
+        accessors
+          set foo @21
+            parameters
+              requiredPositional _ @29
+                type: int
+            returnType: void
+''');
+  }
+
+  test_mixin_setter_invokesSuperSelf_setter() async {
+    var library = await buildLibrary(r'''
+mixin M on A {
+  set foo(int _) {
+    super.foo = 0;
+  }
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin M @6
+        superclassConstraints
+          Object
+        fields
+          synthetic foo @-1
+            type: int
+        accessors
+          set foo @21 invokesSuperSelf
+            parameters
+              requiredPositional _ @29
+                type: int
             returnType: void
 ''');
   }
@@ -36293,7 +36587,7 @@ library
   }
 
   test_typedef_nonFunction_using_interface_noTypeParameters_legacy() async {
-    newFile2('/a.dart', r'''
+    newFile('/a.dart', r'''
 typedef A = List<int>;
 ''');
     var library = await buildLibrary(r'''

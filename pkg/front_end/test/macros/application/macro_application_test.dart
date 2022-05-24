@@ -6,9 +6,6 @@ import 'dart:io' show Directory, File, Platform;
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
-    as isolatedExecutor;
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
     show ActualData, ClassId, Id, LibraryId;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
@@ -60,7 +57,6 @@ class MacroTestConfig extends TestConfig {
   final Directory dataDir;
   final MacroSerializer macroSerializer;
   final bool generateExpectations;
-  final Map<Uri, Uri> precompiledMacroUris = {};
 
   MacroTestConfig(this.dataDir, this.macroSerializer,
       {required this.generateExpectations})
@@ -71,10 +67,6 @@ class MacroTestConfig extends TestConfig {
 
   @override
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {
-    options.macroExecutorProvider = () async {
-      return await isolatedExecutor.start(SerializationMode.byteDataServer);
-    };
-    options.precompiledMacroUris = precompiledMacroUris;
     options.macroTarget = new VmTarget(new TargetFlags());
     options.macroSerializer = macroSerializer;
   }

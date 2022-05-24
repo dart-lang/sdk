@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library js_backend.backend.resolution_listener;
 
 import '../common/elements.dart' show KCommonElements, KElementEnvironment;
@@ -9,6 +11,7 @@ import '../common/names.dart' show Identifiers;
 import '../constants/values.dart';
 import '../deferred_load/deferred_load.dart';
 import '../elements/entities.dart';
+import '../elements/entities_parameter_structure_methods.dart';
 import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueuerListener;
 import '../native/enqueue.dart';

@@ -5197,6 +5197,14 @@ JsInteropStaticInteropWithNonStaticSupertype:
   problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which is non-static."
   correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
 
+JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop:
+  problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but no `@staticInterop` annotation."
+  correctionMessage: "Try marking the class using `@staticInterop`."
+
+JsInteropStaticInteropTrustTypesUsageNotAllowed:
+  problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk."
+  correctionMessage: "Try removing the `@trustTypes` annotation."
+
 DefaultListConstructorError:
   problemMessage: "Can't use the default List constructor."
   correctionMessage: "Try using List.filled instead."

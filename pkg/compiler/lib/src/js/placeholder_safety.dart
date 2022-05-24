@@ -4,7 +4,7 @@
 
 library js.safety;
 
-import "js.dart" as js;
+import 'package:js_ast/js_ast.dart' as js;
 
 typedef PositionPredicate = bool Function(int position);
 
@@ -194,7 +194,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
   @override
   int visitVariableInitialization(js.VariableInitialization node) {
     js.Expression left = node.declaration;
-    js.Expression right = node.value;
+    js.Expression? right = node.value;
 
     visit(left);
     if (left is js.InterpolatedNode) {

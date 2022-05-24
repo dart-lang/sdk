@@ -1,0 +1,7 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+static method foo(dynamic y) → dynamic async 
+  ;
+static method main() → dynamic
+  ;

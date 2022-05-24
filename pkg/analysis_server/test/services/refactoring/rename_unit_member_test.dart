@@ -236,7 +236,7 @@ void f() {
   }
 
   Future<void> test_checkInitialConditions_outsideOfProject() async {
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {}
 ''');
 
@@ -644,7 +644,7 @@ foo() {}
   }
 
   Future<void> test_createChange_outsideOfProject_referenceInPart() async {
-    newFile2('/home/part.dart', r'''
+    newFile('/home/part.dart', r'''
 part of test;
 
 Test test2;

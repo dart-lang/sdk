@@ -171,8 +171,26 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
       // No nullability or type arguments needed to be substituted.
       return null;
     } else {
-      return new FutureOrType(newTypeArgument ?? node.typeArgument,
-          newNullability ?? node.declaredNullability);
+      newTypeArgument ??= node.typeArgument;
+      newNullability ??= node.declaredNullability;
+
+      // The top-level nullability of a FutureOr should remain the same, with
+      // the exception of the case of [Nullability.undetermined].  In that case
+      // it remains undetermined if the nullability of [typeArgument] is
+      // undetermined, and otherwise it should become
+      // [Nullability.nonNullable].
+      Nullability adjustedNullability;
+      if (newNullability == Nullability.undetermined) {
+        if (newTypeArgument.nullability == Nullability.undetermined) {
+          adjustedNullability = Nullability.undetermined;
+        } else {
+          adjustedNullability = Nullability.nonNullable;
+        }
+      } else {
+        adjustedNullability = newNullability;
+      }
+
+      return new FutureOrType(newTypeArgument, adjustedNullability);
     }
   }
 

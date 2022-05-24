@@ -2,12 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
+import '../common/elements.dart';
+import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../ir/scope.dart';
+import '../kernel/element_map.dart';
+import '../options.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'constants.dart';
@@ -19,6 +26,7 @@ import 'util.dart';
 /// Visitor that builds an [ImpactData] object for the world impact.
 class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   final ImpactData _data = ImpactData();
+  final KernelToElementMap _elementMap;
 
   @override
   final VariableScopeModel variableScopeModel;
@@ -32,11 +40,25 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   @override
   final inferEffectivelyFinalVariableTypes;
 
-  ImpactBuilder(this.staticTypeContext, StaticTypeCacheImpl staticTypeCache,
-      ir.ClassHierarchy classHierarchy, this.variableScopeModel,
-      {this.useAsserts = false, this.inferEffectivelyFinalVariableTypes = true})
+  ImpactBuilder(
+      this._elementMap,
+      this.staticTypeContext,
+      StaticTypeCacheImpl staticTypeCache,
+      ir.ClassHierarchy classHierarchy,
+      this.variableScopeModel,
+      {this.useAsserts = false,
+      this.inferEffectivelyFinalVariableTypes = true})
       : super(
             staticTypeContext.typeEnvironment, classHierarchy, staticTypeCache);
+
+  CommonElements get _commonElements => _elementMap.commonElements;
+
+  DiagnosticReporter get _reporter => _elementMap.reporter;
+
+  String _typeToString(DartType type) =>
+      type.toStructuredText(_elementMap.types, _elementMap.options);
+
+  CompilerOptions get _options => _elementMap.options;
 
   /// Return the named arguments names as a list of strings.
   List<String> _getNamedArguments(ir.Arguments arguments) =>
@@ -311,6 +333,23 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
     registerProcedureNode(procedure);
   }
 
+  void _handleConstConstructorInvocation(ir.ConstructorInvocation node) {
+    assert(node.isConst);
+    ConstructorEntity constructor = _elementMap.getConstructor(node.target);
+    if (_commonElements.isSymbolConstructor(constructor)) {
+      DartType argumentType = _elementMap.getDartType(
+          node.arguments.positional.first.getStaticType(staticTypeContext));
+      // TODO(joshualitt): Does the CFE check this for us?
+      if (argumentType != _commonElements.stringType) {
+        // TODO(het): Get the actual span for the Symbol constructor argument
+        _reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
+            MessageKind.STRING_EXPECTED, {'type': _typeToString(argumentType)});
+        return;
+      }
+      registerConstSymbolConstructorInvocationNode();
+    }
+  }
+
   @override
   void handleConstructorInvocation(ir.ConstructorInvocation node,
       ArgumentTypes argumentTypes, ir.DartType resultType) {
@@ -323,7 +362,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
         getDeferredImport(node),
         isConst: node.isConst);
     if (node.isConst) {
-      registerConstConstructorInvocationNode(node);
+      _handleConstConstructorInvocation(node);
     }
   }
 
@@ -515,12 +554,23 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
     return super.visitSwitchStatement(node);
   }
 
-  // TODO(johnniwinther): Change [node] `InstanceGet` when the old method
-  // invocation encoding is no longer used.
   @override
   void handleRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType argumentType) {
-    registerRuntimeTypeUse(node, kind, receiverType, argumentType);
+    if (_options.omitImplicitChecks) {
+      switch (kind) {
+        case RuntimeTypeUseKind.string:
+          if (!_options.laxRuntimeTypeToString) {
+            _reporter.reportHintMessage(computeSourceSpanFromTreeNode(node),
+                MessageKind.RUNTIME_TYPE_TO_STRING);
+          }
+          break;
+        case RuntimeTypeUseKind.equals:
+        case RuntimeTypeUseKind.unknown:
+          break;
+      }
+    }
+    registerRuntimeTypeUse(kind, receiverType, argumentType);
   }
 
   @override
@@ -916,14 +966,12 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
     _data._intLiterals.add(value);
   }
 
-  // TODO(johnniwinther): Change [node] `InstanceGet` when the old method
-  // invocation encoding is no longer used.
   @override
-  void registerRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
-      ir.DartType receiverType, ir.DartType argumentType) {
+  void registerRuntimeTypeUse(RuntimeTypeUseKind kind, ir.DartType receiverType,
+      ir.DartType argumentType) {
     _data._runtimeTypeUses ??= [];
     _data._runtimeTypeUses
-        .add(_RuntimeTypeUse(node, kind, receiverType, argumentType));
+        .add(_RuntimeTypeUse(kind, receiverType, argumentType));
   }
 
   @override
@@ -957,13 +1005,15 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerConstConstructorInvocationNode(ir.ConstructorInvocation node) {
-    _data._constConstructorInvocationNodes ??= [];
-    _data._constConstructorInvocationNodes.add(node);
+  void registerConstSymbolConstructorInvocationNode() {
+    _data._hasConstSymbolConstructorInvocation = true;
   }
 }
 
 /// Data object that contains the world impact data derived purely from kernel.
+/// It is critical that all of the data in this class be invariant to changes in
+/// the AST that occur after modular compilation and before deserializing the
+/// impact data.
 class ImpactData {
   static const String tag = 'ImpactData';
 
@@ -1010,7 +1060,7 @@ class ImpactData {
   List<ir.Procedure> _procedureNodes;
   List<ir.SwitchStatement> _switchStatementNodes;
   List<ir.StaticInvocation> _staticInvocationNodes;
-  List<ir.ConstructorInvocation> _constConstructorInvocationNodes;
+  bool _hasConstSymbolConstructorInvocation = false;
 
   ImpactData();
 
@@ -1107,8 +1157,7 @@ class ImpactData {
         source.readTreeNodes<ir.SwitchStatement>(emptyAsNull: true);
     _staticInvocationNodes =
         source.readTreeNodes<ir.StaticInvocation>(emptyAsNull: true);
-    _constConstructorInvocationNodes =
-        source.readTreeNodes<ir.ConstructorInvocation>(emptyAsNull: true);
+    _hasConstSymbolConstructorInvocation = source.readBool();
     source.end(tag);
   }
 
@@ -1184,13 +1233,12 @@ class ImpactData {
     sink.writeList(_runtimeTypeUses, (_RuntimeTypeUse o) => o.toDataSink(sink),
         allowNull: true);
 
-    // TODO(johnniwinther): Remove these when CFE provides constants.
     sink.writeMemberNodes(_constructorNodes, allowNull: true);
     sink.writeMemberNodes(_fieldNodes, allowNull: true);
     sink.writeMemberNodes(_procedureNodes, allowNull: true);
     sink.writeTreeNodes(_switchStatementNodes, allowNull: true);
     sink.writeTreeNodes(_staticInvocationNodes, allowNull: true);
-    sink.writeTreeNodes(_constConstructorInvocationNodes, allowNull: true);
+    sink.writeBool(_hasConstSymbolConstructorInvocation);
 
     sink.end(tag);
   }
@@ -1484,7 +1532,7 @@ class ImpactData {
     if (_runtimeTypeUses != null) {
       for (_RuntimeTypeUse data in _runtimeTypeUses) {
         registry.registerRuntimeTypeUse(
-            data.node, data.kind, data.receiverType, data.argumentType);
+            data.kind, data.receiverType, data.argumentType);
       }
     }
     if (_forInData != null) {
@@ -1525,10 +1573,8 @@ class ImpactData {
         registry.registerStaticInvocationNode(data);
       }
     }
-    if (_constConstructorInvocationNodes != null) {
-      for (ir.ConstructorInvocation data in _constConstructorInvocationNodes) {
-        registry.registerConstConstructorInvocationNode(data);
-      }
+    if (_hasConstSymbolConstructorInvocation) {
+      registry.registerConstSymbolConstructorInvocationNode();
     }
   }
 }
@@ -2060,28 +2106,23 @@ class _ContainerLiteral {
 class _RuntimeTypeUse {
   static const String tag = '_RuntimeTypeUse';
 
-  // TODO(johnniwinther): Change [node] `InstanceGet` when the old method
-  // invocation encoding is no longer used.
-  final ir.Expression node;
   final RuntimeTypeUseKind kind;
   final ir.DartType receiverType;
   final ir.DartType argumentType;
 
-  _RuntimeTypeUse(this.node, this.kind, this.receiverType, this.argumentType);
+  _RuntimeTypeUse(this.kind, this.receiverType, this.argumentType);
 
   factory _RuntimeTypeUse.fromDataSource(DataSourceReader source) {
     source.begin(tag);
-    ir.TreeNode node = source.readTreeNode();
     RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
     ir.DartType receiverType = source.readDartTypeNode();
     ir.DartType argumentType = source.readDartTypeNode(allowNull: true);
     source.end(tag);
-    return _RuntimeTypeUse(node, kind, receiverType, argumentType);
+    return _RuntimeTypeUse(kind, receiverType, argumentType);
   }
 
   void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
-    sink.writeTreeNode(node);
     sink.writeEnum(kind);
     sink.writeDartTypeNode(receiverType);
     sink.writeDartTypeNode(argumentType, allowNull: true);

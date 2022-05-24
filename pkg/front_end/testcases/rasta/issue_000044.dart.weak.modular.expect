@@ -97,7 +97,7 @@ static method b(dynamic c) → invalid-type
 a b(c) = d;
          ^";
 static method main() → dynamic {
-  self::C* c = null;
+  has-declared-initializer self::C* c = null;
   core::print(#C2);
   core::print(invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:27:15: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.

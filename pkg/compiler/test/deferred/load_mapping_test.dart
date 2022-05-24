@@ -7,7 +7,7 @@
 import 'dart:convert';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import '../helpers/memory_compiler.dart';
 
 void testLoadMap() async {
@@ -18,7 +18,7 @@ void testLoadMap() async {
       outputProvider: collector);
   // Ensure a mapping file is output.
   var deferredMap =
-      collector.getOutput("deferred_map.json", OutputType.deferredMap);
+      collector.getOutput("deferred_map.json", api.OutputType.deferredMap);
   Expect.isNotNull(deferredMap);
   var mapping = jsonDecode(deferredMap);
 
@@ -38,8 +38,9 @@ void testDumpDeferredGraph() async {
       memorySourceFiles: MEMORY_SOURCE_FILES,
       options: ['--dump-deferred-graph=deferred_graph.txt'],
       outputProvider: collector);
-  var actual =
-      collector.getOutput("deferred_graph.txt", OutputType.debug).split('\n');
+  var actual = collector
+      .getOutput("deferred_graph.txt", api.OutputType.debug)
+      .split('\n');
 
   // This program has 5 deferred imports `convert`, `lib1`, `lib2`, `lib4_1`,
   // and `lib4_2`. Most are independent of one another, except for `lib1`

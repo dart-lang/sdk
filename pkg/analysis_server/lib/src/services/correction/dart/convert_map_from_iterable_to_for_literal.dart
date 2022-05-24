@@ -36,20 +36,20 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
     //
     var creation = node.thisOrAncestorOfType<InstanceCreationExpression>();
     if (creation == null) {
-      return null;
+      return;
     }
     var element = creation.constructorName.staticElement;
     if (element == null ||
         element.name != 'fromIterable' ||
         element.enclosingElement != typeProvider.mapElement) {
-      return null;
+      return;
     }
     //
     // Ensure that the arguments have the right form.
     //
     var arguments = creation.argumentList.arguments;
     if (arguments.length != 3) {
-      return null;
+      return;
     }
     var iterator = arguments[0].unParenthesized;
     var secondArg = arguments[1];
@@ -60,7 +60,7 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
     var valueClosure = _extractClosure('value', thirdArg) ??
         _extractClosure('value', secondArg);
     if (keyClosure == null || valueClosure == null) {
-      return null;
+      return;
     }
     //
     // Compute the loop variable name and convert the key and value closures if
@@ -144,10 +144,6 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
       });
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertMapFromIterableToForLiteral newInstance() =>
-      ConvertMapFromIterableToForLiteral();
 
   static Expression? _extractBody(FunctionExpression expression) {
     var body = expression.body;

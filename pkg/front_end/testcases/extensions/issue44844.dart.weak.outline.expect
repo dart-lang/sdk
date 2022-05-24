@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -12,10 +12,10 @@ library;
 import self as self;
 import "dart:core" as core;
 
-extension _extension#0 on core::int* {
+extension _extension#0 on core::int {
   static field foo = self::_extension#0|foo;
 }
-static field core::int* _extension#0|foo;
+static field core::int _extension#0|foo;
 static method test() → void
   ;
 static method main() → dynamic

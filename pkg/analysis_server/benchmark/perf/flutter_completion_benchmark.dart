@@ -37,6 +37,7 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
 
   @override
   Future<BenchMarkResult> run({
+    required String dartSdkPath,
     bool quick = false,
     bool verbose = false,
   }) async {
@@ -55,7 +56,7 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
     // Open a small directory, but with the package config that allows us
     // to analyze any file in `package:flutter`, including tests.
     var startTimer = Stopwatch()..start();
-    await test.setUp([
+    await test.setUp(dartSdkPath, [
       '$flutterPkgPath/lib/src/physics',
     ]);
 
@@ -143,10 +144,6 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
       // about all these libraries. We change a method body, so the API
       // signature is the same, and we are able to reload these libraries
       // from bytes. But this still costs something.
-      // There is also a spill-over from the previous test - we send a lot
-      // (about 5MB) of available declarations after each change. This makes
-      // completion response times very large.
-      // TODO(scheglov) Remove the previous sentence when improved.
       // Total number of suggestions: 3429.
       // Filtered to: 133.
       // Long name: completion-mediumLibraryCycle-mediumFile-smallBody
@@ -218,7 +215,7 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
 
     await test.openFile(filePath, fileContent);
 
-    Future<void> perform() async {
+    Future<void> perform({required bool isWarmUp}) async {
       var completionOffset = prefixEnd;
 
       if (insertStringGenerator != null) {
@@ -233,7 +230,7 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
         );
       }
 
-      await test.complete(filePath, completionOffset);
+      await test.complete(filePath, completionOffset, isWarmUp: isWarmUp);
 
       if (insertStringGenerator != null) {
         await test.updateFile(filePath, fileContent);
@@ -245,13 +242,13 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
     // The sustained performance is much more important.
     const kWarmUpCount = 5;
     for (var i = 0; i < kWarmUpCount; i++) {
-      await perform();
+      await perform(isWarmUp: true);
     }
 
     const kRepeatCount = 5;
     final timer = Stopwatch()..start();
     for (var i = 0; i < kRepeatCount; i++) {
-      await perform();
+      await perform(isWarmUp: false);
     }
 
     await test.closeFile(filePath);

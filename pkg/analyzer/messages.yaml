@@ -6771,48 +6771,64 @@ CompileTimeErrorCode:
       Parameters:
       0: the type of the function
       1: the expected function type
+
+      This error is only reported in libraries which are not null safe.
   INVALID_CAST_FUNCTION_EXPR:
     problemMessage: "The function expression type '{0}' isn't of type '{1}'. This means its parameter or return type doesn't match what is expected. Consider changing parameter type(s) or the returned type(s)."
     comment: |-
       Parameters:
       0: the type of the torn-off function expression
       1: the expected function type
+
+      This error is only reported in libraries which are not null safe.
   INVALID_CAST_LITERAL:
     problemMessage: "The literal '{0}' with type '{1}' isn't of expected type '{2}'."
     comment: |-
       Parameters:
       0: the type of the literal
       1: the expected type
+
+      This error is only reported in libraries which are not null safe.
   INVALID_CAST_LITERAL_LIST:
     problemMessage: "The list literal type '{0}' isn't of expected type '{1}'. The list's type can be changed with an explicit generic type argument or by changing the element types."
     comment: |-
       Parameters:
       0: the type of the list literal
       1: the expected type
+
+      This error is only reported in libraries which are not null safe.
   INVALID_CAST_LITERAL_MAP:
     problemMessage: "The map literal type '{0}' isn't of expected type '{1}'. The map's type can be changed with an explicit generic type arguments or by changing the key and value types."
     comment: |-
       Parameters:
       0: the type of the map literal
       1: the expected type
+
+      This error is only reported in libraries which are not null safe.
   INVALID_CAST_LITERAL_SET:
     problemMessage: "The set literal type '{0}' isn't of expected type '{1}'. The set's type can be changed with an explicit generic type argument or by changing the element types."
     comment: |-
       Parameters:
       0: the type of the set literal
       1: the expected type
+
+      This error is only reported in libraries which are not null safe.
   INVALID_CAST_METHOD:
     problemMessage: "The method tear-off '{0}' has type '{1}' that isn't of expected type '{2}'. This means its parameter or return type doesn't match what is expected."
     comment: |-
       Parameters:
       0: the type of the torn-off method
       1: the expected function type
+
+      This error is only reported in libraries which are not null safe.
   INVALID_CAST_NEW_EXPR:
     problemMessage: "The constructor returns type '{0}' that isn't of expected type '{1}'."
     comment: |-
       Parameters:
       0: the type of the instantiated object
       1: the expected type
+
+      This error is only reported in libraries which are not null safe.
   INVALID_CONSTANT:
     problemMessage: Invalid constant value.
     comment: |-
@@ -8281,12 +8297,11 @@ CompileTimeErrorCode:
       }
       ```
   MIXINS_SUPER_CLASS:
+    sharedName: IMPLEMENTS_SUPER_CLASS
     problemMessage: "'{0}' can't be used in both 'extends' and 'with' clauses."
     correctionMessage: Try removing one of the occurrences.
+    hasPublishedDocs: true
     comment: |-
-      Technically this is [IMPLEMENTS_SUPER_CLASS].
-      See https://github.com/dart-lang/sdk/issues/25765#issuecomment-307422593
-
       Parameters:
       0: the name of the class that appears in both "extends" and "with" clauses
   MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE:
@@ -16350,9 +16365,12 @@ FfiCode:
       }
       ```
   MISSING_ANNOTATION_ON_STRUCT_FIELD:
-    problemMessage: "Fields in a struct class must either have the type 'Pointer' or an annotation indicating the native type."
+    problemMessage: "Fields of type '{0}' in a subclass of '{1}' must have an annotation indicating the native type."
     correctionMessage: Try adding an annotation.
-    comment: No parameters.
+    comment: |-
+      Parameters:
+      0: the type that is missing a native type annotation
+      1: the superclass which is extended by this field's class
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -20398,6 +20416,11 @@ HintCode:
         }
       }
       ```
+  UNNECESSARY_FINAL:
+    problemMessage: The keyword 'final' isn't necessary because the parameter is implicitly 'final'.
+    correctionMessage: Try removing the 'final'.
+    hasPublishedDocs: false
+    comment: No parameters.
   UNNECESSARY_IGNORE:
     problemMessage: "The diagnostic '{0}' isn't produced at this location so it doesn't need to be ignored."
     correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.

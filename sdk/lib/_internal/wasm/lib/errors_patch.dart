@@ -56,4 +56,20 @@ class _TypeError extends _Error implements TypeError {
         "Null check operator used on a null value", stackTrace);
     return _throwObjectWithStackTrace(typeError, stackTrace);
   }
+
+  @pragma("wasm:entry-point")
+  static Never _throwAsCheckError(
+      Object? operand, Type? type, StackTrace stackTrace) {
+    final typeError = _TypeError.fromMessageAndStackTrace(
+        "Type '${operand.runtimeType}' is not a subtype of type '$type' in type cast",
+        stackTrace);
+    return _throwObjectWithStackTrace(typeError, stackTrace);
+  }
+
+  @pragma("wasm:entry-point")
+  static Never _throwWasmRefError(String expected, StackTrace stackTrace) {
+    final typeError = _TypeError.fromMessageAndStackTrace(
+        "The Wasm reference is not $expected", stackTrace);
+    return _throwObjectWithStackTrace(typeError, stackTrace);
+  }
 }

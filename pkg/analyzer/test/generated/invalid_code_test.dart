@@ -61,7 +61,7 @@ class B {}
   }
 
   test_methodInvocation_ofGenericClass_generic_static_fromLegacy() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
   static void foo<T2>() {}
 }
@@ -162,7 +162,7 @@ extension E on Object {
   }
 
   test_extensionOverrideInAnnotationContext_importedWithPrefix() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 extension E on Object {
   int f() => 0;
 }

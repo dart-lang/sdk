@@ -601,15 +601,25 @@ class UntaggedObject {
     }
   }
 
-  template <typename type,
-            typename compressed_type,
-            std::memory_order order = std::memory_order_relaxed>
+  template <typename type, typename compressed_type, std::memory_order order>
   void StoreCompressedArrayPointer(compressed_type const* addr, type value) {
     reinterpret_cast<std::atomic<compressed_type>*>(
         const_cast<compressed_type*>(addr))
         ->store(static_cast<compressed_type>(value), order);
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, Thread::Current());
+    }
+  }
+
+  template <typename type, typename compressed_type, std::memory_order order>
+  void StoreCompressedArrayPointer(compressed_type const* addr,
+                                   type value,
+                                   Thread* thread) {
+    reinterpret_cast<std::atomic<compressed_type>*>(
+        const_cast<compressed_type*>(addr))
+        ->store(static_cast<compressed_type>(value), order);
+    if (value->IsHeapObject()) {
+      CheckArrayPointerStore(addr, value, thread);
     }
   }
 
@@ -863,6 +873,10 @@ inline intptr_t ObjectPtr::GetClassId() const {
   void set_##accessor_name(intptr_t index, type value) {                       \
     StoreArrayPointer<type, order>(&array_name()[index], value);               \
   }                                                                            \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##accessor_name(intptr_t index, type value, Thread* thread) {       \
+    StoreArrayPointer<type, order>(&array_name()[index], value, thread);       \
+  }                                                                            \
                                                                                \
  protected:                                                                    \
   type* array_name() { OPEN_ARRAY_START(type, type); }                         \
@@ -880,6 +894,11 @@ inline intptr_t ObjectPtr::GetClassId() const {
   void set_##accessor_name(intptr_t index, type value) {                       \
     StoreCompressedArrayPointer<type, Compressed##type, order>(                \
         &array_name()[index], value);                                          \
+  }                                                                            \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##accessor_name(intptr_t index, type value, Thread* thread) {       \
+    StoreCompressedArrayPointer<type, Compressed##type, order>(                \
+        &array_name()[index], value, thread);                                  \
   }                                                                            \
                                                                                \
  protected:                                                                    \
@@ -3345,20 +3364,21 @@ class UntaggedFinalizerBase : public UntaggedInstance {
   // to null on isolate shutdown. See Isolate::finalizers_.
   Isolate* isolate_;
 
-  COMPRESSED_POINTER_FIELD(ObjectPtr, detachments)
-  VISIT_FROM(detachments)
-  COMPRESSED_POINTER_FIELD(LinkedHashSetPtr, all_entries)
-  COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, entries_collected)
-
 // With compressed pointers, the first field in a subclass is at offset 28.
 // If the fields would be public, the first field in a subclass is at offset 32.
 // On Windows, it is always at offset 32, no matter public/private.
 // This makes it 32 for all OSes.
 // We can't use ALIGN8 on the first fields of the subclasses because they use
 // the COMPRESSED_POINTER_FIELD macro to define it.
+// Placed before the first fields so it is not included between from() and to().
 #ifdef DART_COMPRESSED_POINTERS
-  uint32_t align_next_field;
+  uint32_t align_first_field_in_subclass;
 #endif
+
+  COMPRESSED_POINTER_FIELD(ObjectPtr, detachments)
+  VISIT_FROM(detachments)
+  COMPRESSED_POINTER_FIELD(LinkedHashSetPtr, all_entries)
+  COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, entries_collected)
 
   template <typename GCVisitorType>
   friend void MournFinalized(GCVisitorType* visitor);

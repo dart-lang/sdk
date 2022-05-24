@@ -289,7 +289,7 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
     return typeEnvironment.coreTypes.isBottom(type);
   }
 
-  // TODO(dmitryas): Consider checking for mutual subtypes instead of ==.
+  // TODO(cstefantsova): Consider checking for mutual subtypes instead of ==.
   @override
   bool isSameType(DartType type1, DartType type2) => type1 == type2;
 

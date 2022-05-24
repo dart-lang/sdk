@@ -101,11 +101,6 @@ abstract class ErrorToken extends SimpleToken {
   int? get endOffset => null;
 
   BeginToken? get begin => null;
-
-  @override
-  Token copy() {
-    throw 'unsupported operation';
-  }
 }
 
 /// Represents an encoding error.

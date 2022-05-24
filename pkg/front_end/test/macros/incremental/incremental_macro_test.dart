@@ -4,9 +4,7 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
-    as isolatedExecutor;
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
@@ -95,24 +93,21 @@ Future<void> main(List<String> args) async {
       ExperimentalFlag.alternativeInvalidationStrategy: true,
     }
     ..macroSerializer = macroSerializer
-    ..precompiledMacroUris = {}
-    ..macroExecutorProvider = () async {
-      return await isolatedExecutor.start(SerializationMode.byteDataServer);
-    }
     ..macroTarget = new VmTarget(new TargetFlags())
     ..fileSystem = new HybridFileSystem(memoryFileSystem);
+  compilerOptions.macroExecutor ??= new MultiMacroExecutor();
 
   ProcessedOptions processedOptions =
       new ProcessedOptions(options: compilerOptions);
 
   await CompilerContext.runWithOptions(processedOptions,
       (CompilerContext context) async {
-    IncrementalCompiler compiler = new IncrementalCompiler(context);
     for (Test test in tests.values) {
       if (args.isNotEmpty && !args.contains(test.name)) {
         print('Skipped ${test.name}');
         continue;
       }
+      IncrementalCompiler compiler = new IncrementalCompiler(context);
       Uri entryPoint = test.entryPoint;
       for (TestUpdate update in test.updates) {
         print('Running ${test.name} update ${update.index}');

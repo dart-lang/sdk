@@ -341,6 +341,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _checkForDivisionOptimizationHint(node);
     _deprecatedVerifier.binaryExpression(node);
     _checkForInvariantNullComparison(node);
+    _invalidAccessVerifier.verifyBinary(node);
     super.visitBinaryExpression(node);
   }
 
@@ -484,6 +485,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _deprecatedVerifier.popInDeprecated();
     }
+  }
+
+  @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    _checkFinalParameter(node, node.keyword);
+    super.visitFieldFormalParameter(node);
   }
 
   @override
@@ -775,6 +782,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    _checkFinalParameter(node, node.keyword);
+    super.visitSuperFormalParameter(node);
+  }
+
+  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _deprecatedVerifier.pushInDeprecatedMetadata(node.metadata);
 
@@ -853,6 +866,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     return false;
+  }
+
+  void _checkFinalParameter(FormalParameter node, Token? keyword) {
+    if (node.isFinal) {
+      _errorReporter.reportErrorForToken(
+        HintCode.UNNECESSARY_FINAL,
+        keyword!,
+      );
+    }
   }
 
   void _checkForAssignmentOfDoNotStore(Expression? expression) {
@@ -1849,6 +1871,25 @@ class _InvalidAccessVerifier {
     _checkForOtherInvalidAccess(identifier, element);
   }
 
+  void verifyBinary(BinaryExpression node) {
+    var element = node.staticElement;
+    if (element != null && _hasVisibleForOverriding(element)) {
+      var operator = node.operator;
+
+      if (node.leftOperand is SuperExpression) {
+        var methodDeclaration = node.thisOrAncestorOfType<MethodDeclaration>();
+        if (methodDeclaration?.name.name == operator.lexeme) {
+          return;
+        }
+      }
+
+      _errorReporter.reportErrorForToken(
+          HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
+          operator,
+          [operator.type.lexeme]);
+    }
+  }
+
   void verifyImport(ImportDirective node) {
     var element = node.uriElement;
     if (_hasInternal(element) &&
@@ -1962,8 +2003,22 @@ class _InvalidAccessVerifier {
     }
 
     if (hasVisibleForOverriding) {
-      _errorReporter.reportErrorForNode(
-          HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, node, [name]);
+      var parent = node.parent;
+      var validOverride = false;
+      if (parent is MethodInvocation && parent.target is SuperExpression ||
+          parent is PropertyAccess && parent.target is SuperExpression) {
+        var methodDeclaration =
+            grandparent?.thisOrAncestorOfType<MethodDeclaration>();
+        if (methodDeclaration?.name.name == identifier.name) {
+          validOverride = true;
+        }
+      }
+      if (!validOverride) {
+        _errorReporter.reportErrorForNode(
+            HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
+            node,
+            [name]);
+      }
     }
   }
 

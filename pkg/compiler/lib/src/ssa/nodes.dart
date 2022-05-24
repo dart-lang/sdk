@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../closure.dart';
@@ -183,7 +185,7 @@ abstract class HGraphVisitor {
     }
   }
 
-  visitBasicBlock(HBasicBlock block);
+  visitBasicBlock(HBasicBlock /*!*/ block);
 }
 
 class _Frame {
@@ -1030,9 +1032,9 @@ abstract class HInstruction implements Spannable {
   SourceInformation sourceInformation;
 
   final int id = idCounter++;
-  static int idCounter;
+  static int idCounter = 0;
 
-  final List<HInstruction> inputs;
+  final List<HInstruction /*!*/ > inputs;
   final List<HInstruction> usedBy = [];
 
   HBasicBlock block;

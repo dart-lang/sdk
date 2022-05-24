@@ -1234,7 +1234,8 @@ class Instructions with SerializerMixin {
   /// Emit a `br_on_cast_static_fail` instruction.
   void br_on_cast_static_fail(Label label, DefType targetType) {
     assert(_verifyBranchTypes(label, 1, [_topOfStack]));
-    assert(_verifyCast((inputs) => [RefType.def(targetType, nullable: false)],
+    assert(_verifyCastStatic(
+        (inputs) => [RefType.def(targetType, nullable: false)],
         trace: ['br_on_cast_static_fail', label, targetType]));
     writeBytes(const [0xFB, 0x47]);
     _writeLabel(label);

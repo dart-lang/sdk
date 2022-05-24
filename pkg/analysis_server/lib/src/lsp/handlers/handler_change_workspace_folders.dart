@@ -5,15 +5,13 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 class WorkspaceFoldersHandler
     extends MessageHandler<DidChangeWorkspaceFoldersParams, void> {
   // Whether to update analysis roots based on the open workspace folders.
   bool updateAnalysisRoots;
 
-  WorkspaceFoldersHandler(LspAnalysisServer server, this.updateAnalysisRoots)
-      : super(server);
+  WorkspaceFoldersHandler(super.server, this.updateAnalysisRoots);
 
   @override
   Method get handlesMessage => Method.workspace_didChangeWorkspaceFolders;

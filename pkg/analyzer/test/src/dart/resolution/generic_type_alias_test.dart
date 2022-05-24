@@ -82,7 +82,7 @@ F<Function<S>()>? x;
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_optOutOfGenericMetadata() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 typedef G = Function<S>();
 ''');
     await assertErrorsInCode('''
@@ -131,7 +131,7 @@ void f() {
   }
 
   test_missingGenericFunction_imported_withPrefix() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef F<T> = ;
 ''');
     await assertErrorsInCode(r'''

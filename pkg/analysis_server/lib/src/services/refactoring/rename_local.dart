@@ -24,10 +24,9 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
   List<LocalElement> elements = [];
 
-  RenameLocalRefactoringImpl(RefactoringWorkspace workspace,
-      AnalysisSession session, LocalElement element)
-      : sessionHelper = AnalysisSessionHelper(session),
-        super(workspace, element);
+  RenameLocalRefactoringImpl(
+      super.workspace, AnalysisSession session, LocalElement super.element)
+      : sessionHelper = AnalysisSessionHelper(session);
 
   @override
   LocalElement get element => super.element as LocalElement;

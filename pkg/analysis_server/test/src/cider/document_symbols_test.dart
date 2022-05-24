@@ -269,7 +269,7 @@ void f() {
   }
 
   Future<List<DocumentSymbol>> _compute(String content) async {
-    newFile2(testPath, content);
+    newFile(testPath, content);
     return CiderDocumentSymbolsComputer(
       fileResolver,
     ).compute2(convertPath(testPath));

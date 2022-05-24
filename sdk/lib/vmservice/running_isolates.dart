@@ -27,7 +27,7 @@ class RunningIsolates implements MessageRouter {
 
   @override
   Future<Response> routeRequest(VMService service, Message message) {
-    String isolateParam = message.params['isolateId']!;
+    String isolateParam = message.params['isolateId']! as String;
     int isolateId;
     if (!isolateParam.startsWith('isolates/')) {
       message.setErrorResponse(
@@ -76,16 +76,20 @@ class _Evaluator {
 
   Future<Response> run() async {
     final buildScopeResponse = await _buildScope();
-    final responseJson = buildScopeResponse.decodeJson();
+    final responseJson =
+        buildScopeResponse.decodeJson() as Map<String, dynamic>;
 
     if (responseJson.containsKey('error')) {
-      return Response.from(encodeCompilationError(
-          _message, responseJson['error']['data']['details']));
+      final error = responseJson['error'] as Map<String, dynamic>;
+      final data = error['data'] as Map<String, dynamic>;
+      return Response.from(
+          encodeCompilationError(_message, data['details'] as String));
     }
 
     String kernelBase64;
     try {
-      kernelBase64 = await _compileExpression(responseJson['result']);
+      kernelBase64 = await _compileExpression(
+          responseJson['result'] as Map<String, dynamic>);
     } catch (e) {
       return Response.from(encodeCompilationError(_message, e.toString()));
     }
@@ -105,7 +109,8 @@ class _Evaluator {
       'params': params,
     };
     if (_message.params['scope'] != null) {
-      buildScopeParams['params']['scope'] = _message.params['scope'];
+      (buildScopeParams['params'] as Map<String, dynamic>)['scope'] =
+          _message.params['scope'];
     }
     final buildScope =
         Message._fromJsonRpcRequest(_message.client!, buildScopeParams);
@@ -157,11 +162,12 @@ class _Evaluator {
       externalClient.post(Response.json(compileExpression
           .forwardToJson({'id': id, 'method': 'compileExpression'})));
       return completer.future.then((s) => jsonDecode(s)).then((json) {
-        final Map<String, dynamic> jsonMap = json;
+        final jsonMap = json as Map<String, dynamic>;
         if (jsonMap.containsKey('error')) {
-          throw jsonMap['error'];
+          throw jsonMap['error'] as Object;
         }
-        return jsonMap['result']['kernelBytes'];
+        return (jsonMap['result'] as Map<String, dynamic>)['kernelBytes']
+            as String;
       });
     } else {
       // fallback to compile using kernel service
@@ -177,10 +183,14 @@ class _Evaluator {
           .routeRequest(_service, compileExpression)
           .then((response) => response.decodeJson())
           .then((json) {
-        if (json['result'] != null) {
-          return json['result']['kernelBytes'];
+        final response = json as Map<String, dynamic>;
+        if (response['result'] != null) {
+          return (response['result'] as Map<String, dynamic>)['kernelBytes']
+              as String;
         }
-        throw json['error']['data']['details'];
+        final error = response['error'] as Map<String, dynamic>;
+        final data = error['data'] as Map<String, dynamic>;
+        throw data['details'] as Object;
       });
     }
   }
@@ -197,7 +207,8 @@ class _Evaluator {
         'params': params,
       };
       if (_message.params['scope'] != null) {
-        runParams['params']['scope'] = _message.params['scope'];
+        (runParams['params'] as Map<String, dynamic>)['scope'] =
+            _message.params['scope'];
       }
       final runExpression =
           Message._fromJsonRpcRequest(_message.client!, runParams);

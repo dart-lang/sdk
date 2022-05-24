@@ -47,7 +47,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 /// example, inconsistent document state between server/client) occurs and will
 /// reject all messages.
 class FailureStateMessageHandler extends ServerStateMessageHandler {
-  FailureStateMessageHandler(LspAnalysisServer server) : super(server);
+  FailureStateMessageHandler(super.server);
 
   @override
   FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {

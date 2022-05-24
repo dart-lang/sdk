@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library entity_utils;
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show isUserDefinableOperator, isMinusOperator;
 
 import '../js_backend/namer.dart';
-import 'entities.dart';
+import 'entities.dart' show Entity, FunctionEntity;
 
 // Somewhat stable ordering for libraries using [Uri]s
 int compareLibrariesUris(Uri a, Uri b) {
@@ -109,6 +111,11 @@ String reconstructConstructorNameSourceString(FunctionEntity element) {
 /// The results returned from this method are guaranteed to be valid
 /// JavaScript identifiers, except it may include reserved words for
 /// non-operator names.
+// TODO(sra): The namer uses another, different, version of this function. Make
+// it clearer that this function is not used for JavaScript naming, but is
+// useful in creating identifiers for other purposes like data formats for file
+// names.  Break the connection to Namer.  Rename this function and move it to a
+// more general String utils place.
 String operatorNameToIdentifier(String name) {
   if (name == null) {
     return name;

@@ -367,8 +367,9 @@ lsp.CompletionItem declarationToCompletionItem(
       capabilities.completionItemKinds, declaration.kind);
 
   var relevanceBoost = 0;
-  declaration.relevanceTags
-      .forEach((t) => relevanceBoost = max(relevanceBoost, tagBoosts[t] ?? 0));
+  for (var t in declaration.relevanceTags) {
+    relevanceBoost = max(relevanceBoost, tagBoosts[t] ?? 0);
+  }
   final itemRelevance = includedSuggestionSet.relevance + relevanceBoost;
 
   // Because we potentially send thousands of these items, we should minimise
@@ -1305,17 +1306,13 @@ lsp.FlutterOutline toFlutterOutline(
     label: outline.label,
     className: outline.className,
     variableName: outline.variableName,
-    attributes: attributes != null
-        ? attributes
-            .map((attribute) => toFlutterOutlineAttribute(lineInfo, attribute))
-            .toList()
-        : null,
+    attributes: attributes
+        ?.map((attribute) => toFlutterOutlineAttribute(lineInfo, attribute))
+        .toList(),
     dartElement: dartElement != null ? toElement(lineInfo, dartElement) : null,
     range: toRange(lineInfo, outline.offset, outline.length),
     codeRange: toRange(lineInfo, outline.codeOffset, outline.codeLength),
-    children: children != null
-        ? children.map((c) => toFlutterOutline(lineInfo, c)).toList()
-        : null,
+    children: children?.map((c) => toFlutterOutline(lineInfo, c)).toList(),
   );
 }
 
@@ -1402,9 +1399,7 @@ lsp.Outline toOutline(server.LineInfo lineInfo, server.Outline outline) {
     element: toElement(lineInfo, outline.element),
     range: toRange(lineInfo, outline.offset, outline.length),
     codeRange: toRange(lineInfo, outline.codeOffset, outline.codeLength),
-    children: children != null
-        ? children.map((c) => toOutline(lineInfo, c)).toList()
-        : null,
+    children: children?.map((c) => toOutline(lineInfo, c)).toList(),
   );
 }
 
@@ -1458,10 +1453,10 @@ lsp.SignatureHelp toSignatureHelp(Set<lsp.MarkupKind>? preferredFormats,
       params.add(positionalRequired.map(getParamLabel).join(', '));
     }
     if (positionalOptional.isNotEmpty) {
-      params.add('[' + positionalOptional.map(getParamLabel).join(', ') + ']');
+      params.add('[${positionalOptional.map(getParamLabel).join(', ')}]');
     }
     if (named.isNotEmpty) {
-      params.add('{' + named.map(getParamLabel).join(', ') + '}');
+      params.add('{${named.map(getParamLabel).join(', ')}}');
     }
     return '${resp.name}(${params.join(", ")})';
   }

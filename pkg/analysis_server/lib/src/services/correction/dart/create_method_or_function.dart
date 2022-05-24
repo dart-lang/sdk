@@ -129,7 +129,7 @@ class CreateMethodOrFunction extends CorrectionProducer {
     var insertOffset = unit.end;
     // prepare prefix
     var prefix = '';
-    var sourcePrefix = '$eol';
+    var sourcePrefix = eol;
     var sourceSuffix = eol;
     await _createExecutable(builder, functionType, name, file, insertOffset,
         false, prefix, sourcePrefix, sourceSuffix, unit.declaredElement!);
@@ -173,7 +173,4 @@ class CreateMethodOrFunction extends CorrectionProducer {
     _fixKind = DartFixKind.CREATE_METHOD;
     _functionName = name;
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static CreateMethodOrFunction newInstance() => CreateMethodOrFunction();
 }

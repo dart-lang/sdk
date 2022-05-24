@@ -7,10 +7,12 @@
 import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
+import 'package:compiler/src/ir/impact.dart';
+import 'package:compiler/src/ir/runtime_type_analysis.dart';
 import 'package:compiler/src/universe/feature.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/universe/world_impact.dart';
@@ -21,7 +23,7 @@ import '../equivalence/id_equivalence_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    print('Testing computation of ResolutionImpact through ImpactData');
+    print('Testing computation of WorldImpact through ImpactData');
     print('==================================================================');
     await checkTests(dataDir, const ImpactDataComputer(),
         args: args, testedConfigs: allSpecConfigs);
@@ -69,13 +71,8 @@ class ImpactDataComputer extends DataComputer<Features> {
     for (ConstantUse use in impact.constantUses) {
       features.addElement(Tags.constantUse, use.shortText);
     }
-    if (impact is TransformedWorldImpact &&
-        impact.worldImpact is ResolutionImpact) {
-      ResolutionImpact resolutionImpact = impact.worldImpact;
-      for (RuntimeTypeUse use in resolutionImpact.runtimeTypeUses) {
-        features.addElement(Tags.runtimeTypeUse, use.shortText);
-      }
-    }
+    final impactData = frontendStrategy.elementMap.impactDataForTesting[node];
+    impactData.apply(ImpactDataGoldener(frontendStrategy.elementMap, features));
     Id id = computeMemberId(node);
     ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
     actualMap[id] = new ActualData<Features>(id, features,
@@ -88,4 +85,24 @@ class ImpactDataComputer extends DataComputer<Features> {
   @override
   DataInterpreter<Features> get dataValidator =>
       const FeaturesDataInterpreter(wildcard: wildcard);
+}
+
+class ImpactDataGoldener implements ImpactRegistry {
+  final KernelToElementMap elementMap;
+  final Features features;
+
+  ImpactDataGoldener(this.elementMap, this.features);
+
+  @override
+  void registerRuntimeTypeUse(RuntimeTypeUseKind kind, ir.DartType receiverType,
+      ir.DartType argumentType) {
+    final runtimeTypeUse = RuntimeTypeUse(
+        kind,
+        elementMap.getDartType(receiverType),
+        argumentType == null ? null : elementMap.getDartType(argumentType));
+    features.addElement(Tags.runtimeTypeUse, runtimeTypeUse.shortText);
+  }
+
+  @override
+  noSuchMethod(_) {}
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data';
-
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/source/error_processor.dart';
@@ -52,22 +50,6 @@ abstract class AnalysisOptions {
   /// there is no `pubspec.yaml` or if it does not contain an SDK range.
   VersionConstraint? get sdkVersionConstraint;
 
-  /// Return the opaque signature of the options.
-  Uint32List get signature;
-
   /// Return `true` the lint with the given [name] is enabled.
   bool isLintEnabled(String name);
-
-  /// Determine whether two signatures returned by [signature] are equal.
-  static bool signaturesEqual(Uint32List a, Uint32List b) {
-    if (a.length != b.length) {
-      return false;
-    }
-    for (int i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
 }

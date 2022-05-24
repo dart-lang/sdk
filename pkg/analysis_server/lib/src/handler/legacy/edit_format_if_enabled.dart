@@ -4,10 +4,8 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -19,9 +17,8 @@ import 'package:dart_style/src/source_code.dart';
 class EditFormatIfEnabledHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  EditFormatIfEnabledHandler(AnalysisServer server, Request request,
-      CancellationToken cancellationToken)
-      : super(server, request, cancellationToken);
+  EditFormatIfEnabledHandler(
+      super.server, super.request, super.cancellationToken);
 
   /// Format the file at the given [filePath].
   ///

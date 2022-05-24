@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -35,7 +37,7 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
       ),
     );
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 dynamic a = 0;
 int b = a;
 ''');
@@ -117,7 +119,7 @@ class A {
   test_change_field_staticFinal_hasConstConstructor_changeInitializer() async {
     useEmptyByteStore();
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 class A {
   static const a = 0;
   static const b = 1;
@@ -137,7 +139,7 @@ class A {
     // We will reuse the byte store, so can reuse summaries.
     disposeAnalysisContextCollection();
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 class A {
   static const a = 0;
   static const b = 1;
@@ -158,7 +160,7 @@ class A {
   test_change_functionBody() async {
     useEmptyByteStore();
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 void f() {
   print(0);
 }
@@ -175,7 +177,7 @@ void f() {
     // We will reuse the byte store, so can reuse summaries.
     disposeAnalysisContextCollection();
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 void f() {
   print(1);
 }
@@ -188,11 +190,61 @@ void f() {
     _assertNoLinkedCycles();
   }
 
+  test_getLibraryByUri_invalidated_exportNamespace() async {
+    useEmptyByteStore();
+
+    var a = newFile('$testPackageLibPath/a.dart', 'const a1 = 0;');
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+''');
+
+    var driver = driverFor(testFilePath);
+
+    // Link both libraries, keep them.
+    await driver.getLibraryByUri('package:test/a.dart');
+    await driver.getLibraryByUri('package:test/b.dart');
+
+    // Discard both libraries.
+    driver.changeFile(a.path);
+
+    // Read `package:test/a.dart` from bytes.
+    // Don't ask for `exportNamespace`, this used to keep it in the state
+    // "should be asked from LinkedElementLibrary", which will ask it
+    // from the `LibraryReader` current at the moment of `exportNamespace`
+    // access, not necessary the same that created this instance.
+    final aResult = await driver.getLibraryByUri('package:test/a.dart');
+    final aElement = (aResult as LibraryElementResult).element;
+
+    // The element is valid at this point.
+    expect(driver.isValidLibraryElement(aElement), isTrue);
+
+    // Discard both libraries.
+    driver.changeFile(a.path);
+
+    // Read `package:test/b.dart`, actually create `LibraryElement` for it.
+    // We used to create only `LibraryReader` for `package:test/a.dart`.
+    await driver.getLibraryByUri('package:test/b.dart');
+
+    // The element is not valid anymore.
+    expect(driver.isValidLibraryElement(aElement), isFalse);
+
+    // But its `exportNamespace` can be accessed.
+    expect(aElement.exportNamespace.definedNames, isNotEmpty);
+
+    // TODO(scheglov) This is not quite right.
+    // When we return `LibraryElement` that is not fully read, and read
+    // anything lazily, we can be in a situation when there was a change,
+    // and an imported library does not define a referenced element anymore.
+    // But there is still a client that holds this `LibraryElement`, and
+    // its summary information says "get element X from `package:Y"; and when
+    // we attempt to get it, the might be no `X` in `Y`.
+  }
+
   test_lint_dependOnReferencedPackage_update_pubspec_addDependency() async {
     useEmptyByteStore();
 
     var aaaPackageRootPath = '$packagesRootPath/aaa';
-    newFile2('$aaaPackageRootPath/lib/a.dart', '');
+    newFile('$aaaPackageRootPath/lib/a.dart', '');
 
     writeTestPackageConfig(
       PackageConfigFileBuilder()
@@ -213,7 +265,7 @@ void f() {
       ),
     );
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 // ignore:unused_import
 import 'package:aaa/a.dart';
 ''');
@@ -256,7 +308,7 @@ import 'package:aaa/a.dart';
       AnalysisOptionsFileConfig(lints: []),
     );
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 void f() {
   ![0].isEmpty;
 }
@@ -321,5 +373,11 @@ void f() {
         .currentSession
         .getErrors(testFilePathConverted) as ErrorsResult;
     return errorsResult.errors;
+  }
+}
+
+extension on AnalysisDriver {
+  bool isValidLibraryElement(LibraryElement element) {
+    return identical(element.session, currentSession);
   }
 }

@@ -4,7 +4,7 @@
 
 library front_end.compiler_options;
 
-import 'package:_fe_analyzer_shared/src/macros/executor.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -108,17 +108,10 @@ class CompilerOptions {
   /// file system.  TODO(paulberry): fix this.
   FileSystem fileSystem = StandardFileSystem.instance;
 
-  /// Function that creates a [MacroExecutor] if supported.
+  /// The [MultiMacroExecutor] for loading and executing macros if supported.
   ///
   /// This is part of the experimental macro feature.
-  Future<MacroExecutor> Function() macroExecutorProvider =
-      () async => throw 'Macro execution is not supported.';
-
-  /// Map from library import [Uri]s of libraries that declare macros to
-  /// the [Uri] for the precompiled dill that contains the macro code.
-  ///
-  /// This is part of the experimental macro feature.
-  Map<Uri, Uri>? precompiledMacroUris;
+  MultiMacroExecutor? macroExecutor;
 
   /// The [Target] used for compiling macros.
   ///
@@ -131,7 +124,7 @@ class CompilerOptions {
   /// [Component].
   ///
   /// This is used to turn a precompiled macro into a [Uri] that can be loaded
-  /// by the macro executor provided by [macroExecutorProvider].
+  /// by the [macroExecutor].
   ///
   /// This is part of the experimental macro feature.
   MacroSerializer? macroSerializer;

@@ -588,7 +588,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     NoActiveIsolateScope no_active_isolate_scope;
 
     ExternalTypedData& external_typed_data =
-        ExternalTypedData::Handle(Z, kernel_program.get()->typed_data()->ptr());
+        ExternalTypedData::Handle(Z, kernel_program->typed_data()->ptr());
     IsolateGroupSource* source = IsolateGroup::Current()->source();
     source->add_loaded_blob(Z, external_typed_data);
 

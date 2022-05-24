@@ -104,7 +104,7 @@ extension MyExt on int {}
 
   Future<void> test_libraryPrefix_deferred_inPart() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
         library testA;
         import "dart:async" deferred as bar;
         part "test.dart";''');
@@ -118,8 +118,8 @@ extension MyExt on int {}
   }
 
   Future<void> test_libraryPrefix_with_exports() async {
-    newFile2('$testPackageLibPath/a.dart', 'library libA; class A { }');
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/a.dart', 'library libA; class A { }');
+    newFile('$testPackageLibPath/b.dart', '''
         library libB;
         export "a.dart";
         class B { }
@@ -194,12 +194,12 @@ main() {
 
   Future<void> test_PrefixedIdentifier_library_inPart() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
         library testA;
         import "b.dart" as b;
         part "test.dart";
@@ -225,7 +225,7 @@ main() {
 
   Future<void> test_PrefixedIdentifier_library_typesOnly() async {
     // SimpleIdentifier  PrefixedIdentifier  NamedType
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
         lib B;
         var T1;
         class X { }
@@ -258,7 +258,7 @@ main() {
 
   Future<void> test_PrefixedIdentifier_library_typesOnly2() async {
     // SimpleIdentifier  PrefixedIdentifier  NamedType
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
         lib B;
         var T1;
         class X { }
@@ -283,7 +283,7 @@ main() {
 
   Future<void> test_PrefixedIdentifier_parameter() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
         lib B;
         class _W {M y; var _z;}
         class X extends _W {}
@@ -297,7 +297,7 @@ main() {
 
   Future<void> test_PrefixedIdentifier_prefix() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
         class A {static int bar = 10;}
         _B() {}''');
     addTestSource('''

@@ -330,17 +330,10 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     }
 
     Constructor superTarget;
-    List<FormalParameterBuilder>? superFormals;
     FunctionNode? superConstructorFunction;
-    if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
-      superTarget = superTargetBuilder.constructor;
-      superFormals = superTargetBuilder.formals!;
-    } else if (superTargetBuilder is DillConstructorBuilder) {
+    if (superTargetBuilder != null) {
       superTarget = superTargetBuilder.constructor;
       superConstructorFunction = superTargetBuilder.function;
-      if (superTargetBuilder is SyntheticSourceConstructorBuilder) {
-        superFormals = superTargetBuilder.formals;
-      }
     } else {
       // The error in this case should be reported elsewhere. Here we perform a
       // simple recovery.
@@ -351,53 +344,17 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     List<bool> positionalSuperFormalHasInitializer = [];
     Map<String, DartType?> namedSuperFormalType = {};
     Map<String, bool> namedSuperFormalHasInitializer = {};
-    // TODO(johnniwinther): Clean this up when [VariableDeclaration] has a
-    // `hasDeclaredInitializer` flag.
-    if (superFormals != null && superConstructorFunction != null) {
-      for (VariableDeclaration formal
-          in superConstructorFunction.positionalParameters) {
-        positionalSuperFormalType.add(formal.type);
-      }
-      for (VariableDeclaration formal
-          in superConstructorFunction.namedParameters) {
-        namedSuperFormalType[formal.name!] = formal.type;
-      }
-      for (FormalParameterBuilder formal in superFormals) {
-        if (formal.isPositional) {
-          positionalSuperFormalHasInitializer
-              .add(formal.hasDeclaredInitializer);
-        } else {
-          namedSuperFormalHasInitializer[formal.name] =
-              formal.hasDeclaredInitializer;
-        }
-      }
-    } else if (superFormals != null) {
-      for (FormalParameterBuilder formal in superFormals) {
-        if (formal.isPositional) {
-          positionalSuperFormalType.add(formal.variable?.type);
-          positionalSuperFormalHasInitializer
-              .add(formal.hasDeclaredInitializer);
-        } else {
-          namedSuperFormalType[formal.name] = formal.variable?.type;
-          namedSuperFormalHasInitializer[formal.name] =
-              formal.hasDeclaredInitializer;
-        }
-      }
-    } else if (superConstructorFunction != null) {
-      for (VariableDeclaration formal
-          in superConstructorFunction.positionalParameters) {
-        positionalSuperFormalType.add(formal.type);
-        positionalSuperFormalHasInitializer.add(formal.initializer != null);
-      }
-      for (VariableDeclaration formal
-          in superConstructorFunction.namedParameters) {
-        namedSuperFormalType[formal.name!] = formal.type;
-        namedSuperFormalHasInitializer[formal.name!] =
-            formal.initializer != null;
-      }
-    } else {
-      // The error is reported elsewhere.
-      return performRecoveryForErroneousCase();
+
+    for (VariableDeclaration formal
+        in superConstructorFunction.positionalParameters) {
+      positionalSuperFormalType.add(formal.type);
+      positionalSuperFormalHasInitializer.add(formal.hasDeclaredInitializer);
+    }
+    for (VariableDeclaration formal
+        in superConstructorFunction.namedParameters) {
+      namedSuperFormalType[formal.name!] = formal.type;
+      namedSuperFormalHasInitializer[formal.name!] =
+          formal.hasDeclaredInitializer;
     }
 
     int superInitializingFormalIndex = -1;
@@ -423,9 +380,12 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
               positionalSuperFormalType.length);
           if (superInitializingFormalIndex <
               positionalSuperFormalHasInitializer.length) {
-            formal.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer ||
-                positionalSuperFormalHasInitializer[
-                    superInitializingFormalIndex];
+            if (formal.isOptional) {
+              formal.hasDeclaredInitializer =
+                  hasImmediatelyDeclaredInitializer ||
+                      positionalSuperFormalHasInitializer[
+                          superInitializingFormalIndex];
+            }
             correspondingSuperFormalType =
                 positionalSuperFormalType[superInitializingFormalIndex];
             if (!hasImmediatelyDeclaredInitializer &&
@@ -439,8 +399,11 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           }
         } else {
           if (namedSuperFormalHasInitializer[formal.name] != null) {
-            formal.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer ||
-                namedSuperFormalHasInitializer[formal.name]!;
+            if (formal.isOptional) {
+              formal.hasDeclaredInitializer =
+                  hasImmediatelyDeclaredInitializer ||
+                      namedSuperFormalHasInitializer[formal.name]!;
+            }
             correspondingSuperFormalType = namedSuperFormalType[formal.name];
             if (!hasImmediatelyDeclaredInitializer && !formal.isRequiredNamed) {
               (namedSuperParameters ??= <String>[]).add(formal.name);
@@ -457,12 +420,13 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           }
           formal.variable!.type = type ?? const DynamicType();
         }
+        formal.variable!.hasDeclaredInitializer = formal.hasDeclaredInitializer;
       }
     }
 
     if (positionalSuperParameters != null || namedSuperParameters != null) {
       delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
-          substitution, superTarget.function, constructor.function,
+          superTarget, constructor, substitution,
           positionalSuperParameters: positionalSuperParameters ?? const <int>[],
           namedSuperParameters: namedSuperParameters ?? const <String>[],
           isOutlineNode: true,

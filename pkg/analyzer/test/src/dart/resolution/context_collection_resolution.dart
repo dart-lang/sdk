@@ -27,7 +27,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
-import '../../summary/repository_macro_kernel_builder.dart';
+import '../../summary/macros_environment.dart';
 import 'context_collection_resolution_caching.dart';
 import 'resolution.dart';
 
@@ -104,8 +104,8 @@ class BazelWorkspaceResolutionTest extends ContextResolutionTest {
   @override
   void setUp() {
     super.setUp();
-    newFile2('$workspaceRootPath/WORKSPACE', '');
-    newFile2('$myPackageRootPath/BUILD', '');
+    newFile('$workspaceRootPath/WORKSPACE', '');
+    newFile('$myPackageRootPath/BUILD', '');
   }
 
   @override
@@ -177,7 +177,9 @@ abstract class ContextResolutionTest
   }
 
   void disposeAnalysisContextCollection() {
-    if (_analysisContextCollection != null) {
+    final analysisContextCollection = _analysisContextCollection;
+    if (analysisContextCollection != null) {
+      analysisContextCollection.dispose();
       _analysisContextCollection = null;
     }
   }
@@ -187,12 +189,12 @@ abstract class ContextResolutionTest
   }
 
   @override
-  File newFile2(String path, String content) {
+  File newFile(String path, String content) {
     if (_analysisContextCollection != null && !path.endsWith('.dart')) {
       throw StateError('Only dart files can be changed after analysis.');
     }
 
-    return super.newFile2(path, content);
+    return super.newFile(path, content);
   }
 
   @override
@@ -214,6 +216,11 @@ abstract class ContextResolutionTest
       root: sdkRoot,
       additionalLibraries: additionalMockSdkLibraries,
     );
+  }
+
+  @mustCallSuper
+  Future<void> tearDown() async {
+    disposeAnalysisContextCollection();
   }
 
   /// Override this method to update [analysisOptions] for every context root,
@@ -305,7 +312,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile2(
+    newFile(
       path,
       config.toContent(
         toUriStr: toUriStr,
@@ -314,7 +321,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   }
 
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
-    newAnalysisOptionsYamlFile2(
+    newAnalysisOptionsYamlFile(
       testPackageRootPath,
       config.toContent(),
     );

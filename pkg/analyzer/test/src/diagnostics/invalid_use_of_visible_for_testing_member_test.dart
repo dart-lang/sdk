@@ -26,7 +26,7 @@ class InvalidUseOfVisibleForTestingMemberTest extends PubPackageResolutionTest {
   }
 
   test_export_hide() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @visibleForTesting
@@ -35,7 +35,7 @@ class A {}
 class B {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart' hide A;
 ''');
 
@@ -44,7 +44,7 @@ export 'a.dart' hide A;
   }
 
   test_export_show() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @visibleForTesting
@@ -53,7 +53,7 @@ class A {}
 class B {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart' show A;
 ''');
 
@@ -62,14 +62,14 @@ export 'a.dart' show A;
   }
 
   test_fromIntegrationTestDirectory() async {
-    newFile2('$testPackageRootPath/lib1.dart', r'''
+    newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @visibleForTesting
   void a(){ }
 }
 ''');
-    newFile2('$testPackageRootPath/integration_test/test.dart', r'''
+    newFile('$testPackageRootPath/integration_test/test.dart', r'''
 import '../lib1.dart';
 class B {
   void b() => new A().a();
@@ -81,14 +81,14 @@ class B {
   }
 
   test_fromTestDirectory() async {
-    newFile2('$testPackageRootPath/lib1.dart', r'''
+    newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @visibleForTesting
   void a(){ }
 }
 ''');
-    newFile2('$testPackageRootPath/test/test.dart', r'''
+    newFile('$testPackageRootPath/test/test.dart', r'''
 import '../lib1.dart';
 class B {
   void b() => new A().a();
@@ -100,14 +100,14 @@ class B {
   }
 
   test_fromTestDriverDirectory() async {
-    newFile2('$testPackageRootPath/lib1.dart', r'''
+    newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @visibleForTesting
   void a(){ }
 }
 ''');
-    newFile2('$testPackageRootPath/test_driver/test.dart', r'''
+    newFile('$testPackageRootPath/test_driver/test.dart', r'''
 import '../lib1.dart';
 class B {
   void b() => new A().a();
@@ -119,14 +119,14 @@ class B {
   }
 
   test_fromTestingDirectory() async {
-    newFile2('$testPackageRootPath/lib1.dart', r'''
+    newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @visibleForTesting
   void a(){ }
 }
 ''');
-    newFile2('$testPackageRootPath/testing/lib1.dart', r'''
+    newFile('$testPackageRootPath/testing/lib1.dart', r'''
 import '../lib1.dart';
 class C {
   void b() => new A().a();
@@ -138,14 +138,14 @@ class C {
   }
 
   test_functionInExtension() async {
-    newFile2('$testPackageRootPath/lib1.dart', r'''
+    newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 extension E on List {
   @visibleForTesting
   int m() => 1;
 }
 ''');
-    newFile2('$testPackageRootPath/lib2.dart', r'''
+    newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   E([]).m();
@@ -159,14 +159,14 @@ void main() {
   }
 
   test_functionInExtension_fromTestDirectory() async {
-    newFile2('$testPackageRootPath/lib1.dart', r'''
+    newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 extension E on List {
   @visibleForTesting
   int m() => 1;
 }
 ''');
-    newFile2('$testPackageRootPath/test/test.dart', r'''
+    newFile('$testPackageRootPath/test/test.dart', r'''
 import '../lib1.dart';
 void main() {
   E([]).m();
@@ -178,14 +178,14 @@ void main() {
   }
 
   test_getter() async {
-    newFile2('$testPackageRootPath/lib1.dart', r'''
+    newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @visibleForTesting
   int get a => 7;
 }
 ''');
-    newFile2('$testPackageRootPath/lib2.dart', r'''
+    newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   new A().a;
@@ -199,7 +199,7 @@ void main() {
   }
 
   test_import_hide() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @visibleForTesting
@@ -208,7 +208,7 @@ class A {}
 class B {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart' hide A;
 
 void f(B _) {}
@@ -219,7 +219,7 @@ void f(B _) {}
   }
 
   test_import_show() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @visibleForTesting
@@ -228,7 +228,7 @@ class A {}
 class B {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart' show A;
 
 void f(A _) {}
@@ -242,14 +242,14 @@ void f(A _) {}
   }
 
   test_method() async {
-    newFile2('$testPackageRootPath/lib1.dart', r'''
+    newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @visibleForTesting
   void a(){ }
 }
 ''');
-    newFile2('$testPackageRootPath/lib2.dart', r'''
+    newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 class B {
   void b() => new A().a();
@@ -263,7 +263,7 @@ class B {
   }
 
   test_mixin() async {
-    newFile2('$testPackageRootPath/lib1.dart', r'''
+    newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 mixin M {
   @visibleForTesting
@@ -271,7 +271,7 @@ mixin M {
 }
 class C with M {}
 ''');
-    newFile2('$testPackageRootPath/lib2.dart', r'''
+    newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   C().m();
@@ -285,7 +285,7 @@ void main() {
   }
 
   test_namedConstructor() async {
-    newFile2('$testPackageRootPath/lib1.dart', r'''
+    newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   int _x;
@@ -294,7 +294,7 @@ class A {
   A.forTesting(this._x);
 }
 ''');
-    newFile2('$testPackageRootPath/lib2.dart', r'''
+    newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   new A.forTesting(0);
@@ -311,7 +311,7 @@ void main() {
   }
 
   test_protectedAndForTesting_usedAsProtected() async {
-    newFile2('$testPackageRootPath/lib1.dart', r'''
+    newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
@@ -319,7 +319,7 @@ class A {
   void a(){ }
 }
 ''');
-    newFile2('$testPackageRootPath/lib2.dart', r'''
+    newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 class B extends A {
   void b() => new A().a();
@@ -331,7 +331,7 @@ class B extends A {
   }
 
   test_protectedAndForTesting_usedAsTesting() async {
-    newFile2('$testPackageRootPath/lib1.dart', r'''
+    newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
@@ -339,7 +339,7 @@ class A {
   void a(){ }
 }
 ''');
-    newFile2('$testPackageRootPath/test/test1.dart', r'''
+    newFile('$testPackageRootPath/test/test1.dart', r'''
 import '../lib1.dart';
 void main() {
   new A().a();
@@ -351,14 +351,14 @@ void main() {
   }
 
   test_setter() async {
-    newFile2('$testPackageRootPath/lib1.dart', r'''
+    newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @visibleForTesting
   set b(_) => 7;
 }
 ''');
-    newFile2('$testPackageRootPath/lib2.dart', r'''
+    newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   new A().b = 6;
@@ -372,12 +372,12 @@ void main() {
   }
 
   test_topLevelFunction() async {
-    newFile2('$testPackageRootPath/lib1.dart', r'''
+    newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 @visibleForTesting
 int fn0() => 1;
 ''');
-    newFile2('$testPackageRootPath/lib2.dart', r'''
+    newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   fn0();
@@ -391,12 +391,12 @@ void main() {
   }
 
   test_topLevelVariable() async {
-    newFile2('$testPackageRootPath/lib1.dart', r'''
+    newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 @visibleForTesting
 int a = 7;
 ''');
-    newFile2('$testPackageRootPath/lib2.dart', r'''
+    newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   a;
@@ -410,7 +410,7 @@ void main() {
   }
 
   test_unnamedConstructor() async {
-    newFile2('$testPackageRootPath/lib1.dart', r'''
+    newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   int _x;
@@ -419,7 +419,7 @@ class A {
   A(this._x);
 }
 ''');
-    newFile2('$testPackageRootPath/lib2.dart', r'''
+    newFile('$testPackageRootPath/lib2.dart', r'''
 import 'lib1.dart';
 void main() {
   new A(0);

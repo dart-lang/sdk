@@ -31,8 +31,4 @@ class RemoveUnnecessaryRawString extends CorrectionProducer {
       builder.addDeletion(SourceRange(offset, 1));
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveUnnecessaryRawString newInstance() =>
-      RemoveUnnecessaryRawString();
 }

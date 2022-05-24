@@ -18,7 +18,7 @@ static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
-static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#fact#tearOff::Y% a, {core::int? b, core::int c}) → mai::A<self::_#H#fact#tearOff::Y%>
+static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#fact#tearOff::Y% a, {core::int? b, has-declared-initializer core::int c}) → mai::A<self::_#H#fact#tearOff::Y%>
   return mai::A::fact<self::_#H#fact#tearOff::Y%>(a, b: b, c: c);
 static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<self::_#H#redirect#tearOff::Y%>
   return mai::A::_#redirect#tearOff<self::_#H#redirect#tearOff::Y%>();
@@ -43,9 +43,9 @@ class A<T extends core::Object? = dynamic> extends core::Object {
     return new mai::A::•<mai::A::_#new#tearOff::T%>();
   static method _#named#tearOff<T extends core::Object? = dynamic>(mai::A::_#named#tearOff::T% a, [core::int? b]) → mai::A<mai::A::_#named#tearOff::T%>
     return new mai::A::named<mai::A::_#named#tearOff::T%>(a, b);
-  static factory fact<T extends core::Object? = dynamic>(mai::A::fact::T% a, {core::int? b, core::int c}) → mai::A<mai::A::fact::T%>
+  static factory fact<T extends core::Object? = dynamic>(mai::A::fact::T% a, {core::int? b, has-declared-initializer core::int c}) → mai::A<mai::A::fact::T%>
     ;
-  static method _#fact#tearOff<T extends core::Object? = dynamic>(mai::A::_#fact#tearOff::T% a, {core::int? b, core::int c}) → mai::A<mai::A::_#fact#tearOff::T%>
+  static method _#fact#tearOff<T extends core::Object? = dynamic>(mai::A::_#fact#tearOff::T% a, {core::int? b, has-declared-initializer core::int c}) → mai::A<mai::A::_#fact#tearOff::T%>
     return mai::A::fact<mai::A::_#fact#tearOff::T%>(a, b: b, c: c);
   static factory redirect<T extends core::Object? = dynamic>() → mai::A<mai::A::redirect::T%>
     return new mai::A::•<mai::A::redirect::T%>();
@@ -64,7 +64,7 @@ static method _#F#new#tearOff<unrelated X extends core::Object? = dynamic, Y ext
   return new mai::A::•<mai::_#F#new#tearOff::Y%>();
 static method _#F#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(mai::_#F#named#tearOff::Y% a, [core::int? b]) → mai::A<mai::_#F#named#tearOff::Y%>
   return new mai::A::named<mai::_#F#named#tearOff::Y%>(a, b);
-static method _#F#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(mai::_#F#fact#tearOff::Y% a, {core::int? b, core::int c}) → mai::A<mai::_#F#fact#tearOff::Y%>
+static method _#F#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(mai::_#F#fact#tearOff::Y% a, {core::int? b, has-declared-initializer core::int c}) → mai::A<mai::_#F#fact#tearOff::Y%>
   return mai::A::fact<mai::_#F#fact#tearOff::Y%>(a, b: b, c: c);
 static method _#F#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<mai::_#F#redirect#tearOff::Y%>
   return mai::A::_#redirect#tearOff<mai::_#F#redirect#tearOff::Y%>();
@@ -72,7 +72,7 @@ static method _#G#new#tearOff<unrelated X extends core::Object? = dynamic, Y ext
   return new mai::A::•<mai::_#G#new#tearOff::Y%>();
 static method _#G#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(mai::_#G#named#tearOff::Y% a, [core::int? b]) → mai::A<mai::_#G#named#tearOff::Y%>
   return new mai::A::named<mai::_#G#named#tearOff::Y%>(a, b);
-static method _#G#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(mai::_#G#fact#tearOff::Y% a, {core::int? b, core::int c}) → mai::A<mai::_#G#fact#tearOff::Y%>
+static method _#G#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(mai::_#G#fact#tearOff::Y% a, {core::int? b, has-declared-initializer core::int c}) → mai::A<mai::_#G#fact#tearOff::Y%>
   return mai::A::fact<mai::_#G#fact#tearOff::Y%>(a, b: b, c: c);
 static method _#G#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<mai::_#G#redirect#tearOff::Y%>
   return mai::A::_#redirect#tearOff<mai::_#G#redirect#tearOff::Y%>();

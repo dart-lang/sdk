@@ -1,4 +1,3 @@
-// @dart = 2.9
 extension A<T> on List<T> {
   List<R> myMap<R>(R Function(T) block) {}
 }

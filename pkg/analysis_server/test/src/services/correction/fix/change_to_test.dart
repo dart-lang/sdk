@@ -143,6 +143,57 @@ class BaseClass {}
 ''');
   }
 
+  Future<void> test_enum_constant() async {
+    await resolveTestCode('''
+enum E { ONE }
+
+E e() {
+  return E.OEN;
+}
+''');
+    await assertHasFix('''
+enum E { ONE }
+
+E e() {
+  return E.ONE;
+}
+''');
+  }
+
+  Future<void> test_enum_getter() async {
+    await resolveTestCode('''
+enum E { ONE }
+
+void f() {
+  E.ONE.indxe;
+}
+''');
+    await assertHasFix('''
+enum E { ONE }
+
+void f() {
+  E.ONE.index;
+}
+''');
+  }
+
+  Future<void> test_enum_method() async {
+    await resolveTestCode('''
+enum E { ONE }
+
+void f() {
+  E.ONE.toStrong();
+}
+''');
+    await assertHasFix('''
+enum E { ONE }
+
+void f() {
+  E.ONE.toString();
+}
+''');
+  }
+
   Future<void> test_function_fromImport() async {
     await resolveTestCode('''
 void f() {

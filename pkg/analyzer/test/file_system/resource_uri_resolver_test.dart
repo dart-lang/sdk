@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,7 +19,7 @@ class ResourceUriResolverTest with ResourceProviderMixin {
 
   void setUp() {
     resolver = ResourceUriResolver(resourceProvider);
-    newFile2('/test.dart', '');
+    newFile('/test.dart', '');
     newFolder('/folder');
   }
 
@@ -63,17 +62,5 @@ class ResourceUriResolverTest with ResourceProviderMixin {
 
     var source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
-  }
-
-  @Deprecated('Use pathToUri() instead')
-  void test_restoreAbsolute() {
-    var uri = toUri('/test.dart');
-
-    var source = resolver.resolveAbsolute(uri)!;
-    expect(resolver.restoreAbsolute(source), uri);
-    expect(
-        resolver.restoreAbsolute(
-            NonExistingSource(source.fullName, Uri.parse('dart:math'))),
-        uri);
   }
 }

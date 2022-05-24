@@ -87,15 +87,12 @@ class FlutterWrap extends MultiCorrectionProducer {
     yield _FlutterWrapColumn(firstWidget, lastWidget);
     yield _FlutterWrapRow(firstWidget, lastWidget);
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static FlutterWrap newInstance() => FlutterWrap();
 }
 
 /// A correction processor that can make one of the possible change computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapCenter extends _WrapSingleWidget {
-  _FlutterWrapCenter(Expression widgetExpr) : super(widgetExpr);
+  _FlutterWrapCenter(super.widgetExpr);
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_CENTER;
@@ -110,8 +107,7 @@ class _FlutterWrapCenter extends _WrapSingleWidget {
 /// A correction processor that can make one of the possible change computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapColumn extends _WrapMultipleWidgets {
-  _FlutterWrapColumn(Expression firstWidget, Expression lastWidget)
-      : super(firstWidget, lastWidget);
+  _FlutterWrapColumn(super.firstWidget, super.lastWidget);
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_COLUMN;
@@ -123,7 +119,7 @@ class _FlutterWrapColumn extends _WrapMultipleWidgets {
 /// A correction processor that can make one of the possible change computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapContainer extends _WrapSingleWidget {
-  _FlutterWrapContainer(Expression widgetExpr) : super(widgetExpr);
+  _FlutterWrapContainer(super.widgetExpr);
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_CONTAINER;
@@ -138,7 +134,7 @@ class _FlutterWrapContainer extends _WrapSingleWidget {
 /// A correction processor that can make one of the possible change computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapGeneric extends _WrapSingleWidget {
-  _FlutterWrapGeneric(Expression widgetExpr) : super(widgetExpr);
+  _FlutterWrapGeneric(super.widgetExpr);
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_GENERIC;
@@ -147,7 +143,7 @@ class _FlutterWrapGeneric extends _WrapSingleWidget {
 /// A correction processor that can make one of the possible change computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapPadding extends _WrapSingleWidget {
-  _FlutterWrapPadding(Expression widgetExpr) : super(widgetExpr);
+  _FlutterWrapPadding(super.widgetExpr);
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_PADDING;
@@ -168,8 +164,7 @@ class _FlutterWrapPadding extends _WrapSingleWidget {
 /// A correction processor that can make one of the possible change computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapRow extends _WrapMultipleWidgets {
-  _FlutterWrapRow(Expression firstWidget, Expression lastWidget)
-      : super(firstWidget, lastWidget);
+  _FlutterWrapRow(super.firstWidget, super.lastWidget);
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_ROW;
@@ -181,7 +176,7 @@ class _FlutterWrapRow extends _WrapMultipleWidgets {
 /// A correction processor that can make one of the possible change computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapSizedBox extends _WrapSingleWidget {
-  _FlutterWrapSizedBox(Expression widgetExpr) : super(widgetExpr);
+  _FlutterWrapSizedBox(super.widgetExpr);
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_SIZED_BOX;

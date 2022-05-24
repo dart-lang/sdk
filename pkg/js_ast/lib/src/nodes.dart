@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.15
-
 library js_ast.nodes;
 
 import 'precedence.dart';
@@ -556,7 +554,7 @@ class BaseVisitor1Void<A> extends BaseVisitor1<void, A> {
   void visitComment(Comment node, A arg) {}
 }
 
-/// This tag interface has no behaviour but must be implemented by any class
+/// This tag interface has no behavior but must be implemented by any class
 /// that is to be stored on a [Node] as source information.
 abstract class JavaScriptNodeSourceInformation {
   const JavaScriptNodeSourceInformation();
@@ -582,7 +580,7 @@ abstract class Node {
   /// Returns a node equivalent to [this], but with new source position and end
   /// source position.
   Node withSourceInformation(
-      JavaScriptNodeSourceInformation sourceInformation) {
+      JavaScriptNodeSourceInformation? sourceInformation) {
     if (sourceInformation == _sourceInformation) {
       return this;
     }
@@ -627,12 +625,16 @@ class Program extends Node {
 
   @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
-    for (Statement statement in body) statement.accept(visitor);
+    for (Statement statement in body) {
+      statement.accept(visitor);
+    }
   }
 
   @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
-    for (Statement statement in body) statement.accept1(visitor, arg);
+    for (Statement statement in body) {
+      statement.accept1(visitor, arg);
+    }
   }
 
   @override
@@ -672,7 +674,7 @@ class Block extends Statement {
 
   Block(this.statements);
 
-  Block.empty() : this.statements = [];
+  Block.empty() : statements = [];
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitBlock(this);
@@ -683,12 +685,16 @@ class Block extends Statement {
 
   @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
-    for (Statement statement in statements) statement.accept(visitor);
+    for (Statement statement in statements) {
+      statement.accept(visitor);
+    }
   }
 
   @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
-    for (Statement statement in statements) statement.accept1(visitor, arg);
+    for (Statement statement in statements) {
+      statement.accept1(visitor, arg);
+    }
   }
 
   @override
@@ -748,7 +754,7 @@ class If extends Statement {
 
   If(this.condition, this.then, this.otherwise);
 
-  If.noElse(this.condition, this.then) : this.otherwise = EmptyStatement();
+  If.noElse(this.condition, this.then) : otherwise = EmptyStatement();
 
   bool get hasElse => otherwise is! EmptyStatement;
 
@@ -955,7 +961,7 @@ class Return extends Statement {
   /// The expression for `return expression;`, or `null` for `return;`.
   final Expression? value;
 
-  Return([this.value = null]);
+  Return([this.value]);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitReturn(this);
@@ -1083,13 +1089,17 @@ class Switch extends Statement {
   @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
     key.accept(visitor);
-    for (SwitchClause clause in cases) clause.accept(visitor);
+    for (SwitchClause clause in cases) {
+      clause.accept(visitor);
+    }
   }
 
   @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     key.accept1(visitor, arg);
-    for (SwitchClause clause in cases) clause.accept1(visitor, arg);
+    for (SwitchClause clause in cases) {
+      clause.accept1(visitor, arg);
+    }
   }
 
   @override
@@ -1545,7 +1555,7 @@ class Call extends Expression {
 
   Call(this.target, this.arguments,
       {JavaScriptNodeSourceInformation? sourceInformation}) {
-    this._sourceInformation = sourceInformation;
+    _sourceInformation = sourceInformation;
   }
 
   @override
@@ -1628,43 +1638,43 @@ class Binary extends Expression {
   int get precedenceLevel {
     // TODO(floitsch): switch to constant map.
     switch (op) {
-      case "*":
-      case "/":
-      case "%":
+      case '*':
+      case '/':
+      case '%':
         return MULTIPLICATIVE;
-      case "+":
-      case "-":
+      case '+':
+      case '-':
         return ADDITIVE;
-      case "<<":
-      case ">>":
-      case ">>>":
+      case '<<':
+      case '>>':
+      case '>>>':
         return SHIFT;
-      case "<":
-      case ">":
-      case "<=":
-      case ">=":
-      case "instanceof":
-      case "in":
+      case '<':
+      case '>':
+      case '<=':
+      case '>=':
+      case 'instanceof':
+      case 'in':
         return RELATIONAL;
-      case "==":
-      case "===":
-      case "!=":
-      case "!==":
+      case '==':
+      case '===':
+      case '!=':
+      case '!==':
         return EQUALITY;
-      case "&":
+      case '&':
         return BIT_AND;
-      case "^":
+      case '^':
         return BIT_XOR;
-      case "|":
+      case '|':
         return BIT_OR;
-      case "&&":
+      case '&&':
         return LOGICAL_AND;
-      case "||":
+      case '||':
         return LOGICAL_OR;
       case ',':
         return EXPRESSION;
       default:
-        throw "Internal Error: Unhandled binary operator: $op";
+        throw 'Internal Error: Unhandled binary operator: $op';
     }
   }
 }
@@ -1799,7 +1809,7 @@ class Parameter extends VariableDeclaration {
 }
 
 class This extends Parameter {
-  This() : super("this");
+  This() : super('this');
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitThis(this);
@@ -1869,13 +1879,17 @@ class Fun extends FunctionExpression {
 
   @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
-    for (Parameter param in params) param.accept(visitor);
+    for (Parameter param in params) {
+      param.accept(visitor);
+    }
     body.accept(visitor);
   }
 
   @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
-    for (Parameter param in params) param.accept1(visitor, arg);
+    for (Parameter param in params) {
+      param.accept1(visitor, arg);
+    }
     body.accept1(visitor, arg);
   }
 
@@ -1911,13 +1925,17 @@ class ArrowFunction extends FunctionExpression {
 
   @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
-    for (Parameter param in params) param.accept(visitor);
+    for (Parameter param in params) {
+      param.accept(visitor);
+    }
     body.accept(visitor);
   }
 
   @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
-    for (Parameter param in params) param.accept1(visitor, arg);
+    for (Parameter param in params) {
+      param.accept1(visitor, arg);
+    }
     body.accept1(visitor, arg);
   }
 
@@ -1940,13 +1958,13 @@ class AsyncModifier {
       {required this.isAsync, required this.isYielding});
 
   static const AsyncModifier sync =
-      AsyncModifier(0, "sync", isAsync: false, isYielding: false);
+      AsyncModifier(0, 'sync', isAsync: false, isYielding: false);
   static const AsyncModifier async =
-      AsyncModifier(1, "async", isAsync: true, isYielding: false);
+      AsyncModifier(1, 'async', isAsync: true, isYielding: false);
   static const AsyncModifier asyncStar =
-      AsyncModifier(2, "async*", isAsync: true, isYielding: true);
+      AsyncModifier(2, 'async*', isAsync: true, isYielding: true);
   static const AsyncModifier syncStar =
-      AsyncModifier(3, "sync*", isAsync: false, isYielding: true);
+      AsyncModifier(3, 'sync*', isAsync: false, isYielding: true);
 
   static const List<AsyncModifier> values = [sync, async, asyncStar, syncStar];
 
@@ -2159,16 +2177,20 @@ class StringConcatenation extends Literal {
 
   @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
-    for (Literal part in parts) part.accept(visitor);
+    for (Literal part in parts) {
+      part.accept(visitor);
+    }
   }
 
   @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
-    for (Literal part in parts) part.accept1(visitor, arg);
+    for (Literal part in parts) {
+      part.accept1(visitor, arg);
+    }
   }
 
   @override
-  StringConcatenation _clone() => StringConcatenation(this.parts);
+  StringConcatenation _clone() => StringConcatenation(parts);
 }
 
 class LiteralNumber extends Literal {
@@ -2204,12 +2226,16 @@ class ArrayInitializer extends Expression {
 
   @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
-    for (Expression element in elements) element.accept(visitor);
+    for (Expression element in elements) {
+      element.accept(visitor);
+    }
   }
 
   @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
-    for (Expression element in elements) element.accept1(visitor, arg);
+    for (Expression element in elements) {
+      element.accept1(visitor, arg);
+    }
   }
 
   @override
@@ -2248,9 +2274,9 @@ class ObjectInitializer extends Expression {
 
   /// Constructs a new object-initializer containing the given [properties].
   ///
-  /// [isOneLiner] describes the behaviour when pretty-printing (non-minified).
+  /// [isOneLiner] describes the behavior when pretty-printing (non-minified).
   /// If true print all properties on the same line.
-  /// If false print each property on a seperate line.
+  /// If false print each property on a separate line.
   ObjectInitializer(this.properties, {this.isOneLiner = true});
 
   @override
@@ -2262,12 +2288,16 @@ class ObjectInitializer extends Expression {
 
   @override
   void visitChildren<T>(NodeVisitor<T> visitor) {
-    for (Property init in properties) init.accept(visitor);
+    for (Property init in properties) {
+      init.accept(visitor);
+    }
   }
 
   @override
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
-    for (Property init in properties) init.accept1(visitor, arg);
+    for (Property init in properties) {
+      init.accept1(visitor, arg);
+    }
   }
 
   @override
@@ -2343,7 +2373,7 @@ class MethodDefinition extends Node implements Property {
 
 /// Tag class for all interpolated positions.
 abstract class InterpolatedNode implements Node {
-  get nameOrPosition;
+  dynamic get nameOrPosition;
 
   bool get isNamed => nameOrPosition is String;
 
@@ -2352,7 +2382,7 @@ abstract class InterpolatedNode implements Node {
 
 class InterpolatedExpression extends Expression with InterpolatedNode {
   @override
-  final nameOrPosition;
+  final dynamic nameOrPosition;
 
   InterpolatedExpression(this.nameOrPosition);
 
@@ -2379,7 +2409,7 @@ class InterpolatedExpression extends Expression with InterpolatedNode {
 
 class InterpolatedLiteral extends Literal with InterpolatedNode {
   @override
-  final nameOrPosition;
+  final dynamic nameOrPosition;
 
   InterpolatedLiteral(this.nameOrPosition);
 
@@ -2404,13 +2434,13 @@ class InterpolatedParameter extends Expression
     with InterpolatedNode
     implements Parameter {
   @override
-  final nameOrPosition;
+  final dynamic nameOrPosition;
 
   InterpolatedParameter(this.nameOrPosition);
 
   @override
   String get name {
-    throw "InterpolatedParameter.name must not be invoked";
+    throw 'InterpolatedParameter.name must not be invoked';
   }
 
   @override
@@ -2439,7 +2469,7 @@ class InterpolatedParameter extends Expression
 
 class InterpolatedSelector extends Expression with InterpolatedNode {
   @override
-  final nameOrPosition;
+  final dynamic nameOrPosition;
 
   InterpolatedSelector(this.nameOrPosition);
 
@@ -2466,7 +2496,7 @@ class InterpolatedSelector extends Expression with InterpolatedNode {
 
 class InterpolatedStatement extends Statement with InterpolatedNode {
   @override
-  final nameOrPosition;
+  final dynamic nameOrPosition;
 
   InterpolatedStatement(this.nameOrPosition);
 
@@ -2492,7 +2522,7 @@ class InterpolatedDeclaration extends Expression
     with InterpolatedNode
     implements Declaration {
   @override
-  final nameOrPosition;
+  final dynamic nameOrPosition;
 
   InterpolatedDeclaration(this.nameOrPosition);
 
@@ -2516,7 +2546,7 @@ class InterpolatedDeclaration extends Expression
   }
 
   @override
-  String get name => throw "No name for the interpolated node";
+  String get name => throw 'No name for the interpolated node';
 
   @override
   int get precedenceLevel => PRIMARY;

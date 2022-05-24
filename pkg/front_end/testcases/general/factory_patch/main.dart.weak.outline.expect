@@ -21,7 +21,7 @@ class Class extends core::Object {
     : self2::Class::defaultValue = defaultValue, super core::Object::•()
     ;
   @_in::patch
-  external static factory fact({core::bool defaultValue}) → self2::Class;
+  external static factory fact({has-declared-initializer core::bool defaultValue}) → self2::Class;
   @_in::patch
   external static factory constFact({core::bool defaultValue = true}) → self2::Class;
   @_in::patch

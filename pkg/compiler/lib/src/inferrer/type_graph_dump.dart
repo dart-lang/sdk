@@ -1,9 +1,12 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.10
+
 library dart2js.inferrer.type_graph_dump;
 
-import '../../compiler.dart';
+import '../../compiler_api.dart' as api;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import 'abstract_value_domain.dart';
@@ -30,7 +33,7 @@ import 'debug.dart';
 class TypeGraphDump {
   static const String outputDir = 'typegraph';
 
-  final CompilerOutput compilerOutput;
+  final api.CompilerOutput compilerOutput;
   final InferrerEngine inferrer;
   final Map<TypeInformation, Set<TypeInformation>> assignmentsBeforeAnalysis =
       <TypeInformation, Set<TypeInformation>>{};
@@ -75,11 +78,11 @@ class TypeGraphDump {
     }
     // Print every group separately.
     for (MemberEntity element in nodes.keys) {
-      OutputSink output;
+      api.OutputSink output;
       try {
         String name = filenameFromElement(element);
         output = compilerOutput.createOutputSink(
-            '$outputDir/$name', 'dot', OutputType.debug);
+            '$outputDir/$name', 'dot', api.OutputType.debug);
         _GraphGenerator visitor = _GraphGenerator(
             this, element, output, inferrer.abstractValueDomain.getCompactText);
         for (TypeInformation node in nodes[element]) {
@@ -140,7 +143,7 @@ class _GraphGenerator extends TypeInformationVisitor {
   final Map<TypeInformation, int> nodeId = <TypeInformation, int>{};
   final String Function(AbstractValue) formatType;
   int usedIds = 0;
-  final OutputSink output;
+  final api.OutputSink output;
   final MemberEntity element;
   TypeInformation returnValue;
 

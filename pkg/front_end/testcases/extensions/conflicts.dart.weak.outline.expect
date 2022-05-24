@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -20,54 +20,34 @@ import self as self;
 import "dart:core" as core;
 
 class Class1 extends core::Object {
-  synthetic constructor •() → self::Class1*
+  synthetic constructor •() → self::Class1
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Class2 extends core::Object {
-  synthetic constructor •() → self::Class2*
+  synthetic constructor •() → self::Class2
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-extension DuplicateExtensionName on self::Class1* {
+extension DuplicateExtensionName on self::Class1 {
   method uniqueMethod1 = self::DuplicateExtensionName|uniqueMethod1;
   tearoff uniqueMethod1 = self::DuplicateExtensionName|get#uniqueMethod1;
   method duplicateMethodName2 = self::DuplicateExtensionName|duplicateMethodName2;
   tearoff duplicateMethodName2 = self::DuplicateExtensionName|get#duplicateMethodName2;
 }
-extension UniqueExtensionName on self::Class1* {
+extension UniqueExtensionName on self::Class1 {
   method duplicateMethodName1 = self::UniqueExtensionName|duplicateMethodName1;
   tearoff duplicateMethodName1 = self::UniqueExtensionName|get#duplicateMethodName1;
 }
-static method DuplicateExtensionName|uniqueMethod1(lowered final self::Class1* #this) → dynamic
+static method DuplicateExtensionName|uniqueMethod1(lowered final self::Class1 #this) → dynamic
   ;
-static method DuplicateExtensionName|get#uniqueMethod1(lowered final self::Class1* #this) → () →* dynamic
+static method DuplicateExtensionName|get#uniqueMethod1(lowered final self::Class1 #this) → () → dynamic
   return () → dynamic => self::DuplicateExtensionName|uniqueMethod1(#this);
-static method DuplicateExtensionName|duplicateMethodName2(lowered final self::Class1* #this) → dynamic
+static method DuplicateExtensionName|duplicateMethodName2(lowered final self::Class1 #this) → dynamic
   ;
-static method DuplicateExtensionName|get#duplicateMethodName2(lowered final self::Class1* #this) → () →* dynamic
+static method DuplicateExtensionName|get#duplicateMethodName2(lowered final self::Class1 #this) → () → dynamic
   return () → dynamic => self::DuplicateExtensionName|duplicateMethodName2(#this);
-static method UniqueExtensionName|duplicateMethodName1(lowered final self::Class1* #this) → dynamic
+static method UniqueExtensionName|duplicateMethodName1(lowered final self::Class1 #this) → dynamic
   ;
-static method UniqueExtensionName|get#duplicateMethodName1(lowered final self::Class1* #this) → () →* dynamic
+static method UniqueExtensionName|get#duplicateMethodName1(lowered final self::Class1 #this) → () → dynamic
   return () → dynamic => self::UniqueExtensionName|duplicateMethodName1(#this);
 static method main() → dynamic
   ;

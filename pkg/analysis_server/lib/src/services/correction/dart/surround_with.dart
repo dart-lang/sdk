@@ -68,9 +68,6 @@ class SurroundWith extends MultiCorrectionProducer {
     yield _SurroundWithWhile(
         statementsRange, indentOld, indentNew, indentedCode);
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static SurroundWith newInstance() => SurroundWith();
 }
 
 /// A correction processor that can make one of the possible change computed by
@@ -91,9 +88,8 @@ abstract class _SurroundWith extends CorrectionProducer {
 /// A correction processor that can make one of the possible change computed by
 /// the [SurroundWith] producer.
 class _SurroundWithBlock extends _SurroundWith {
-  _SurroundWithBlock(SourceRange statementsRange, String indentOld,
-      String indentNew, String indentedCode)
-      : super(statementsRange, indentOld, indentNew, indentedCode);
+  _SurroundWithBlock(super.statementsRange, super.indentOld, super.indentNew,
+      super.indentedCode);
 
   @override
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_BLOCK;
@@ -114,9 +110,8 @@ class _SurroundWithBlock extends _SurroundWith {
 /// A correction processor that can make one of the possible change computed by
 /// the [SurroundWith] producer.
 class _SurroundWithDoWhile extends _SurroundWith {
-  _SurroundWithDoWhile(SourceRange statementsRange, String indentOld,
-      String indentNew, String indentedCode)
-      : super(statementsRange, indentOld, indentNew, indentedCode);
+  _SurroundWithDoWhile(super.statementsRange, super.indentOld, super.indentNew,
+      super.indentedCode);
 
   @override
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_DO_WHILE;
@@ -143,9 +138,8 @@ class _SurroundWithDoWhile extends _SurroundWith {
 /// A correction processor that can make one of the possible change computed by
 /// the [SurroundWith] producer.
 class _SurroundWithFor extends _SurroundWith {
-  _SurroundWithFor(SourceRange statementsRange, String indentOld,
-      String indentNew, String indentedCode)
-      : super(statementsRange, indentOld, indentNew, indentedCode);
+  _SurroundWithFor(super.statementsRange, super.indentOld, super.indentNew,
+      super.indentedCode);
 
   @override
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_FOR;
@@ -178,9 +172,8 @@ class _SurroundWithFor extends _SurroundWith {
 /// A correction processor that can make one of the possible change computed by
 /// the [SurroundWith] producer.
 class _SurroundWithForIn extends _SurroundWith {
-  _SurroundWithForIn(SourceRange statementsRange, String indentOld,
-      String indentNew, String indentedCode)
-      : super(statementsRange, indentOld, indentNew, indentedCode);
+  _SurroundWithForIn(super.statementsRange, super.indentOld, super.indentNew,
+      super.indentedCode);
 
   @override
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_FOR_IN;
@@ -209,9 +202,8 @@ class _SurroundWithForIn extends _SurroundWith {
 /// A correction processor that can make one of the possible change computed by
 /// the [SurroundWith] producer.
 class _SurroundWithIf extends _SurroundWith {
-  _SurroundWithIf(SourceRange statementsRange, String indentOld,
-      String indentNew, String indentedCode)
-      : super(statementsRange, indentOld, indentNew, indentedCode);
+  _SurroundWithIf(super.statementsRange, super.indentOld, super.indentNew,
+      super.indentedCode);
 
   @override
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_IF;
@@ -238,9 +230,8 @@ class _SurroundWithIf extends _SurroundWith {
 /// A correction processor that can make one of the possible change computed by
 /// the [SurroundWith] producer.
 class _SurroundWithSetState extends _SurroundWith {
-  _SurroundWithSetState(SourceRange statementsRange, String indentOld,
-      String indentNew, String indentedCode)
-      : super(statementsRange, indentOld, indentNew, indentedCode);
+  _SurroundWithSetState(super.statementsRange, super.indentOld, super.indentNew,
+      super.indentedCode);
 
   @override
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_SET_STATE;
@@ -268,9 +259,8 @@ class _SurroundWithSetState extends _SurroundWith {
 /// A correction processor that can make one of the possible change computed by
 /// the [SurroundWith] producer.
 class _SurroundWithTryCatch extends _SurroundWith {
-  _SurroundWithTryCatch(SourceRange statementsRange, String indentOld,
-      String indentNew, String indentedCode)
-      : super(statementsRange, indentOld, indentNew, indentedCode);
+  _SurroundWithTryCatch(super.statementsRange, super.indentOld, super.indentNew,
+      super.indentedCode);
 
   @override
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_TRY_CATCH;
@@ -307,9 +297,8 @@ class _SurroundWithTryCatch extends _SurroundWith {
 /// A correction processor that can make one of the possible change computed by
 /// the [SurroundWith] producer.
 class _SurroundWithTryFinally extends _SurroundWith {
-  _SurroundWithTryFinally(SourceRange statementsRange, String indentOld,
-      String indentNew, String indentedCode)
-      : super(statementsRange, indentOld, indentNew, indentedCode);
+  _SurroundWithTryFinally(super.statementsRange, super.indentOld,
+      super.indentNew, super.indentedCode);
 
   @override
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_TRY_FINALLY;
@@ -344,9 +333,8 @@ class _SurroundWithTryFinally extends _SurroundWith {
 /// A correction processor that can make one of the possible change computed by
 /// the [SurroundWith] producer.
 class _SurroundWithWhile extends _SurroundWith {
-  _SurroundWithWhile(SourceRange statementsRange, String indentOld,
-      String indentNew, String indentedCode)
-      : super(statementsRange, indentOld, indentNew, indentedCode);
+  _SurroundWithWhile(super.statementsRange, super.indentOld, super.indentNew,
+      super.indentedCode);
 
   @override
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_WHILE;

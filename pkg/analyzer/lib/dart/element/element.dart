@@ -408,11 +408,6 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   /// compilation unit.
   List<FunctionElement> get functions;
 
-  /// Return `true` if this compilation unit defines a top-level function named
-  /// `loadLibrary`.
-  @Deprecated('Not useful for clients')
-  bool get hasLoadLibraryFunction;
-
   /// Return the [LineInfo] for the [source].
   LineInfo get lineInfo;
 
@@ -430,11 +425,6 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   /// Return a list containing all of the type aliases contained in this
   /// compilation unit.
   List<TypeAliasElement> get typeAliases;
-
-  /// Return a list containing all of the classes contained in this compilation
-  /// unit.
-  @Deprecated('Use classes instead')
-  List<ClassElement> get types;
 
   /// Return the enum defined in this compilation unit that has the given
   /// [name], or `null` if this compilation unit does not define an enum with
@@ -520,13 +510,6 @@ abstract class ConstructorElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class Element implements AnalysisTarget {
-  /// A comparator that can be used to sort elements by their name offset.
-  /// Elements with a smaller offset will be sorted to be before elements with a
-  /// larger name offset.
-  static final Comparator<Element> SORT_BY_OFFSET =
-      (Element firstElement, Element secondElement) =>
-          firstElement.nameOffset - secondElement.nameOffset;
-
   /// Return the analysis context in which this element is defined.
   AnalysisContext get context;
 
@@ -1296,12 +1279,6 @@ abstract class ImportElement implements Element, UriReferencedElement {
   /// Return the prefix that was specified as part of the import directive, or
   /// `null` if there was no prefix specified.
   PrefixElement? get prefix;
-
-  /// Return the offset of the prefix of this import in the file that contains
-  /// this import directive, or `-1` if this import is synthetic, does not have
-  /// a prefix, or otherwise does not have an offset.
-  @Deprecated('Use prefix.nameOffset instead')
-  int get prefixOffset;
 }
 
 /// A label associated with a statement.
@@ -1347,16 +1324,6 @@ abstract class LibraryElement implements _ExistingElement {
   /// package, enabled experiments, and the presence of a `// @dart` language
   /// version override comment at the top of the file.
   FeatureSet get featureSet;
-
-  /// Return `true` if the defining compilation unit of this library contains at
-  /// least one import directive whose URI uses the "dart-ext" scheme.
-  @Deprecated('Support for dart-ext is replaced with FFI')
-  bool get hasExtUri;
-
-  /// Return `true` if this library defines a top-level function named
-  /// `loadLibrary`.
-  @Deprecated('Not useful for clients')
-  bool get hasLoadLibraryFunction;
 
   /// Return an identifier that uniquely identifies this element among the
   /// children of this element's parent.
@@ -1556,10 +1523,12 @@ abstract class ParameterElement
   /// parameters are always positional, unless the experiment 'non-nullable' is
   /// enabled, in which case named parameters can also be required.
   ///
-  /// Note: regardless of the state of the 'non-nullable' experiment, this will
-  /// return `false` for a named parameter that is annotated with the
-  /// `@required` annotation.
-  // TODO(brianwilkerson) Rename this to `isRequired`.
+  /// Note: regardless of the state of the 'non-nullable' experiment, the
+  /// presence or absence of the `@required` annotation does not change the
+  /// meaning of this getter. The parameter `{@required int x}` will return
+  /// `false` and the parameter `{@required required int x}` will return
+  /// `true`
+  @Deprecated('Use isRequired instead')
   bool get isNotOptional;
 
   /// Return `true` if this parameter is an optional parameter. Optional
@@ -1582,6 +1551,15 @@ abstract class ParameterElement
   /// Return `true` if this parameter is a positional parameter. Positional
   /// parameters can either be required or optional.
   bool get isPositional;
+
+  /// Return `true` if this parameter is either a required positional
+  /// parameter, or a named parameter with the `required` keyword.
+  ///
+  /// Note: the presence or absence of the `@required` annotation does not
+  /// change the meaning of this getter. The parameter `{@required int x}`
+  /// will return `false` and the parameter `{@required required int x}`
+  /// will return `true`.
+  bool get isRequired;
 
   /// Return `true` if this parameter is both a required and named parameter.
   /// Named parameters that are annotated with the `@required` annotation are

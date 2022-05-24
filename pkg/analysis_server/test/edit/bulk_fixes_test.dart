@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -21,7 +19,7 @@ void main() {
 }
 
 @reflectiveTest
-class BulkFixesTest extends AbstractAnalysisTest {
+class BulkFixesTest extends PubPackageAnalysisServerTest {
   void assertContains(List<BulkFix> details,
       {required String path, required String code, required int count}) {
     for (var detail in details) {
@@ -37,11 +35,12 @@ class BulkFixesTest extends AbstractAnalysisTest {
     fail('No match found for: $path:$code->$count in $details');
   }
 
-  Future<void> assertEditEquals(String expectedSource) async {
+  Future<void> assertEditEquals(File file, String expectedSource) async {
     await waitForTasksFinished();
     var edits = await _getBulkEdits();
     expect(edits, hasLength(1));
-    var editedSource = SourceEdit.applySequence(testCode, edits[0].edits);
+    var editedSource =
+        SourceEdit.applySequence(file.readAsStringSync(), edits[0].edits);
     expect(editedSource, expectedSource);
   }
 
@@ -55,12 +54,11 @@ class BulkFixesTest extends AbstractAnalysisTest {
   Future<void> setUp() async {
     super.setUp();
     registerLintRules();
-    handler = EditDomainHandler(server);
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_annotateOverrides_excludedFile() async {
-    newAnalysisOptionsYamlFile2(projectPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   exclude:
     - test/**
@@ -69,7 +67,7 @@ linter:
     - annotate_overrides
 ''');
 
-    newFile2('$projectPath/test/test.dart', '''
+    newFile('$testPackageRootPath/test/test.dart', '''
 class A {
   void f() {}
 }
@@ -83,15 +81,15 @@ class B extends A {
 
   Future<void> test_annotateOverrides_excludedSubProject() async {
     // Root project.
-    newAnalysisOptionsYamlFile2(projectPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   exclude:
     - test/data/**
 ''');
 
     // Sub-project.
-    var subprojectRoot = '$projectPath/test/data/subproject';
-    newAnalysisOptionsYamlFile2(subprojectRoot, '''
+    var subprojectRoot = '$testPackageRootPath/test/data/subproject';
+    newAnalysisOptionsYamlFile(subprojectRoot, '''
 linter:
   rules:
     - annotate_overrides
@@ -101,7 +99,7 @@ linter:
 name: subproject
 ''');
 
-    newFile2('$subprojectRoot/test.dart', '''
+    newFile('$subprojectRoot/test.dart', '''
 class A {
   void f() {}
 }
@@ -114,8 +112,8 @@ class B extends A {
   }
 
   Future<void> test_annotateOverrides_subProject() async {
-    var subprojectRoot = '$projectPath/test/data/subproject';
-    newAnalysisOptionsYamlFile2(subprojectRoot, '''
+    var subprojectRoot = '$testPackageRootPath/test/data/subproject';
+    newAnalysisOptionsYamlFile(subprojectRoot, '''
 linter:
   rules:
     - annotate_overrides
@@ -125,8 +123,7 @@ linter:
 name: subproject
 ''');
 
-    testFile = '$subprojectRoot/test.dart';
-    addTestFile('''
+    var file = newFile('$subprojectRoot/test.dart', '''
 class A {
   void f() {}
 }
@@ -135,7 +132,9 @@ class B extends A {
 }
 ''');
 
-    await assertEditEquals('''
+    await waitForTasksFinished();
+
+    await assertEditEquals(file, '''
 class A {
   void f() {}
 }
@@ -147,15 +146,14 @@ class B extends A {
   }
 
   Future<void> test_details() async {
-    newAnalysisOptionsYamlFile2(projectPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - annotate_overrides
     - unnecessary_new
 ''');
 
-    var fileA = convertPath('$projectPath/a.dart');
-    newFile2(fileA, '''
+    var a = newFile('$testPackageLibPath/a.dart', '''
 class A {
   A f() => new A();
 }
@@ -173,15 +171,15 @@ A f() => new A();
     var details = await _getBulkFixDetails();
     expect(details, hasLength(2));
     assertContains(details,
-        path: fileA, code: LintNames.unnecessary_new, count: 2);
+        path: a.path, code: LintNames.unnecessary_new, count: 2);
     assertContains(details,
-        path: fileA, code: LintNames.annotate_overrides, count: 1);
+        path: a.path, code: LintNames.annotate_overrides, count: 1);
     assertContains(details,
-        path: testFile, code: LintNames.unnecessary_new, count: 1);
+        path: testFile.path, code: LintNames.unnecessary_new, count: 1);
   }
 
   Future<void> test_unnecessaryNew() async {
-    newAnalysisOptionsYamlFile2(projectPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - unnecessary_new
@@ -191,21 +189,17 @@ class A {}
 A f() => new A();
 ''');
 
-    await assertEditEquals('''
+    await assertEditEquals(testFile, '''
 class A {}
 A f() => A();
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44080')
   Future<void> test_unnecessaryNew_collectionLiteral_overlap() async {
     // The test case currently drops the 'new' but does not convert the code to
     // use a set literal. The code is no longer mangled, but we need to run the
     // BulkFixProcessor iteratively to solve the second case.
-    if (Platform.isWindows) {
-      fail('Should not be passing on Windows, but it does');
-    }
-    newAnalysisOptionsYamlFile2(projectPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - prefer_collection_literals
@@ -219,7 +213,7 @@ class A {
 }
 ''');
 
-    await assertEditEquals('''
+    await assertEditEquals(testFile, '''
 class A {
   Map<String, Object> _map = {};
   Set<String> _set = <String>{};
@@ -228,7 +222,7 @@ class A {
   }
 
   Future<void> test_unnecessaryNew_ignoredInOptions() async {
-    newAnalysisOptionsYamlFile2(projectPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   errors:
     unnecessary_new: ignore
@@ -244,7 +238,7 @@ A f() => new A();
   }
 
   Future<void> test_unnecessaryNew_ignoredInSource() async {
-    newAnalysisOptionsYamlFile2(projectPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - unnecessary_new
@@ -268,8 +262,8 @@ A f() => new A();
   }
 
   Future<EditBulkFixesResult> _getBulkFixes() async {
-    var request = EditBulkFixesParams([projectPath]).toRequest('0');
-    var response = await waitResponse(request);
+    var request = EditBulkFixesParams([workspaceRoot.path]).toRequest('0');
+    var response = await handleSuccessfulRequest(request);
     return EditBulkFixesResult.fromResponse(response);
   }
 }

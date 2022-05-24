@@ -31,7 +31,7 @@ class ConvertConditionalExpressionToIfElement extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var conditional = node.thisOrAncestorOfType<ConditionalExpression>();
     if (conditional == null) {
-      return null;
+      return;
     }
 
     AstNode nodeToReplace = conditional;
@@ -58,8 +58,4 @@ class ConvertConditionalExpressionToIfElement extends CorrectionProducer {
       });
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertConditionalExpressionToIfElement newInstance() =>
-      ConvertConditionalExpressionToIfElement();
 }

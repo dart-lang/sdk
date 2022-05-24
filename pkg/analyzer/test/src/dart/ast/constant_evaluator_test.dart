@@ -339,7 +339,7 @@ class ConstantEvaluatorTest extends ParseBase {
   Object? _getConstantValue(String expressionCode) {
     var path = convertPath('/test/lib/test.dart');
 
-    newFile2(path, '''
+    newFile(path, '''
 void f() {
   ($expressionCode); // ref
 }

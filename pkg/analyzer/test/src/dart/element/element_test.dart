@@ -488,7 +488,7 @@ class CompilationUnitElementImplTest {
 @reflectiveTest
 class ElementAnnotationImplTest extends PubPackageResolutionTest {
   test_computeConstantValue() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   final String f;
   const A(this.f);
@@ -605,16 +605,6 @@ class ElementImplTest extends AbstractTypeSystemTest {
   void test_isPublic_true() {
     Element element = ElementFactory.classElement2("C");
     expect(element.isPublic, isTrue);
-  }
-
-  void test_SORT_BY_OFFSET() {
-    ClassElementImpl classElementA = class_(name: 'A');
-    classElementA.nameOffset = 1;
-    ClassElementImpl classElementB = ElementFactory.classElement2("B");
-    classElementB.nameOffset = 2;
-    expect(Element.SORT_BY_OFFSET(classElementA, classElementA), 0);
-    expect(Element.SORT_BY_OFFSET(classElementA, classElementB) < 0, isTrue);
-    expect(Element.SORT_BY_OFFSET(classElementB, classElementA) > 0, isTrue);
   }
 }
 
@@ -1366,7 +1356,7 @@ class LibraryElementImplTest {
 @reflectiveTest
 class TopLevelVariableElementImplTest extends PubPackageResolutionTest {
   test_computeConstantValue() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const int C = 42;
 ''');
     await resolveTestCode(r'''

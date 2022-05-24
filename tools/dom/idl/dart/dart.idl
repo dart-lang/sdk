@@ -138,6 +138,8 @@ interface RTCPeerConnection {
   [DartSuppress] Promise<void> getStats(RTCStatsCallback successCallback, optional MediaStreamTrack? selector);
   [DartSuppress] Promise<void> setLocalDescription(RTCSessionDescriptionInit description, VoidCallback successCallback, [Default=Undefined] optional RTCPeerConnectionErrorCallback failureCallback);
   [DartSuppress] Promise<void> setRemoteDescription(RTCSessionDescriptionInit description, VoidCallback successCallback, [Default=Undefined] optional RTCPeerConnectionErrorCallback failureCallback);
+  [Custom] readonly attribute DOMString connectionState;
+  [Custom] attribute EventHandler onconnectionstatechange;
 };
 
 // See implementation in tools/dom/templates for canvas and offscreenCanvas.

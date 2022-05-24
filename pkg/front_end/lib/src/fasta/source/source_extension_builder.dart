@@ -106,7 +106,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
         Builder? objectGetter = objectClassBuilder.lookupLocalMember(name);
         Builder? objectSetter =
             objectClassBuilder.lookupLocalMember(name, setter: true);
-        if (objectGetter != null || objectSetter != null) {
+        if (objectGetter != null && !objectGetter.isStatic ||
+            objectSetter != null && !objectSetter.isStatic) {
           addProblem(
               templateExtensionMemberConflictsWithObjectMember
                   .withArguments(name),

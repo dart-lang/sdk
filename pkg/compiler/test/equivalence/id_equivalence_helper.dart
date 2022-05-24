@@ -9,7 +9,7 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:compiler/src/common.dart';
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
@@ -163,7 +163,7 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
   }
   if (printCode) {
     print('--code------------------------------------------------------------');
-    print(outputCollector.getOutput('', OutputType.js));
+    print(outputCollector.getOutput('', api.OutputType.js));
     print('------------------------------------------------------------------');
   }
   Compiler compiler = result.compiler;
@@ -419,7 +419,8 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
 
   dataComputer.setup();
 
-  Future<Map<String, TestResult<T>>> checkTest(TestData testData,
+  Future<Map<String, TestResult<T>>> checkTest(
+      MarkerOptions markerOptions, TestData testData,
       {bool testAfterFailures,
       bool verbose,
       bool succinct,
@@ -454,7 +455,11 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
         }
         print('--from (${testConfiguration.name})-------------');
         results[testConfiguration.marker] = await runTestForConfiguration(
-            testConfiguration, dataComputer, testData, testOptions,
+            markerOptions,
+            testConfiguration,
+            dataComputer,
+            testData,
+            testOptions,
             filterActualData: filterActualData,
             verbose: verbose,
             succinct: succinct,
@@ -483,8 +488,12 @@ Uri createUriForFileName(String fileName) {
   return Uri.parse('memory:sdk/tests/web/native/$fileName');
 }
 
-Future<TestResult<T>> runTestForConfiguration<T>(TestConfig testConfiguration,
-    DataComputer<T> dataComputer, TestData testData, List<String> options,
+Future<TestResult<T>> runTestForConfiguration<T>(
+    MarkerOptions markerOptions,
+    TestConfig testConfiguration,
+    DataComputer<T> dataComputer,
+    TestData testData,
+    List<String> options,
     {bool filterActualData(IdValue idValue, ActualData<T> actualData),
     bool verbose: false,
     bool succinct: false,
@@ -503,8 +512,14 @@ Future<TestResult<T>> runTestForConfiguration<T>(TestConfig testConfiguration,
       forUserLibrariesOnly: forUserLibrariesOnly,
       globalIds: annotations.globalData.keys,
       verifyCompiler: verifyCompiler);
-  return await checkCode(testConfiguration.name, testData.testFileUri,
-      testData.code, annotations, compiledData, dataComputer.dataValidator,
+  return await checkCode(
+      markerOptions,
+      testConfiguration.marker,
+      testConfiguration.name,
+      testData,
+      annotations,
+      compiledData,
+      dataComputer.dataValidator,
       filterActualData: filterActualData,
       fatalErrors: !testAfterFailures,
       onFailure: Expect.fail,

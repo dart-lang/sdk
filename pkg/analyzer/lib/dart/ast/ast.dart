@@ -2070,6 +2070,9 @@ abstract class FormalParameter implements AstNode {
   /// Return `true` if this parameter was declared with the 'const' modifier.
   bool get isConst;
 
+  /// Indicates whether the parameter has an explicit type.
+  bool get isExplicitlyTyped;
+
   /// Return `true` if this parameter was declared with the 'final' modifier.
   ///
   /// Parameters that are declared with the 'const' modifier will return

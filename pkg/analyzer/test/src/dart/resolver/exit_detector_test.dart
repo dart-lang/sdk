@@ -114,7 +114,7 @@ class ExitDetectorForCodeAsUiTest extends ParseBase {
   void _assertHasReturn(String expressionCode, bool expected) {
     var path = convertPath('/test/lib/test.dart');
 
-    newFile2(path, '''
+    newFile(path, '''
 void f() { // ref
   $expressionCode;
 }
@@ -903,7 +903,7 @@ on String catch (e, s) { return 1; }
   void _assertHasReturn(String statementCode, bool expected) {
     var path = convertPath('/test/lib/test.dart');
 
-    newFile2(path, '''
+    newFile(path, '''
 void f() { // ref
   $statementCode
 }

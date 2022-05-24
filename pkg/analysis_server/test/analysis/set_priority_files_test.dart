@@ -41,7 +41,7 @@ class SetPriorityFilesTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_fileInAnalysisRootAddedLater() async {
-    var file = newFile2('/other/file.dart', '');
+    var file = newFile('/other/file.dart', '');
     await _setPriorityFile(file);
     await setRoots(included: [file.parent.path], excluded: []);
     _verifyPriorityFiles(file);
@@ -61,18 +61,18 @@ class SetPriorityFilesTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_fileNotInAnalysisRoot() async {
-    var file = newFile2('/other/file.dart', '');
+    var file = newFile('/other/file.dart', '');
     await _setPriorityFile(file);
     _verifyPriorityFiles(file);
   }
 
   Future<void> test_ignoredInAnalysisOptions() async {
-    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
 analyzer:
   exclude:
     - 'samples/**'
 ''');
-    var file = newFile2('$testPackageRootPath/samples/sample.dart', '');
+    var file = newFile('$testPackageRootPath/samples/sample.dart', '');
     // attempt to set priority file
     await _setPriorityFile(file);
     _verifyPriorityFiles(file);
@@ -81,11 +81,11 @@ analyzer:
   Future<void> test_ignoredInAnalysisOptions_inChildContext() async {
     newPackageConfigJsonFile(testPackageRootPath, '');
     newPackageConfigJsonFile('$testPackageRootPath/child', '');
-    var sampleFile = newFile2(
+    var sampleFile = newFile(
       '$testPackageRootPath/child/samples/sample.dart',
       '',
     );
-    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -98,11 +98,11 @@ analyzer:
   Future<void> test_ignoredInAnalysisOptions_inRootContext() async {
     newPackageConfigJsonFile(testPackageRootPath, '');
     newPackageConfigJsonFile('$testPackageRootPath/child', '');
-    var sampleFile = newFile2(
+    var sampleFile = newFile(
       '$testPackageRootPath/child/samples/sample.dart',
       '',
     );
-    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
 analyzer:
   exclude:
     - 'child/samples/**'

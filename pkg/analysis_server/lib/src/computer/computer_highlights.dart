@@ -714,6 +714,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    super.visitDeclaredIdentifier(node);
+  }
+
+  @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     computer._addRegion_token(
         node.requiredKeyword, HighlightRegionType.KEYWORD);
@@ -1014,7 +1020,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     if (type != null) {
       if (type.isDynamic && node.name.name == 'dynamic') {
         computer._addRegion_node(node, HighlightRegionType.TYPE_NAME_DYNAMIC);
-        return null;
+        return;
       }
     }
     super.visitNamedType(node);

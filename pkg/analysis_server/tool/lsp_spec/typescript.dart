@@ -27,33 +27,33 @@ String cleanComment(String comment) {
     comment = comment.substring(2);
   }
 
-  final _commentLinePrefixes = RegExp(r'\n\s*\* ?');
-  final _nonConcurrentNewlines = RegExp(r'\n(?![\n\s\-*])');
-  final _newLinesThatRequireReinserting = RegExp(r'\n (\w)');
+  final commentLinePrefixes = RegExp(r'\n\s*\* ?');
+  final nonConcurrentNewlines = RegExp(r'\n(?![\n\s\-*])');
+  final newLinesThatRequireReinserting = RegExp(r'\n (\w)');
   // Remove any Windows newlines from the source.
   comment = comment.replaceAll('\r', '');
   // Remove the * prefixes.
-  comment = comment.replaceAll(_commentLinePrefixes, '\n');
+  comment = comment.replaceAll(commentLinePrefixes, '\n');
   // Remove and newlines that look like wrapped text.
-  comment = comment.replaceAll(_nonConcurrentNewlines, ' ');
+  comment = comment.replaceAll(nonConcurrentNewlines, ' ');
   // The above will remove one of the newlines when there are two, so we need
   // to re-insert newlines for any block that starts immediately after a newline.
   comment = comment.replaceAllMapped(
-      _newLinesThatRequireReinserting, (m) => '\n\n${m.group(1)}');
+      newLinesThatRequireReinserting, (m) => '\n\n${m.group(1)}');
   return comment.trim();
 }
 
 /// Improves comments in generated code to support where types may have been
 /// altered (for ex. with [getImprovedType] above).
 String? getImprovedComment(String interfaceName, String fieldName) {
-  const _improvedComments = <String, Map<String, String>>{
+  const improvedComments = <String, Map<String, String>>{
     'ResponseError': {
       'data':
           '// A string that contains additional information about the error. Can be omitted.',
     },
   };
 
-  final interface = _improvedComments[interfaceName];
+  final interface = improvedComments[interfaceName];
 
   return interface != null ? interface[fieldName] : null;
 }
@@ -68,7 +68,7 @@ String? getImprovedComment(String interfaceName, String fieldName) {
 ///   and we know we always use a specific type. This avoids wrapping a lot
 ///   of code in `EitherX<Y,Z>.tX()` and simplifies the testing of them.
 String? getImprovedType(String interfaceName, String? fieldName) {
-  const _improvedTypeMappings = <String, Map<String, String>>{
+  const improvedTypeMappings = <String, Map<String, String>>{
     'Diagnostic': {
       'severity': 'DiagnosticSeverity',
       'code': 'String',
@@ -129,7 +129,7 @@ String? getImprovedType(String interfaceName, String? fieldName) {
     }
   };
 
-  final interface = _improvedTypeMappings[interfaceName];
+  final interface = improvedTypeMappings[interfaceName];
 
   return interface != null ? interface[fieldName] : null;
 }

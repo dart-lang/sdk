@@ -73,7 +73,7 @@ class A {}
   }
 
   Future<void> test_beforeAnalysis_excludeYamlFiles() async {
-    var yamlFile = newFile2('$testPackageRootPath/sample.yaml', '');
+    var yamlFile = newFile('$testPackageRootPath/sample.yaml', '');
     addTestFile('''
 class A {}
 ''');
@@ -114,7 +114,7 @@ class A {}
     // Making a change that *does* affect the set of reachable files should
     // trigger the notification to be re-sent.
     addTestFile('class A {}');
-    var foo = newFile2('/foo.dart', 'library foo;');
+    var foo = newFile('/foo.dart', 'library foo;');
     await prepareAnalyzedFiles();
     expect(analyzedFilesReceived, isTrue);
 

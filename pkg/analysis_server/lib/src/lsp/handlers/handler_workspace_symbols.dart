@@ -5,13 +5,12 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/src/dart/analysis/search.dart' as search;
 
 class WorkspaceSymbolHandler
     extends MessageHandler<WorkspaceSymbolParams, List<SymbolInformation>> {
-  WorkspaceSymbolHandler(LspAnalysisServer server) : super(server);
+  WorkspaceSymbolHandler(super.server);
   @override
   Method get handlesMessage => Method.workspace_symbol;
 
@@ -54,8 +53,16 @@ class WorkspaceSymbolHandler
     var workspaceSymbols = search.WorkspaceSymbols();
     var analysisDrivers = server.driverMap.values.toList();
     for (var analysisDriver in analysisDrivers) {
-      await analysisDriver.search
-          .declarations(workspaceSymbols, regex, remainingResults);
+      await analysisDriver.search.declarations(
+        workspaceSymbols,
+        regex,
+        remainingResults,
+        cancellationToken: token,
+      );
+
+      if (workspaceSymbols.cancelled) {
+        return cancelled();
+      }
     }
 
     // Map the results to SymbolInformations and flatten the list of lists.

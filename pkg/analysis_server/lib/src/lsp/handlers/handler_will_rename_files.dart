@@ -5,13 +5,12 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 
 class WillRenameFilesHandler
     extends MessageHandler<RenameFilesParams, WorkspaceEdit?> {
-  WillRenameFilesHandler(LspAnalysisServer server) : super(server);
+  WillRenameFilesHandler(super.server);
   @override
   Method get handlesMessage => Method.workspace_willRenameFiles;
 

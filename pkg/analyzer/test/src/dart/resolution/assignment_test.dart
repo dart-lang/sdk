@@ -636,8 +636,8 @@ void f(num x, int y) {
   }
 
   test_notLValue_typeLiteral_class_ambiguous_simple() async {
-    newFile2('$testPackageLibPath/a.dart', 'class C {}');
-    newFile2('$testPackageLibPath/b.dart', 'class C {}');
+    newFile('$testPackageLibPath/a.dart', 'class C {}');
+    newFile('$testPackageLibPath/b.dart', 'class C {}');
     await assertErrorsInCode('''
 import 'a.dart';
 import 'b.dart';
@@ -902,7 +902,7 @@ void f() {
   }
 
   test_prefixedIdentifier_topLevel_compound() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 int get x => 0;
 set x(num _) {}
 ''');

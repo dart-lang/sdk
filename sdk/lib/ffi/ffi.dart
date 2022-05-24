@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file
 
-/**
- * Foreign Function Interface for interoperability with the C programming language.
- *
- * For further details, please see: https://dart.dev/server/c-interop
- *
- * {@category VM}
- */
+/// Foreign Function Interface for interoperability with the C programming language.
+///
+/// For further details, please see: https://dart.dev/server/c-interop.
+///
+/// {@category VM}
+@Since('2.6')
 library dart.ffi;
 
 import 'dart:_internal' show Since;
@@ -93,6 +92,7 @@ class Pointer<T extends NativeType> extends NativeType {
 }
 
 /// A fixed-sized array of [T]s.
+@Since('2.13')
 class Array<T extends NativeType> extends NativeType {
   /// Const constructor to specify [Array] dimensions in [Struct]s.
   ///
@@ -523,6 +523,7 @@ extension DoublePointer on Pointer<Double> {
 }
 
 /// Extension on [Pointer] specialized for the type argument [Bool].
+@Since('2.15')
 extension BoolPointer on Pointer<Bool> {
   /// The bool at [address].
   external bool get value;
@@ -537,6 +538,7 @@ extension BoolPointer on Pointer<Bool> {
 }
 
 /// Bounds checking indexing methods on [Array]s of [Int8].
+@Since('2.13')
 extension Int8Array on Array<Int8> {
   external int operator [](int index);
 
@@ -544,6 +546,7 @@ extension Int8Array on Array<Int8> {
 }
 
 /// Bounds checking indexing methods on [Array]s of [Int16].
+@Since('2.13')
 extension Int16Array on Array<Int16> {
   external int operator [](int index);
 
@@ -551,6 +554,7 @@ extension Int16Array on Array<Int16> {
 }
 
 /// Bounds checking indexing methods on [Array]s of [Int32].
+@Since('2.13')
 extension Int32Array on Array<Int32> {
   external int operator [](int index);
 
@@ -558,6 +562,7 @@ extension Int32Array on Array<Int32> {
 }
 
 /// Bounds checking indexing methods on [Array]s of [Int64].
+@Since('2.13')
 extension Int64Array on Array<Int64> {
   external int operator [](int index);
 
@@ -565,6 +570,7 @@ extension Int64Array on Array<Int64> {
 }
 
 /// Bounds checking indexing methods on [Array]s of [Uint8].
+@Since('2.13')
 extension Uint8Array on Array<Uint8> {
   external int operator [](int index);
 
@@ -572,6 +578,7 @@ extension Uint8Array on Array<Uint8> {
 }
 
 /// Bounds checking indexing methods on [Array]s of [Uint16].
+@Since('2.13')
 extension Uint16Array on Array<Uint16> {
   external int operator [](int index);
 
@@ -579,6 +586,7 @@ extension Uint16Array on Array<Uint16> {
 }
 
 /// Bounds checking indexing methods on [Array]s of [Uint32].
+@Since('2.13')
 extension Uint32Array on Array<Uint32> {
   external int operator [](int index);
 
@@ -586,6 +594,7 @@ extension Uint32Array on Array<Uint32> {
 }
 
 /// Bounds checking indexing methods on [Array]s of [Uint64].
+@Since('2.13')
 extension Uint64Array on Array<Uint64> {
   external int operator [](int index);
 
@@ -593,6 +602,7 @@ extension Uint64Array on Array<Uint64> {
 }
 
 /// Bounds checking indexing methods on [Array]s of [Float].
+@Since('2.13')
 extension FloatArray on Array<Float> {
   external double operator [](int index);
 
@@ -600,6 +610,7 @@ extension FloatArray on Array<Float> {
 }
 
 /// Bounds checking indexing methods on [Array]s of [Double].
+@Since('2.13')
 extension DoubleArray on Array<Double> {
   external double operator [](int index);
 
@@ -607,6 +618,7 @@ extension DoubleArray on Array<Double> {
 }
 
 /// Bounds checking indexing methods on [Array]s of [Bool].
+@Since('2.15')
 extension BoolArray on Array<Bool> {
   external bool operator [](int index);
 
@@ -642,7 +654,7 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
   /// Store a Dart value into this location offset by [index].
   ///
   /// A [Pointer] is unboxed before being stored (as if by `.address`), and the
-  /// pointer is boxed (as if by `Pointer.fromAddress`) when loaded.
+  /// pointer is boxed (as if by [Pointer.fromAddress]) when loaded.
   ///
   /// On 32-bit platforms the [address] must be 4-byte aligned, and on 64-bit
   /// platforms the [address] must be 8-byte aligned.
@@ -650,6 +662,7 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
 }
 
 /// Extension on [Pointer] specialized for the type argument [Struct].
+@Since('2.12')
 extension StructPointer<T extends Struct> on Pointer<T> {
   /// A Dart view of the struct referenced by this pointer.
   ///
@@ -685,6 +698,7 @@ extension StructPointer<T extends Struct> on Pointer<T> {
 }
 
 /// Extension on [Pointer] specialized for the type argument [Union].
+@Since('2.14')
 extension UnionPointer<T extends Union> on Pointer<T> {
   /// A Dart view of the union referenced by this pointer.
   ///
@@ -721,6 +735,7 @@ extension UnionPointer<T extends Union> on Pointer<T> {
 
 /// Extension on [Pointer] specialized for the type argument
 /// [AbiSpecificInteger].
+@Since('2.16')
 extension AbiSpecificIntegerPointer<T extends AbiSpecificInteger>
     on Pointer<T> {
   /// The integer at [address].
@@ -736,6 +751,7 @@ extension AbiSpecificIntegerPointer<T extends AbiSpecificInteger>
 }
 
 /// Bounds checking indexing methods on [Array]s of [Pointer].
+@Since('2.13')
 extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
   external Pointer<T> operator [](int index);
 
@@ -743,6 +759,7 @@ extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
 }
 
 /// Bounds checking indexing methods on [Array]s of [Struct].
+@Since('2.13')
 extension StructArray<T extends Struct> on Array<T> {
   /// This extension method must be invoked on a receiver of type `Pointer<T>`
   /// where `T` is a compile-time constant type.
@@ -750,6 +767,7 @@ extension StructArray<T extends Struct> on Array<T> {
 }
 
 /// Bounds checking indexing methods on [Array]s of [Union].
+@Since('2.14')
 extension UnionArray<T extends Union> on Array<T> {
   /// This extension method must be invoked on a receiver of type `Pointer<T>`
   /// where `T` is a compile-time constant type.
@@ -757,6 +775,7 @@ extension UnionArray<T extends Union> on Array<T> {
 }
 
 /// Bounds checking indexing methods on [Array]s of [Array].
+@Since('2.13')
 extension ArrayArray<T extends NativeType> on Array<Array<T>> {
   external Array<T> operator [](int index);
 
@@ -764,6 +783,7 @@ extension ArrayArray<T extends NativeType> on Array<Array<T>> {
 }
 
 /// Bounds checking indexing methods on [Array]s of [AbiSpecificInteger].
+@Since('2.16')
 extension AbiSpecificIntegerArray on Array<AbiSpecificInteger> {
   external int operator [](int index);
 
@@ -771,31 +791,40 @@ extension AbiSpecificIntegerArray on Array<AbiSpecificInteger> {
 }
 
 /// Extension to retrieve the native `Dart_Port` from a [SendPort].
+@Since('2.7')
 extension NativePort on SendPort {
   /// The native port of this [SendPort].
   ///
   /// The returned native port can for example be used by C code to post
   /// messages to the connected [ReceivePort] via `Dart_PostCObject()` - see
   /// `dart_native_api.h`.
+  ///
+  /// Only the send ports from the platform classes [ReceivePort] and
+  /// [RawReceivePort] are supported. User-defined implementations of
+  /// [SendPort] are not supported.
   external int get nativePort;
 }
 
 /// Opaque, not exposing it's members.
+@Since('2.8')
 class Dart_CObject extends Opaque {}
 
 typedef Dart_NativeMessageHandler = Void Function(Int64, Pointer<Dart_CObject>);
 
 /// Utilities for accessing the Dart VM API from Dart code or
 /// from C code via `dart_api_dl.h`.
+@Since('2.8')
 abstract class NativeApi {
   /// On breaking changes the major version is increased.
   ///
   /// The versioning covers the API surface in `dart_api_dl.h`.
+  @Since('2.9')
   external static int get majorVersion;
 
   /// On backwards compatible changes the minor version is increased.
   ///
   /// The versioning covers the API surface in `dart_api_dl.h`.
+  @Since('2.9')
   external static int get minorVersion;
 
   /// A function pointer to
@@ -827,6 +856,7 @@ abstract class NativeApi {
 
   /// Pass this to `Dart_InitializeApiDL` in your native code to enable using the
   /// symbols in `dart_api_dl.h`.
+  @Since('2.9')
   external static Pointer<Void> get initializeApiDLData;
 }
 
@@ -843,6 +873,7 @@ abstract class NativeApi {
 /// See `Dart_SetFfiNativeResolver` in `dart_api.h`
 ///
 /// NOTE: This is an experimental feature and may change in the future.
+@Since('2.14')
 class FfiNative<T> {
   final String nativeName;
   final bool isLeaf;

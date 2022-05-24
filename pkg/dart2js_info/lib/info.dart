@@ -26,8 +26,14 @@ abstract class Info {
   /// Info of the enclosing element.
   Info parent;
 
+  /// At which stage of the compiler this component was treeshaken.
+  TreeShakenStatus treeShakenStatus;
+
   T accept<T>(InfoVisitor<T> visitor);
 }
+
+/// Indicates at what stage of compilation the [Info] element was treeshaken.
+enum TreeShakenStatus { Dead, Live }
 
 /// Common information used for most kind of elements.
 // TODO(sigmund): add more:
@@ -42,6 +48,8 @@ abstract class BasicInfo implements Info {
   int size;
   @override
   Info parent;
+  @override
+  TreeShakenStatus treeShakenStatus = TreeShakenStatus.Dead;
 
   @override
   String name;
@@ -124,7 +132,7 @@ class AllInfo {
   /// previous will continue to work after the change. This is typically
   /// increased when adding new entries to the file format.
   // Note: the dump-info.viewer app was written using a json parser version 3.2.
-  final int minorVersion = 0;
+  final int minorVersion = 1;
 
   AllInfo();
 
@@ -459,12 +467,17 @@ class FunctionModifiers {
   final bool isConst;
   final bool isFactory;
   final bool isExternal;
+  final bool isGetter;
+  final bool isSetter;
 
-  FunctionModifiers(
-      {this.isStatic = false,
-      this.isConst = false,
-      this.isFactory = false,
-      this.isExternal = false});
+  FunctionModifiers({
+    this.isStatic = false,
+    this.isConst = false,
+    this.isFactory = false,
+    this.isExternal = false,
+    this.isGetter,
+    this.isSetter,
+  });
 }
 
 /// Possible values of the `kind` field in the serialized infos.

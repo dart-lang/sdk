@@ -6,12 +6,10 @@ library entities;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' show AsyncModifier;
 
-import '../common.dart';
-import '../serialization/serialization.dart';
-import '../universe/call_structure.dart' show CallStructure;
+// TODO(48820): Spannable was imported from `../common.dart`.
+import '../diagnostics/spannable.dart' show Spannable;
 import '../util/util.dart';
 import 'names.dart';
-import 'types.dart';
 
 /// Abstract interface for entities.
 ///
@@ -23,7 +21,10 @@ import 'types.dart';
 /// entity in the Dart source code nor in the terminology of the Dart language
 /// and should therefore implement [Entity] directly.
 abstract class Entity implements Spannable {
-  String get name;
+  // Not all entities have names. Imports with no prefix and some local
+  // variables are unnamed. Some entities have a name that is the empty string
+  // (e.g. the default constructor).
+  String? get name;
 }
 
 /// Stripped down super interface for library like entities.
@@ -42,7 +43,7 @@ abstract class LibraryEntity extends Entity {
 ///
 /// The [name] property corresponds to the prefix name, if any.
 class ImportEntity {
-  final String name;
+  final String? name;
 
   /// The canonical URI of the library where this import occurs
   /// (where the import is declared).
@@ -80,7 +81,9 @@ abstract class ClassEntity extends Entity {
 
 abstract class TypeVariableEntity extends Entity {
   /// The class or generic method that declared this type variable.
-  Entity get typeDeclaration;
+  /// Is `null` for some generic functions and closures.
+  // TODO(sra): Figure out how to always have a [typeDeclaration].
+  Entity? get typeDeclaration;
 
   /// The index of this type variable in the type variables of its
   /// [typeDeclaration].
@@ -134,7 +137,7 @@ abstract class MemberEntity extends Entity {
 
   /// The enclosing class if this is a constructor, instance member or
   /// static member of a class.
-  ClassEntity get enclosingClass;
+  ClassEntity? get enclosingClass;
 
   /// The enclosing library if this is a library member, otherwise the
   /// enclosing library of the [enclosingClass].
@@ -146,6 +149,18 @@ abstract class MemberEntity extends Entity {
 /// Currently only [FieldElement] but later also kernel based Dart fields
 /// and/or Dart-in-JS field-like properties.
 abstract class FieldEntity extends MemberEntity {}
+
+/// An entity that defines a local entity (memory slot) in generated code.
+///
+/// Parameters, local variables and local functions (can) define local entity
+/// and thus implement [Local] through [LocalElement]. For non-element locals,
+/// like `this` and boxes, specialized [Local] classes are created.
+///
+/// Type variables can introduce locals in factories and constructors
+/// but since one type variable can introduce different locals in different
+/// factories and constructors it is not itself a [Local] but instead
+/// a non-element [Local] is created through a specialized class.
+abstract class Local extends Entity {}
 
 /// Stripped down super interface for function like entities.
 ///
@@ -247,18 +262,6 @@ abstract class ConstructorBodyEntity extends FunctionEntity {
   ConstructorEntity get constructor;
 }
 
-/// An entity that defines a local entity (memory slot) in generated code.
-///
-/// Parameters, local variables and local functions (can) define local entity
-/// and thus implement [Local] through [LocalElement]. For non-element locals,
-/// like `this` and boxes, specialized [Local] classes are created.
-///
-/// Type variables can introduce locals in factories and constructors
-/// but since one type variable can introduce different locals in different
-/// factories and constructors it is not itself a [Local] but instead
-/// a non-element [Local] is created through a specialized class.
-abstract class Local extends Entity {}
-
 /// The structure of function parameters.
 class ParameterStructure {
   /// Tag used for identifying serialized [ParameterStructure] objects in a
@@ -340,44 +343,6 @@ class ParameterStructure {
     );
   }
 
-  factory ParameterStructure.fromType(FunctionType type) {
-    return ParameterStructure(
-        type.parameterTypes.length,
-        type.parameterTypes.length + type.optionalParameterTypes.length,
-        type.namedParameters,
-        type.requiredNamedParameters,
-        type.typeVariables.length);
-  }
-
-  /// Deserializes a [ParameterStructure] object from [source].
-  factory ParameterStructure.readFromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    int requiredPositionalParameters = source.readInt();
-    int positionalParameters = source.readInt();
-    List<String> namedParameters = source.readStrings();
-    Set<String> requiredNamedParameters =
-        source.readStrings(emptyAsNull: true)?.toSet() ?? const <String>{};
-    int typeParameters = source.readInt();
-    source.end(tag);
-    return ParameterStructure(
-        requiredPositionalParameters,
-        positionalParameters,
-        namedParameters,
-        requiredNamedParameters,
-        typeParameters);
-  }
-
-  /// Serializes this [ParameterStructure] to [sink].
-  void writeToDataSink(DataSinkWriter sink) {
-    sink.begin(tag);
-    sink.writeInt(requiredPositionalParameters);
-    sink.writeInt(positionalParameters);
-    sink.writeStrings(namedParameters);
-    sink.writeStrings(requiredNamedParameters);
-    sink.writeInt(typeParameters);
-    sink.end(tag);
-  }
-
   /// The number of optional parameters (positional or named).
   int get optionalParameters =>
       (positionalParameters - requiredPositionalParameters) +
@@ -386,11 +351,8 @@ class ParameterStructure {
   /// The total number of parameters (required or optional).
   int get totalParameters => positionalParameters + namedParameters.length;
 
-  /// Returns the [CallStructure] corresponding to a call site passing all
-  /// parameters both required and optional.
-  CallStructure get callStructure {
-    return CallStructure(totalParameters, namedParameters, typeParameters);
-  }
+  // TODO(48820): Move definition back here:
+  // CallStructure get callStructure;
 
   @override
   int get hashCode => Hashing.listHash(

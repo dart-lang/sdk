@@ -30,7 +30,7 @@ abstract class _B&A&M = a_l::A with m_l::M /*isAnonymousMixin*/  {
 class B extends self2::_B&A&M {
   constructor •({core::double d = 2.71}) → self2::B
     ;
-  static method _#new#tearOff({core::double d}) → self2::B
+  static method _#new#tearOff({has-declared-initializer core::double d}) → self2::B
     return new self2::B::•(d: d);
 }
 
@@ -58,9 +58,9 @@ class A extends core::Object {
     ;
   constructor factoryConstructor({core::double d = #C1, (core::String) → core::String s = #C2}) → a_l::A
     ;
-  static method _#new#tearOff({core::double d, (core::String) → core::String s}) → a_l::A
+  static method _#new#tearOff({has-declared-initializer core::double d, has-declared-initializer (core::String) → core::String s}) → a_l::A
     return new a_l::A::•(d: d, s: s);
-  static method _#factoryConstructor#tearOff({core::double d, (core::String) → core::String s}) → a_l::A
+  static method _#factoryConstructor#tearOff({has-declared-initializer core::double d, has-declared-initializer (core::String) → core::String s}) → a_l::A
     return new a_l::A::factoryConstructor(d: d, s: s);
   method doStringy(core::String i) → core::String
     ;

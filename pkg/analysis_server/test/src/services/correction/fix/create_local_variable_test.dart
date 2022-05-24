@@ -158,13 +158,13 @@ main() {
   }
 
   Future<void> test_withImport() async {
-    newFile2('$workspaceRootPath/pkg/lib/a/a.dart', '''
+    newFile('$workspaceRootPath/pkg/lib/a/a.dart', '''
 class A {}
 ''');
-    newFile2('$workspaceRootPath/pkg/lib/b/b.dart', '''
+    newFile('$workspaceRootPath/pkg/lib/b/b.dart', '''
 class B {}
 ''');
-    newFile2('$workspaceRootPath/pkg/lib/c/c.dart', '''
+    newFile('$workspaceRootPath/pkg/lib/c/c.dart', '''
 import 'package:pkg/a/a.dart';
 import 'package:pkg/b/b.dart';
 

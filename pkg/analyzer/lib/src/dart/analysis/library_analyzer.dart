@@ -440,12 +440,14 @@ class LibraryAnalyzer {
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
     ErrorReporter errorReporter = _getErrorReporter(file);
 
-    CodeChecker checker = CodeChecker(
-      _typeProvider,
-      _typeSystem,
-      errorReporter,
-    );
-    checker.visitCompilationUnit(unit);
+    if (!unit.featureSet.isEnabled(Feature.non_nullable)) {
+      CodeChecker checker = CodeChecker(
+        _typeProvider,
+        _typeSystem,
+        errorReporter,
+      );
+      checker.visitCompilationUnit(unit);
+    }
 
     //
     // Validate the directives.
@@ -739,8 +741,6 @@ class LibraryAnalyzer {
     for (var directive in directivesToResolve) {
       directive.element = _libraryElement;
     }
-
-    // TODO(scheglov) remove DirectiveResolver class
   }
 
   void _resolveFile(FileState file, CompilationUnit unit) {

@@ -3507,25 +3507,23 @@ void FlowGraphCompiler::EmitNativeMove(
     return;
   }
 
-#if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
   // Split moves from stack to stack, none of the architectures provides
-  // memory to memory move instructions. But RISC-V needs to avoid TMP.
+  // memory to memory move instructions.
   if (source.IsStack() && destination.IsStack()) {
-    Register scratch = TMP;
-    if (TMP == kNoRegister) {
-      scratch = temp->AllocateTemporary();
-    }
+    Register scratch = temp->AllocateTemporary();
+    ASSERT(scratch != kNoRegister);
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+    ASSERT(scratch != TMP);   // TMP is an argument register.
+    ASSERT(scratch != TMP2);  // TMP2 is an argument register.
+#endif
     const auto& intermediate =
         *new (zone_) compiler::ffi::NativeRegistersLocation(
             zone_, dst_payload_type, dst_container_type, scratch);
     EmitNativeMove(intermediate, source, temp);
     EmitNativeMove(destination, intermediate, temp);
-    if (TMP == kNoRegister) {
-      temp->ReleaseTemporary();
-    }
+    temp->ReleaseTemporary();
     return;
   }
-#endif
 
   const bool sign_or_zero_extend = dst_container_size > src_container_size;
 

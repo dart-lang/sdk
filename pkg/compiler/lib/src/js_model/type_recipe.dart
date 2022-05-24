@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.js_model.type_recipe;
 
 import '../elements/entities.dart' show ClassEntity;
@@ -280,9 +282,9 @@ class FullTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
 
   static FullTypeEnvironmentRecipe _readFromDataSource(
       DataSourceReader source) {
-    InterfaceType classType =
-        source.readDartType(allowNull: true) as InterfaceType;
-    List<DartType> types = source.readDartTypes(emptyAsNull: true) ?? const [];
+    InterfaceType /*?*/ classType =
+        source.readDartTypeOrNull() as InterfaceType /*?*/;
+    List<DartType> types = source.readDartTypes();
     return FullTypeEnvironmentRecipe(classType: classType, types: types);
   }
 
@@ -291,8 +293,8 @@ class FullTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
 
   @override
   void _writeToDataSink(DataSinkWriter sink) {
-    sink.writeDartType(classType, allowNull: true);
-    sink.writeDartTypes(types, allowNull: false);
+    sink.writeDartTypeOrNull(classType);
+    sink.writeDartTypes(types);
   }
 
   @override

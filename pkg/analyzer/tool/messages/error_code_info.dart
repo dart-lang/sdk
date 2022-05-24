@@ -99,7 +99,7 @@ final String frontEndPkgPath =
 /// strings.  TODO(paulberry): share this regexp (and the code for interpreting
 /// it) between the CFE and analyzer.
 final RegExp _placeholderPattern =
-    RegExp("#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?");
+    RegExp("#([-a-zA-Z0-9_]+)(?:%([0-9]*).([0-9]+))?");
 
 /// Convert a CFE template string (which uses placeholders like `#string`) to
 /// an analyzer template string (which uses placeholders like `{0}`).

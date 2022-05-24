@@ -374,10 +374,8 @@ void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
 
 void Thread::ReleaseStoreBuffer() {
   ASSERT(IsAtSafepoint());
-  if (store_buffer_block_ == nullptr || store_buffer_block_->IsEmpty()) {
-    return;  // Nothing to release.
-  }
   // Prevent scheduling another GC by ignoring the threshold.
+  ASSERT(store_buffer_block_ != NULL);
   StoreBufferRelease(StoreBuffer::kIgnoreThreshold);
   // Make sure to get an *empty* block; the isolate needs all entries
   // at GC time.
@@ -439,7 +437,10 @@ ErrorPtr Thread::HandleInterrupts() {
   if ((interrupt_bits & kVMInterrupt) != 0) {
     CheckForSafepoint();
     if (isolate_group()->store_buffer()->Overflowed()) {
-      heap()->CollectGarbage(GCType::kScavenge, GCReason::kStoreBuffer);
+      // Evacuate: If the popular store buffer targets are copied instead of
+      // promoted, the store buffer won't shrink and a second scavenge will
+      // occur that does promote them.
+      heap()->CollectGarbage(this, GCType::kEvacuate, GCReason::kStoreBuffer);
     }
 
 #if !defined(PRODUCT)

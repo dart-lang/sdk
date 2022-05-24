@@ -73,8 +73,8 @@ import 'dart:math';
   }
 
   test_reportErrorForNode_types_differentNames() async {
-    newFile2('$testPackageLibPath/a.dart', 'class A {}');
-    newFile2('$testPackageLibPath/b.dart', 'class B {}');
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/b.dart', 'class B {}');
     await resolveTestCode(r'''
 import 'package:test/a.dart';
 import 'package:test/b.dart';
@@ -112,8 +112,8 @@ main() {
   }
 
   test_reportErrorForNode_types_sameName() async {
-    newFile2('$testPackageLibPath/a.dart', 'class A {}');
-    newFile2('$testPackageLibPath/b.dart', 'class A {}');
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/b.dart', 'class A {}');
     await resolveTestCode(r'''
 import 'package:test/a.dart';
 import 'package:test/b.dart';
@@ -150,8 +150,8 @@ main() {
   }
 
   test_reportErrorForNode_types_sameName_functionType() async {
-    newFile2('$testPackageLibPath/a.dart', 'class A{}');
-    newFile2('$testPackageLibPath/b.dart', 'class A{}');
+    newFile('$testPackageLibPath/a.dart', 'class A{}');
+    newFile('$testPackageLibPath/b.dart', 'class A{}');
     await resolveTestCode(r'''
 import 'a.dart' as a;
 import 'b.dart' as b;
@@ -184,8 +184,8 @@ main() {
   }
 
   test_reportErrorForNode_types_sameName_nested() async {
-    newFile2('$testPackageLibPath/a.dart', 'class A{}');
-    newFile2('$testPackageLibPath/b.dart', 'class A{}');
+    newFile('$testPackageLibPath/a.dart', 'class A{}');
+    newFile('$testPackageLibPath/b.dart', 'class A{}');
     await resolveTestCode(r'''
 import 'a.dart' as a;
 import 'b.dart' as b;

@@ -7,7 +7,6 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
@@ -15,7 +14,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 class PrepareRenameHandler
     extends MessageHandler<TextDocumentPositionParams, RangeAndPlaceholder?> {
-  PrepareRenameHandler(LspAnalysisServer server) : super(server);
+  PrepareRenameHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_prepareRename;
 
@@ -80,7 +79,7 @@ class PrepareRenameHandler
 class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
   final _upperCasePattern = RegExp('[A-Z]');
 
-  RenameHandler(LspAnalysisServer server) : super(server);
+  RenameHandler(super.server);
 
   LspGlobalClientConfiguration get config => server.clientConfiguration.global;
 

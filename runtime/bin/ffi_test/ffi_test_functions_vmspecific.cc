@@ -185,7 +185,10 @@ DART_EXPORT void* TestUnprotectCode(void (*fn)(void)) {
 // Clobbers some registers with special meaning in Dart before re-entry, for
 // stress-testing. Not used on 32-bit Windows due to complications with Windows
 // "safeseh".
-#if defined(DART_TARGET_OS_WINDOWS) && defined(HOST_ARCH_IA32)
+// TODO(47824): Figure out how ARM/ARM64 syntax is different on Windows.
+#if defined(DART_TARGET_OS_WINDOWS) &&                                         \
+    (defined(HOST_ARCH_IA32) || defined(HOST_ARCH_ARM) ||                      \
+     defined(HOST_ARCH_ARM64))
 void ClobberAndCall(void (*fn)()) {
   fn();
 }
@@ -1111,8 +1114,8 @@ DART_EXPORT void ReleaseClosureCallback() {
 ////////////////////////////////////////////////////////////////////////////////
 // NativeFinalizer tests
 
-DART_EXPORT void SetArgumentTo42(intptr_t* token) {
-  *token = 42;
+DART_EXPORT void SetArgumentTo42(void* token) {
+  *reinterpret_cast<intptr_t*>(token) = 42;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1271,5 +1274,34 @@ DART_EXPORT void SetFfiNativeResolverForTest(Dart_Handle url) {
   Dart_Handle result = Dart_SetFfiNativeResolver(library, &FfiNativeResolver);
   ENSURE(!Dart_IsError(result));
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Helper for the regression test for b/216834909
+////////////////////////////////////////////////////////////////////////////////
+
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID) ||            \
+    defined(DART_HOST_OS_MACOS)
+static bool Regress216834909_hang_at_exit = true;
+
+static void Regress216834909_AtExit() {
+  if (Regress216834909_hang_at_exit) {
+    while (true) {
+      sleep(60 * 60);  // Sleep for 1 hour.
+    }
+  }
+}
+
+DART_EXPORT void Regress216834909_SetAtExit(int64_t install) {
+  if (install != 0) {
+    // Set and arm atexit routine.
+    atexit(&Regress216834909_AtExit);
+    Regress216834909_hang_at_exit = true;
+  } else {
+    // Disarm atexit routine.
+    Regress216834909_hang_at_exit = false;
+  }
+}
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID) ||     \
+        // defined(DART_HOST_OS_MACOS)
 
 }  // namespace dart

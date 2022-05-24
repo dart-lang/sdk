@@ -24,6 +24,7 @@ import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -409,8 +410,6 @@ class LibraryReader {
   final Uint32List _classMembersLengths;
   int _classMembersLengthsIndex = 0;
 
-  late List<Reference> exports;
-
   LibraryReader._({
     required LinkedElementFactory elementFactory,
     required SummaryDataReader reader,
@@ -464,7 +463,7 @@ class LibraryReader {
     }
 
     var exportsIndexList = _reader.readUInt30List();
-    exports = exportsIndexList
+    libraryElement.exportedReferences = exportsIndexList
         .map((index) => _referenceReader.referenceOfIndex(index))
         .toList();
 
@@ -512,6 +511,9 @@ class LibraryReader {
     );
     element.setLinkedData(reference, linkedData);
     ClassElementFlags.read(_reader, element);
+    element.macroApplicationErrors = _reader.readTypedList(
+      () => MacroApplicationError(_reader),
+    );
 
     element.typeParameters = _readTypeParameters();
 

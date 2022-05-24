@@ -43,9 +43,10 @@ void main() {
 ''');
 
     var response = await getWidgetDescriptionResponse('42');
-    expect(
-      response.error!.code,
-      RequestErrorCode.FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
+    assertResponseFailure(
+      response,
+      requestId: '0',
+      errorCode: RequestErrorCode.FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
     );
   }
 
@@ -57,9 +58,10 @@ void main() {
 ''');
 
     var response = await getWidgetDescriptionResponse('new Foo');
-    expect(
-      response.error!.code,
-      RequestErrorCode.FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
+    assertResponseFailure(
+      response,
+      requestId: '0',
+      errorCode: RequestErrorCode.FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
     );
   }
 }

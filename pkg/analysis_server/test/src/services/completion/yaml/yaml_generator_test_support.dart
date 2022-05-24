@@ -57,7 +57,7 @@ abstract class YamlGeneratorTest with ResourceProviderMixin {
     content = content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
     // Add the file to the file system.
-    var file = newFile2('/home/test/$fileName', content);
+    var file = newFile('/home/test/$fileName', content);
     // Generate completions.
     results = generator.getSuggestions(file.path, completionOffset).suggestions;
   }

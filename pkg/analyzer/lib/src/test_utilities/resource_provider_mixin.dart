@@ -64,26 +64,27 @@ mixin ResourceProviderMixin {
     resourceProvider.modifyFile(convertedPath, content);
   }
 
-  @Deprecated('Use newAnalysisOptionsYamlFile2() instead')
-  File newAnalysisOptionsYamlFile(String directoryPath, {String content = ''}) {
-    return newAnalysisOptionsYamlFile2(directoryPath, content);
+  File newAnalysisOptionsYamlFile(String directoryPath, String content) {
+    String path = join(directoryPath, file_paths.analysisOptionsYaml);
+    return newFile(path, content);
   }
 
+  @Deprecated('Use newAnalysisOptionsYamlFile() instead')
   File newAnalysisOptionsYamlFile2(String directoryPath, String content) {
-    String path = join(directoryPath, file_paths.analysisOptionsYaml);
-    return newFile2(path, content);
+    return newAnalysisOptionsYamlFile(directoryPath, content);
   }
 
   File newBazelBuildFile(String directoryPath, String content) {
     String path = join(directoryPath, file_paths.bazelBuild);
-    return newFile2(path, content);
+    return newFile(path, content);
   }
 
-  @Deprecated('Use newFile2() instead')
-  File newFile(String path, {String content = ''}) {
-    return newFile2(path, content);
+  File newFile(String path, String content) {
+    String convertedPath = convertPath(path);
+    return resourceProvider.newFile(convertedPath, content);
   }
 
+  @Deprecated('Use newFile() instead')
   File newFile2(String path, String content) {
     String convertedPath = convertPath(path);
     return resourceProvider.newFile(convertedPath, content);
@@ -100,12 +101,12 @@ mixin ResourceProviderMixin {
       file_paths.dotDartTool,
       file_paths.packageConfigJson,
     );
-    return newFile2(path, content);
+    return newFile(path, content);
   }
 
   File newPubspecYamlFile(String directoryPath, String content) {
     String path = join(directoryPath, file_paths.pubspecYaml);
-    return newFile2(path, content);
+    return newFile(path, content);
   }
 
   Uri toUri(String path) {

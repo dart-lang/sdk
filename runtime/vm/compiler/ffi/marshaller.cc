@@ -453,6 +453,13 @@ intptr_t CallMarshaller::PassByPointerStackOffset(intptr_t arg_index) const {
   // First the native arguments are on the stack.
   // This is governed by the native ABI, the rest we can chose freely.
   stack_offset += native_calling_convention_.StackTopInBytes();
+#if (defined(DART_TARGET_OS_MACOS_IOS) || defined(DART_TARGET_OS_MACOS)) &&    \
+    defined(TARGET_ARCH_ARM64)
+  // Add extra padding for possibly non stack-aligned word-size writes.
+  // TODO(https://dartbug.com/48806): Re-engineer the moves to not over-
+  // approximate struct sizes on stack.
+  stack_offset += 4;
+#endif
   stack_offset = Utils::RoundUp(stack_offset, compiler::target::kWordSize);
   if (arg_index == kResultIndex) {
     return stack_offset;

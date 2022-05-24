@@ -1783,10 +1783,75 @@
       },
       "steps": [
         {
-          "name": "build dart x64",
+          "name": "build dart debug arm64",
           "script": "tools/build.py",
           "arguments": [
-            "--mode=all",
+            "--mode=debug",
+            "--arch=arm64",
+            "--no-clang",
+            "--no-goma",
+            "dart_precompiled_runtime",
+            "gen_snapshot",
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart release arm64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=arm64",
+            "--no-clang",
+            "--no-goma",
+            "dart_precompiled_runtime",
+            "gen_snapshot",
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart product arm64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=product",
+            "--arch=arm64",
+            "--no-clang",
+            "--no-goma",
+            "dart_precompiled_runtime",
+            "gen_snapshot",
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart debug x64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug",
+            "--arch=x64",
+            "--no-clang",
+            "--no-goma",
+            "dart_precompiled_runtime",
+            "gen_snapshot",
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart release x64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "--no-clang",
+            "--no-goma",
+            "dart_precompiled_runtime",
+            "gen_snapshot",
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart product x64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=product",
             "--arch=x64",
             "--no-clang",
             "--no-goma",
@@ -3064,7 +3129,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--arch=ia32,x64",
+            "--arch=ia32,x64,arm64",
             "--mode=release",
             "--check-clean",
             "create_sdk",
@@ -3075,7 +3140,7 @@
           "name": "upload sdk",
           "script": "tools/bots/dart_sdk.py",
           "arguments": [
-            "--arch=ia32,x64"
+            "--arch=ia32,x64,arm64"
           ]
         }
       ]
@@ -3592,14 +3657,6 @@
           "script": "tools/sdks/dart-sdk/bin/dart",
           "arguments": [
             "tools/package_deps/bin/package_deps.dart"
-          ]
-        },
-        {
-          "name": "validate .dart_tool/package_config.json",
-          "script": "tools/sdks/dart-sdk/bin/dart",
-          "arguments": [
-            "tools/generate_package_config.dart",
-            "--check"
           ]
         },
         {

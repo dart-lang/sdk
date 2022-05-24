@@ -38,8 +38,8 @@ linter:
     ''';
 
     registerLintRules();
-    newFile2(analysisOptionsPath, analysisOptionsContent);
-    newFile2(mainFilePath, content);
+    newFile(analysisOptionsPath, analysisOptionsContent);
+    newFile(mainFilePath, content);
 
     await initialize(
         workspaceCapabilities:
@@ -70,7 +70,7 @@ import 'dart:math';
 Completer foo;
 int minified(int x, int y) => min(x, y);
     ''';
-    newFile2(mainFilePath, content);
+    newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities: withApplyEditSupport(
             withDocumentChangesSupport(emptyWorkspaceClientCapabilities)));
@@ -98,7 +98,7 @@ import 'dart:math';
 Completer foo;
 int minified(int x, int y) => min(x, y);
     ''';
-    newFile2(mainFilePath, content);
+    newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
@@ -110,7 +110,7 @@ int minified(int x, int y) => min(x, y);
   }
 
   Future<void> test_availableAsCodeActionLiteral() async {
-    newFile2(mainFilePath, '');
+    newFile(mainFilePath, '');
     await initialize(
         textDocumentCapabilities: withCodeActionKinds(
             emptyTextDocumentClientCapabilities, [CodeActionKind.Source]),
@@ -126,7 +126,7 @@ int minified(int x, int y) => min(x, y);
   }
 
   Future<void> test_availableAsCommand() async {
-    newFile2(mainFilePath, '');
+    newFile(mainFilePath, '');
     await initialize(
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
@@ -141,7 +141,7 @@ int minified(int x, int y) => min(x, y);
 
   Future<void> test_failsSilentlyIfFileHasErrors() async {
     final content = 'invalid dart code';
-    newFile2(mainFilePath, content);
+    newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
@@ -161,12 +161,12 @@ int minified(int x, int y) => min(x, y);
   }
 
   Future<void> test_filtersCorrectly() async {
-    newFile2(mainFilePath, '');
+    newFile(mainFilePath, '');
     await initialize(
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
-    final ofKind = (CodeActionKind kind) => getCodeActions(
+    ofKind(CodeActionKind kind) => getCodeActions(
           mainFileUri.toString(),
           kinds: [kind],
         );
@@ -187,7 +187,7 @@ import 'dart:math';
 Completer foo;
 int minified(int x, int y) => min(x, y);
     ''';
-    newFile2(mainFilePath, content);
+    newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
@@ -208,7 +208,7 @@ int minified(int x, int y) => min(x, y);
   }
 
   Future<void> test_unavailableWhenNotRequested() async {
-    newFile2(mainFilePath, '');
+    newFile(mainFilePath, '');
     await initialize(
         textDocumentCapabilities: withCodeActionKinds(
             emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -221,7 +221,7 @@ int minified(int x, int y) => min(x, y);
   }
 
   Future<void> test_unavailableWithoutApplyEditSupport() async {
-    newFile2(mainFilePath, '');
+    newFile(mainFilePath, '');
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());
@@ -241,7 +241,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
     String a;
     String b;
     ''';
-    newFile2(mainFilePath, content);
+    newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities: withApplyEditSupport(
             withDocumentChangesSupport(emptyWorkspaceClientCapabilities)));
@@ -262,7 +262,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
     String a;
     String b;
     ''';
-    newFile2(mainFilePath, content);
+    newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
@@ -274,7 +274,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
   }
 
   Future<void> test_availableAsCodeActionLiteral() async {
-    newFile2(mainFilePath, '');
+    newFile(mainFilePath, '');
     await initialize(
         textDocumentCapabilities: withCodeActionKinds(
             emptyTextDocumentClientCapabilities, [CodeActionKind.Source]),
@@ -290,7 +290,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
   }
 
   Future<void> test_availableAsCommand() async {
-    newFile2(mainFilePath, '');
+    newFile(mainFilePath, '');
     await initialize(
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
@@ -308,7 +308,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
     String b;
     String a;
     ''';
-    newFile2(mainFilePath, content);
+    newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
@@ -341,7 +341,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
 
   Future<void> test_failsIfFileHasErrors() async {
     final content = 'invalid dart code';
-    newFile2(mainFilePath, content);
+    newFile(mainFilePath, content);
     await initialize(
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
@@ -361,7 +361,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
   }
 
   Future<void> test_nonDartFile() async {
-    newFile2(pubspecFilePath, simplePubspecContent);
+    newFile(pubspecFilePath, simplePubspecContent);
     await initialize(
         textDocumentCapabilities: withCodeActionKinds(
             emptyTextDocumentClientCapabilities, [CodeActionKind.Source]),
@@ -374,7 +374,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
   }
 
   Future<void> test_unavailableWhenNotRequested() async {
-    newFile2(mainFilePath, '');
+    newFile(mainFilePath, '');
     await initialize(
         textDocumentCapabilities: withCodeActionKinds(
             emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -387,7 +387,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
   }
 
   Future<void> test_unavailableWithoutApplyEditSupport() async {
-    newFile2(mainFilePath, '');
+    newFile(mainFilePath, '');
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());

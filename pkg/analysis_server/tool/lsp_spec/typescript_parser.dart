@@ -89,8 +89,7 @@ class Const extends Member {
   Token nameToken;
   TypeBase type;
   Token valueToken;
-  Const(Comment? comment, this.nameToken, this.type, this.valueToken)
-      : super(comment);
+  Const(super.comment, this.nameToken, this.type, this.valueToken);
 
   @override
   String get name => nameToken.lexeme;
@@ -112,12 +111,12 @@ class Field extends Member {
   final bool allowsNull;
   final bool allowsUndefined;
   Field(
-    Comment? comment,
+    super.comment,
     this.nameToken,
     this.type,
     this.allowsNull,
     this.allowsUndefined,
-  ) : super(comment);
+  );
 
   @override
   String get name => nameToken.lexeme;
@@ -139,10 +138,10 @@ class Indexer extends Member {
   final TypeBase indexType;
   final TypeBase valueType;
   Indexer(
-    Comment? comment,
+    super.comment,
     this.indexType,
     this.valueType,
-  ) : super(comment);
+  );
 
   @override
   String get name => fieldNameForIndexer;
@@ -162,12 +161,12 @@ class Interface extends AstNode {
   final List<Member> members;
 
   Interface(
-    Comment? comment,
+    super.comment,
     this.nameToken,
     this.typeArgs,
     this.baseTypes,
     this.members,
-  ) : super(comment);
+  );
 
   @override
   String get name => nameToken.lexeme;
@@ -223,17 +222,17 @@ class MapType extends TypeBase {
 }
 
 abstract class Member extends AstNode {
-  Member(Comment? comment) : super(comment);
+  Member(super.comment);
 }
 
 class Namespace extends AstNode {
   final Token nameToken;
   final List<Member> members;
   Namespace(
-    Comment? comment,
+    super.comment,
     this.nameToken,
     this.members,
-  ) : super(comment);
+  );
 
   @override
   String get name => nameToken.lexeme;
@@ -367,12 +366,12 @@ class Parser {
     // marked with number.
     final commentText = leadingComment?.text;
     if (commentText != null) {
-      final _linkTypePattern = RegExp(r'See \{@link (\w+)\}\.?');
-      final linkTypeMatch = _linkTypePattern.firstMatch(commentText);
+      final linkTypePattern = RegExp(r'See \{@link (\w+)\}\.?');
+      final linkTypeMatch = linkTypePattern.firstMatch(commentText);
       if (linkTypeMatch != null) {
         type = Type.identifier(linkTypeMatch.group(1)!);
         leadingComment = Comment(Token(TokenType.COMMENT,
-            '// ' + commentText.replaceAll(_linkTypePattern, '')));
+            '// ${commentText.replaceAll(linkTypePattern, '')}'));
       }
     }
 
@@ -982,10 +981,10 @@ class TypeAlias extends AstNode {
   final Token nameToken;
   final TypeBase baseType;
   TypeAlias(
-    Comment? comment,
+    super.comment,
     this.nameToken,
     this.baseType,
-  ) : super(comment);
+  );
 
   @override
   String get name => nameToken.lexeme;

@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.15
-
 // Utilities for converting between JavaScript source-code Strings and the
 // String value they represent.
 
-import 'characters.dart' as charCodes;
+import 'characters.dart' as char_codes;
 
 class StringToSourceKind {
   /// [true] if preferable to use double quotes, [false] if preferable to use
@@ -33,24 +31,25 @@ class StringToSource {
     int unpairedSurrogates = 0;
 
     for (int rune in value.runes) {
-      if (rune == charCodes.$BACKSLASH) {
+      if (rune == char_codes.$BACKSLASH) {
         ++otherEscapes;
-      } else if (rune == charCodes.$SQ) {
+      } else if (rune == char_codes.$SQ) {
         ++singleQuotes;
-      } else if (rune == charCodes.$DQ) {
+      } else if (rune == char_codes.$DQ) {
         ++doubleQuotes;
-      } else if (rune == charCodes.$LF ||
-          rune == charCodes.$CR ||
-          rune == charCodes.$LS ||
-          rune == charCodes.$PS) {
+      } else if (rune == char_codes.$LF ||
+          rune == char_codes.$CR ||
+          rune == char_codes.$LS ||
+          rune == char_codes.$PS) {
         // Line terminators.
         ++otherEscapes;
-      } else if (rune == charCodes.$BS ||
-          rune == charCodes.$TAB ||
-          rune == charCodes.$VTAB ||
-          rune == charCodes.$FF) {
+      } else if (rune == char_codes.$BS ||
+          rune == char_codes.$TAB ||
+          rune == char_codes.$VTAB ||
+          rune == char_codes.$FF) {
         ++otherEscapes;
-      } else if (ascii && (rune < charCodes.$SPACE || rune >= charCodes.$DEL)) {
+      } else if (ascii &&
+          (rune < char_codes.$SPACE || rune >= char_codes.$DEL)) {
         ++otherEscapes;
       } else if (_isUnpairedSurrogate(rune)) {
         // Need to escape unpaired surrogates in a UTF8-encoded output otherwise
@@ -82,10 +81,10 @@ class StringToSource {
         sb.write(escape);
         continue;
       }
-      if (rune == charCodes.$LS ||
-          rune == charCodes.$PS ||
+      if (rune == char_codes.$LS ||
+          rune == char_codes.$PS ||
           _isUnpairedSurrogate(rune) ||
-          !utf8 && (rune < charCodes.$SPACE || rune >= charCodes.$DEL)) {
+          !utf8 && (rune < char_codes.$SPACE || rune >= char_codes.$DEL)) {
         if (rune < 0x100) {
           sb.write(r'\x');
           sb.write(rune.toRadixString(16).padLeft(2, '0'));
@@ -113,23 +112,23 @@ class StringToSource {
 
   static String? _irregularEscape(int code, bool useDoubleQuotes) {
     switch (code) {
-      case charCodes.$SQ:
+      case char_codes.$SQ:
         return useDoubleQuotes ? r"'" : r"\'";
-      case charCodes.$DQ:
+      case char_codes.$DQ:
         return useDoubleQuotes ? r'\"' : r'"';
-      case charCodes.$BACKSLASH:
+      case char_codes.$BACKSLASH:
         return r'\\';
-      case charCodes.$BS:
+      case char_codes.$BS:
         return r'\b';
-      case charCodes.$TAB:
+      case char_codes.$TAB:
         return r'\t';
-      case charCodes.$LF:
+      case char_codes.$LF:
         return r'\n';
-      case charCodes.$VTAB:
+      case char_codes.$VTAB:
         return r'\v';
-      case charCodes.$FF:
+      case char_codes.$FF:
         return r'\f';
-      case charCodes.$CR:
+      case char_codes.$CR:
         return r'\r';
     }
     return null;

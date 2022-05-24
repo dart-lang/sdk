@@ -105,9 +105,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
   final bool generateGetters;
   final bool generateSetters;
 
-  CodegenJavaType(Api api, this.className, this.superclassName,
-      this.generateGetters, this.generateSetters)
-      : super(api);
+  CodegenJavaType(super.api, this.className, this.superclassName,
+      this.generateGetters, this.generateSetters);
 
   /// Get the name of the consumer class for responses to this request.
   @override
@@ -250,7 +249,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
             toHtmlVisitor.translateHtml(value.html);
           }));
           writeln(
-              'public static final String ${value.value} = \"${value.value}\";');
+              'public static final String ${value.value} = "${value.value}";');
         });
       }
     });
@@ -421,7 +420,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
             javadocComment(toHtmlVisitor.collectHtml(() {
               toHtmlVisitor.translateHtml(field.html);
             }));
-            var setterName = 'set' + capitalize(name);
+            var setterName = 'set${capitalize(name)}';
             writeln('public void $setterName($type $name) {');
             writeln('  this.$name = $name;');
             writeln('}');
@@ -505,7 +504,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
             for (var field in fields) {
               if (!_isTypeFieldInUpdateContentUnionType(
                   className, field.name)) {
-                parameters.add('${javaName(field.name)}');
+                parameters.add(javaName(field.name));
               }
             }
             write(parameters.join(', '));
@@ -692,17 +691,17 @@ class CodegenJavaType extends CodegenJavaVisitor {
         writeln('public String toString() {');
         indent(() {
           writeln('StringBuilder builder = new StringBuilder();');
-          writeln('builder.append(\"[\");');
+          writeln('builder.append("[");');
           for (var i = 0; i < fields.length; i++) {
-            writeln('builder.append(\"${javaName(fields[i].name)}=\");');
+            writeln('builder.append("${javaName(fields[i].name)}=");');
             write('builder.append(${_getToStringForField(fields[i])}');
             if (i + 1 != fields.length) {
               // this is not the last field
-              write(' + \", \"');
+              write(' + ", "');
             }
             writeln(');');
           }
-          writeln('builder.append(\"]\");');
+          writeln('builder.append("]");');
           writeln('return builder.toString();');
         });
         writeln('}');

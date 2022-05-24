@@ -4,13 +4,11 @@
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -19,17 +17,13 @@ void main() {
 }
 
 @reflectiveTest
-class GetTypeHierarchyTest extends AbstractAnalysisTest {
+class GetTypeHierarchyTest extends PubPackageAnalysisServerTest {
   static const String requestId = 'test-getTypeHierarchy';
 
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
-    server.handlers = [
-      AnalysisDomainHandler(server),
-      SearchDomainHandler(server),
-    ];
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_bad_function() async {
@@ -164,22 +158,22 @@ class CCC extends BBB implements AAA {}
 
   Future<void> test_class_extends_fileAndPackageUris() async {
     // prepare packages
-    newFile2('/packages/pkgA/lib/libA.dart', '''
+    newFile('$packagesRootPath/pkgA/lib/libA.dart', '''
 library lib_a;
 class A {}
 class B extends A {}
 ''');
     newPackageConfigJsonFile(
-      '/packages/pkgA',
+      '$packagesRootPath/pkgA',
       (PackageConfigFileBuilder()
-            ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
+            ..add(name: 'pkgA', rootPath: '$packagesRootPath/pkgA'))
           .toContent(toUriStr: toUriStr),
     );
     // reference the package from a project
     newPackageConfigJsonFile(
-      projectPath,
+      testPackageRootPath,
       (PackageConfigFileBuilder()
-            ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
+            ..add(name: 'pkgA', rootPath: '$packagesRootPath/pkgA'))
           .toContent(toUriStr: toUriStr),
     );
     addTestFile('''
@@ -189,7 +183,9 @@ class C extends A {}
     await waitForTasksFinished();
     // configure roots
     await setRoots(
-        included: [projectPath, convertPath('/packages/pkgA')], excluded: []);
+      included: [workspaceRootPath, '$packagesRootPath/pkgA'],
+      excluded: [],
+    );
     // test A type hierarchy
     var items = await _getTypeHierarchy('A {}');
     var names = _toClassNames(items);
@@ -652,7 +648,7 @@ class D extends C {
   }
 
   Future<void> test_class_member_method_private_differentLib() async {
-    newFile2(join(testFolder, 'lib.dart'), r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 import 'test.dart';
 class A {
   void _m() {}
@@ -1473,7 +1469,7 @@ enum E with M {
   }
 
   Request _createGetTypeHierarchyRequest(String search, {bool? superOnly}) {
-    return SearchGetTypeHierarchyParams(testFile, findOffset(search),
+    return SearchGetTypeHierarchyParams(testFile.path, findOffset(search),
             superOnly: superOnly)
         .toRequest(requestId);
   }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library source_file_provider;
 
 import 'dart:async';
@@ -11,13 +13,12 @@ import 'dart:typed_data';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
-import '../compiler.dart' as api;
-import '../compiler.dart';
+import '../compiler_api.dart' as api;
 import 'colors.dart' as colors;
 import 'dart2js.dart' show AbortLeg;
 import 'io/source_file.dart';
 
-abstract class SourceFileProvider implements CompilerInput {
+abstract class SourceFileProvider implements api.CompilerInput {
   bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = Uri.base;
   Map<Uri, api.Input> utf8SourceFiles = <Uri, api.Input>{};
@@ -78,7 +79,7 @@ abstract class SourceFileProvider implements CompilerInput {
   /// returned.
   api.Input autoReadFromFile(Uri resourceUri) {
     try {
-      return _readFromFileSync(resourceUri, InputKind.UTF8);
+      return _readFromFileSync(resourceUri, api.InputKind.UTF8);
     } catch (e) {
       // Silence the error. The [resourceUri] was not requested by the user and
       // was only needed to give better error messages.
@@ -167,11 +168,11 @@ List<int> readAll(String filename, {bool zeroTerminated = true}) {
 class CompilerSourceFileProvider extends SourceFileProvider {
   @override
   Future<api.Input<List<int>>> readFromUri(Uri uri,
-          {InputKind inputKind = InputKind.UTF8}) =>
+          {api.InputKind inputKind = api.InputKind.UTF8}) =>
       readBytesFromUri(uri, inputKind);
 }
 
-class FormattingDiagnosticHandler implements CompilerDiagnostics {
+class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
   final SourceFileProvider provider;
   bool showWarnings = true;
   bool showHints = true;
@@ -294,7 +295,7 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
 
 typedef MessageCallback = void Function(String message);
 
-class RandomAccessFileOutputProvider implements CompilerOutput {
+class RandomAccessFileOutputProvider implements api.CompilerOutput {
   final Uri out;
   final Uri sourceMapOut;
   final MessageCallback onInfo;
@@ -310,31 +311,31 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
   RandomAccessFileOutputProvider(this.out, this.sourceMapOut,
       {this.onInfo, this.onFailure});
 
-  Uri createUri(String name, String extension, OutputType type) {
+  Uri createUri(String name, String extension, api.OutputType type) {
     Uri uri;
     // TODO(johnniwinther): Unify handle of [name] and [extension] to prepare
     // for using a single, possibly relative, [uri] as input.
     switch (type) {
-      case OutputType.js:
+      case api.OutputType.js:
         if (name == '') {
           uri = out;
         } else {
           uri = out.resolve('$name.$extension');
         }
         break;
-      case OutputType.sourceMap:
+      case api.OutputType.sourceMap:
         if (name == '') {
           uri = sourceMapOut;
         } else {
           uri = out.resolve('$name.$extension');
         }
         break;
-      case OutputType.jsPart:
+      case api.OutputType.jsPart:
         uri = out.resolve('$name.$extension');
         break;
-      case OutputType.dumpInfo:
-      case OutputType.dumpUnusedLibraries:
-      case OutputType.deferredMap:
+      case api.OutputType.dumpInfo:
+      case api.OutputType.dumpUnusedLibraries:
+      case api.OutputType.deferredMap:
         if (name == '') {
           name = out.pathSegments.last;
         }
@@ -344,7 +345,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
           uri = out.resolve('$name.$extension');
         }
         break;
-      case OutputType.debug:
+      case api.OutputType.debug:
         if (name == '') {
           name = out.pathSegments.last;
         }
@@ -357,7 +358,8 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
   }
 
   @override
-  OutputSink createOutputSink(String name, String extension, OutputType type) {
+  api.OutputSink createOutputSink(
+      String name, String extension, api.OutputType type) {
     Uri uri = createUri(name, extension, type);
     bool isPrimaryOutput = uri == out;
 
@@ -396,7 +398,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
       if (isPrimaryOutput) {
         totalCharactersWrittenPrimary += charactersWritten;
       }
-      if (type == OutputType.js || type == OutputType.jsPart) {
+      if (type == api.OutputType.js || type == api.OutputType.jsPart) {
         totalCharactersWrittenJavaScript += charactersWritten;
       }
     }
@@ -405,7 +407,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
   }
 
   @override
-  BinaryOutputSink createBinarySink(Uri uri) {
+  api.BinaryOutputSink createBinarySink(Uri uri) {
     uri = Uri.base.resolveUri(uri);
 
     allOutputFiles.add(fe.relativizeUri(Uri.base, uri, Platform.isWindows));
@@ -455,7 +457,7 @@ class RandomAccessBinaryOutputSink implements api.BinaryOutputSink {
   }
 }
 
-class _OutputSinkWrapper extends OutputSink {
+class _OutputSinkWrapper extends api.OutputSink {
   void Function(String) onAdd;
   void Function() onClose;
 
@@ -468,7 +470,7 @@ class _OutputSinkWrapper extends OutputSink {
   void close() => onClose();
 }
 
-class _BinaryOutputSinkWrapper extends BinaryOutputSink {
+class _BinaryOutputSinkWrapper extends api.BinaryOutputSink {
   void Function(List<int>, [int, int]) onWrite;
   void Function() onClose;
 
@@ -527,7 +529,7 @@ class BazelInputProvider extends SourceFileProvider {
 
   @override
   Future<api.Input<List<int>>> readFromUri(Uri uri,
-      {InputKind inputKind = InputKind.UTF8}) async {
+      {api.InputKind inputKind = api.InputKind.UTF8}) async {
     var resolvedUri = uri;
     var path = uri.path;
     if (path.startsWith('/bazel-root')) {
@@ -543,10 +545,10 @@ class BazelInputProvider extends SourceFileProvider {
     api.Input<List<int>> result =
         await readBytesFromUri(resolvedUri, inputKind);
     switch (inputKind) {
-      case InputKind.UTF8:
+      case api.InputKind.UTF8:
         utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri];
         break;
-      case InputKind.binary:
+      case api.InputKind.binary:
         binarySourceFiles[uri] = binarySourceFiles[resolvedUri];
         break;
     }
@@ -588,7 +590,7 @@ class MultiRootInputProvider extends SourceFileProvider {
 
   @override
   Future<api.Input<List<int>>> readFromUri(Uri uri,
-      {InputKind inputKind = InputKind.UTF8}) async {
+      {api.InputKind inputKind = api.InputKind.UTF8}) async {
     var resolvedUri = uri;
     if (resolvedUri.isScheme(markerScheme)) {
       var path = resolvedUri.path;
@@ -604,10 +606,10 @@ class MultiRootInputProvider extends SourceFileProvider {
     api.Input<List<int>> result =
         await readBytesFromUri(resolvedUri, inputKind);
     switch (inputKind) {
-      case InputKind.UTF8:
+      case api.InputKind.UTF8:
         utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri];
         break;
-      case InputKind.binary:
+      case api.InputKind.binary:
         binarySourceFiles[uri] = binarySourceFiles[resolvedUri];
         break;
     }

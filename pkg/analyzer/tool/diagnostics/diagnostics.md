@@ -6731,6 +6731,8 @@ class B implements A {}
 
 ### implements_super_class
 
+_'{0}' can't be used in both 'extends' and 'with' clauses._
+
 _'{0}' can't be used in both the 'extends' and 'implements' clauses._
 
 #### Description
@@ -10092,8 +10094,8 @@ class C extends Struct {
 
 ### missing_annotation_on_struct_field
 
-_Fields in a struct class must either have the type 'Pointer' or an annotation
-indicating the native type._
+_Fields of type '{0}' in a subclass of '{1}' must have an annotation indicating
+the native type._
 
 #### Description
 

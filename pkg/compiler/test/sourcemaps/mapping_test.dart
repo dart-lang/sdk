@@ -9,7 +9,7 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
 
@@ -110,11 +110,11 @@ Future runTest(int index, Test test,
       unsafeToTouchSourceFiles: true);
   Expect.isTrue(compilationResult.isSuccess,
       "Unsuccessful compilation of test:\n${test.code}");
-  String sourceMapText = collector.getOutput('', OutputType.sourceMap);
+  String sourceMapText = collector.getOutput('', api.OutputType.sourceMap);
   SingleMapping sourceMap = parse(sourceMapText);
   if (writeJs) {
     new File('out.js')
-        .writeAsStringSync(collector.getOutput('', OutputType.js));
+        .writeAsStringSync(collector.getOutput('', api.OutputType.js));
     new File('out.js.map').writeAsStringSync(sourceMapText);
   }
 

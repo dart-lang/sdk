@@ -3258,8 +3258,7 @@ ASSEMBLER_TEST_GENERATE(Smaddl3, assembler) {
 
 ASSEMBLER_TEST_RUN(Smaddl3, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXPECT_EQ(0xffffl * 0xffffl,
-            EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_EQ(0xfffe0001, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
   EXPECT_DISASSEMBLY(
       "movz r1, #0xffff\n"
       "movz r2, #0xffff\n"

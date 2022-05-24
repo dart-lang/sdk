@@ -1,7 +1,7 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 class Class1 {
   int field;
 
@@ -23,7 +23,7 @@ extension Extension1 on Class1 {
     print('Extension1.method on $this');
     return field;
   }
-  int genericMethod<T extends num>(T t) {
+  num genericMethod<T extends num>(T t) {
     print('Extension1.genericMethod<$T>($t) on $this');
     return field + t;
   }
@@ -35,7 +35,7 @@ extension Extension2 on Class2 {
     print('Extension2.method on $this');
     return field + 2;
   }
-  int genericMethod<T extends num>(T t) {
+  num genericMethod<T extends num>(T t) {
     print('Extension2.genericMethod<$T>($t) on $this');
     return field + t + 3;
   }

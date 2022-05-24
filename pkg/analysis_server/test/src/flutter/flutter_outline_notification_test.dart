@@ -7,13 +7,12 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/flutter/flutter_domain.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../analysis_abstract.dart';
+import '../../analysis_server_base.dart';
 import '../utilities/mock_packages.dart';
 
 void main() {
@@ -23,42 +22,31 @@ void main() {
 }
 
 @reflectiveTest
-class FlutterNotificationOutlineTest extends AbstractAnalysisTest {
+class FlutterNotificationOutlineTest extends PubPackageAnalysisServerTest {
   late Folder flutterFolder;
-
-  final Map<FlutterService, List<String>> flutterSubscriptions = {};
 
   final Completer<void> _outlineReceived = Completer();
   late FlutterOutline outline;
 
-  FlutterDomainHandler get flutterHandler =>
-      server.handlers.singleWhere((handler) => handler is FlutterDomainHandler)
-          as FlutterDomainHandler;
-
-  void addFlutterSubscription(FlutterService service, String file) {
-    // add file to subscription
-    var files = analysisSubscriptions[service];
-    if (files == null) {
-      files = <String>[];
-      flutterSubscriptions[service] = files;
-    }
-    files.add(file);
-    // set subscriptions
-    var request =
-        FlutterSetSubscriptionsParams(flutterSubscriptions).toRequest('0');
-    handleSuccessfulRequest(request, handler: flutterHandler);
+  Future<void> addFlutterSubscription(FlutterService service, File file) async {
+    await handleSuccessfulRequest(
+      FlutterSetSubscriptionsParams({
+        service: [file.path],
+      }).toRequest('0'),
+    );
   }
 
-  Future prepareOutline() {
-    addFlutterSubscription(FlutterService.OUTLINE, testFile);
+  Future<void> prepareOutline() async {
+    await addFlutterSubscription(FlutterService.OUTLINE, testFile);
     return _outlineReceived.future;
   }
 
   @override
   void processNotification(Notification notification) {
+    super.processNotification(notification);
     if (notification.event == FLUTTER_NOTIFICATION_OUTLINE) {
       var params = FlutterOutlineParams.fromNotification(notification);
-      if (params.file == testFile) {
+      if (params.file == testFile.path) {
         outline = params.outline;
         _outlineReceived.complete();
       }
@@ -68,18 +56,18 @@ class FlutterNotificationOutlineTest extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
+    await setRoots(included: [workspaceRootPath], excluded: []);
     flutterFolder = MockPackages.instance.addFlutter(resourceProvider);
   }
 
   Future<void> test_children() async {
     newPackageConfigJsonFile(
-      projectPath,
+      testPackageRootPath,
       (PackageConfigFileBuilder()
             ..add(name: 'flutter', rootPath: flutterFolder.parent.path))
           .toContent(toUriStr: toUriStr),
     );
-    newAnalysisOptionsYamlFile2(projectPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   strong-mode: true
 ''');

@@ -1589,14 +1589,6 @@ class VariableDeclarationImpl extends VariableDeclaration {
   /// the kernel.
   final bool isImplicitlyTyped;
 
-  /// True if the initializer was specified by the programmer.
-  ///
-  /// Note that the variable might have a synthesized initializer expression,
-  /// so `hasDeclaredInitializer == false` doesn't imply `initializer == null`.
-  /// For instance, for duplicate variable names, an invalid expression is set
-  /// as the initializer of the second variable.
-  final bool hasDeclaredInitializer;
-
   // TODO(ahe): Remove this field. We can get rid of it by recording closure
   // mutation in [BodyBuilder].
   final int functionNestingLevel;
@@ -1625,7 +1617,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
 
   VariableDeclarationImpl(String? name, this.functionNestingLevel,
       {this.forSyntheticToken: false,
-      this.hasDeclaredInitializer: false,
+      bool hasDeclaredInitializer: false,
       Expression? initializer,
       DartType? type,
       bool isFinal: false,
@@ -1648,7 +1640,8 @@ class VariableDeclarationImpl extends VariableDeclaration {
             isCovariantByDeclaration: isCovariantByDeclaration,
             isLate: isLate,
             isRequired: isRequired,
-            isLowered: isLowered);
+            isLowered: isLowered,
+            hasDeclaredInitializer: hasDeclaredInitializer);
 
   VariableDeclarationImpl.forEffect(Expression initializer)
       : forSyntheticToken = false,
@@ -1656,7 +1649,6 @@ class VariableDeclarationImpl extends VariableDeclaration {
         isImplicitlyTyped = false,
         isLocalFunction = false,
         isStaticLate = false,
-        hasDeclaredInitializer = true,
         super.forValue(initializer);
 
   VariableDeclarationImpl.forValue(Expression initializer)
@@ -1665,7 +1657,6 @@ class VariableDeclarationImpl extends VariableDeclaration {
         isImplicitlyTyped = true,
         isLocalFunction = false,
         isStaticLate = false,
-        hasDeclaredInitializer = true,
         super.forValue(initializer);
 
   // The synthesized local getter function for a lowered late variable.

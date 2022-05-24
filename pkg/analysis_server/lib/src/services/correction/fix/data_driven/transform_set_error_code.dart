@@ -194,11 +194,9 @@ class TransformSetErrorCode extends ErrorCode {
   const TransformSetErrorCode(
     String name,
     String problemMessage, {
-    String? correctionMessage,
-    bool hasPublishedDocs = false,
+    super.correctionMessage,
+    super.hasPublishedDocs,
   }) : super(
-          correctionMessage: correctionMessage,
-          hasPublishedDocs: hasPublishedDocs,
           name: name,
           problemMessage: problemMessage,
           uniqueName: 'TransformSetErrorCode.$name',

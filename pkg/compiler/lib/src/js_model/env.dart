@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.js_model.env;
 
 import 'package:kernel/ast.dart' as ir;
@@ -751,7 +753,8 @@ class SignatureFunctionData implements FunctionData {
   factory SignatureFunctionData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberDefinition definition = MemberDefinition.readFromDataSource(source);
-    InterfaceType memberThisType = source.readDartType(allowNull: true);
+    InterfaceType /*?*/ memberThisType =
+        source.readDartTypeOrNull() as InterfaceType /*?*/;
     List<ir.TypeParameter> typeParameters = source.readTypeParameterNodes();
     ClassTypeVariableAccess classTypeVariableAccess =
         source.readEnum(ClassTypeVariableAccess.values);
@@ -765,7 +768,7 @@ class SignatureFunctionData implements FunctionData {
     sink.writeEnum(JMemberDataKind.signature);
     sink.begin(tag);
     definition.writeToDataSink(sink);
-    sink.writeDartType(memberThisType, allowNull: true);
+    sink.writeDartTypeOrNull(memberThisType);
     sink.writeTypeParameterNodes(typeParameters);
     sink.writeEnum(classTypeVariableAccess);
     sink.end(tag);

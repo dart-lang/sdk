@@ -78,22 +78,17 @@ class FlutterStatefulWidgetSnippetProducerTest
   @override
   String get prefix => FlutterStatefulWidgetSnippetProducer.prefix;
 
-  Future<void> test_notValid_notFlutterProject() async {
-    writeTestPackageConfig();
-
-    await expectNotValidSnippet('^');
-  }
-
-  Future<void> test_valid() async {
-    writeTestPackageConfig(flutter: true);
+  Future<void> test_noSuperParams() async {
+    writeTestPackageConfig(flutter: true, languageVersion: '2.16');
 
     final snippet = await expectValidSnippet('^');
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
     var code = '';
     expect(snippet.change.edits, hasLength(1));
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -111,17 +106,52 @@ class _MyWidgetState extends State<MyWidget> {
     
   }
 }''');
+  }
+
+  Future<void> test_notValid_notFlutterProject() async {
+    writeTestPackageConfig();
+
+    await expectNotValidSnippet('^');
+  }
+
+  Future<void> test_valid() async {
+    writeTestPackageConfig(flutter: true);
+
+    final snippet = await expectValidSnippet('^');
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    var code = '';
+    expect(snippet.change.edits, hasLength(1));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
+    expect(code, '''
+import 'package:flutter/src/widgets/framework.dart';
+
+class MyWidget extends StatefulWidget {
+  const MyWidget({super.key});
+
+  @override
+  State<MyWidget> createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    
+  }
+}''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 363);
+    expect(snippet.change.selection!.offset, 296);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
-          {'file': testFile, 'offset': 110},
-          {'file': testFile, 'offset': 152},
-          {'file': testFile, 'offset': 213},
-          {'file': testFile, 'offset': 241},
-          {'file': testFile, 'offset': 268},
-          {'file': testFile, 'offset': 296},
+          {'file': testFile, 'offset': 60},
+          {'file': testFile, 'offset': 102},
+          {'file': testFile, 'offset': 146},
+          {'file': testFile, 'offset': 174},
+          {'file': testFile, 'offset': 201},
+          {'file': testFile, 'offset': 229},
         ],
         'length': 8,
         'suggestions': []
@@ -145,22 +175,17 @@ class FlutterStatefulWidgetWithAnimationControllerSnippetProducerTest
   String get prefix =>
       FlutterStatefulWidgetWithAnimationControllerSnippetProducer.prefix;
 
-  Future<void> test_notValid_notFlutterProject() async {
-    writeTestPackageConfig();
-
-    await expectNotValidSnippet('^');
-  }
-
-  Future<void> test_valid() async {
-    writeTestPackageConfig(flutter: true);
+  Future<void> test_noSuperParams() async {
+    writeTestPackageConfig(flutter: true, languageVersion: '2.16');
 
     final snippet = await expectValidSnippet('^');
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
     var code = '';
     expect(snippet.change.edits, hasLength(1));
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 import 'package:flutter/src/animation/animation_controller.dart';
 import 'package:flutter/src/foundation/key.dart';
@@ -195,17 +220,69 @@ class _MyWidgetState extends State<MyWidget>
     
   }
 }''');
+  }
+
+  Future<void> test_notValid_notFlutterProject() async {
+    writeTestPackageConfig();
+
+    await expectNotValidSnippet('^');
+  }
+
+  Future<void> test_valid() async {
+    writeTestPackageConfig(flutter: true);
+
+    final snippet = await expectValidSnippet('^');
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    var code = '';
+    expect(snippet.change.edits, hasLength(1));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
+    expect(code, '''
+import 'package:flutter/src/animation/animation_controller.dart';
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/src/widgets/ticker_provider.dart';
+
+class MyWidget extends StatefulWidget {
+  const MyWidget({super.key});
+
+  @override
+  State<MyWidget> createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<MyWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    
+  }
+}''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 766);
+    expect(snippet.change.selection!.offset, 699);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
-          {'file': testFile, 'offset': 235},
-          {'file': testFile, 'offset': 277},
-          {'file': testFile, 'offset': 338},
-          {'file': testFile, 'offset': 366},
-          {'file': testFile, 'offset': 393},
-          {'file': testFile, 'offset': 421},
+          {'file': testFile, 'offset': 185},
+          {'file': testFile, 'offset': 227},
+          {'file': testFile, 'offset': 271},
+          {'file': testFile, 'offset': 299},
+          {'file': testFile, 'offset': 326},
+          {'file': testFile, 'offset': 354},
         ],
         'length': 8,
         'suggestions': []
@@ -226,6 +303,31 @@ class FlutterStatelessWidgetSnippetProducerTest
   @override
   String get prefix => FlutterStatelessWidgetSnippetProducer.prefix;
 
+  Future<void> test_noSuperParams() async {
+    writeTestPackageConfig(flutter: true, languageVersion: '2.16');
+
+    final snippet = await expectValidSnippet('^');
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    var code = '';
+    expect(snippet.change.edits, hasLength(1));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
+    expect(code, '''
+import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/framework.dart';
+
+class MyWidget extends StatelessWidget {
+  const MyWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    
+  }
+}''');
+  }
+
   Future<void> test_notValid_notFlutterProject() async {
     writeTestPackageConfig();
 
@@ -240,14 +342,14 @@ class FlutterStatelessWidgetSnippetProducerTest
     expect(snippet.label, label);
     var code = '';
     expect(snippet.change.edits, hasLength(1));
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
-import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 
 class MyWidget extends StatelessWidget {
-  const MyWidget({Key? key}) : super(key: key);
+  const MyWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -255,12 +357,12 @@ class MyWidget extends StatelessWidget {
   }
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 249);
+    expect(snippet.change.selection!.offset, 182);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
-          {'file': testFile, 'offset': 110},
-          {'file': testFile, 'offset': 153},
+          {'file': testFile, 'offset': 60},
+          {'file': testFile, 'offset': 103},
         ],
         'length': 8,
         'suggestions': []

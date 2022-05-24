@@ -460,11 +460,9 @@ static void ThrowIfError(const Object& result) {
 // Return value: newly allocated object.
 DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
   const Class& cls = Class::CheckedHandle(zone, arguments.ArgAt(0));
-  const Error& error =
-      Error::Handle(zone, cls.EnsureIsAllocateFinalized(thread));
-  ThrowIfError(error);
-  const Instance& instance =
-      Instance::Handle(zone, Instance::New(cls, SpaceForRuntimeAllocation()));
+  ASSERT(cls.is_allocate_finalized());
+  const Instance& instance = Instance::Handle(
+      zone, Instance::NewAlreadyFinalized(cls, SpaceForRuntimeAllocation()));
 
   arguments.SetReturn(instance);
   if (cls.NumTypeArguments() == 0) {
@@ -1393,7 +1391,7 @@ static void TrySwitchInstanceCall(Thread* thread,
 
 #if !defined(PRODUCT)
   // Monomorphic/megamorphic do not check the isolate's stepping flag.
-  if (Isolate::Current()->has_attempted_stepping()) return;
+  if (thread->isolate()->has_attempted_stepping()) return;
 #endif
 
   // Monomorphic/megamorphic calls are only for unoptimized code.
@@ -2853,7 +2851,7 @@ static void HandleOSRRequest(Thread* thread) {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
+DEFINE_RUNTIME_ENTRY(InterruptOrStackOverflow, 0) {
 #if defined(USING_SIMULATOR)
   uword stack_pos = Simulator::Current()->get_sp();
   // If simulator was never called it may return 0 as a value of SPREG.

@@ -1044,7 +1044,9 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Reserve space for the arguments that go on the stack (if any), then align.
   __ ReserveAlignedFrameSpace(stack_required);
 
-  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp);
+  // No second temp: PointerToMemoryLocation is not used for arguments in ia32.
+  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp,
+                 kNoRegister);
 
   if (is_leaf_) {
     // We store the pre-align SP at a fixed offset from the final SP.
@@ -2896,7 +2898,7 @@ class CheckStackOverflowSlowPath
         instruction(), /*num_slow_path_args=*/0);
     compiler->pending_deoptimization_env_ = env;
 
-    __ CallRuntime(kStackOverflowRuntimeEntry, kNumSlowPathArgs);
+    __ CallRuntime(kInterruptOrStackOverflowRuntimeEntry, kNumSlowPathArgs);
     compiler->EmitCallsiteMetadata(
         instruction()->source(), instruction()->deopt_id(),
         UntaggedPcDescriptors::kOther, instruction()->locs(), env);

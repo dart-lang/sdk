@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.compiler_base;
 
 import 'dart:async' show Future;
@@ -10,7 +12,7 @@ import 'dart:convert' show jsonEncode;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
 
-import '../compiler.dart' as api;
+import '../compiler_api.dart' as api;
 import 'common.dart';
 import 'common/codegen.dart';
 import 'common/elements.dart' show ElementEnvironment;
@@ -24,7 +26,7 @@ import 'deferred_load/program_split_constraints/nodes.dart' as psc
     show ConstraintData;
 import 'deferred_load/program_split_constraints/parser.dart' as psc show Parser;
 import 'diagnostics/messages.dart' show Message;
-import 'dump_info.dart' show DumpInfoTask;
+import 'dump_info.dart' show DumpInfoStateData, DumpInfoTask;
 import 'elements/entities.dart';
 import 'enqueue.dart' show Enqueuer;
 import 'environment.dart';
@@ -68,7 +70,7 @@ class Compiler {
 
   KernelFrontendStrategy frontendStrategy;
   JsBackendStrategy backendStrategy;
-  DiagnosticReporter _reporter;
+  /*late*/ DiagnosticReporter _reporter;
   Map<Entity, WorldImpact> _impactCache;
   GenericTask userHandlerTask;
   GenericTask userProviderTask;
@@ -91,6 +93,7 @@ class Compiler {
   DataSourceIndices closedWorldIndicesForTesting;
   ResolutionEnqueuer resolutionEnqueuerForTesting;
   CodegenEnqueuer codegenEnqueuerForTesting;
+  DumpInfoStateData dumpInfoStateForTesting;
 
   ir.Component untrimmedComponentForDumpInfo;
 
@@ -243,9 +246,8 @@ class Compiler {
   /// Dumps a list of unused [ir.Library]'s in the [KernelResult]. This *must*
   /// be called before [setMainAndTrimComponent], because that method will
   /// discard the unused [ir.Library]s.
-  void dumpUnusedLibraries(ir.Component component, List<Uri> libraries) {
-    var usedUris = libraries.toSet();
-    bool isUnused(ir.Library l) => !usedUris.contains(l.importUri);
+  void dumpUnusedLibraries(ir.Component component, Set<Uri> libraries) {
+    bool isUnused(ir.Library l) => !libraries.contains(l.importUri);
     String libraryString(ir.Library library) {
       return '${library.importUri}(${library.fileUri})';
     }
@@ -267,7 +269,7 @@ class Compiler {
 
   /// Trims a component down to only the provided library uris.
   ir.Component trimComponent(
-      ir.Component component, List<Uri> librariesToInclude) {
+      ir.Component component, Set<Uri> librariesToInclude) {
     var irLibraryMap = <Uri, ir.Library>{};
     var irLibraries = <ir.Library>[];
     for (var library in component.libraries) {
@@ -322,11 +324,8 @@ class Compiler {
     }
   }
 
-  JClosedWorld computeClosedWorld(
-      ir.Component component,
-      List<ModuleData> moduleData,
-      Uri rootLibraryUri,
-      Iterable<Uri> libraries) {
+  JClosedWorld computeClosedWorld(ir.Component component, ModuleData moduleData,
+      Uri rootLibraryUri, Iterable<Uri> libraries) {
     frontendStrategy.registerLoadedLibraries(component, libraries);
     frontendStrategy.registerModuleData(moduleData);
     ResolutionEnqueuer resolutionEnqueuer = frontendStrategy
@@ -399,16 +398,31 @@ class Compiler {
         untrimmedComponentForDumpInfo = component;
       }
       if (options.cfeOnly) {
+        // [ModuleData] must be deserialized with the full component, i.e.
+        // before trimming.
+        ModuleData moduleData;
+        if (options.modularAnalysisInputs != null) {
+          moduleData = await serializationTask.deserializeModuleData(component);
+        }
+
+        Set<Uri> includedLibraries = output.libraries.toSet();
         if (options.fromDill) {
-          List<Uri> libraries = output.libraries;
           if (options.dumpUnusedLibraries) {
-            dumpUnusedLibraries(component, libraries);
+            dumpUnusedLibraries(component, includedLibraries);
           }
           if (options.entryUri != null) {
-            component = trimComponent(component, libraries);
+            component = trimComponent(component, includedLibraries);
           }
         }
-        await serializationTask.serializeComponent(component);
+        if (moduleData == null) {
+          await serializationTask.serializeComponent(component);
+        } else {
+          // Trim [moduleData] down to only the included libraries.
+          moduleData.impactData
+              .removeWhere((uri, _) => !includedLibraries.contains(uri));
+          await serializationTask.serializeModuleData(
+              moduleData, component, includedLibraries);
+        }
       }
       return output.withNewComponent(component);
     } else {
@@ -431,7 +445,7 @@ class Compiler {
         'runModularAnalysis', () async => modular_analysis.run(input));
   }
 
-  Future<List<ModuleData>> produceModuleData(load_kernel.Output output) async {
+  Future<ModuleData> produceModuleData(load_kernel.Output output) async {
     ir.Component component = output.component;
     if (options.modularMode) {
       Set<Uri> moduleLibraries = output.moduleLibraries.toSet();
@@ -441,7 +455,7 @@ class Compiler {
         serializationTask.serializeModuleData(
             moduleData, component, moduleLibraries);
       }
-      return [moduleData];
+      return moduleData;
     } else {
       return await serializationTask.deserializeModuleData(component);
     }
@@ -527,7 +541,7 @@ class Compiler {
   }
 
   Future<ClosedWorldAndIndices> produceClosedWorld(
-      load_kernel.Output output, List<ModuleData> moduleData) async {
+      load_kernel.Output output, ModuleData moduleData) async {
     ir.Component component = output.component;
     ClosedWorldAndIndices closedWorldAndIndices;
     if (options.readClosedWorldUri == null) {
@@ -623,7 +637,7 @@ class Compiler {
 
     // Run modular analysis. This may be null if modular analysis was not
     // requested for this pipeline.
-    List<ModuleData> moduleData;
+    ModuleData moduleData;
     if (options.modularMode || options.hasModularAnalysisInputs) {
       moduleData = await produceModuleData(output);
     }
@@ -658,13 +672,18 @@ class Compiler {
         codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
 
+    DumpInfoStateData dumpInfoState;
     dumpInfoTask.reportSize(programSize);
     if (options.features.newDumpInfo.isEnabled) {
       assert(untrimmedComponentForDumpInfo != null);
-      dumpInfoTask.dumpInfoNew(untrimmedComponentForDumpInfo, closedWorld,
-          globalTypeInferenceResults);
+      dumpInfoState = dumpInfoTask.dumpInfoNew(untrimmedComponentForDumpInfo,
+          closedWorld, globalTypeInferenceResults);
     } else {
-      dumpInfoTask.dumpInfo(closedWorld, globalTypeInferenceResults);
+      dumpInfoState =
+          dumpInfoTask.dumpInfo(closedWorld, globalTypeInferenceResults);
+    }
+    if (retainDataForTesting) {
+      dumpInfoStateForTesting = dumpInfoState;
     }
   }
 
@@ -747,8 +766,6 @@ class Compiler {
 
   void _reportDiagnosticMessage(
       DiagnosticMessage diagnosticMessage, api.Diagnostic kind) {
-    // [:span.uri:] might be [:null:] in case of a [Script] with no [uri]. For
-    // instance in the [Types] constructor in typechecker.dart.
     var span = diagnosticMessage.sourceSpan;
     var message = diagnosticMessage.message;
     if (span == null || span.uri == null) {

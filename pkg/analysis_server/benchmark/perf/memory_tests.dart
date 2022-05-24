@@ -21,11 +21,11 @@ import '../../test/lsp/server_abstract.dart' show ClientCapabilitiesHelperMixin;
 abstract class AbstractBenchmarkTest {
   Future<void> get analysisFinished;
   Future<void> closeFile(String filePath);
-  Future<void> complete(String filePath, int offset);
+  Future<void> complete(String filePath, int offset, {required bool isWarmUp});
   void debugStdio();
   Future<int> getMemoryUsage();
   Future<void> openFile(String filePath, String contents);
-  Future<void> setUp(List<String> roots);
+  Future<void> setUp(String dartSdkPath, List<String> roots);
   Future<void> shutdown();
 
   Future<void> updateFile(String filePath, String contents);
@@ -44,22 +44,13 @@ class AnalysisServerBenchmarkTest extends AbstractBenchmarkTest {
       _test.sendAnalysisUpdateContent({filePath: RemoveContentOverlay()});
 
   @override
-  Future<void> complete(String filePath, int offset) async {
-    // Create a new non-broadcast stream and subscribe to
-    // test.onCompletionResults before sending a request.
-    // Otherwise we could skip results which where posted to
-    // test.onCompletionResults after request is sent but
-    // before subscribing to test.onCompletionResults.
-    final completionResults = StreamController<CompletionResultsParams>();
-    completionResults.sink.addStream(_test.onCompletionResults);
-
-    var result = await _test.sendCompletionGetSuggestions(filePath, offset);
-
-    var future = completionResults.stream
-        .where((CompletionResultsParams params) =>
-            params.id == result.id && params.isLast)
-        .first;
-    await future;
+  Future<void> complete(
+    String filePath,
+    int offset, {
+    required bool isWarmUp,
+  }) async {
+    await _test.sendCompletionGetSuggestions2(filePath, offset, 100,
+        timeout: isWarmUp ? 60 * 1000 : 0);
   }
 
   @override
@@ -76,10 +67,10 @@ class AnalysisServerBenchmarkTest extends AbstractBenchmarkTest {
   }
 
   @override
-  Future<void> setUp(List<String> roots) async {
+  Future<void> setUp(String dartSdkPath, List<String> roots) async {
+    _test.dartSdkPath = dartSdkPath;
     await _test.setUp();
     await _test.subscribeToStatusNotifications();
-    await _test.subscribeToAvailableSuggestions();
     await _test.sendAnalysisSetAnalysisRoots(roots, []);
   }
 
@@ -128,16 +119,6 @@ class AnalysisServerMemoryUsageTest
   /// After every test, the server is stopped.
   Future shutdown() async => await shutdownIfNeeded();
 
-  /// Enable using available suggestions during completion.
-  Future<void> subscribeToAvailableSuggestions() async {
-    await server.send(
-      'completion.setSubscriptions',
-      CompletionSetSubscriptionsParams(
-        [CompletionService.AVAILABLE_SUGGESTION_SETS],
-      ).toJson(),
-    );
-  }
-
   /// Enable [ServerService.STATUS] notifications so that [analysisFinished]
   /// can be used.
   Future subscribeToStatusNotifications() async {
@@ -167,7 +148,7 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
   }
 
   @override
-  Future<void> complete(String filePath, int offset) {
+  Future<void> complete(String filePath, int offset, {required bool isWarmUp}) {
     final contents = _fileContents[filePath]!;
     final position = _test.positionFromOffset(offset, contents);
     return _test.getCompletion(Uri.file(filePath), position);
@@ -187,7 +168,8 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
   }
 
   @override
-  Future<void> setUp(List<String> roots) async {
+  Future<void> setUp(String dartSdkPath, List<String> roots) async {
+    _test.dartSdkPath = dartSdkPath;
     _test.instrumentationService = InstrumentationLogAdapter(_logger);
     await _test.setUp();
     _test.projectFolderPath = roots.single;

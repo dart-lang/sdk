@@ -7,7 +7,6 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 
 /// This command allows a client to request the server send it a
@@ -18,7 +17,7 @@ import 'package:analysis_server/src/lsp/progress.dart';
 /// args and when the client calls the server to execute that command, the server
 /// will call the client to execute workspace/applyEdit.
 class SendWorkspaceEditCommandHandler extends SimpleEditCommandHandler {
-  SendWorkspaceEditCommandHandler(LspAnalysisServer server) : super(server);
+  SendWorkspaceEditCommandHandler(super.server);
 
   @override
   String get commandName => 'Send Workspace Edit';

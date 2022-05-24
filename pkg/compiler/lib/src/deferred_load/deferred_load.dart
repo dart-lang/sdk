@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 /// *Overview of deferred loading*
 ///
 /// Deferred loading allows developers to specify deferred imports. These
@@ -275,7 +277,7 @@ import 'entity_data.dart';
 import 'import_set.dart';
 import 'output_unit.dart';
 
-import '../../compiler.dart' show OutputType;
+import '../../compiler_api.dart' as api show OutputType;
 import '../common.dart';
 import '../common/elements.dart' show KElementEnvironment;
 import '../common/metrics.dart'
@@ -315,7 +317,8 @@ class DeferredLoadTask extends CompilerTask {
 
   /// A sentinel used only by the [ImportSet] corresponding to the
   /// [_mainOutputUnit].
-  final ImportEntity _mainImport = ImportEntity(true, 'main#main', null, null);
+  final ImportEntity _mainImport =
+      ImportEntity(true, 'main#main', Uri(), Uri());
 
   /// A set containing (eventually) all output units that will result from the
   /// program.
@@ -468,7 +471,7 @@ class DeferredLoadTask extends CompilerTask {
       }
     }
     compiler.outputProvider.createOutputSink(
-        compiler.options.deferredGraphUri.path, '', OutputType.debug)
+        compiler.options.deferredGraphUri.path, '', api.OutputType.debug)
       ..add(graph.join('\n'))
       ..close();
   }

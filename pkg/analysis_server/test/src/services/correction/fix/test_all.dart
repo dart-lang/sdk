@@ -10,6 +10,7 @@ import 'add_const_test.dart' as add_const;
 import 'add_curly_braces_test.dart' as add_curly_braces;
 import 'add_diagnostic_property_reference_test.dart'
     as add_diagnostic_property_reference;
+import 'add_enum_constant_test.dart' as add_enum_constant_test;
 import 'add_eol_at_end_of_file_test.dart' as add_eol_at_end_of_file;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
@@ -63,6 +64,8 @@ import 'convert_to_contains_test.dart' as convert_to_contains;
 import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
+import 'convert_to_function_declaration_test.dart'
+    as convert_to_function_declaration;
 import 'convert_to_generic_function_syntax_test.dart'
     as convert_to_generic_function_syntax;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
@@ -182,6 +185,7 @@ import 'remove_unused_import_test.dart' as remove_unused_import;
 import 'remove_unused_label_test.dart' as remove_unused_label;
 import 'remove_unused_local_variable_test.dart' as remove_unused_local_variable;
 import 'remove_unused_parameter_test.dart' as remove_unused_parameter;
+import 'remove_var_test.dart' as remove_var;
 import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
 import 'replace_Null_with_void_test.dart' as replace_null_with_void;
 import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
@@ -236,6 +240,7 @@ void main() {
     add_const.main();
     add_curly_braces.main();
     add_diagnostic_property_reference.main();
+    add_enum_constant_test.main();
     add_eol_at_end_of_file.main();
     add_explicit_cast.main();
     add_field_formal_parameters.main();
@@ -279,6 +284,7 @@ void main() {
     convert_to_contains.main();
     convert_to_double_quoted_string.main();
     convert_to_for_element.main();
+    convert_to_function_declaration.main();
     convert_to_generic_function_syntax.main();
     convert_to_if_element.main();
     convert_to_if_null.main();
@@ -385,6 +391,7 @@ void main() {
     remove_unused_label.main();
     remove_unused_local_variable.main();
     remove_unused_parameter.main();
+    remove_var.main();
     rename_to_camel_case.main();
     replace_boolean_with_bool.main();
     replace_cascade_with_dot.main();

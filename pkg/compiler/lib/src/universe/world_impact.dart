@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.universe.world_impact;
 
 import '../elements/entities.dart';
@@ -37,16 +39,19 @@ class WorldImpact {
 
   Iterable<ConstantUse> get constantUses => const [];
 
-  bool get isEmpty => true;
+  void _forEach<U>(Iterable<U> uses, void Function(MemberEntity, U) visitUse) =>
+      uses.forEach((use) => visitUse(member, use));
 
-  void apply(WorldImpactVisitor visitor) {
-    staticUses.forEach((StaticUse use) => visitor.visitStaticUse(member, use));
-    dynamicUses
-        .forEach((DynamicUse use) => visitor.visitDynamicUse(member, use));
-    typeUses.forEach((TypeUse use) => visitor.visitTypeUse(member, use));
-    constantUses
-        .forEach((ConstantUse use) => visitor.visitConstantUse(member, use));
-  }
+  void forEachDynamicUse(void Function(MemberEntity, DynamicUse) visitUse) =>
+      _forEach(dynamicUses, visitUse);
+  void forEachStaticUse(void Function(MemberEntity, StaticUse) visitUse) =>
+      _forEach(staticUses, visitUse);
+  void forEachTypeUse(void Function(MemberEntity, TypeUse) visitUse) =>
+      _forEach(typeUses, visitUse);
+  void forEachConstantUse(void Function(MemberEntity, ConstantUse) visitUse) =>
+      _forEach(constantUses, visitUse);
+
+  bool get isEmpty => true;
 
   @override
   String toString() => dump(this);
@@ -74,14 +79,18 @@ class WorldImpact {
   }
 }
 
-abstract class WorldImpactBuilder {
+abstract class WorldImpactBuilder extends WorldImpact {
   void registerDynamicUse(DynamicUse dynamicUse);
   void registerTypeUse(TypeUse typeUse);
   void registerStaticUse(StaticUse staticUse);
   void registerConstantUse(ConstantUse constantUse);
 }
 
-class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
+class WorldImpactBuilderImpl extends WorldImpactBuilder {
+  /// The [MemberEntity] associated with this set of impacts. Maybe null.
+  @override
+  final MemberEntity member;
+
   // TODO(johnniwinther): Do we benefit from lazy initialization of the
   // [Setlet]s?
   Set<DynamicUse> _dynamicUses;
@@ -89,10 +98,11 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
   Set<TypeUse> _typeUses;
   Set<ConstantUse> _constantUses;
 
-  WorldImpactBuilderImpl();
+  WorldImpactBuilderImpl([this.member]);
 
   WorldImpactBuilderImpl.internal(
-      this._dynamicUses, this._staticUses, this._typeUses, this._constantUses);
+      this._dynamicUses, this._staticUses, this._typeUses, this._constantUses,
+      {this.member});
 
   @override
   bool get isEmpty =>
@@ -161,7 +171,7 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
 
 /// Mutable implementation of [WorldImpact] used to transform
 /// [ResolutionImpact] or [CodegenImpact] to [WorldImpact].
-class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
+class TransformedWorldImpact extends WorldImpactBuilder {
   final WorldImpact worldImpact;
 
   Setlet<StaticUse> _staticUses;
@@ -228,76 +238,10 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
   }
 
   @override
-  void apply(WorldImpactVisitor visitor) {
-    staticUses.forEach((StaticUse use) => visitor.visitStaticUse(member, use));
-    dynamicUses
-        .forEach((DynamicUse use) => visitor.visitDynamicUse(member, use));
-    typeUses.forEach((TypeUse use) => visitor.visitTypeUse(member, use));
-    constantUses
-        .forEach((ConstantUse use) => visitor.visitConstantUse(member, use));
-  }
-
-  @override
   String toString() {
     StringBuffer sb = StringBuffer();
     sb.write('TransformedWorldImpact($worldImpact)');
     WorldImpact.printOn(sb, this);
     return sb.toString();
-  }
-}
-
-/// Visitor used to process the uses of a [WorldImpact].
-abstract class WorldImpactVisitor {
-  void visitStaticUse(MemberEntity member, StaticUse staticUse);
-  void visitDynamicUse(MemberEntity member, DynamicUse dynamicUse);
-  void visitTypeUse(MemberEntity member, TypeUse typeUse);
-  void visitConstantUse(MemberEntity member, ConstantUse typeUse);
-}
-
-// TODO(johnniwinther): Remove these when we get anonymous local classes.
-typedef VisitUse<U> = void Function(MemberEntity member, U use);
-
-class WorldImpactVisitorImpl implements WorldImpactVisitor {
-  final VisitUse<StaticUse> _visitStaticUse;
-  final VisitUse<DynamicUse> _visitDynamicUse;
-  final VisitUse<TypeUse> _visitTypeUse;
-  final VisitUse<ConstantUse> _visitConstantUse;
-
-  WorldImpactVisitorImpl(
-      {VisitUse<StaticUse> visitStaticUse,
-      VisitUse<DynamicUse> visitDynamicUse,
-      VisitUse<TypeUse> visitTypeUse,
-      VisitUse<ConstantUse> visitConstantUse})
-      : _visitStaticUse = visitStaticUse,
-        _visitDynamicUse = visitDynamicUse,
-        _visitTypeUse = visitTypeUse,
-        _visitConstantUse = visitConstantUse;
-
-  @override
-  void visitStaticUse(MemberEntity member, StaticUse use) {
-    if (_visitStaticUse != null) {
-      _visitStaticUse(member, use);
-    }
-  }
-
-  @override
-  void visitDynamicUse(MemberEntity member, DynamicUse use) {
-    if (_visitDynamicUse != null) {
-      _visitDynamicUse(member, use);
-    }
-  }
-
-  @override
-  void visitTypeUse(MemberEntity member, TypeUse use) {
-    if (_visitTypeUse != null) {
-      _visitTypeUse(member, use);
-    }
-  }
-
-  @override
-  void visitConstantUse(MemberEntity member, ConstantUse use) {
-    if (_visitConstantUse != null) {
-      _visitConstantUse(member, use);
-    }
   }
 }

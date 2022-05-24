@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/correction/dart/add_async.dart';
 import 'package:analysis_server/src/services/correction/dart/add_await.dart';
 import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
+import 'package:analysis_server/src/services/correction/dart/add_enum_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/add_eol_at_end_of_file.dart';
 import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
@@ -52,6 +53,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart
 import 'package:analysis_server/src/services/correction/dart/convert_to_cascade.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_function_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_initializing_formal.dart';
@@ -148,6 +150,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unused_impor
 import 'package:analysis_server/src/services/correction/dart/remove_unused_label.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_parameter.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_var.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_Null_with_void.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_boolean_with_bool.dart';
@@ -346,341 +349,344 @@ class FixProcessor extends BaseProcessor {
   /// the unique name must be used here.
   static final Map<String, List<ProducerGenerator>> lintProducerMap = {
     LintNames.always_declare_return_types: [
-      AddReturnType.newInstance,
+      AddReturnType.new,
     ],
     LintNames.always_require_non_null_named_parameters: [
-      AddRequired.newInstance,
+      AddRequired.new,
     ],
     LintNames.always_specify_types: [
-      AddTypeAnnotation.newInstanceBulkFixable,
+      AddTypeAnnotation.bulkFixable,
     ],
     LintNames.always_use_package_imports: [
-      ConvertToPackageImport.newInstance,
+      ConvertToPackageImport.new,
     ],
     LintNames.annotate_overrides: [
-      AddOverride.newInstance,
+      AddOverride.new,
     ],
     LintNames.avoid_annotating_with_dynamic: [
-      RemoveTypeAnnotation.newInstance,
+      RemoveTypeAnnotation.new,
     ],
     LintNames.avoid_empty_else: [
-      RemoveEmptyElse.newInstance,
+      RemoveEmptyElse.new,
     ],
     LintNames.avoid_escaping_inner_quotes: [
-      ConvertQuotes.newInstance,
+      ConvertQuotes.new,
     ],
     LintNames.avoid_function_literals_in_foreach_calls: [
-      ConvertForEachToForLoop.newInstance,
+      ConvertForEachToForLoop.new,
     ],
     LintNames.avoid_init_to_null: [
-      RemoveInitializer.newInstance,
+      RemoveInitializer.new,
     ],
     LintNames.avoid_null_checks_in_equality_operators: [
-      RemoveComparison.newInstance,
+      RemoveComparison.new,
     ],
     LintNames.avoid_print: [
-      MakeConditionalOnDebugMode.newInstance,
+      MakeConditionalOnDebugMode.new,
     ],
     LintNames.avoid_private_typedef_functions: [
-      InlineTypedef.newInstance,
+      InlineTypedef.new,
     ],
     LintNames.avoid_redundant_argument_values: [
-      RemoveArgument.newInstance,
+      RemoveArgument.new,
     ],
     LintNames.avoid_relative_lib_imports: [
-      ConvertToPackageImport.newInstance,
+      ConvertToPackageImport.new,
     ],
     LintNames.avoid_return_types_on_setters: [
-      RemoveTypeAnnotation.newInstance,
+      RemoveTypeAnnotation.new,
     ],
     LintNames.avoid_returning_null_for_future: [
       // TODO(brianwilkerson) Consider applying in bulk.
-      AddAsync.newInstance,
-      WrapInFuture.newInstance,
+      AddAsync.new,
+      WrapInFuture.new,
     ],
     LintNames.avoid_returning_null_for_void: [
-      RemoveReturnedValue.newInstance,
+      RemoveReturnedValue.new,
     ],
     LintNames.avoid_single_cascade_in_expression_statements: [
       // TODO(brianwilkerson) This fix should be applied to some non-lint
       //  diagnostics and should also be available as an assist.
-      ReplaceCascadeWithDot.newInstance,
+      ReplaceCascadeWithDot.new,
     ],
     LintNames.avoid_types_as_parameter_names: [
-      ConvertToOnType.newInstance,
+      ConvertToOnType.new,
     ],
     LintNames.avoid_types_on_closure_parameters: [
-      ReplaceWithIdentifier.newInstance,
-      RemoveTypeAnnotation.newInstance,
+      ReplaceWithIdentifier.new,
+      RemoveTypeAnnotation.new,
     ],
     LintNames.avoid_unused_constructor_parameters: [
-      RemoveUnusedParameter.newInstance,
+      RemoveUnusedParameter.new,
     ],
     LintNames.avoid_unnecessary_containers: [
-      FlutterRemoveWidget.newInstance,
+      FlutterRemoveWidget.new,
     ],
     LintNames.avoid_void_async: [
-      ReplaceReturnTypeFuture.newInstance,
+      ReplaceReturnTypeFuture.new,
     ],
     LintNames.await_only_futures: [
-      RemoveAwait.newInstance,
+      RemoveAwait.new,
     ],
     LintNames.cascade_invocations: [
-      ConvertToCascade.newInstance,
+      ConvertToCascade.new,
     ],
     LintNames.curly_braces_in_flow_control_structures: [
-      UseCurlyBraces.newInstance,
+      UseCurlyBraces.new,
     ],
     LintNames.diagnostic_describe_all_properties: [
-      AddDiagnosticPropertyReference.newInstance,
+      AddDiagnosticPropertyReference.new,
     ],
     LintNames.directives_ordering: [
-      OrganizeImports.newInstance,
+      OrganizeImports.new,
     ],
     LintNames.empty_catches: [
-      RemoveEmptyCatch.newInstance,
+      RemoveEmptyCatch.new,
     ],
     LintNames.empty_constructor_bodies: [
-      RemoveEmptyConstructorBody.newInstance,
+      RemoveEmptyConstructorBody.new,
     ],
     LintNames.empty_statements: [
-      RemoveEmptyStatement.newInstance,
-      ReplaceWithBrackets.newInstance,
+      RemoveEmptyStatement.new,
+      ReplaceWithBrackets.new,
     ],
     LintNames.eol_at_end_of_file: [
-      AddEolAtEndOfFile.newInstance,
+      AddEolAtEndOfFile.new,
     ],
     LintNames.exhaustive_cases: [
-      AddMissingEnumLikeCaseClauses.newInstance,
+      AddMissingEnumLikeCaseClauses.new,
     ],
     LintNames.hash_and_equals: [
       CreateMethod.equalsOrHashCode,
     ],
     LintNames.leading_newlines_in_multiline_strings: [
-      AddLeadingNewlineToString.newInstance,
+      AddLeadingNewlineToString.new,
     ],
     LintNames.no_duplicate_case_values: [
-      RemoveDuplicateCase.newInstance,
+      RemoveDuplicateCase.new,
     ],
     LintNames.no_leading_underscores_for_library_prefixes: [
-      RemoveLeadingUnderscore.newInstance,
+      RemoveLeadingUnderscore.new,
     ],
     LintNames.no_leading_underscores_for_local_identifiers: [
-      RemoveLeadingUnderscore.newInstance,
+      RemoveLeadingUnderscore.new,
     ],
     LintNames.non_constant_identifier_names: [
-      RenameToCamelCase.newInstance,
+      RenameToCamelCase.new,
     ],
     LintNames.null_check_on_nullable_type_parameter: [
-      ReplaceNullCheckWithCast.newInstance,
+      ReplaceNullCheckWithCast.new,
     ],
     LintNames.null_closures: [
-      ReplaceNullWithClosure.newInstance,
+      ReplaceNullWithClosure.new,
     ],
     LintNames.omit_local_variable_types: [
-      ReplaceWithVar.newInstance,
+      ReplaceWithVar.new,
     ],
     LintNames.prefer_adjacent_string_concatenation: [
-      RemoveOperator.newInstance,
+      RemoveOperator.new,
     ],
     LintNames.prefer_collection_literals: [
-      ConvertToListLiteral.newInstance,
-      ConvertToMapLiteral.newInstance,
-      ConvertToSetLiteral.newInstance,
+      ConvertToListLiteral.new,
+      ConvertToMapLiteral.new,
+      ConvertToSetLiteral.new,
     ],
     LintNames.prefer_conditional_assignment: [
-      ReplaceWithConditionalAssignment.newInstance,
+      ReplaceWithConditionalAssignment.new,
     ],
     LintNames.prefer_const_constructors: [
-      AddConst.newInstance,
-      ReplaceNewWithConst.newInstance,
+      AddConst.new,
+      ReplaceNewWithConst.new,
     ],
     LintNames.prefer_const_constructors_in_immutables: [
-      AddConst.newInstance,
+      AddConst.new,
     ],
     LintNames.prefer_const_declarations: [
-      ReplaceFinalWithConst.newInstance,
+      ReplaceFinalWithConst.new,
     ],
     LintNames.prefer_const_literals_to_create_immutables: [
-      AddConst.newInstance,
+      AddConst.new,
     ],
     LintNames.prefer_contains: [
-      ConvertToContains.newInstance,
+      ConvertToContains.new,
     ],
     LintNames.prefer_double_quotes: [
-      ConvertToDoubleQuotes.newInstance,
+      ConvertToDoubleQuotes.new,
     ],
     LintNames.prefer_equal_for_default_values: [
-      ReplaceColonWithEquals.newInstance,
+      ReplaceColonWithEquals.new,
     ],
     LintNames.prefer_expression_function_bodies: [
-      ConvertToExpressionFunctionBody.newInstance,
+      ConvertToExpressionFunctionBody.new,
     ],
     LintNames.prefer_final_fields: [
-      MakeFinal.newInstance,
+      MakeFinal.new,
     ],
     LintNames.prefer_final_in_for_each: [
-      MakeFinal.newInstance,
+      MakeFinal.new,
     ],
     LintNames.prefer_final_locals: [
-      MakeFinal.newInstance,
+      MakeFinal.new,
     ],
     LintNames.prefer_final_parameters: [
-      MakeFinal.newInstance,
+      MakeFinal.new,
     ],
     LintNames.prefer_for_elements_to_map_fromIterable: [
-      ConvertMapFromIterableToForLiteral.newInstance,
+      ConvertMapFromIterableToForLiteral.new,
+    ],
+    LintNames.prefer_function_declarations_over_variables: [
+      ConvertToFunctionDeclaration.new,
     ],
     LintNames.prefer_generic_function_type_aliases: [
-      ConvertToGenericFunctionSyntax.newInstance,
+      ConvertToGenericFunctionSyntax.new,
     ],
     LintNames.prefer_if_elements_to_conditional_expressions: [
-      ConvertConditionalExpressionToIfElement.newInstance,
+      ConvertConditionalExpressionToIfElement.new,
     ],
     LintNames.prefer_if_null_operators: [
-      ConvertToIfNull.newInstance,
+      ConvertToIfNull.new,
     ],
     LintNames.prefer_initializing_formals: [
-      ConvertToInitializingFormal.newInstance,
+      ConvertToInitializingFormal.new,
     ],
     LintNames.prefer_inlined_adds: [
-      ConvertAddAllToSpread.newInstance,
-      InlineInvocation.newInstance,
+      ConvertAddAllToSpread.new,
+      InlineInvocation.new,
     ],
     LintNames.prefer_int_literals: [
-      ConvertToIntLiteral.newInstance,
+      ConvertToIntLiteral.new,
     ],
     LintNames.prefer_interpolation_to_compose_strings: [
-      ReplaceWithInterpolation.newInstance,
+      ReplaceWithInterpolation.new,
     ],
     LintNames.prefer_is_empty: [
-      ReplaceWithIsEmpty.newInstance,
+      ReplaceWithIsEmpty.new,
     ],
     LintNames.prefer_is_not_empty: [
-      UseIsNotEmpty.newInstance,
+      UseIsNotEmpty.new,
     ],
     LintNames.prefer_is_not_operator: [
-      ConvertIntoIsNot.newInstance,
+      ConvertIntoIsNot.new,
     ],
     LintNames.prefer_iterable_whereType: [
-      ConvertToWhereType.newInstance,
+      ConvertToWhereType.new,
     ],
     LintNames.prefer_null_aware_operators: [
-      ConvertToNullAware.newInstance,
+      ConvertToNullAware.new,
     ],
     LintNames.prefer_relative_imports: [
-      ConvertToRelativeImport.newInstance,
+      ConvertToRelativeImport.new,
     ],
     LintNames.prefer_single_quotes: [
-      ConvertToSingleQuotes.newInstance,
+      ConvertToSingleQuotes.new,
     ],
     LintNames.prefer_spread_collections: [
-      ConvertAddAllToSpread.newInstance,
+      ConvertAddAllToSpread.new,
     ],
     LintNames.prefer_typing_uninitialized_variables: [
-      AddTypeAnnotation.newInstanceBulkFixable,
+      AddTypeAnnotation.bulkFixable,
     ],
     LintNames.prefer_void_to_null: [
-      ReplaceNullWithVoid.newInstance,
+      ReplaceNullWithVoid.new,
     ],
     LintNames.require_trailing_commas: [
-      AddTrailingComma.newInstance,
+      AddTrailingComma.new,
     ],
     LintNames.sized_box_for_whitespace: [
-      ReplaceContainerWithSizedBox.newInstance,
+      ReplaceContainerWithSizedBox.new,
     ],
     LintNames.slash_for_doc_comments: [
-      ConvertDocumentationIntoLine.newInstance,
+      ConvertDocumentationIntoLine.new,
     ],
     LintNames.sort_child_properties_last: [
-      SortChildPropertyLast.newInstance,
+      SortChildPropertyLast.new,
     ],
     LintNames.sort_constructors_first: [
-      SortConstructorFirst.newInstance,
+      SortConstructorFirst.new,
     ],
     LintNames.sort_unnamed_constructors_first: [
-      SortUnnamedConstructorFirst.newInstance,
+      SortUnnamedConstructorFirst.new,
     ],
     LintNames.type_annotate_public_apis: [
-      AddTypeAnnotation.newInstanceBulkFixable,
+      AddTypeAnnotation.bulkFixable,
     ],
     LintNames.type_init_formals: [
-      RemoveTypeAnnotation.newInstance,
+      RemoveTypeAnnotation.new,
     ],
     LintNames.unawaited_futures: [
-      AddAwait.newInstance,
+      AddAwait.new,
     ],
     LintNames.unnecessary_brace_in_string_interps: [
-      RemoveInterpolationBraces.newInstance,
+      RemoveInterpolationBraces.new,
     ],
     LintNames.unnecessary_const: [
-      RemoveUnnecessaryConst.newInstance,
+      RemoveUnnecessaryConst.new,
     ],
     LintNames.unnecessary_constructor_name: [
-      RemoveConstructorName.newInstance,
+      RemoveConstructorName.new,
     ],
     LintNames.unnecessary_final: [
-      ReplaceFinalWithVar.newInstance,
+      ReplaceFinalWithVar.new,
     ],
     LintNames.unnecessary_getters_setters: [
-      MakeFieldPublic.newInstance,
+      MakeFieldPublic.new,
     ],
     LintNames.unnecessary_lambdas: [
-      ReplaceWithTearOff.newInstance,
+      ReplaceWithTearOff.new,
     ],
     LintNames.unnecessary_late: [
-      RemoveUnnecessaryLate.newInstance,
+      RemoveUnnecessaryLate.new,
     ],
     LintNames.unnecessary_new: [
-      RemoveUnnecessaryNew.newInstance,
+      RemoveUnnecessaryNew.new,
     ],
     LintNames.unnecessary_null_aware_assignments: [
-      RemoveAssignment.newInstance,
+      RemoveAssignment.new,
     ],
     LintNames.unnecessary_null_in_if_null_operators: [
-      RemoveIfNullOperator.newInstance,
+      RemoveIfNullOperator.new,
     ],
     LintNames.unnecessary_nullable_for_final_variable_declarations: [
-      RemoveQuestionMark.newInstance,
+      RemoveQuestionMark.new,
     ],
     LintNames.unnecessary_overrides: [
-      RemoveMethodDeclaration.newInstance,
+      RemoveMethodDeclaration.new,
     ],
     LintNames.unnecessary_parenthesis: [
-      RemoveUnnecessaryParentheses.newInstance,
+      RemoveUnnecessaryParentheses.new,
     ],
     LintNames.unnecessary_raw_strings: [
-      RemoveUnnecessaryRawString.newInstance,
+      RemoveUnnecessaryRawString.new,
     ],
     LintNames.unnecessary_string_escapes: [
-      RemoveUnnecessaryStringEscape.newInstance,
+      RemoveUnnecessaryStringEscape.new,
     ],
     LintNames.unnecessary_string_interpolations: [
-      RemoveUnnecessaryStringInterpolation.newInstance,
+      RemoveUnnecessaryStringInterpolation.new,
     ],
     LintNames.unnecessary_this: [
-      RemoveThisExpression.newInstance,
+      RemoveThisExpression.new,
     ],
     LintNames.use_enums: [
-      ConvertClassToEnum.newInstance,
+      ConvertClassToEnum.new,
     ],
     LintNames.use_full_hex_values_for_flutter_colors: [
-      ReplaceWithEightDigitHex.newInstance,
+      ReplaceWithEightDigitHex.new,
     ],
     LintNames.use_function_type_syntax_for_parameters: [
-      ConvertToGenericFunctionSyntax.newInstance,
+      ConvertToGenericFunctionSyntax.new,
     ],
     LintNames.use_key_in_widget_constructors: [
-      AddKeyToConstructors.newInstance,
+      AddKeyToConstructors.new,
     ],
     LintNames.use_raw_strings: [
-      ConvertToRawString.newInstance,
+      ConvertToRawString.new,
     ],
     LintNames.use_rethrow_when_possible: [
-      UseRethrow.newInstance,
+      UseRethrow.new,
     ],
     LintNames.use_super_parameters: [
-      ConvertToSuperParameters.newInstance,
+      ConvertToSuperParameters.new,
     ],
   };
 
@@ -696,47 +702,47 @@ class FixProcessor extends BaseProcessor {
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
-      DataDriven.newInstance,
+      DataDriven.new,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
-      AddMissingParameter.newInstance,
-      DataDriven.newInstance,
+      AddMissingParameter.new,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
-      AddMissingParameter.newInstance,
-      DataDriven.newInstance,
+      AddMissingParameter.new,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
-      DataDriven.newInstance,
+      DataDriven.new,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS: [
-      AddSuperConstructorInvocation.newInstance,
+      AddSuperConstructorInvocation.new,
     ],
     CompileTimeErrorCode.INVALID_ANNOTATION: [
       ImportLibrary.forTopLevelVariable,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.INVALID_OVERRIDE: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
-      DataDriven.newInstance,
+      DataDriven.new,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT: [
-      AddSuperConstructorInvocation.newInstance,
+      AddSuperConstructorInvocation.new,
     ],
     CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT: [
-      AddSuperConstructorInvocation.newInstance,
-      CreateConstructorSuper.newInstance,
+      AddSuperConstructorInvocation.new,
+      CreateConstructorSuper.new,
     ],
     CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE: [
       ImportLibrary.forType,
@@ -748,7 +754,7 @@ class FixProcessor extends BaseProcessor {
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
       ImportLibrary.forType,
@@ -758,72 +764,72 @@ class FixProcessor extends BaseProcessor {
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_CLASS: [
-      DataDriven.newInstance,
+      DataDriven.new,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT: [
-      AddSuperConstructorInvocation.newInstance,
+      AddSuperConstructorInvocation.new,
     ],
     CompileTimeErrorCode.UNDEFINED_FUNCTION: [
-      DataDriven.newInstance,
+      DataDriven.new,
       ImportLibrary.forExtension,
       ImportLibrary.forFunction,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_GETTER: [
-      DataDriven.newInstance,
+      DataDriven.new,
       ImportLibrary.forExtensionMember,
       ImportLibrary.forTopLevelVariable,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
-      DataDriven.newInstance,
+      DataDriven.new,
       ImportLibrary.forExtension,
       ImportLibrary.forFunction,
       ImportLibrary.forTopLevelVariable,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_METHOD: [
-      DataDriven.newInstance,
+      DataDriven.new,
       ImportLibrary.forExtensionMember,
       ImportLibrary.forFunction,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
-      ChangeArgumentName.newInstance,
-      DataDriven.newInstance,
+      ChangeArgumentName.new,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.UNDEFINED_OPERATOR: [
       ImportLibrary.forExtensionMember,
     ],
     CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.UNDEFINED_SETTER: [
-      DataDriven.newInstance,
+      DataDriven.new,
       // TODO(brianwilkerson) Support ImportLibrary for non-extension members.
       ImportLibrary.forExtensionMember,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     HintCode.DEPRECATED_MEMBER_USE: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
-      DataDriven.newInstance,
+      DataDriven.new,
     ],
     HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
       ImportLibrary.dartAsync,
@@ -836,249 +842,256 @@ class FixProcessor extends BaseProcessor {
   /// [lintProducerMap].
   static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL: [
-      MakeFieldNotFinal.newInstance,
-      AddLate.newInstance,
+      MakeFieldNotFinal.new,
+      AddLate.new,
     ],
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL: [
-      MakeVariableNotFinal.newInstance,
+      MakeVariableNotFinal.new,
     ],
     CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
-      AddNullCheck.newInstance,
-      WrapInText.newInstance,
+      AddNullCheck.new,
+      WrapInText.new,
     ],
     CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT: [
-      AddAsync.newInstance,
+      AddAsync.new,
     ],
     CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT: [
-      AddAsync.newInstance,
+      AddAsync.new,
     ],
     CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY: [
       AddAsync.missingReturn,
     ],
     CompileTimeErrorCode.CAST_TO_NON_TYPE: [
       ChangeTo.classOrMixin,
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
+      CreateClass.new,
+      CreateMixin.new,
     ],
     CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER: [
-      ConvertIntoBlockBody.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
+      ConvertIntoBlockBody.new,
+      CreateNoSuchMethod.new,
+      MakeClassAbstract.new,
     ],
     CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE: [
-      UseConst.newInstance,
+      UseConst.new,
     ],
     CompileTimeErrorCode.CONST_INSTANCE_FIELD: [
-      AddStatic.newInstance,
+      AddStatic.new,
     ],
     CompileTimeErrorCode.CONST_WITH_NON_CONST: [
-      RemoveConst.newInstance,
+      RemoveConst.new,
     ],
     CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
     ],
     CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR: [
-      ConvertToListLiteral.newInstance,
-      ReplaceWithFilled.newInstance,
+      ConvertToListLiteral.new,
+      ReplaceWithFilled.new,
     ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
       ChangeTo.classOrMixin,
-      CreateClass.newInstance,
+      CreateClass.new,
     ],
     CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER: [
-      ReplaceWithExtensionName.newInstance,
+      ReplaceWithExtensionName.new,
     ],
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
-      CreateConstructor.newInstance,
+      CreateConstructor.new,
     ],
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
-      CreateConstructor.newInstance,
-      ConvertToNamedArguments.newInstance,
+      CreateConstructor.new,
+      ConvertToNamedArguments.new,
     ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED: [
-      AddLate.newInstance,
-      CreateConstructorForFinalFields.newInstance,
+      AddLate.new,
+      CreateConstructorForFinalFields.new,
     ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1: [
-      AddFieldFormalParameters.newInstance,
+      AddFieldFormalParameters.new,
     ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2: [
-      AddFieldFormalParameters.newInstance,
+      AddFieldFormalParameters.new,
     ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS: [
-      AddFieldFormalParameters.newInstance,
+      AddFieldFormalParameters.new,
     ],
     CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE: [
-      ReplaceReturnTypeStream.newInstance,
+      ReplaceReturnTypeStream.new,
     ],
     CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE: [
-      ReplaceReturnTypeFuture.newInstance,
+      ReplaceReturnTypeFuture.new,
     ],
     CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE: [
-      ReplaceReturnTypeIterable.newInstance,
+      ReplaceReturnTypeIterable.new,
     ],
     CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
       ChangeTo.classOrMixin,
-      CreateClass.newInstance,
+      CreateClass.new,
     ],
     CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD: [
-      CreateField.newInstance,
+      CreateField.new,
     ],
     CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER: [
-      ChangeToStaticAccess.newInstance,
+      ChangeToStaticAccess.new,
     ],
     CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE: [
-      ChangeToNearestPreciseValue.newInstance,
+      ChangeToNearestPreciseValue.new,
     ],
     CompileTimeErrorCode.INVALID_ANNOTATION: [
       ChangeTo.annotation,
-      CreateClass.newInstance,
+      CreateClass.new,
     ],
     CompileTimeErrorCode.INVALID_ASSIGNMENT: [
-      AddExplicitCast.newInstance,
-      AddNullCheck.newInstance,
-      ChangeTypeAnnotation.newInstance,
-      MakeVariableNullable.newInstance,
+      AddExplicitCast.new,
+      AddNullCheck.new,
+      ChangeTypeAnnotation.new,
+      MakeVariableNullable.new,
     ],
     CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION: [
-      RemoveParenthesesInGetterInvocation.newInstance,
+      RemoveParenthesesInGetterInvocation.new,
     ],
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
-      AddRequiredKeyword.newInstance,
-      MakeVariableNullable.newInstance,
+      AddRequiredKeyword.new,
+      MakeVariableNullable.new,
     ],
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION: [
-      AddRequiredKeyword.newInstance,
+      AddRequiredKeyword.new,
     ],
     CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [
-      AddMissingRequiredArgument.newInstance,
+      AddMissingRequiredArgument.new,
     ],
     CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE: [
-      ExtendClassForMixin.newInstance,
+      ExtendClassForMixin.new,
     ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
       ChangeTo.classOrMixin,
-      CreateClass.newInstance,
+      CreateClass.new,
     ],
     CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
     ],
     CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR: [
-      CreateConstructor.newInstance,
+      CreateConstructor.new,
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS:
         [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
+      CreateMissingOverrides.new,
+      CreateNoSuchMethod.new,
+      MakeClassAbstract.new,
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
+      CreateMissingOverrides.new,
+      CreateNoSuchMethod.new,
+      MakeClassAbstract.new,
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
+      CreateMissingOverrides.new,
+      CreateNoSuchMethod.new,
+      MakeClassAbstract.new,
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
+      CreateMissingOverrides.new,
+      CreateNoSuchMethod.new,
+      MakeClassAbstract.new,
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
+      CreateMissingOverrides.new,
+      CreateNoSuchMethod.new,
+      MakeClassAbstract.new,
     ],
     CompileTimeErrorCode.NON_BOOL_CONDITION: [
-      AddNeNull.newInstance,
+      AddNeNull.new,
+    ],
+    CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR: [
+      AddConst.new,
     ],
     CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
+      CreateClass.new,
+      CreateMixin.new,
     ],
     CompileTimeErrorCode.NOT_A_TYPE: [
       ChangeTo.classOrMixin,
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
+      CreateClass.new,
+      CreateMixin.new,
     ],
     CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD: [
-      AddLate.newInstance,
+      AddLate.new,
     ],
     CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE: [
-      RemoveQuestionMark.newInstance,
+      RemoveQuestionMark.new,
     ],
     CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE: [
-      RemoveQuestionMark.newInstance,
+      RemoveQuestionMark.new,
     ],
     CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE: [
-      RemoveQuestionMark.newInstance,
+      RemoveQuestionMark.new,
     ],
     CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE: [
-      RemoveQuestionMark.newInstance,
+      RemoveQuestionMark.new,
     ],
     CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION: [
-      MakeReturnTypeNullable.newInstance,
-      ReplaceReturnType.newInstance,
+      MakeReturnTypeNullable.new,
+      ReplaceReturnType.new,
     ],
     CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD: [
-      MakeReturnTypeNullable.newInstance,
-      ReplaceReturnType.newInstance,
+      MakeReturnTypeNullable.new,
+      ReplaceReturnType.new,
     ],
     CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY: [
-      AddSwitchCaseBreak.newInstance,
+      AddSwitchCaseBreak.new,
     ],
     CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
       ChangeTo.classOrMixin,
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
+      CreateClass.new,
+      CreateMixin.new,
     ],
     CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE: [
-      AddNullCheck.newInstance,
+      AddNullCheck.new,
     ],
     CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE: [
-      AddNullCheck.newInstance,
-      ExtractLocalVariable.newInstance,
+      AddNullCheck.new,
+      ExtractLocalVariable.new,
       ReplaceWithNullAware.single,
     ],
     CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
-      AddNullCheck.newInstance,
+      AddNullCheck.new,
     ],
     CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
-      AddNullCheck.newInstance,
-      ExtractLocalVariable.newInstance,
+      AddNullCheck.new,
+      ExtractLocalVariable.new,
       ReplaceWithNullAware.single,
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION: [
-      AddNullCheck.newInstance,
+      AddNullCheck.new,
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR: [
-      AddNullCheck.newInstance,
+      AddNullCheck.new,
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD: [
-      AddNullCheck.newInstance,
-      ConvertToNullAwareSpread.newInstance,
+      AddNullCheck.new,
+      ConvertToNullAwareSpread.new,
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH: [
-      AddNullCheck.newInstance,
+      AddNullCheck.new,
     ],
     CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
       ChangeTo.annotation,
-      CreateClass.newInstance,
+      CreateClass.new,
     ],
     CompileTimeErrorCode.UNDEFINED_CLASS: [
       ChangeTo.classOrMixin,
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
+      CreateClass.new,
+      CreateMixin.new,
     ],
     CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN: [
-      ReplaceBooleanWithBool.newInstance,
+      ReplaceBooleanWithBool.new,
+    ],
+    CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT: [
+      AddEnumConstant.new,
+      ChangeTo.getterOrSetter,
     ],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [
       ChangeTo.getterOrSetter,
-      CreateGetter.newInstance,
+      CreateGetter.new,
     ],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD: [
       ChangeTo.method,
@@ -1086,155 +1099,155 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER: [
       ChangeTo.getterOrSetter,
-      CreateSetter.newInstance,
+      CreateSetter.new,
     ],
     CompileTimeErrorCode.UNDEFINED_FUNCTION: [
       ChangeTo.function,
-      CreateClass.newInstance,
-      CreateFunction.newInstance,
+      CreateClass.new,
+      CreateFunction.new,
     ],
     CompileTimeErrorCode.UNDEFINED_GETTER: [
       ChangeTo.getterOrSetter,
-      CreateClass.newInstance,
-      CreateField.newInstance,
-      CreateGetter.newInstance,
-      CreateLocalVariable.newInstance,
-      CreateMethodOrFunction.newInstance,
-      CreateMixin.newInstance,
+      CreateClass.new,
+      CreateField.new,
+      CreateGetter.new,
+      CreateLocalVariable.new,
+      CreateMethodOrFunction.new,
+      CreateMixin.new,
     ],
     CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
       ChangeTo.getterOrSetter,
-      CreateClass.newInstance,
-      CreateField.newInstance,
-      CreateGetter.newInstance,
-      CreateLocalVariable.newInstance,
-      CreateMethodOrFunction.newInstance,
-      CreateMixin.newInstance,
-      CreateSetter.newInstance,
+      CreateClass.new,
+      CreateField.new,
+      CreateGetter.new,
+      CreateLocalVariable.new,
+      CreateMethodOrFunction.new,
+      CreateMixin.new,
+      CreateSetter.new,
     ],
     CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT: [
-      AddAsync.newInstance,
+      AddAsync.new,
     ],
     CompileTimeErrorCode.UNDEFINED_METHOD: [
       ChangeTo.method,
-      CreateClass.newInstance,
-      CreateFunction.newInstance,
+      CreateClass.new,
+      CreateFunction.new,
       CreateMethod.method,
     ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
-      AddMissingParameterNamed.newInstance,
-      ConvertFlutterChild.newInstance,
-      ConvertFlutterChildren.newInstance,
+      AddMissingParameterNamed.new,
+      ConvertFlutterChild.new,
+      ConvertFlutterChildren.new,
     ],
     CompileTimeErrorCode.UNDEFINED_SETTER: [
       ChangeTo.getterOrSetter,
-      CreateField.newInstance,
-      CreateSetter.newInstance,
+      CreateField.new,
+      CreateSetter.new,
     ],
     CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER: [
       // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
       //  method or setter. The existing _addFix methods would need to be
       //  updated so that only the appropriate subset is generated.
-      QualifyReference.newInstance,
+      QualifyReference.new,
     ],
     CompileTimeErrorCode
         .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE: [
       // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
       //  method or setter. The existing producers would need to be updated so
       //  that only the appropriate subset is generated.
-      QualifyReference.newInstance,
+      QualifyReference.new,
     ],
     CompileTimeErrorCode.URI_DOES_NOT_EXIST: [
-      CreateFile.newInstance,
+      CreateFile.new,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
-      MoveTypeArgumentsToClass.newInstance,
-      RemoveTypeArguments.newInstance,
+      MoveTypeArgumentsToClass.new,
+      RemoveTypeArguments.new,
     ],
     CompileTimeErrorCode.YIELD_OF_INVALID_TYPE: [
-      MakeReturnTypeNullable.newInstance,
+      MakeReturnTypeNullable.new,
     ],
 
     HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [
-      AddReturnNull.newInstance,
+      AddReturnNull.new,
     ],
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
       ReplaceWithNullAware.inChain,
     ],
     HintCode.DEAD_CODE: [
-      RemoveDeadCode.newInstance,
+      RemoveDeadCode.new,
     ],
     HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH: [
       // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
       //  a place where it can be reached (when possible).
-      RemoveDeadCode.newInstance,
+      RemoveDeadCode.new,
     ],
     HintCode.DEAD_CODE_ON_CATCH_SUBTYPE: [
       // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
       //  a place where it can be reached (when possible).
-      RemoveDeadCode.newInstance,
+      RemoveDeadCode.new,
     ],
     HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE: [
-      RemoveDeprecatedNewInCommentReference.newInstance,
+      RemoveDeprecatedNewInCommentReference.new,
     ],
     HintCode.DIVISION_OPTIMIZATION: [
-      UseEffectiveIntegerDivision.newInstance,
+      UseEffectiveIntegerDivision.new,
     ],
     HintCode.DUPLICATE_HIDDEN_NAME: [
-      RemoveNameFromCombinator.newInstance,
+      RemoveNameFromCombinator.new,
     ],
     HintCode.DUPLICATE_IMPORT: [
-      RemoveUnusedImport.newInstance,
+      RemoveUnusedImport.new,
     ],
     HintCode.DUPLICATE_SHOWN_NAME: [
-      RemoveNameFromCombinator.newInstance,
+      RemoveNameFromCombinator.new,
     ],
     // TODO(brianwilkerson) Add a fix to convert the path to a package: import.
 //    HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE: [],
     HintCode.INVALID_FACTORY_ANNOTATION: [
-      RemoveAnnotation.newInstance,
+      RemoveAnnotation.new,
     ],
     HintCode.INVALID_IMMUTABLE_ANNOTATION: [
-      RemoveAnnotation.newInstance,
+      RemoveAnnotation.new,
     ],
     HintCode.INVALID_LITERAL_ANNOTATION: [
-      RemoveAnnotation.newInstance,
+      RemoveAnnotation.new,
     ],
     HintCode.INVALID_REQUIRED_NAMED_PARAM: [
-      RemoveAnnotation.newInstance,
+      RemoveAnnotation.new,
     ],
     HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM: [
-      RemoveAnnotation.newInstance,
+      RemoveAnnotation.new,
     ],
     HintCode.INVALID_REQUIRED_POSITIONAL_PARAM: [
-      RemoveAnnotation.newInstance,
+      RemoveAnnotation.new,
     ],
     HintCode.INVALID_SEALED_ANNOTATION: [
-      RemoveAnnotation.newInstance,
+      RemoveAnnotation.new,
     ],
     HintCode.MISSING_REQUIRED_PARAM: [
-      AddMissingRequiredArgument.newInstance,
+      AddMissingRequiredArgument.new,
     ],
     HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS: [
-      AddMissingRequiredArgument.newInstance,
+      AddMissingRequiredArgument.new,
     ],
     HintCode.MISSING_RETURN: [
       AddAsync.missingReturn,
     ],
     HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
-      RemoveQuestionMark.newInstance,
+      RemoveQuestionMark.new,
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD: [
-      RemoveAnnotation.newInstance,
+      RemoveAnnotation.new,
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER: [
-      RemoveAnnotation.newInstance,
+      RemoveAnnotation.new,
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
-      RemoveAnnotation.newInstance,
+      RemoveAnnotation.new,
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [
-      RemoveAnnotation.newInstance,
+      RemoveAnnotation.new,
     ],
     // TODO(brianwilkerson) Add a fix to normalize the path.
 //    HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT: [],
@@ -1266,31 +1279,31 @@ class FixProcessor extends BaseProcessor {
       UpdateSdkConstraints.version_2_2_2,
     ],
     HintCode.TYPE_CHECK_IS_NOT_NULL: [
-      UseNotEqNull.newInstance,
+      UseNotEqNull.new,
     ],
     HintCode.TYPE_CHECK_IS_NULL: [
-      UseEqEqNull.newInstance,
+      UseEqEqNull.new,
     ],
     HintCode.UNDEFINED_HIDDEN_NAME: [
-      RemoveNameFromCombinator.newInstance,
+      RemoveNameFromCombinator.new,
     ],
     HintCode.UNDEFINED_SHOWN_NAME: [
-      RemoveNameFromCombinator.newInstance,
+      RemoveNameFromCombinator.new,
     ],
     HintCode.UNNECESSARY_CAST: [
-      RemoveUnnecessaryCast.newInstance,
+      RemoveUnnecessaryCast.new,
     ],
     HintCode.UNNECESSARY_IMPORT: [
-      RemoveUnusedImport.newInstance,
+      RemoveUnusedImport.new,
     ],
 //    HintCode.UNNECESSARY_NO_SUCH_METHOD: [
 // TODO(brianwilkerson) Add a fix to remove the method.
 //    ],
     HintCode.UNNECESSARY_NULL_COMPARISON_FALSE: [
-      RemoveComparison.newInstance,
+      RemoveComparison.new,
     ],
     HintCode.UNNECESSARY_NULL_COMPARISON_TRUE: [
-      RemoveComparison.newInstance,
+      RemoveComparison.new,
     ],
 //    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [
 // TODO(brianwilkerson) Add a fix to remove the type check.
@@ -1299,61 +1312,64 @@ class FixProcessor extends BaseProcessor {
 // TODO(brianwilkerson) Add a fix to remove the type check.
 //    ],
     HintCode.UNUSED_CATCH_CLAUSE: [
-      RemoveUnusedCatchClause.newInstance,
+      RemoveUnusedCatchClause.new,
     ],
     HintCode.UNUSED_CATCH_STACK: [
-      RemoveUnusedCatchStack.newInstance,
+      RemoveUnusedCatchStack.new,
     ],
     HintCode.UNUSED_ELEMENT: [
-      RemoveUnusedElement.newInstance,
+      RemoveUnusedElement.new,
     ],
     HintCode.UNUSED_FIELD: [
-      RemoveUnusedField.newInstance,
+      RemoveUnusedField.new,
     ],
     HintCode.UNUSED_IMPORT: [
-      RemoveUnusedImport.newInstance,
+      RemoveUnusedImport.new,
     ],
     HintCode.UNUSED_LABEL: [
-      RemoveUnusedLabel.newInstance,
+      RemoveUnusedLabel.new,
     ],
     HintCode.UNUSED_LOCAL_VARIABLE: [
-      RemoveUnusedLocalVariable.newInstance,
+      RemoveUnusedLocalVariable.new,
     ],
     HintCode.UNUSED_SHOWN_NAME: [
-      RemoveNameFromCombinator.newInstance,
+      RemoveNameFromCombinator.new,
     ],
     ParserErrorCode.ABSTRACT_CLASS_MEMBER: [
-      RemoveAbstract.newInstance,
+      RemoveAbstract.new,
     ],
     ParserErrorCode.EXPECTED_TOKEN: [
-      InsertSemicolon.newInstance,
+      InsertSemicolon.new,
     ],
     ParserErrorCode.GETTER_WITH_PARAMETERS: [
-      RemoveParametersInGetterDeclaration.newInstance,
+      RemoveParametersInGetterDeclaration.new,
     ],
     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE: [
-      AddTypeAnnotation.newInstance,
+      AddTypeAnnotation.new,
     ],
     ParserErrorCode.MISSING_FUNCTION_BODY: [
-      ConvertIntoBlockBody.newInstance,
+      ConvertIntoBlockBody.new,
     ],
     ParserErrorCode.VAR_AS_TYPE_NAME: [
-      ReplaceVarWithDynamic.newInstance,
+      ReplaceVarWithDynamic.new,
+    ],
+    ParserErrorCode.VAR_RETURN_TYPE: [
+      RemoveVar.new,
     ],
     StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
-      RemoveDeadIfNull.newInstance,
+      RemoveDeadIfNull.new,
     ],
     StaticWarningCode.INVALID_NULL_AWARE_OPERATOR: [
-      ReplaceWithNotNullAware.newInstance,
+      ReplaceWithNotNullAware.new,
     ],
     StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT: [
-      ReplaceWithNotNullAware.newInstance,
+      ReplaceWithNotNullAware.new,
     ],
     StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH: [
-      AddMissingEnumCaseClauses.newInstance,
+      AddMissingEnumCaseClauses.new,
     ],
     StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION: [
-      RemoveNonNullAssertion.newInstance,
+      RemoveNonNullAssertion.new,
     ],
   };
 
@@ -1447,8 +1463,8 @@ class FixProcessor extends BaseProcessor {
 
     if (errorCode is LintCode || errorCode is HintCode) {
       var generators = [
-        IgnoreDiagnosticOnLine.newInstance,
-        IgnoreDiagnosticInFile.newInstance,
+        IgnoreDiagnosticOnLine.new,
+        IgnoreDiagnosticInFile.new,
       ];
       for (var generator in generators) {
         await compute(generator());

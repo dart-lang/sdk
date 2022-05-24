@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
@@ -680,7 +682,8 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
 
 typedef _EntityConverter = Entity Function(Entity cls);
 
-class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
+class _TypeConverter
+    implements DartTypeVisitor<DartType /*!*/, _EntityConverter> {
   final DartTypes _dartTypes;
   final bool allowFreeVariables;
 
@@ -777,8 +780,10 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
     if (result == null && allowFreeVariables) {
       return type;
     }
-    assert(result != null,
-        "Function type variable $type not found in $_functionTypeVariables");
+    if (result == null) {
+      throw failedAt(CURRENT_ELEMENT_SPANNABLE,
+          "Function type variable $type not found in $_functionTypeVariables");
+    }
     return result;
   }
 

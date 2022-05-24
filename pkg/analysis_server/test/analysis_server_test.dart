@@ -9,7 +9,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -17,6 +16,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -46,8 +46,8 @@ class AnalysisServerTest with ResourceProviderMixin {
     server.serverServices = {ServerService.STATUS};
     newFolder('/foo');
     newFolder('/bar');
-    newFile2('/foo/foo.dart', 'import "../bar/bar.dart";');
-    var bar = newFile2('/bar/bar.dart', 'library bar;');
+    newFile('/foo/foo.dart', 'import "../bar/bar.dart";');
+    var bar = newFile('/bar/bar.dart', 'library bar;');
     await server.setAnalysisRoots('0', ['/foo', '/bar'], []);
     var subscriptions = <AnalysisService, Set<String>>{};
     for (var service in AnalysisService.VALUES) {
@@ -119,7 +119,7 @@ class AnalysisServerTest with ResourceProviderMixin {
     // Create a file that references two packages, which will we write to
     // package_config.json individually.
     newFolder(projectRoot);
-    newFile2(
+    newFile(
       projectTestFile,
       r'''
       import "package:foo/foo.dart";'
@@ -183,7 +183,7 @@ class AnalysisServerTest with ResourceProviderMixin {
   Future test_serverStatusNotifications_hasFile() async {
     server.serverServices.add(ServerService.STATUS);
 
-    newFile2('/test/lib/a.dart', r'''
+    newFile('/test/lib/a.dart', r'''
 class A {}
 ''');
     await server.setAnalysisRoots('0', [convertPath('/test')], []);
@@ -245,8 +245,8 @@ class A {}
   Future<void>
       test_setAnalysisSubscriptions_fileInIgnoredFolder_newOptions() async {
     var path = convertPath('/project/samples/sample.dart');
-    newFile2(path, '');
-    newAnalysisOptionsYamlFile2('/project', r'''
+    newFile(path, '');
+    newAnalysisOptionsYamlFile('/project', r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -266,8 +266,8 @@ analyzer:
   Future<void>
       test_setAnalysisSubscriptions_fileInIgnoredFolder_oldOptions() async {
     var path = convertPath('/project/samples/sample.dart');
-    newFile2(path, '');
-    newAnalysisOptionsYamlFile2('/project', r'''
+    newFile(path, '');
+    newAnalysisOptionsYamlFile('/project', r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -334,7 +334,7 @@ analyzer:
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile2(path, config.toContent(toUriStr: toUriStr));
+    newFile(path, config.toContent(toUriStr: toUriStr));
   }
 
   /// Creates a simple package named [name] with [content] in the file at
@@ -343,7 +343,7 @@ analyzer:
   /// Returns a [Folder] that represents the packages `lib` folder.
   Folder _addSimplePackage(String name, String content) {
     final packagePath = '/packages/$name';
-    final file = newFile2('$packagePath/lib/$name.dart', content);
+    final file = newFile('$packagePath/lib/$name.dart', content);
     return file.parent;
   }
 }

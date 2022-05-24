@@ -21,8 +21,8 @@ class A extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method foo() → dynamic async /* futureValueType= dynamic */ {
-  asy::Future<core::List<self::A*>*>* f1 = null;
-  asy::Future<core::List<self::A*>*>* f2 = null;
+  has-declared-initializer asy::Future<core::List<self::A*>*>* f1 = null;
+  has-declared-initializer asy::Future<core::List<self::A*>*>* f2 = null;
   core::List<core::List<self::A*>*>* merged = await asy::Future::wait<core::List<self::A*>*>(<asy::Future<core::List<self::A*>*>*>[f1, f2]);
 }
 static method main() → dynamic {}

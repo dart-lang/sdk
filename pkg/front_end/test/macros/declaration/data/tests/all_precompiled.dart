@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
- macroClassIds=[package:precompiled_macro/precompiled_macro.dart/PrecompiledMacro],
  macroInstanceIds=[package:precompiled_macro/precompiled_macro.dart/PrecompiledMacro/()],
  macrosAreApplied,
  macrosAreAvailable
@@ -11,6 +10,6 @@
 
 import 'package:precompiled_macro/precompiled_macro.dart';
 
-/*member: main:appliedMacros=[PrecompiledMacro.new]*/
+/*member: main:appliedMacros=[PrecompiledMacro.new()]*/
 @PrecompiledMacro()
 void main() {}

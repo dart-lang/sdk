@@ -802,14 +802,14 @@ class LeastUpperBoundHelper {
 
     while (fIndex < fParameters.length) {
       var fParameter = fParameters[fIndex++];
-      if (fParameter.isNotOptional) {
+      if (fParameter.isRequired) {
         return _interfaceTypeFunctionNone;
       }
     }
 
     while (gIndex < gParameters.length) {
       var gParameter = gParameters[gIndex++];
-      if (gParameter.isNotOptional) {
+      if (gParameter.isRequired) {
         return _interfaceTypeFunctionNone;
       }
     }

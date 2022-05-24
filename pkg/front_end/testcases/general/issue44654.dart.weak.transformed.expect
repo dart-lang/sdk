@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method test2() → void {
-  core::String* string = null;
+  has-declared-initializer core::String* string = null;
   if(let final core::String* #t1 = string in #t1 == null ?{core::bool*} null : #t1.{core::String::isNotEmpty}{core::bool*})
     ;
 }

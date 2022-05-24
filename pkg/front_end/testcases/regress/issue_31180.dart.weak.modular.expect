@@ -13,6 +13,6 @@ library;
 import self as self;
 
 static method bad() → dynamic {
-  return let final dynamic #t1 = null in #t1 == null ?{dynamic} null : #t1{dynamic}.[](1);
+  return let final has-declared-initializer dynamic #t1 = null in #t1 == null ?{dynamic} null : #t1{dynamic}.[](1);
 }
 static method main() → dynamic {}

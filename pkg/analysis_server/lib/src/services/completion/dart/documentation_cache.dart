@@ -180,7 +180,7 @@ extension on Map<String, DocumentationWithSummary> {
       Element member) {
     var name = member.name;
     if (name == null) {
-      return null;
+      return;
     }
     cacheElement(dartdocDirectiveInfo, '$parentKey.$name', member);
   }

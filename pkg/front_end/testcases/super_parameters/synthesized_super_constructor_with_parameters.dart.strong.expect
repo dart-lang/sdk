@@ -1,6 +1,9 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
+import "synthesized_super_constructor_with_parameters_lib.dart" as syn;
+
+import "org-dartlang-testcase:///synthesized_super_constructor_with_parameters_lib.dart";
 
 class A1 extends core::Object {
   final field core::int a;
@@ -127,9 +130,99 @@ class AA5 extends core::Object {
     : self::AA5::foo = foo, super core::Object::•()
     ;
 }
+class D6 extends syn::C6 {
+  constructor •({core::int a = #C1}) → self::D6
+    : super syn::C6::•(a: a)
+    ;
+}
+class B7 extends core::Object {
+  synthetic constructor •() → self::B7
+    : super core::Object::•()
+    ;
+}
+class C7 = syn::A7 with self::B7 {
+  synthetic constructor •([core::int a = #C1]) → self::C7
+    : super syn::A7::•(a)
+    ;
+}
+class D7 extends self::C7 {
+  constructor •([core::int a = #C1]) → self::D7
+    : super self::C7::•(a)
+    ;
+}
+class D8 extends syn::C8 {
+  constructor •({core::int? a = #C3}) → self::D8
+    : super syn::C8::•(a: a)
+    ;
+}
+class B9 extends core::Object {
+  synthetic constructor •() → self::B9
+    : super core::Object::•()
+    ;
+}
+class C9 = syn::A9 with self::B9 {
+  synthetic constructor •([core::int? a]) → self::C9
+    : super syn::A9::•(a)
+    ;
+}
+class D9 extends self::C9 {
+  constructor •([core::int? a = #C3]) → self::D9
+    : super self::C9::•(a)
+    ;
+}
 static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as syn;
+import "dart:core" as core;
+
+class A6 extends core::Object {
+  final field core::int a;
+  constructor •({core::int a = #C1}) → syn::A6
+    : syn::A6::a = a, super core::Object::•()
+    ;
+}
+class B6 extends core::Object {
+  synthetic constructor •() → syn::B6
+    : super core::Object::•()
+    ;
+}
+class C6 = syn::A6 with syn::B6 {
+  synthetic constructor •({core::int a = #C1}) → syn::C6
+    : super syn::A6::•(a: a)
+    ;
+}
+class A7 extends core::Object {
+  final field core::int a;
+  constructor •([core::int a = #C1]) → syn::A7
+    : syn::A7::a = a, super core::Object::•()
+    ;
+}
+class A8 extends core::Object {
+  final field core::int? a;
+  constructor •({core::int? a = #C3}) → syn::A8
+    : syn::A8::a = a, super core::Object::•()
+    ;
+}
+class B8 extends core::Object {
+  synthetic constructor •() → syn::B8
+    : super core::Object::•()
+    ;
+}
+class C8 = syn::A8 with syn::B8 {
+  synthetic constructor •({core::int? a}) → syn::C8
+    : super syn::A8::•(a: a)
+    ;
+}
+class A9 extends core::Object {
+  final field core::int? a;
+  constructor •([core::int? a = #C3]) → syn::A9
+    : syn::A9::a = a, super core::Object::•()
+    ;
+}
 
 constants  {
   #C1 = 0
   #C2 = 42
+  #C3 = null
 }

@@ -4,7 +4,7 @@ name: compiler
 # This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 environment:
-  sdk: '>=2.6.0 <3.0.0'
+  sdk: '>=2.16.0 <3.0.0'
 
 # NOTE: `pub get / pub upgrade` are generally not needed when working on this
 # package. The `.packages` file in the repository root will be used by default.
@@ -35,7 +35,6 @@ dev_dependencies:
   http: any
   js:
     path: ../js
-  package_config: any
   path: any
   source_maps: any
   # Unpublished packages that can be used via path dependency

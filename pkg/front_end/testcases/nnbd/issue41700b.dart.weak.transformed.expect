@@ -37,7 +37,7 @@ static method test() → dynamic {
 Try correcting the name to the name of an existing method, or defining a method named 'foo'.
   x.foo();
     ^^^" in x{<unresolved>}.foo();
-  self::Null? y = null;
+  has-declared-initializer self::Null? y = null;
   invalid-expression "pkg/front_end/testcases/nnbd/issue41700b.dart:11:5: Error: The method 'foo' isn't defined for the class 'Null?'.
  - 'Null' is from 'pkg/front_end/testcases/nnbd/issue41700b.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'foo'.

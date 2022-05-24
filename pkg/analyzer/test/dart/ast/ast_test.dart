@@ -23,6 +23,7 @@ main() {
     defineReflectiveTests(ClassTypeAliasTest);
     defineReflectiveTests(ConstructorDeclarationTest);
     defineReflectiveTests(FieldFormalParameterTest);
+    defineReflectiveTests(FormalParameterIsExplicitlyTypedTest);
     defineReflectiveTests(IndexExpressionTest);
     defineReflectiveTests(InterpolationStringTest);
     defineReflectiveTests(MethodDeclarationTest);
@@ -236,6 +237,417 @@ class FieldFormalParameterTest {
     FieldFormalParameter parameter = AstTestFactory.fieldFormalParameter(
         null, null, 'field', AstTestFactory.formalParameterList([]));
     expect(parameter.endToken, parameter.parameters!.endToken);
+  }
+}
+
+@reflectiveTest
+class FormalParameterIsExplicitlyTypedTest extends ParserTestCase {
+  test_field_functionTyped_explicitReturn() {
+    _checkExplicitlyTyped('''
+class C {
+  C(int this.x());
+  final Object x;
+}
+''', true);
+  }
+
+  test_field_functionTyped_explicitReturn_default() {
+    _checkExplicitlyTyped('''
+class C {
+  C([int this.x() = y]);
+  final Object x;
+}
+''', true);
+  }
+
+  test_field_functionTyped_explicitReturn_named() {
+    _checkExplicitlyTyped('''
+class C {
+  C({required int this.x()});
+  final Object x;
+}
+''', true);
+  }
+
+  test_field_functionTyped_explicitReturn_named_default() {
+    _checkExplicitlyTyped('''
+class C {
+  C({int this.x() = y});
+  final Object x;
+}
+''', true);
+  }
+
+  test_field_functionTyped_implicitReturn() {
+    _checkExplicitlyTyped('''
+class C {
+  C(this.x());
+  final Object x;
+}
+''', true);
+  }
+
+  test_field_functionTyped_implicitReturn_default() {
+    _checkExplicitlyTyped('''
+class C {
+  C([this.x() = y]);
+  final Object x;
+}
+''', true);
+  }
+
+  test_field_functionTyped_implicitReturn_named() {
+    _checkExplicitlyTyped('''
+class C {
+  C({required this.x()});
+  final Object x;
+}
+''', true);
+  }
+
+  test_field_functionTyped_implicitReturn_named_default() {
+    _checkExplicitlyTyped('''
+class C {
+  C({this.x() = y});
+  final Object x;
+}
+''', true);
+  }
+
+  test_field_simple_explicit() {
+    _checkExplicitlyTyped('''
+class C {
+  C(int this.x);
+  final Object x;
+}
+''', true);
+  }
+
+  test_field_simple_explicit_default() {
+    _checkExplicitlyTyped('''
+class C {
+  C([int this.x = y]);
+  final Object x;
+}
+''', true);
+  }
+
+  test_field_simple_explicit_named() {
+    _checkExplicitlyTyped('''
+class C {
+  C({int? this.x});
+  final Object? x;
+}
+''', true);
+  }
+
+  test_field_simple_explicit_named_default() {
+    _checkExplicitlyTyped('''
+class C {
+  C({int this.x = y});
+  final Object x;
+}
+''', true);
+  }
+
+  test_field_simple_implicit() {
+    _checkExplicitlyTyped('''
+class C {
+  C(this.x);
+  final Object x;
+}
+''', false);
+  }
+
+  test_field_simple_implicit_default() {
+    _checkExplicitlyTyped('''
+class C {
+  C([this.x = y]);
+  final Object x;
+}
+''', false);
+  }
+
+  test_field_simple_implicit_named() {
+    _checkExplicitlyTyped('''
+class C {
+  C({this.x});
+  final Object? x;
+}
+''', false);
+  }
+
+  test_field_simple_implicit_named_default() {
+    _checkExplicitlyTyped('''
+class C {
+  C({this.x = y});
+  final Object x;
+}
+''', false);
+  }
+
+  test_functionTyped_explicitReturn() {
+    _checkExplicitlyTyped('''
+class C {
+  C(int x());
+}
+''', true);
+  }
+
+  test_functionTyped_explicitReturn_default() {
+    _checkExplicitlyTyped('''
+class C {
+  C([int x() = y]);
+}
+''', true);
+  }
+
+  test_functionTyped_explicitReturn_named() {
+    _checkExplicitlyTyped('''
+class C {
+  C({required int x()});
+}
+''', true);
+  }
+
+  test_functionTyped_explicitReturn_named_default() {
+    _checkExplicitlyTyped('''
+class C {
+  C({int x() = y});
+}
+''', true);
+  }
+
+  test_functionTyped_implicitReturn() {
+    _checkExplicitlyTyped('''
+class C {
+  C(x());
+}
+''', true);
+  }
+
+  test_functionTyped_implicitReturn_default() {
+    _checkExplicitlyTyped('''
+class C {
+  C([x() = y]);
+}
+''', true);
+  }
+
+  test_functionTyped_implicitReturn_named() {
+    _checkExplicitlyTyped('''
+class C {
+  C({required x()});
+}
+''', true);
+  }
+
+  test_functionTyped_implicitReturn_named_default() {
+    _checkExplicitlyTyped('''
+class C {
+  C({x() = y});
+}
+''', true);
+  }
+
+  test_simple_explicit() {
+    _checkExplicitlyTyped('''
+class C {
+  C(int x);
+}
+''', true);
+  }
+
+  test_simple_explicit_default() {
+    _checkExplicitlyTyped('''
+class C {
+  C([int x = y]);
+}
+''', true);
+  }
+
+  test_simple_explicit_named() {
+    _checkExplicitlyTyped('''
+class C {
+  C({int? x});
+}
+''', true);
+  }
+
+  test_simple_explicit_named_default() {
+    _checkExplicitlyTyped('''
+class C {
+  C({int x = y});
+}
+''', true);
+  }
+
+  test_simple_implicit() {
+    _checkExplicitlyTyped('''
+class C {
+  C(x);
+}
+''', false);
+  }
+
+  test_simple_implicit_default() {
+    _checkExplicitlyTyped('''
+class C {
+  C([x = y]);
+}
+''', false);
+  }
+
+  test_simple_implicit_named() {
+    _checkExplicitlyTyped('''
+class C {
+  C({x});
+}
+''', false);
+  }
+
+  test_simple_implicit_named_default() {
+    _checkExplicitlyTyped('''
+class C {
+  C({x = y});
+}
+''', false);
+  }
+
+  test_super_functionTyped_explicitReturn() {
+    _checkExplicitlyTyped('''
+class C extends B {
+  C(int super.x());
+}
+''', true);
+  }
+
+  test_super_functionTyped_explicitReturn_default() {
+    _checkExplicitlyTyped('''
+class C extends B {
+  C([int super.x() = y]);
+}
+''', true);
+  }
+
+  test_super_functionTyped_explicitReturn_named() {
+    _checkExplicitlyTyped('''
+class C extends B {
+  C({required int super.x()});
+}
+''', true);
+  }
+
+  test_super_functionTyped_explicitReturn_named_default() {
+    _checkExplicitlyTyped('''
+class C extends B {
+  C({int super.x() = y});
+}
+''', true);
+  }
+
+  test_super_functionTyped_implicitReturn() {
+    _checkExplicitlyTyped('''
+class C extends B {
+  C(super.x());
+}
+''', true);
+  }
+
+  test_super_functionTyped_implicitReturn_default() {
+    _checkExplicitlyTyped('''
+class C extends B {
+  C([super.x() = y]);
+}
+''', true);
+  }
+
+  test_super_functionTyped_implicitReturn_named() {
+    _checkExplicitlyTyped('''
+class C extends B {
+  C({required super.x()});
+}
+''', true);
+  }
+
+  test_super_functionTyped_implicitReturn_named_default() {
+    _checkExplicitlyTyped('''
+class C extends B {
+  C({super.x() = y});
+}
+''', true);
+  }
+
+  test_super_simple_explicit() {
+    _checkExplicitlyTyped('''
+class C extends B {
+  C(int super.x);
+}
+''', true);
+  }
+
+  test_super_simple_explicit_default() {
+    _checkExplicitlyTyped('''
+class C extends B {
+  C([int super.x = y]);
+}
+''', true);
+  }
+
+  test_super_simple_explicit_named() {
+    _checkExplicitlyTyped('''
+class C extends B {
+  C({int? super.x});
+}
+''', true);
+  }
+
+  test_super_simple_explicit_named_default() {
+    _checkExplicitlyTyped('''
+class C extends B {
+  C({int super.x = y});
+}
+''', true);
+  }
+
+  test_super_simple_implicit() {
+    _checkExplicitlyTyped('''
+class C extends B {
+  C(super.x);
+}
+''', false);
+  }
+
+  test_super_simple_implicit_default() {
+    _checkExplicitlyTyped('''
+class C extends B {
+  C([super.x = y]);
+}
+''', false);
+  }
+
+  test_super_simple_implicit_named() {
+    _checkExplicitlyTyped('''
+class C extends B {
+  C({super.x});
+}
+''', false);
+  }
+
+  test_super_simple_implicit_named_default() {
+    _checkExplicitlyTyped('''
+class C extends B {
+  C({super.x = y});
+}
+''', false);
+  }
+
+  void _checkExplicitlyTyped(String input, bool expected) {
+    var parseResult = parseString(content: input);
+    var class_ = parseResult.unit.declarations[0] as ClassDeclaration;
+    var constructor = class_.members[0] as ConstructorDeclaration;
+    var parameter = constructor.parameters.parameters[0];
+    expect(parameter.isExplicitlyTyped, expected);
   }
 }
 

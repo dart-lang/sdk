@@ -8,11 +8,10 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 class InitializeMessageHandler
     extends MessageHandler<InitializeParams, InitializeResult> {
-  InitializeMessageHandler(LspAnalysisServer server) : super(server);
+  InitializeMessageHandler(super.server);
 
   @override
   Method get handlesMessage => Method.initialize;
@@ -38,14 +37,14 @@ class InitializeMessageHandler
     // based only on the open files.
     if (!server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles) {
       if (workspaceFolders != null) {
-        workspaceFolders.forEach((wf) {
+        for (var wf in workspaceFolders) {
           final uri = Uri.parse(wf.uri);
           // Only file URIs are supported, but there's no way to signal this to
           // the LSP client (and certainly not before initialization).
           if (uri.isScheme('file')) {
             unnormalisedWorkspacePaths.add(uri.toFilePath());
           }
-        });
+        }
       }
       if (rootUri != null) {
         final uri = Uri.parse(rootUri);

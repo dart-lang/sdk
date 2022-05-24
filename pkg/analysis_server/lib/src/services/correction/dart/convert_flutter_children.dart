@@ -44,7 +44,4 @@ class ConvertFlutterChildren extends CorrectionProducer {
       String source, String indentOld, String indentNew) {
     return source.replaceAll(RegExp('^$indentOld', multiLine: true), indentNew);
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertFlutterChildren newInstance() => ConvertFlutterChildren();
 }

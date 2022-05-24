@@ -1,26 +1,24 @@
 name: vm_service
+version: 8.2.2+1
 description: >-
   A library to communicate with a service implementing the Dart VM
   service protocol.
-
-version: 8.2.2
-
-homepage: https://github.com/dart-lang/sdk/tree/master/pkg/vm_service
+repository: https://github.com/dart-lang/sdk/tree/main/pkg/vm_service
 
 environment:
-  sdk: '>=2.12.0-0 <3.0.0'
+  sdk: '>=2.15.0 <3.0.0'
 
 dependencies:
 
 dev_dependencies:
   async: ^2.5.0
   expect: any
-  markdown: ^4.0.0-nullsafety.0
-  mockito: ^5.0.0-nullsafety.1
+  lints: any
+  markdown: ^4.0.0
+  mockito: any
   path: ^1.8.0
-  pedantic: ^1.10.0-nullsafety.3
   process: ^4.0.0
-  pub_semver: ^2.0.0-nullsafety.0
-  test: ^1.16.0-nullsafety.13
+  pub_semver: ^2.0.0
+  test: ^1.16.0
   test_package:
     path: 'test/test_package'

@@ -6,8 +6,10 @@ import 'dart:typed_data';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
+import 'package:collection/collection.dart';
 
 /// Return the bytes of the unlinked API signature of the given [unit].
 ///
@@ -39,6 +41,10 @@ class _UnitApiSignatureComputer {
     for (var declaration in unit.declarations) {
       if (declaration is ClassOrMixinDeclaration) {
         _addClassOrMixin(declaration);
+      } else if (declaration is EnumDeclaration) {
+        _addEnum(declaration);
+      } else if (declaration is ExtensionDeclaration) {
+        _addExtension(declaration);
       } else if (declaration is FunctionDeclaration) {
         var functionExpression = declaration.functionExpression;
         _addTokens(
@@ -54,36 +60,70 @@ class _UnitApiSignatureComputer {
     }
   }
 
+  void _addClassMembers(List<ClassMember> members, bool hasConstConstructor) {
+    signature.addInt(members.length);
+    for (var member in members) {
+      if (member is ConstructorDeclaration) {
+        _addConstructorDeclaration(member);
+      } else if (member is FieldDeclaration) {
+        _addFieldDeclaration(member, hasConstConstructor);
+      } else if (member is MethodDeclaration) {
+        _addMethodDeclaration(member);
+      } else {
+        throw UnimplementedError('(${member.runtimeType}) $member');
+      }
+    }
+  }
+
   void _addClassOrMixin(ClassOrMixinDeclaration node) {
     _addTokens(node.beginToken, node.leftBracket);
 
     bool hasConstConstructor = node.members
         .any((m) => m is ConstructorDeclaration && m.constKeyword != null);
 
-    signature.addInt(node.members.length);
-    for (var member in node.members) {
-      if (member is ConstructorDeclaration) {
-        signature.addInt(_kindConstructorDeclaration);
-        _addTokens(member.beginToken, member.parameters.endToken);
-        _addNodeList(member.initializers);
-        _addNode(member.redirectedConstructor);
-      } else if (member is FieldDeclaration) {
-        signature.addInt(_kindFieldDeclaration);
-        _fieldDeclaration(member, hasConstConstructor);
-      } else if (member is MethodDeclaration) {
-        signature.addInt(_kindMethodDeclaration);
-        _addTokens(
-          member.beginToken,
-          (member.parameters ?? member.name).endToken,
-        );
-        signature.addBool(member.body is EmptyFunctionBody);
-        _addFunctionBodyModifiers(member.body);
-      } else {
-        throw UnimplementedError('(${member.runtimeType}) $member');
-      }
+    _addClassMembers(node.members, hasConstConstructor);
+  }
+
+  void _addConstructorDeclaration(ConstructorDeclaration node) {
+    signature.addInt(_kindConstructorDeclaration);
+    _addTokens(node.beginToken, node.parameters.endToken);
+    _addNodeList(node.initializers);
+    _addNode(node.redirectedConstructor);
+  }
+
+  void _addEnum(EnumDeclaration node) {
+    var members = node.members;
+
+    // If not enhanced, include the whole node.
+    var firstMember = members.firstOrNull;
+    if (firstMember == null) {
+      _addNode(node);
+      return;
     }
 
-    _addToken(node.rightBracket);
+    _addTokens(node.beginToken, firstMember.beginToken);
+    _addClassMembers(members, true);
+  }
+
+  void _addExtension(ExtensionDeclaration node) {
+    _addTokens(node.beginToken, node.leftBracket);
+    _addClassMembers(node.members, false);
+  }
+
+  void _addFieldDeclaration(FieldDeclaration node, bool hasConstConstructor) {
+    signature.addInt(_kindFieldDeclaration);
+
+    _addToken(node.abstractKeyword);
+    _addToken(node.covariantKeyword);
+    _addToken(node.externalKeyword);
+    _addToken(node.staticKeyword);
+    _addNodeList(node.metadata);
+
+    var variableList = node.fields;
+    var includeInitializers = variableList.type == null ||
+        variableList.isConst ||
+        hasConstConstructor && !node.isStatic && variableList.isFinal;
+    _variableList(variableList, includeInitializers);
   }
 
   void _addFunctionBodyModifiers(FunctionBody? node) {
@@ -91,6 +131,17 @@ class _UnitApiSignatureComputer {
       signature.addBool(node.isSynchronous);
       signature.addBool(node.isGenerator);
     }
+  }
+
+  void _addMethodDeclaration(MethodDeclaration node) {
+    signature.addInt(_kindMethodDeclaration);
+    _addTokens(
+      node.beginToken,
+      (node.parameters ?? node.name).endToken,
+    );
+    signature.addBool(node.body is EmptyFunctionBody);
+    _addFunctionBodyModifiers(node.body);
+    signature.addBool(node.invokesSuperSelf);
   }
 
   void _addNode(AstNode? node) {
@@ -140,20 +191,6 @@ class _UnitApiSignatureComputer {
 
       token = nextToken;
     }
-  }
-
-  void _fieldDeclaration(FieldDeclaration node, bool hasConstConstructor) {
-    _addToken(node.abstractKeyword);
-    _addToken(node.covariantKeyword);
-    _addToken(node.externalKeyword);
-    _addToken(node.staticKeyword);
-    _addNodeList(node.metadata);
-
-    var variableList = node.fields;
-    var includeInitializers = variableList.type == null ||
-        variableList.isConst ||
-        hasConstConstructor && !node.isStatic && variableList.isFinal;
-    _variableList(variableList, includeInitializers);
   }
 
   void _topLevelVariableDeclaration(TopLevelVariableDeclaration node) {

@@ -408,7 +408,7 @@ class PageSpace {
                        OldPage::PageType type) const;
 
   // Collect the garbage in the page space using mark-sweep or mark-compact.
-  void CollectGarbage(bool compact, bool finalize);
+  void CollectGarbage(Thread* thread, bool compact, bool finalize);
 
   void AddRegionsToObjectSet(ObjectSet* set) const;
 
@@ -573,10 +573,7 @@ class PageSpace {
   void FreeLargePage(OldPage* page, OldPage* previous_page);
   void FreePages(OldPage* pages);
 
-  void CollectGarbageHelper(bool compact,
-                            bool finalize,
-                            int64_t pre_wait_for_sweepers,
-                            int64_t pre_safe_point);
+  void CollectGarbageHelper(Thread* thread, bool compact, bool finalize);
   void SweepLarge();
   void Sweep(bool exclusive);
   void ConcurrentSweep(IsolateGroup* isolate_group);

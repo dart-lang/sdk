@@ -1382,18 +1382,17 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
       zone, is_optimizing,
       (R(CallingConventions::kSecondNonArgumentRegister) |
        R(CallingConventions::kFfiAnyNonAbiRegister) | R(CALLEE_SAVED_TEMP2)));
-  // A3/A4/A5 are blocked during Dart register allocation because they are
+
+  // A3/A4/A5 are unavailable in normal register allocation because they are
   // assigned to TMP/TMP2/PP. This assignment is important for reducing code
-  // size. To work around this for FFI calls, the FFI argument definitions are
-  // allocated to other registers and moved to the correct register at the last
-  // moment (so there are no conflicting uses of TMP/TMP2/PP).
-  // FfiCallInstr itself sometimes also clobbers A2/CODE_REG.
-  // See also FfiCallInstr::EmitCall.
+  // size. We can't just override the normal blockage of these registers because
+  // they may be used by other instructions between the argument's definition
+  // and its use in FfiCallInstr.
+  // Note that A3/A4/A5 might be not be the 3rd/4th/5th input because of mixed
+  // integer and floating-point arguments.
   for (intptr_t i = 0; i < summary->input_count(); i++) {
     if (!summary->in(i).IsRegister()) continue;
-    if (summary->in(i).reg() == A2) {
-      summary->set_in(i, Location::RegisterLocation(T2));
-    } else if (summary->in(i).reg() == A3) {
+    if (summary->in(i).reg() == A3) {
       summary->set_in(i, Location::RegisterLocation(T3));
     } else if (summary->in(i).reg() == A4) {
       summary->set_in(i, Location::RegisterLocation(T4));
@@ -1407,6 +1406,20 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
 #undef R
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Beware! Do not use CODE_REG/TMP/TMP2/PP within FfiCallInstr as they are
+  // assigned to A2/A3/A4/A5, which may be in use as argument registers.
+  __ set_constant_pool_allowed(false);
+  for (intptr_t i = 0; i < locs()->input_count(); i++) {
+    if (!locs()->in(i).IsRegister()) continue;
+    if (locs()->in(i).reg() == T3) {
+      __ mv(A3, T3);
+    } else if (locs()->in(i).reg() == T4) {
+      __ mv(A4, T4);
+    } else if (locs()->in(i).reg() == T5) {
+      __ mv(A5, T5);
+    }
+  }
+
   const Register target = locs()->in(TargetAddressIndex()).reg();
 
   // The temps are indexed according to their register number.
@@ -1431,17 +1444,27 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ mv(saved_fp_or_sp, is_leaf_ ? SPREG : FPREG);
 
   if (!is_leaf_) {
-    // We need to create a dummy "exit frame". It will share the same pool
-    // pointer but have a null code object.
-    __ LoadObject(CODE_REG, Object::null_object());
-    __ set_constant_pool_allowed(false);
-    __ EnterDartFrame(0, PP);
+    // We need to create a dummy "exit frame".
+    // This is EnterDartFrame without accessing A2=CODE_REG or A5=PP.
+    if (FLAG_precompiled_mode) {
+      __ subi(SP, SP, 2 * compiler::target::kWordSize);
+      __ sx(RA, compiler::Address(SP, 1 * compiler::target::kWordSize));
+      __ sx(FP, compiler::Address(SP, 0 * compiler::target::kWordSize));
+      __ addi(FP, SP, 2 * compiler::target::kWordSize);
+    } else {
+      __ subi(SP, SP, 4 * compiler::target::kWordSize);
+      __ sx(RA, compiler::Address(SP, 3 * compiler::target::kWordSize));
+      __ sx(FP, compiler::Address(SP, 2 * compiler::target::kWordSize));
+      __ sx(NULL_REG, compiler::Address(SP, 1 * compiler::target::kWordSize));
+      __ sx(NULL_REG, compiler::Address(SP, 0 * compiler::target::kWordSize));
+      __ addi(FP, SP, 4 * compiler::target::kWordSize);
+    }
   }
 
   // Reserve space for the arguments that go on the stack (if any), then align.
   __ ReserveAlignedFrameSpace(marshaller_.RequiredStackSpaceInBytes());
 
-  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp1);
+  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp1, temp2);
 
   if (compiler::Assembler::EmittingComments()) {
     __ Comment(is_leaf_ ? "Leaf Call" : "Call");
@@ -1456,10 +1479,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ StoreToOffset(target, THR, compiler::target::Thread::vm_tag_offset());
 #endif
 
-    EmitCall(compiler, target);
-
-    ASSERT(!IsCalleeSavedRegister(PP));
-    __ RestorePoolPointer();
+    __ jalr(target);
 
 #if !defined(PRODUCT)
     __ LoadImmediate(temp1, compiler::target::Thread::vm_tag_dart_id());
@@ -1484,7 +1504,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ TransitionGeneratedToNative(target, FPREG, temp1,
                                      /*enter_safepoint=*/true);
 
-      EmitCall(compiler, target);
+      __ jalr(target);
 
       // Update information in the thread object and leave the safepoint.
       __ TransitionNativeToGenerated(temp1, /*leave_safepoint=*/true);
@@ -1500,7 +1520,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       // Calls T0 and clobbers R19 (along with volatile registers).
       ASSERT(target == T0);
-      EmitCall(compiler, temp1);
+      __ jalr(temp1);
     }
 
     // Refresh pinned registers values (inc. write barrier mask and null
@@ -1514,27 +1534,18 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Restore the pre-aligned SP.
     __ mv(SPREG, saved_fp_or_sp);
   } else {
-    // Although PP is a callee-saved register, it may have been moved by the GC.
-    __ LeaveDartFrame(compiler::kRestoreCallerPP);
+    __ LeaveDartFrame();
 
     // Restore the global object pool after returning from runtime (old space is
     // moving, so the GOP could have been relocated).
     if (FLAG_precompiled_mode) {
       __ SetupGlobalPoolAndDispatchTable();
     }
-
-    __ set_constant_pool_allowed(true);
   }
-}
 
-void FfiCallInstr::EmitCall(FlowGraphCompiler* compiler, Register target) {
-  // Marshall certain argument registers at the last possible moment.
-  // See FfiCallInstr::MakeLocationSummary for the details.
-  if (InputCount() > 2) __ mv(A2, T2);  // A2=CODE_REG
-  if (InputCount() > 3) __ mv(A3, T3);  // A3=TMP
-  if (InputCount() > 4) __ mv(A4, T4);  // A4=TMP2
-  if (InputCount() > 5) __ mv(A5, T5);  // A5=PP
-  __ jalr(target);
+  // PP is a volatile register, so it must be restored even for leaf FFI calls.
+  __ RestorePoolPointer();
+  __ set_constant_pool_allowed(true);
 }
 
 // Keep in sync with NativeEntryInstr::EmitNativeCode.
@@ -3483,7 +3494,7 @@ class CheckStackOverflowSlowPath
                                      instruction()->deopt_id(),
                                      instruction()->source());
     } else {
-      __ CallRuntime(kStackOverflowRuntimeEntry, kNumSlowPathArgs);
+      __ CallRuntime(kInterruptOrStackOverflowRuntimeEntry, kNumSlowPathArgs);
       compiler->EmitCallsiteMetadata(
           instruction()->source(), instruction()->deopt_id(),
           UntaggedPcDescriptors::kOther, instruction()->locs(), env);

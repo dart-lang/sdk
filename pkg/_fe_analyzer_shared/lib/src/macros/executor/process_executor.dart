@@ -10,39 +10,29 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart';
 
 import '../executor/message_grouper.dart';
-import '../executor/multi_executor.dart';
 import '../executor/executor_base.dart';
 import '../executor/serialization.dart';
 import '../executor.dart';
 
-/// Returns a [MacroExecutor] which loads macros as separate processes using
-/// precompiled binaries and communicates with that program using
-/// [serializationMode].
+/// Spawns a [MacroExecutor] as a separate process, by running [program] with
+/// [arguments], and communicating using [serializationMode].
 ///
-/// The [serializationMode] must be a `server` variant, and any precompiled
-/// programs spawned must use the corresponding `client` variant.
+/// The [serializationMode] must be a `server` variant, and [program] must use
+/// the corresponding `client` variant.
 ///
 /// This is the only public api exposed by this library.
 Future<MacroExecutor> start(SerializationMode serializationMode,
-        CommunicationChannel communicationChannel) async =>
-    new MultiMacroExecutor((Uri library, String name,
-        {Uri? precompiledKernelUri}) {
-      // TODO: We actually assume this is a full precompiled AOT binary, and
-      // not a kernel file. We launch it directly using `Process.start`.
-      if (precompiledKernelUri == null) {
-        throw new UnsupportedError(
-            'This environment requires a non-null `precompiledKernelUri` to be '
-            'passed when loading macros.');
-      }
-      switch (communicationChannel) {
-        case CommunicationChannel.stdio:
-          return _SingleProcessMacroExecutor.startWithStdio(library, name,
-              serializationMode, precompiledKernelUri.toFilePath());
-        case CommunicationChannel.socket:
-          return _SingleProcessMacroExecutor.startWithSocket(library, name,
-              serializationMode, precompiledKernelUri.toFilePath());
-      }
-    });
+    CommunicationChannel communicationChannel, String program,
+    [List<String> arguments = const []]) {
+  switch (communicationChannel) {
+    case CommunicationChannel.stdio:
+      return _SingleProcessMacroExecutor.startWithStdio(
+          serializationMode, program, arguments);
+    case CommunicationChannel.socket:
+      return _SingleProcessMacroExecutor.startWithSocket(
+          serializationMode, program, arguments);
+  }
+}
 
 /// Actual implementation of the separate process based macro executor.
 class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
@@ -62,11 +52,10 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
             messageStream: messageStream, serializationMode: serializationMode);
 
   static Future<_SingleProcessMacroExecutor> startWithSocket(
-      Uri library,
-      String name,
       SerializationMode serializationMode,
-      String programPath) async {
-    late ServerSocket serverSocket;
+      String programPath,
+      List<String> arguments) async {
+    ServerSocket serverSocket;
     // Try an ipv6 address loopback first, and fall back on ipv4.
     try {
       serverSocket = await ServerSocket.bind(InternetAddress.loopbackIPv6, 0);
@@ -74,6 +63,7 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
       serverSocket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
     }
     Process process = await Process.start(programPath, [
+      ...arguments,
       serverSocket.address.address,
       serverSocket.port.toString(),
     ]);
@@ -116,11 +106,10 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
   }
 
   static Future<_SingleProcessMacroExecutor> startWithStdio(
-      Uri library,
-      String name,
       SerializationMode serializationMode,
-      String programPath) async {
-    Process process = await Process.start(programPath, []);
+      String programPath,
+      List<String> arguments) async {
+    Process process = await Process.start(programPath, arguments);
     process.stderr
         .transform(const Utf8Decoder())
         .listen((content) => throw new RemoteException(content));
@@ -150,7 +139,7 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
   }
 
   @override
-  void close() => onClose();
+  Future<void> close() => new Future.sync(onClose);
 
   /// Sends the [Serializer.result] to [stdin].
   ///

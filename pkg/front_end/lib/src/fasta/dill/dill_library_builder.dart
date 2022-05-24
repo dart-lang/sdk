@@ -102,8 +102,8 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     isBuiltAndMarked = true;
     if (isBuilt) return;
     isBuilt = true;
-    library.classes.forEach(addClass);
-    library.extensions.forEach(addExtension);
+    library.classes.forEach(_addClass);
+    library.extensions.forEach(_addExtension);
 
     Map<String, Map<Name, Procedure>> tearOffs = {};
     List<Procedure> nonTearOffs = [];
@@ -116,12 +116,12 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         nonTearOffs.add(procedure);
       }
     }
-    nonTearOffs.forEach(addMember);
-    library.procedures.forEach(addMember);
+    nonTearOffs.forEach(_addMember);
+    library.procedures.forEach(_addMember);
     for (Typedef typedef in library.typedefs) {
       addTypedef(typedef, tearOffs[typedef.name]);
     }
-    library.fields.forEach(addMember);
+    library.fields.forEach(_addMember);
 
     if (isReadyToFinalizeExports) {
       finalizeExports();
@@ -153,17 +153,16 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   void addSyntheticDeclarationOfDynamic() {
-    addBuilder("dynamic",
-        new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1), -1);
+    _addBuilder("dynamic",
+        new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1));
   }
 
   @override
   void addSyntheticDeclarationOfNever() {
-    addBuilder(
+    _addBuilder(
         "Never",
         new NeverTypeDeclarationBuilder(
-            const NeverType.nonNullable(), this, -1),
-        -1);
+            const NeverType.nonNullable(), this, -1));
   }
 
   @override
@@ -171,9 +170,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     // The name "Null" is declared by the class Null.
   }
 
-  void addClass(Class cls) {
+  void _addClass(Class cls) {
     DillClassBuilder classBuilder = new DillClassBuilder(cls, this);
-    addBuilder(cls.name, classBuilder, cls.fileOffset);
+    _addBuilder(cls.name, classBuilder);
     Map<String, Procedure> tearOffs = {};
     List<Procedure> nonTearOffs = [];
     for (Procedure procedure in cls.procedures) {
@@ -205,13 +204,13 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void addExtension(Extension extension) {
+  void _addExtension(Extension extension) {
     DillExtensionBuilder extensionBuilder =
         new DillExtensionBuilder(extension, this);
-    addBuilder(extension.name, extensionBuilder, extension.fileOffset);
+    _addBuilder(extension.name, extensionBuilder);
   }
 
-  void addMember(Member member) {
+  void _addMember(Member member) {
     if (member.isExtensionMember) {
       return null;
     }
@@ -233,24 +232,20 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
           json != null ? new Map<String, String>.from(json) : null;
     } else {
       if (member is Field) {
-        addBuilder(name, new DillFieldBuilder(member, this), member.fileOffset);
+        _addBuilder(name, new DillFieldBuilder(member, this));
       } else if (member is Procedure) {
         switch (member.kind) {
           case ProcedureKind.Setter:
-            addBuilder(
-                name, new DillSetterBuilder(member, this), member.fileOffset);
+            _addBuilder(name, new DillSetterBuilder(member, this));
             break;
           case ProcedureKind.Getter:
-            addBuilder(
-                name, new DillGetterBuilder(member, this), member.fileOffset);
+            _addBuilder(name, new DillGetterBuilder(member, this));
             break;
           case ProcedureKind.Operator:
-            addBuilder(
-                name, new DillOperatorBuilder(member, this), member.fileOffset);
+            _addBuilder(name, new DillOperatorBuilder(member, this));
             break;
           case ProcedureKind.Method:
-            addBuilder(
-                name, new DillMethodBuilder(member, this), member.fileOffset);
+            _addBuilder(name, new DillMethodBuilder(member, this));
             break;
           case ProcedureKind.Factory:
             throw new UnsupportedError(
@@ -263,8 +258,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  @override
-  Builder? addBuilder(String? name, Builder declaration, int charOffset) {
+  Builder? _addBuilder(String? name, Builder declaration) {
     if (name == null || name.isEmpty) return null;
 
     bool isSetter = declaration.isSetter;
@@ -292,8 +286,8 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     if (type is FunctionType && type.typedefType == null) {
       unhandled("null", "addTypedef", typedef.fileOffset, typedef.fileUri);
     }
-    addBuilder(typedef.name, new DillTypeAliasBuilder(typedef, tearOffs, this),
-        typedef.fileOffset);
+    _addBuilder(
+        typedef.name, new DillTypeAliasBuilder(typedef, tearOffs, this));
   }
 
   @override

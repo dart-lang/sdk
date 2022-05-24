@@ -4,14 +4,13 @@
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 import '../mocks.dart';
 import '../src/utilities/mock_packages.dart';
 
@@ -115,7 +114,7 @@ void f(A a, B b, C c, D d) {
   Future<Response> _sendConvertRequest(String search) {
     var request = EditGetRefactoringParams(
             RefactoringKind.CONVERT_GETTER_TO_METHOD,
-            testFile,
+            testFile.path,
             findOffset(search),
             0,
             false)
@@ -227,7 +226,7 @@ void f(A a, B b, C c, D d) {
   Future<Response> _sendConvertRequest(String search) {
     var request = EditGetRefactoringParams(
             RefactoringKind.CONVERT_METHOD_TO_GETTER,
-            testFile,
+            testFile.path,
             findOffset(search),
             0,
             false)
@@ -261,16 +260,16 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
   }
 
   @override
-  void tearDown() {
+  Future<void> tearDown() async {
     test_simulateRefactoringException_init = false;
     test_simulateRefactoringException_final = false;
     test_simulateRefactoringException_change = false;
-    super.tearDown();
+    await super.tearDown();
   }
 
   Future<void> test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
-    newFile2(join(testFolder, 'other.dart'), r'''
+    newFile('$testPackageLibPath/other.dart', r'''
 foo(int myName) {}
 ''');
     addTestFile('''
@@ -295,13 +294,14 @@ void f() {
 }
 ''');
     return getRefactoringResult(() {
-      return sendExtractRequest(testCode.indexOf('222 +'), 0, 'res', true);
+      return sendExtractRequest(
+          testFileContent.indexOf('222 +'), 0, 'res', true);
     }).then((result) {
       var feedback = result.feedback as ExtractLocalVariableFeedback;
       expect(feedback.coveringExpressionOffsets, [
-        testCode.indexOf('222 +'),
-        testCode.indexOf('111 +'),
-        testCode.indexOf('111 +')
+        testFileContent.indexOf('222 +'),
+        testFileContent.indexOf('111 +'),
+        testFileContent.indexOf('111 +')
       ]);
       expect(feedback.coveringExpressionLengths,
           ['222'.length, '111 + 222'.length, '111 + 222 + 333'.length]);
@@ -348,10 +348,11 @@ void f() {
     var request = EditGetRefactoringParams(
             RefactoringKind.EXTRACT_LOCAL_VARIABLE, 'test.dart', 0, 0, true)
         .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
@@ -363,10 +364,11 @@ void f() {
             0,
             true)
         .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
@@ -442,7 +444,7 @@ void f() {
 
     await checkUpdate(() {
       server.updateContent('u1', {
-        testFile: AddContentOverlay('''
+        testFile.path: AddContentOverlay('''
 void f() {
   print(1 + 2); // 1
 }
@@ -452,7 +454,7 @@ void f() {
 
     await checkUpdate(() {
       server.updateContent('u2', {
-        testFile: ChangeContentOverlay([
+        testFile.path: ChangeContentOverlay([
           SourceEdit(0, 0, '''
 void f() {
   print(1 + 2); // 2
@@ -463,13 +465,13 @@ void f() {
     });
 
     await checkUpdate(() {
-      server.updateContent('u3', {testFile: RemoveContentOverlay()});
+      server.updateContent('u3', {testFile.path: RemoveContentOverlay()});
     });
   }
 
   Future<void> test_resetOnAnalysisSetChanged_watch_otherFile() async {
-    var otherFile = join(testFolder, 'other.dart');
-    newFile2(otherFile, '// other 1');
+    var otherFile = join('$testPackageLibPath/other.dart');
+    newFile(otherFile, '// other 1');
     addTestFile('''
 void f() {
   foo(1 + 2);
@@ -489,7 +491,7 @@ foo(int myName) {}
     // The refactoring is reset, even though it's a different file. It is up to
     // analyzer to track dependencies and provide resolved units fast when
     // possible.
-    newFile2(otherFile, '// other 2');
+    newFile(otherFile, '// other 2');
     await pumpEventQueue();
     expect(test_resetCount, initialResetCount + 1);
   }
@@ -838,16 +840,14 @@ int? res(int b) {
 }
 
 @reflectiveTest
-class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
+class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
   late List<RefactoringKind> kinds;
 
   void addFlutterPackage() {
     var flutterLib = MockPackages.instance.addFlutter(resourceProvider);
-    newPackageConfigJsonFile(
-      projectPath,
-      (PackageConfigFileBuilder()
-            ..add(name: 'flutter', rootPath: flutterLib.parent.path))
-          .toContent(toUriStr: toUriStr),
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'flutter', rootPath: flutterLib.parent.path),
     );
   }
 
@@ -874,8 +874,9 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   /// Returns the list of available refactorings for the given [offset] and
   /// [length].
   Future getRefactorings(int offset, int length) async {
-    var request = EditGetAvailableRefactoringsParams(testFile, offset, length)
-        .toRequest('0');
+    var request =
+        EditGetAvailableRefactoringsParams(testFile.path, offset, length)
+            .toRequest('0');
     serverChannel.sendRequest(request);
     var response = await serverChannel.waitForResponse(request);
     var result = EditGetAvailableRefactoringsResult.fromResponse(response);
@@ -896,9 +897,7 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
-    handler = EditDomainHandler(server);
-    server.handlers = [handler];
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future test_convertMethodToGetter_hasElement() {
@@ -951,10 +950,11 @@ class MyWidget extends StatelessWidget {
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request =
         EditGetAvailableRefactoringsParams('test.dart', 0, 0).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
@@ -962,10 +962,11 @@ class MyWidget extends StatelessWidget {
     var request = EditGetAvailableRefactoringsParams(
             convertPath('/foo/../bar/test.dart'), 0, 0)
         .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
@@ -1090,8 +1091,7 @@ void f() {
 class InlineLocalTest extends _AbstractGetRefactoring_Test {
   Future<void> test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
-    var otherFile = join(testFolder, 'other.dart');
-    newFile2(otherFile, r'''
+    newFile('$testPackageLibPath/other.dart', r'''
 foo(int p) {}
 ''');
     addTestFile('''
@@ -1159,7 +1159,7 @@ void f() {
   }
 
   Future<void> test_resetOnAnalysisSetChanged() async {
-    newFile2(join(testFolder, 'other.dart'), '// other 1');
+    newFile('$testPackageLibPath/other.dart', '// other 1');
     addTestFile('''
 void f() {
   int res = 1 + 2;
@@ -1185,7 +1185,7 @@ void f() {
   Future<Response> _sendInlineRequest(String search) {
     var request = EditGetRefactoringParams(
             RefactoringKind.INLINE_LOCAL_VARIABLE,
-            testFile,
+            testFile.path,
             findOffset(search),
             0,
             false)
@@ -1309,7 +1309,7 @@ void f() {
 
   Future<Response> _sendInlineRequest(String search) {
     var request = EditGetRefactoringParams(RefactoringKind.INLINE_METHOD,
-            testFile, findOffset(search), 0, false,
+            testFile.path, findOffset(search), 0, false,
             options: options)
         .toRequest('0');
     return serverChannel.sendRequest(request);
@@ -1321,42 +1321,43 @@ class MoveFileTest extends _AbstractGetRefactoring_Test {
   late MoveFileOptions options;
 
   Future<void> test_file_OK() {
-    newFile2('/project/bin/lib.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
     addTestFile('''
 import 'dart:math';
-import 'lib.dart';
+import 'a.dart';
 ''');
-    _setOptions('/project/test.dart');
+    _setOptions('$testPackageRootPath/test.dart');
     return assertSuccessfulRefactoring(() {
-      return _sendMoveRequest(testFile);
+      return _sendMoveRequest(testFile.path);
     }, '''
 import 'dart:math';
-import 'bin/lib.dart';
+import 'lib/a.dart';
 ''');
   }
 
   Future<void> test_folder_cancel() {
-    newFile2('/project/bin/original_folder/file.dart', '');
+    newFile('$testPackageLibPath/original_folder/file.dart', '');
     addTestFile('''
 import 'dart:math';
 import 'original_folder/file.dart';
 ''');
-    _setOptions('/project/bin/new_folder');
+    _setOptions('$testPackageLibPath/new_folder');
     return assertEmptySuccessfulRefactoring(() async {
       return _sendAndCancelMoveRequest(
-          convertPath('/project/bin/original_folder'));
+          getFolder('$testPackageLibPath/original_folder').path);
     });
   }
 
   Future<void> test_folder_OK() {
-    newFile2('/project/bin/original_folder/file.dart', '');
+    newFile('$testPackageLibPath/original_folder/file.dart', '');
     addTestFile('''
 import 'dart:math';
 import 'original_folder/file.dart';
 ''');
-    _setOptions('/project/bin/new_folder');
+    _setOptions('$testPackageLibPath/new_folder');
     return assertSuccessfulRefactoring(() async {
-      return _sendMoveRequest(convertPath('/project/bin/original_folder'));
+      return _sendMoveRequest(
+          getFolder('$testPackageLibPath/original_folder').path);
     }, '''
 import 'dart:math';
 import 'new_folder/file.dart';
@@ -1396,19 +1397,19 @@ class RenameTest extends _AbstractGetRefactoring_Test {
   Future<Response> sendRenameRequest(String search, String? newName,
       {String id = '0', bool validateOnly = false}) {
     var options = newName != null ? RenameOptions(newName) : null;
-    var request = EditGetRefactoringParams(RefactoringKind.RENAME, testFile,
-            findOffset(search), 0, validateOnly,
+    var request = EditGetRefactoringParams(RefactoringKind.RENAME,
+            testFile.path, findOffset(search), 0, validateOnly,
             options: options)
         .toRequest(id);
     return serverChannel.sendRequest(request);
   }
 
   @override
-  void tearDown() {
+  Future<void> tearDown() async {
     test_simulateRefactoringReset_afterInitialConditions = false;
     test_simulateRefactoringReset_afterFinalConditions = false;
     test_simulateRefactoringReset_afterCreateChange = false;
-    super.tearDown();
+    await super.tearDown();
   }
 
   Future<void> test_cancelPendingRequest() async {
@@ -2132,7 +2133,7 @@ library my.new_name;
   }
 
   Future<void> test_library_partOfDirective() {
-    newFile2(join(testFolder, 'my_lib.dart'), '''
+    newFile('$testPackageLibPath/my_lib.dart', '''
 library aaa.bbb.ccc;
 part 'test.dart';
 ''');
@@ -2249,7 +2250,7 @@ void f() {
   print(otherName);
 }
 ''');
-    server.getAnalysisDriver(testFile)!.getResult(testFile);
+    server.getAnalysisDriver(testFile.path)!.getResult(testFile.path);
     // send the second request, with the same kind, file and offset
     await waitForTasksFinished();
     result = await getRefactoringResult(() {
@@ -2267,13 +2268,13 @@ void f() {
 
   SourceEdit? _findEditWithId(SourceChange change, String id) {
     SourceEdit? potentialEdit;
-    change.edits.forEach((fileEdit) {
-      fileEdit.edits.forEach((edit) {
+    for (var fileEdit in change.edits) {
+      for (var edit in fileEdit.edits) {
         if (edit.id == id) {
           potentialEdit = edit;
         }
-      });
-    });
+      }
+    }
     return potentialEdit;
   }
 
@@ -2286,7 +2287,7 @@ void f() {
 }
 
 @reflectiveTest
-class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
+class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
   bool shouldWaitForFullAnalysis = true;
 
   Future assertEmptySuccessfulRefactoring(
@@ -2304,7 +2305,7 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   /// for [testFile].
   void assertNoTestRefactoringResult(EditGetRefactoringResult result) {
     var change = result.change!;
-    if (change.edits.any((edit) => edit.file == testFile)) {
+    if (change.edits.any((edit) => edit.file == testFile.path)) {
       fail('Found a SourceFileEdit for $testFile in $change');
     }
   }
@@ -2368,8 +2369,9 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
       EditGetRefactoringResult result, String expectedCode) {
     var change = result.change!;
     for (var fileEdit in change.edits) {
-      if (fileEdit.file == testFile) {
-        var actualCode = SourceEdit.applySequence(testCode, fileEdit.edits);
+      if (fileEdit.file == testFile.path) {
+        var actualCode =
+            SourceEdit.applySequence(testFileContent, fileEdit.edits);
         expect(actualCode, expectedCode);
         return;
       }
@@ -2390,7 +2392,7 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
       RefactoringKind kind, int offset, int length, RefactoringOptions? options,
       [bool validateOnly = false]) {
     var request = EditGetRefactoringParams(
-            kind, testFile, offset, length, validateOnly,
+            kind, testFile.path, offset, length, validateOnly,
             options: options)
         .toRequest('0');
     return serverChannel.sendRequest(request);
@@ -2399,10 +2401,6 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
-    server.handlers = [
-      EditDomainHandler(server),
-      ServerDomainHandler(server),
-    ];
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 }

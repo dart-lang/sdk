@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'synthesized_super_constructor_with_parameters_lib.dart';
+
 // 1. The base case.
 
 class A1 {
@@ -90,6 +92,40 @@ class A5 extends AA5 {
 class AA5 {
   final int foo;
   AA5([this.foo = 42]);
+}
+
+// 6. The base class + mixin application from dill.
+
+class D6 extends C6 {
+  D6({super.a});
+}
+
+// 7. The base class from dill.
+
+class B7 {}
+
+// C7 has a synthesized constructor that takes a positional parameter.
+class C7 = A7 with B7;
+
+class D7 extends C7 {
+  D7([super.a]);
+}
+
+// 8. The base class + mixin application from dill.
+
+class D8 extends C8 {
+  D8({super.a});
+}
+
+// 9. The base class with nullable field from dill.
+
+class B9 {}
+
+// C9 has a synthesized constructor that takes a positional parameter.
+class C9 = A9 with B9;
+
+class D9 extends C9 {
+  D9([super.a]);
 }
 
 main() {}

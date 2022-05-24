@@ -1084,7 +1084,7 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_Block_unimported() async {
-    newFile2('$workspaceRootPath/myBar/bar.dart', 'class Foo2 { Foo2() { } }');
+    newFile('$workspaceRootPath/myBar/bar.dart', 'class Foo2 { Foo2() { } }');
     addSource(
         '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
     addTestSource('class C {foo(){F^}}');

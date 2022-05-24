@@ -17,7 +17,6 @@ import 'package:analysis_server/src/services/correction/fix/analysis_options/fix
 import 'package:analysis_server/src/services/correction/fix/manifest/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -39,9 +38,7 @@ class EditGetFixesHandler extends LegacyHandler
     with RequestHandlerMixin<AnalysisServer> {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  EditGetFixesHandler(AnalysisServer server, Request request,
-      CancellationToken cancellationToken)
-      : super(server, request, cancellationToken);
+  EditGetFixesHandler(super.server, super.request, super.cancellationToken);
 
   @override
   Future<void> handle() async {
@@ -141,9 +138,9 @@ class EditGetFixesHandler extends LegacyHandler
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
-        fixes.forEach((fix) {
+        for (var fix in fixes) {
           errorFixes.fixes.add(fix.change);
-        });
+        }
       }
     }
     return errorFixesList;
@@ -190,9 +187,9 @@ error.errorCode: ${error.errorCode}
             var serverError = newAnalysisError_fromEngine(result, error);
             var errorFixes = AnalysisErrorFixes(serverError);
             errorFixesList.add(errorFixes);
-            fixes.forEach((fix) {
+            for (var fix in fixes) {
               errorFixes.fixes.add(fix.change);
-            });
+            }
           }
         }
       }
@@ -230,9 +227,9 @@ error.errorCode: ${error.errorCode}
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
-        fixes.forEach((fix) {
+        for (var fix in fixes) {
           errorFixes.fixes.add(fix.change);
-        });
+        }
       }
     }
     return errorFixesList;
@@ -278,9 +275,9 @@ error.errorCode: ${error.errorCode}
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
-        fixes.forEach((fix) {
+        for (var fix in fixes) {
           errorFixes.fixes.add(fix.change);
-        });
+        }
       }
     }
     return errorFixesList;

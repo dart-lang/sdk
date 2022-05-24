@@ -3855,6 +3855,7 @@ class FunctionNode extends TreeNode {
     visitList(positionalParameters, v);
     visitList(namedParameters, v);
     returnType.accept(v);
+    futureValueType?.accept(v);
     body?.accept(v);
   }
 
@@ -3864,6 +3865,9 @@ class FunctionNode extends TreeNode {
     v.transformList(positionalParameters, this);
     v.transformList(namedParameters, this);
     returnType = v.visitDartType(returnType);
+    if (futureValueType != null) {
+      futureValueType = v.visitDartType(futureValueType!);
+    }
     if (body != null) {
       body = v.transform(body!);
       body?.parent = this;
@@ -3876,6 +3880,9 @@ class FunctionNode extends TreeNode {
     v.transformVariableDeclarationList(positionalParameters, this);
     v.transformVariableDeclarationList(namedParameters, this);
     returnType = v.visitDartType(returnType, cannotRemoveSentinel);
+    if (futureValueType != null) {
+      futureValueType = v.visitDartType(futureValueType!, cannotRemoveSentinel);
+    }
     if (body != null) {
       body = v.transformOrRemoveStatement(body!);
       body?.parent = this;
@@ -6406,10 +6413,11 @@ class ConstructorInvocation extends InvocationExpression {
     }
   }
 
-  // TODO(dmitryas): Change the getter into a method that accepts a CoreTypes.
+  // TODO(cstefantsova): Change the getter into a method that accepts a
+  // CoreTypes.
   InterfaceType get constructedType {
     Class enclosingClass = target.enclosingClass;
-    // TODO(dmitryas): Get raw type from a CoreTypes object if arguments is
+    // TODO(cstefantsova): Get raw type from a CoreTypes object if arguments is
     // empty.
     return arguments.types.isEmpty
         ? new InterfaceType(
@@ -10274,7 +10282,8 @@ class VariableDeclaration extends Statement implements Annotatable {
       bool isCovariantByDeclaration: false,
       bool isLate: false,
       bool isRequired: false,
-      bool isLowered: false}) {
+      bool isLowered: false,
+      bool hasDeclaredInitializer: false}) {
     // ignore: unnecessary_null_comparison
     assert(type != null);
     initializer?.parent = this;
@@ -10288,6 +10297,7 @@ class VariableDeclaration extends Statement implements Annotatable {
       this.isLate = isLate;
       this.isRequired = isRequired;
       this.isLowered = isLowered;
+      this.hasDeclaredInitializer = hasDeclaredInitializer;
     }
   }
 
@@ -10309,16 +10319,18 @@ class VariableDeclaration extends Statement implements Annotatable {
     this.isLate = isLate;
     this.isRequired = isRequired;
     this.isLowered = isLowered;
+    this.hasDeclaredInitializer = true;
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
-  static const int FlagInitializingFormal = 1 << 2;
-  static const int FlagCovariantByDeclaration = 1 << 3;
+  static const int FlagHasDeclaredInitializer = 1 << 2;
+  static const int FlagInitializingFormal = 1 << 3;
   static const int FlagCovariantByClass = 1 << 4;
   static const int FlagLate = 1 << 5;
   static const int FlagRequired = 1 << 6;
-  static const int FlagLowered = 1 << 7;
+  static const int FlagCovariantByDeclaration = 1 << 7;
+  static const int FlagLowered = 1 << 8;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -10362,6 +10374,15 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// Lowering is used for instance of encoding of 'this' in extension instance
   /// members and encoding of late locals.
   bool get isLowered => flags & FlagLowered != 0;
+
+  /// Whether the variable has an initializer, either by declaration or copied
+  /// from an original declaration.
+  ///
+  /// Note that the variable might have a synthesized initializer expression,
+  /// so `hasDeclaredInitializer == false` doesn't imply `initializer == null`.
+  /// For instance, for duplicate variable names, an invalid expression is set
+  /// as the initializer of the second variable.
+  bool get hasDeclaredInitializer => flags & FlagHasDeclaredInitializer != 0;
 
   /// Whether the variable is assignable.
   ///
@@ -10413,6 +10434,12 @@ class VariableDeclaration extends Statement implements Annotatable {
 
   void set isLowered(bool value) {
     flags = value ? (flags | FlagLowered) : (flags & ~FlagLowered);
+  }
+
+  void set hasDeclaredInitializer(bool value) {
+    flags = value
+        ? (flags | FlagHasDeclaredInitializer)
+        : (flags & ~FlagHasDeclaredInitializer);
   }
 
   void clearAnnotations() {
@@ -10653,8 +10680,8 @@ class _PrivateName extends Name {
   Library get library => libraryName.asLibrary;
 
   static int _computeHashCode(String name, Reference libraryName) {
-    // TODO(dmitryas): Factor in [libraryName] in a non-deterministic way into
-    // the result.  Note, the previous code here was the following:
+    // TODO(cstefantsova): Factor in [libraryName] in a non-deterministic way
+    // into the result.  Note, the previous code here was the following:
     //     return 131 * name.hashCode + 17 * libraryName.asLibrary._libraryId;
     return name.hashCode;
   }
@@ -10843,13 +10870,15 @@ class InvalidType extends DartType {
 
   @override
   Nullability get declaredNullability {
-    // TODO(johnniwinther,dmitryas): Consider implementing invalidNullability.
+    // TODO(johnniwinther,cstefantsova): Consider implementing
+    // invalidNullability.
     return Nullability.legacy;
   }
 
   @override
   Nullability get nullability {
-    // TODO(johnniwinther,dmitryas): Consider implementing invalidNullability.
+    // TODO(johnniwinther,cstefantsova): Consider implementing
+    // invalidNullability.
     return Nullability.legacy;
   }
 
@@ -11413,7 +11442,7 @@ class TypedefType extends DartType {
 
   Typedef get typedefNode => typedefReference.asTypedef;
 
-  // TODO(dmitryas): Replace with uniteNullabilities(declaredNullability,
+  // TODO(cstefantsova): Replace with uniteNullabilities(declaredNullability,
   // typedefNode.type.nullability).
   @override
   Nullability get nullability => declaredNullability;

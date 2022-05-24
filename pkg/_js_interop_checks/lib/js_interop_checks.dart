@@ -22,7 +22,9 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateJsInteropStaticInteropWithInstanceMembers,
         templateJsInteropStaticInteropWithNonStaticSupertype,
         templateJsInteropJSClassExtendsDartClass,
-        templateJsInteropNativeClassInAnnotation;
+        templateJsInteropNativeClassInAnnotation,
+        templateJsInteropStaticInteropTrustTypesUsageNotAllowed,
+        templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop;
 
 import 'src/js_interop.dart';
 
@@ -66,6 +68,11 @@ class JsInteropChecks extends RecursiveVisitor {
     'generated_tests/web_2/native/native_test',
   ];
 
+  List<Pattern> _allowedTrustTypesTestPatterns = [
+    RegExp(r'(?<!generated_)tests/lib/js'),
+    RegExp(r'(?<!generated_)tests/lib_2/js'),
+  ];
+
   bool _libraryIsGlobalNamespace = false;
 
   JsInteropChecks(
@@ -103,6 +110,25 @@ class JsInteropChecks extends RecursiveVisitor {
     _classHasJSAnnotation = hasJSInteropAnnotation(cls);
     _classHasAnonymousAnnotation = hasAnonymousAnnotation(cls);
     _classHasStaticInteropAnnotation = hasStaticInteropAnnotation(cls);
+    bool classHasTrustTypesAnnotation = hasTrustTypesAnnotation(cls);
+    if (classHasTrustTypesAnnotation) {
+      if (!_isAllowedTrustTypesUsage(cls)) {
+        _diagnosticsReporter.report(
+            templateJsInteropStaticInteropTrustTypesUsageNotAllowed
+                .withArguments(cls.name),
+            cls.fileOffset,
+            cls.name.length,
+            cls.fileUri);
+      }
+      if (!_classHasStaticInteropAnnotation) {
+        _diagnosticsReporter.report(
+            templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop
+                .withArguments(cls.name),
+            cls.fileOffset,
+            cls.name.length,
+            cls.fileUri);
+      }
+    }
     var superclass = cls.superclass;
     if (superclass != null && superclass != _coreTypes.objectClass) {
       var superHasJSAnnotation = hasJSInteropAnnotation(superclass);
@@ -354,6 +380,14 @@ class JsInteropChecks extends RecursiveVisitor {
             member.fileUri);
       }
     }
+  }
+
+  /// Verifies that use of `@trustTypes` is allowed.
+  bool _isAllowedTrustTypesUsage(Class cls) {
+    Uri uri = cls.enclosingLibrary.importUri;
+    return uri.isScheme('dart') && uri.path == 'ui' ||
+        _allowedTrustTypesTestPatterns
+            .any((pattern) => uri.path.contains(pattern));
   }
 
   /// Verifies given member is one of the allowed usages of external:

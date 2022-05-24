@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static field core::int a;
+static field core::num b;
+static field core::num c;
+static field core::num d;
+static field core::double e;
+static final field core::int f;
+static final field core::num g;
+static final field core::num h;
+static final field core::num i;
+static final field core::double j;
+static method main() → void
+  ;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:js_runtime/shared/embedded_names.dart';
@@ -15,7 +17,6 @@ import 'package:kernel/type_environment.dart' as ir;
 import '../common.dart';
 import '../common/elements.dart';
 import '../common/names.dart';
-import '../common/resolution.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
@@ -33,15 +34,22 @@ import '../ir/types.dart';
 import '../ir/visitors.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
+import '../js_backend/annotations.dart';
+import '../js_backend/backend_impact.dart';
+import '../js_backend/backend_usage.dart';
+import '../js_backend/custom_elements_analysis.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
+import '../js_backend/runtime_types_resolution.dart';
 import '../js_model/locals.dart';
 import '../kernel/dart2js_target.dart';
 import '../native/behavior.dart';
+import '../native/enqueue.dart';
 import '../options.dart';
 import '../ordered_typeset.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
+import '../universe/world_impact.dart';
 
 import 'element_map.dart';
 import 'env.dart';
@@ -57,16 +65,16 @@ class KernelToElementMap implements IrToElementMap {
   final Environment _environment;
   final NativeBasicDataBuilder nativeBasicDataBuilder =
       NativeBasicDataBuilder();
-  NativeBasicData _nativeBasicData;
-  KCommonElements _commonElements;
-  KernelElementEnvironment _elementEnvironment;
-  DartTypeConverter _typeConverter;
-  KernelDartTypes _types;
-  ir.CoreTypes _coreTypes;
-  ir.TypeEnvironment _typeEnvironment;
-  ir.ClassHierarchy _classHierarchy;
-  Dart2jsConstantEvaluator _constantEvaluator;
-  ConstantValuefier _constantValuefier;
+  NativeBasicData /*?*/ _nativeBasicData;
+  /*late final*/ KCommonElements /*!*/ _commonElements;
+  /*late final*/ KernelElementEnvironment /*!*/ _elementEnvironment;
+  /*late final*/ DartTypeConverter _typeConverter;
+  /*late final*/ KernelDartTypes /*!*/ _types;
+  ir.CoreTypes /*?*/ _coreTypes;
+  ir.TypeEnvironment /*?*/ _typeEnvironment;
+  ir.ClassHierarchy /*?*/ _classHierarchy;
+  Dart2jsConstantEvaluator /*?*/ _constantEvaluator;
+  /*late final*/ ConstantValuefier _constantValuefier;
 
   /// Library environment. Used for fast lookup.
   KProgramEnv env = KProgramEnv();
@@ -103,6 +111,7 @@ class KernelToElementMap implements IrToElementMap {
   BehaviorBuilder _nativeBehaviorBuilder;
 
   Map<KMember, Map<ir.Expression, TypeMap>> typeMapsForTesting;
+  Map<ir.Member, ImpactData> impactDataForTesting;
 
   KernelToElementMap(this.reporter, this._environment, this.options) {
     _elementEnvironment = KernelElementEnvironment(this);
@@ -1443,8 +1452,15 @@ class KernelToElementMap implements IrToElementMap {
       _nativeBehaviorBuilder ??= BehaviorBuilder(elementEnvironment,
           commonElements, nativeBasicData, reporter, options);
 
-  ResolutionImpact computeWorldImpact(
-      KMember member, ImpactBuilderData impactBuilderData) {
+  WorldImpact computeWorldImpact(
+      KMember member,
+      BackendImpacts impacts,
+      NativeResolutionEnqueuer nativeResolutionEnqueuer,
+      BackendUsageBuilder backendUsageBuilder,
+      CustomElementsResolutionAnalysis customElementsResolutionAnalysis,
+      RuntimeTypesNeedBuilder rtiNeedBuilder,
+      AnnotationsData annotationsData,
+      ImpactBuilderData impactBuilderData) {
     KMemberData memberData = members.getData(member);
     ir.Member node = memberData.node;
 
@@ -1454,6 +1470,10 @@ class KernelToElementMap implements IrToElementMap {
     }
     ImpactData impactData = impactBuilderData.impactData;
     memberData.staticTypes = impactBuilderData.cachedStaticTypes;
+    if (retainDataForTesting) {
+      impactDataForTesting ??= {};
+      impactDataForTesting[node] = impactData;
+    }
     KernelImpactConverter converter = KernelImpactConverter(
         this,
         member,
@@ -1462,7 +1482,13 @@ class KernelToElementMap implements IrToElementMap {
         _constantValuefier,
         // TODO(johnniwinther): Pull the static type context from the cached
         // static types.
-        ir.StaticTypeContext(node, typeEnvironment));
+        ir.StaticTypeContext(node, typeEnvironment),
+        impacts,
+        nativeResolutionEnqueuer,
+        backendUsageBuilder,
+        customElementsResolutionAnalysis,
+        rtiNeedBuilder,
+        annotationsData);
     return converter.convert(impactData);
   }
 
@@ -1631,7 +1657,7 @@ class KernelToElementMap implements IrToElementMap {
   }
 
   IndexedClass createClass(LibraryEntity library, String name,
-      {bool isAbstract}) {
+      {/*required*/ bool isAbstract}) {
     return KClass(library, name, isAbstract: isAbstract);
   }
 
@@ -1642,7 +1668,7 @@ class KernelToElementMap implements IrToElementMap {
 
   IndexedConstructor createGenerativeConstructor(ClassEntity enclosingClass,
       Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst}) {
+      {/*required*/ bool isExternal, /*required*/ bool isConst}) {
     return KGenerativeConstructor(enclosingClass, name, parameterStructure,
         isExternal: isExternal, isConst: isConst);
   }
@@ -1651,7 +1677,9 @@ class KernelToElementMap implements IrToElementMap {
   // isEnvironmentConstructor: Here, and everywhere in the compiler.
   IndexedConstructor createFactoryConstructor(ClassEntity enclosingClass,
       Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst, bool isFromEnvironmentConstructor}) {
+      {/*required*/ bool isExternal,
+      /*required*/ bool isConst,
+      /*required*/ bool isFromEnvironmentConstructor}) {
     return KFactoryConstructor(enclosingClass, name, parameterStructure,
         isExternal: isExternal,
         isConst: isConst,
@@ -1660,7 +1688,9 @@ class KernelToElementMap implements IrToElementMap {
 
   IndexedFunction createGetter(LibraryEntity library,
       ClassEntity enclosingClass, Name name, AsyncMarker asyncMarker,
-      {bool isStatic, bool isExternal, bool isAbstract}) {
+      {/*required*/ bool isStatic,
+      /*required*/ bool isExternal,
+      /*required*/ bool isAbstract}) {
     return KGetter(library, enclosingClass, name, asyncMarker,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
@@ -1671,9 +1701,9 @@ class KernelToElementMap implements IrToElementMap {
       Name name,
       ParameterStructure parameterStructure,
       AsyncMarker asyncMarker,
-      {bool isStatic,
-      bool isExternal,
-      bool isAbstract}) {
+      {/*required*/ bool isStatic,
+      /*required*/ bool isExternal,
+      /*required*/ bool isAbstract}) {
     return KMethod(
         library, enclosingClass, name, parameterStructure, asyncMarker,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
@@ -1681,14 +1711,18 @@ class KernelToElementMap implements IrToElementMap {
 
   IndexedFunction createSetter(
       LibraryEntity library, ClassEntity enclosingClass, Name name,
-      {bool isStatic, bool isExternal, bool isAbstract}) {
+      {/*required*/ bool isStatic,
+      /*required*/ bool isExternal,
+      /*required*/ bool isAbstract}) {
     return KSetter(library, enclosingClass, name,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
   IndexedField createField(
       LibraryEntity library, ClassEntity enclosingClass, Name name,
-      {bool isStatic, bool isAssignable, bool isConst}) {
+      {/*required*/ bool isStatic,
+      /*required*/ bool isAssignable,
+      /*required*/ bool isConst}) {
     return KField(library, enclosingClass, name,
         isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
   }

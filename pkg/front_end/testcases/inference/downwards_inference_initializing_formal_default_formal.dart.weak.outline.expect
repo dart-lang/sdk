@@ -21,7 +21,7 @@ class Foo extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static field ([core::List<core::int*>*]) →* core::String* g;
-static method f([core::List<core::int*>* l]) → void
+static method f([has-declared-initializer core::List<core::int*>* l]) → void
   ;
 static method main() → dynamic
   ;

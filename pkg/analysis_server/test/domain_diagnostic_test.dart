@@ -3,11 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis_abstract.dart';
+import 'analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -16,30 +15,20 @@ void main() {
 }
 
 @reflectiveTest
-class DiagnosticDomainTest extends AbstractAnalysisTest {
-  @override
-  void setUp() {
-    super.setUp();
-    handler = DiagnosticDomainHandler(server);
-    server.handlers = [handler];
-  }
-
+class DiagnosticDomainTest extends PubPackageAnalysisServerTest {
   Future<void> test_getDiagnostics() async {
-    newPubspecYamlFile('/project', 'name: project');
-    newFile2('/project/bin/test.dart', 'main() {}');
+    newPubspecYamlFile(testPackageRootPath, 'name: project');
+    newFile('$testPackageLibPath/test.dart', 'main() {}');
 
-    await server.setAnalysisRoots('0', [convertPath('/project')], []);
-
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
 
     var request = DiagnosticGetDiagnosticsParams().toRequest('0');
-    var response = await waitResponse(request);
+    var response = await handleSuccessfulRequest(request);
     var result = DiagnosticGetDiagnosticsResult.fromResponse(response);
 
-    expect(result.contexts, hasLength(1));
-
-    var context = result.contexts[0];
-    expect(context.name, convertPath('/project'));
+    var context = result.contexts
+        .singleWhere((context) => context.name == testPackageRoot.path);
     expect(context.explicitFileCount, 1); /* test.dart */
 
     expect(context.implicitFileCount, 5);
@@ -49,7 +38,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
 
   Future<void> test_getDiagnostics_noRoot() async {
     var request = DiagnosticGetDiagnosticsParams().toRequest('0');
-    var response = await waitResponse(request);
+    var response = await handleSuccessfulRequest(request);
     var result = DiagnosticGetDiagnosticsResult.fromResponse(response);
     expect(result.contexts, isEmpty);
   }

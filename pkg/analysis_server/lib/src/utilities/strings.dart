@@ -159,9 +159,7 @@ String shorten(String text, int limit) {
   if (text.length > limit) {
     var headLength = limit ~/ 2 - 1;
     var tailLength = limit - headLength - 3;
-    return text.substring(0, headLength) +
-        '...' +
-        text.substring(text.length - tailLength);
+    return '${text.substring(0, headLength)}...${text.substring(text.length - tailLength)}';
   }
   return text;
 }

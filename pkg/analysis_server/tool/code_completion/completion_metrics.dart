@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io' show stdout;
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
@@ -50,6 +51,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:args/args.dart';
+import 'package:cli_util/cli_logging.dart';
 
 import 'metrics_util.dart';
 import 'output_utilities.dart';
@@ -66,10 +68,13 @@ import 'visitors.dart';
 ///
 /// This approach has several drawbacks:
 ///
-/// - The AST is always complete and correct, and that's rarely the case for
-///   real completion requests. Usually the tree is incomplete and often has a
-///   completely different structure because of the way recovery works. We
-///   currently have no way of measuring completions under realistic conditions.
+/// - The options for creating an "in-progress" file are limited. In the default
+///   'overlay' mode, the AST is always complete and correct, rarely the case
+///   for real completion requests. The other 'overlay' modes generate
+///   incomplete ASTs with error recovery nodes, but neither of these quite
+///   properly emulate the act of editing the middle of a file, perhaps the
+///   middle of an expression, or the middle of an argument list. We currently
+///   have no way of measuring completions under realistic conditions.
 ///
 /// - We can't measure completions for several keywords because the presence of
 ///   the keyword in the AST causes it to not be suggested.
@@ -77,7 +82,7 @@ import 'visitors.dart';
 /// - The time it takes to compute the suggestions doesn't include the time
 ///   required to finish analyzing the file if the analysis hasn't been
 ///   completed before suggestions are requested. While the times are accurate
-///   (within the accuracy of the `Stopwatch` class) they are the minimum
+///   (within the accuracy of the [Stopwatch] class) they are the minimum
 ///   possible time. This doesn't give us a measure of how completion will
 ///   perform in production, but does give us an optimistic approximation.
 ///
@@ -193,7 +198,7 @@ ArgParser createArgParser() {
     ..addFlag(CompletionMetricsOptions.PRINT_SHADOWED_COMPLETION_DETAILS,
         defaultsTo: false,
         help: 'Print detailed information every time a completion request '
-            'produces a suggestions whose name matches the expected suggestion '
+            'produces a suggestion whose name matches the expected suggestion '
             'but that is referencing a different element',
         negatable: false)
     ..addFlag(CompletionMetricsOptions.PRINT_SLOWEST_RESULTS,
@@ -332,6 +337,11 @@ class CompletionMetrics {
   final ArithmeticMeanComputer meanCompletionMS =
       ArithmeticMeanComputer('ms per completion');
 
+  /// A percentile computer for the ms per completion request, using 2.000
+  /// seconds as the max value to use in percentile calculations.
+  final PercentileComputer percentileCompletionMS =
+      PercentileComputer('ms per completion', valueLimit: 2000);
+
   final DistributionComputer distributionCompletionMS = DistributionComputer();
 
   final MeanReciprocalRankComputer mrrComputer =
@@ -398,6 +408,8 @@ class CompletionMetrics {
         .fromJson(map['completionElementKindCounter'] as Map<String, dynamic>);
     metrics.meanCompletionMS
         .fromJson(map['meanCompletionMS'] as Map<String, dynamic>);
+    metrics.percentileCompletionMS
+        .fromJson(map['percentileMS'] as Map<String, dynamic>);
     metrics.distributionCompletionMS
         .fromJson(map['distributionCompletionMS'] as Map<String, dynamic>);
     metrics.mrrComputer.fromJson(map['mrrComputer'] as Map<String, dynamic>);
@@ -453,6 +465,7 @@ class CompletionMetrics {
     completionKindCounter.addData(metrics.completionKindCounter);
     completionElementKindCounter.addData(metrics.completionElementKindCounter);
     meanCompletionMS.addData(metrics.meanCompletionMS);
+    percentileCompletionMS.addData(metrics.percentileCompletionMS);
     distributionCompletionMS.addData(metrics.distributionCompletionMS);
     mrrComputer.addData(metrics.mrrComputer);
     successfulMrrComputer.addData(metrics.successfulMrrComputer);
@@ -545,6 +558,7 @@ class CompletionMetrics {
       'completionKindCounter': completionKindCounter.toJson(),
       'completionElementKindCounter': completionElementKindCounter.toJson(),
       'meanCompletionMS': meanCompletionMS.toJson(),
+      'percentileCompletionMS': percentileCompletionMS.toJson(),
       'distributionCompletionMS': distributionCompletionMS.toJson(),
       'mrrComputer': mrrComputer.toJson(),
       'successfulMrrComputer': successfulMrrComputer.toJson(),
@@ -617,6 +631,7 @@ class CompletionMetrics {
   /// Record this elapsed ms count for the average ms count.
   void _recordTime(CompletionResult result) {
     meanCompletionMS.addValue(result.elapsedMS);
+    percentileCompletionMS.addValue(result.elapsedMS);
     distributionCompletionMS.addValue(result.elapsedMS);
   }
 
@@ -815,7 +830,7 @@ class CompletionMetricsComputer {
 
   void printComparisonOfCompletionCounts() {
     String toString(int count, int totalCount) {
-      return '$count (${printPercentage(count / totalCount, 2)})';
+      return '$count (${(count / totalCount).asPercentage(2)})';
     }
 
     var counters = targetMetrics.map((metrics) => metrics.completionCounter);
@@ -1051,7 +1066,7 @@ class CompletionMetricsComputer {
     var columnHeaders = [' ', targetMetrics[0].name];
     for (var i = 1; i < targetMetrics.length; i++) {
       columnHeaders.add('|');
-      columnHeaders.add('${targetMetrics[i].name}');
+      columnHeaders.add(targetMetrics[i].name);
       columnHeaders.add('delta');
     }
     var blankRow = [for (int i = 0; i < columnHeaders.length; i++) ''];
@@ -1093,25 +1108,45 @@ class CompletionMetricsComputer {
   }
 
   void printOtherMetrics(CompletionMetrics metrics) {
-    List<String> toRow(ArithmeticMeanComputer computer) {
-      var min = computer.min;
-      var mean = computer.mean.toStringAsFixed(6);
-      var max = computer.max;
-      return [computer.name, '$min, $mean, $max'];
+    List<String> meanComputingRow(ArithmeticMeanComputer computer) {
+      return [
+        computer.name,
+        computer.min!.toStringAsFixed(3),
+        computer.mean.toStringAsFixed(3),
+        computer.max!.toStringAsFixed(3),
+      ];
     }
 
     var table = [
-      toRow(metrics.meanCompletionMS),
-      toRow(metrics.charsBeforeTop),
-      toRow(metrics.charsBeforeTopFive),
-      toRow(metrics.insertionLengthTheoretical),
+      ['', 'min', 'mean', 'max'],
+      meanComputingRow(metrics.meanCompletionMS),
+      meanComputingRow(metrics.charsBeforeTop),
+      meanComputingRow(metrics.charsBeforeTopFive),
+      meanComputingRow(metrics.insertionLengthTheoretical),
     ];
     rightJustifyColumns(table, range(1, table[0].length));
 
     printHeading(2, 'Other metrics');
     printTable(table);
 
+    var percentileTable = [
+      ['', 'p50', 'p90', 'p95', 'count > 2s', 'max'],
+      [
+        metrics.percentileCompletionMS.name,
+        metrics.percentileCompletionMS.median.toString(),
+        metrics.percentileCompletionMS.p90.toString(),
+        metrics.percentileCompletionMS.p95.toString(),
+        metrics.percentileCompletionMS.aboveValueMaxCount.toString(),
+        metrics.percentileCompletionMS.maxValue.toString(),
+      ],
+    ];
+    rightJustifyColumns(percentileTable, range(1, percentileTable[1].length));
+
+    printHeading(3, 'Percentile metrics');
+    printTable(percentileTable);
+
     var distribution = metrics.distributionCompletionMS.displayString();
+    printHeading(3, 'Completion ms distribution');
     print('${metrics.name}: $distribution');
     print('');
   }
@@ -1305,8 +1340,6 @@ class CompletionMetricsComputer {
 
     var context = collection.contexts[0];
 
-    // Set the DeclarationsTracker, only call doWork to build up the available
-    // suggestions if doComputeCompletionsFromAnalysisServer is true.
     DeclarationsTracker? declarationsTracker;
     protocol.CompletionAvailableSuggestionsParams? availableSuggestionsParams;
     if (targetMetrics.any((metrics) => metrics.availableSuggestions)) {
@@ -1317,13 +1350,22 @@ class CompletionMetricsComputer {
         declarationsTracker.doWork();
       }
 
-      // Have the AvailableDeclarationsSet computed to use later.
+      // Have the [AvailableDeclarationsSet] computed to use later.
       availableSuggestionsParams = createCompletionAvailableSuggestions(
           declarationsTracker.allLibraries.toList(), []);
     }
 
     // Loop through each file, resolve the file and call
-    // forEachExpectedCompletion
+    // [forEachExpectedCompletion].
+
+    var ansi = Ansi(Ansi.terminalSupportsAnsi);
+    var logger = Logger.standard(ansi: ansi);
+    var analyzedFileCount = context.contextRoot.analyzedFiles().length;
+    logger.write('Computing completions at root: ${root.root.path} '
+        '($analyzedFileCount files)\n');
+
+    logger.write('Resolving...\n');
+    var progress = _ProgressBar(logger, analyzedFileCount);
 
     var dartdocDirectiveInfo = DartdocDirectiveInfo();
     var documentationCache = DocumentationCache(dartdocDirectiveInfo);
@@ -1337,6 +1379,7 @@ class CompletionMetricsComputer {
 
           var analysisError = getFirstErrorOrNull(result);
           if (analysisError != null) {
+            progress.clear();
             print('File $filePath skipped due to errors such as:');
             print('  ${analysisError.toString()}');
             print('');
@@ -1346,12 +1389,18 @@ class CompletionMetricsComputer {
             documentationCache.cacheFromResult(result);
           }
         } catch (exception, stackTrace) {
+          progress.clear();
           print('Exception caught analyzing: $filePath');
           print(exception.toString());
           print(stackTrace);
         }
       }
+      progress.tick();
     }
+    progress.complete();
+
+    logger.write('Analyzing completion suggestions...\n');
+    progress = _ProgressBar(logger, results.length);
     for (var result in results) {
       _resolvedUnitResult = result;
       var filePath = result.path;
@@ -1372,7 +1421,8 @@ class CompletionMetricsComputer {
           _provider.setOverlay(filePath,
               content: overlayContents,
               modificationStamp: overlayModificationStamp++);
-          context.driver.changeFile(filePath);
+          context.changeFile(filePath);
+          await context.applyPendingFileChanges();
           resolvedUnitResult = await context.currentSession
               .getResolvedUnit(filePath) as ResolvedUnitResult;
         }
@@ -1437,7 +1487,9 @@ class CompletionMetricsComputer {
           _provider.removeOverlay(filePath);
         }
       }
+      progress.tick();
     }
+    progress.complete();
   }
 
   List<protocol.CompletionSuggestion> _filterSuggestions(
@@ -2040,6 +2092,84 @@ class SuggestionData {
   }
 }
 
+/// A facility for drawing a progress bar in the terminal.
+///
+/// The bar is instantiated with the total number of "ticks" to be completed,
+/// and progress is made by calling [tick]. The bar is drawn across one entire
+/// line, like so:
+///
+///     [----------                                                   ]
+///
+/// The hyphens represent completed progress, and the whitespace represents
+/// remaining progress.
+///
+/// If there is no terminal, the progress bar will not be drawn.
+class _ProgressBar {
+  /// Whether the progress bar should be drawn.
+  late bool _shouldDrawProgress;
+
+  /// The width of the terminal, in terms of characters.
+  late int _width;
+
+  final Logger _logger;
+
+  /// The inner width of the terminal, in terms of characters.
+  ///
+  /// This represents the number of characters available for drawing progress.
+  late int _innerWidth;
+
+  final int _totalTickCount;
+
+  int _tickCount = 0;
+
+  _ProgressBar(this._logger, this._totalTickCount) {
+    if (!stdout.hasTerminal) {
+      _shouldDrawProgress = false;
+    } else {
+      _shouldDrawProgress = true;
+      _width = stdout.terminalColumns;
+      // Inclusion of the percent indicator assumes a terminal width of at least
+      // 12 (2 brackets + 1 space + 2 parenthesis characters + 3 digits +
+      // 1 period + 2 digits + 1 '%' character).
+      _innerWidth = stdout.terminalColumns - 12;
+      _logger.write('[${' ' * _innerWidth}]');
+    }
+  }
+
+  /// Clears the progress bar from the terminal, allowing other logging to be
+  /// printed.
+  void clear() {
+    if (!_shouldDrawProgress) {
+      return;
+    }
+    _logger.write('\r${' ' * _width}\r');
+  }
+
+  /// Draws the progress bar as complete, and print two newlines.
+  void complete() {
+    if (!_shouldDrawProgress) {
+      return;
+    }
+    _logger.write('\r[${'-' * _innerWidth}]\n\n');
+  }
+
+  /// Progresses the bar by one tick.
+  void tick() {
+    if (!_shouldDrawProgress) {
+      return;
+    }
+    _tickCount++;
+    var fractionComplete =
+        math.max(0, _tickCount * _innerWidth ~/ _totalTickCount - 1);
+    // The inner space consists of hyphens, one spinner character, and spaces.
+    var remaining = _innerWidth - fractionComplete - 1;
+    var spinner = AnsiProgress.kAnimationItems[_tickCount % 4];
+    var pctComplete = (_tickCount * 100 / _totalTickCount).toStringAsFixed(2);
+    _logger.write(
+        '\r[${'-' * fractionComplete}$spinner${' ' * remaining}] ($pctComplete%)');
+  }
+}
+
 extension on CompletionGroup {
   String get name {
     switch (this) {
@@ -2081,6 +2211,12 @@ extension on CompletionGroup {
         return 'unknown';
     }
   }
+}
+
+extension on num {
+  String asPercentage([int fractionDigits = 1]) =>
+      '${(this * 100).toStringAsFixed(fractionDigits)}%'
+          .padLeft(4 + fractionDigits);
 }
 
 extension AvailableSuggestionsExtension on protocol.AvailableSuggestion {

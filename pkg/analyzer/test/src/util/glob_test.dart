@@ -33,7 +33,7 @@ class GlobPosixTest {
   void test_specialChars() {
     Glob glob = Glob(r'/', r'*.dart');
     expect(glob.matches(r'a.dart'), isTrue);
-    expect(glob.matches('_-\a.dart'), isTrue);
+    expect(glob.matches('_-a.dart'), isTrue);
     expect(glob.matches(r'^$*?.dart'), isTrue);
     expect(glob.matches(r'()[]{}.dart'), isTrue);
     expect(glob.matches('\u2665.dart'), isTrue);
@@ -99,7 +99,7 @@ class GlobWindowsTest {
   void test_specialChars() {
     Glob glob = Glob(r'\', r'*.dart');
     expect(glob.matches(r'a.dart'), isTrue);
-    expect(glob.matches('_-\a.dart'), isTrue);
+    expect(glob.matches('_-a.dart'), isTrue);
     expect(glob.matches(r'^$*?.dart'), isTrue);
     expect(glob.matches(r'()[]{}.dart'), isTrue);
     expect(glob.matches('\u2665.dart'), isTrue);

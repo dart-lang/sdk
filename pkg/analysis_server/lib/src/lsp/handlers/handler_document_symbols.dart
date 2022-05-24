@@ -7,7 +7,6 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' show Outline;
 import 'package:analyzer/dart/analysis/results.dart';
@@ -15,7 +14,7 @@ import 'package:analyzer/source/line_info.dart';
 
 class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     Either2<List<DocumentSymbol>, List<SymbolInformation>>?> {
-  DocumentSymbolHandler(LspAnalysisServer server) : super(server);
+  DocumentSymbolHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_documentSymbol;
 

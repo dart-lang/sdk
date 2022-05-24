@@ -17,7 +17,7 @@ void main() {
 class ReanalyzeTest extends AbstractLspAnalysisServerTest {
   Future<void> test_reanalyze() async {
     const initialContents = 'int a = 1;';
-    newFile2(mainFilePath, initialContents);
+    newFile(mainFilePath, initialContents);
 
     final initialAnalysis = waitForAnalysisComplete();
 

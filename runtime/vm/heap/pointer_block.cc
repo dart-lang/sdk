@@ -228,6 +228,11 @@ bool StoreBuffer::Overflowed() {
   return (full_.length() + partial_.length()) > kMaxNonEmpty;
 }
 
+intptr_t StoreBuffer::Size() {
+  ASSERT(Thread::Current()->IsAtSafepoint());  // No lock needed.
+  return full_.length() + partial_.length();
+}
+
 void StoreBuffer::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   for (Block* block = full_.Peek(); block != NULL; block = block->next()) {
     block->VisitObjectPointers(visitor);

@@ -47,7 +47,4 @@ class RemoveDuplicateCase extends CorrectionProducer {
       builder.addDeletion(utils.getLinesRange(deletionRange));
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveDuplicateCase newInstance() => RemoveDuplicateCase();
 }

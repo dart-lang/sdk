@@ -1,7 +1,7 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 class Number {
   final int value;
 
@@ -408,7 +408,7 @@ testExplicitIntProperties() {
   expect(n0, IntClassExtension(v).property);
 }
 
-testExplicitNullAwareProperties(Class v) {
+testExplicitNullAwareProperties(Class? v) {
   Number n0 = new Number(0);
   Number n1 = new Number(1);
   Number n2 = new Number(2);
@@ -446,7 +446,7 @@ testExplicitNullAwareProperties(Class v) {
   expect(n0, ClassExtension(v)?.property, v == null);
 }
 
-testExplicitNullAwareIntProperties(IntClass v) {
+testExplicitNullAwareIntProperties(IntClass? v) {
   int n0 = 0;
   int n1 = 1;
   int n2 = 2;

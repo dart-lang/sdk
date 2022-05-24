@@ -122,7 +122,7 @@ class ImpliedTypeCollector extends RecursiveAstVisitor<void> {
     for (var varDecl in node.variables) {
       handleVariableDeclaration(varDecl, node.type?.type);
     }
-    return null;
+    return;
   }
 }
 

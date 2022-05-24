@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.io.source_file;
 
 import 'dart:convert' show utf8;
@@ -11,17 +13,17 @@ import 'dart:typed_data' show Uint8List;
 import 'package:kernel/ast.dart' as kernel show Location, Source;
 
 import 'location_provider.dart' show LocationProvider;
-import '../../compiler.dart';
+import '../../compiler_api.dart' as api show Input, InputKind;
 
 /// Represents a file of source code. The content can be either a [String] or
 /// a UTF-8 encoded [List<int>] of bytes.
-abstract class SourceFile<T> implements Input<T>, LocationProvider {
+abstract class SourceFile<T> implements api.Input<T>, LocationProvider {
   /// The absolute URI of the source file.
   @override
   Uri get uri;
 
   @override
-  InputKind get inputKind => InputKind.UTF8;
+  api.InputKind get inputKind => api.InputKind.UTF8;
 
   kernel.Source cachedKernelSource;
 
@@ -292,7 +294,7 @@ class StringSourceFile extends SourceFile<List<int>> {
 }
 
 /// Binary input data.
-class Binary implements Input<List<int>> {
+class Binary implements api.Input<List<int>> {
   @override
   final Uri uri;
   List<int> /*?*/ _data;
@@ -306,7 +308,7 @@ class Binary implements Input<List<int>> {
   }
 
   @override
-  InputKind get inputKind => InputKind.binary;
+  api.InputKind get inputKind => api.InputKind.binary;
 
   @override
   void release() {

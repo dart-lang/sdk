@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 
@@ -52,7 +54,7 @@ abstract class IrToElementMap {
   /// [node].
   TypeVariableEntity getTypeVariable(ir.TypeParameter node);
 
-  CommonElements get commonElements;
+  CommonElements /*!*/ get commonElements;
   DiagnosticReporter get reporter;
   ir.CoreTypes get coreTypes;
   InterfaceType getThisType(IndexedClass cls);

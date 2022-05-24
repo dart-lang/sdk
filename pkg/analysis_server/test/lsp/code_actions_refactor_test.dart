@@ -18,6 +18,8 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractMethodRefactorCodeActionsTest);
     defineReflectiveTests(ExtractWidgetRefactorCodeActionsTest);
+    defineReflectiveTests(
+        ExtractWidgetRefactorCodeActionsWithoutNullSafetyTest);
     defineReflectiveTests(ExtractVariableRefactorCodeActionsTest);
     defineReflectiveTests(InlineLocalVariableRefactorCodeActionsTest);
     defineReflectiveTests(InlineMethodRefactorCodeActionsTest);
@@ -45,7 +47,7 @@ main() {
   var b = test();
 }
 ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -77,7 +79,7 @@ main() {
   var b = test;
 }
 ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -145,7 +147,7 @@ void newMethod() {
   print('Test!');
 }
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -174,7 +176,7 @@ void newMethod() {
   print('Test!');
 }
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -242,7 +244,7 @@ main() {
   [[print('Test!');]]
 }
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
         emptyTextDocumentClientCapabilities,
@@ -250,7 +252,7 @@ main() {
       ),
     );
 
-    final ofKind = (CodeActionKind kind) => getCodeActions(
+    ofKind(CodeActionKind kind) => getCodeActions(
           mainFileUri.toString(),
           range: rangeFromMarkers(content),
           kinds: [kind],
@@ -302,7 +304,7 @@ Object text() => Text('Test!');
 Object Container(Object text) => null;
 Object Text(Object text) => null;
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -320,7 +322,7 @@ import 'dart:convert';
 ^
 main() {}
     ''';
-    newFile2(mainFilePath, content);
+    newFile(mainFilePath, content);
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());
@@ -346,7 +348,7 @@ void newMethod() {
   print('Test!');
 }
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
         windowCapabilities:
             withWorkDoneProgressSupport(emptyWindowClientCapabilities));
@@ -382,7 +384,7 @@ void newMethod() {
   print('Test!');
 }
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     var didGetProgressNotifications = false;
@@ -418,7 +420,7 @@ void newMethod() {
   print('Test!');
 }
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
         windowCapabilities:
             withWorkDoneProgressSupport(emptyWindowClientCapabilities));
@@ -446,7 +448,7 @@ f() {
 void doFoo(void Function() a) => a();
 
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -483,7 +485,7 @@ f() {
 void doFoo(void Function() a) => a();
 
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -532,7 +534,7 @@ main() {
 
 void foo(int arg) {}
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -562,7 +564,7 @@ main() {
 
 void foo(int arg) {}
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -578,6 +580,9 @@ void foo(int arg) {}
 @reflectiveTest
 class ExtractWidgetRefactorCodeActionsTest extends AbstractCodeActionsTest {
   final extractWidgetTitle = 'Extract Widget';
+
+  /// Nullability suffix expected in this test class.
+  String get expectedNullableSuffix => '?';
 
   @override
   void setUp() {
@@ -610,7 +615,7 @@ class MyWidget extends StatelessWidget {
   }
 }
     ''';
-    const expectedContent = '''
+    final expectedContent = '''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
@@ -628,7 +633,7 @@ class MyWidget extends StatelessWidget {
 
 class NewWidget extends StatelessWidget {
   const NewWidget({
-    Key key,
+    Key$expectedNullableSuffix key,
   }) : super(key: key);
 
   @override
@@ -642,7 +647,7 @@ class NewWidget extends StatelessWidget {
   }
 }
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -660,7 +665,7 @@ import 'dart:convert';
 ^
 main() {}
     ''';
-    newFile2(mainFilePath, content);
+    newFile(mainFilePath, content);
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());
@@ -668,6 +673,16 @@ main() {}
         findCommand(codeActions, Commands.performRefactor, extractWidgetTitle);
     expect(codeAction, isNull);
   }
+}
+
+@reflectiveTest
+class ExtractWidgetRefactorCodeActionsWithoutNullSafetyTest
+    extends ExtractWidgetRefactorCodeActionsTest {
+  @override
+  String get expectedNullableSuffix => '';
+
+  @override
+  String get testPackageLanguageVersion => '2.9';
 }
 
 @reflectiveTest
@@ -691,7 +706,7 @@ void main() {
   print(1);
 }
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -735,7 +750,7 @@ void bar() {
   print('test');
 }
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -770,7 +785,7 @@ void foo2() {
   print('test');
 }
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),

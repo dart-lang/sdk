@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
-import 'package:_fe_analyzer_shared/src/deferred_closure_heuristic.dart';
+import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -17,6 +17,35 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+
+Set<Object> _computeExplicitlyTypedParameterSet(
+    FunctionExpression functionExpression) {
+  List<FormalParameter> parameters =
+      functionExpression.parameters?.parameters ?? const [];
+  Set<Object> result = {};
+  for (var formalParameter in parameters) {
+    int unnamedParameterIndex = 0;
+    var key = formalParameter.isNamed
+        ? formalParameter.identifier?.name ?? ''
+        : unnamedParameterIndex++;
+    if (formalParameter.isExplicitlyTyped) {
+      result.add(key);
+    }
+  }
+  return result;
+}
+
+/// Given an iterable of parameters, computes a map whose keys are either the
+/// parameter name (for named parameters) or the zero-based integer index (for
+/// unnamed parameters), and whose values are the parameters themselves.
+Map<Object, ParameterElement> _computeParameterMap(
+    Iterable<ParameterElement> parameters) {
+  int unnamedParameterIndex = 0;
+  return {
+    for (var parameter in parameters)
+      parameter.isNamed ? parameter.name : unnamedParameterIndex++: parameter
+  };
+}
 
 /// Specialization of [InvocationInferrer] for performing type inference on AST
 /// nodes of type [Annotation] that resolve to a constructor invocation.
@@ -32,7 +61,6 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
       {required ResolverVisitor resolver,
       required AnnotationImpl node,
       required ArgumentListImpl argumentList,
-      required FunctionType? rawType,
       required DartType? contextType,
       required List<WhyNotPromotedGetter> whyNotPromotedList,
       required this.constructorName})
@@ -40,7 +68,6 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
             resolver: resolver,
             node: node,
             argumentList: argumentList,
-            rawType: rawType,
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList);
 
@@ -84,14 +111,12 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       {required ResolverVisitor resolver,
       required Node node,
       required ArgumentListImpl argumentList,
-      required FunctionType? rawType,
       required DartType? contextType,
       required List<WhyNotPromotedGetter> whyNotPromotedList})
       : super(
             resolver: resolver,
             node: node,
             argumentList: argumentList,
-            rawType: rawType,
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList);
 
@@ -109,9 +134,8 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD;
 
   @override
-  DartType resolveInvocation() {
+  DartType resolveInvocation({required FunctionType? rawType}) {
     var typeArgumentList = _typeArguments;
-    var rawType = this.rawType;
 
     List<DartType>? typeArgumentTypes;
     GenericInferrer? inferrer;
@@ -192,25 +216,31 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 
     List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo =
         _isIdentical ? [] : null;
-    var deferredClosures = _visitArguments(
-        rawType: rawType,
+    var parameterMap = _computeParameterMap(rawType?.parameters ?? const []);
+    var deferredFunctionLiterals = _visitArguments(
+        parameterMap: parameterMap,
         identicalInfo: identicalInfo,
         substitution: substitution,
         inferrer: inferrer);
-    if (deferredClosures != null) {
-      for (var stage in _ClosureDependencies(resolver.typeSystem,
-              deferredClosures, rawType?.typeFormals.toSet() ?? const {})
-          .planClosureReconciliationStages()) {
-        if (inferrer != null) {
+    if (deferredFunctionLiterals != null) {
+      bool isFirstStage = true;
+      for (var stage in _FunctionLiteralDependencies(
+              resolver.typeSystem,
+              deferredFunctionLiterals,
+              rawType?.typeFormals.toSet() ?? const {},
+              _computeUndeferredParamInfo(
+                  rawType, parameterMap, deferredFunctionLiterals))
+          .planReconciliationStages()) {
+        if (inferrer != null && !isFirstStage) {
           substitution = Substitution.fromPairs(
               rawType!.typeFormals, inferrer.partialInfer());
         }
-        _resolveDeferredClosures(
-            rawType: rawType,
-            deferredClosures: stage,
+        _resolveDeferredFunctionLiterals(
+            deferredFunctionLiterals: stage,
             identicalInfo: identicalInfo,
             substitution: substitution,
             inferrer: inferrer);
+        isFirstStage = false;
       }
     }
 
@@ -234,6 +264,24 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         InvocationInferrer.computeInvokeReturnType(invokeType));
     _recordIdenticalInfo(identicalInfo);
     return returnType;
+  }
+
+  /// Computes a list of [_ParamInfo] objects corresponding to the invocation
+  /// parameters that were *not* deferred.
+  List<_ParamInfo> _computeUndeferredParamInfo(
+      FunctionType? rawType,
+      Map<Object, ParameterElement> parameterMap,
+      List<_DeferredParamInfo> deferredFunctionLiterals) {
+    if (rawType == null) return const [];
+    var parameterKeysAlreadyCovered = {
+      for (var functionLiteral in deferredFunctionLiterals)
+        functionLiteral.parameterKey
+    };
+    return [
+      for (var entry in parameterMap.entries)
+        if (!parameterKeysAlreadyCovered.contains(entry.key))
+          _ParamInfo(entry.value)
+    ];
   }
 
   DartType _refineReturnType(DartType returnType) => returnType;
@@ -265,14 +313,12 @@ class FunctionExpressionInvocationInferrer
       {required ResolverVisitor resolver,
       required FunctionExpressionInvocationImpl node,
       required ArgumentListImpl argumentList,
-      required FunctionType? rawType,
       required DartType? contextType,
       required List<WhyNotPromotedGetter> whyNotPromotedList})
       : super._(
             resolver: resolver,
             node: node,
             argumentList: argumentList,
-            rawType: rawType,
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList);
 
@@ -288,14 +334,12 @@ class InstanceCreationInferrer
       {required ResolverVisitor resolver,
       required InstanceCreationExpressionImpl node,
       required ArgumentListImpl argumentList,
-      required FunctionType? rawType,
       required DartType? contextType,
       required List<WhyNotPromotedGetter> whyNotPromotedList})
       : super._(
             resolver: resolver,
             node: node,
             argumentList: argumentList,
-            rawType: rawType,
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList);
 
@@ -347,14 +391,12 @@ abstract class InvocationExpressionInferrer<
       {required ResolverVisitor resolver,
       required Node node,
       required ArgumentListImpl argumentList,
-      required FunctionType? rawType,
       required DartType? contextType,
       required List<WhyNotPromotedGetter> whyNotPromotedList})
       : super._(
             resolver: resolver,
             node: node,
             argumentList: argumentList,
-            rawType: rawType,
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList);
 
@@ -382,18 +424,15 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   final ResolverVisitor resolver;
   final Node node;
   final ArgumentListImpl argumentList;
-  final FunctionType? rawType;
   final DartType? contextType;
   final List<WhyNotPromotedGetter> whyNotPromotedList;
 
   /// Prepares to perform type inference on an invocation expression of type
-  /// [Node].  [rawType] should be the type of the function the invocation is
-  /// resolved to (with type arguments not applied yet).
+  /// [Node].
   InvocationInferrer(
       {required this.resolver,
       required this.node,
       required this.argumentList,
-      required this.rawType,
       required this.contextType,
       required this.whyNotPromotedList});
 
@@ -401,12 +440,15 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// `identical` (which needs special flow analysis treatment).
   bool get _isIdentical => false;
 
-  /// Performs type inference on the invocation expression.
-  void resolveInvocation() {
-    var deferredClosures = _visitArguments(rawType: rawType);
-    if (deferredClosures != null) {
-      _resolveDeferredClosures(
-          rawType: rawType, deferredClosures: deferredClosures);
+  /// Performs type inference on the invocation expression.  [rawType] should be
+  /// the type of the function the invocation is resolved to (with type
+  /// arguments not applied yet).
+  void resolveInvocation({required FunctionType? rawType}) {
+    var deferredFunctionLiterals = _visitArguments(
+        parameterMap: _computeParameterMap(rawType?.parameters ?? const []));
+    if (deferredFunctionLiterals != null) {
+      _resolveDeferredFunctionLiterals(
+          deferredFunctionLiterals: deferredFunctionLiterals);
     }
   }
 
@@ -427,16 +469,15 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     }
   }
 
-  /// Resolves any closures that were deferred by [_visitArguments].
-  void _resolveDeferredClosures(
-      {required FunctionType? rawType,
-      required Iterable<_DeferredClosure> deferredClosures,
+  /// Resolves any function literals that were deferred by [_visitArguments].
+  void _resolveDeferredFunctionLiterals(
+      {required List<_DeferredParamInfo> deferredFunctionLiterals,
       List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
     var flow = resolver.flowAnalysis.flow;
     var arguments = argumentList.arguments;
-    for (var deferredArgument in deferredClosures) {
+    for (var deferredArgument in deferredFunctionLiterals) {
       var parameter = deferredArgument.parameter;
       DartType? parameterContextType;
       if (parameter != null) {
@@ -464,53 +505,39 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// Visits [argumentList], resolving each argument.  If any arguments need to
   /// be deferred due to the `inference-update-1` feature, a list of them is
   /// returned.
-  List<_DeferredClosure>? _visitArguments(
-      {required FunctionType? rawType,
+  List<_DeferredParamInfo>? _visitArguments(
+      {required Map<Object, ParameterElement> parameterMap,
       List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
     assert(whyNotPromotedList.isEmpty);
-    List<_DeferredClosure>? deferredClosures;
-    var parameters = rawType?.parameters;
-    var namedParameters = <String, ParameterElement>{};
-    if (parameters != null) {
-      for (var i = 0; i < parameters.length; i++) {
-        var parameter = parameters[i];
-        if (parameter.isNamed) {
-          namedParameters[parameter.name] = parameter;
-        }
-      }
-    }
+    List<_DeferredParamInfo>? deferredFunctionLiterals;
     resolver.checkUnreachableNode(argumentList);
     var flow = resolver.flowAnalysis.flow;
-    var positionalParameterIndex = 0;
+    var unnamedArgumentIndex = 0;
     var arguments = argumentList.arguments;
     for (int i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
       Expression value;
       ParameterElement? parameter;
+      Object parameterKey;
       if (argument is NamedExpression) {
         value = argument.expression;
-        parameter = namedParameters[argument.name.label.name];
+        parameterKey = argument.name.label.name;
       } else {
         value = argument;
-        if (parameters != null) {
-          while (positionalParameterIndex < parameters.length) {
-            var candidate = parameters[positionalParameterIndex++];
-            if (!candidate.isNamed) {
-              parameter = candidate;
-              break;
-            }
-          }
-        }
+        parameterKey = unnamedArgumentIndex++;
       }
+      value = value.unParenthesized;
+      parameter = parameterMap[parameterKey];
       if (resolver.isInferenceUpdate1Enabled &&
           value is FunctionExpressionImpl) {
-        (deferredClosures ??= []).add(_DeferredClosure(parameter, value, i));
+        (deferredFunctionLiterals ??= [])
+            .add(_DeferredParamInfo(parameter, value, i, parameterKey));
         identicalInfo?.add(null);
-        // The "why not promoted" list isn't really relevant for closures
-        // because promoting a closure doesn't even make sense.  So we store an
-        // innocuous value in the list.
+        // The "why not promoted" list isn't really relevant for function
+        // literals because promoting a function literal doesn't even make
+        // sense.  So we store an innocuous value in the list.
         whyNotPromotedList.add(() => const {});
       } else {
         DartType? parameterContextType;
@@ -535,7 +562,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         }
       }
     }
-    return deferredClosures;
+    return deferredFunctionLiterals;
   }
 
   /// Computes the return type of the method or function represented by the
@@ -557,14 +584,12 @@ class MethodInvocationInferrer
       {required ResolverVisitor resolver,
       required MethodInvocationImpl node,
       required ArgumentListImpl argumentList,
-      required FunctionType? rawType,
       required DartType? contextType,
       required List<WhyNotPromotedGetter> whyNotPromotedList})
       : super._(
             resolver: resolver,
             node: node,
             argumentList: argumentList,
-            rawType: rawType,
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList);
 
@@ -607,24 +632,48 @@ class MethodInvocationInferrer
   }
 }
 
-class _ClosureDependencies
-    extends ClosureDependencies<TypeParameterElement, _DeferredClosure> {
+/// Information about an invocation argument that needs to be resolved later due
+/// to the fact that it's a function literal and the `inference-update-1`
+/// feature is enabled.
+class _DeferredParamInfo extends _ParamInfo {
+  /// The function literal expression.
+  final FunctionExpression value;
+
+  /// The index into the argument list of the function literal expression.
+  final int index;
+
+  final Object parameterKey;
+
+  _DeferredParamInfo(
+      ParameterElement? parameter, this.value, this.index, this.parameterKey)
+      : super(parameter);
+}
+
+class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
+    TypeParameterElement, _ParamInfo, _DeferredParamInfo> {
   final TypeSystemImpl _typeSystem;
 
   final Set<TypeParameterElement> _typeVariables;
 
-  _ClosureDependencies(this._typeSystem, Iterable<_DeferredClosure> closures,
-      this._typeVariables)
-      : super(closures, _typeVariables);
+  _FunctionLiteralDependencies(
+      this._typeSystem,
+      Iterable<_DeferredParamInfo> deferredParamInfo,
+      this._typeVariables,
+      List<_ParamInfo> undeferredParamInfo)
+      : super(deferredParamInfo, _typeVariables, undeferredParamInfo);
 
   @override
-  Iterable<TypeParameterElement> typeVarsFreeInClosureArguments(
-      _DeferredClosure closure) {
-    var type = closure.parameter?.type;
+  Iterable<TypeParameterElement> typeVarsFreeInParamParams(
+      _DeferredParamInfo paramInfo) {
+    var type = paramInfo.parameter?.type;
     if (type is FunctionType) {
+      var parameterMap = _computeParameterMap(type.parameters);
+      var explicitlyTypedParameters =
+          _computeExplicitlyTypedParameterSet(paramInfo.value);
       Set<TypeParameterElement> result = {};
-      for (var parameter in type.parameters) {
-        result.addAll(_typeSystem.getFreeParameters(parameter.type,
+      for (var entry in parameterMap.entries) {
+        if (explicitlyTypedParameters.contains(entry.key)) continue;
+        result.addAll(_typeSystem.getFreeParameters(entry.value.type,
                 candidates: _typeVariables) ??
             const []);
       }
@@ -635,9 +684,9 @@ class _ClosureDependencies
   }
 
   @override
-  Iterable<TypeParameterElement> typeVarsFreeInClosureReturns(
-      _DeferredClosure closure) {
-    var type = closure.parameter?.type;
+  Iterable<TypeParameterElement> typeVarsFreeInParamReturns(
+      _ParamInfo paramInfo) {
+    var type = paramInfo.parameter?.type;
     if (type is FunctionType) {
       return _typeSystem.getFreeParameters(type.returnType,
               candidates: _typeVariables) ??
@@ -651,18 +700,13 @@ class _ClosureDependencies
   }
 }
 
-/// Information about an invocation argument that needs to be resolved later due
-/// to the fact that it's a closure and the `inference-update-1` feature is
-/// enabled.
-class _DeferredClosure {
-  /// The [ParameterElement] the closure is being passed to.
+/// Information about an invocation argument that may or may not have already
+/// been resolved, as part of the deferred resolution mechanism for the
+/// `inference-update-1` feature.
+class _ParamInfo {
+  /// The function parameter corresponding to the argument, or `null` if we are
+  /// resolving a dynamic invocation.
   final ParameterElement? parameter;
 
-  /// The closure expression.
-  final FunctionExpression value;
-
-  /// The index into the argument list of the closure expression.
-  final int index;
-
-  _DeferredClosure(this.parameter, this.value, this.index);
+  _ParamInfo(this.parameter);
 }

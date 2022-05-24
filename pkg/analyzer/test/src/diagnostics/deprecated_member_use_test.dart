@@ -38,7 +38,7 @@ class DeprecatedMemberUse_BasicWorkspace_WithoutNullSafetyTest
 class DeprecatedMemberUse_BasicWorkspaceTest extends PubPackageResolutionTest
     with DeprecatedMemberUse_BasicWorkspaceTestCases {
   test_instanceCreation_namedParameter_fromLegacy() async {
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   A({@deprecated int a}) {}
 }
@@ -57,7 +57,7 @@ void f() {
   }
 
   test_methodInvocation_namedParameter_ofFunction_fromLegacy() async {
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 void foo({@deprecated int a}) {}
 ''');
 
@@ -74,7 +74,7 @@ void f() {
   }
 
   test_methodInvocation_namedParameter_ofMethod_fromLegacy() async {
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   void foo({@deprecated int a}) {}
 }
@@ -93,7 +93,7 @@ void f(A a) {
   }
 
   test_superConstructorInvocation_namedParameter_fromLegacy() async {
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   A({@deprecated int a}) {}
 }
@@ -124,7 +124,7 @@ mixin DeprecatedMemberUse_BasicWorkspaceTestCases on PubPackageResolutionTest {
   }
 
   test_export() async {
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 @deprecated
 library a;
 ''');
@@ -137,7 +137,7 @@ export 'package:aaa/a.dart';
   }
 
   test_field_inDeprecatedConstructor() async {
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   @deprecated
   int x = 0;
@@ -158,7 +158,7 @@ class B extends A {
   }
 
   test_fieldGet_implicitGetter() async {
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   @deprecated
   int foo = 0;
@@ -177,7 +177,7 @@ void f(A a) {
   }
 
   test_fieldSet_implicitSetter() async {
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   @deprecated
   int foo = 0;
@@ -196,7 +196,7 @@ void f(A a) {
   }
 
   test_import() async {
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 @deprecated
 library a;
 ''');
@@ -211,7 +211,7 @@ import 'package:aaa/a.dart';
   }
 
   test_method_inDeprecatedConstructor() async {
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   @deprecated
   void foo() {}
@@ -231,7 +231,7 @@ class B extends A {
   }
 
   test_methodInvocation() async {
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   @deprecated
   void foo() {}
@@ -250,7 +250,7 @@ void f(A a) {
   }
 
   test_methodInvocation_withMessage() async {
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   @Deprecated('0.9')
   void foo() {}
@@ -269,7 +269,7 @@ void f(A a) {
   }
 
   test_parameter_named_ofFunction() async {
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 void foo({@deprecated int a}) {}
 ''');
 
@@ -285,7 +285,7 @@ void f() {
   }
 
   test_parameter_named_ofMethod() async {
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   void foo({@deprecated int a}) {}
 }
@@ -303,7 +303,7 @@ void f(A a) {
   }
 
   test_setterInvocation() async {
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   @deprecated
   set foo(int _) {}
@@ -332,7 +332,7 @@ void f(A a) {
 class DeprecatedMemberUse_BazelWorkspaceTest
     extends BazelWorkspaceResolutionTest {
   test_dart() async {
-    newFile2('$workspaceRootPath/foo/bar/lib/a.dart', r'''
+    newFile('$workspaceRootPath/foo/bar/lib/a.dart', r'''
 @deprecated
 class A {}
 ''');
@@ -347,7 +347,7 @@ void f(A a) {}
   }
 
   test_thirdPartyDart() async {
-    newFile2('$workspaceThirdPartyDartPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceThirdPartyDartPath/aaa/lib/a.dart', r'''
 @deprecated
 class A {}
 ''');
@@ -386,17 +386,17 @@ class DeprecatedMemberUse_GnWorkspaceTest extends ContextResolutionTest {
 
   test_differentPackage() async {
     newPubspecYamlFile('$workspaceRootPath/my', '');
-    newFile2('$workspaceRootPath/my/BUILD.gn', '');
+    newFile('$workspaceRootPath/my/BUILD.gn', '');
 
     newPubspecYamlFile('$workspaceRootPath/aaa', '');
-    newFile2('$workspaceRootPath/aaa/BUILD.gn', '');
+    newFile('$workspaceRootPath/aaa/BUILD.gn', '');
 
     _writeWorkspacePackagesFile({
       'aaa': '$workspaceRootPath/aaa/lib',
       'my': myPackageLibPath,
     });
 
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 @deprecated
 class A {}
 ''');
@@ -412,13 +412,13 @@ void f(A a) {}
 
   test_samePackage() async {
     newPubspecYamlFile('$workspaceRootPath/my', '');
-    newFile2('$workspaceRootPath/my/BUILD.gn', '');
+    newFile('$workspaceRootPath/my/BUILD.gn', '');
 
     _writeWorkspacePackagesFile({
       'my': myPackageLibPath,
     });
 
-    newFile2('$myPackageLibPath/a.dart', r'''
+    newFile('$myPackageLibPath/a.dart', r'''
 @deprecated
 class A {}
 ''');
@@ -448,7 +448,7 @@ void f(A a) {}
 
     var buildDir = 'out/debug-x87_128';
     var genPath = '$workspaceRootPath/$buildDir/dartlang/gen';
-    newFile2('$genPath/foo_package_config.json', '''{
+    newFile('$genPath/foo_package_config.json', '''{
   "configVersion": 2,
   "packages": [ ${packages.join(', ')} ]
 }''');
@@ -489,7 +489,7 @@ void f(A a) {}
         ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
     );
 
-    newFile2('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 @deprecated
 class A {}
 ''');
@@ -597,7 +597,7 @@ class A {
   }
 
   test_class() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 @deprecated
 class A {}
 ''');
@@ -627,7 +627,7 @@ f(A a) {
   }
 
   test_export() async {
-    newFile2('$testPackageLibPath/deprecated_library.dart', r'''
+    newFile('$testPackageLibPath/deprecated_library.dart', r'''
 @deprecated
 library deprecated_library;
 class A {}
@@ -713,7 +713,7 @@ f(A a) {
   }
 
   test_hideCombinator() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 @deprecated
 class A {}
 ''');
@@ -725,7 +725,7 @@ import 'a.dart' hide A;
   }
 
   test_import() async {
-    newFile2('$testPackageLibPath/deprecated_library.dart', r'''
+    newFile('$testPackageLibPath/deprecated_library.dart', r'''
 @deprecated
 library deprecated_library;
 class A {}
@@ -1235,7 +1235,7 @@ f(A a) {
   }
 
   test_showCombinator() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 @deprecated
 class A {}
 ''');
@@ -1559,7 +1559,7 @@ void f() {
 class DeprecatedMemberUseFromSamePackage_BazelWorkspaceTest
     extends BazelWorkspaceResolutionTest {
   test_it() async {
-    newFile2('$myPackageLibPath/a.dart', r'''
+    newFile('$myPackageLibPath/a.dart', r'''
 @deprecated
 class A {}
 ''');
@@ -1602,7 +1602,7 @@ void f(A a) {}
     newPubspecYamlFile(testPackageRootPath, 'name: test');
     _createTestPackageBuildMarker();
 
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 @deprecated
 class A {}
 ''');
@@ -1637,7 +1637,7 @@ class _PackageBuildWorkspaceBase extends PubPackageResolutionTest {
     required String pathInLib,
     required String content,
   }) {
-    newFile2(
+    newFile(
       '$testPackageGeneratedPath/$packageName/lib/$pathInLib',
       content,
     );

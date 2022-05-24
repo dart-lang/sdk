@@ -7,6 +7,7 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -17,12 +18,51 @@ void main() {
 
 @reflectiveTest
 class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
+  Future<void> test_cancellation() async {
+    const content = '''
+    void f() {}
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final symbolsRequest1 = makeRequest(
+      Method.workspace_symbol,
+      WorkspaceSymbolParams(query: 'f'),
+    );
+    final symbolsCancellation1 = makeNotification(
+        Method.cancelRequest, CancelParams(id: symbolsRequest1.id));
+    final symbolsRequest2 = makeRequest(
+      Method.workspace_symbol,
+      WorkspaceSymbolParams(query: 'f'),
+    );
+
+    final responses = await Future.wait([
+      sendRequestToServer(symbolsRequest1),
+      sendNotificationToServer(symbolsCancellation1),
+      sendRequestToServer(symbolsRequest2),
+    ]);
+
+    // Expect the first response was cancelled.
+    final symbolsResponse1 = responses[0] as ResponseMessage;
+    expect(symbolsResponse1.result, isNull);
+    expect(symbolsResponse1.error, isNotNull);
+    expect(
+      symbolsResponse1.error,
+      isResponseError(ErrorCodes.RequestCancelled),
+    );
+
+    // But second to complete normally.
+    final symbolsResponse2 = responses[2] as ResponseMessage;
+    expect(symbolsResponse2.result, hasLength(greaterThanOrEqualTo(1)));
+    expect(symbolsResponse2.error, isNull);
+  }
+
   Future<void> test_extensions() async {
     const content = '''
     extension StringExtensions on String {}
     extension on String {}
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final symbols = await getWorkspaceSymbols('S');
@@ -44,7 +84,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
       myMethod() {}
     }
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final symbols = await getWorkspaceSymbols('topLevel');
@@ -69,7 +109,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
       myMethod() {}
     }
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     // meld should match myField
@@ -118,7 +158,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
       [[myMethodWithArgs(int a) {}]]
     }
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
     final symbols = await getWorkspaceSymbols('my');

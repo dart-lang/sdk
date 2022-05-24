@@ -1454,7 +1454,7 @@ void main(List<String> arguments) async {
             'therefore types with higher nesting '
             'depth are partially filtered.',
         defaultsTo: '1');
-  var results;
+  ArgResults results;
   try {
     results = parser.parse(arguments);
   } catch (e) {

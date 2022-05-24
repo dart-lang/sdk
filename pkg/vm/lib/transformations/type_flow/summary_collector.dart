@@ -776,7 +776,25 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         _returnValue!.values.add(_boolType);
       }
 
-      _summary.result = _returnValue!;
+      switch (function.asyncMarker) {
+        case AsyncMarker.Async:
+          final Class? concreteClass =
+              target.concreteAsyncResultClass(_environment.coreTypes);
+          _summary.result = (concreteClass != null)
+              ? _entryPointsListener
+                  .addAllocatedClass(concreteClass)
+                  .cls
+                  .concreteType
+              : _typesBuilder.fromStaticType(function.returnType, false);
+          break;
+        case AsyncMarker.AsyncStar:
+        case AsyncMarker.SyncStar:
+          _summary.result =
+              _typesBuilder.fromStaticType(function.returnType, false);
+          break;
+        default:
+          _summary.result = _returnValue!;
+      }
     }
 
     member.annotations.forEach(_visit);
@@ -2265,6 +2283,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr visitConstantExpression(ConstantExpression node) {
     return constantAllocationCollector.typeFor(node.constant);
+  }
+
+  @override
+  TypeExpr visitAwaitExpression(AwaitExpression node) {
+    _visit(node.operand);
+    return _staticType(node);
   }
 }
 

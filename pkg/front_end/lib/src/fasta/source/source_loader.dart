@@ -11,8 +11,6 @@ import 'dart:typed_data' show Uint8List;
 import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
     show ForwardingListener;
 
-import 'package:_fe_analyzer_shared/src/macros/executor.dart'
-    show MacroExecutor;
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
     show ClassMemberParser;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
@@ -1441,16 +1439,14 @@ severity: $severity
     /// [ClassBuilder]s for the macro classes.
     Map<Uri, List<ClassBuilder>> macroLibraries = {};
 
-    Map<Uri, Uri> precompiledMacroUris =
-        target.context.options.precompiledMacroUris;
-
     for (LibraryBuilder libraryBuilder in libraryBuilders) {
       Iterator<Builder> iterator = libraryBuilder.iterator;
       while (iterator.moveNext()) {
         Builder builder = iterator.current;
         if (builder is ClassBuilder && builder.isMacro) {
           Uri libraryUri = builder.libraryBuilder.importUri;
-          if (!precompiledMacroUris.containsKey(libraryUri)) {
+          if (!target.context.options.macroExecutor
+              .libraryIsRegistered(libraryUri)) {
             (macroLibraries[libraryUri] ??= []).add(builder);
             if (retainDataForTesting) {
               (dataForTesting!.macroDeclarationData
@@ -1520,7 +1516,8 @@ severity: $severity
       if (builder.importUri.isScheme("dart") && !builder.isSynthetic) {
         // Assume the platform is precompiled.
         addPrecompiledLibrary(builder.importUri);
-      } else if (precompiledMacroUris.containsKey(builder.importUri)) {
+      } else if (target.context.options.macroExecutor
+          .libraryIsRegistered(builder.importUri)) {
         // The precompiled macros given are also precompiled.
         assert(
             !macroLibraries.containsKey(builder.importUri),
@@ -1703,15 +1700,10 @@ severity: $severity
     if (libraryData.isNotEmpty) {
       target.benchmarker?.beginSubdivide(
           BenchmarkSubdivides.computeMacroApplications_macroExecutorProvider);
-      MacroExecutor macroExecutor =
-          await target.context.options.macroExecutorProvider();
       target.benchmarker?.endSubdivide();
 
-      Map<Uri, Uri> precompiledMacroUris =
-          target.context.options.precompiledMacroUris;
       MacroApplications result = await MacroApplications.loadMacroIds(
-          macroExecutor,
-          precompiledMacroUris,
+          target.context.options.macroExecutor,
           libraryData,
           dataForTesting?.macroApplicationData,
           target.benchmarker);

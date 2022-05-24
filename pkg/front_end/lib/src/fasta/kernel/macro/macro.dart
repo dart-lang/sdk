@@ -6,6 +6,8 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart'
     as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
+    as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
     as macro;
 import 'package:front_end/src/fasta/kernel/benchmarker.dart'
@@ -63,10 +65,11 @@ class MacroDeclarationData {
 class MacroApplication {
   final ClassBuilder classBuilder;
   final String constructorName;
+  final macro.Arguments arguments;
 
   // TODO(johnniwinther): Add support for arguments.
 
-  MacroApplication(this.classBuilder, this.constructorName);
+  MacroApplication(this.classBuilder, this.constructorName, this.arguments);
 
   late macro.MacroInstanceIdentifier instanceIdentifier;
 
@@ -126,13 +129,10 @@ class MacroApplications {
   }
 
   static Future<MacroApplications> loadMacroIds(
-      macro.MacroExecutor macroExecutor,
-      Map<Uri, Uri> precompiledMacroUris,
+      macro.MultiMacroExecutor macroExecutor,
       Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData,
       MacroApplicationDataForTesting? dataForTesting,
       Benchmarker? benchmarker) async {
-    Map<ClassBuilder, macro.MacroClassIdentifier> classIdCache = {};
-
     Map<MacroApplication, macro.MacroInstanceIdentifier> instanceIdCache = {};
 
     Future<void> ensureMacroClassIds(
@@ -141,24 +141,19 @@ class MacroApplications {
         for (MacroApplication application in applications) {
           Uri libraryUri = application.classBuilder.libraryBuilder.importUri;
           String macroClassName = application.classBuilder.name;
-          Uri? precompiledMacroUri = precompiledMacroUris[libraryUri];
           try {
             benchmarker?.beginSubdivide(
                 BenchmarkSubdivides.macroApplications_macroExecutorLoadMacro);
-            macro.MacroClassIdentifier macroClassIdentifier =
-                classIdCache[application.classBuilder] ??=
-                    await macroExecutor.loadMacro(libraryUri, macroClassName,
-                        precompiledKernelUri: precompiledMacroUri);
             benchmarker?.endSubdivide();
             try {
               benchmarker?.beginSubdivide(BenchmarkSubdivides
                   .macroApplications_macroExecutorInstantiateMacro);
               application.instanceIdentifier = instanceIdCache[application] ??=
                   await macroExecutor.instantiateMacro(
-                      macroClassIdentifier,
+                      libraryUri,
+                      macroClassName,
                       application.constructorName,
-                      // TODO(johnniwinther): Support macro arguments.
-                      new macro.Arguments([], {}));
+                      application.arguments);
               benchmarker?.endSubdivide();
             } catch (e) {
               throw "Error instantiating macro `${application}`: $e";

@@ -9,7 +9,6 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -22,7 +21,7 @@ final _manager = LspRefactorManager._();
 /// A base class for refactoring commands that need to create Refactorings from
 /// client-supplied arguments.
 abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler {
-  AbstractRefactorCommandHandler(LspAnalysisServer server) : super(server);
+  AbstractRefactorCommandHandler(super.server);
 
   @override
   String get commandName => 'Perform Refactor';

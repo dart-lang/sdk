@@ -16,6 +16,7 @@ abstract class NativeType {
 ///
 /// [Opaque]'s subtypes are not constructible in the Dart code and serve purely
 /// as markers in type signatures.
+@Since('2.12')
 abstract class Opaque extends NativeType {}
 
 /// [_NativeInteger]'s subtypes represent a native integer in C.
@@ -118,6 +119,7 @@ class Double extends _NativeDouble {
 ///
 /// [Bool] is not constructible in the Dart code and serves purely as marker
 /// in type signatures.
+@Since('2.15')
 class Bool extends NativeType {
   const Bool();
 }
@@ -133,6 +135,7 @@ abstract class Void extends NativeType {}
 ///
 /// [Handle] is not constructible in the Dart code and serves purely as marker in
 /// type signatures.
+@Since('2.9')
 abstract class Handle extends NativeType {}
 
 /// Represents a function type in C.

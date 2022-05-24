@@ -23,8 +23,7 @@ void main() {
     defineReflectiveTests(CompletionTest);
     defineReflectiveTests(DartSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionTest);
-    defineReflectiveTests(FlutterSnippetCompletionWithNullSafetyTest);
-    defineReflectiveTests(CompletionTestWithNullSafetyTest);
+    defineReflectiveTests(FlutterSnippetCompletionWithoutNullSafetyTest);
   });
 }
 
@@ -420,6 +419,77 @@ class _MyWidgetState extends State<MyWidget> {
     );
   }
 
+  Future<void> test_completeFunctionCalls_requiredNamed() async {
+    final content = '''
+    void myFunction(String a, int b, {required String c, String d = ''}) {}
+
+    void f() {
+      [[myFu^]]
+    }
+    ''';
+
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities:
+            withConfigurationSupport(emptyWorkspaceClientCapabilities),
+      ),
+      {'completeFunctionCalls': true},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'myFunction(…)');
+    // Ensure the snippet comes through in the expected format with the expected
+    // placeholders.
+    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
+    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
+    final textEdit = toTextEdit(item.textEdit!);
+    expect(textEdit.newText, equals(item.insertText));
+    expect(textEdit.range, equals(rangeFromMarkers(content)));
+  }
+
+  Future<void> test_completeFunctionCalls_requiredNamed_suggestionSet() async {
+    final otherFile = join(projectFolderPath, 'lib', 'other.dart');
+    newFile(
+      otherFile,
+      "void myFunction(String a, int b, {required String c, String d = ''}) {}",
+    );
+    final content = '''
+    void f() {
+      [[myFu^]]
+    }
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities: withApplyEditSupport(
+            withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      ),
+      {'completeFunctionCalls': true},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'myFunction(…)');
+    // Ensure the snippet comes through in the expected format with the expected
+    // placeholders.
+    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
+    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
+    expect(item.textEdit, isNull);
+
+    // Ensure the item can be resolved and gets a proper TextEdit.
+    final resolved = await resolveCompletion(item);
+    expect(resolved.textEdit, isNotNull);
+    final textEdit = toTextEdit(resolved.textEdit!);
+    expect(textEdit.newText, equals(item.insertText));
+    expect(textEdit.range, equals(rangeFromMarkers(content)));
+  }
+
   Future<void> test_completeFunctionCalls_show() async {
     final content = '''
     import 'dart:math' show mi^
@@ -470,7 +540,7 @@ class _MyWidgetState extends State<MyWidget> {
       );
 
   Future<void> test_completionKinds_default() async {
-    newFile2(join(projectFolderPath, 'file.dart'), '');
+    newFile(join(projectFolderPath, 'file.dart'), '');
     newFolder(join(projectFolderPath, 'folder'));
 
     final content = "import '^';";
@@ -802,9 +872,9 @@ class _MyWidgetState extends State<MyWidget> {
     expect(getter.detail, equals('String'));
     expect(setter.detail, equals('String'));
     expect(both.detail, equals('String'));
-    [getter, setter, both].forEach((item) {
+    for (var item in [getter, setter, both]) {
       expect(item.kind, equals(CompletionItemKind.Property));
-    });
+    }
   }
 
   Future<void> test_insertReplaceRanges() async {
@@ -983,7 +1053,7 @@ void f() {
     ''';
 
     // Create a class with fields aaa1 to aaa500 in the other file.
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'a.dart'),
       [
         'class A {',
@@ -1016,7 +1086,7 @@ void f() {
     ''';
 
     // Create a class with fields aaa1 to aaa500 in the other file.
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'a.dart'),
       [
         'class A {',
@@ -1246,11 +1316,30 @@ void f() { }
 
   Future<void> test_nonAnalyzedFile() async {
     final readmeFilePath = convertPath(join(projectFolderPath, 'README.md'));
-    newFile2(readmeFilePath, '');
+    newFile(readmeFilePath, '');
     await initialize();
 
     final res = await getCompletion(Uri.file(readmeFilePath), startOfDocPos);
     expect(res, isEmpty);
+  }
+
+  Future<void> test_nullableTypes() async {
+    final content = '''
+    String? foo(int? a, [int b = 1]) {}
+
+    void f() {
+      fo^
+    }
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final completion = res.singleWhere((c) => c.label.startsWith('foo'));
+    expect(completion.detail, '(int? a, [int b = 1]) → String?');
   }
 
   Future<void> test_parensNotInFilterTextInsertText() async {
@@ -1359,7 +1448,7 @@ void f() { }
   }
 
   Future<void> test_unimportedSymbols() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'other_file.dart'),
       '''
       /// This class is in another file.
@@ -1435,19 +1524,19 @@ void f() {
       test_unimportedSymbols_doesNotDuplicate_importedViaMultipleLibraries() async {
     // An item that's already imported through multiple libraries that
     // export it should not result in multiple entries.
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib/source_file.dart'),
       '''
       class MyExportedClass {}
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib/reexport1.dart'),
       '''
       export 'source_file.dart';
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib/reexport2.dart'),
       '''
       export 'source_file.dart';
@@ -1480,19 +1569,19 @@ void f() {
       test_unimportedSymbols_doesNotDuplicate_importedViaSingleLibrary() async {
     // An item that's already imported through a library that exports it
     // should not result in multiple entries.
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib/source_file.dart'),
       '''
       class MyExportedClass {}
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib/reexport1.dart'),
       '''
       export 'source_file.dart';
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib/reexport2.dart'),
       '''
       export 'source_file.dart';
@@ -1522,15 +1611,15 @@ void f() {
 
   Future<void> test_unimportedSymbols_doesNotFilterSymbolsWithSameName() async {
     // Classes here are not re-exports, so should not be filtered out.
-    newFile2(
+    newFile(
       join(projectFolderPath, 'source_file1.dart'),
       'class MyDuplicatedClass {}',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'source_file2.dart'),
       'class MyDuplicatedClass {}',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'source_file3.dart'),
       'class MyDuplicatedClass {}',
     );
@@ -1563,7 +1652,7 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_enumValues() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'source_file.dart'),
       '''
       enum MyExportedEnum { One, Two }
@@ -1627,19 +1716,19 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_enumValuesAlreadyImported() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'source_file.dart'),
       '''
       enum MyExportedEnum { One, Two }
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'reexport1.dart'),
       '''
       export 'source_file.dart';
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'reexport2.dart'),
       '''
       export 'source_file.dart';
@@ -1671,19 +1760,19 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_filtersOutAlreadyImportedSymbols() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'source_file.dart'),
       '''
       class MyExportedClass {}
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'reexport1.dart'),
       '''
       export 'source_file.dart';
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'reexport2.dart'),
       '''
       export 'source_file.dart';
@@ -1714,7 +1803,7 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_importsPackageUri() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'lib', 'my_class.dart'),
       'class MyClass {}',
     );
@@ -1745,19 +1834,19 @@ void f() {
 
   Future<void>
       test_unimportedSymbols_includesReexportedSymbolsForEachFile() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'source_file.dart'),
       '''
       class MyExportedClass {}
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'reexport1.dart'),
       '''
       export 'source_file.dart';
       ''',
     );
-    newFile2(
+    newFile(
       join(projectFolderPath, 'reexport2.dart'),
       '''
       export 'source_file.dart';
@@ -1791,7 +1880,7 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_insertReplaceRanges() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'other_file.dart'),
       '''
       /// This class is in another file.
@@ -1884,14 +1973,14 @@ void f() {
 
   Future<void> test_unimportedSymbols_insertsIntoPartFiles() async {
     // File we'll be adding an import for.
-    newFile2(
+    newFile(
       join(projectFolderPath, 'other_file.dart'),
       'class InOtherFile {}',
     );
 
     // File that will have the import added.
     final parentContent = '''part 'main.dart';''';
-    final parentFilePath = newFile2(
+    final parentFilePath = newFile(
       join(projectFolderPath, 'lib', 'parent.dart'),
       parentContent,
     ).path;
@@ -1974,7 +2063,7 @@ part 'main.dart';'''));
   }
 
   Future<void> test_unimportedSymbols_members() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'source_file.dart'),
       '''
       class MyExportedClass {
@@ -2064,7 +2153,7 @@ void f() {
     await initialAnalysis;
 
     // Start with a blank file.
-    newFile2(otherFilePath, '');
+    newFile(otherFilePath, '');
     await openFile(otherFileUri, '');
     await pumpEventQueue(times: 5000);
 
@@ -2082,7 +2171,7 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_namedConstructors() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'other_file.dart'),
       '''
       /// This class is in another file.
@@ -2150,7 +2239,7 @@ void f() {
         join(projectFolderPath, 'lib', 'nested2', 'imported.dart');
 
     // Create a file that will be auto-imported from completion.
-    newFile2(importedFilePath, 'class MyClass {}');
+    newFile(importedFilePath, 'class MyClass {}');
 
     final content = '''
 void f() {
@@ -2188,7 +2277,7 @@ void f() {
         join(projectFolderPath, 'lib', 'nested2', 'imported.dart');
 
     // Create a file that will be auto-imported from completion.
-    newFile2(importedFilePath, 'class MyClass {}');
+    newFile(importedFilePath, 'class MyClass {}');
 
     final content = '''
 void f() {
@@ -2215,7 +2304,7 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_unavailableIfDisabled() async {
-    newFile2(
+    newFile(
       join(projectFolderPath, 'other_file.dart'),
       'class InOtherFile {}',
     );
@@ -2248,7 +2337,7 @@ void f() {
   Future<void> test_unimportedSymbols_unavailableWithoutApplyEdit() async {
     // If client doesn't advertise support for workspace/applyEdit, we won't
     // include suggestion sets.
-    newFile2(
+    newFile(
       join(projectFolderPath, 'other_file.dart'),
       'class InOtherFile {}',
     );
@@ -2283,7 +2372,7 @@ void f() {
     }
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     expect(res.any((c) => c.label == 'abcdefghij'), isTrue);
@@ -2349,107 +2438,11 @@ void f() {
   void _enableLints(List<String> lintNames) {
     registerLintRules();
     final lintsYaml = lintNames.map((name) => '    - $name\n').join();
-    newFile2(analysisOptionsPath, '''
+    newFile(analysisOptionsPath, '''
 linter:
   rules:
 $lintsYaml
 ''');
-  }
-}
-
-@reflectiveTest
-class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
-  @override
-  String get testPackageLanguageVersion => latestLanguageVersion;
-
-  Future<void> test_completeFunctionCalls_requiredNamed() async {
-    final content = '''
-    void myFunction(String a, int b, {required String c, String d = ''}) {}
-
-    void f() {
-      [[myFu^]]
-    }
-    ''';
-
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities),
-        workspaceCapabilities:
-            withConfigurationSupport(emptyWorkspaceClientCapabilities),
-      ),
-      {'completeFunctionCalls': true},
-    );
-    await openFile(mainFileUri, withoutMarkers(content));
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-    final item = res.singleWhere((c) => c.label == 'myFunction(…)');
-    // Ensure the snippet comes through in the expected format with the expected
-    // placeholders.
-    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
-    final textEdit = toTextEdit(item.textEdit!);
-    expect(textEdit.newText, equals(item.insertText));
-    expect(textEdit.range, equals(rangeFromMarkers(content)));
-  }
-
-  Future<void> test_completeFunctionCalls_requiredNamed_suggestionSet() async {
-    final otherFile = join(projectFolderPath, 'lib', 'other.dart');
-    newFile2(
-      otherFile,
-      "void myFunction(String a, int b, {required String c, String d = ''}) {}",
-    );
-    final content = '''
-    void f() {
-      [[myFu^]]
-    }
-    ''';
-
-    final initialAnalysis = waitForAnalysisComplete();
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities),
-        workspaceCapabilities: withApplyEditSupport(
-            withConfigurationSupport(emptyWorkspaceClientCapabilities)),
-      ),
-      {'completeFunctionCalls': true},
-    );
-    await openFile(mainFileUri, withoutMarkers(content));
-    await initialAnalysis;
-
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-    final item = res.singleWhere((c) => c.label == 'myFunction(…)');
-    // Ensure the snippet comes through in the expected format with the expected
-    // placeholders.
-    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
-    expect(item.textEdit, isNull);
-
-    // Ensure the item can be resolved and gets a proper TextEdit.
-    final resolved = await resolveCompletion(item);
-    expect(resolved.textEdit, isNotNull);
-    final textEdit = toTextEdit(resolved.textEdit!);
-    expect(textEdit.newText, equals(item.insertText));
-    expect(textEdit.range, equals(rangeFromMarkers(content)));
-  }
-
-  Future<void> test_nullableTypes() async {
-    final content = '''
-    String? foo(int? a, [int b = 1]) {}
-
-    void f() {
-      fo^
-    }
-    ''';
-
-    final initialAnalysis = waitForAnalysisComplete();
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    await initialAnalysis;
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-
-    final completion = res.singleWhere((c) => c.label.startsWith('foo'));
-    expect(completion.detail, '(int? a, [int b = 1]) → String?');
   }
 }
 
@@ -2793,12 +2786,19 @@ void f() {
 
 @reflectiveTest
 class FlutterSnippetCompletionTest extends SnippetCompletionTest {
+  /// Standard import statements expected for basic Widgets.
+  String get expectedImports => '''
+import 'package:flutter/src/widgets/framework.dart';''';
+
   /// Nullability suffix expected in this test class.
   ///
   /// Used to allow all tests to be run in both modes without having to
-  /// duplicate all tests ([FlutterSnippetCompletionWithNullSafetyTest]
+  /// duplicate all tests ([FlutterSnippetCompletionWithoutNullSafetyTest]
   /// overrides this).
-  String get questionSuffix => '';
+  String get expectedNullableSuffix => '?';
+
+  /// Constructor params expected on Widget classes.
+  String get expectedWidgetConstructorParams => '({super.key})';
 
   @override
   void setUp() {
@@ -2833,7 +2833,7 @@ import 'package:flutter/widgets.dart';
 class A {}
 
 class \${1:MyWidget} extends StatefulWidget {
-  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+  const \${1:MyWidget}$expectedWidgetConstructorParams;
 
   @override
   State<\${1:MyWidget}> createState() => _\${1:MyWidget}State();
@@ -2875,7 +2875,7 @@ import 'package:flutter/widgets.dart';
 class A {}
 
 class \${1:MyWidget} extends StatefulWidget {
-  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+  const \${1:MyWidget}$expectedWidgetConstructorParams;
 
   @override
   State<\${1:MyWidget}> createState() => _\${1:MyWidget}State();
@@ -2931,7 +2931,7 @@ import 'package:flutter/widgets.dart';
 class A {}
 
 class \${1:MyWidget} extends StatelessWidget {
-  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+  const \${1:MyWidget}$expectedWidgetConstructorParams;
 
   @override
   Widget build(BuildContext context) {
@@ -2960,13 +2960,12 @@ class B {}
     );
 
     expect(updated, '''
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
+$expectedImports
 
 class A {}
 
 class \${1:MyWidget} extends StatelessWidget {
-  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+  const \${1:MyWidget}$expectedWidgetConstructorParams;
 
   @override
   Widget build(BuildContext context) {
@@ -2991,11 +2990,10 @@ stless^
     );
 
     expect(updated, '''
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
+$expectedImports
 
 class \${1:MyWidget} extends StatelessWidget {
-  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+  const \${1:MyWidget}$expectedWidgetConstructorParams;
 
   @override
   Widget build(BuildContext context) {
@@ -3018,11 +3016,10 @@ class \${1:MyWidget} extends StatelessWidget {
     );
 
     expect(updated, '''
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
+$expectedImports
 
 class \${1:MyWidget} extends StatelessWidget {
-  const \${1:MyWidget}({Key$questionSuffix key}) : super(key: key);
+  const \${1:MyWidget}$expectedWidgetConstructorParams;
 
   @override
   Widget build(BuildContext context) {
@@ -3063,13 +3060,21 @@ stle^
 }
 
 @reflectiveTest
-class FlutterSnippetCompletionWithNullSafetyTest
+class FlutterSnippetCompletionWithoutNullSafetyTest
     extends FlutterSnippetCompletionTest {
   @override
-  String get questionSuffix => '?';
+  String get expectedImports => '''
+import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/framework.dart';''';
 
   @override
-  String get testPackageLanguageVersion => latestLanguageVersion;
+  String get expectedNullableSuffix => '';
+
+  @override
+  String get expectedWidgetConstructorParams => '({Key key}) : super(key: key)';
+
+  @override
+  String get testPackageLanguageVersion => '2.9';
 }
 
 abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest

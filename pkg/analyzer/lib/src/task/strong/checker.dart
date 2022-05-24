@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -13,11 +12,9 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart' show CompileTimeErrorCode;
-import 'package:analyzer/src/task/inference_error.dart';
 
 Element? _getKnownElement(Expression expression) {
   if (expression is ParenthesizedExpression) {
@@ -34,24 +31,14 @@ Element? _getKnownElement(Expression expression) {
   return null;
 }
 
-/// Checks the body of functions and properties.
+/// Checks the body of functions and properties for implicit cast errors in
+/// pre-null safe libraries.
 class CodeChecker extends RecursiveAstVisitor {
   final TypeSystemImpl _typeSystem;
   final TypeProvider _typeProvider;
   final ErrorReporter _errorReporter;
 
-  late final FeatureSet _featureSet;
-
   CodeChecker(this._typeProvider, this._typeSystem, this._errorReporter);
-
-  bool get _isNonNullableByDefault =>
-      _featureSet.isEnabled(Feature.non_nullable);
-
-  NullabilitySuffix get _noneOrStarSuffix {
-    return _isNonNullableByDefault
-        ? NullabilitySuffix.none
-        : NullabilitySuffix.star;
-  }
 
   void checkArgument(Expression arg, DartType expectedType) {
     // Preserve named argument structure, so their immediate parent is the
@@ -172,7 +159,6 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    _featureSet = node.featureSet;
     node.visitChildren(this);
   }
 
@@ -386,28 +372,6 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    var element = node.declaredElement;
-    if (element is PropertyInducingElementImpl) {
-      var error = element.typeInferenceError;
-      if (error != null) {
-        if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
-          // Errors on const should have been reported with
-          // [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT].
-          if (!element.isConst) {
-            _recordMessage(
-              node.name,
-              CompileTimeErrorCode.TOP_LEVEL_CYCLE,
-              [element.name, error.arguments],
-            );
-          }
-        }
-      }
-    }
-    node.visitChildren(this);
-  }
-
-  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     var type = node.type;
     if (type != null) {
@@ -520,10 +484,6 @@ class CodeChecker extends RecursiveAstVisitor {
       bool forSpread = false,
       bool forSpreadKey = false,
       bool forSpreadValue = false}) {
-    if (_isNonNullableByDefault) {
-      return;
-    }
-
     expr = expr.unParenthesized;
     if (_needsImplicitCast(expr, to: to, from: from) == true) {
       _recordImplicitCast(expr, to,
@@ -627,7 +587,7 @@ class CodeChecker extends RecursiveAstVisitor {
         // Ensure it's at least a Stream / Iterable.
         return expectedElement.instantiate(
           typeArguments: [_typeProvider.dynamicType],
-          nullabilitySuffix: _noneOrStarSuffix,
+          nullabilitySuffix: NullabilitySuffix.star,
         );
       } else {
         // Analyzer will provide a separate error if expected type
@@ -836,7 +796,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (elementType == null) {
       var sequenceType = sequenceElement.instantiate(
         typeArguments: [_typeProvider.dynamicType],
-        nullabilitySuffix: _noneOrStarSuffix,
+        nullabilitySuffix: NullabilitySuffix.star,
       );
 
       if (_typeSystem.isSubtypeOf(sequenceType, iterableType)) {

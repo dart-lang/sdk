@@ -202,6 +202,6 @@ class C {
       }
     }
 
-    newFile2('/home/test/analysis_options.yaml', buffer.toString());
+    newFile('/home/test/analysis_options.yaml', buffer.toString());
   }
 }

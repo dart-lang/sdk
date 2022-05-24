@@ -2,18 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 import 'plugin/plugin_manager_test.dart';
 
 void main() {
@@ -23,7 +22,7 @@ void main() {
 }
 
 @reflectiveTest
-class AbstractRequestHandlerTest extends AbstractAnalysisTest {
+class AbstractRequestHandlerTest extends PubPackageAnalysisServerTest {
   Future<void> test_waitForResponses_empty_noTimeout() async {
     AbstractRequestHandler handler = TestAbstractRequestHandler(server);
     var futures = <PluginInfo, Future<plugin.Response>>{};
@@ -94,7 +93,7 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
 }
 
 class TestAbstractRequestHandler extends AbstractRequestHandler {
-  TestAbstractRequestHandler(AnalysisServer server) : super(server);
+  TestAbstractRequestHandler(super.server);
 
   @override
   Response handleRequest(Request request, CancellationToken cancellationToken) {

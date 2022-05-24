@@ -109,7 +109,7 @@ void checkElementText(
   // Print the actual text to simplify copy/paste into the expectation.
   // if (actualText != expected) {
   //   print('-------- Actual --------');
-  //   print(actualText + '------------------------');
+  //   print('$actualText------------------------');
   // }
 
   expect(actualText, expected);
@@ -263,6 +263,10 @@ class _ElementWriter {
     }
 
     _writeIf(e.isGenerator, '*');
+
+    if (e is ExecutableElementImpl && e.invokesSuperSelf) {
+      buffer.write(' invokesSuperSelf');
+    }
   }
 
   void _writeClassElement(ClassElement e) {
@@ -915,7 +919,7 @@ class _ElementWriter {
       if (uri.isScheme('file')) {
         uriStr = uri.pathSegments.last;
       }
-      buffer.write('$uriStr');
+      buffer.write(uriStr);
     } else {
       buffer.write('<unresolved>');
     }

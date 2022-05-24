@@ -14,13 +14,13 @@ import 'package:analysis_server/src/lsp/handlers/handler_reject.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 
-export 'package:analysis_server/src/utilities/progress.dart';
+export 'package:analyzer/src/utilities/cancellation.dart';
 
 /// Converts an iterable using the provided function and skipping over any
 /// null values.
@@ -49,11 +49,17 @@ mixin Handler<P, R> {
 
   LspAnalysisServer get server;
 
+  ErrorOr<T> analysisFailedError<T>(String path) => error<T>(
+      ServerErrorCodes.FileAnalysisFailed, 'Analysis failed for file', path);
+
   bool fileHasBeenModified(String path, num? clientVersion) {
     final serverDocIdentifier = server.getVersionedDocumentIdentifier(path);
     return clientVersion != null &&
         clientVersion != serverDocIdentifier.version;
   }
+
+  ErrorOr<T> fileNotAnalyzedError<T>(String path) => error<T>(
+      ServerErrorCodes.FileNotAnalyzed, 'File is not being analyzed', path);
 
   ErrorOr<LineInfo> getLineInfo(String path) {
     final lineInfo = server.getLineInfo(path);
@@ -66,19 +72,30 @@ mixin Handler<P, R> {
     }
   }
 
-  Future<ErrorOr<ResolvedUnitResult>> requireResolvedUnit(String path) async {
+  /// Attempts to get a [ResolvedUnitResult] for [path] or an error.
+  ///
+  /// When [waitForInProgressContextRebuilds] is `true` and the file appears to not be
+  /// analyzed but analysis roots are currently being discovered, will wait for
+  /// discovery to complete and then try again (once) to get a result.
+  Future<ErrorOr<ResolvedUnitResult>> requireResolvedUnit(
+    String path, {
+    bool waitForInProgressContextRebuilds = true,
+  }) async {
     final result = await server.getResolvedUnit(path);
     if (result == null) {
-      if (server.isAnalyzed(path)) {
-        // If the file was being analyzed and we got a null result, that usually
-        // indicators a parser or analysis failure, so provide a more specific
-        // message.
-        return error(ServerErrorCodes.FileAnalysisFailed,
-            'Analysis failed for file', path);
-      } else {
-        return error(ServerErrorCodes.FileNotAnalyzed,
-            'File is not being analyzed', path);
+      // Handle retry if allowed.
+      if (waitForInProgressContextRebuilds) {
+        await server.analysisContextsRebuilt;
+        return requireResolvedUnit(path,
+            waitForInProgressContextRebuilds: false);
       }
+
+      // If the file was being analyzed and we got a null result, that usually
+      // indicates a parser or analysis failure, so provide a more specific
+      // message.
+      return server.isAnalyzed(path)
+          ? analysisFailedError(path)
+          : fileNotAnalyzedError(path);
     } else if (!result.exists) {
       return error(
           ServerErrorCodes.InvalidFilePath, 'File does not exist', path);
@@ -86,19 +103,25 @@ mixin Handler<P, R> {
     return success(result);
   }
 
-  Future<ErrorOr<ParsedUnitResult>> requireUnresolvedUnit(String path) async {
+  Future<ErrorOr<ParsedUnitResult>> requireUnresolvedUnit(
+    String path, {
+    bool waitForInProgressContextRebuilds = true,
+  }) async {
     final result = await server.getParsedUnit(path);
     if (result == null) {
-      if (server.isAnalyzed(path)) {
-        // If the file was being analyzed and we got a null result, that usually
-        // indicators a parser or analysis failure, so provide a more specific
-        // message.
-        return error(ServerErrorCodes.FileAnalysisFailed,
-            'Analysis failed for file', path);
-      } else {
-        return error(ServerErrorCodes.FileNotAnalyzed,
-            'File is not being analyzed', path);
+      // Handle retry if allowed.
+      if (waitForInProgressContextRebuilds) {
+        await server.analysisContextsRebuilt;
+        return requireUnresolvedUnit(path,
+            waitForInProgressContextRebuilds: false);
       }
+
+      // If the file was being analyzed and we got a null result, that usually
+      // indicates a parser or analysis failure, so provide a more specific
+      // message.
+      return server.isAnalyzed(path)
+          ? analysisFailedError(path)
+          : fileNotAnalyzedError(path);
     }
     return success(result);
   }

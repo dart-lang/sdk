@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'dart:async';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart' as ir;
 import 'package:front_end/src/fasta/util/bytes_sink.dart';
-import '../../compiler.dart' as api;
+import '../../compiler_api.dart' as api;
 import '../commandline_options.dart' show Flags;
 import '../common/codegen.dart';
 import '../common/tasks.dart';
@@ -196,7 +198,6 @@ class SerializationTask extends CompilerTask {
       //   DataSource source = new ObjectSource(encoding, useDataKinds: true);
       //   source.registerComponentLookup(new ComponentLookup(component));
       //   ModuleData.fromDataSource(source);
-
       BytesSink bytes = BytesSink();
       DataSinkWriter binarySink =
           DataSinkWriter(BinaryDataSink(bytes), useDataKinds: true);
@@ -209,17 +210,17 @@ class SerializationTask extends CompilerTask {
     }
   }
 
-  Future<List<ModuleData>> deserializeModuleData(ir.Component component) async {
+  Future<ModuleData> deserializeModuleData(ir.Component component) async {
     return await measureIoSubtask('deserialize module data', () async {
       _reporter.log('Reading data from ${_options.modularAnalysisInputs}');
-      List<ModuleData> results = [];
+      final results = ModuleData();
       for (Uri uri in _options.modularAnalysisInputs) {
         api.Input<List<int>> dataInput =
             await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
         DataSourceReader source =
             DataSourceReader(BinaryDataSource(dataInput.data));
         source.registerComponentLookup(ComponentLookup(component));
-        results.add(ModuleData.fromDataSource(source));
+        results.readMoreFromDataSource(source);
       }
       return results;
     });

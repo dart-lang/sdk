@@ -10,7 +10,6 @@ import 'dart:isolate';
 import 'package:dds/src/dap/logging.dart';
 import 'package:dds/src/dap/server.dart';
 import 'package:path/path.dart' as path;
-import 'package:pedantic/pedantic.dart';
 
 /// Enable to run from local source (useful in development).
 const runFromSource = false;
@@ -94,7 +93,7 @@ class OutOfProcessDapTestServer extends DapTestServer {
   @override
   Future<void> stop() async {
     _isShuttingDown = true;
-    await _process.kill();
+    _process.kill();
     await _process.exitCode;
   }
 

@@ -5,6 +5,7 @@
 part of dart.ffi;
 
 /// Manages memory on the native heap.
+@Since('2.12')
 abstract class Allocator {
   /// This interface is meant to be implemented, not extended or mixed in.
   Allocator._() {
@@ -28,6 +29,7 @@ abstract class Allocator {
 }
 
 /// Extension on [Allocator] to provide allocation with [NativeType].
+@Since('2.12')
 extension AllocatorAlloc on Allocator {
   /// Allocates `sizeOf<T>() * count` bytes of memory using
   /// `allocator.allocate`.

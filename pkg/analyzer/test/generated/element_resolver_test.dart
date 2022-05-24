@@ -21,7 +21,7 @@ main() {
 @reflectiveTest
 class AnnotationElementResolverTest extends PubPackageResolutionTest {
   test_class_namedConstructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A.named();
 }
@@ -46,7 +46,7 @@ class A {
   }
 
   test_class_prefixed_namedConstructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A.named();
 }
@@ -72,7 +72,7 @@ class A {
   }
 
   test_class_prefixed_staticConstField() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const V = 0;
 }
@@ -97,7 +97,7 @@ class A {
   }
 
   test_class_prefixed_unnamedConstructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A();
 }
@@ -121,7 +121,7 @@ class A {
   }
 
   test_class_staticConstField() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const V = 0;
 }
@@ -145,7 +145,7 @@ class A {
   }
 
   test_class_unnamedConstructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A();
 }
@@ -168,7 +168,7 @@ class A {
   }
 
   test_topLevelVariable() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const V = 0;
 ''');
     await _validateAnnotation('', '@V',
@@ -189,7 +189,7 @@ const V = 0;
   }
 
   test_topLevelVariable_prefixed() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const V = 0;
 ''');
     await _validateAnnotation('as p', '@p.V',
@@ -437,7 +437,7 @@ import 'dart:math' as p;
   }
 
   test_visitImportDirective_withCombinators() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 int v1 = 0;
 final int v2 = 0;
 ''');

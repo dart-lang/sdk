@@ -8,7 +8,6 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/encoder.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -17,7 +16,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 abstract class AbstractSemanticTokensHandler<T>
     extends MessageHandler<T, SemanticTokens?>
     with LspPluginRequestHandlerMixin {
-  AbstractSemanticTokensHandler(LspAnalysisServer server) : super(server);
+  AbstractSemanticTokensHandler(super.server);
 
   List<List<HighlightRegion>> getPluginResults(String path) {
     final notificationManager = server.notificationManager;
@@ -113,7 +112,7 @@ abstract class AbstractSemanticTokensHandler<T>
 
 class SemanticTokensFullHandler
     extends AbstractSemanticTokensHandler<SemanticTokensParams> {
-  SemanticTokensFullHandler(LspAnalysisServer server) : super(server);
+  SemanticTokensFullHandler(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_semanticTokens_full;
@@ -130,7 +129,7 @@ class SemanticTokensFullHandler
 
 class SemanticTokensRangeHandler
     extends AbstractSemanticTokensHandler<SemanticTokensRangeParams> {
-  SemanticTokensRangeHandler(LspAnalysisServer server) : super(server);
+  SemanticTokensRangeHandler(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_semanticTokens_range;

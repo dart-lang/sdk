@@ -7,14 +7,13 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/computer/computer_signature.dart';
 import 'package:analysis_server/src/computer/computer_type_arguments_signature.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
 class SignatureHelpHandler
     extends MessageHandler<SignatureHelpParams, SignatureHelp?> {
-  SignatureHelpHandler(LspAnalysisServer server) : super(server);
+  SignatureHelpHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_signatureHelp;
 

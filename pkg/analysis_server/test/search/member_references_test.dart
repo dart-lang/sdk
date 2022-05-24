@@ -24,7 +24,7 @@ class MemberReferencesTest extends AbstractSearchDomainTest {
   Future findMemberReferences(String name) async {
     await waitForTasksFinished();
     var request = SearchFindMemberReferencesParams(name).toRequest('0');
-    var response = await waitResponse(request);
+    var response = await handleSuccessfulRequest(request);
     searchId = SearchFindMemberReferencesResult.fromResponse(response).id;
     return waitForSearchResults();
   }

@@ -35,7 +35,8 @@ class DeserializationEnvironment<T extends Node> {
     return binders[distinctName] = node;
   }
 
-  // TODO(dmitryas): Consider combining with [addBinder] into a single method.
+  // TODO(cstefantsova): Consider combining with [addBinder] into a single
+  // method.
   void extend() {
     locals.addAll(binders);
     binders.clear();
@@ -98,7 +99,8 @@ class SerializationEnvironment<T extends Node> {
     return binders[node] = distinctName;
   }
 
-  // TODO(dmitryas): Consider combining with [addBinder] into a single method.
+  // TODO(cstefantsova): Consider combining with [addBinder] into a single
+  // method.
   void extend() {
     locals.addAll(binders);
     binders.clear();

@@ -1,0 +1,4 @@
+Future<int> foo2() async {}
+Future<void> foo1() async {}
+Future<void> foo3() async {}
+void main() {}

@@ -555,7 +555,7 @@ main() {}
 
     // Go through each marker, find the expected region start/end and
     // ensure it's in the results.
-    expectedRegions.forEach((m) {
+    for (var m in expectedRegions) {
       final i = m.group(1);
       final inclusiveStart = m.group(2) == 'INC';
       // Find the end marker.
@@ -576,11 +576,11 @@ main() {}
 
       expect(regions,
           contains(FoldingRegion(expectedKind, expectedStart, expectedLength)));
-    });
+    }
   }
 
   Future<List<FoldingRegion>> _computeRegions(String sourceContent) async {
-    newFile2(sourcePath, sourceContent);
+    newFile(sourcePath, sourceContent);
     var result =
         await (await session).getResolvedUnit(sourcePath) as ResolvedUnitResult;
     var computer = DartUnitFoldingComputer(result.lineInfo, result.unit);

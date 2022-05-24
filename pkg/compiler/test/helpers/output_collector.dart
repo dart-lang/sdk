@@ -8,9 +8,9 @@
 
 library output_collector;
 
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 
-class BufferedOutputSink implements OutputSink {
+class BufferedOutputSink implements api.OutputSink {
   StringBuffer sb = new StringBuffer();
   String text;
 
@@ -31,7 +31,7 @@ class BufferedOutputSink implements OutputSink {
   }
 }
 
-class BufferedBinaryOutputSink implements BinaryOutputSink {
+class BufferedBinaryOutputSink implements api.BinaryOutputSink {
   final Uri uri;
 
   List<int> list = <int>[];
@@ -52,27 +52,27 @@ class BufferedBinaryOutputSink implements BinaryOutputSink {
   }
 }
 
-class CloningOutputSink implements OutputSink {
-  final List<OutputSink> sinks;
+class CloningOutputSink implements api.OutputSink {
+  final List<api.OutputSink> sinks;
 
   CloningOutputSink(this.sinks);
 
   @override
   void add(String event) {
-    sinks.forEach((OutputSink sink) => sink.add(event));
+    sinks.forEach((api.OutputSink sink) => sink.add(event));
   }
 
   @override
   void close() {
-    sinks.forEach((OutputSink sink) => sink.close());
+    sinks.forEach((api.OutputSink sink) => sink.close());
   }
 }
 
-class OutputCollector implements CompilerOutput {
-  Map<OutputType, Map<String, BufferedOutputSink>> outputMap = {};
+class OutputCollector implements api.CompilerOutput {
+  Map<api.OutputType, Map<String, BufferedOutputSink>> outputMap = {};
   Map<Uri, BufferedBinaryOutputSink> binaryOutputMap = {};
 
-  String getOutput(String name, OutputType type) {
+  String getOutput(String name, api.OutputType type) {
     Map<String, BufferedOutputSink> sinkMap = outputMap[type];
     if (sinkMap == null) {
       print("No output available for $type.");
@@ -88,7 +88,7 @@ class OutputCollector implements CompilerOutput {
   }
 
   @override
-  BinaryOutputSink createBinarySink(Uri uri) {
+  api.BinaryOutputSink createBinarySink(Uri uri) {
     return binaryOutputMap.putIfAbsent(
         uri, () => new BufferedBinaryOutputSink(uri));
   }
@@ -98,7 +98,7 @@ class OutputCollector implements CompilerOutput {
 
   /// `true` if any output other than main output has been collected.
   bool get hasExtraOutput {
-    for (OutputType type in outputMap.keys) {
+    for (api.OutputType type in outputMap.keys) {
       for (String name in outputMap[type].keys) {
         if (name != '') return true;
       }
@@ -107,16 +107,17 @@ class OutputCollector implements CompilerOutput {
   }
 
   @override
-  OutputSink createOutputSink(String name, String extension, OutputType type) {
+  api.OutputSink createOutputSink(
+      String name, String extension, api.OutputType type) {
     Map<String, BufferedOutputSink> sinkMap =
         outputMap.putIfAbsent(type, () => {});
     return sinkMap.putIfAbsent(name, () => new BufferedOutputSink());
   }
 
-  Map<OutputType, Map<String, String>> clear() {
-    Map<OutputType, Map<String, String>> outputMapResult = {};
+  Map<api.OutputType, Map<String, String>> clear() {
+    Map<api.OutputType, Map<String, String>> outputMapResult = {};
     outputMap.forEach(
-        (OutputType outputType, Map<String, BufferedOutputSink> sinkMap) {
+        (api.OutputType outputType, Map<String, BufferedOutputSink> sinkMap) {
       Map<String, String> sinkMapResult = outputMapResult[outputType] = {};
       sinkMap.forEach((String name, BufferedOutputSink sink) {
         sinkMapResult[name] = sink.toString();

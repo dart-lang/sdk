@@ -98,7 +98,4 @@ class SortChildPropertyLast extends CorrectionProducer {
     return flutter.findNamedExpression(node, 'child') ??
         flutter.findNamedExpression(node, 'children');
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static SortChildPropertyLast newInstance() => SortChildPropertyLast();
 }

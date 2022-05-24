@@ -476,6 +476,7 @@ import 'mixin_super_class_constraint_non_interface_test.dart'
 import 'mixin_with_non_class_superclass_test.dart'
     as mixin_with_non_class_superclass;
 import 'mixins_super_class_test.dart' as mixins_super_class;
+import 'mock_sdk_test.dart' as mock_sdk;
 import 'multiple_redirecting_constructor_invocations_test.dart'
     as multiple_redirecting_constructor_invocations;
 import 'multiple_super_initializers_test.dart' as multiple_super_initializers;
@@ -751,6 +752,7 @@ import 'undefined_super_operator_test.dart' as undefined_super_operator;
 import 'undefined_super_setter_test.dart' as undefined_super_setter;
 import 'unignorable_ignore_test.dart' as unignorable_ignore;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
+import 'unnecessary_final_test.dart' as unnecessary_final;
 import 'unnecessary_ignore_test.dart' as unnecessary_ignore;
 import 'unnecessary_import_test.dart' as unnecessary_import;
 import 'unnecessary_no_such_method_test.dart' as unnecessary_no_such_method;
@@ -1104,6 +1106,7 @@ main() {
     mixin_super_class_constraint_non_interface.main();
     mixin_with_non_class_superclass.main();
     mixins_super_class.main();
+    mock_sdk.main();
     multiple_redirecting_constructor_invocations.main();
     multiple_super_initializers.main();
     must_be_a_native_function_type.main();
@@ -1294,6 +1297,7 @@ main() {
     unignorable_ignore.main();
     unnecessary_import.main();
     unnecessary_cast.main();
+    unnecessary_final.main();
     unnecessary_ignore.main();
     unnecessary_no_such_method.main();
     unnecessary_non_null_assertion.main();

@@ -1586,7 +1586,9 @@ class Assembler : public AssemblerBase {
     }
   }
   void vmov(VRegister vd, VRegister vn) { vorr(vd, vn, vn); }
-  void mvn(Register rd, Register rm) { orn(rd, ZR, Operand(rm)); }
+  void mvn_(Register rd, Register rm) {
+    orn(rd, ZR, Operand(rm));
+  }
   void mvnw(Register rd, Register rm) { ornw(rd, ZR, Operand(rm)); }
   void neg(Register rd, Register rm) { sub(rd, ZR, Operand(rm)); }
   void negs(Register rd, Register rm, OperandSize sz = kEightBytes) {

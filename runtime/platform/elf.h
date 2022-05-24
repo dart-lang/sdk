@@ -41,6 +41,7 @@ enum class ProgramHeaderType : uint32_t {
   PT_DYNAMIC = 2,
   PT_NOTE = 4,
   PT_PHDR = 6,
+  PT_GNU_STACK = 0x6474e551,
 };
 
 struct ProgramHeader {

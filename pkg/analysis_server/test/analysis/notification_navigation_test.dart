@@ -140,7 +140,7 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
     for (var region in regions) {
       var offset = region.offset;
       if (offset < lastEnd) {
-        fail('$lastEnd was expected to be > $offset in\n' + regions.join('\n'));
+        fail('$lastEnd was expected to be > $offset in\n${regions.join('\n')}');
       }
       lastEnd = offset + region.length;
     }
@@ -280,7 +280,7 @@ main() {
   }
 
   Future<void> test_annotationConstructor_importPrefix() async {
-    newFile2('$testPackageLibPath/my_annotation.dart', r'''
+    newFile('$testPackageLibPath/my_annotation.dart', r'''
 library an;
 class MyAnnotation {
   const MyAnnotation();
@@ -355,7 +355,7 @@ main() {
   }
 
   Future<void> test_annotationField_importPrefix() async {
-    newFile2('$testPackageLibPath/mayn.dart', r'''
+    newFile('$testPackageLibPath/mayn.dart', r'''
 library an;
 const myan = new Object();
 ''');
@@ -720,7 +720,7 @@ void f() {
 ''');
     await prepareNavigation();
     assertHasRegion('index');
-    assertHasTargetInDartCore('index;');
+    assertHasTargetInDartCore('index; // Enum');
   }
 
   Future<void> test_enum_method() async {
@@ -827,7 +827,7 @@ void f() {
   }
 
   Future<void> test_functionReference_importPrefix_function() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 void foo<T>() {}
 ''');
     addTestFile('''
@@ -1076,8 +1076,8 @@ library my.lib;
   }
 
   Future<void> test_multiplyDefinedElement() async {
-    newFile2('$testPackageLibPath/libA.dart', 'library A; int TEST = 1;');
-    newFile2('$testPackageLibPath/libB.dart', 'library B; int TEST = 2;');
+    newFile('$testPackageLibPath/libA.dart', 'library A; int TEST = 1;');
+    newFile('$testPackageLibPath/libB.dart', 'library B; int TEST = 2;');
     addTestFile('''
 import 'libA.dart';
 import 'libB.dart';
@@ -1168,7 +1168,7 @@ main() {
 
   Future<void> test_partOf() async {
     var libCode = 'library lib; part "test.dart";';
-    var libFile = newFile2('$testPackageLibPath/lib.dart', libCode).path;
+    var libFile = newFile('$testPackageLibPath/lib.dart', libCode).path;
     addTestFile('part of lib;');
     await prepareNavigation();
     assertHasRegionString('lib');
@@ -1227,9 +1227,9 @@ class A {
   }
 
   Future<void> test_string_configuration() async {
-    newFile2('$testPackageLibPath/lib.dart', '').path;
-    var lib2File = newFile2('$testPackageLibPath/lib2.dart', '').path;
-    newFile2(
+    newFile('$testPackageLibPath/lib.dart', '').path;
+    var lib2File = newFile('$testPackageLibPath/lib2.dart', '').path;
+    newFile(
         testFilePath, 'import "lib.dart" if (dart.library.html) "lib2.dart";');
     await prepareNavigation();
     assertHasRegionString('"lib2.dart"');
@@ -1238,7 +1238,7 @@ class A {
 
   Future<void> test_string_export() async {
     var libCode = 'library lib;';
-    var libFile = newFile2('$testPackageLibPath/lib.dart', libCode).path;
+    var libFile = newFile('$testPackageLibPath/lib.dart', libCode).path;
     addTestFile('export "lib.dart";');
     await prepareNavigation();
     assertHasRegionString('"lib.dart"');
@@ -1253,7 +1253,7 @@ class A {
 
   Future<void> test_string_import() async {
     var libCode = 'library lib;';
-    var libFile = newFile2('$testPackageLibPath/lib.dart', libCode).path;
+    var libFile = newFile('$testPackageLibPath/lib.dart', libCode).path;
     addTestFile('import "lib.dart";');
     await prepareNavigation();
     assertHasRegionString('"lib.dart"');
@@ -1274,8 +1274,7 @@ class A {
 
   Future<void> test_string_part() async {
     var unitCode = 'part of lib;  f() {}';
-    var unitFile =
-        newFile2('$testPackageLibPath/test_unit.dart', unitCode).path;
+    var unitFile = newFile('$testPackageLibPath/test_unit.dart', unitCode).path;
     addTestFile('''
 library lib;
 part "test_unit.dart";

@@ -51,9 +51,8 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   /// Visitor used to produce doc comments.
   final ToHtmlVisitor toHtmlVisitor;
 
-  CodegenJavaVisitor(Api api)
-      : toHtmlVisitor = ToHtmlVisitor(api),
-        super(api);
+  CodegenJavaVisitor(super.api)
+      : toHtmlVisitor = ToHtmlVisitor(api);
 
   /// Create a constructor, using [callback] to create its contents.
   void constructor(String name, void Function() callback) {

@@ -7,6 +7,7 @@ import 'annotated_code_helper.dart';
 import 'id.dart';
 import 'id_generation.dart';
 import '../util/colors.dart' as colors;
+import '../util/options.dart';
 
 const String cfeMarker = 'cfe';
 const String cfeWithNnbdMarker = '$cfeMarker:nnbd';
@@ -504,9 +505,10 @@ String withAnnotations(String sourceCode, Map<int, List<String>> annotations) {
 /// Checks [compiledData] against the expected data in [expectedMaps] derived
 /// from [code].
 Future<TestResult<T>> checkCode<T>(
+    MarkerOptions markerOptions,
+    String marker,
     String modeName,
-    Uri mainFileUri,
-    Map<Uri, AnnotatedCode> code,
+    TestData testData,
     MemberAnnotations<IdValue> expectedMaps,
     CompiledData<T> compiledData,
     DataInterpreter<T> dataInterpreter,
@@ -514,6 +516,9 @@ Future<TestResult<T>> checkCode<T>(
     bool fatalErrors: true,
     bool succinct: false,
     required void onFailure(String message)}) async {
+  String testName = testData.name;
+  Map<Uri, AnnotatedCode> code = testData.code;
+
   bool hasFailure = false;
   Set<Uri> neededDiffs = new Set<Uri>();
 
@@ -630,12 +635,18 @@ Future<TestResult<T>> checkCode<T>(
     hasFailure = true;
   }
   if (hasFailure && fatalErrors) {
-    onFailure('Errors found.');
+    onFailure(generateErrorMessage(
+      markerOptions,
+      mismatches: {
+        testName: {marker}
+      },
+    ));
   }
   return new TestResult<T>(dataInterpreter, compiledData, hasFailure);
 }
 
-typedef Future<Map<String, TestResult<T>>> RunTestFunction<T>(TestData testData,
+typedef Future<Map<String, TestResult<T>>> RunTestFunction<T>(
+    MarkerOptions markerOptions, TestData testData,
     {required bool testAfterFailures,
     required bool verbose,
     required bool succinct,
@@ -657,8 +668,37 @@ Uri _fileUriFromSdkRoot(String path) {
   ]);
 }
 
+/// Description of a tester for a specific marker.
+///
+/// A tester is the runnable dart script used to run the tests for a certain
+/// configurations. For instance
+/// `pkg/front_end/test/id_tests/constant_test.dart` is used to run the test
+/// data in `pkg/_fe_analyzer_shared/test/constants/data/` using the front end
+/// and `pkg/analyzer/test/id_tests/constant_test.dart` is used to run the same
+/// test data using the analyzer.
+class MarkerTester {
+  /// The marker supported by this tester, for instance 'cfe' for front end
+  /// testing.
+  final String marker;
+
+  /// The path of the tester relative to the sdk repo root, for instance
+  /// `pkg/front_end/test/id_tests/constant_test.dart`.
+  final String path;
+
+  /// The resolved file uri for the test.
+  final Uri uri;
+
+  MarkerTester(this.marker, this.path, this.uri);
+
+  @override
+  String toString() => 'MarkerTester($marker,$path,$uri)';
+}
+
+/// A model of the testers defined in a `marker.options` file, located in the
+/// data folder for id tests.
 class MarkerOptions {
-  final Map<String, Uri> markers;
+  /// The supported markers and their corresponding testers.
+  final Map<String, MarkerTester> markers;
 
   MarkerOptions.internal(this.markers);
 
@@ -670,7 +710,7 @@ class MarkerOptions {
       throw new ArgumentError("Marker option file '$file' doesn't exist.");
     }
 
-    Map<String, Uri> markers = {};
+    Map<String, MarkerTester> markers = {};
     String text = file.readAsStringSync();
     bool isScriptFound = false;
     for (String line in text.split('\n')) {
@@ -692,7 +732,7 @@ class MarkerOptions {
       if (markers.containsKey(marker)) {
         throw new ArgumentError("Duplicate marker '$marker' in ${file.uri}");
       }
-      markers[marker] = testerFile.uri;
+      markers[marker] = new MarkerTester(marker, tester, testerFile.uri);
       if (testerFile.absolute.uri == script.absolute.uri) {
         isScriptFound = true;
       }
@@ -707,14 +747,14 @@ class MarkerOptions {
   Iterable<String> get supportedMarkers => markers.keys;
 
   Future<void> runAll(List<String> args) async {
-    Set<Uri> testers = markers.values.toSet();
+    Set<MarkerTester> testers = markers.values.toSet();
     bool allOk = true;
-    for (Uri tester in testers) {
+    for (MarkerTester tester in testers) {
       print('================================================================');
-      print('Running tester: $tester ${args.join(' ')}');
+      print('Running tester: ${tester.path} ${args.join(' ')}');
       print('================================================================');
       Process process = await Process.start(
-          Platform.resolvedExecutable, [tester.toString(), ...args],
+          Platform.resolvedExecutable, [tester.uri.toString(), ...args],
           mode: ProcessStartMode.inheritStdio);
       if (await process.exitCode != 0) {
         allOk = false;
@@ -734,6 +774,40 @@ String getTestName(FileSystemEntity entity) {
   }
 }
 
+// TODO(johnniwinther): Support --show to show actual data for an input.
+class Options {
+  static const Option<bool> runAll =
+      const Option<bool>('--run-all', const BoolValue(false));
+  static const Option<bool> verbose =
+      const Option<bool>('--verbose', const BoolValue(false), aliases: ['-v']);
+  static const Option<bool> succinct =
+      const Option<bool>('--succinct', const BoolValue(false), aliases: ['-s']);
+  static const Option<bool> shouldContinue =
+      const Option<bool>('--continue', const BoolValue(false), aliases: ['-c']);
+  static const Option<bool> stopAfterFailures = const Option<bool>(
+      '--stop-after-failures', const BoolValue(false),
+      aliases: ['-a']);
+  static const Option<bool> printCode = const Option<bool>(
+      '--print-code', const BoolValue(false),
+      aliases: ['-p']);
+  static const Option<bool> generateAnnotations =
+      const Option<bool>('--generate', const BoolValue(false), aliases: ['-g']);
+  static const Option<bool> forceUpdate = const Option<bool>(
+      '--force-update', const BoolValue(false),
+      aliases: ['-f']);
+}
+
+const List<Option> idTestOptions = [
+  Options.runAll,
+  Options.verbose,
+  Options.succinct,
+  Options.shouldContinue,
+  Options.stopAfterFailures,
+  Options.printCode,
+  Options.generateAnnotations,
+  Options.forceUpdate,
+];
+
 /// Check code for all tests in [dataDir] using [runTest].
 Future<void> runTests<T>(Directory dataDir,
     {List<String> args: const <String>[],
@@ -747,24 +821,26 @@ Future<void> runTests<T>(Directory dataDir,
     Map<String, List<String>>? skipMap,
     bool preserveWhitespaceInAnnotations: false,
     bool preserveInfixWhitespaceInAnnotations: false}) async {
+  ParsedOptions parsedOptions = ParsedOptions.parse(args, idTestOptions);
   MarkerOptions markerOptions =
       new MarkerOptions.fromDataDir(dataDir, shouldFindScript: shards == 1);
-  // TODO(johnniwinther): Support --show to show actual data for an input.
-  args = args.toList();
-  bool runAll = args.remove('--run-all');
-  if (runAll) {
-    await markerOptions.runAll(args);
+  if (Options.runAll.read(parsedOptions)) {
+    await markerOptions.runAll(Options.runAll.remove(args.toList()));
     return;
   }
-  bool verbose = args.remove('-v');
-  bool succinct = args.remove('-s');
-  bool shouldContinue = args.remove('-c');
-  bool testAfterFailures = args.remove('-a');
-  bool printCode = args.remove('-p');
+  bool verbose = Options.verbose.read(parsedOptions);
+  bool succinct = Options.succinct.read(parsedOptions);
+  bool shouldContinue = Options.shouldContinue.read(parsedOptions);
+  bool stopAfterFailures = Options.stopAfterFailures.read(parsedOptions);
+  bool printCode = Options.printCode.read(parsedOptions);
+  bool generateAnnotations = Options.generateAnnotations.read(parsedOptions);
+  bool forceUpdate = Options.forceUpdate.read(parsedOptions);
+  List<String> arguments = parsedOptions.arguments;
+
   bool continued = false;
-  bool hasFailures = false;
-  bool generateAnnotations = args.remove('-g');
-  bool forceUpdate = args.remove('-f');
+
+  Map<String, Set<String>> mismatches = {};
+  Map<String, Set<String>> errors = {};
 
   String relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');
@@ -783,13 +859,17 @@ Future<void> runTests<T>(Directory dataDir,
   }
   int testCount = 0;
   for (FileSystemEntity entity in entities) {
-    String name = getTestName(entity);
-    if (args.isNotEmpty && !args.contains(name) && !continued) continue;
+    String testName = getTestName(entity);
+    if (arguments.isNotEmpty && !arguments.contains(testName) && !continued) {
+      continue;
+    }
     if (shouldContinue) continued = true;
     testCount++;
 
-    if (skipList != null && skipList.contains(name) && !args.contains(name)) {
-      print('Skip: ${name}');
+    if (skipList != null &&
+        skipList.contains(testName) &&
+        !arguments.contains(testName)) {
+      print('Skip: ${testName}');
       continue;
     }
     if (onTest != null) {
@@ -814,27 +894,31 @@ Future<void> runTests<T>(Directory dataDir,
             preserveInfixWhitespaceInAnnotations);
     print('Test: ${testData.testFileUri}');
 
-    Map<String, TestResult<T>> results = await runTest(testData,
-        testAfterFailures: testAfterFailures || generateAnnotations,
+    Map<String, TestResult<T>> results = await runTest(markerOptions, testData,
+        testAfterFailures: !stopAfterFailures || generateAnnotations,
         verbose: verbose,
         succinct: succinct,
         printCode: printCode,
         skipMap: skipMap,
         nullUri: createTestUri(entity.uri.resolve("null"), "null"));
 
-    bool hasMismatches = false;
-    bool hasErrors = false;
+    Set<String> mismatchMarkers = {};
+    Set<String> errorMarkers = {};
     results.forEach((String marker, TestResult<T> result) {
       if (result.hasMismatches) {
-        hasMismatches = true;
+        mismatchMarkers.add(marker);
       } else if (result.isErroneous) {
-        hasErrors = true;
+        errorMarkers.add(marker);
       }
     });
-    if (hasErrors) {
+    if (errorMarkers.isNotEmpty) {
       // Cannot generate annotations for erroneous tests.
-      hasFailures = true;
-    } else if (hasMismatches || (forceUpdate && generateAnnotations)) {
+      if (mismatchMarkers.isNotEmpty) {
+        mismatches[testName] = mismatchMarkers;
+      }
+      errors[testName] = errorMarkers;
+    } else if (mismatchMarkers.isNotEmpty ||
+        (forceUpdate && generateAnnotations)) {
       if (generateAnnotations) {
         DataInterpreter? dataInterpreter;
         Map<String, Map<Uri, Map<Id, ActualData<T>>>> actualData = {};
@@ -885,16 +969,91 @@ Future<void> runTests<T>(Directory dataDir,
           print('Generated annotations for ${fileUri}');
         });
       } else {
-        hasFailures = true;
+        mismatches[testName] = mismatchMarkers;
       }
     }
   }
-  if (hasFailures) {
-    onFailure('Errors found.');
+  if (mismatches.isNotEmpty || errors.isNotEmpty) {
+    onFailure(generateErrorMessage(markerOptions,
+        mismatches: mismatches, errors: errors));
   }
   if (testCount == 0) {
     onFailure("No files were tested.");
   }
+}
+
+/// Generates an error message for the [mismatches] and [errors] using
+/// [markerOptions] to provide a re-run/re-generation command.
+///
+/// [mismatches] and [errors] are maps from the test names of the failing tests
+/// to the markers for the configurations in which they failed.
+String generateErrorMessage(MarkerOptions markerOptions,
+    {Map<String, Set<String>> mismatches = const {},
+    Map<String, Set<String>> errors = const {}}) {
+  Set<String> testNames = {...mismatches.keys, ...errors.keys};
+  StringBuffer message = new StringBuffer();
+  message.writeln();
+  message.writeln('==========================================================');
+  message.writeln();
+  if (testNames.length > 1) {
+    message.writeln("Errors found in tests:");
+    message.writeln();
+    for (String testName in testNames.toList()..sort()) {
+      message.writeln("  ${testName}");
+    }
+  } else {
+    message.writeln("Errors found in test '${testNames.single}'");
+  }
+  if (mismatches.isNotEmpty) {
+    Map<MarkerTester, Set<String>> regenerations = {};
+    mismatches.forEach((String testName, Set<String> markers) {
+      for (String marker in markers) {
+        MarkerTester tester = markerOptions.markers[marker]!;
+        (regenerations[tester] ??= {}).add(testName);
+      }
+    });
+    message.writeln();
+    if (regenerations.length > 1) {
+      message.writeln('Run these commands to generate new expectations:');
+    } else {
+      message.writeln('Run this command to generate new expectations:');
+    }
+    message.writeln();
+    regenerations.forEach((MarkerTester tester, Set<String> testNames) {
+      message.write('  dart ${tester.path} -g');
+      for (String testName in testNames) {
+        message.write(' ${testName}');
+      }
+      message.writeln();
+    });
+  }
+  message.writeln();
+  if (errors.isNotEmpty) {
+    Map<MarkerTester, Set<String>> erroneous = {};
+    errors.forEach((String testName, Set<String> markers) {
+      for (String marker in markers) {
+        MarkerTester tester = markerOptions.markers[marker]!;
+        (erroneous[tester] ??= {}).add(testName);
+      }
+    });
+    message.writeln();
+    if (erroneous.length > 1) {
+      message.writeln('Run these commands to re-run the failing tests:');
+    } else {
+      message.writeln('Run this command to re-run the failing test(s):');
+    }
+    message.writeln();
+    erroneous.forEach((MarkerTester tester, Set<String> testNames) {
+      message.write('  dart ${tester.path}');
+      for (String testName in testNames) {
+        message.write(' ${testName}');
+      }
+      message.writeln();
+    });
+  }
+  message.writeln();
+  message.writeln('==========================================================');
+  return message.toString();
 }
 
 /// Returns `true` if [testName] is marked as skipped in [skipMap] for

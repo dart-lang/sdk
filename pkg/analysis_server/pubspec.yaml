@@ -3,7 +3,7 @@ name: analysis_server
 publish_to: none
 
 environment:
-  sdk: '>=2.14.0 <3.0.0'
+  sdk: '>=2.17.0 <3.0.0'
 
 dependencies:
   _fe_analyzer_shared:
@@ -33,9 +33,10 @@ dependencies:
 dev_dependencies:
   analyzer_utilities:
     path: ../analyzer_utilities
+  cli_util: any
+  lints: ^2.0.0
   logging: any
   matcher: any
-  pedantic: ^1.9.0
   test_reflective_loader: any
 
 dependency_overrides:

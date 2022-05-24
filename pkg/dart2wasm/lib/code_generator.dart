@@ -388,6 +388,17 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     });
   }
 
+  /// Helper function to throw a Wasm ref downcast error.
+  void throwWasmRefError(String expected) {
+    wrap(
+        StringLiteral(expected),
+        translator
+            .translateType(translator.coreTypes.stringNonNullableRawType));
+    _call(translator.stackTraceCurrent.reference);
+    _call(translator.throwWasmRefError.reference);
+    b.unreachable();
+  }
+
   /// Generates code for an expression plus conversion code to convert the
   /// result to the expected type if needed. All expression code generation goes
   /// through this method.
@@ -1660,9 +1671,28 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitFunctionInvocation(
       FunctionInvocation node, w.ValueType expectedType) {
-    FunctionType functionType = node.functionType!;
-    int parameterCount = functionType.requiredParameterCount;
-    return _functionCall(parameterCount, node.receiver, node.arguments);
+    Expression receiver = node.receiver;
+    if (receiver is InstanceGet &&
+        receiver.interfaceTarget == translator.wasmFunctionCall) {
+      // Receiver is a WasmFunction
+      assert(receiver.name.text == "call");
+      w.RefType receiverType =
+          translator.translateType(dartTypeOf(receiver.receiver)) as w.RefType;
+      w.Local temp = addLocal(receiverType);
+      wrap(receiver.receiver, receiverType);
+      b.local_set(temp);
+      w.FunctionType functionType = receiverType.heapType as w.FunctionType;
+      assert(node.arguments.positional.length == functionType.inputs.length);
+      for (int i = 0; i < node.arguments.positional.length; i++) {
+        wrap(node.arguments.positional[i], functionType.inputs[i]);
+      }
+      b.local_get(temp);
+      b.call_ref();
+      return translator.outputOrVoid(functionType.outputs);
+    }
+    int parameterCount = node.functionType?.requiredParameterCount ??
+        node.arguments.positional.length;
+    return _functionCall(parameterCount, receiver, node.arguments);
   }
 
   w.ValueType _functionCall(
@@ -2057,7 +2087,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         .getSubtypesOf(type.classNode)
         .where((c) => !c.isAbstract)
         .toList();
-    if (concrete.isEmpty) {
+    if (type.classNode == translator.coreTypes.functionClass) {
+      ClassInfo functionInfo = translator.classInfo[translator.functionClass]!;
+      translator.ref_test(b, functionInfo);
+    } else if (concrete.isEmpty) {
       b.drop();
       b.i32_const(0);
     } else if (concrete.length == 1) {
@@ -2092,8 +2125,23 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitAsExpression(AsExpression node, w.ValueType expectedType) {
-    // TODO(joshualitt): Emit type test and throw exception on failure
-    return wrap(node.operand, expectedType);
+    w.Label asCheckBlock = b.block();
+    wrap(node.operand, translator.topInfo.nullableType);
+    w.Local operand = addLocal(translator.topInfo.nullableType);
+    b.local_tee(operand);
+
+    // We lower an `as` expression to a type test, throwing a [TypeError] if
+    // the type test fails.
+    emitTypeTest(node.type, dartTypeOf(node.operand), node);
+    b.br_if(asCheckBlock);
+    b.local_get(operand);
+    _makeType(node.type, node);
+    _call(translator.stackTraceCurrent.reference);
+    _call(translator.throwAsCheckError.reference);
+    b.unreachable();
+    b.end();
+    b.local_get(operand);
+    return operand.type;
   }
 }
 

@@ -1,4 +1,3 @@
-// @dart = 2.9
 errors() {}
 
 extension Extension on String {

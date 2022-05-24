@@ -1,8 +1,7 @@
-// @dart = 2.9
 class Class1 {}
 
 extension Extension1 on Class1 {
-  static get staticProperty {}
+  static int get staticProperty {}
   static set staticProperty(int value) {}
   static staticMethod() {}
   static var staticField = 42;

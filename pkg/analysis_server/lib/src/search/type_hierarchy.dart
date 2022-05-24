@@ -136,7 +136,7 @@ class TypeHierarchyComputer {
             .map((type) =>
                 type.getDisplayString(withNullability: _isNonNullableByDefault))
             .join(', ');
-        displayName = classElement.displayName + '<' + typeArgumentsStr + '>';
+        displayName = '${classElement.displayName}<$typeArgumentsStr>';
       }
       var memberElement = _findMemberElement(classElement);
       var memberElementDeclared = memberElement?.nonSynthetic;
@@ -164,15 +164,15 @@ class TypeHierarchyComputer {
       }
     }
     // mixins
-    classElement.mixins.forEach((InterfaceType type) {
+    for (var type in classElement.mixins) {
       var id = _createSuperItem(type.element, type.typeArguments);
       item.mixins.add(id);
-    });
+    }
     // interfaces
-    classElement.interfaces.forEach((InterfaceType type) {
+    for (var type in classElement.interfaces) {
       var id = _createSuperItem(type.element, type.typeArguments);
       item.interfaces.add(id);
-    });
+    }
     // done
     return itemId;
   }

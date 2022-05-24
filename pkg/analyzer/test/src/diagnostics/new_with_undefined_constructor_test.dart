@@ -49,7 +49,7 @@ f() {
   }
 
   test_default_prefixed() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 class A {
   A.name() {}
 }
@@ -127,7 +127,7 @@ f() {
   }
 
   test_named_prefixed() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 class A {
   A() {}
 }
@@ -144,7 +144,7 @@ f() {
   }
 
   test_private_named() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A._named() {}
 }
@@ -160,7 +160,7 @@ void f() {
   }
 
   test_private_named_genericClass_noTypeArguments() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
   A._named() {}
 }
@@ -176,7 +176,7 @@ void f() {
   }
 
   test_private_named_genericClass_withTypeArguments() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
   A._named() {}
 }

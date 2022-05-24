@@ -7,3 +7,6 @@
 dependencies:
   main: static_interop
   static_interop: js
+  js: meta
+packages:
+  js: ../../../pkg/js/lib

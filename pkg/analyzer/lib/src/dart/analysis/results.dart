@@ -274,15 +274,25 @@ class UnitElementResultImpl extends FileResultImpl
       : super(session, path, uri, lineInfo, isPart);
 }
 
-class _DeclarationByElementLocator extends GeneralizingAstVisitor<void> {
+/// A visitor which locates the [AstNode] which declares [element].
+class _DeclarationByElementLocator extends UnifyingAstVisitor<void> {
+  // TODO: This visitor could be further optimized by special casing each static
+  // type of [element]. For example, for library-level elements (classes etc),
+  // we can iterate over the compilation unit's declarations.
+
   final Element element;
+  final int _nameOffset;
   AstNode? result;
 
-  _DeclarationByElementLocator(this.element);
+  _DeclarationByElementLocator(this.element) : _nameOffset = element.nameOffset;
 
   @override
   void visitNode(AstNode node) {
     if (result != null) return;
+
+    if (node.endToken.end < _nameOffset || node.offset > _nameOffset) {
+      return;
+    }
 
     if (element is ClassElement) {
       if (node is ClassOrMixinDeclaration) {
@@ -358,10 +368,12 @@ class _DeclarationByElementLocator extends GeneralizingAstVisitor<void> {
       }
     }
 
-    super.visitNode(node);
+    if (result == null) {
+      node.visitChildren(this);
+    }
   }
 
   bool _hasOffset(AstNode? node) {
-    return node?.offset == element.nameOffset;
+    return node?.offset == _nameOffset;
   }
 }

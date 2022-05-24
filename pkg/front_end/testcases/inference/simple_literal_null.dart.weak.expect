@@ -3,5 +3,5 @@ import self as self;
 
 static field dynamic a = null;
 static method main() → dynamic {
-  dynamic b = null;
+  has-declared-initializer dynamic b = null;
 }

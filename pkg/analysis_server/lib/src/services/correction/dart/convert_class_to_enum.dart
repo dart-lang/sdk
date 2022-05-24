@@ -65,9 +65,6 @@ class ConvertClassToEnum extends CorrectionProducer {
       }
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ConvertClassToEnum newInstance() => ConvertClassToEnum();
 }
 
 /// A superclass for the [_EnumVisitor] and [_NonEnumVisitor].
@@ -108,14 +105,13 @@ class _ConstantField extends _Field {
   final int indexValue;
 
   _ConstantField(
-      FieldElement element,
-      VariableDeclaration declaration,
-      VariableDeclarationList declarationList,
-      FieldDeclaration fieldDeclaration,
+      super.element,
+      super.declaration,
+      super.declarationList,
+      super.fieldDeclaration,
       this.instanceCreation,
       this.constructorElement,
-      this.indexValue)
-      : super(element, declaration, declarationList, fieldDeclaration);
+      this.indexValue);
 }
 
 /// Information about a single constructor in the class being converted.
@@ -660,10 +656,9 @@ class _EnumVisitor extends _BaseVisitor {
 
   /// Initialize a newly created visitor to visit the class declaration
   /// corresponding to the given [classElement].
-  _EnumVisitor(ClassElement classElement, List<_ConstantField> fieldsToConvert)
+  _EnumVisitor(super.classElement, List<_ConstantField> fieldsToConvert)
       : fieldsToConvert =
-            fieldsToConvert.map((field) => field.declaration).toList(),
-        super(classElement);
+            fieldsToConvert.map((field) => field.declaration).toList();
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -727,7 +722,7 @@ class _Fields {
 class _NonEnumVisitor extends _BaseVisitor {
   /// Initialize a newly created visitor to visit everything except the class
   /// declaration corresponding to the given [classElement].
-  _NonEnumVisitor(ClassElement classElement) : super(classElement);
+  _NonEnumVisitor(super.classElement);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {

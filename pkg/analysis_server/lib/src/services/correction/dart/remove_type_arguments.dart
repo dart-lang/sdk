@@ -24,7 +24,4 @@ class RemoveTypeArguments extends CorrectionProducer {
       builder.addDeletion(range.node(typeArguments));
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveTypeArguments newInstance() => RemoveTypeArguments();
 }

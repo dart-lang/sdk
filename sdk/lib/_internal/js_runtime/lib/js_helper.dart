@@ -2451,10 +2451,6 @@ jsPropertyAccess(var jsObject, String property) {
   return JS('var', r'#[#]', jsObject, property);
 }
 
-/// Called at the end of unaborted switch cases to get the singleton
-/// FallThroughError exception that will be thrown.
-getFallThroughError() => new FallThroughErrorImplementation();
-
 /// A metadata annotation describing the types instantiated by a native element.
 ///
 /// The annotation is valid on a native method and a field of a native class.
@@ -2585,14 +2581,6 @@ void assertThrow(Object message) {
 @pragma('dart2js:noInline')
 void assertHelper(condition) {
   if (assertTest(condition)) throw AssertionError();
-}
-
-/// Called by generated code when a method that must be statically
-/// resolved cannot be found.
-void throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {
-  Symbol memberName = new _symbol_dev.Symbol.unvalidated(name);
-  throw new NoSuchMethodError(
-      obj, memberName, arguments, new Map<Symbol, dynamic>());
 }
 
 /// Called by generated code when a static field's initializer references the

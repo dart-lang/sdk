@@ -732,7 +732,7 @@ void f() {}
     await computeAndCheck();
 
     // Annotation, imported class.
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   const A$parameters;
 }
@@ -746,7 +746,7 @@ void f() {}
     await computeAndCheck();
 
     // Annotation, imported class, prefixed.
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   const A$parameters;
 }
@@ -789,7 +789,7 @@ var v = A$arguments;
     await computeAndCheck();
 
     // Instance creation, imported class, generative.
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   A$parameters;
 }
@@ -802,7 +802,7 @@ var v = A$arguments;
     await computeAndCheck();
 
     // Instance creation, imported class, factory.
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   factory A$parameters => throw 0;
 }
@@ -833,7 +833,7 @@ var v = f$arguments;
     await computeAndCheck();
 
     // Method invocation, imported function.
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 void f$parameters() {}
 ''');
     addTestSource2('''

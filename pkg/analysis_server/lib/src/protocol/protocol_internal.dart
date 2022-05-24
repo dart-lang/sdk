@@ -21,9 +21,9 @@ final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
 /// are applied in the order they appear in [edits].  Access via
 /// SourceEdit.applySequence().
 String applySequenceOfEdits(String code, Iterable<SourceEdit> edits) {
-  edits.forEach((SourceEdit edit) {
+  for (var edit in edits) {
     code = edit.apply(code);
-  });
+  }
   return code;
 }
 

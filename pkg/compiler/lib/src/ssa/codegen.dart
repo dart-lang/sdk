@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'dart:math' as math;
 import 'dart:collection' show Queue;
 
@@ -390,7 +392,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   /// If the [instruction] is not `null` it will be used to attach the position
   /// to the [expression].
-  push(js.Expression expression) {
+  push(js.Expression /*!*/ expression) {
     expressionStack.add(expression);
   }
 

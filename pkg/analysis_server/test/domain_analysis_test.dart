@@ -7,13 +7,13 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis_abstract.dart';
 import 'analysis_server_base.dart';
 import 'mocks.dart';
 
@@ -36,14 +36,14 @@ class AnalysisDomainBazelTest extends _AnalysisDomainTest {
   @override
   void setUp() {
     super.setUp();
-    newFile2('$workspaceRootPath/WORKSPACE', '');
+    newFile('$workspaceRootPath/WORKSPACE', '');
   }
 
   Future<void> test_fileSystem_changeFile_buildFile() async {
     // This BUILD file does not enable null safety.
     newBazelBuildFile(myPackageRootPath, '');
 
-    newFile2(myPackageTestFilePath, '''
+    newFile(myPackageTestFilePath, '''
 void f(int? a) {}
 ''');
 
@@ -85,7 +85,7 @@ class AnalysisDomainPubTest extends _AnalysisDomainTest {
     );
 
     // Write the options file that excludes b.dart
-    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
 analyzer:
   exclude:
     - lib/b.dart
@@ -107,7 +107,7 @@ analyzer:
     var a_path = '$testPackageLibPath/a.dart';
     var options_path = '$testPackageRootPath/analysis_options.yaml';
 
-    newFile2(a_path, 'error');
+    newFile(a_path, 'error');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
@@ -119,7 +119,7 @@ analyzer:
     );
 
     // Add 'analysis_options.yaml' that has an error.
-    newFile2(options_path, '''
+    newFile(options_path, '''
 analyzer:
   error:
 ''');
@@ -136,9 +136,9 @@ analyzer:
   Future<void> test_fileSystem_addFile_androidManifestXml() async {
     var path = '$testPackageRootPath/AndroidManifest.xml';
 
-    newFile2('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -146,7 +146,7 @@ analyzer:
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
-    newFile2(path, '<manifest/>');
+    newFile(path, '<manifest/>');
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
@@ -178,7 +178,7 @@ analyzer:
     var a_path = '$testPackageLibPath/.foo/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newFile2(b_path, r'''
+    newFile(b_path, r'''
 import '.foo/a.dart';
 void f(A a) {}
 ''');
@@ -189,7 +189,7 @@ void f(A a) {}
     // We don't have a.dart, so the import cannot be resolved.
     assertHasErrors(b_path);
 
-    newFile2(a_path, r'''
+    newFile(a_path, r'''
 class A {}
 ''');
     await pumpEventQueue();
@@ -206,13 +206,13 @@ class A {}
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
 analyzer:
   exclude:
     - "**/a.dart"
 ''');
 
-    newFile2(b_path, r'''
+    newFile(b_path, r'''
 import 'a.dart';
 void f(A a) {}
 ''');
@@ -223,7 +223,7 @@ void f(A a) {}
     // We don't have a.dart, so the import cannot be resolved.
     assertHasErrors(b_path);
 
-    newFile2(a_path, r'''
+    newFile(a_path, r'''
 class A {}
 ''');
     await pumpEventQueue();
@@ -239,7 +239,7 @@ class A {}
   Future<void> test_fileSystem_addFile_fixDataYaml() async {
     var path = '$testPackageLibPath/fix_data.yaml';
 
-    newFile2('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
@@ -247,7 +247,7 @@ class A {}
     assertNoErrorsNotification(path);
 
     // Create it, will be analyzed.
-    newFile2(path, '0: 1');
+    newFile(path, '0: 1');
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
@@ -262,11 +262,11 @@ class A {}
     var aaaRootPath = '/packages/aaa';
     var a_path = '$aaaRootPath/lib/a.dart';
 
-    newFile2(a_path, '''
+    newFile(a_path, '''
 class A {}
 ''');
 
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 import 'package:aaa/a.dart';
 void f(A a) {}
 ''');
@@ -297,11 +297,11 @@ void f(A a) {}
     var a_path = '$testPackageLibPath/a.dart';
     var pubspec_path = '$testPackageRootPath/pubspec.yaml';
 
-    newFile2(a_path, 'error');
+    newFile(a_path, 'error');
 
     // Write an empty file to force a new analysis context.
     // We look for `pubspec.yaml` files only in analysis context roots.
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '');
+    newAnalysisOptionsYamlFile(testPackageRootPath, '');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
@@ -313,7 +313,7 @@ void f(A a) {}
     );
 
     // Add a non-Dart file that we know how to analyze.
-    newFile2(pubspec_path, '''
+    newFile(pubspec_path, '''
 name: sample
 dependencies: true
 ''');
@@ -331,7 +331,7 @@ dependencies: true
     var a_path = '$testPackageLibPath/a.dart';
     var unrelated_path = '$testPackageRootPath/unrelated.txt';
 
-    newFile2(a_path, 'error');
+    newFile(a_path, 'error');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
@@ -343,7 +343,7 @@ dependencies: true
     );
 
     // Add an unrelated file, no analysis.
-    newFile2(unrelated_path, 'anything');
+    newFile(unrelated_path, 'anything');
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
@@ -361,7 +361,7 @@ dependencies: true
     _createFilesWithErrors([a_path, b_path, c_path]);
 
     // Exclude b.dart from analysis.
-    newFile2(options_path, r'''
+    newFile(options_path, r'''
 analyzer:
   exclude:
     - lib/b.dart
@@ -377,7 +377,7 @@ analyzer:
     );
 
     // Exclude c.dart from analysis.
-    newFile2(options_path, r'''
+    newFile(options_path, r'''
 analyzer:
   exclude:
     - lib/c.dart
@@ -398,12 +398,12 @@ analyzer:
   Future<void> test_fileSystem_changeFile_androidManifestXml() async {
     var path = '$testPackageRootPath/AndroidManifest.xml';
 
-    newFile2('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
 
     // Has an error - no touch screen.
-    newFile2(path, '<manifest/>');
+    newFile(path, '<manifest/>');
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -416,7 +416,7 @@ analyzer:
     assertNoErrorsNotification(path);
 
     // Update the file, so analyze it.
-    newFile2(path, '<manifest/>');
+    newFile(path, '<manifest/>');
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
@@ -428,11 +428,11 @@ analyzer:
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newFile2(a_path, r'''
+    newFile(a_path, r'''
 class A2 {}
 ''');
 
-    newFile2(b_path, r'''
+    newFile(b_path, r'''
 import 'a.dart';
 void f(A a) {}
 ''');
@@ -445,7 +445,7 @@ void f(A a) {}
     forgetReceivedErrors();
 
     // Update a.dart so that b.dart has no error.
-    newFile2(a_path, 'class A {}');
+    newFile(a_path, 'class A {}');
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
@@ -458,11 +458,11 @@ void f(A a) {}
     var a_path = '$testPackageLibPath/.foo/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newFile2(a_path, r'''
+    newFile(a_path, r'''
 class B {}
 ''');
 
-    newFile2(b_path, r'''
+    newFile(b_path, r'''
 import '.foo/a.dart';
 void f(A a) {}
 ''');
@@ -477,7 +477,7 @@ void f(A a) {}
     // We have `B`, not `A`, in a.dart, so has errors.
     assertHasErrors(b_path);
 
-    newFile2(a_path, r'''
+    newFile(a_path, r'''
 class A {}
 ''');
     await pumpEventQueue();
@@ -494,17 +494,17 @@ class A {}
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
 analyzer:
   exclude:
     - "**/a.dart"
 ''');
 
-    newFile2(a_path, r'''
+    newFile(a_path, r'''
 class B {}
 ''');
 
-    newFile2(b_path, r'''
+    newFile(b_path, r'''
 import 'a.dart';
 void f(A a) {}
 ''');
@@ -519,7 +519,7 @@ void f(A a) {}
     // We have `B`, not `A`, in a.dart, so has errors.
     assertHasErrors(b_path);
 
-    newFile2(a_path, r'''
+    newFile(a_path, r'''
 class A {}
 ''');
     await pumpEventQueue();
@@ -532,10 +532,10 @@ class A {}
   Future<void> test_fileSystem_changeFile_fixDataYaml() async {
     var path = '$testPackageLibPath/fix_data.yaml';
 
-    newFile2('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
 
     // This file has an error.
-    newFile2(path, '0: 1');
+    newFile(path, '0: 1');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
@@ -543,7 +543,7 @@ class A {}
     assertHasErrors(path);
 
     // Replace with the context that does not have errors.
-    newFile2(path, r'''
+    newFile(path, r'''
 version: 1
 transforms: []
 ''');
@@ -558,7 +558,7 @@ transforms: []
   }
 
   Future<void> test_fileSystem_changeFile_hasOverlay_removeOverlay() async {
-    newFile2(testFilePath, '');
+    newFile(testFilePath, '');
 
     // Add an overlay without errors.
     await handleSuccessfulRequest(
@@ -578,7 +578,7 @@ transforms: []
     );
 
     // Change the file, has errors.
-    newFile2(testFilePath, 'error');
+    newFile(testFilePath, 'error');
 
     // But the overlay is still present, so the file is not analyzed.
     await _waitAnalysisComplete();
@@ -611,7 +611,7 @@ transforms: []
     // Use long delay, so that it does not happen.
     server.pendingFilesRemoveOverlayDelay = const Duration(seconds: 300);
 
-    newFile2(testFilePath, '');
+    newFile(testFilePath, '');
 
     // Add an overlay without errors.
     await handleSuccessfulRequest(
@@ -655,7 +655,7 @@ transforms: []
     );
 
     // Change the file again, has errors.
-    newFile2(testFilePath, 'error');
+    newFile(testFilePath, 'error');
 
     // The timer cancelled on the watch event, and the file analyzed.
     await _waitAnalysisComplete();
@@ -670,11 +670,11 @@ transforms: []
     var aaaRootPath = '/packages/aaa';
     var a_path = '$aaaRootPath/lib/a.dart';
 
-    newFile2(a_path, '''
+    newFile(a_path, '''
 class A {}
 ''');
 
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 import 'package:aaa/a.dart';
 void f(A a) {}
 ''');
@@ -710,7 +710,7 @@ void f(A a) {}
     _createFilesWithErrors([a_path, b_path]);
 
     // Exclude b.dart from analysis.
-    newFile2(options_path, r'''
+    newFile(options_path, r'''
 analyzer:
   exclude:
     - lib/b.dart
@@ -742,12 +742,12 @@ analyzer:
   Future<void> test_fileSystem_deleteFile_androidManifestXml() async {
     var path = '$testPackageRootPath/AndroidManifest.xml';
 
-    newFile2('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
 
     // Has an error - no touch screen.
-    newFile2(path, '<manifest/>');
+    newFile(path, '<manifest/>');
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
@@ -790,17 +790,17 @@ analyzer:
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, r'''
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
 analyzer:
   exclude:
     - "**/a.dart"
 ''');
 
-    newFile2(a_path, r'''
+    newFile(a_path, r'''
 class A {}
 ''');
 
-    newFile2(b_path, r'''
+    newFile(b_path, r'''
 import 'a.dart';
 void f(A a) {}
 ''');
@@ -826,10 +826,10 @@ void f(A a) {}
   Future<void> test_fileSystem_deleteFile_fixDataYaml() async {
     var path = '$testPackageLibPath/fix_data.yaml';
 
-    newFile2('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
 
     // This file has an error.
-    newFile2(path, '0: 1');
+    newFile(path, '0: 1');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
@@ -848,7 +848,7 @@ void f(A a) {}
     var aaaRootPath = '/packages/aaa';
     var a_path = '$aaaRootPath/lib/a.dart';
 
-    newFile2(a_path, '''
+    newFile(a_path, '''
 class A {}
 ''');
 
@@ -858,7 +858,7 @@ class A {}
         ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 import 'package:aaa/a.dart';
 void f(A a) {}
 ''');
@@ -892,7 +892,7 @@ void f(A a) {}
     // Use long delay, so that it does not happen.
     server.pendingFilesRemoveOverlayDelay = const Duration(seconds: 300);
 
-    newFile2(testFilePath, '');
+    newFile(testFilePath, '');
 
     // Add an overlay without errors.
     await handleSuccessfulRequest(
@@ -1143,7 +1143,7 @@ void f(A a) {}
     var a_path = '$testPackageLibPath/a.dart';
     var b_path = '$testPackageLibPath/b.dart';
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   exclude:
     - "**/b.dart"
@@ -1228,10 +1228,10 @@ analyzer:
     var a_path = '$testPackageLibPath/a.dart';
     var options_path = '$testPackageRootPath/analysis_options.yaml';
 
-    newFile2(a_path, 'error');
+    newFile(a_path, 'error');
 
     // 'analysis_options.yaml' that has an error and excludes itself.
-    newFile2(options_path, '''
+    newFile(options_path, '''
 analyzer:
   exclude:
     - analysis_options.yaml
@@ -1250,15 +1250,15 @@ analyzer:
   Future<void> test_setRoots_notDartFile_androidManifestXml() async {
     var path = '$testPackageRootPath/AndroidManifest.xml';
 
-    newFile2('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', '');
 
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
 ''');
 
-    newFile2(path, '<manifest/>');
+    newFile(path, '<manifest/>');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
@@ -1270,7 +1270,7 @@ analyzer:
     var path = '$testPackageLibPath/fix_data.yaml';
 
     // `lib/fix_data.yaml` will be analyzed.
-    newFile2(path, '0: 1');
+    newFile(path, '0: 1');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
@@ -1283,7 +1283,7 @@ analyzer:
     var pubspec_path = '$testPackageRootPath/pubspec.yaml';
     var options_path = '$testPackageRootPath/analysis_options.yaml';
 
-    newFile2(a_path, 'error');
+    newFile(a_path, 'error');
 
     writeTestPackagePubspecYamlFile('''
 name:
@@ -1291,7 +1291,7 @@ name:
 ''');
 
     // 'analysis_options.yaml' that excludes pubspec.yaml.
-    newFile2(options_path, '''
+    newFile(options_path, '''
 analyzer:
   exclude:
     - pubspec.yaml
@@ -1310,7 +1310,7 @@ analyzer:
     var aaaRootPath = '/packages/aaa';
     var a_path = '$aaaRootPath/lib/a.dart';
 
-    newFile2(a_path, '''
+    newFile(a_path, '''
 class A {}
 ''');
 
@@ -1319,7 +1319,7 @@ class A {}
         ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 import 'package:aaa/a.dart';
 void f(A a) {}
 ''');
@@ -1336,7 +1336,7 @@ void f(A a) {}
   }
 
   Future<void> test_updateContent_addOverlay() async {
-    newFile2(testFilePath, 'error');
+    newFile(testFilePath, 'error');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
@@ -1365,7 +1365,7 @@ void f(A a) {}
   }
 
   Future<void> test_updateContent_changeOverlay() async {
-    newFile2(testFilePath, '');
+    newFile(testFilePath, '');
 
     // Add the content with an error.
     await handleSuccessfulRequest(
@@ -1427,7 +1427,7 @@ void f(A a) {}
     String initialContent,
     SourceEdit edit,
   ) async {
-    newFile2(testFilePath, initialContent);
+    newFile(testFilePath, initialContent);
 
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
@@ -1465,23 +1465,29 @@ void f(A a) {}
 }
 
 @reflectiveTest
-class SetSubscriptionsTest extends AbstractAnalysisTest {
-  Map<String, List<HighlightRegion>> filesHighlights = {};
+class SetSubscriptionsTest extends PubPackageAnalysisServerTest {
+  Map<File, List<HighlightRegion>> filesHighlights = {};
 
   final Completer<void> _resultsAvailable = Completer();
 
   @override
   void processNotification(Notification notification) {
+    super.processNotification(notification);
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
       var params = AnalysisHighlightsParams.fromNotification(notification);
-      filesHighlights[params.file] = params.regions;
+      filesHighlights[getFile(params.file)] = params.regions;
       _resultsAvailable.complete();
     }
   }
 
+  @override
+  Future<void> setUp() async {
+    super.setUp();
+    await setRoots(included: [workspaceRootPath], excluded: []);
+  }
+
   Future<void> test_afterAnalysis() async {
     addTestFile('int V = 42;');
-    await createProject();
     // wait for analysis, no results initially
     await waitForTasksFinished();
     expect(filesHighlights[testFile], isNull);
@@ -1493,9 +1499,8 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_afterAnalysis_noSuchFile() async {
-    var file = convertPath('/no-such-file.dart');
+    var file = getFile('/no-such-file.dart');
     addTestFile('// no matter');
-    await createProject();
     // wait for analysis, no results initially
     await waitForTasksFinished();
     expect(filesHighlights[testFile], isNull);
@@ -1507,10 +1512,10 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
   }
 
   Future<void> test_afterAnalysis_packageFile_external() async {
-    var pkgFile = newFile2('/packages/pkgA/lib/libA.dart', '''
+    var pkgFile = newFile('/packages/pkgA/lib/libA.dart', '''
 library lib_a;
 class A {}
-''').path;
+''');
     newPackageConfigJsonFile(
       '/project',
       (PackageConfigFileBuilder()
@@ -1524,7 +1529,6 @@ main() {
   new A();
 }
 ''');
-    await createProject();
     // wait for analysis, no results initially
     await waitForTasksFinished();
     expect(filesHighlights[pkgFile], isNull);
@@ -1538,18 +1542,17 @@ main() {
   Future<void> test_afterAnalysis_packageFile_inRoot() async {
     var pkgA = convertPath('/pkgA');
     var pkgB = convertPath('/pkgA');
-    var pkgFileA = newFile2('$pkgA/lib/libA.dart', '''
+    var pkgFileA = newFile('$pkgA/lib/libA.dart', '''
 library lib_a;
 class A {}
-''').path;
-    newFile2('$pkgA/lib/libB.dart', '''
+''');
+    newFile('$pkgA/lib/libB.dart', '''
 import 'package:pkgA/libA.dart';
 main() {
   new A();
 }
 ''');
     // add 'pkgA' and 'pkgB' as projects
-    newFolder(projectPath);
     await setRoots(included: [pkgA, pkgB], excluded: []);
     // wait for analysis, no results initially
     await waitForTasksFinished();
@@ -1562,10 +1565,10 @@ main() {
   }
 
   Future<void> test_afterAnalysis_packageFile_notUsed() async {
-    var pkgFile = newFile2('/packages/pkgA/lib/libA.dart', '''
+    var pkgFile = newFile('/packages/pkgA/lib/libA.dart', '''
 library lib_a;
 class A {}
-''').path;
+''');
     newPackageConfigJsonFile(
       '/project',
       (PackageConfigFileBuilder()
@@ -1574,12 +1577,11 @@ class A {}
     );
     //
     addTestFile('// no "pkgA" reference');
-    await createProject();
     // wait for analysis, no results initially
     await waitForTasksFinished();
     expect(filesHighlights[pkgFile], isNull);
     // make it a priority file, so make analyzable
-    server.setPriorityFiles('0', [pkgFile]);
+    server.setPriorityFiles('0', [pkgFile.path]);
     // subscribe
     await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFile);
     await _resultsAvailable.future;
@@ -1588,9 +1590,8 @@ class A {}
   }
 
   Future<void> test_afterAnalysis_sdkFile() async {
-    var file = convertPath('/sdk/lib/core/core.dart');
+    var file = getFile('/sdk/lib/core/core.dart');
     addTestFile('// no matter');
-    await createProject();
     // wait for analysis, no results initially
     await waitForTasksFinished();
     expect(filesHighlights[file], isNull);
@@ -1603,7 +1604,6 @@ class A {}
 
   Future<void> test_beforeAnalysis() async {
     addTestFile('int V = 42;');
-    await createProject();
     // subscribe
     await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
     // wait for analysis
@@ -1613,7 +1613,6 @@ class A {}
 
   Future<void> test_sentToPlugins() async {
     addTestFile('int V = 42;');
-    await createProject();
     // subscribe
     await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
     // wait for analysis
@@ -1622,7 +1621,7 @@ class A {}
     var subscriptions = params.subscriptions;
     expect(subscriptions, hasLength(1));
     var files = subscriptions[plugin.AnalysisService.HIGHLIGHTS];
-    expect(files, [testFile]);
+    expect(files, [testFile.path]);
   }
 }
 
@@ -1696,7 +1695,7 @@ class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
   /// So, when analyzed, these files will satisfy [assertHasErrors].
   void _createFilesWithErrors(List<String> paths) {
     for (var path in paths) {
-      newFile2(path, 'error');
+      newFile(path, 'error');
     }
   }
 }

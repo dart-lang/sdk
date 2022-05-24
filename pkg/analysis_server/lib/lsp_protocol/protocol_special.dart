@@ -218,8 +218,8 @@ class Either4<T1, T2, T3, T4> {
 }
 
 class ErrorOr<T> extends Either2<ResponseError, T> {
-  ErrorOr.error(ResponseError error) : super.t1(error);
-  ErrorOr.success(T result) : super.t2(result);
+  ErrorOr.error(super.error) : super.t1();
+  ErrorOr.success(super.result) : super.t2();
 
   /// Returns the error or throws if object is not an error. Check [isError]
   /// before accessing [error].

@@ -254,10 +254,6 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
       });
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static FlutterConvertToStatefulWidget newInstance() =>
-      FlutterConvertToStatefulWidget();
 }
 
 class _FieldFinder extends RecursiveAstVisitor<void> {

@@ -4,6 +4,8 @@
 
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
+    as macro;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
@@ -26,32 +28,22 @@ import 'package:analyzer/src/summary2/variance_builder.dart';
 var timerLinkingLinkingBundle = Stopwatch();
 
 /// Note that AST units and tokens of [inputLibraries] will be damaged.
-@Deprecated('Use link2() instead')
-LinkResult link(
+Future<LinkResult> link(
   LinkedElementFactory elementFactory,
-  List<LinkInputLibrary> inputLibraries,
-) {
-  var linker = Linker(elementFactory);
-  linker.link(inputLibraries);
+  List<LinkInputLibrary> inputLibraries, {
+  macro.MultiMacroExecutor? macroExecutor,
+}) async {
+  var linker = Linker(elementFactory, macroExecutor);
+  await linker.link(inputLibraries);
   return LinkResult(
     resolutionBytes: linker.resolutionBytes,
-  );
-}
-
-/// Note that AST units and tokens of [inputLibraries] will be damaged.
-Future<LinkResult> link2(
-  LinkedElementFactory elementFactory,
-  List<LinkInputLibrary> inputLibraries,
-) async {
-  var linker = Linker(elementFactory);
-  linker.link(inputLibraries);
-  return LinkResult(
-    resolutionBytes: linker.resolutionBytes,
+    macroGeneratedUnits: linker.macroGeneratedUnits,
   );
 }
 
 class Linker {
   final LinkedElementFactory elementFactory;
+  final macro.MultiMacroExecutor? macroExecutor;
 
   /// Libraries that are being linked.
   final Map<Uri, LibraryBuilder> builders = {};
@@ -62,7 +54,9 @@ class Linker {
 
   late Uint8List resolutionBytes;
 
-  Linker(this.elementFactory);
+  final List<LinkMacroGeneratedUnit> macroGeneratedUnits = [];
+
+  Linker(this.elementFactory, this.macroExecutor);
 
   AnalysisContextImpl get analysisContext {
     return elementFactory.analysisContext;
@@ -85,12 +79,12 @@ class Linker {
     return elementNodes[element];
   }
 
-  void link(List<LinkInputLibrary> inputLibraries) {
+  Future<void> link(List<LinkInputLibrary> inputLibraries) async {
     for (var inputLibrary in inputLibraries) {
       LibraryBuilder.build(this, inputLibrary);
     }
 
-    _buildOutlines();
+    await _buildOutlines();
 
     timerLinkingLinkingBundle.start();
     _writeLibraries();
@@ -103,9 +97,9 @@ class Linker {
     }
   }
 
-  void _buildOutlines() {
+  Future<void> _buildOutlines() async {
     _createTypeSystemIfNotLinkingDartCore();
-    _computeLibraryScopes();
+    await _computeLibraryScopes();
     _createTypeSystem();
     _resolveTypes();
     _buildEnumChildren();
@@ -125,9 +119,13 @@ class Linker {
     }
   }
 
-  void _computeLibraryScopes() {
+  Future<void> _computeLibraryScopes() async {
     for (var library in builders.values) {
       library.buildElements();
+    }
+
+    for (var library in builders.values) {
+      await library.executeMacroTypesPhase();
     }
 
     for (var library in builders.values) {
@@ -245,10 +243,7 @@ class Linker {
     );
 
     for (var builder in builders.values) {
-      bundleWriter.writeLibraryElement(
-        builder.element,
-        builder.exports,
-      );
+      bundleWriter.writeLibraryElement(builder.element);
     }
 
     var writeWriterResult = bundleWriter.finish();
@@ -292,10 +287,24 @@ class LinkInputUnit {
   String get uriStr => '$uri';
 }
 
+class LinkMacroGeneratedUnit {
+  final Uri uri;
+  final String content;
+  final ast.CompilationUnit unit;
+
+  LinkMacroGeneratedUnit({
+    required this.uri,
+    required this.content,
+    required this.unit,
+  });
+}
+
 class LinkResult {
   final Uint8List resolutionBytes;
+  final List<LinkMacroGeneratedUnit> macroGeneratedUnits;
 
   LinkResult({
     required this.resolutionBytes,
+    required this.macroGeneratedUnits,
   });
 }

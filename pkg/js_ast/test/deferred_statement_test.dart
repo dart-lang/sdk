@@ -2,20 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:expect/expect.dart';
 import 'package:js_ast/js_ast.dart';
 
 class _DeferredStatement extends DeferredStatement {
+  final Statement? _statement;
   @override
-  final Statement statement;
+  Statement get statement => _statement!;
 
-  _DeferredStatement(this.statement);
+  _DeferredStatement(this._statement);
 }
 
-main() {
-  // Defering a statement should not change how it prints.
+void main() {
+  // Deferring a statement should not change how it prints.
   var undeferredStatement = js.statement('var x = 3');
   var deferredStatement = _DeferredStatement(undeferredStatement);
   Expect.equals(DebugPrint(undeferredStatement), DebugPrint(deferredStatement));
@@ -38,14 +37,21 @@ main() {
 
   // Nested Blocks in DeferredStatements are elided.
   Expect.equals(
-      DebugPrint(Block([
-        _DeferredStatement(Block([
-          _DeferredStatement(Block.empty()),
-          Block.empty(),
-          Block([_DeferredStatement(Block.empty()), Block.empty()]),
-          _DeferredStatement(_DeferredStatement(Block.empty()))
-        ]))
-      ])),
+      DebugPrint(
+        Block([
+          _DeferredStatement(
+            Block([
+              _DeferredStatement(Block.empty()),
+              Block.empty(),
+              Block([
+                _DeferredStatement(Block.empty()),
+                Block.empty(),
+              ]),
+              _DeferredStatement(_DeferredStatement(Block.empty())),
+            ]),
+          ),
+        ]),
+      ),
       '{\n}\n');
 
   // DeferredStatement with empty Statement prints semicolon and a newline.

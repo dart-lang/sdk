@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: always_declare_return_types
 // ignore_for_file: omit_local_variable_types
-// ignore_for_file: prefer_single_quotes
-// ignore_for_file: unnecessary_this
 
 library js_ast.nodes;
 
@@ -507,7 +504,8 @@ class If extends Statement {
   final Statement otherwise;
 
   If(this.condition, this.then, this.otherwise);
-  If.noElse(this.condition, this.then) : this.otherwise = EmptyStatement();
+
+  If.noElse(this.condition, this.then) : otherwise = EmptyStatement();
 
   @override
   bool get alwaysReturns =>
@@ -700,12 +698,12 @@ final _returnFinder = _ReturnFinder();
 class _ReturnFinder extends BaseVisitorVoid {
   bool found = false;
   @override
-  visitReturn(Return node) {
+  void visitReturn(Return node) {
     found = true;
   }
 
   @override
-  visitNode(Node node) {
+  void visitNode(Node node) {
     if (!found) super.visitNode(node);
   }
 }
@@ -1293,43 +1291,43 @@ class Binary extends Expression {
   int get precedenceLevel {
     // TODO(floitsch): switch to constant map.
     switch (op) {
-      case "*":
-      case "/":
-      case "%":
+      case '*':
+      case '/':
+      case '%':
         return MULTIPLICATIVE;
-      case "+":
-      case "-":
+      case '+':
+      case '-':
         return ADDITIVE;
-      case "<<":
-      case ">>":
-      case ">>>":
+      case '<<':
+      case '>>':
+      case '>>>':
         return SHIFT;
-      case "<":
-      case ">":
-      case "<=":
-      case ">=":
-      case "instanceof":
-      case "in":
+      case '<':
+      case '>':
+      case '<=':
+      case '>=':
+      case 'instanceof':
+      case 'in':
         return RELATIONAL;
-      case "==":
-      case "===":
-      case "!=":
-      case "!==":
+      case '==':
+      case '===':
+      case '!=':
+      case '!==':
         return EQUALITY;
-      case "&":
+      case '&':
         return BIT_AND;
-      case "^":
+      case '^':
         return BIT_XOR;
-      case "|":
+      case '|':
         return BIT_OR;
-      case "&&":
+      case '&&':
         return LOGICAL_AND;
-      case "||":
+      case '||':
         return LOGICAL_OR;
       case ',':
         return EXPRESSION;
       default:
-        throw "Internal Error: Unhandled binary operator: $op";
+        throw 'Internal Error: Unhandled binary operator: $op';
     }
   }
 }
@@ -1398,7 +1396,7 @@ class Identifier extends Expression implements Parameter {
 
   Identifier(this.name, {this.allowRename = true}) {
     if (!_identifierRE.hasMatch(name)) {
-      throw ArgumentError.value(name, "name", "not a valid identifier");
+      throw ArgumentError.value(name, 'name', 'not a valid identifier');
     }
   }
   static final RegExp _identifierRE = RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
@@ -1571,21 +1569,21 @@ class AsyncModifier {
   const AsyncModifier.sync()
       : isAsync = false,
         isYielding = false,
-        description = "sync";
+        description = 'sync';
   const AsyncModifier.async()
       : isAsync = true,
         isYielding = false,
-        description = "async";
+        description = 'async';
   const AsyncModifier.asyncStar()
       : isAsync = true,
         isYielding = true,
-        description = "async*";
+        description = 'async*';
   const AsyncModifier.syncStar()
       : isAsync = false,
         isYielding = true,
-        description = "sync*";
+        description = 'sync*';
   @override
-  toString() => description;
+  String toString() => description;
 }
 
 class PropertyAccess extends Expression {
@@ -1872,7 +1870,7 @@ class ClassDeclaration extends Statement {
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitClassDeclaration(this);
   @override
-  visitChildren(NodeVisitor visitor) => classExpr.accept(visitor);
+  void visitChildren(NodeVisitor visitor) => classExpr.accept(visitor);
   @override
   ClassDeclaration _clone() => ClassDeclaration(classExpr);
 }
@@ -1940,7 +1938,7 @@ class Method extends Node implements Property {
 
 /// Tag class for all interpolated positions.
 abstract class InterpolatedNode implements Node {
-  get nameOrPosition;
+  dynamic get nameOrPosition;
 
   bool get isNamed => nameOrPosition is String;
   bool get isPositional => nameOrPosition is int;
@@ -1986,12 +1984,12 @@ class InterpolatedParameter extends Expression
 
   @override
   String get name {
-    throw "InterpolatedParameter.name must not be invoked";
+    throw 'InterpolatedParameter.name must not be invoked';
   }
 
   @override
   String get parameterName {
-    throw "InterpolatedParameter.parameterName must not be invoked";
+    throw 'InterpolatedParameter.parameterName must not be invoked';
   }
 
   @override
@@ -2292,7 +2290,7 @@ class ExportDeclaration extends ModuleItem {
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitExportDeclaration(this);
   @override
-  visitChildren(NodeVisitor visitor) => exported.accept(visitor);
+  void visitChildren(NodeVisitor visitor) => exported.accept(visitor);
   @override
   ExportDeclaration _clone() =>
       ExportDeclaration(exported, isDefault: isDefault);

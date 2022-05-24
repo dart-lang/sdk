@@ -1,33 +1,23 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class Class1 extends core::Object {
-  synthetic constructor •() → self::Class1*
+  synthetic constructor •() → self::Class1
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-extension Extension1 on self::Class1* {
+extension Extension1 on self::Class1 {
   static method staticMethod = self::Extension1|staticMethod;
   static get staticProperty = get self::Extension1|staticProperty;
   static field staticField = self::Extension1|staticField;
   static set staticProperty = set self::Extension1|staticProperty;
 }
-static field core::int* Extension1|staticField;
+static field core::int Extension1|staticField;
 static method Extension1|staticMethod() → dynamic
   ;
-static get Extension1|staticProperty() → dynamic
+static get Extension1|staticProperty() → core::int
   ;
-static set Extension1|staticProperty(core::int* value) → void
+static set Extension1|staticProperty(core::int value) → void
   ;
 static method main() → dynamic
   ;

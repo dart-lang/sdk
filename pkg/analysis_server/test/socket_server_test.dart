@@ -10,9 +10,9 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -82,7 +82,7 @@ class SocketServerTest {
       expect(error.message, equals('mock request exception'));
       expect(error.stackTrace, isNotNull);
       expect(error.stackTrace, isNotEmpty);
-      channel.expectMsgCount(responseCount: 1, notificationCount: 1);
+      channel.expectMsgCount(responseCount: 1, notificationCount: 2);
     });
   }
 
@@ -95,7 +95,7 @@ class SocketServerTest {
     var response = await channel.sendRequest(request, throwOnError: false);
     expect(response.id, equals('0'));
     expect(response.error, isNull);
-    channel.expectMsgCount(responseCount: 1, notificationCount: 2);
+    channel.expectMsgCount(responseCount: 2, notificationCount: 2);
     expect(channel.notificationsReceived[1].event, SERVER_NOTIFICATION_ERROR);
   }
 

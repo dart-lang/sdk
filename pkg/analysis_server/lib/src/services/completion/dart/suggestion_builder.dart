@@ -752,11 +752,9 @@ class SuggestionBuilder {
     );
   }
 
-  /// Add a suggestion for a [method]. If the method is being invoked with a
-  /// target of `super`, then the [containingMemberName] should be the name of
-  /// the member containing the invocation. If a [kind] is provided it will be
-  /// used as the kind for the suggestion. The [inheritanceDistance] is the
-  /// value of the inheritance distance feature computed for the method.
+  /// Add a suggestion for a [method]. If a [kind] is provided it will be used
+  /// as the kind for the suggestion. The [inheritanceDistance] is the value of
+  /// the inheritance distance feature computed for the method.
   void suggestMethod(MethodElement method,
       {required CompletionSuggestionKind kind,
       required double inheritanceDistance}) {
@@ -1047,10 +1045,8 @@ class SuggestionBuilder {
     );
   }
 
-  /// Add a suggestion for a top-level property [accessor]. If a [kind] is
-  /// provided it will be used as the kind for the suggestion. If the accessor
-  /// can only be referenced using a prefix, then the [prefix] should be
-  /// provided.
+  /// Add a suggestion for a top-level property [accessor]. If the accessor can
+  /// only be referenced using a prefix, then the [prefix] should be provided.
   void suggestTopLevelPropertyAccessor(PropertyAccessorElement accessor,
       {String? prefix}) {
     assert(
@@ -1102,8 +1098,7 @@ class SuggestionBuilder {
     }
   }
 
-  /// Add a suggestion for a top-level [variable]. If a [kind] is provided it
-  /// will be used as the kind for the suggestion. If the variable can only be
+  /// Add a suggestion for a top-level [variable]. If the variable can only be
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestTopLevelVariable(TopLevelVariableElement variable,
       {String? prefix}) {
@@ -1121,9 +1116,8 @@ class SuggestionBuilder {
     );
   }
 
-  /// Add a suggestion for a [typeAlias]. If a [kind] is provided it
-  /// will be used as the kind for the suggestion. If the alias can only be
-  /// referenced using a prefix, then the [prefix] should be provided.
+  /// Add a suggestion for a [typeAlias]. If the alias can only be referenced
+  /// using a prefix, then the [prefix] should be provided.
   void suggestTypeAlias(TypeAliasElement typeAlias, {String? prefix}) {
     var relevance = _computeTopLevelRelevance(typeAlias,
         elementType: _instantiateTypeAlias(typeAlias));
@@ -1295,7 +1289,7 @@ class SuggestionBuilder {
 
     if (prefix != null) {
       completion ??= elementData.completion;
-      completion = prefix + '.' + completion;
+      completion = '$prefix.$completion';
     }
 
     return CompletionSuggestionBuilderImpl(

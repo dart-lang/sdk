@@ -24,11 +24,11 @@ class DartTypeArgumentsSignatureComputer {
   final bool _isNonNullableByDefault;
   DartTypeArgumentsSignatureComputer(
     this._dartdocInfo,
-    CompilationUnit _unit,
-    int _offset,
+    CompilationUnit unit,
+    int offset,
     this.preferredFormats,
-  )   : _node = NodeLocator(_offset).searchWithin(_unit),
-        _isNonNullableByDefault = _unit.isNonNullableByDefault;
+  )   : _node = NodeLocator(offset).searchWithin(unit),
+        _isNonNullableByDefault = unit.isNonNullableByDefault;
 
   /// The [TypeArgumentList] node located by [compute].
   TypeArgumentList get argumentList => _argumentList;

@@ -2,19 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.code_output;
 
-import '../../compiler.dart';
+import '../../compiler_api.dart' as api show OutputSink;
+import 'code_output_listener.dart';
+export 'code_output_listener.dart';
 import 'source_information.dart';
-
-/// Listener interface for [CodeOutput] activity.
-abstract class CodeOutputListener {
-  /// Called when [text] is added to the output.
-  void onText(String text);
-
-  /// Called when the output is closed with a final length of [length].
-  void onDone(int length);
-}
 
 /// Interface for a mapping of target offsets to source locations and for
 /// tracking inlining frame data.
@@ -228,7 +223,7 @@ class CodeBuffer extends AbstractCodeOutput implements BufferedCodeOutput {
 class StreamCodeOutput extends AbstractCodeOutput {
   @override
   int length = 0;
-  final OutputSink output;
+  final api.OutputSink output;
 
   StreamCodeOutput(this.output, [List<CodeOutputListener> listeners])
       : super(listeners);

@@ -25,10 +25,10 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 
 int test_resetCount = 0;
 
@@ -273,16 +273,16 @@ class _RefactoringManager {
     _reset();
   }
 
-  void getRefactoring(Request _request, CancellationToken cancellationToken) {
+  void getRefactoring(Request request, CancellationToken cancellationToken) {
     // prepare for processing the request
-    request = _request;
+    this.request = request;
     final result = this.result = EditGetRefactoringResult(
         EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST);
     // process the request
-    var params = EditGetRefactoringParams.fromRequest(_request);
+    var params = EditGetRefactoringParams.fromRequest(request);
     var file = params.file;
 
-    if (server.sendResponseErrorIfInvalidFilePath(_request, file)) {
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
     }
 
@@ -343,8 +343,8 @@ class _RefactoringManager {
         cancel();
       } else {
         server.instrumentationService.logException(exception, stackTrace);
-        server.sendResponse(
-            Response.serverError(_request, exception, stackTrace));
+        server
+            .sendResponse(Response.serverError(request, exception, stackTrace));
       }
       _reset();
     });

@@ -6,9 +6,9 @@ library _fe_analyzer_shared.scanner.utf8_bytes_scanner;
 
 import 'dart:convert' show unicodeBomCharacterRune, utf8;
 
-import 'token.dart' show SyntheticStringToken, TokenType;
+import 'token.dart' show LanguageVersionToken, SyntheticStringToken, TokenType;
 
-import 'token.dart' as analyzer show StringToken;
+import 'token.dart' as analyzer;
 
 import 'scanner.dart' show unicodeReplacementCharacter;
 
@@ -16,7 +16,11 @@ import 'abstract_scanner.dart'
     show AbstractScanner, LanguageVersionChanged, ScannerConfiguration;
 
 import 'token_impl.dart'
-    show CommentToken, DartDocToken, LanguageVersionToken, StringToken;
+    show
+        CommentTokenImpl,
+        DartDocToken,
+        LanguageVersionTokenImpl,
+        StringTokenImpl;
 
 /**
  * Scanner that reads from a UTF-8 encoded list of bytes and creates tokens
@@ -227,7 +231,7 @@ class Utf8BytesScanner extends AbstractScanner {
   analyzer.StringToken createSubstringToken(
       TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
-    return new StringToken.fromUtf8Bytes(
+    return new StringTokenImpl.fromUtf8Bytes(
         type, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart,
         precedingComments: comments);
   }
@@ -235,15 +239,17 @@ class Utf8BytesScanner extends AbstractScanner {
   @override
   analyzer.StringToken createSyntheticSubstringToken(
       TokenType type, int start, bool asciiOnly, String syntheticChars) {
-    String source = StringToken.decodeUtf8(bytes, start, byteOffset, asciiOnly);
+    String source =
+        StringTokenImpl.decodeUtf8(bytes, start, byteOffset, asciiOnly);
     return new SyntheticStringToken(
         type, source + syntheticChars, tokenStart, source.length);
   }
 
   @override
-  CommentToken createCommentToken(TokenType type, int start, bool asciiOnly,
+  analyzer.CommentToken createCommentToken(
+      TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
-    return new CommentToken.fromUtf8Bytes(
+    return new CommentTokenImpl.fromUtf8Bytes(
         type, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
   }
 
@@ -257,7 +263,7 @@ class Utf8BytesScanner extends AbstractScanner {
   @override
   LanguageVersionToken createLanguageVersionToken(
       int start, int major, int minor) {
-    return new LanguageVersionToken.fromUtf8Bytes(
+    return new LanguageVersionTokenImpl.fromUtf8Bytes(
         bytes, start, byteOffset, tokenStart, major, minor);
   }
 

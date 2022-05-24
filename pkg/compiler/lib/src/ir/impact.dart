@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
@@ -175,18 +177,15 @@ abstract class ImpactRegistry {
       List<String> namedArguments,
       List<ir.DartType> typeArguments);
 
-  // TODO(johnniwinther): Change [node] to `InstanceGet` when the old method
-  // invocation encoding is no longer used.
-  void registerRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
-      ir.DartType receiverType, ir.DartType argumentType);
+  void registerRuntimeTypeUse(RuntimeTypeUseKind kind, ir.DartType receiverType,
+      ir.DartType argumentType);
 
-  // TODO(johnniwinther): Remove these when CFE provides constants.
   void registerConstructorNode(ir.Constructor node);
   void registerFieldNode(ir.Field node);
   void registerProcedureNode(ir.Procedure node);
   void registerStaticInvocationNode(ir.StaticInvocation node);
   void registerSwitchStatementNode(ir.SwitchStatement node);
-  void registerConstConstructorInvocationNode(ir.ConstructorInvocation node);
+  void registerConstSymbolConstructorInvocationNode();
 }
 
 class ImpactBuilderData {

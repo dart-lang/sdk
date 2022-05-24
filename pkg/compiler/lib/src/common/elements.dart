@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import '../common.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
@@ -911,13 +913,7 @@ abstract class CommonElements {
   FunctionEntity get checkDeferredIsLoaded =>
       _findHelperFunction('checkDeferredIsLoaded');
 
-  FunctionEntity get throwNoSuchMethod =>
-      _findHelperFunction('throwNoSuchMethod');
-
   FunctionEntity get createRuntimeType => _findRtiFunction('createRuntimeType');
-
-  FunctionEntity get fallThroughError =>
-      _findHelperFunction("getFallThroughError");
 
   FunctionEntity get createInvocationMirror =>
       _findHelperFunction('createInvocationMirror');
@@ -1517,14 +1513,14 @@ abstract class ElementEnvironment {
   /// Create the instantiation of [cls] with the given [typeArguments] and
   /// [nullability].
   InterfaceType createInterfaceType(
-      ClassEntity cls, List<DartType> typeArguments);
+      ClassEntity /*!*/ cls, List<DartType /*!*/ > typeArguments);
 
   /// Returns the `dynamic` type.
   DartType get dynamicType;
 
   /// Returns the 'raw type' of [cls]. That is, the instantiation of [cls]
   /// where all types arguments are `dynamic`.
-  InterfaceType getRawType(ClassEntity cls);
+  InterfaceType /*!*/ getRawType(ClassEntity /*!*/ cls);
 
   /// Returns the 'JS-interop type' of [cls]; that is, the instantiation of
   /// [cls] where all type arguments are 'any'.

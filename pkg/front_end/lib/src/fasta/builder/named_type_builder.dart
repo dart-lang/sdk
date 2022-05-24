@@ -433,8 +433,8 @@ class NamedTypeBuilder extends TypeBuilder {
         // Even though Null is disallowed as a supertype, ClassHierarchyBuilder
         // still expects it to be built to the respective InterfaceType
         // referencing the deprecated class.
-        // TODO(dmitryas): Remove the dependency on the deprecated Null class
-        // from ClassHierarchyBuilder.
+        // TODO(cstefantsova): Remove the dependency on the deprecated Null
+        // class from ClassHierarchyBuilder.
         TypeDeclarationBuilder? unaliasedDeclaration = this.declaration;
         // The following code assumes that the declaration is a TypeAliasBuilder
         // that through a chain of other TypeAliasBuilders (possibly, the chain
@@ -454,7 +454,7 @@ class NamedTypeBuilder extends TypeBuilder {
         // InterfaceType referencing the deprecated class.  In contrast with
         // Null, it doesn't surface as an error due to FutureOr class not having
         // any inheritable members.
-        // TODO(dmitryas): Remove the dependency on the deprecated FutureOr
+        // TODO(cstefantsova): Remove the dependency on the deprecated FutureOr
         // class from ClassHierarchyBuilder.
         TypeDeclarationBuilder? unaliasedDeclaration = this.declaration;
         // The following code assumes that the declaration is a TypeAliasBuilder

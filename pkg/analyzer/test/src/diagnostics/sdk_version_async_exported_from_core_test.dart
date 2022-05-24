@@ -32,7 +32,7 @@ Future<int> zero() async => 0;
   }
 
   test_equals_explicitImportOfExportingLibrary() async {
-    newFile2('$testPackageLibPath/exporter.dart', '''
+    newFile('$testPackageLibPath/exporter.dart', '''
 export 'dart:async';
 ''');
     await verifyVersion('2.1.0', '''
@@ -49,7 +49,7 @@ Future<int> zero() async => 0;
   }
 
   test_equals_implicitImportOfCore_inPart() async {
-    newFile2('/lib.dart', '''
+    newFile('/lib.dart', '''
 library lib;
 ''');
     await verifyVersion('2.1.0', '''
@@ -78,7 +78,7 @@ Future<int> zero() async => 0;
   }
 
   test_lessThan_explicitImportOfExportingLibrary() async {
-    newFile2('$testPackageLibPath/exporter.dart', '''
+    newFile('$testPackageLibPath/exporter.dart', '''
 export 'dart:async';
 ''');
     await verifyVersion('2.0.0', '''
@@ -97,7 +97,7 @@ Future<int> zero() async => 0;
   }
 
   test_lessThan_implicitImportOfCore_inPart() async {
-    newFile2('/lib.dart', '''
+    newFile('/lib.dart', '''
 library lib;
 ''');
     await verifyVersion('2.0.0', '''

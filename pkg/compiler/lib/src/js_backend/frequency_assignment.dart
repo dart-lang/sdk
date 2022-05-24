@@ -61,7 +61,7 @@ void semistableFrequencyAssignment(
   List<_Pool> pools = _Pool.makePools(names);
 
   // First cohort with unassigned items.
-  _Cohort firstCohort = _Cohort.makeCohorts(items, countOf);
+  _Cohort? firstCohort = _Cohort.makeCohorts(items, countOf);
 
   for (var pool in pools) {
     // Completely allocate smaller pools before allocating larger
@@ -123,7 +123,7 @@ void semistableFrequencyAssignment(
 /// A [_Pool] is a set of identifiers of the same length from which names are
 /// allocated.
 class _Pool {
-  final List<String /*?*/ > _names = [];
+  final List<String?> _names = [];
 
   // Keep the unused (available) slots in an ordered set for efficiently finding
   // the next available slot (i.e. linear rehash).  We are concerned about
@@ -162,8 +162,7 @@ class _Pool {
       (throw StateError('No entries left in pool'));
 
   String allocate(int slot) {
-    String name = _names[slot];
-    assert(name != null);
+    String name = _names[slot]!;
     _names[slot] = null;
     _availableSlots.remove(slot);
     return name;
@@ -176,23 +175,23 @@ class _Pool {
 /// A [_Cohort] is a set of entities which occur with the same frequency. The
 /// entities are identified by integers.
 class _Cohort {
-  _Cohort next; // Next cohort in decreasing frequency.
+  _Cohort? next; // Next cohort in decreasing frequency.
   final int count; // This is the cohort of items occuring [count] times.
   Set<int> unassigned = Set();
 
   _Cohort(this.count);
 
-  _Cohort skipEmpty() {
-    _Cohort cohort = this;
+  _Cohort? skipEmpty() {
+    _Cohort? cohort = this;
     while (cohort != null && cohort.remaining == 0) cohort = cohort.next;
     return cohort;
   }
 
   int get remaining => unassigned.length;
 
-  static _Cohort makeCohorts(int items, int Function(int) countOf) {
+  static _Cohort? makeCohorts(int items, int Function(int) countOf) {
     // Build _Cohorts.
-    _Cohort first, current;
+    _Cohort? first, current;
     int lastCount = -1;
     for (int item = 0; item < items; item++) {
       int count = countOf(item);
@@ -206,7 +205,7 @@ class _Cohort {
         }
         current = next;
       }
-      current.unassigned.add(item);
+      current!.unassigned.add(item);
     }
     return first;
   }

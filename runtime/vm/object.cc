@@ -538,6 +538,7 @@ static type SpecialCharacter(type value) {
 void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   // Should only be run by the vm isolate.
   ASSERT(isolate_group == Dart::vm_isolate_group());
+  Thread* thread = Thread::Current();
   auto heap = isolate_group->heap();
 
   // TODO(iposva): NoSafepointScope needs to be added here.
@@ -547,7 +548,8 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   // 'null_' must be the first object allocated as it is used in allocation to
   // clear the object.
   {
-    uword address = heap->Allocate(Instance::InstanceSize(), Heap::kOld);
+    uword address =
+        heap->Allocate(thread, Instance::InstanceSize(), Heap::kOld);
     null_ = static_cast<InstancePtr>(address + kHeapObjectTag);
     // The call below is using 'null_' to initialize itself.
     InitializeObject(address, kNullCid, Instance::InstanceSize(),
@@ -561,14 +563,14 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   // otherwise identical.
   {
     // Allocate a dummy bool object to give true the desired alignment.
-    uword address = heap->Allocate(Bool::InstanceSize(), Heap::kOld);
+    uword address = heap->Allocate(thread, Bool::InstanceSize(), Heap::kOld);
     InitializeObject(address, kBoolCid, Bool::InstanceSize(),
                      Bool::ContainsCompressedPointers());
     static_cast<BoolPtr>(address + kHeapObjectTag)->untag()->value_ = false;
   }
   {
     // Allocate true.
-    uword address = heap->Allocate(Bool::InstanceSize(), Heap::kOld);
+    uword address = heap->Allocate(thread, Bool::InstanceSize(), Heap::kOld);
     true_ = static_cast<BoolPtr>(address + kHeapObjectTag);
     InitializeObject(address, kBoolCid, Bool::InstanceSize(),
                      Bool::ContainsCompressedPointers());
@@ -577,7 +579,7 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   }
   {
     // Allocate false.
-    uword address = heap->Allocate(Bool::InstanceSize(), Heap::kOld);
+    uword address = heap->Allocate(thread, Bool::InstanceSize(), Heap::kOld);
     false_ = static_cast<BoolPtr>(address + kHeapObjectTag);
     InitializeObject(address, kBoolCid, Bool::InstanceSize(),
                      Bool::ContainsCompressedPointers());
@@ -744,7 +746,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   // Allocate and initialize the class class.
   {
     intptr_t size = Class::InstanceSize();
-    uword address = heap->Allocate(size, Heap::kOld);
+    uword address = heap->Allocate(thread, size, Heap::kOld);
     class_class_ = static_cast<ClassPtr>(address + kHeapObjectTag);
     InitializeObject(address, Class::kClassId, size,
                      Class::ContainsCompressedPointers());
@@ -979,7 +981,7 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Allocate and initialize the empty_array instance.
   {
-    uword address = heap->Allocate(Array::InstanceSize(0), Heap::kOld);
+    uword address = heap->Allocate(thread, Array::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(0),
                      Array::ContainsCompressedPointers());
     Array::initializeHandle(empty_array_,
@@ -991,7 +993,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   Smi& smi = Smi::Handle();
   // Allocate and initialize the zero_array instance.
   {
-    uword address = heap->Allocate(Array::InstanceSize(1), Heap::kOld);
+    uword address = heap->Allocate(thread, Array::InstanceSize(1), Heap::kOld);
     InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(1),
                      Array::ContainsCompressedPointers());
     Array::initializeHandle(zero_array_,
@@ -1004,7 +1006,8 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Allocate and initialize the canonical empty context scope object.
   {
-    uword address = heap->Allocate(ContextScope::InstanceSize(0), Heap::kOld);
+    uword address =
+        heap->Allocate(thread, ContextScope::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kContextScopeCid, ContextScope::InstanceSize(0),
                      ContextScope::ContainsCompressedPointers());
     ContextScope::initializeHandle(
@@ -1019,7 +1022,8 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Allocate and initialize the canonical empty object pool object.
   {
-    uword address = heap->Allocate(ObjectPool::InstanceSize(0), Heap::kOld);
+    uword address =
+        heap->Allocate(thread, ObjectPool::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kObjectPoolCid, ObjectPool::InstanceSize(0),
                      ObjectPool::ContainsCompressedPointers());
     ObjectPool::initializeHandle(
@@ -1033,7 +1037,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   // Allocate and initialize the empty_compressed_stackmaps instance.
   {
     const intptr_t instance_size = CompressedStackMaps::InstanceSize(0);
-    uword address = heap->Allocate(instance_size, Heap::kOld);
+    uword address = heap->Allocate(thread, instance_size, Heap::kOld);
     InitializeObject(address, kCompressedStackMapsCid, instance_size,
                      CompressedStackMaps::ContainsCompressedPointers());
     CompressedStackMaps::initializeHandle(
@@ -1045,7 +1049,8 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Allocate and initialize the empty_descriptors instance.
   {
-    uword address = heap->Allocate(PcDescriptors::InstanceSize(0), Heap::kOld);
+    uword address =
+        heap->Allocate(thread, PcDescriptors::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kPcDescriptorsCid, PcDescriptors::InstanceSize(0),
                      PcDescriptors::ContainsCompressedPointers());
     PcDescriptors::initializeHandle(
@@ -1058,8 +1063,8 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Allocate and initialize the canonical empty variable descriptor object.
   {
-    uword address =
-        heap->Allocate(LocalVarDescriptors::InstanceSize(0), Heap::kOld);
+    uword address = heap->Allocate(thread, LocalVarDescriptors::InstanceSize(0),
+                                   Heap::kOld);
     InitializeObject(address, kLocalVarDescriptorsCid,
                      LocalVarDescriptors::InstanceSize(0),
                      LocalVarDescriptors::ContainsCompressedPointers());
@@ -1076,7 +1081,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   // and can share this canonical descriptor.
   {
     uword address =
-        heap->Allocate(ExceptionHandlers::InstanceSize(0), Heap::kOld);
+        heap->Allocate(thread, ExceptionHandlers::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kExceptionHandlersCid,
                      ExceptionHandlers::InstanceSize(0),
                      ExceptionHandlers::ContainsCompressedPointers());
@@ -1090,7 +1095,8 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Allocate and initialize the canonical empty type arguments object.
   {
-    uword address = heap->Allocate(TypeArguments::InstanceSize(0), Heap::kOld);
+    uword address =
+        heap->Allocate(thread, TypeArguments::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kTypeArgumentsCid, TypeArguments::InstanceSize(0),
                      TypeArguments::ContainsCompressedPointers());
     TypeArguments::initializeHandle(
@@ -2666,7 +2672,7 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
   ASSERT(thread->no_callback_scope_depth() == 0);
   Heap* heap = thread->heap();
 
-  uword address = heap->Allocate(size, space);
+  uword address = heap->Allocate(thread, size, space);
   if (UNLIKELY(address == 0)) {
     // SuspendLongJumpScope during Dart entry ensures that if a longjmp base is
     // available, it is the innermost error handler, so check for a longjmp base
@@ -2684,7 +2690,7 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
       OUT_OF_MEMORY();
     }
   }
-  NoSafepointScope no_safepoint;
+  NoSafepointScope no_safepoint(thread);
   ObjectPtr raw_obj;
   InitializeObject(address, cls_id, size, compressed);
   raw_obj = static_cast<ObjectPtr>(address + kHeapObjectTag);
@@ -15757,34 +15763,70 @@ intptr_t ICData::Length() const {
 }
 
 intptr_t ICData::NumberOfChecks() const {
-  const intptr_t length = Length();
-  for (intptr_t i = 0; i < length; i++) {
-    if (IsSentinelAt(i)) {
-      return i;
-    }
-  }
-  UNREACHABLE();
-  return -1;
+  DEBUG_ONLY(AssertInvariantsAreSatisfied());
+  return Length() - 1;
 }
 
 bool ICData::NumberOfChecksIs(intptr_t n) const {
-  const intptr_t length = Length();
-  for (intptr_t i = 0; i < length; i++) {
-    if (i == n) {
-      return IsSentinelAt(i);
-    } else {
-      if (IsSentinelAt(i)) return false;
+  DEBUG_ONLY(AssertInvariantsAreSatisfied());
+  return NumberOfChecks() == n;
+}
+
+#if defined(DEBUG)
+void ICData::AssertInvariantsAreSatisfied() const {
+  // See layout and invariant of [ICData] in class comment in object.h.
+  //
+  // This method can be called without holding any locks, it will grab a
+  // snapshot of `entries()` and do it's verification logic on that.
+  auto zone = Thread::Current()->zone();
+  const auto& array = Array::Handle(zone, entries());
+
+  const intptr_t entry_length = TestEntryLength();
+  const intptr_t num_checks = array.Length() / entry_length - 1;
+  const intptr_t num_args = NumArgsTested();
+
+  /// Backing store must be multiple of entry length.
+  ASSERT((array.Length() % entry_length) == 0);
+
+  /// Entries must be valid.
+  for (intptr_t i = 0; i < num_checks; ++i) {
+    // Should be valid entry.
+    const intptr_t start = entry_length * i;
+    for (intptr_t i = 0; i < num_args; ++i) {
+      ASSERT(!array.At(start + i)->IsHeapObject());
+      ASSERT(array.At(start + i) != smi_illegal_cid().ptr());
+    }
+    ASSERT(array.At(start + TargetIndexFor(num_args))->IsHeapObject());
+    if (is_tracking_exactness()) {
+      ASSERT(!array.At(start + ExactnessIndexFor(num_args))->IsHeapObject());
     }
   }
-  return n == length;
+
+  /// Sentinel at end must be valid.
+  const intptr_t sentinel_start = num_checks * entry_length;
+  for (intptr_t i = 0; i < entry_length - 1; ++i) {
+    ASSERT(array.At(sentinel_start + i) == smi_illegal_cid().ptr());
+  }
+  if (num_checks == 0) {
+    ASSERT(array.At(sentinel_start + entry_length - 1) ==
+           smi_illegal_cid().ptr());
+    ASSERT(ICData::CachedEmptyICDataArray(num_args, is_tracking_exactness()) ==
+           entries());
+  } else {
+    ASSERT(array.At(sentinel_start + entry_length - 1) == ptr());
+  }
+
+  // Invariants for ICData of static calls.
+  if (num_args == 0) {
+    ASSERT(Length() == 2);
+    ASSERT(TestEntryLength() == 2);
+  }
 }
+#endif  // defined(DEBUG)
 
 // Discounts any checks with usage of zero.
 intptr_t ICData::NumberOfUsedChecks() const {
-  intptr_t n = NumberOfChecks();
-  if (n == 0) {
-    return 0;
-  }
+  const intptr_t n = NumberOfChecks();
   intptr_t count = 0;
   for (intptr_t i = 0; i < n; i++) {
     if (GetCountAt(i) > 0) {
@@ -15799,10 +15841,11 @@ void ICData::WriteSentinel(const Array& data,
                            const Object& back_ref) {
   ASSERT(!data.IsNull());
   RELEASE_ASSERT(smi_illegal_cid().Value() == kIllegalCid);
-  for (intptr_t i = 2; i <= test_entry_length; i++) {
-    data.SetAt(data.Length() - i, smi_illegal_cid());
+  const intptr_t entry_start = data.Length() - test_entry_length;
+  for (intptr_t i = 0; i < test_entry_length - 1; i++) {
+    data.SetAt(entry_start + i, smi_illegal_cid());
   }
-  data.SetAt(data.Length() - 1, back_ref);
+  data.SetAt(entry_start + test_entry_length - 1, back_ref);
 }
 
 #if defined(DEBUG)
@@ -15832,27 +15875,35 @@ intptr_t ICData::FindCheck(const GrowableArray<intptr_t>& cids) const {
   return -1;
 }
 
-void ICData::WriteSentinelAt(intptr_t index,
-                             const CallSiteResetter& proof_of_reload) const {
+void ICData::TruncateTo(intptr_t num_checks,
+                        const CallSiteResetter& proof_of_reload) const {
   USE(proof_of_reload);  // This method can only be called during reload.
 
-  Thread* thread = Thread::Current();
-  const intptr_t len = Length();
-  ASSERT(index >= 0);
-  ASSERT(index < len);
+  DEBUG_ONLY(AssertInvariantsAreSatisfied());
+  ASSERT(num_checks <= NumberOfChecks());
+
+  // Nothing to do.
+  if (NumberOfChecks() == num_checks) return;
+
+  auto thread = Thread::Current();
   REUSABLE_ARRAY_HANDLESCOPE(thread);
-  Array& data = thread->ArrayHandle();
-  data = entries();
-  const intptr_t start = index * TestEntryLength();
-  const intptr_t end = start + TestEntryLength();
-  for (intptr_t i = start; i < end; i++) {
-    data.SetAt(i, smi_illegal_cid());
+  auto& array = thread->ArrayHandle();
+
+  // If we make the ICData empty, use the pre-allocated shared backing stores.
+  const intptr_t num_args = NumArgsTested();
+  if (num_checks == 0) {
+    array = ICData::CachedEmptyICDataArray(num_args, is_tracking_exactness());
+    set_entries(array);
+    return;
   }
-  // The last slot in the last entry of the [ICData::entries_] is a back-ref to
-  // the [ICData] itself.
-  if (index == (len - 1)) {
-    data.SetAt(end - 1, *this);
-  }
+
+  // Otherwise truncate array and initialize sentinel.
+  // Use kSmiCid for all slots in the entry except the last, which is a backref
+  // to ICData.
+  const intptr_t entry_length = TestEntryLength();
+  array = entries();
+  array.Truncate((num_checks + 1) * entry_length);
+  WriteSentinel(array, entry_length, *this);
 }
 
 void ICData::ClearCountAt(intptr_t index,
@@ -15869,50 +15920,27 @@ void ICData::ClearAndSetStaticTarget(
     const CallSiteResetter& proof_of_reload) const {
   USE(proof_of_reload);  // This method can only be called during reload.
 
-  if (IsImmutable()) {
-    return;
-  }
-  const intptr_t len = Length();
-  if (len == 0) {
-    return;
-  }
-  Thread* thread = Thread::Current();
-
   // The final entry is always the sentinel.
-  ASSERT(IsSentinelAt(len - 1));
-  const intptr_t num_args_tested = NumArgsTested();
-  if (num_args_tested == 0) {
-    // No type feedback is being collected.
-    REUSABLE_ARRAY_HANDLESCOPE(thread);
-    Array& data = thread->ArrayHandle();
-    data = entries();
-    // Static calls with no argument checks hold only one target and the
-    // sentinel value.
-    ASSERT(len == 2);
-    // Static calls with no argument checks only need two words.
-    ASSERT(TestEntryLength() == 2);
-    // Set the target.
-    data.SetAt(TargetIndexFor(num_args_tested), func);
-    // Set count to 0 as this is called during compilation, before the
-    // call has been executed.
-    data.SetAt(CountIndexFor(num_args_tested), Object::smi_zero());
-  } else {
-    // Type feedback on arguments is being collected.
-    // Fill all but the first entry with the sentinel.
-    for (intptr_t i = len - 1; i > 0; i--) {
-      WriteSentinelAt(i, proof_of_reload);
-    }
-    REUSABLE_ARRAY_HANDLESCOPE(thread);
-    Array& data = thread->ArrayHandle();
-    data = entries();
-    // Rewrite the dummy entry.
-    const Smi& object_cid = Smi::Handle(Smi::New(kObjectCid));
-    for (intptr_t i = 0; i < NumArgsTested(); i++) {
-      data.SetAt(i, object_cid);
-    }
-    data.SetAt(TargetIndexFor(num_args_tested), func);
-    data.SetAt(CountIndexFor(num_args_tested), Object::smi_zero());
+  DEBUG_ONLY(AssertInvariantsAreSatisfied());
+
+  if (IsImmutable()) return;
+  if (NumberOfChecks() == 0) return;
+
+  // Leave one entry.
+  TruncateTo(/*num_checks=*/1, proof_of_reload);
+
+  // Reinitialize the one and only entry.
+  const intptr_t num_args = NumArgsTested();
+  Thread* thread = Thread::Current();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  Array& data = thread->ArrayHandle();
+  data = entries();
+  const Smi& object_cid = Smi::Handle(Smi::New(kObjectCid));
+  for (intptr_t i = 0; i < num_args; i++) {
+    data.SetAt(i, object_cid);
   }
+  data.SetAt(TargetIndexFor(num_args), func);
+  data.SetAt(CountIndexFor(num_args), Object::smi_zero());
 }
 
 bool ICData::ValidateInterceptor(const Function& target) const {
@@ -16004,13 +16032,10 @@ void ICData::AddCheckInternal(const GrowableArray<intptr_t>& class_ids,
 }
 
 ArrayPtr ICData::Grow(intptr_t* index) const {
+  DEBUG_ONLY(AssertInvariantsAreSatisfied());
+
+  *index = NumberOfChecks();
   Array& data = Array::Handle(entries());
-  // Last entry in array should be a sentinel and will be the new entry
-  // that can be updated after growing.
-  *index = Length() - 1;
-  ASSERT(*index >= 0);
-  ASSERT(IsSentinelAt(*index));
-  // Grow the array and write the new final sentinel into place.
   const intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
   WriteSentinel(data, TestEntryLength(), *this);
@@ -16133,29 +16158,11 @@ void ICData::GetCheckAt(intptr_t index,
   (*target) ^= data.At(data_pos + TargetIndexFor(NumArgsTested()));
 }
 
-bool ICData::IsSentinelAt(intptr_t index) const {
-  ASSERT(index < Length());
-  Thread* thread = Thread::Current();
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  Array& data = thread->ArrayHandle();
-  data = entries();
-  const intptr_t entry_length = TestEntryLength();
-  intptr_t data_pos = index * TestEntryLength();
-  const intptr_t kBackRefLen = (index == (Length() - 1)) ? 1 : 0;
-  for (intptr_t i = 0; i < entry_length - kBackRefLen; i++) {
-    if (data.At(data_pos++) != smi_illegal_cid().ptr()) {
-      return false;
-    }
-  }
-  // The entry at |index| was filled with the value kIllegalCid.
-  return true;
-}
-
 void ICData::GetClassIdsAt(intptr_t index,
                            GrowableArray<intptr_t>* class_ids) const {
   ASSERT(index < Length());
   ASSERT(class_ids != NULL);
-  ASSERT(!IsSentinelAt(index));
+  ASSERT(IsValidEntryIndex(index));
   class_ids->Clear();
   Thread* thread = Thread::Current();
   REUSABLE_ARRAY_HANDLESCOPE(thread);
@@ -16200,7 +16207,7 @@ intptr_t ICData::GetClassIdAt(intptr_t index, intptr_t arg_nr) const {
 
 intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
   ASSERT(index < Length());
-  ASSERT(!IsSentinelAt(index));
+  ASSERT(IsValidEntryIndex(index));
   const intptr_t data_pos = index * TestEntryLength();
   NoSafepointScope no_safepoint;
   ArrayPtr raw_data = entries();
@@ -16469,6 +16476,13 @@ ArrayPtr ICData::CachedEmptyICDataArray(intptr_t num_args_tested,
   }
 }
 
+bool ICData::IsCachedEmptyEntry(const Array& array) {
+  for (int i = 0; i < kCachedICDataArrayCount; ++i) {
+    if (cached_icdata_arrays_[i] == array.ptr()) return true;
+  }
+  return false;
+}
+
 // Does not initialize ICData array.
 ICDataPtr ICData::NewDescriptor(Zone* zone,
                                 const Function& owner,
@@ -16643,20 +16657,29 @@ ICDataPtr ICData::Clone(const ICData& from) {
                 AbstractType::Handle(zone, from.receivers_static_type())));
   // Clone entry array.
   const Array& from_array = Array::Handle(zone, from.entries());
-  const intptr_t len = from_array.Length();
-  const Array& cloned_array = Array::Handle(zone, Array::New(len, Heap::kOld));
-  Object& obj = Object::Handle(zone);
-  for (intptr_t i = 0; i < len; i++) {
-    obj = from_array.At(i);
-    cloned_array.SetAt(i, obj);
+  if (ICData::IsCachedEmptyEntry(from_array)) {
+    result.set_entries(from_array);
+  } else {
+    const intptr_t len = from_array.Length();
+    const Array& cloned_array =
+        Array::Handle(zone, Array::New(len, Heap::kOld));
+    Object& obj = Object::Handle(zone);
+    for (intptr_t i = 0; i < len; i++) {
+      obj = from_array.At(i);
+      cloned_array.SetAt(i, obj);
+    }
+    // Update backref in our clone.
+    cloned_array.SetAt(cloned_array.Length() - 1, result);
+    result.set_entries(cloned_array);
   }
-  result.set_entries(cloned_array);
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
   result.set_is_megamorphic(is_megamorphic);
 
   RELEASE_ASSERT(!is_megamorphic ||
                  result.NumberOfChecks() >= FLAG_max_polymorphic_checks);
+
+  DEBUG_ONLY(result.AssertInvariantsAreSatisfied());
 
   return result.ptr();
 }
@@ -16665,20 +16688,12 @@ ICDataPtr ICData::Clone(const ICData& from) {
 ICDataPtr ICData::ICDataOfEntriesArray(const Array& array) {
   const auto& back_ref = Object::Handle(array.At(array.Length() - 1));
   if (back_ref.ptr() == smi_illegal_cid().ptr()) {
-    // The ICData must be empty.
-#if defined(DEBUG)
-    const int kMaxTestEntryLen = TestEntryLengthFor(2, true);
-    ASSERT(array.Length() <= kMaxTestEntryLen);
-    for (intptr_t i = 0; i < array.Length(); ++i) {
-      ASSERT(array.At(i) == Object::sentinel().ptr());
-    }
-#endif
+    ASSERT(IsCachedEmptyEntry(array));
     return ICData::null();
   }
+
   const auto& ic_data = ICData::Cast(back_ref);
-#if defined(DEBUG)
-  ic_data.IsSentinelAt(ic_data.Length() - 1);
-#endif
+  DEBUG_ONLY(ic_data.AssertInvariantsAreSatisfied());
   return ic_data.ptr();
 }
 
@@ -19705,6 +19720,11 @@ InstancePtr Instance::New(const Class& cls, Heap::Space space) {
   if (cls.EnsureIsAllocateFinalized(thread) != Error::null()) {
     return Instance::null();
   }
+  return NewAlreadyFinalized(cls, space);
+}
+
+InstancePtr Instance::NewAlreadyFinalized(const Class& cls, Heap::Space space) {
+  ASSERT(cls.is_allocate_finalized());
   intptr_t instance_size = cls.host_instance_size();
   ASSERT(instance_size > 0);
   ObjectPtr raw = Object::Allocate(cls.id(), instance_size, space,
@@ -24297,7 +24317,8 @@ const char* Array::ToCString() const {
 ArrayPtr Array::Grow(const Array& source,
                      intptr_t new_length,
                      Heap::Space space) {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   const Array& result = Array::Handle(zone, Array::New(new_length, space));
   intptr_t len = 0;
   if (!source.IsNull()) {
@@ -24310,7 +24331,7 @@ ArrayPtr Array::Grow(const Array& source,
   PassiveObject& obj = PassiveObject::Handle(zone);
   for (int i = 0; i < len; i++) {
     obj = source.At(i);
-    result.SetAt(i, obj);
+    result.SetAt(i, obj, thread);
   }
   return result.ptr();
 }

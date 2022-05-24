@@ -19,7 +19,7 @@ main() {
 class PrefixedIdentifierResolutionTest extends PubPackageResolutionTest
     with PrefixedIdentifierResolutionTestCases {
   test_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
@@ -145,7 +145,7 @@ void f() {
   }
 
   test_implicitCall_tearOff_nullable() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int call() => 0;
 }
@@ -171,7 +171,7 @@ int Function() foo() {
   }
 
   test_read_typedef_interfaceType() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef A = List<int>;
 ''');
 
@@ -298,7 +298,7 @@ void f() {
   }
 
   test_class_read_typedef_functionType() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef A = void Function();
 ''');
 
@@ -431,7 +431,7 @@ void f(int Function(String) a) {
   }
 
   test_implicitCall_tearOff() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int call() => 0;
 }

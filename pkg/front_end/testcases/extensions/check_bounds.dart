@@ -1,7 +1,7 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 part 'check_bounds_lib.dart';
 
 class A {}
@@ -17,25 +17,24 @@ extension Extension<T extends B> on Class<T> {
 
 main() {}
 
-test() {
-  A a;
-
+test(A a) {
   Class<A> classA = new Class<A>();
+  Class<B> classB = new Class<B>();
+
   classA.method(); // Expect method not found.
   Extension(classA).method(); // Expect bounds mismatch.
   Extension<A>(classA).method(); // Expect bounds mismatch.
-  Extension<B>(classA).method();
+  Extension<B>(classB).method();
   Extension(classA).genericMethod(a); // Expect bounds mismatch.
   Extension(classA).genericMethod<A>(a); // Expect bounds mismatch.
   Extension(classA).genericMethod<B>(a); // Expect bounds mismatch.
   Extension<A>(classA).genericMethod(a); // Expect bounds mismatch.
   Extension<A>(classA).genericMethod<A>(a); // Expect bounds mismatch.
   Extension<A>(classA).genericMethod<B>(a); // Expect bounds mismatch.
-  Extension<B>(classA).genericMethod(a); // Expect bounds mismatch.
-  Extension<B>(classA).genericMethod<A>(a); // Expect bounds mismatch.
-  Extension<B>(classA).genericMethod<B>(a);
+  Extension<B>(classB).genericMethod(a); // Expect bounds mismatch.
+  Extension<B>(classB).genericMethod<A>(a); // Expect bounds mismatch.
+  Extension<B>(classB).genericMethod<B>(a);
 
-  Class<B> classB = new Class<B>();
   classB.method();
   Extension(classB).method();
   Extension<A>(classB).method(); // Expect bounds mismatch.
@@ -57,6 +56,8 @@ test() {
 
 final A a = new A();
 final Class<A> classA = new Class<A>();
+final Class<B> classB = new Class<B>();
+
 final field1 = classA.method(); // Expect method not found.
 final field2 = Extension(classA).method(); // Expect bounds mismatch.
 final field3 = Extension<A>(classA).method(); // Expect bounds mismatch.
@@ -70,12 +71,11 @@ final field9 =
 final field10 =
     Extension<A>(classA).genericMethod<B>(a); // Expect bounds mismatch.
 final field11 =
-    Extension<B>(classA).genericMethod(a); // Expect bounds mismatch.
+    Extension<B>(classB).genericMethod(a); // Expect bounds mismatch.
 final field12 =
-    Extension<B>(classA).genericMethod<A>(a); // Expect bounds mismatch.
-final field13 = Extension<B>(classA).genericMethod<B>(a);
+    Extension<B>(classB).genericMethod<A>(a); // Expect bounds mismatch.
+final field13 = Extension<B>(classB).genericMethod<B>(a);
 
-final Class<B> classB = new Class<B>();
 final field14 = classB.method();
 final field15 = Extension(classB).method();
 final field16 = Extension<A>(classB).method(); // Expect bounds mismatch.

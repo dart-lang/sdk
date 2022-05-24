@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 library dart2js.cmdline.options;
 
 /// Commandline flags used in `dart2js.dart` and/or `apiimpl.dart`.
@@ -185,6 +183,8 @@ class Flags {
 
   // Experimental flags.
   static const String resolveOnly = '--resolve-only';
+
+  static const String cfeConstants = '--cfe-constants';
 
   // `--no-shipping` and `--canary` control sets of flags. For simplicity, these
   // flags live in options.dart.

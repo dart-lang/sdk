@@ -10,9 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 /// A [Refactoring] for renaming [LibraryElement]s.
 class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
-  RenameLibraryRefactoringImpl(
-      RefactoringWorkspace workspace, LibraryElement element)
-      : super(workspace, element);
+  RenameLibraryRefactoringImpl(super.workspace, LibraryElement super.element);
 
   @override
   LibraryElement get element => super.element as LibraryElement;

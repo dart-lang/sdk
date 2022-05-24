@@ -6,18 +6,15 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/plugin/request_converter.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 
 /// The handler for the `analysis.setPriorityFiles` request.
 class AnalysisSetPriorityFilesHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  AnalysisSetPriorityFilesHandler(AnalysisServer server, Request request,
-      CancellationToken cancellationToken)
-      : super(server, request, cancellationToken);
+  AnalysisSetPriorityFilesHandler(
+      super.server, super.request, super.cancellationToken);
 
   @override
   Future<void> handle() async {

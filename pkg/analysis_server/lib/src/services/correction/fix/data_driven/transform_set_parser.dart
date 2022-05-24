@@ -812,7 +812,7 @@ class TransformSetParser {
     var parameterSpecKey = _singleKey(node, const [_nameKey, _indexKey], node);
     if (parameterSpecKey == null) {
       // The error has already been reported.
-      return null;
+      return;
     }
     ParameterReference reference;
     if (parameterSpecKey == _indexKey) {
@@ -820,7 +820,7 @@ class TransformSetParser {
           ErrorContext(key: _indexKey, parentNode: node));
       if (index == null) {
         // The error has already been reported.
-        return null;
+        return;
       }
       reference = PositionalParameterReference(index);
     } else {

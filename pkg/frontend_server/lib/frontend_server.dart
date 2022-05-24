@@ -36,6 +36,7 @@ import 'package:usage/uuid/uuid.dart';
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart';
 
+import 'src/binary_protocol.dart';
 import 'src/javascript_bundle.dart';
 import 'src/strong_components.dart';
 
@@ -56,6 +57,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help: 'Whether dart:mirrors is supported. By default dart:mirrors is '
           'supported when --aot and --minimal-kernel are not used.',
       defaultsTo: null)
+  ..addFlag('compact-async',
+      help: 'Enable new compact async/await implementation.', defaultsTo: null)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
@@ -114,6 +117,10 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
           ' option',
       defaultsTo: 'org-dartlang-root',
       hide: true)
+  ..addOption('binary-protocol-address',
+      hide: true,
+      help: 'The server will establish TCP connection to this address, and'
+          ' will exchange binary requests and responses with the client.')
   ..addFlag('enable-http-uris',
       defaultsTo: false, hide: true, help: 'Enables support for http uris.')
   ..addFlag('verbose', help: 'Enables verbose output from the compiler.')
@@ -533,6 +540,7 @@ class FrontendCompiler implements CompilerInterface {
       nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
       supportMirrors: options['support-mirrors'] ??
           !(options['aot'] || options['minimal-kernel']),
+      compactAsync: options['compact-async'] ?? false /*options['aot']*/,
     );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');
@@ -1419,6 +1427,12 @@ Future<int> starter(
     } finally {
       temp.deleteSync(recursive: true);
     }
+  }
+
+  final binaryProtocolAddressStr = options['binary-protocol-address'];
+  if (binaryProtocolAddressStr is String) {
+    runBinaryProtocol(binaryProtocolAddressStr);
+    return 0;
   }
 
   compiler ??= FrontendCompiler(output,

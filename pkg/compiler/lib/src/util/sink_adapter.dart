@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../compiler.dart' as api;
+// @dart = 2.10
+
+import '../../compiler_api.dart' as api;
 
 class BinaryOutputSinkAdapter implements Sink<List<int>> {
   api.BinaryOutputSink output;

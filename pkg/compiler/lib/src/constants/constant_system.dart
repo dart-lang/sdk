@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 /// Constant system following the semantics for Dart code that has been
 /// compiled to JavaScript.
 library dart2js.constant_system;
 
 import '../common/elements.dart' show CommonElements;
 import '../elements/entities.dart';
-import '../elements/operators.dart';
 import '../elements/types.dart';
 import 'values.dart';
 
@@ -181,64 +182,6 @@ ConstantValue createSymbol(CommonElements commonElements, String text) {
   // a [FieldElement].
   var fields = <FieldEntity, ConstantValue>{field: argument};
   return ConstructedConstantValue(type, fields);
-}
-
-UnaryOperation lookupUnary(UnaryOperator operator) {
-  switch (operator.kind) {
-    case UnaryOperatorKind.COMPLEMENT:
-      return bitNot;
-    case UnaryOperatorKind.NEGATE:
-      return negate;
-    case UnaryOperatorKind.NOT:
-      return not;
-    default:
-      return null;
-  }
-}
-
-BinaryOperation lookupBinary(BinaryOperator operator) {
-  switch (operator.kind) {
-    case BinaryOperatorKind.ADD:
-      return add;
-    case BinaryOperatorKind.SUB:
-      return subtract;
-    case BinaryOperatorKind.MUL:
-      return multiply;
-    case BinaryOperatorKind.DIV:
-      return divide;
-    case BinaryOperatorKind.MOD:
-      return modulo;
-    case BinaryOperatorKind.IDIV:
-      return truncatingDivide;
-    case BinaryOperatorKind.OR:
-      return bitOr;
-    case BinaryOperatorKind.AND:
-      return bitAnd;
-    case BinaryOperatorKind.XOR:
-      return bitXor;
-    case BinaryOperatorKind.LOGICAL_OR:
-      return booleanOr;
-    case BinaryOperatorKind.LOGICAL_AND:
-      return booleanAnd;
-    case BinaryOperatorKind.SHL:
-      return shiftLeft;
-    case BinaryOperatorKind.SHR:
-      return shiftRight;
-    case BinaryOperatorKind.LT:
-      return less;
-    case BinaryOperatorKind.LTEQ:
-      return lessEqual;
-    case BinaryOperatorKind.GT:
-      return greater;
-    case BinaryOperatorKind.GTEQ:
-      return greaterEqual;
-    case BinaryOperatorKind.EQ:
-      return equal;
-    case BinaryOperatorKind.IF_NULL:
-      return ifNull;
-    default:
-      return null;
-  }
 }
 
 abstract class Operation {

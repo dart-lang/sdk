@@ -20,11 +20,11 @@ void main() {
 @reflectiveTest
 class AnalysisHoverBazelTest extends AbstractAnalysisTest {
   Future<void> test_bazel_notOwnedUri() async {
-    newFile2('/workspace/WORKSPACE', '');
+    newFile('/workspace/WORKSPACE', '');
     projectPath = newFolder('/workspace').path;
     testFile = convertPath('/workspace/dart/my/lib/test.dart');
 
-    newFile2(
+    newFile(
       '/workspace/bazel-genfiles/dart/my/lib/test.dart',
       '// generated',
     );
@@ -68,7 +68,7 @@ class AnalysisHoverTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_class_constructor_named() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 class A {
   /// my doc
@@ -99,7 +99,7 @@ void f() {
   }
 
   Future<void> test_class_constructor_noKeyword_const() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 class A {
   const A(int i);
@@ -126,7 +126,7 @@ void f() {
   }
 
   Future<void> test_class_constructor_noKeyword_new() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 class A {}
 void f() {
@@ -151,7 +151,7 @@ void f() {
   }
 
   Future<void> test_class_constructor_synthetic() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 class A {
 }
@@ -177,7 +177,7 @@ void f() {
   }
 
   Future<void> test_class_constructor_synthetic_withTypeArgument() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 class A<T> {}
 void f() {
@@ -219,7 +219,7 @@ void f() {
   }
 
   Future<void> test_class_constructorReference_named() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A<T> {
   /// doc aaa
   /// doc bbb
@@ -246,7 +246,7 @@ void f() {
   }
 
   Future<void> test_class_constructorReference_unnamed_declared() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A<T> {
   /// doc aaa
   /// doc bbb
@@ -273,7 +273,7 @@ void f() {
   }
 
   Future<void> test_class_constructorReference_unnamed_declared_new() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A<T> {
   /// doc aaa
   /// doc bbb
@@ -300,7 +300,7 @@ void f() {
   }
 
   Future<void> test_class_constructorReference_unnamed_synthetic() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A<T> {}
 
 void f() {
@@ -323,7 +323,7 @@ void f() {
   }
 
   Future<void> test_class_declaration() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A<E> {}
 class I1<K, V> {}
 class I2<E> {}
@@ -342,7 +342,7 @@ class B<T> extends A<T> with M1, M2<int> implements I1<int, String>, I2 {}
   }
 
   Future<void> test_class_declaration_abstract() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {}
 abstract class B extends A {}
 ''');
@@ -354,7 +354,7 @@ abstract class B extends A {}
   }
 
   Future<void> test_class_getter_synthetic() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 class A {
   /// doc aaa
@@ -379,7 +379,7 @@ void f(A a) {
   }
 
   Future<void> test_class_method_declaration() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 class A {
   /// doc aaa
@@ -404,7 +404,7 @@ class A {
   }
 
   Future<void> test_class_method_reference() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 class A {
   List<String> mmm(int a, String b) {
@@ -432,7 +432,7 @@ void f(A a) {
   }
 
   Future<void> test_class_method_reference_deprecated() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {
   @deprecated
   static void test() {}
@@ -450,7 +450,7 @@ void f() {
   }
 
   Future<void> test_class_method_reference_genericMethod() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 
 abstract class Stream<T> {
@@ -482,7 +482,7 @@ f(Stream<int> s) {
   }
 
   Future<void> test_class_setter_hasDocumentation() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {
   /// getting
   int get foo => 42;
@@ -501,7 +501,7 @@ void f(A a) {
   }
 
   Future<void> test_class_setter_noDocumentation() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {
   /// getting
   int get foo => 42;
@@ -519,7 +519,7 @@ void f(A a) {
   }
 
   Future<void> test_class_setter_super_hasDocumentation() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {
   /// pgetting
   int get foo => 42;
@@ -543,7 +543,7 @@ void f(B b) {
   }
 
   Future<void> test_class_setter_super_noDocumentation() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {
   /// pgetting
   int get foo => 42;
@@ -566,7 +566,7 @@ void f(B b) {
 
   @failingTest
   Future<void> test_class_setter_super_noSetter() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {
   /// pgetting
   int get foo => 42;
@@ -586,7 +586,7 @@ void f(B b) {
   }
 
   Future<void> test_dartdoc_block() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /**
  * doc aaa
  * doc bbb
@@ -599,7 +599,7 @@ void f() {
   }
 
   Future<void> test_dartdoc_inherited_fromInterface() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {
   /// my doc
   m() {} // in A
@@ -614,7 +614,7 @@ class B implements A {
   }
 
   Future<void> test_dartdoc_inherited_fromSuper_direct() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {
   /// my doc
   m() {} // in A
@@ -629,7 +629,7 @@ class B extends A {
   }
 
   Future<void> test_dartdoc_inherited_fromSuper_indirect() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {
   /// my doc
   m() {}
@@ -645,7 +645,7 @@ class C extends B {
   }
 
   Future<void> test_dartdoc_inherited_preferSuper() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {
   /// my doc
   m() {}
@@ -664,7 +664,7 @@ class C extends B implements I {
   }
 
   Future<void> test_dartdoc_line() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// doc aaa
 /// doc bbb
 void f() {
@@ -675,7 +675,7 @@ void f() {
   }
 
   Future<void> test_enum_declaration() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 enum MyEnum {AAA, BBB, CCC}
 ''');
     var hover = await prepareHover('MyEnum');
@@ -686,7 +686,7 @@ enum MyEnum {AAA, BBB, CCC}
   }
 
   Future<void> test_enum_getter() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 enum E {
   v;
@@ -709,7 +709,7 @@ void f(E e) {
   }
 
   Future<void> test_enum_getter_synthetic() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 enum E {
   v;
@@ -735,7 +735,7 @@ void f(E e) {
   }
 
   Future<void> test_enum_method_declaration() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 enum E {
   v;
@@ -761,7 +761,7 @@ enum E {
   }
 
   Future<void> test_enum_method_reference() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 enum E {
   v;
@@ -791,7 +791,7 @@ void f(E e) {
   }
 
   Future<void> test_enum_setter_hasDocumentation() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 enum E {
   v;
   /// getting
@@ -811,7 +811,7 @@ void f(E e) {
   }
 
   Future<void> test_extensionDeclaration() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {}
 /// Comment
 extension E on A {}
@@ -827,7 +827,7 @@ extension E on A {}
   Future<void> test_function_multilineElementDescription() async {
     // Functions with at least 3 params will have element descriptions formatted
     // across multiple lines.
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 List<String> fff(int a, [String b = 'b', String c = 'c']) {
 }
 ''');
@@ -841,7 +841,7 @@ List<String> fff(
   }
 
   Future<void> test_function_topLevel_declaration() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 /// doc aaa
 /// doc bbb
@@ -865,7 +865,7 @@ List<String> fff(int a, [String b = 'b']) {
   }
 
   Future<void> test_functionReference_classMethod_instance() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A<T> {
   /// doc aaa
   /// doc bbb
@@ -892,7 +892,7 @@ void f(A<int> a) {
   }
 
   Future<void> test_functionReference_classMethod_static() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A<T> {
   /// doc aaa
   /// doc bbb
@@ -919,7 +919,7 @@ void f() {
   }
 
   Future<void> test_functionReference_topLevelFunction() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// doc aaa
 /// doc bbb
 int foo<T>(T a) => 0;
@@ -944,7 +944,7 @@ void f() {
   }
 
   Future<void> test_integerLiteral() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 void f() {
   foo(123);
 }
@@ -969,7 +969,7 @@ foo(Object myParameter) {}
   }
 
   Future<void> test_integerLiteral_promoted() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 void f() {
   foo(123);
 }
@@ -1016,7 +1016,7 @@ foo(double myParameter) {}
   }
 
   Future<void> test_localVariable_declaration() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 class A {
   m() {
@@ -1040,7 +1040,7 @@ class A {
   }
 
   Future<void> test_localVariable_reference_withPropagatedType() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 void f() {
   var vvv = 123;
@@ -1061,7 +1061,7 @@ void f() {
   }
 
   Future<void> test_mixin_declaration() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 mixin A on B, C implements D, E {}
 class B {}
 class C {}
@@ -1076,7 +1076,7 @@ class E {}
 
   @failingTest
   Future<void> test_mixin_reference() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 mixin A {}
 abstract class B {}
 class C with A implements B {}
@@ -1088,7 +1088,7 @@ class C with A implements B {}
   }
 
   Future<void> test_noHoverInfo() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 void f() {
   // nothing
@@ -1099,7 +1099,7 @@ void f() {
   }
 
   Future<void> test_nonNullable() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 int? f(double? a) => null;
 
 void f() {
@@ -1112,7 +1112,7 @@ void f() {
   }
 
   Future<void> test_parameter_declaration_fieldFormal() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {
   /// The field documentation.
   final int fff;
@@ -1133,7 +1133,7 @@ void f() {
   }
 
   Future<void> test_parameter_declaration_required() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 library my.library;
 class A {
   /// The method documentation.
@@ -1157,7 +1157,7 @@ class A {
   }
 
   Future<void> test_parameter_defaultValue() async {
-    newFile2(testFilePath, 'void b([int a=123]) { }');
+    newFile(testFilePath, 'void b([int a=123]) { }');
     var hover = await prepareHover('a=');
     // element
     expect(hover.elementDescription, '[int a = 123]');
@@ -1166,7 +1166,7 @@ class A {
 
   Future<void>
       test_parameter_ofConstructor_optionalPositional_super_defaultValue_explicit() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {
   A([int a = 1]);
 }
@@ -1182,7 +1182,7 @@ class B extends A {
 
   Future<void>
       test_parameter_ofConstructor_optionalPositional_super_defaultValue_inherited() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {
   A([int a = 1]);
 }
@@ -1198,7 +1198,7 @@ class B extends A {
 
   Future<void>
       test_parameter_ofConstructor_optionalPositional_super_defaultValue_inherited2() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {
   A([num a = 1.2]);
 }
@@ -1213,7 +1213,7 @@ class B extends A{
   }
 
   Future<void> test_parameter_reference_fieldFormal() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 class A {
   /// The field documentation.
   final int fff;
@@ -1234,7 +1234,7 @@ void f() {
   }
 
   Future<void> test_simpleIdentifier_typedef_functionType() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 typedef A = void Function(int);
 ''');
     var hover = await prepareHover('A');
@@ -1246,7 +1246,7 @@ typedef A = void Function(int);
   }
 
   Future<void> test_simpleIdentifier_typedef_interfaceType() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 typedef A = Map<int, String>;
 ''');
     var hover = await prepareHover('A');
@@ -1258,7 +1258,7 @@ typedef A = Map<int, String>;
   }
 
   Future<void> test_simpleIdentifier_typedef_legacy() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 typedef void A(int a);
 ''');
     var hover = await prepareHover('A');

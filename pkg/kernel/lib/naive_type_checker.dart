@@ -112,7 +112,7 @@ ${ownType} is not a subtype of ${superType}
   /// Check if [subtype] is subtype of [supertype] after applying
   /// type parameter [substitution].
   bool _isSubtypeOf(DartType subtype, DartType supertype) {
-    // TODO(dmitryas): Remove this when ExtensionType is in ast.dart.
+    // TODO(cstefantsova): Remove this when ExtensionType is in ast.dart.
     if (!_isKnownDartTypeImplementation(subtype) ||
         !_isKnownDartTypeImplementation(supertype)) {
       return true;
@@ -121,8 +121,8 @@ ${ownType} is not a subtype of ${superType}
     if (subtype is InvalidType || supertype is InvalidType) {
       return true;
     }
-    // TODO(dmitryas): Find a way to tell the weak mode from strong mode to use
-    // [SubtypeCheckMode.withNullabilities] where necessary.
+    // TODO(cstefantsova): Find a way to tell the weak mode from strong mode to
+    // use [SubtypeCheckMode.withNullabilities] where necessary.
     return environment.isSubtypeOf(
         subtype, supertype, SubtypeCheckMode.ignoringNullabilities);
   }

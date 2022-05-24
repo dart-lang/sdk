@@ -12,8 +12,6 @@ import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'test_support.dart';
-
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SourceFactoryTest);
@@ -24,6 +22,11 @@ class AbsoluteUriResolver extends UriResolver {
   final MemoryResourceProvider resourceProvider;
 
   AbsoluteUriResolver(this.resourceProvider);
+
+  @override
+  Uri? pathToUri(String path) {
+    throw UnimplementedError();
+  }
 
   @override
   Source resolveAbsolute(Uri uri) {
@@ -104,25 +107,17 @@ class SourceFactoryTest with ResourceProviderMixin {
     expect(result.fullName, secondPath);
     expect(result.uri.toString(), 'package:package/dir/second.dart');
   }
-
-  @Deprecated('Use pathToUri() instead')
-  void test_restoreUri() {
-    File file1 = getFile("/some/file1.dart");
-    File file2 = getFile("/some/file2.dart");
-    Source source1 = FileSource(file1);
-    Source source2 = FileSource(file2);
-    Uri expected1 = Uri.parse("file:///my_file.dart");
-    SourceFactory factory =
-        SourceFactory([UriResolver_restoreUri(file1.path, expected1)]);
-    expect(factory.restoreUri(source1), same(expected1));
-    expect(factory.restoreUri(source2), isNull);
-  }
 }
 
 class UriResolver_absolute extends UriResolver {
   bool invoked = false;
 
   UriResolver_absolute();
+
+  @override
+  Uri? pathToUri(String path) {
+    throw UnimplementedError();
+  }
 
   @override
   Source? resolveAbsolute(Uri uri) {
@@ -146,18 +141,4 @@ class UriResolver_restoreUri extends UriResolver {
 
   @override
   Source? resolveAbsolute(Uri uri) => null;
-}
-
-class UriResolver_SourceFactoryTest_test_fromEncoding_valid
-    extends UriResolver {
-  String encoding;
-  UriResolver_SourceFactoryTest_test_fromEncoding_valid(this.encoding);
-
-  @override
-  Source? resolveAbsolute(Uri uri) {
-    if (uri.toString() == encoding) {
-      return TestSource();
-    }
-    return null;
-  }
 }

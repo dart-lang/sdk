@@ -92,12 +92,12 @@ export interface SomeOptions {
       expect(output[0], const TypeMatcher<Interface>());
       final interface = output[0] as Interface;
       expect(interface.members, hasLength(2));
-      [0, 1].forEach((i) {
+      for (var i in [0, 1]) {
         expect(interface.members[i], const TypeMatcher<Field>());
         final field = interface.members[i] as Field;
         expect(field.name, equals('options$i'));
         expect(field.commentText, equals('''Options$i used by something.'''));
-      });
+      }
     });
 
     test('parses an interface with type args', () {
@@ -176,7 +176,9 @@ export interface A {
       final output = parseString(input);
       final interface = output[0] as Interface;
       expect(interface.members, hasLength(4));
-      interface.members.forEach((m) => expect(m, const TypeMatcher<Field>()));
+      for (var m in interface.members) {
+        expect(m, const TypeMatcher<Field>());
+      }
       final canBeBoth = interface.members[0] as Field,
           canBeNeither = interface.members[1] as Field,
           canBeNull = interface.members[2] as Field,
@@ -299,7 +301,9 @@ export namespace ResourceOperationKind {
       expect(output[0], const TypeMatcher<Namespace>());
       final namespace = output[0] as Namespace;
       expect(namespace.members, hasLength(3));
-      namespace.members.forEach((m) => expect(m, const TypeMatcher<Const>()));
+      for (var m in namespace.members) {
+        expect(m, const TypeMatcher<Const>());
+      }
       final create = namespace.members[0] as Const,
           delete = namespace.members[1] as Const,
           rename = namespace.members[2] as Const;

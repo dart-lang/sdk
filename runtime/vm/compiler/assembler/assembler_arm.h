@@ -500,7 +500,7 @@ class Assembler : public AssemblerBase {
   void bic(Register rd, Register rn, Operand o, Condition cond = AL);
   void bics(Register rd, Register rn, Operand o, Condition cond = AL);
 
-  void mvn(Register rd, Operand o, Condition cond = AL);
+  void mvn_(Register rd, Operand o, Condition cond = AL);
   void mvns(Register rd, Operand o, Condition cond = AL);
 
   // Miscellaneous data-processing instructions.

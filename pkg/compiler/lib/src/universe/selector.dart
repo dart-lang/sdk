@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.selector;
 
 import '../common.dart';
 import '../common/names.dart' show Names;
 import '../elements/entities.dart';
+import '../elements/entities_parameter_structure_methods.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
 import '../elements/operators.dart';
@@ -66,15 +69,7 @@ class Selector {
   LibraryEntity get library => memberName.library;
 
   static bool isOperatorName(String name) {
-    if (name == Names.INDEX_SET_NAME.text) {
-      return true;
-    } else if (name == UnaryOperator.NEGATE.selectorName) {
-      return true;
-    } else if (name == UnaryOperator.COMPLEMENT.selectorName) {
-      return true;
-    } else {
-      return BinaryOperator.parseUserDefinable(name) != null;
-    }
+    return instanceMethodOperatorNames.contains(name);
   }
 
   Selector.internal(

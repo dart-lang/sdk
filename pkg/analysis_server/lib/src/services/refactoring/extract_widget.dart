@@ -650,9 +650,10 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
   bool _isMemberOfEnclosingClass(Element element) {
     final enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
-      final enclosingClasses = this.enclosingClasses ??= <ClassElement>[]
-        ..add(enclosingClass)
-        ..addAll(enclosingClass.allSupertypes.map((t) => t.element));
+      final enclosingClasses = this.enclosingClasses ??= <ClassElement>[
+        enclosingClass,
+        ...enclosingClass.allSupertypes.map((t) => t.element)
+      ];
       return enclosingClasses.contains(element.enclosingElement);
     }
     return false;

@@ -141,14 +141,14 @@ class MemberBuilderIdentifier extends IdentifierImpl {
     Uri? uri;
     String? staticScope;
     macro.IdentifierKind kind;
-    if (memberBuilder.isStatic || memberBuilder.isConstructor) {
+    if (memberBuilder.isTopLevel) {
+      uri = memberBuilder.libraryBuilder.importUri;
+      kind = macro.IdentifierKind.topLevelMember;
+    } else if (memberBuilder.isStatic || memberBuilder.isConstructor) {
       ClassBuilder classBuilder = memberBuilder.classBuilder!;
       staticScope = classBuilder.name;
       uri = classBuilder.libraryBuilder.importUri;
       kind = macro.IdentifierKind.staticInstanceMember;
-    } else if (memberBuilder.isTopLevel) {
-      uri = memberBuilder.libraryBuilder.importUri;
-      kind = macro.IdentifierKind.topLevelMember;
     } else {
       kind = macro.IdentifierKind.instanceMember;
     }

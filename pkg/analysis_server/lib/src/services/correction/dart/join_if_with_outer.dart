@@ -67,7 +67,4 @@ class JoinIfWithOuter extends CorrectionProducer {
           'if ($condition) {$eol$newSource$prefix}');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static JoinIfWithOuter newInstance() => JoinIfWithOuter();
 }

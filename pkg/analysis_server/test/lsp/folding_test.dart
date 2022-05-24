@@ -143,7 +143,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     ''';
     final ranges = rangesFromMarkers(content);
     final withoutMarkers = withoutRangeMarkers(content);
-    newFile2(pluginAnalyzedFilePath, '');
+    newFile(pluginAnalyzedFilePath, '');
 
     await initialize();
     await openFile(pluginAnalyzedUri, withoutMarkers);
@@ -173,7 +173,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
       );
     ''';
     final withoutMarkers = withoutRangeMarkers(content);
-    newFile2(pluginAnalyzedFilePath, withoutMarkers);
+    newFile(pluginAnalyzedFilePath, withoutMarkers);
 
     await initialize();
     await openFile(pluginAnalyzedUri, withoutMarkers);

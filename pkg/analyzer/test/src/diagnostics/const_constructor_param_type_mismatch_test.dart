@@ -131,7 +131,7 @@ enum E {
   }
 
   test_int_to_double_reference_from_other_library_other_file_after() async {
-    newFile2('$testPackageLibPath/other.dart', '''
+    newFile('$testPackageLibPath/other.dart', '''
 import 'test.dart';
 class D {
   final C c;
@@ -159,7 +159,7 @@ class C {
 }
 const C constant = const C(0);
 ''');
-    newFile2('$testPackageLibPath/other.dart', '''
+    newFile('$testPackageLibPath/other.dart', '''
 import 'test.dart';
 class D {
   final C c;
@@ -183,7 +183,7 @@ const C constant = const C(0);
   }
 
   test_int_to_double_via_default_value_other_file_after() async {
-    newFile2('$testPackageLibPath/other.dart', '''
+    newFile('$testPackageLibPath/other.dart', '''
 class C {
   final double x;
   const C([this.x = 0]);
@@ -199,7 +199,7 @@ const c = C();
   }
 
   test_int_to_double_via_default_value_other_file_before() async {
-    newFile2('$testPackageLibPath/other.dart', '''
+    newFile('$testPackageLibPath/other.dart', '''
 class C {
   final double x;
   const C([this.x = 0]);
@@ -336,10 +336,24 @@ class A {
 }
 
 class B extends A {
-  static const f = B();
-
   const B({super.a});
 }
+
+const b = const B();
+''');
+  }
+
+  test_superFormalParameter_inherited_generic() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  const A({int a = 0});
+}
+
+class B extends A<int> {
+  const B({super.a});
+}
+
+const b = const B();
 ''');
   }
 

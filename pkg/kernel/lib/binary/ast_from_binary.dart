@@ -2602,7 +2602,8 @@ class BinaryBuilder {
   }
 
   Expression _readAwaitExpression() {
-    return new AwaitExpression(readExpression());
+    int offset = readOffset();
+    return new AwaitExpression(readExpression())..fileOffset = offset;
   }
 
   Expression _readFunctionExpression() {
@@ -3210,7 +3211,7 @@ class BinaryBuilder {
     // The [VariableDeclaration] instance is not created at this point yet,
     // so `null` is temporarily set as the parent of the annotation nodes.
     List<Expression> annotations = readAnnotationList(null);
-    int flags = readByte();
+    int flags = readUInt30();
     VariableDeclaration node = new VariableDeclaration(
         readStringOrNullIfEmpty(),
         type: readDartType(),
