@@ -4,12 +4,15 @@ name: sourcemap_testing
 publish_to: none
 
 environment:
-  sdk: '>=2.1.0 <3.0.0'
+  sdk: '>=2.11.0 <3.0.0'
 
 dependencies:
   _fe_analyzer_shared: any
-  dart2js_tools:  any
-  expect:  any
+  dart2js_tools: any
+  expect: any
   path: any
   source_maps: any
   source_span: any
+
+dev_dependencies:
+  lints: any
