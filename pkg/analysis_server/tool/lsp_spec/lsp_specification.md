@@ -4735,7 +4735,7 @@ _Client Capability_:
 <div class="anchorHolder"><a href="#typeHierarchyClientCapabilities" name="typeHierarchyClientCapabilities" class="linkableAnchor"></a></div>
 
 ```typescript
-type TypeHierarchyClientCapabilities = {
+export interface TypeHierarchyClientCapabilities {
 	/**
 	 * Whether implementation supports dynamic registration. If this is set to
 	 * `true` the client supports the new `(TextDocumentRegistrationOptions &

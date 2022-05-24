@@ -1365,8 +1365,8 @@ class CallHierarchyRegistrationOptions
   static CallHierarchyRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -1381,7 +1381,7 @@ class CallHierarchyRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -1411,9 +1411,10 @@ class CallHierarchyRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -1450,8 +1451,12 @@ class CallHierarchyRegistrationOptions
   bool operator ==(Object other) {
     if (other is CallHierarchyRegistrationOptions &&
         other.runtimeType == CallHierarchyRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -3192,8 +3197,8 @@ class CodeActionRegistrationOptions
         .toList();
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final resolveProviderJson = json['resolveProvider'];
     final resolveProvider = resolveProviderJson as bool?;
@@ -3215,7 +3220,7 @@ class CodeActionRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The server provides support to resolve additional information for a code
   /// action.
@@ -3263,9 +3268,10 @@ class CodeActionRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -3304,8 +3310,12 @@ class CodeActionRegistrationOptions
         other.runtimeType == CodeActionRegistrationOptions) {
       return listEqual(codeActionKinds, other.codeActionKinds,
               (CodeActionKind a, CodeActionKind b) => a == b) &&
-          listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+          listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           resolveProvider == other.resolveProvider &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -3841,8 +3851,8 @@ class CodeLensRegistrationOptions
   static CodeLensRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final resolveProviderJson = json['resolveProvider'];
     final resolveProvider = resolveProviderJson as bool?;
@@ -3857,7 +3867,7 @@ class CodeLensRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// Code lens has a resolve provider as well.
   final bool? resolveProvider;
@@ -3886,9 +3896,10 @@ class CodeLensRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -3925,8 +3936,12 @@ class CodeLensRegistrationOptions
   bool operator ==(Object other) {
     if (other is CodeLensRegistrationOptions &&
         other.runtimeType == CodeLensRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           resolveProvider == other.resolveProvider &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -6071,6 +6086,101 @@ class CompletionItem implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class CompletionItemEditRange implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    CompletionItemEditRange.canParse,
+    CompletionItemEditRange.fromJson,
+  );
+
+  CompletionItemEditRange({
+    required this.insert,
+    required this.replace,
+  });
+  static CompletionItemEditRange fromJson(Map<String, Object?> json) {
+    final insertJson = json['insert'];
+    final insert = Range.fromJson(insertJson as Map<String, Object?>);
+    final replaceJson = json['replace'];
+    final replace = Range.fromJson(replaceJson as Map<String, Object?>);
+    return CompletionItemEditRange(
+      insert: insert,
+      replace: replace,
+    );
+  }
+
+  final Range insert;
+  final Range replace;
+
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['insert'] = insert.toJson();
+    result['replace'] = replace.toJson();
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('insert');
+      try {
+        if (!obj.containsKey('insert')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final insert = obj['insert'];
+        if (insert == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(Range.canParse(insert, reporter))) {
+          reporter.reportError('must be of type Range');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('replace');
+      try {
+        if (!obj.containsKey('replace')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final replace = obj['replace'];
+        if (replace == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(Range.canParse(replace, reporter))) {
+          reporter.reportError('must be of type Range');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type CompletionItemEditRange');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is CompletionItemEditRange &&
+        other.runtimeType == CompletionItemEditRange) {
+      return insert == other.insert && replace == other.replace && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        insert,
+        replace,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class CompletionItemInsertTextModeSupport implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CompletionItemInsertTextModeSupport.canParse,
@@ -6611,101 +6721,6 @@ class CompletionList implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class CompletionListEditRange implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    CompletionListEditRange.canParse,
-    CompletionListEditRange.fromJson,
-  );
-
-  CompletionListEditRange({
-    required this.insert,
-    required this.replace,
-  });
-  static CompletionListEditRange fromJson(Map<String, Object?> json) {
-    final insertJson = json['insert'];
-    final insert = Range.fromJson(insertJson as Map<String, Object?>);
-    final replaceJson = json['replace'];
-    final replace = Range.fromJson(replaceJson as Map<String, Object?>);
-    return CompletionListEditRange(
-      insert: insert,
-      replace: replace,
-    );
-  }
-
-  final Range insert;
-  final Range replace;
-
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['insert'] = insert.toJson();
-    result['replace'] = replace.toJson();
-    return result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('insert');
-      try {
-        if (!obj.containsKey('insert')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final insert = obj['insert'];
-        if (insert == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(Range.canParse(insert, reporter))) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('replace');
-      try {
-        if (!obj.containsKey('replace')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final replace = obj['replace'];
-        if (replace == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(Range.canParse(replace, reporter))) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError('must be of type CompletionListEditRange');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is CompletionListEditRange &&
-        other.runtimeType == CompletionListEditRange) {
-      return insert == other.insert && replace == other.replace && true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        insert,
-        replace,
-      );
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
 class CompletionListItemDefaults implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CompletionListItemDefaults.canParse,
@@ -6726,14 +6741,14 @@ class CompletionListItemDefaults implements ToJsonable {
     final editRangeJson = json['editRange'];
     final editRange = editRangeJson == null
         ? null
-        : (CompletionListEditRange.canParse(editRangeJson, nullLspJsonReporter)
-            ? Either2<CompletionListEditRange, Range>.t1(
-                CompletionListEditRange.fromJson(
+        : (CompletionItemEditRange.canParse(editRangeJson, nullLspJsonReporter)
+            ? Either2<CompletionItemEditRange, Range>.t1(
+                CompletionItemEditRange.fromJson(
                     editRangeJson as Map<String, Object?>))
             : (Range.canParse(editRangeJson, nullLspJsonReporter)
-                ? Either2<CompletionListEditRange, Range>.t2(
+                ? Either2<CompletionItemEditRange, Range>.t2(
                     Range.fromJson(editRangeJson as Map<String, Object?>))
-                : (throw '''$editRangeJson was not one of (CompletionListEditRange, Range)''')));
+                : (throw '''$editRangeJson was not one of (CompletionItemEditRange, Range)''')));
     final insertTextFormatJson = json['insertTextFormat'];
     final insertTextFormat = insertTextFormatJson != null
         ? InsertTextFormat.fromJson(insertTextFormatJson as int)
@@ -6756,7 +6771,7 @@ class CompletionListItemDefaults implements ToJsonable {
 
   /// A default edit range
   ///  @since 3.17.0
-  final Either2<CompletionListEditRange, Range>? editRange;
+  final Either2<CompletionItemEditRange, Range>? editRange;
 
   /// A default insert text format
   ///  @since 3.17.0
@@ -6801,10 +6816,10 @@ class CompletionListItemDefaults implements ToJsonable {
       try {
         final editRange = obj['editRange'];
         if (editRange != null &&
-            !((CompletionListEditRange.canParse(editRange, reporter) ||
+            !((CompletionItemEditRange.canParse(editRange, reporter) ||
                 Range.canParse(editRange, reporter)))) {
           reporter.reportError(
-              'must be of type Either2<CompletionListEditRange, Range>');
+              'must be of type Either2<CompletionItemEditRange, Range>');
           return false;
         }
       } finally {
@@ -7337,8 +7352,8 @@ class CompletionRegistrationOptions
         : null;
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final resolveProviderJson = json['resolveProvider'];
     final resolveProvider = resolveProviderJson as bool?;
@@ -7374,7 +7389,7 @@ class CompletionRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The server provides support to resolve additional information for a
   /// completion item.
@@ -7450,9 +7465,10 @@ class CompletionRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -7504,8 +7520,12 @@ class CompletionRegistrationOptions
       return listEqual(allCommitCharacters, other.allCommitCharacters,
               (String a, String b) => a == b) &&
           completionItem == other.completionItem &&
-          listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+          listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           resolveProvider == other.resolveProvider &&
           listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
@@ -8382,8 +8402,8 @@ class DeclarationRegistrationOptions
   static DeclarationRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -8398,7 +8418,7 @@ class DeclarationRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -8428,9 +8448,10 @@ class DeclarationRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -8467,8 +8488,12 @@ class DeclarationRegistrationOptions
   bool operator ==(Object other) {
     if (other is DeclarationRegistrationOptions &&
         other.runtimeType == DeclarationRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -8818,8 +8843,8 @@ class DefinitionRegistrationOptions
   static DefinitionRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -8831,7 +8856,7 @@ class DefinitionRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
@@ -8854,9 +8879,10 @@ class DefinitionRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -8883,8 +8909,12 @@ class DefinitionRegistrationOptions
   bool operator ==(Object other) {
     if (other is DefinitionRegistrationOptions &&
         other.runtimeType == DefinitionRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           workDoneProgress == other.workDoneProgress &&
           true;
     }
@@ -9762,8 +9792,8 @@ class DiagnosticRegistrationOptions
   static DiagnosticRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -9787,7 +9817,7 @@ class DiagnosticRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -9835,9 +9865,10 @@ class DiagnosticRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -9920,8 +9951,12 @@ class DiagnosticRegistrationOptions
   bool operator ==(Object other) {
     if (other is DiagnosticRegistrationOptions &&
         other.runtimeType == DiagnosticRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           identifier == other.identifier &&
           interFileDependencies == other.interFileDependencies &&
@@ -11759,8 +11794,8 @@ class DocumentColorRegistrationOptions
   static DocumentColorRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -11775,7 +11810,7 @@ class DocumentColorRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -11805,9 +11840,10 @@ class DocumentColorRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -11844,8 +11880,12 @@ class DocumentColorRegistrationOptions
   bool operator ==(Object other) {
     if (other is DocumentColorRegistrationOptions &&
         other.runtimeType == DocumentColorRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -12457,8 +12497,8 @@ class DocumentFormattingRegistrationOptions
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -12470,7 +12510,7 @@ class DocumentFormattingRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
@@ -12493,9 +12533,10 @@ class DocumentFormattingRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -12523,8 +12564,12 @@ class DocumentFormattingRegistrationOptions
   bool operator ==(Object other) {
     if (other is DocumentFormattingRegistrationOptions &&
         other.runtimeType == DocumentFormattingRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           workDoneProgress == other.workDoneProgress &&
           true;
     }
@@ -12983,8 +13028,8 @@ class DocumentHighlightRegistrationOptions
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -12996,7 +13041,7 @@ class DocumentHighlightRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
@@ -13019,9 +13064,10 @@ class DocumentHighlightRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -13049,8 +13095,12 @@ class DocumentHighlightRegistrationOptions
   bool operator ==(Object other) {
     if (other is DocumentHighlightRegistrationOptions &&
         other.runtimeType == DocumentHighlightRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           workDoneProgress == other.workDoneProgress &&
           true;
     }
@@ -13532,8 +13582,8 @@ class DocumentLinkRegistrationOptions
   static DocumentLinkRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final resolveProviderJson = json['resolveProvider'];
     final resolveProvider = resolveProviderJson as bool?;
@@ -13548,7 +13598,7 @@ class DocumentLinkRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// Document links have a resolve provider as well.
   final bool? resolveProvider;
@@ -13577,9 +13627,10 @@ class DocumentLinkRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -13616,8 +13667,12 @@ class DocumentLinkRegistrationOptions
   bool operator ==(Object other) {
     if (other is DocumentLinkRegistrationOptions &&
         other.runtimeType == DocumentLinkRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           resolveProvider == other.resolveProvider &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -13986,8 +14041,8 @@ class DocumentOnTypeFormattingRegistrationOptions
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final firstTriggerCharacterJson = json['firstTriggerCharacter'];
     final firstTriggerCharacter = firstTriggerCharacterJson as String;
@@ -14004,7 +14059,7 @@ class DocumentOnTypeFormattingRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// A character on which formatting should be triggered, like `{`.
   final String firstTriggerCharacter;
@@ -14033,9 +14088,10 @@ class DocumentOnTypeFormattingRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -14083,8 +14139,12 @@ class DocumentOnTypeFormattingRegistrationOptions
   bool operator ==(Object other) {
     if (other is DocumentOnTypeFormattingRegistrationOptions &&
         other.runtimeType == DocumentOnTypeFormattingRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           firstTriggerCharacter == other.firstTriggerCharacter &&
           listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
               (String a, String b) => a == b) &&
@@ -14414,8 +14474,8 @@ class DocumentRangeFormattingRegistrationOptions
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -14427,7 +14487,7 @@ class DocumentRangeFormattingRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
@@ -14450,9 +14510,10 @@ class DocumentRangeFormattingRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -14480,8 +14541,12 @@ class DocumentRangeFormattingRegistrationOptions
   bool operator ==(Object other) {
     if (other is DocumentRangeFormattingRegistrationOptions &&
         other.runtimeType == DocumentRangeFormattingRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           workDoneProgress == other.workDoneProgress &&
           true;
     }
@@ -15337,8 +15402,8 @@ class DocumentSymbolRegistrationOptions
   static DocumentSymbolRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final labelJson = json['label'];
     final label = labelJson as String?;
@@ -15353,7 +15418,7 @@ class DocumentSymbolRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// A human-readable string that is shown when multiple outlines trees are
   /// shown for the same document.
@@ -15384,9 +15449,10 @@ class DocumentSymbolRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -15423,8 +15489,12 @@ class DocumentSymbolRegistrationOptions
   bool operator ==(Object other) {
     if (other is DocumentSymbolRegistrationOptions &&
         other.runtimeType == DocumentSymbolRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           label == other.label &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -18101,8 +18171,8 @@ class FoldingRangeRegistrationOptions
   static FoldingRangeRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -18117,7 +18187,7 @@ class FoldingRangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -18147,9 +18217,10 @@ class FoldingRangeRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -18186,8 +18257,12 @@ class FoldingRangeRegistrationOptions
   bool operator ==(Object other) {
     if (other is FoldingRangeRegistrationOptions &&
         other.runtimeType == FoldingRangeRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -19205,8 +19280,8 @@ class HoverRegistrationOptions
   static HoverRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -19218,7 +19293,7 @@ class HoverRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
@@ -19241,9 +19316,10 @@ class HoverRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -19270,8 +19346,12 @@ class HoverRegistrationOptions
   bool operator ==(Object other) {
     if (other is HoverRegistrationOptions &&
         other.runtimeType == HoverRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           workDoneProgress == other.workDoneProgress &&
           true;
     }
@@ -19628,8 +19708,8 @@ class ImplementationRegistrationOptions
   static ImplementationRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -19644,7 +19724,7 @@ class ImplementationRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -19674,9 +19754,10 @@ class ImplementationRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -19713,8 +19794,12 @@ class ImplementationRegistrationOptions
   bool operator ==(Object other) {
     if (other is ImplementationRegistrationOptions &&
         other.runtimeType == ImplementationRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -21248,8 +21333,8 @@ class InlayHintRegistrationOptions
   static InlayHintRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -21267,7 +21352,7 @@ class InlayHintRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -21304,9 +21389,10 @@ class InlayHintRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -21353,8 +21439,12 @@ class InlayHintRegistrationOptions
   bool operator ==(Object other) {
     if (other is InlayHintRegistrationOptions &&
         other.runtimeType == InlayHintRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           resolveProvider == other.resolveProvider &&
           workDoneProgress == other.workDoneProgress &&
@@ -21966,8 +22056,8 @@ class InlineValueRegistrationOptions
   static InlineValueRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -21982,7 +22072,7 @@ class InlineValueRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -22012,9 +22102,10 @@ class InlineValueRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -22051,8 +22142,12 @@ class InlineValueRegistrationOptions
   bool operator ==(Object other) {
     if (other is InlineValueRegistrationOptions &&
         other.runtimeType == InlineValueRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -22865,8 +22960,8 @@ class LinkedEditingRangeRegistrationOptions
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -22881,7 +22976,7 @@ class LinkedEditingRangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -22911,9 +23006,10 @@ class LinkedEditingRangeRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -22951,8 +23047,12 @@ class LinkedEditingRangeRegistrationOptions
   bool operator ==(Object other) {
     if (other is LinkedEditingRangeRegistrationOptions &&
         other.runtimeType == LinkedEditingRangeRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -24716,8 +24816,8 @@ class MonikerRegistrationOptions
   static MonikerRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -24729,7 +24829,7 @@ class MonikerRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
@@ -24752,9 +24852,10 @@ class MonikerRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -24781,8 +24882,12 @@ class MonikerRegistrationOptions
   bool operator ==(Object other) {
     if (other is MonikerRegistrationOptions &&
         other.runtimeType == MonikerRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           workDoneProgress == other.workDoneProgress &&
           true;
     }
@@ -25503,7 +25608,7 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
         : null;
     final textContentJson = json['textContent'];
     final textContent = (textContentJson as List<Object?>?)
-        ?.map((item) => NotebookDocumentChangeEventTextContent.fromJson(
+        ?.map((item) => NotebookDocumentChangeEventCellsTextContent.fromJson(
             item as Map<String, Object?>))
         .toList();
     return NotebookDocumentChangeEventCells(
@@ -25521,7 +25626,7 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
   final NotebookDocumentChangeEventCellsStructure? structure;
 
   /// Changes to the text content of notebook cells.
-  final List<NotebookDocumentChangeEventTextContent>? textContent;
+  final List<NotebookDocumentChangeEventCellsTextContent>? textContent;
 
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
@@ -25572,10 +25677,10 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
         if (textContent != null &&
             !((textContent is List<Object?> &&
                 (textContent.every((item) =>
-                    NotebookDocumentChangeEventTextContent.canParse(
+                    NotebookDocumentChangeEventCellsTextContent.canParse(
                         item, reporter)))))) {
           reporter.reportError(
-              'must be of type List<NotebookDocumentChangeEventTextContent>');
+              'must be of type List<NotebookDocumentChangeEventCellsTextContent>');
           return false;
         }
       } finally {
@@ -25598,8 +25703,8 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
           listEqual(
               textContent,
               other.textContent,
-              (NotebookDocumentChangeEventTextContent a,
-                      NotebookDocumentChangeEventTextContent b) =>
+              (NotebookDocumentChangeEventCellsTextContent a,
+                      NotebookDocumentChangeEventCellsTextContent b) =>
                   a == b) &&
           true;
     }
@@ -25749,17 +25854,17 @@ class NotebookDocumentChangeEventCellsStructure implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class NotebookDocumentChangeEventTextContent implements ToJsonable {
+class NotebookDocumentChangeEventCellsTextContent implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    NotebookDocumentChangeEventTextContent.canParse,
-    NotebookDocumentChangeEventTextContent.fromJson,
+    NotebookDocumentChangeEventCellsTextContent.canParse,
+    NotebookDocumentChangeEventCellsTextContent.fromJson,
   );
 
-  NotebookDocumentChangeEventTextContent({
+  NotebookDocumentChangeEventCellsTextContent({
     required this.changes,
     required this.document,
   });
-  static NotebookDocumentChangeEventTextContent fromJson(
+  static NotebookDocumentChangeEventCellsTextContent fromJson(
       Map<String, Object?> json) {
     final changesJson = json['changes'];
     final changes = (changesJson as List<Object?>)
@@ -25777,7 +25882,7 @@ class NotebookDocumentChangeEventTextContent implements ToJsonable {
     final documentJson = json['document'];
     final document = VersionedTextDocumentIdentifier.fromJson(
         documentJson as Map<String, Object?>);
-    return NotebookDocumentChangeEventTextContent(
+    return NotebookDocumentChangeEventCellsTextContent(
       changes: changes,
       document: document,
     );
@@ -25841,15 +25946,15 @@ class NotebookDocumentChangeEventTextContent implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          'must be of type NotebookDocumentChangeEventTextContent');
+          'must be of type NotebookDocumentChangeEventCellsTextContent');
       return false;
     }
   }
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentChangeEventTextContent &&
-        other.runtimeType == NotebookDocumentChangeEventTextContent) {
+    if (other is NotebookDocumentChangeEventCellsTextContent &&
+        other.runtimeType == NotebookDocumentChangeEventCellsTextContent) {
       return listEqual(
               changes,
               other.changes,
@@ -26578,142 +26683,6 @@ class NotebookDocumentSyncOptions implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class NotebookDocumentSyncOptionsCells implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    NotebookDocumentSyncOptionsCells.canParse,
-    NotebookDocumentSyncOptionsCells.fromJson,
-  );
-
-  NotebookDocumentSyncOptionsCells({
-    required this.language,
-  });
-  static NotebookDocumentSyncOptionsCells fromJson(Map<String, Object?> json) {
-    final languageJson = json['language'];
-    final language = languageJson as String;
-    return NotebookDocumentSyncOptionsCells(
-      language: language,
-    );
-  }
-
-  final String language;
-
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['language'] = language;
-    return result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('language');
-      try {
-        if (!obj.containsKey('language')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final language = obj['language'];
-        if (language == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(language is String)) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError('must be of type NotebookDocumentSyncOptionsCells');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is NotebookDocumentSyncOptionsCells &&
-        other.runtimeType == NotebookDocumentSyncOptionsCells) {
-      return language == other.language && true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => language.hashCode;
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class NotebookDocumentSyncOptionsCells2 implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    NotebookDocumentSyncOptionsCells2.canParse,
-    NotebookDocumentSyncOptionsCells2.fromJson,
-  );
-
-  NotebookDocumentSyncOptionsCells2({
-    required this.language,
-  });
-  static NotebookDocumentSyncOptionsCells2 fromJson(Map<String, Object?> json) {
-    final languageJson = json['language'];
-    final language = languageJson as String;
-    return NotebookDocumentSyncOptionsCells2(
-      language: language,
-    );
-  }
-
-  final String language;
-
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['language'] = language;
-    return result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('language');
-      try {
-        if (!obj.containsKey('language')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final language = obj['language'];
-        if (language == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(language is String)) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError('must be of type NotebookDocumentSyncOptionsCells2');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is NotebookDocumentSyncOptionsCells2 &&
-        other.runtimeType == NotebookDocumentSyncOptionsCells2) {
-      return language == other.language && true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => language.hashCode;
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
 class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     NotebookDocumentSyncOptionsNotebookSelector.canParse,
@@ -26728,8 +26697,9 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
       Map<String, Object?> json) {
     final cellsJson = json['cells'];
     final cells = (cellsJson as List<Object?>?)
-        ?.map((item) => NotebookDocumentSyncOptionsCells.fromJson(
-            item as Map<String, Object?>))
+        ?.map((item) =>
+            NotebookDocumentSyncOptionsNotebookSelectorCells.fromJson(
+                item as Map<String, Object?>))
         .toList();
     final notebookDocumentJson = json['notebookDocument'];
     final notebookDocument = (NotebookDocumentFilter1.canParse(
@@ -26755,7 +26725,7 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
   }
 
   /// The cells of the matching notebook to be synced.
-  final List<NotebookDocumentSyncOptionsCells>? cells;
+  final List<NotebookDocumentSyncOptionsNotebookSelectorCells>? cells;
 
   /// The notebook to be synced If a string value is provided it matches against
   /// the notebook type. '*' matches every notebook.
@@ -26781,10 +26751,10 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
         if (cells != null &&
             !((cells is List<Object?> &&
                 (cells.every((item) =>
-                    NotebookDocumentSyncOptionsCells.canParse(
+                    NotebookDocumentSyncOptionsNotebookSelectorCells.canParse(
                         item, reporter)))))) {
           reporter.reportError(
-              'must be of type List<NotebookDocumentSyncOptionsCells>');
+              'must be of type List<NotebookDocumentSyncOptionsNotebookSelectorCells>');
           return false;
         }
       } finally {
@@ -26827,8 +26797,8 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
       return listEqual(
               cells,
               other.cells,
-              (NotebookDocumentSyncOptionsCells a,
-                      NotebookDocumentSyncOptionsCells b) =>
+              (NotebookDocumentSyncOptionsNotebookSelectorCells a,
+                      NotebookDocumentSyncOptionsNotebookSelectorCells b) =>
                   a == b) &&
           notebookDocument == other.notebookDocument &&
           true;
@@ -26860,8 +26830,9 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
       Map<String, Object?> json) {
     final cellsJson = json['cells'];
     final cells = (cellsJson as List<Object?>)
-        .map((item) => NotebookDocumentSyncOptionsCells2.fromJson(
-            item as Map<String, Object?>))
+        .map((item) =>
+            NotebookDocumentSyncOptionsNotebookSelector2Cells.fromJson(
+                item as Map<String, Object?>))
         .toList();
     final notebookDocumentJson = json['notebookDocument'];
     final notebookDocument = notebookDocumentJson == null
@@ -26888,7 +26859,7 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
   }
 
   /// The cells of the matching notebook to be synced.
-  final List<NotebookDocumentSyncOptionsCells2> cells;
+  final List<NotebookDocumentSyncOptionsNotebookSelector2Cells> cells;
 
   /// The notebook to be synced If a string value is provided it matches against
   /// the notebook type. '*' matches every notebook.
@@ -26920,10 +26891,11 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
           return false;
         }
         if (!((cells is List<Object?> &&
-            (cells.every((item) => NotebookDocumentSyncOptionsCells2.canParse(
-                item, reporter)))))) {
+            (cells.every((item) =>
+                NotebookDocumentSyncOptionsNotebookSelector2Cells.canParse(
+                    item, reporter)))))) {
           reporter.reportError(
-              'must be of type List<NotebookDocumentSyncOptionsCells2>');
+              'must be of type List<NotebookDocumentSyncOptionsNotebookSelector2Cells>');
           return false;
         }
       } finally {
@@ -26961,8 +26933,8 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
       return listEqual(
               cells,
               other.cells,
-              (NotebookDocumentSyncOptionsCells2 a,
-                      NotebookDocumentSyncOptionsCells2 b) =>
+              (NotebookDocumentSyncOptionsNotebookSelector2Cells a,
+                      NotebookDocumentSyncOptionsNotebookSelector2Cells b) =>
                   a == b) &&
           notebookDocument == other.notebookDocument &&
           true;
@@ -26975,6 +26947,147 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
         lspHashCode(cells),
         notebookDocument,
       );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class NotebookDocumentSyncOptionsNotebookSelector2Cells implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    NotebookDocumentSyncOptionsNotebookSelector2Cells.canParse,
+    NotebookDocumentSyncOptionsNotebookSelector2Cells.fromJson,
+  );
+
+  NotebookDocumentSyncOptionsNotebookSelector2Cells({
+    required this.language,
+  });
+  static NotebookDocumentSyncOptionsNotebookSelector2Cells fromJson(
+      Map<String, Object?> json) {
+    final languageJson = json['language'];
+    final language = languageJson as String;
+    return NotebookDocumentSyncOptionsNotebookSelector2Cells(
+      language: language,
+    );
+  }
+
+  final String language;
+
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['language'] = language;
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('language');
+      try {
+        if (!obj.containsKey('language')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final language = obj['language'];
+        if (language == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(language is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError(
+          'must be of type NotebookDocumentSyncOptionsNotebookSelector2Cells');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is NotebookDocumentSyncOptionsNotebookSelector2Cells &&
+        other.runtimeType ==
+            NotebookDocumentSyncOptionsNotebookSelector2Cells) {
+      return language == other.language && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => language.hashCode;
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class NotebookDocumentSyncOptionsNotebookSelectorCells implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    NotebookDocumentSyncOptionsNotebookSelectorCells.canParse,
+    NotebookDocumentSyncOptionsNotebookSelectorCells.fromJson,
+  );
+
+  NotebookDocumentSyncOptionsNotebookSelectorCells({
+    required this.language,
+  });
+  static NotebookDocumentSyncOptionsNotebookSelectorCells fromJson(
+      Map<String, Object?> json) {
+    final languageJson = json['language'];
+    final language = languageJson as String;
+    return NotebookDocumentSyncOptionsNotebookSelectorCells(
+      language: language,
+    );
+  }
+
+  final String language;
+
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['language'] = language;
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('language');
+      try {
+        if (!obj.containsKey('language')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final language = obj['language'];
+        if (language == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(language is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError(
+          'must be of type NotebookDocumentSyncOptionsNotebookSelectorCells');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is NotebookDocumentSyncOptionsNotebookSelectorCells &&
+        other.runtimeType == NotebookDocumentSyncOptionsNotebookSelectorCells) {
+      return language == other.language && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => language.hashCode;
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -28923,8 +29036,8 @@ class ReferenceRegistrationOptions
   static ReferenceRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -28936,7 +29049,7 @@ class ReferenceRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
   final bool? workDoneProgress;
 
   Map<String, Object?> toJson() {
@@ -28959,9 +29072,10 @@ class ReferenceRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -28988,8 +29102,12 @@ class ReferenceRegistrationOptions
   bool operator ==(Object other) {
     if (other is ReferenceRegistrationOptions &&
         other.runtimeType == ReferenceRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           workDoneProgress == other.workDoneProgress &&
           true;
     }
@@ -30525,8 +30643,8 @@ class RenameRegistrationOptions
   static RenameRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final prepareProviderJson = json['prepareProvider'];
     final prepareProvider = prepareProviderJson as bool?;
@@ -30541,7 +30659,7 @@ class RenameRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// Renames should be checked and tested before being executed.
   final bool? prepareProvider;
@@ -30570,9 +30688,10 @@ class RenameRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -30609,8 +30728,12 @@ class RenameRegistrationOptions
   bool operator ==(Object other) {
     if (other is RenameRegistrationOptions &&
         other.runtimeType == RenameRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           prepareProvider == other.prepareProvider &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -31137,8 +31260,8 @@ class SelectionRangeRegistrationOptions
   static SelectionRangeRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -31153,7 +31276,7 @@ class SelectionRangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -31183,9 +31306,10 @@ class SelectionRangeRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -31222,8 +31346,12 @@ class SelectionRangeRegistrationOptions
   bool operator ==(Object other) {
     if (other is SelectionRangeRegistrationOptions &&
         other.runtimeType == SelectionRangeRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -31721,20 +31849,140 @@ class SemanticTokensClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class SemanticTokensClientCapabilitiesFull implements ToJsonable {
+class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    SemanticTokensClientCapabilitiesFull.canParse,
-    SemanticTokensClientCapabilitiesFull.fromJson,
+    SemanticTokensClientCapabilitiesRequests.canParse,
+    SemanticTokensClientCapabilitiesRequests.fromJson,
   );
 
-  SemanticTokensClientCapabilitiesFull({
+  SemanticTokensClientCapabilitiesRequests({
+    this.full,
+    this.range,
+  });
+  static SemanticTokensClientCapabilitiesRequests fromJson(
+      Map<String, Object?> json) {
+    final fullJson = json['full'];
+    final full = fullJson == null
+        ? null
+        : (fullJson is bool
+            ? Either2<bool, SemanticTokensClientCapabilitiesRequestsFull>.t1(
+                fullJson)
+            : (SemanticTokensClientCapabilitiesRequestsFull.canParse(
+                    fullJson, nullLspJsonReporter)
+                ? Either2<bool,
+                        SemanticTokensClientCapabilitiesRequestsFull>.t2(
+                    SemanticTokensClientCapabilitiesRequestsFull.fromJson(
+                        fullJson as Map<String, Object?>))
+                : (throw '''$fullJson was not one of (bool, SemanticTokensClientCapabilitiesRequestsFull)''')));
+    final rangeJson = json['range'];
+    final range = rangeJson == null
+        ? null
+        : (rangeJson is bool
+            ? Either2<bool, SemanticTokensClientCapabilitiesRequestsRange>.t1(
+                rangeJson)
+            : (SemanticTokensClientCapabilitiesRequestsRange.canParse(
+                    rangeJson, nullLspJsonReporter)
+                ? Either2<bool,
+                        SemanticTokensClientCapabilitiesRequestsRange>.t2(
+                    SemanticTokensClientCapabilitiesRequestsRange.fromJson(
+                        rangeJson as Map<String, Object?>))
+                : (throw '''$rangeJson was not one of (bool, SemanticTokensClientCapabilitiesRequestsRange)''')));
+    return SemanticTokensClientCapabilitiesRequests(
+      full: full,
+      range: range,
+    );
+  }
+
+  /// The client will send the `textDocument/semanticTokens/full` request if the
+  /// server provides a corresponding handler.
+  final Either2<bool, SemanticTokensClientCapabilitiesRequestsFull>? full;
+
+  /// The client will send the `textDocument/semanticTokens/range` request if
+  /// the server provides a corresponding handler.
+  final Either2<bool, SemanticTokensClientCapabilitiesRequestsRange>? range;
+
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (full != null) {
+      result['full'] = full;
+    }
+    if (range != null) {
+      result['range'] = range;
+    }
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('full');
+      try {
+        final full = obj['full'];
+        if (full != null &&
+            !((full is bool ||
+                SemanticTokensClientCapabilitiesRequestsFull.canParse(
+                    full, reporter)))) {
+          reporter.reportError(
+              'must be of type Either2<bool, SemanticTokensClientCapabilitiesRequestsFull>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('range');
+      try {
+        final range = obj['range'];
+        if (range != null &&
+            !((range is bool ||
+                SemanticTokensClientCapabilitiesRequestsRange.canParse(
+                    range, reporter)))) {
+          reporter.reportError(
+              'must be of type Either2<bool, SemanticTokensClientCapabilitiesRequestsRange>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError(
+          'must be of type SemanticTokensClientCapabilitiesRequests');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is SemanticTokensClientCapabilitiesRequests &&
+        other.runtimeType == SemanticTokensClientCapabilitiesRequests) {
+      return full == other.full && range == other.range && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        full,
+        range,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class SemanticTokensClientCapabilitiesRequestsFull implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    SemanticTokensClientCapabilitiesRequestsFull.canParse,
+    SemanticTokensClientCapabilitiesRequestsFull.fromJson,
+  );
+
+  SemanticTokensClientCapabilitiesRequestsFull({
     this.delta,
   });
-  static SemanticTokensClientCapabilitiesFull fromJson(
+  static SemanticTokensClientCapabilitiesRequestsFull fromJson(
       Map<String, Object?> json) {
     final deltaJson = json['delta'];
     final delta = deltaJson as bool?;
-    return SemanticTokensClientCapabilitiesFull(
+    return SemanticTokensClientCapabilitiesRequestsFull(
       delta: delta,
     );
   }
@@ -31765,16 +32013,16 @@ class SemanticTokensClientCapabilitiesFull implements ToJsonable {
       }
       return true;
     } else {
-      reporter
-          .reportError('must be of type SemanticTokensClientCapabilitiesFull');
+      reporter.reportError(
+          'must be of type SemanticTokensClientCapabilitiesRequestsFull');
       return false;
     }
   }
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensClientCapabilitiesFull &&
-        other.runtimeType == SemanticTokensClientCapabilitiesFull) {
+    if (other is SemanticTokensClientCapabilitiesRequestsFull &&
+        other.runtimeType == SemanticTokensClientCapabilitiesRequestsFull) {
       return delta == other.delta && true;
     }
     return false;
@@ -31787,15 +32035,15 @@ class SemanticTokensClientCapabilitiesFull implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class SemanticTokensClientCapabilitiesRange implements ToJsonable {
+class SemanticTokensClientCapabilitiesRequestsRange implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    SemanticTokensClientCapabilitiesRange.canParse,
-    SemanticTokensClientCapabilitiesRange.fromJson,
+    SemanticTokensClientCapabilitiesRequestsRange.canParse,
+    SemanticTokensClientCapabilitiesRequestsRange.fromJson,
   );
 
-  static SemanticTokensClientCapabilitiesRange fromJson(
+  static SemanticTokensClientCapabilitiesRequestsRange fromJson(
       Map<String, Object?> json) {
-    return SemanticTokensClientCapabilitiesRange();
+    return SemanticTokensClientCapabilitiesRequestsRange();
   }
 
   Map<String, Object?> toJson() {
@@ -31807,16 +32055,16 @@ class SemanticTokensClientCapabilitiesRange implements ToJsonable {
     if (obj is Map<String, Object?>) {
       return true;
     } else {
-      reporter
-          .reportError('must be of type SemanticTokensClientCapabilitiesRange');
+      reporter.reportError(
+          'must be of type SemanticTokensClientCapabilitiesRequestsRange');
       return false;
     }
   }
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensClientCapabilitiesRange &&
-        other.runtimeType == SemanticTokensClientCapabilitiesRange) {
+    if (other is SemanticTokensClientCapabilitiesRequestsRange &&
+        other.runtimeType == SemanticTokensClientCapabilitiesRequestsRange) {
       return true;
     }
     return false;
@@ -31824,122 +32072,6 @@ class SemanticTokensClientCapabilitiesRange implements ToJsonable {
 
   @override
   int get hashCode => 42;
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    SemanticTokensClientCapabilitiesRequests.canParse,
-    SemanticTokensClientCapabilitiesRequests.fromJson,
-  );
-
-  SemanticTokensClientCapabilitiesRequests({
-    this.full,
-    this.range,
-  });
-  static SemanticTokensClientCapabilitiesRequests fromJson(
-      Map<String, Object?> json) {
-    final fullJson = json['full'];
-    final full = fullJson == null
-        ? null
-        : (fullJson is bool
-            ? Either2<bool, SemanticTokensClientCapabilitiesFull>.t1(fullJson)
-            : (SemanticTokensClientCapabilitiesFull.canParse(
-                    fullJson, nullLspJsonReporter)
-                ? Either2<bool, SemanticTokensClientCapabilitiesFull>.t2(
-                    SemanticTokensClientCapabilitiesFull.fromJson(
-                        fullJson as Map<String, Object?>))
-                : (throw '''$fullJson was not one of (bool, SemanticTokensClientCapabilitiesFull)''')));
-    final rangeJson = json['range'];
-    final range = rangeJson == null
-        ? null
-        : (rangeJson is bool
-            ? Either2<bool, SemanticTokensClientCapabilitiesRange>.t1(rangeJson)
-            : (SemanticTokensClientCapabilitiesRange.canParse(
-                    rangeJson, nullLspJsonReporter)
-                ? Either2<bool, SemanticTokensClientCapabilitiesRange>.t2(
-                    SemanticTokensClientCapabilitiesRange.fromJson(
-                        rangeJson as Map<String, Object?>))
-                : (throw '''$rangeJson was not one of (bool, SemanticTokensClientCapabilitiesRange)''')));
-    return SemanticTokensClientCapabilitiesRequests(
-      full: full,
-      range: range,
-    );
-  }
-
-  /// The client will send the `textDocument/semanticTokens/full` request if the
-  /// server provides a corresponding handler.
-  final Either2<bool, SemanticTokensClientCapabilitiesFull>? full;
-
-  /// The client will send the `textDocument/semanticTokens/range` request if
-  /// the server provides a corresponding handler.
-  final Either2<bool, SemanticTokensClientCapabilitiesRange>? range;
-
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    if (full != null) {
-      result['full'] = full;
-    }
-    if (range != null) {
-      result['range'] = range;
-    }
-    return result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('full');
-      try {
-        final full = obj['full'];
-        if (full != null &&
-            !((full is bool ||
-                SemanticTokensClientCapabilitiesFull.canParse(
-                    full, reporter)))) {
-          reporter.reportError(
-              'must be of type Either2<bool, SemanticTokensClientCapabilitiesFull>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('range');
-      try {
-        final range = obj['range'];
-        if (range != null &&
-            !((range is bool ||
-                SemanticTokensClientCapabilitiesRange.canParse(
-                    range, reporter)))) {
-          reporter.reportError(
-              'must be of type Either2<bool, SemanticTokensClientCapabilitiesRange>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError(
-          'must be of type SemanticTokensClientCapabilitiesRequests');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is SemanticTokensClientCapabilitiesRequests &&
-        other.runtimeType == SemanticTokensClientCapabilitiesRequests) {
-      return full == other.full && range == other.range && true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        full,
-        range,
-      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -33164,8 +33296,8 @@ class SemanticTokensRegistrationOptions
   static SemanticTokensRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final fullJson = json['full'];
     final full = fullJson == null
@@ -33207,7 +33339,7 @@ class SemanticTokensRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// Server supports providing semantic tokens for a full document.
   final Either2<bool, SemanticTokensOptionsFull>? full;
@@ -33254,9 +33386,10 @@ class SemanticTokensRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -33337,8 +33470,12 @@ class SemanticTokensRegistrationOptions
   bool operator ==(Object other) {
     if (other is SemanticTokensRegistrationOptions &&
         other.runtimeType == SemanticTokensRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           full == other.full &&
           id == other.id &&
           legend == other.legend &&
@@ -36447,8 +36584,8 @@ class SignatureHelpRegistrationOptions
   static SignatureHelpRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final retriggerCharactersJson = json['retriggerCharacters'];
     final retriggerCharacters = (retriggerCharactersJson as List<Object?>?)
@@ -36470,7 +36607,7 @@ class SignatureHelpRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// List of characters that re-trigger signature help.
   ///
@@ -36509,9 +36646,10 @@ class SignatureHelpRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -36562,8 +36700,12 @@ class SignatureHelpRegistrationOptions
   bool operator ==(Object other) {
     if (other is SignatureHelpRegistrationOptions &&
         other.runtimeType == SignatureHelpRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           listEqual(retriggerCharacters, other.retriggerCharacters,
               (String a, String b) => a == b) &&
           listEqual(triggerCharacters, other.triggerCharacters,
@@ -37264,8 +37406,8 @@ class TextDocumentChangeRegistrationOptions
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final syncKindJson = json['syncKind'];
     final syncKind = TextDocumentSyncKind.fromJson(syncKindJson as int);
@@ -37277,7 +37419,7 @@ class TextDocumentChangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// How documents are synced to the server. See TextDocumentSyncKind.Full and
   /// TextDocumentSyncKind.Incremental.
@@ -37301,9 +37443,10 @@ class TextDocumentChangeRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -37339,8 +37482,12 @@ class TextDocumentChangeRegistrationOptions
   bool operator ==(Object other) {
     if (other is TextDocumentChangeRegistrationOptions &&
         other.runtimeType == TextDocumentChangeRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           syncKind == other.syncKind &&
           true;
     }
@@ -37542,7 +37689,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
         : null;
     final typeHierarchyJson = json['typeHierarchy'];
     final typeHierarchy = typeHierarchyJson != null
-        ? TypeHierarchyClientCapabilities1.fromJson(
+        ? TypeHierarchyClientCapabilities.fromJson(
             typeHierarchyJson as Map<String, Object?>)
         : null;
     return TextDocumentClientCapabilities(
@@ -37682,7 +37829,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
 
   /// Capabilities specific to the various type hierarchy requests.
   ///  @since 3.17.0
-  final TypeHierarchyClientCapabilities1? typeHierarchy;
+  final TypeHierarchyClientCapabilities? typeHierarchy;
 
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
@@ -38138,10 +38285,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final typeHierarchy = obj['typeHierarchy'];
         if (typeHierarchy != null &&
-            !(TypeHierarchyClientCapabilities1.canParse(
+            !(TypeHierarchyClientCapabilities.canParse(
                 typeHierarchy, reporter))) {
           reporter
-              .reportError('must be of type TypeHierarchyClientCapabilities1');
+              .reportError('must be of type TypeHierarchyClientCapabilities');
           return false;
         }
       } finally {
@@ -38549,25 +38696,25 @@ class TextDocumentEdit implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class TextDocumentFilter implements ToJsonable {
+class TextDocumentFilterWithScheme implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    TextDocumentFilter.canParse,
-    TextDocumentFilter.fromJson,
+    TextDocumentFilterWithScheme.canParse,
+    TextDocumentFilterWithScheme.fromJson,
   );
 
-  TextDocumentFilter({
+  TextDocumentFilterWithScheme({
     this.language,
     this.pattern,
     this.scheme,
   });
-  static TextDocumentFilter fromJson(Map<String, Object?> json) {
+  static TextDocumentFilterWithScheme fromJson(Map<String, Object?> json) {
     final languageJson = json['language'];
     final language = languageJson as String?;
     final patternJson = json['pattern'];
     final pattern = patternJson as String?;
     final schemeJson = json['scheme'];
     final scheme = schemeJson as String?;
-    return TextDocumentFilter(
+    return TextDocumentFilterWithScheme(
       language: language,
       pattern: pattern,
       scheme: scheme,
@@ -38643,15 +38790,15 @@ class TextDocumentFilter implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError('must be of type TextDocumentFilter');
+      reporter.reportError('must be of type TextDocumentFilterWithScheme');
       return false;
     }
   }
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentFilter &&
-        other.runtimeType == TextDocumentFilter) {
+    if (other is TextDocumentFilterWithScheme &&
+        other.runtimeType == TextDocumentFilterWithScheme) {
       return language == other.language &&
           pattern == other.pattern &&
           scheme == other.scheme &&
@@ -39159,8 +39306,8 @@ class TextDocumentRegistrationOptions implements ToJsonable {
     }
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     return TextDocumentRegistrationOptions(
       documentSelector: documentSelector,
@@ -39169,7 +39316,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
@@ -39188,9 +39335,10 @@ class TextDocumentRegistrationOptions implements ToJsonable {
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -39207,8 +39355,12 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   bool operator ==(Object other) {
     if (other is TextDocumentRegistrationOptions &&
         other.runtimeType == TextDocumentRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           true;
     }
     return false;
@@ -39269,8 +39421,8 @@ class TextDocumentSaveRegistrationOptions
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final includeTextJson = json['includeText'];
     final includeText = includeTextJson as bool?;
@@ -39282,7 +39434,7 @@ class TextDocumentSaveRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The client is supposed to include the content on save.
   final bool? includeText;
@@ -39307,9 +39459,10 @@ class TextDocumentSaveRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -39337,8 +39490,12 @@ class TextDocumentSaveRegistrationOptions
   bool operator ==(Object other) {
     if (other is TextDocumentSaveRegistrationOptions &&
         other.runtimeType == TextDocumentSaveRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           includeText == other.includeText &&
           true;
     }
@@ -40165,8 +40322,8 @@ class TypeDefinitionRegistrationOptions
   static TypeDefinitionRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -40181,7 +40338,7 @@ class TypeDefinitionRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -40211,9 +40368,10 @@ class TypeDefinitionRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -40250,8 +40408,12 @@ class TypeDefinitionRegistrationOptions
   bool operator ==(Object other) {
     if (other is TypeDefinitionRegistrationOptions &&
         other.runtimeType == TypeDefinitionRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -40270,19 +40432,19 @@ class TypeDefinitionRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class TypeHierarchyClientCapabilities1 implements ToJsonable {
+class TypeHierarchyClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    TypeHierarchyClientCapabilities1.canParse,
-    TypeHierarchyClientCapabilities1.fromJson,
+    TypeHierarchyClientCapabilities.canParse,
+    TypeHierarchyClientCapabilities.fromJson,
   );
 
-  TypeHierarchyClientCapabilities1({
+  TypeHierarchyClientCapabilities({
     this.dynamicRegistration,
   });
-  static TypeHierarchyClientCapabilities1 fromJson(Map<String, Object?> json) {
+  static TypeHierarchyClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
-    return TypeHierarchyClientCapabilities1(
+    return TypeHierarchyClientCapabilities(
       dynamicRegistration: dynamicRegistration,
     );
   }
@@ -40315,15 +40477,15 @@ class TypeHierarchyClientCapabilities1 implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError('must be of type TypeHierarchyClientCapabilities1');
+      reporter.reportError('must be of type TypeHierarchyClientCapabilities');
       return false;
     }
   }
 
   @override
   bool operator ==(Object other) {
-    if (other is TypeHierarchyClientCapabilities1 &&
-        other.runtimeType == TypeHierarchyClientCapabilities1) {
+    if (other is TypeHierarchyClientCapabilities &&
+        other.runtimeType == TypeHierarchyClientCapabilities) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
     return false;
@@ -40801,8 +40963,8 @@ class TypeHierarchyRegistrationOptions
   static TypeHierarchyRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -40817,7 +40979,7 @@ class TypeHierarchyRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
@@ -40847,9 +41009,10 @@ class TypeHierarchyRegistrationOptions
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
             !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+                (documentSelector.every((item) =>
+                    TextDocumentFilterWithScheme.canParse(item, reporter)))))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -40886,8 +41049,12 @@ class TypeHierarchyRegistrationOptions
   bool operator ==(Object other) {
     if (other is TypeHierarchyRegistrationOptions &&
         other.runtimeType == TypeHierarchyRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;

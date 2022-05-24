@@ -623,9 +623,10 @@ class Parser {
       TypeBase type;
       if (_match([TokenType.LEFT_BRACE])) {
         // Inline interfaces.
+        final generatedName = _getAvailableName(containerName, fieldName);
         final members = <Member>[];
         while (!_check(TokenType.RIGHT_BRACE)) {
-          members.add(_member(containerName));
+          members.add(_member(generatedName));
         }
 
         _consume(TokenType.RIGHT_BRACE, 'Expected }');
@@ -638,7 +639,6 @@ class Parser {
           type = MapType(indexer.indexType, indexer.valueType);
         } else {
           // Add a synthetic interface to the parsers list of nodes to represent this type.
-          final generatedName = _getAvailableName(containerName, fieldName);
           _addNode(InlineInterface(generatedName, members));
           // Record the type as a simple type that references this interface.
           type = Type.identifier(generatedName);

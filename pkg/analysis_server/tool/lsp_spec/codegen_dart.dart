@@ -73,23 +73,26 @@ Iterable<AstNode> renameTypes(List<AstNode> types) sync* {
     //   the migration to JSON meta_model.
     'ClientCapabilitiesWindow': 'WindowClientCapabilities',
     'ClientCapabilitiesWorkspace': 'WorkspaceClientCapabilities',
-    'ClientCapabilitiesFileOperations': 'FileOperationClientCapabilities',
-    'ServerCapabilitiesFileOperations': 'FileOperationOptions',
+    'ClientCapabilitiesWorkspaceFileOperations':
+        'FileOperationClientCapabilities',
+    'ServerCapabilitiesWorkspaceFileOperations': 'FileOperationOptions',
     'ClientCapabilitiesGeneral': 'GeneralClientCapabilities',
-    'CompletionClientCapabilitiesInsertTextModeSupport':
+    'CompletionClientCapabilitiesCompletionItemInsertTextModeSupport':
         'CompletionItemInsertTextModeSupport',
-    'CompletionClientCapabilitiesResolveSupport':
+    'CompletionClientCapabilitiesCompletionItemResolveSupport':
         'CompletionItemResolveSupport',
-    'CompletionClientCapabilitiesTagSupport': 'CompletionItemTagSupport',
-    'CodeActionClientCapabilitiesCodeActionKind':
+    'CompletionClientCapabilitiesCompletionItemTagSupport':
+        'CompletionItemTagSupport',
+    'CodeActionClientCapabilitiesCodeActionLiteralSupportCodeActionKind':
         'CodeActionLiteralSupportCodeActionKind',
-    'DocumentFilter': 'TextDocumentFilter',
-    'ClientCapabilitiesStaleRequestSupport':
+    // In JSON model this becomes a union of literals which we assign improved
+    // names to (to avoid numeric suffixes).
+    'DocumentFilter': 'TextDocumentFilterWithScheme',
+    'ClientCapabilitiesGeneralStaleRequestSupport':
         'GeneralClientCapabilitiesStaleRequestSupport',
-    'SignatureHelpClientCapabilitiesParameterInformation':
+    'SignatureHelpClientCapabilitiesSignatureInformationParameterInformation':
         'SignatureInformationParameterInformation',
-    'NotebookDocumentChangeEventStructure':
-        'NotebookDocumentChangeEventCellsStructure',
+    'CompletionListItemDefaultsEditRange': 'CompletionItemEditRange',
   };
 
   for (final type in types) {
