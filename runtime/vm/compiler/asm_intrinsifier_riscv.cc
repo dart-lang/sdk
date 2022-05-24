@@ -151,8 +151,19 @@ void AsmIntrinsifier::Integer_equal(Assembler* assembler,
 
 void AsmIntrinsifier::Smi_bitLength(Assembler* assembler,
                                     Label* normal_ir_body) {
-  // TODO(riscv)
-  __ Bind(normal_ir_body);
+  __ lx(A0, Address(SP, 0 * target::kWordSize));
+  __ SmiUntag(A0);
+
+  // XOR with sign bit to complement bits if value is negative.
+  __ srai(A1, A0, XLEN - 1);
+  __ xor_(A0, A0, A1);
+
+  __ CountLeadingZeroes(A0, A0);
+
+  __ li(TMP, XLEN);
+  __ sub(A0, TMP, A0);
+  __ SmiTag(A0);
+  __ ret();
 }
 
 void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {

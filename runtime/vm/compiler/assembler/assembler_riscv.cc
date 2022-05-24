@@ -4470,6 +4470,56 @@ void Assembler::MultiplyBranchOverflow(Register rd,
   bne(TMP, TMP2, overflow);
 }
 
+void Assembler::CountLeadingZeroes(Register rd, Register rs) {
+  // Note: clz will appear in the Zbb extension.
+  // if (Supports(RV_Zbb)) {
+  //   clz(rd, rs);
+  // }
+
+  //  n = XLEN
+  //  y = x >>32; if (y != 0) { n = n - 32; x = y; }
+  //  y = x >>16; if (y != 0) { n = n - 16; x = y; }
+  //  y = x >> 8; if (y != 0) { n = n - 8; x = y; }
+  //  y = x >> 4; if (y != 0) { n = n - 4; x = y; }
+  //  y = x >> 2; if (y != 0) { n = n - 2; x = y; }
+  //  y = x >> 1; if (y != 0) { return n - 2; }
+  //  return n - x;
+  Label l0, l1, l2, l3, l4, l5;
+  li(TMP2, XLEN);
+#if XLEN == 64
+  srli(TMP, rs, 32);
+  beqz(TMP, &l0, Assembler::kNearJump);
+  subi(TMP2, TMP2, 32);
+  mv(rs, TMP);
+  Bind(&l0);
+#endif
+  srli(TMP, rs, 16);
+  beqz(TMP, &l1, Assembler::kNearJump);
+  subi(TMP2, TMP2, 16);
+  mv(rs, TMP);
+  Bind(&l1);
+  srli(TMP, rs, 8);
+  beqz(TMP, &l2, Assembler::kNearJump);
+  subi(TMP2, TMP2, 8);
+  mv(rs, TMP);
+  Bind(&l2);
+  srli(TMP, rs, 4);
+  beqz(TMP, &l3, Assembler::kNearJump);
+  subi(TMP2, TMP2, 4);
+  mv(rs, TMP);
+  Bind(&l3);
+  srli(TMP, rs, 2);
+  beqz(TMP, &l4, Assembler::kNearJump);
+  subi(TMP2, TMP2, 2);
+  mv(rs, TMP);
+  Bind(&l4);
+  srli(TMP, rs, 1);
+  sub(rd, TMP2, rs);
+  beqz(TMP, &l5, Assembler::kNearJump);
+  subi(rd, TMP2, 2);
+  Bind(&l5);
+}
+
 }  // namespace compiler
 
 }  // namespace dart
