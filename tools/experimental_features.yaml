@@ -125,9 +125,6 @@ features:
   macros:
     help: "Static meta-programming"
 
-  inference-update-1:
-    help: "Horizontal type inference for function expressions passed to generic invocations."
-
   inference-update-2:
     help: "Type promotion for fields"
 
@@ -263,4 +260,21 @@ features:
       }
       void main(){
         print(C('feature enabled').foo);
+      }
+
+  inference-update-1:
+    help: "Horizontal type inference for function expressions passed to generic invocations."
+    enabledIn: '2.18.0'
+    validation: |
+      void test(List<int> list) {
+        var a = list.fold(0, (x, y) => x + y);
+        f(a);
+      }
+      void f<T>(T t) {
+        if (T == int) {
+          print('feature enabled');
+        }
+      }
+      void main() {
+        test([1, 2, 3]);
       }
