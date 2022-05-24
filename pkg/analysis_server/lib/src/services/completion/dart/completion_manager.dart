@@ -473,6 +473,19 @@ class DartCompletionRequest {
       }
     }
 
+    if (entity is Token &&
+        entity.type == TokenType.STRING &&
+        entity.offset < offset &&
+        offset < entity.end) {
+      final uriNode = target.containingNode;
+      if (uriNode is SimpleStringLiteral && uriNode.literal == entity) {
+        final directive = uriNode.parent;
+        if (directive is UriBasedDirective && directive.uri == uriNode) {
+          return uriNode.value.substring(0, offset - uriNode.contentsOffset);
+        }
+      }
+    }
+
     while (entity is AstNode) {
       if (entity is SimpleIdentifier) {
         var identifier = entity.name;

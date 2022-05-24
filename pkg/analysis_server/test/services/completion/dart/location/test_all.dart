@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'class_body_test.dart' as class_body;
 import 'compilation_unit_test.dart' as compilation_unit;
+import 'directive_uri_test.dart' as directive_uri;
 import 'enum_constant_test.dart' as enum_constant;
 import 'enum_test.dart' as enum_;
 import 'field_formal_parameter_test.dart' as field_formal_parameter;
@@ -17,6 +18,7 @@ void main() {
   defineReflectiveSuite(() {
     class_body.main();
     compilation_unit.main();
+    directive_uri.main();
     enum_constant.main();
     enum_.main();
     field_formal_parameter.main();

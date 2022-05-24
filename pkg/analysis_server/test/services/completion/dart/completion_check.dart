@@ -220,6 +220,10 @@ extension CompletionSuggestionExtension
     element.isNotNull.kind.isGetter;
   }
 
+  void get isImport {
+    kind.isImport;
+  }
+
   void get isImportPrefix {
     kind.isIdentifier;
     element.isNotNull.kind.isPrefix;
@@ -371,6 +375,10 @@ extension CompletionSuggestionKindExtension
     on CheckTarget<CompletionSuggestionKind> {
   void get isIdentifier {
     isEqualTo(CompletionSuggestionKind.IDENTIFIER);
+  }
+
+  void get isImport {
+    isEqualTo(CompletionSuggestionKind.IMPORT);
   }
 
   void get isInvocation {
