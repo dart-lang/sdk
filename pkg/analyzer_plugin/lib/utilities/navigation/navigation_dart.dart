@@ -386,7 +386,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    computer._addRegionForNode(node.libraryName, node.element);
+    computer._addRegionForNode(node.libraryName ?? node.uri, node.element);
     super.visitPartOfDirective(node);
   }
 

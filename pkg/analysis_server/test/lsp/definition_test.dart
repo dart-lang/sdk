@@ -284,6 +284,46 @@ class A {
     );
   }
 
+  Future<void> test_partFilename() async {
+    final mainContents = '''
+part 'pa^rt.dart';
+    ''';
+
+    final partContents = '''
+part of 'main.dart';
+    ''';
+
+    final partFileUri = Uri.file(join(projectFolderPath, 'lib', 'part.dart'));
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(mainContents));
+    await openFile(partFileUri, withoutMarkers(partContents));
+    final res = await getDefinitionAsLocation(
+        mainFileUri, positionFromMarker(mainContents));
+
+    expect(res.single.uri, equals(partFileUri.toString()));
+  }
+
+  Future<void> test_partOfFilename() async {
+    final mainContents = '''
+part 'part.dart';
+    ''';
+
+    final partContents = '''
+part of 'ma^in.dart';
+    ''';
+
+    final partFileUri = Uri.file(join(projectFolderPath, 'lib', 'part.dart'));
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(mainContents));
+    await openFile(partFileUri, withoutMarkers(partContents));
+    final res = await getDefinitionAsLocation(
+        partFileUri, positionFromMarker(partContents));
+
+    expect(res.single.uri, equals(mainFileUri.toString()));
+  }
+
   Future<void> test_sameLine() async {
     final contents = '''
 int plusOne(int [[value]]) => 1 + val^ue;
