@@ -574,18 +574,13 @@ void Assembler::CompareToStack(Register src, intptr_t depth) {
 
 void Assembler::CompareObject(Register reg, const Object& object) {
   ASSERT(IsOriginalObject(object));
-  word offset = 0;
   if (IsSameObject(compiler::NullObject(), object)) {
     CompareObjectRegisters(reg, NULL_REG);
-  } else if (target::CanLoadFromThread(object, &offset)) {
-    ldr(TMP, Address(THR, offset));
-    CompareObjectRegisters(reg, TMP);
-  } else if (CanLoadFromObjectPool(object)) {
+  } else if (target::IsSmi(object)) {
+    CompareImmediate(reg, target::ToRawSmi(object), kObjectBytes);
+  } else {
     LoadObject(TMP, object);
     CompareObjectRegisters(reg, TMP);
-  } else {
-    ASSERT(target::IsSmi(object));
-    CompareImmediate(reg, target::ToRawSmi(object), kObjectBytes);
   }
 }
 
@@ -678,7 +673,9 @@ void Assembler::LoadDImmediate(VRegister vd, double immd) {
   if (fmovdi(vd, immd)) return;
 
   int64_t imm64 = bit_cast<int64_t, double>(immd);
-  if (constant_pool_allowed()) {
+  if (imm64 == 0) {
+    veor(vd, vd, vd);
+  } else if (constant_pool_allowed()) {
     intptr_t index = object_pool_builder().FindImmediate64(imm64);
     intptr_t offset = target::ObjectPool::element_offset(index);
     LoadDFromOffset(vd, PP, offset);
@@ -1309,6 +1306,8 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // No store buffer update.
   if (IsSameObject(compiler::NullObject(), value)) {
     str(NULL_REG, dest);
+  } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
+    str(ZR, dest);
   } else {
     LoadObject(TMP2, value);
     str(TMP2, dest);
@@ -1326,6 +1325,8 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
   // No store buffer update.
   if (IsSameObject(compiler::NullObject(), value)) {
     str(NULL_REG, dest, kObjectBytes);
+  } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
+    str(ZR, dest, kObjectBytes);
   } else {
     LoadObject(TMP2, value);
     str(TMP2, dest, kObjectBytes);
@@ -1340,6 +1341,8 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
     Register value_reg = TMP2;
     if (IsSameObject(compiler::NullObject(), value)) {
       value_reg = NULL_REG;
+    } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
+      value_reg = ZR;
     } else {
       LoadObject(value_reg, value);
     }
@@ -1361,6 +1364,8 @@ void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(
   if (memory_order == kRelease) {
     if (IsSameObject(compiler::NullObject(), value)) {
       value_reg = NULL_REG;
+    } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
+      value_reg = ZR;
     } else {
       LoadObject(value_reg, value);
     }

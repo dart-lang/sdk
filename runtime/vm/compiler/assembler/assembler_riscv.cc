@@ -3205,7 +3205,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // No store buffer update.
   if (IsSameObject(compiler::NullObject(), value)) {
     sx(NULL_REG, dest);
-  } else if (target::IsSmi(object) && (target::ToRawSmi(object) == 0)) {
+  } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
     sx(ZR, dest);
   } else {
     LoadObject(TMP2, value);
@@ -3226,7 +3226,7 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
     Register value_reg = TMP2;
     if (IsSameObject(compiler::NullObject(), value)) {
       value_reg = NULL_REG;
-    } else if (target::IsSmi(object) && (target::ToRawSmi(object) == 0)) {
+    } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
       value_reg = ZR;
     } else {
       LoadObject(value_reg, value);
@@ -3392,7 +3392,7 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   if (IsSameObject(compiler::NullObject(), object)) {
     CompareObjectRegisters(reg, NULL_REG);
   } else if (target::IsSmi(object)) {
-    CompareImmediate(reg, target::ToRawSmi(object));
+    CompareImmediate(reg, target::ToRawSmi(object), kObjectBytes);
   } else {
     LoadObject(TMP, object);
     CompareObjectRegisters(reg, TMP);

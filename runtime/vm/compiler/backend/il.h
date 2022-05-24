@@ -3674,6 +3674,23 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
   bool IsSmi() const { return compiler::target::IsSmi(value()); }
 
+  bool HasZeroRepresentation() const {
+    switch (representation()) {
+      case kTagged:
+      case kUnboxedUint8:
+      case kUnboxedUint16:
+      case kUnboxedUint32:
+      case kUnboxedInt32:
+      case kUnboxedInt64:
+        return IsSmi() && compiler::target::SmiValue(value()) == 0;
+      case kUnboxedDouble:
+        return compiler::target::IsDouble(value()) &&
+               bit_cast<uint64_t>(compiler::target::DoubleValue(value())) == 0;
+      default:
+        return false;
+    }
+  }
+
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
