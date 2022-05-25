@@ -2854,6 +2854,7 @@ void f() {
 class FlutterSnippetCompletionTest extends SnippetCompletionTest {
   /// Standard import statements expected for basic Widgets.
   String get expectedImports => '''
+import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';''';
 
   /// Nullability suffix expected in this test class.
@@ -2908,7 +2909,9 @@ class \${1:MyWidget} extends StatefulWidget {
 class _\${1:MyWidget}State extends State<\${1:MyWidget}> {
   @override
   Widget build(BuildContext context) {
-    \$0
+    return Container(
+      \$0
+    );
   }
 }
 
@@ -2965,7 +2968,9 @@ class _\${1:MyWidget}State extends State<\${1:MyWidget}>
 
   @override
   Widget build(BuildContext context) {
-    \$0
+    return Container(
+      \$0
+    );
   }
 }
 
@@ -3001,7 +3006,9 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    \$0
+    return Container(
+      \$0
+    );
   }
 }
 
@@ -3035,7 +3042,9 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    \$0
+    return Container(
+      \$0
+    );
   }
 }
 
@@ -3063,7 +3072,9 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    \$0
+    return Container(
+      \$0
+    );
   }
 }
 ''');
@@ -3089,7 +3100,9 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    \$0
+    return Container(
+      \$0
+    );
   }
 }
 ''');
@@ -3131,6 +3144,7 @@ class FlutterSnippetCompletionWithoutNullSafetyTest
   @override
   String get expectedImports => '''
 import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';''';
 
   @override
