@@ -14,6 +14,7 @@ dependencies:
   build_integration: any
   collection: any
   front_end: any
+  js_shared: any
   kernel: any
   meta: any
   path: any

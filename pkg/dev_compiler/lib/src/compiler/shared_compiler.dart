@@ -178,6 +178,10 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   @protected
   String libraryToModule(Library library);
 
+  /// Returns true if [library] is identified by [name].
+  @protected
+  bool isDartLibrary(Library library, String name);
+
   /// Returns true if the library [l] is "dart:_runtime".
   @protected
   bool isSdkInternalRuntime(Library l);

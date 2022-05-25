@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:math' show max, min;
 
 import 'package:front_end/src/api_unstable/ddc.dart';
+import 'package:js_shared/synced/embedded_names.dart' show JsGetName, JsBuiltin;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -368,6 +369,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Initialize library variables.
     isBuildingSdk = libraries.any(isSdkInternalRuntime);
 
+    // TODO(48585) Remove after new type system has landed.
+    if (isBuildingSdk && !_options.newRuntimeTypes) {
+      libraries.removeWhere((library) {
+        var path = library.importUri.path;
+        return path == '_js_shared_embedded_names' ||
+            path == '_js_names' ||
+            path == '_recipe_syntax' ||
+            path == '_rti';
+      });
+    }
+
     // For runtime performance reasons, we only containerize SDK symbols in web
     // libraries. Otherwise, we use a 600-member cutoff before a module is
     // containerized. This is somewhat arbitrary but works promisingly for the
@@ -475,6 +487,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (!isBuildingSdk) {
       items.add(
           runtimeStatement('_checkModuleNullSafetyMode(#)', [soundNullSafety]));
+      items.add(runtimeStatement('_checkModuleRuntimeTypes(#)',
+          [js_ast.LiteralBool(_options.newRuntimeTypes)]));
     }
 
     // Emit the hoisted type table cache variables
@@ -519,9 +533,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       library.parts.map((part) => part.partUri);
 
   /// True when [library] is the sdk internal library 'dart:_internal'.
-  bool _isDartInternal(Library library) {
+  bool _isDartInternal(Library library) => isDartLibrary(library, '_internal');
+
+  /// True when [library] is the sdk internal library 'dart:_internal'.
+  bool _isDartForeignHelper(Library library) =>
+      isDartLibrary(library, '_foreign_helper');
+
+  @override
+  bool isDartLibrary(Library library, String name) {
     var importUri = library.importUri;
-    return importUri.isScheme('dart') && importUri.path == '_internal';
+    return importUri.isScheme('dart') && importUri.path == name;
   }
 
   @override
@@ -559,6 +580,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     if (isSdkInternalRuntime(library)) {
+      if (_options.newRuntimeTypes) {
+        // Add embedded globals.
+        moduleItems.add(
+            runtimeCall('typeUniverse = #', [js_ast.createRtiUniverse()])
+                .toStatement());
+      }
       // `dart:_runtime` uses a different order for bootstrapping.
       //
       // Functions are first because we use them to associate type info
@@ -5535,17 +5562,45 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (isInlineJS(target)) return _emitInlineJSCode(node) as js_ast.Expression;
     if (target.isFactory) return _emitFactoryInvocation(node);
 
-    // Optimize some internal SDK calls.
-    if (_isDartInternal(target.enclosingLibrary)) {
+    var enclosingLibrary = target.enclosingLibrary;
+    if (_isDartInternal(enclosingLibrary)) {
       var args = node.arguments;
       if (args.positional.length == 1 &&
           args.types.length == 1 &&
           args.named.isEmpty &&
           target.name.text == 'unsafeCast') {
+        // Optimize some internal SDK calls by avoiding the insertion of a
+        // runtime cast.
         return args.positional.single.accept(this);
       }
     }
-    if (isSdkInternalRuntime(target.enclosingLibrary)) {
+
+    if (_isDartForeignHelper(enclosingLibrary)) {
+      var args = node.arguments.positional;
+      var name = target.name.text;
+
+      if (args.length == 1) {
+        if (name == 'JS_GET_NAME') {
+          var staticGet = args.single as StaticGet;
+          var enumField = staticGet.target as Field;
+          return _emitNameForJsGetName(asJsGetName(enumField));
+        }
+      } else if (args.length == 2) {
+        if (name == 'JS_EMBEDDED_GLOBAL') return _emitEmbeddedGlobal(node);
+        if (name == 'JS_STRING_CONCAT') {
+          var left = _visitExpression(args.first);
+          var right = _visitExpression(args.last);
+          return js.call('# + #', [left, right]);
+        }
+      }
+      if (name == 'JS_BUILTIN') {
+        var staticGet = args[1] as StaticGet;
+        var enumField = staticGet.target as Field;
+        return _emitOperationForJsBuiltIn(asJsBuiltin(enumField));
+      }
+    }
+
+    if (isSdkInternalRuntime(enclosingLibrary)) {
       var name = target.name.text;
       if (node.arguments.positional.isEmpty &&
           node.arguments.types.length == 1) {
@@ -5576,6 +5631,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           var flagName = firstArg.value;
           if (flagName == 'soundNullSafety') {
             return js.boolean(_options.soundNullSafety);
+          }
+          if (flagName == 'newRuntimeTypes') {
+            return js.boolean(_options.newRuntimeTypes);
           }
           throw UnsupportedError('Invalid flag in call to $name: $flagName');
         }
@@ -5761,6 +5819,62 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         result is js_ast.Statement && node.parent is ExpressionStatement);
     return result.withSourceInformation(_nodeStart(node));
   }
+
+  js_ast.Expression _emitEmbeddedGlobal(StaticInvocation node) {
+    var constantExpression = node.arguments.positional[1] as ConstantExpression;
+    var name = constantExpression.constant as StringConstant;
+    return runtimeCall('#', [name.value]);
+  }
+
+  /// Returns the string literal that is to be used as the result of a call to
+  /// [JS_GET_NAME] for [name].
+  js_ast.LiteralString _emitNameForJsGetName(JsGetName name) {
+    switch (name) {
+      case JsGetName.OPERATOR_IS_PREFIX:
+        return js.string(js_ast.FixedNames.operatorIsPrefix);
+      case JsGetName.SIGNATURE_NAME:
+        return js.string(js_ast.FixedNames.operatorSignature);
+      case JsGetName.RTI_NAME:
+        return js.string(js_ast.FixedNames.rtiName);
+      case JsGetName.FUTURE_CLASS_TYPE_NAME:
+        return js.string(js_ast.FixedNames.futureClassName);
+      case JsGetName.LIST_CLASS_TYPE_NAME:
+        return js.string(js_ast.FixedNames.listClassName);
+      case JsGetName.RTI_FIELD_AS:
+        return js.string(js_ast.FixedNames.rtiAsField);
+      case JsGetName.RTI_FIELD_IS:
+        return js.string(js_ast.FixedNames.rtiIsField);
+      default:
+        throw UnsupportedError('JsGetName has no name for "$name".');
+    }
+  }
+
+  /// Returns the expression that is to be used as the result of a call to
+  /// [JS_BUILTIN] for [builtin].
+  js_ast.Expression _emitOperationForJsBuiltIn(JsBuiltin builtin) {
+    switch (builtin) {
+      case JsBuiltin.dartClosureConstructor:
+        // TODO(48585) How to get constructor for a Dart Function?
+        return js.call('TODO');
+      case JsBuiltin.dartObjectConstructor:
+        // TODO(48585) How to get constructor for a Dart Object?
+        return js.call('TODO');
+      default:
+        throw UnsupportedError('JsBuiltin has no operation for "$builtin".');
+    }
+  }
+
+  String _enumValueName(Field field) {
+    var enumName = field.enclosingClass.name;
+    var valueName = field.name.text;
+    return '$enumName.$valueName';
+  }
+
+  JsGetName asJsGetName(Field field) => JsGetName.values
+      .firstWhere((val) => val.toString() == _enumValueName(field));
+
+  JsBuiltin asJsBuiltin(Field field) => JsBuiltin.values
+      .firstWhere((val) => val.toString() == _enumValueName(field));
 
   bool _isWebLibrary(Uri importUri) =>
       importUri != null &&

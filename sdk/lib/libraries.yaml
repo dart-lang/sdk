@@ -390,8 +390,14 @@ dartdevc:
       _js_annotations:
         uri: "js/_js_annotations.dart"
 
+      _js_shared_embedded_names:
+        uri: "_internal/js_shared/lib/synced/embedded_names.dart"
+
       _js_helper:
         uri: "_internal/js_dev_runtime/private/js_helper.dart"
+
+      _js_names:
+        uri: "_internal/js_dev_runtime/private/js_names.dart"
 
       _js_primitives:
         uri: "_internal/js_dev_runtime/private/js_primitives.dart"
@@ -404,6 +410,12 @@ dartdevc:
 
       _dart2js_runtime_metrics:
         uri: "_internal/js_dev_runtime/private/runtime_metrics.dart"
+
+      _rti:
+        uri: "_internal/js_shared/lib/rti.dart"
+
+      _recipe_syntax:
+        uri: "_internal/js_shared/lib/synced/recipe_syntax.dart"
 
       async:
         uri: "async/async.dart"

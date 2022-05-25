@@ -23,9 +23,6 @@ abstract class Interceptor {
   String toString() => JS<String>('!', '#.toString()', this);
 }
 
-// TODO(jmesserly): remove
-getInterceptor(obj) => obj;
-
 /**
  * The interceptor class for [bool].
  */
@@ -296,3 +293,6 @@ setDispatchProperty(object, value) {}
 // TODO(sigmund): revisit whether this method is still needed after reoganizing
 // all web tests.
 findInterceptorForType(Type? type) {}
+
+// TODO(nshahan) Find a correct representation for JS functions.
+typedef JavaScriptFunction = dart.FunctionType;

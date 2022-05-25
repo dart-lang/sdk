@@ -57,6 +57,9 @@ class DevCompilerTarget extends Target {
   @override
   List<String> get extraRequiredLibraries => const [
         'dart:_runtime',
+        'dart:_js_shared_embedded_names',
+        'dart:_recipe_syntax',
+        'dart:_rti',
         'dart:_dart2js_runtime_metrics',
         'dart:_debugger',
         'dart:_foreign_helper',
@@ -64,6 +67,7 @@ class DevCompilerTarget extends Target {
         'dart:_internal',
         'dart:_isolate_helper',
         'dart:_js_helper',
+        'dart:_js_names',
         'dart:_js_primitives',
         'dart:_metadata',
         'dart:_native_typed_data',
@@ -103,6 +107,7 @@ class DevCompilerTarget extends Target {
         'dart:_js_helper',
         'dart:_native_typed_data',
         'dart:_runtime',
+        'dart:_rti',
       ];
 
   @override
