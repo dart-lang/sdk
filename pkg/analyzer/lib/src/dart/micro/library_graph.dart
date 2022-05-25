@@ -904,6 +904,7 @@ class _FileStateUnlinked {
     UnlinkedLibraryAugmentationDirective? libraryAugmentationDirective;
     UnlinkedPartOfNameDirective? partOfNameDirective;
     UnlinkedPartOfUriDirective? partOfUriDirective;
+    var augmentations = <UnlinkedImportAugmentationDirective>[];
     var exports = <UnlinkedNamespaceDirective>[];
     var imports = <UnlinkedNamespaceDirective>[];
     var parts = <String>[];
@@ -912,11 +913,19 @@ class _FileStateUnlinked {
       if (directive is ExportDirective) {
         var builder = _serializeNamespaceDirective(directive);
         exports.add(builder);
-      } else if (directive is ImportDirective) {
-        var builder = _serializeNamespaceDirective(directive);
-        imports.add(builder);
-        if (builder.uri == 'dart:core') {
-          hasDartCoreImport = true;
+      } else if (directive is ImportDirectiveImpl) {
+        if (directive.augmentKeyword != null) {
+          augmentations.add(
+            UnlinkedImportAugmentationDirective(
+              uri: directive.uri.stringValue ?? '',
+            ),
+          );
+        } else {
+          var builder = _serializeNamespaceDirective(directive);
+          imports.add(builder);
+          if (builder.uri == 'dart:core') {
+            hasDartCoreImport = true;
+          }
         }
       } else if (directive is LibraryAugmentationDirective) {
         final uri = directive.uri;
@@ -995,6 +1004,7 @@ class _FileStateUnlinked {
 
     var unlinkedUnit = UnlinkedUnit(
       apiSignature: computeUnlinkedApiSignature(unit),
+      augmentations: augmentations,
       exports: exports,
       imports: imports,
       informativeBytes: writeUnitInformative(unit),

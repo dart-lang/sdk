@@ -2548,7 +2548,7 @@ class A {}
     expect(driver.knownFiles, contains(p));
   }
 
-  test_part_getErrors_afterLibrary() async {
+  test_partOfName_getErrors_afterLibrary() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
     var c = convertPath('/test/lib/c.dart');
@@ -2584,7 +2584,7 @@ var b = new B();
     }
   }
 
-  test_part_getErrors_beforeLibrary() async {
+  test_partOfName_getErrors_beforeLibrary() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
     var c = convertPath('/test/lib/c.dart');
@@ -2614,7 +2614,7 @@ var b = new B();
     }
   }
 
-  test_part_getResult_afterLibrary() async {
+  test_partOfName_getResult_afterLibrary() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
     var c = convertPath('/test/lib/c.dart');
@@ -2653,7 +2653,7 @@ var b = new B();
     }
   }
 
-  test_part_getResult_beforeLibrary() async {
+  test_partOfName_getResult_beforeLibrary() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
     var c = convertPath('/test/lib/c.dart');
@@ -2684,7 +2684,7 @@ var b = new B();
     _assertTopLevelVarType(result.unit, 'b', 'B');
   }
 
-  test_part_getResult_changePart_invalidatesLibraryCycle() async {
+  test_partOfName_getResult_changePart_invalidatesLibraryCycle() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
     newFile(a, r'''
@@ -2710,7 +2710,26 @@ Future<int> f;
     expect(result.errors, isEmpty);
   }
 
-  test_part_getResult_noLibrary() async {
+  test_partOfName_getResult_hasLibrary_noPart() async {
+    final a = newFile('/test/lib/a.dart', r'''
+library my.lib;
+''');
+
+    final c = newFile('/test/lib/c.dart', r'''
+part of my.lib;
+class C {}
+''');
+
+    // Discover the library.
+    driver.getFileSync(a.path);
+
+    // There is no library which c.dart is a part of, so invalid result.
+    final result = await driver.getResult(c.path);
+    result as PartWithoutLibraryResult;
+    expect(result.path, c.path);
+  }
+
+  test_partOfName_getResult_noLibrary() async {
     final c = newFile('/test/lib/c.dart', r'''
 part of a;
 class C {}
@@ -2722,7 +2741,7 @@ class C {}
     expect(result.path, c.path);
   }
 
-  test_part_getUnitElement_afterLibrary() async {
+  test_partOfName_getUnitElement_afterLibrary() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
     var c = convertPath('/test/lib/c.dart');
@@ -2762,7 +2781,7 @@ var b = new B();
     }
   }
 
-  test_part_getUnitElement_beforeLibrary() async {
+  test_partOfName_getUnitElement_beforeLibrary() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
     var c = convertPath('/test/lib/c.dart');
@@ -2799,7 +2818,7 @@ var b = new B();
     }
   }
 
-  test_part_getUnitElement_noLibrary() async {
+  test_partOfName_getUnitElement_noLibrary() async {
     final c = newFile('/test/lib/c.dart', r'''
 part of a;
 ''');
@@ -2810,7 +2829,7 @@ part of a;
     expect(result.path, c.path);
   }
 
-  test_part_results_afterLibrary() async {
+  test_partOfName_results_afterLibrary() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
     var c = convertPath('/test/lib/c.dart');
@@ -2859,7 +2878,7 @@ var b = new B();
     }
   }
 
-  test_part_results_beforeLibrary() async {
+  test_partOfName_results_beforeLibrary() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
     var c = convertPath('/test/lib/c.dart');
@@ -2894,7 +2913,7 @@ var b = new B();
     expect(result.errors, isEmpty);
   }
 
-  test_part_results_noLibrary() async {
+  test_partOfName_results_noLibrary() async {
     var c = convertPath('/test/lib/c.dart');
     newFile(c, r'''
 part of a;
@@ -2913,7 +2932,7 @@ var b = new B();
         .lastWhere((result) => result.path == c);
   }
 
-  test_part_results_noLibrary_priority() async {
+  test_partOfName_results_noLibrary_priority() async {
     var c = newFile('/test/lib/c.dart', r'''
 part of a;
 class C {}
@@ -2932,7 +2951,7 @@ var b = new B();
         .lastWhere((result) => result.path == c.path);
   }
 
-  test_part_results_priority_beforeLibrary() async {
+  test_partOfName_results_priority_beforeLibrary() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
     var c = convertPath('/test/lib/c.dart');

@@ -339,7 +339,7 @@ void f() {
 
   Future<void> test_BUILT_IN_partOf() async {
     addTestFile('''
-part of lib;
+part of my.lib.name;
 void f() {
   var part = 1;
   var of = 2;
@@ -613,11 +613,14 @@ export 'dart:math'
 
   Future<void> test_DIRECTIVE_partOf() async {
     addTestFile('''
-part of lib;
+part of my.lib.name;
 ''');
     _addLibraryForTestPart();
     await prepareHighlights();
-    assertHasStringRegion(HighlightRegionType.DIRECTIVE, 'part of lib;');
+    assertHasStringRegion(
+      HighlightRegionType.DIRECTIVE,
+      'part of my.lib.name;',
+    );
   }
 
   Future<void> test_DYNAMIC_LOCAL_VARIABLE() async {
@@ -1695,7 +1698,7 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
 
   void _addLibraryForTestPart() {
     newFile('$testPackageLibPath/my_lib.dart', '''
-library lib;
+library my.lib.name;
 part 'test.dart';
     ''');
   }
