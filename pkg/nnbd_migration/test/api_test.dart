@@ -9466,6 +9466,52 @@ Iterable<Map<String?, int>> f(Iterable<Map<String?, int>?> it)
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_whereNotNull_iterable_dynamic() async {
+    var content = '''
+f(Iterable<dynamic> it) => it.where((s) => s != null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableNullableExtension;
+
+f(Iterable<dynamic> it) => it.whereNotNull();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49103')
+  Future<void> test_whereNotNull_iterable_U() async {
+    var content = '''
+f<U>(Iterable<U> it) => it.where((s) => s != null);
+''';
+    // whereNotNull cannot be used in this case, because its signature is:
+    //
+    //   extension IterableNullableExtension<T extends Object> on Iterable<T?> {
+    //     Iterable<T> whereNotNull() => ...;
+    //   }
+    //
+    // When the type system tries to solve for a substitution T=... that makes
+    // the extension apply, it gets T=U, but that doesn't work because U is not
+    // a subtype of Object.
+    //
+    // So the migration tool shouldn't change the `where` to `whereNotNull`.
+    var expected = '''
+f<U>(Iterable<U> it) => it.where((s) => s != null);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_whereNotNull_iterable_U_extends_object() async {
+    var content = '''
+f<U extends Object>(Iterable<U> it) => it.where((s) => s != null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableNullableExtension;
+
+f<U extends Object>(Iterable<U> it) => it.whereNotNull();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_whereNotNull_noContext() async {
     var content = '''
 f(Iterable<String/*?*/> it) => it.where((s) => s != null);
