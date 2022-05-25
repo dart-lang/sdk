@@ -132,7 +132,6 @@ vars = {
   "oauth2_rev": "199ebf15cbd5b07958438184f32e41c4447a57bf",
   "package_config_rev": "cff98c90acc457a3b0750f0a7da0e351a35e5d0c",
   "path_rev": "3d41ea582f5b0b18de3d90008809b877ff3f69bc",
-  "platform_rev": "1ffad63428bbd1b3ecaa15926bacfb724023648c",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "c40cc32eabecb9d60f1045d1403108d968805f9a",
   "protobuf_rev": "b149f801cf7a5e959cf1dbf72d61068ac275f24b",
@@ -373,8 +372,6 @@ deps = {
       "@" + Var("package_config_rev"),
   Var("dart_root") + "/third_party/pkg/path":
       Var("dart_git") + "path.git" + "@" + Var("path_rev"),
-  Var("dart_root") + "/third_party/pkg/platform":
-       Var("dart_git") + "platform.dart.git" + "@" + Var("platform_rev"),
   Var("dart_root") + "/third_party/pkg/pool":
       Var("dart_git") + "pool.git" + "@" + Var("pool_rev"),
   Var("dart_root") + "/third_party/pkg/protobuf":
