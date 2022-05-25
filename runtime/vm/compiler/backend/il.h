@@ -5351,9 +5351,7 @@ class FfiCallInstr : public Definition {
 
 class EnterHandleScopeInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  enum class Kind { kEnterHandleScope = 0, kGetTopHandleScope = 1 };
-
-  explicit EnterHandleScopeInstr(Kind kind) : kind_(kind) {}
+  EnterHandleScopeInstr() {}
 
   DECLARE_INSTRUCTION(EnterHandleScope)
 
@@ -5364,8 +5362,6 @@ class EnterHandleScopeInstr : public TemplateDefinition<0, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  Kind kind_;
-
   DISALLOW_COPY_AND_ASSIGN(EnterHandleScopeInstr);
 };
 
