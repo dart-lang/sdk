@@ -6,7 +6,7 @@
 </head>
 <body>
 <h1>Common Types</h1>
-<version>1.4.4</version>
+<version>1.4.5</version>
 <p>
   This document contains a specification of the types that are common between
   the analysis server wire protocol and the analysis server plugin wire
@@ -1564,6 +1564,13 @@
         <p>
           The position that should be selected after the edits have been
           applied.
+        </p>
+      </field>
+      <field name="selectionLength" optional="true">
+        <ref>int</ref>
+        <p>
+          The length of the selection (starting at Position) that should be selected after
+          the edits have been applied.
         </p>
       </field>
       <field name="id" optional="true">

@@ -109,6 +109,10 @@ class ChangeBuilderImpl implements ChangeBuilder {
     var selection = _selection;
     if (selection != null) {
       change.selection = selection;
+      var selectionRange = _selectionRange;
+      if (selectionRange != null) {
+        change.selectionLength = selectionRange.length;
+      }
     }
     return change;
   }

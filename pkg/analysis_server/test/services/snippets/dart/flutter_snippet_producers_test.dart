@@ -104,9 +104,7 @@ class MyWidget extends StatefulWidget {
 class _MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      
-    );
+    return Container();
   }
 }''');
   }
@@ -142,13 +140,12 @@ class MyWidget extends StatefulWidget {
 class _MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      
-    );
+    return Container();
   }
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 373);
+    expect(snippet.change.selection!.offset, 356);
+    expect(snippet.change.selectionLength, 11);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
@@ -224,9 +221,7 @@ class _MyWidgetState extends State<MyWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      
-    );
+    return Container();
   }
 }''');
   }
@@ -279,13 +274,12 @@ class _MyWidgetState extends State<MyWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      
-    );
+    return Container();
   }
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 776);
+    expect(snippet.change.selection!.offset, 759);
+    expect(snippet.change.selectionLength, 11);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
@@ -336,9 +330,7 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      
-    );
+    return Container();
   }
 }''');
   }
@@ -369,13 +361,12 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      
-    );
+    return Container();
   }
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 259);
+    expect(snippet.change.selection!.offset, 242);
+    expect(snippet.change.selectionLength, 11);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [

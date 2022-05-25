@@ -366,12 +366,11 @@ mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
       bodyWriter: () {
         builder.writeln('{');
         builder.write('    return ');
-        builder.writeType(_getType(classContainer));
-        builder.writeln('(');
-        builder.write('      ');
-        builder.selectHere();
-        builder.writeln();
-        builder.writeln('    );');
+        builder.selectAll(() {
+          builder.writeType(_getType(classContainer));
+          builder.write('()');
+        });
+        builder.writeln(';');
         builder.writeln('  }');
       },
     );

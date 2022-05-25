@@ -2909,9 +2909,7 @@ class \${1:MyWidget} extends StatefulWidget {
 class _\${1:MyWidget}State extends State<\${1:MyWidget}> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      \$0
-    );
+    return \${0:Container()};
   }
 }
 
@@ -2968,9 +2966,7 @@ class _\${1:MyWidget}State extends State<\${1:MyWidget}>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      \$0
-    );
+    return \${0:Container()};
   }
 }
 
@@ -3006,9 +3002,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      \$0
-    );
+    return \${0:Container()};
   }
 }
 
@@ -3042,9 +3036,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      \$0
-    );
+    return \${0:Container()};
   }
 }
 
@@ -3072,9 +3064,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      \$0
-    );
+    return \${0:Container()};
   }
 }
 ''');
@@ -3100,9 +3090,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      \$0
-    );
+    return \${0:Container()};
   }
 }
 ''');

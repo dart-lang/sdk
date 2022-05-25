@@ -4276,6 +4276,7 @@ class RemoveContentOverlay implements HasToJson {
 ///   "edits": List<SourceFileEdit>
 ///   "linkedEditGroups": List<LinkedEditGroup>
 ///   "selection": optional Position
+///   "selectionLength": optional int
 ///   "id": optional String
 /// }
 ///
@@ -4294,6 +4295,10 @@ class SourceChange implements HasToJson {
   /// The position that should be selected after the edits have been applied.
   Position? selection;
 
+  /// The length of the selection (starting at Position) that should be
+  /// selected after the edits have been applied.
+  int? selectionLength;
+
   /// The optional identifier of the change kind. The identifier remains stable
   /// even if the message changes, or is parameterized.
   String? id;
@@ -4302,6 +4307,7 @@ class SourceChange implements HasToJson {
       {List<SourceFileEdit>? edits,
       List<LinkedEditGroup>? linkedEditGroups,
       this.selection,
+      this.selectionLength,
       this.id})
       : edits = edits ?? <SourceFileEdit>[],
         linkedEditGroups = linkedEditGroups ?? <LinkedEditGroup>[];
@@ -4342,6 +4348,11 @@ class SourceChange implements HasToJson {
         selection = Position.fromJson(
             jsonDecoder, jsonPath + '.selection', json['selection']);
       }
+      int? selectionLength;
+      if (json.containsKey('selectionLength')) {
+        selectionLength = jsonDecoder.decodeInt(
+            jsonPath + '.selectionLength', json['selectionLength']);
+      }
       String? id;
       if (json.containsKey('id')) {
         id = jsonDecoder.decodeString(jsonPath + '.id', json['id']);
@@ -4350,6 +4361,7 @@ class SourceChange implements HasToJson {
           edits: edits,
           linkedEditGroups: linkedEditGroups,
           selection: selection,
+          selectionLength: selectionLength,
           id: id);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'SourceChange', json);
@@ -4368,6 +4380,10 @@ class SourceChange implements HasToJson {
     var selection = this.selection;
     if (selection != null) {
       result['selection'] = selection.toJson();
+    }
+    var selectionLength = this.selectionLength;
+    if (selectionLength != null) {
+      result['selectionLength'] = selectionLength;
     }
     var id = this.id;
     if (id != null) {
@@ -4411,6 +4427,7 @@ class SourceChange implements HasToJson {
           listEqual(linkedEditGroups, other.linkedEditGroups,
               (LinkedEditGroup a, LinkedEditGroup b) => a == b) &&
           selection == other.selection &&
+          selectionLength == other.selectionLength &&
           id == other.id;
     }
     return false;
@@ -4422,6 +4439,7 @@ class SourceChange implements HasToJson {
         edits,
         linkedEditGroups,
         selection,
+        selectionLength,
         id,
       );
 }

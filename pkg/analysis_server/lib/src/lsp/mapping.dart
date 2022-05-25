@@ -153,6 +153,7 @@ lsp.WorkspaceEdit createWorkspaceEdit(
     change.linkedEditGroups,
     lineInfo,
     selectionOffset: change.selection?.offset,
+    selectionLength: change.selectionLength,
   );
 
   // Compile the edits into a TextDocumentEdit for this file.
@@ -908,6 +909,7 @@ lsp.SnippetTextEdit snippetTextEditFromEditGroups(
   required List<server.LinkedEditGroup> editGroups,
   required int editOffset,
   required int? selectionOffset,
+  required int? selectionLength,
 }) {
   return lsp.SnippetTextEdit(
     insertTextFormat: lsp.InsertTextFormat.Snippet,
@@ -918,6 +920,7 @@ lsp.SnippetTextEdit snippetTextEditFromEditGroups(
       editGroups: editGroups,
       editOffset: editOffset,
       selectionOffset: selectionOffset,
+      selectionLength: selectionLength,
     ),
   );
 }
@@ -982,6 +985,8 @@ lsp.CompletionItem snippetToCompletionItem(
     lineInfo,
     selectionOffset:
         changes.selection?.file == file ? changes.selection?.offset : null,
+    selectionLength:
+        changes.selection?.file == file ? changes.selectionLength : null,
   );
 
   // For LSP, we need to provide the main edit and other edits separately. The
@@ -1477,6 +1482,7 @@ List<lsp.SnippetTextEdit> toSnippetTextEdits(
   List<server.LinkedEditGroup> editGroups,
   LineInfo lineInfo, {
   required int? selectionOffset,
+  required int? selectionLength,
 }) {
   final snippetEdits = <lsp.SnippetTextEdit>[];
 
@@ -1497,6 +1503,7 @@ List<lsp.SnippetTextEdit> toSnippetTextEdits(
       editGroups: editGroups,
       editOffset: edit.offset + offsetDelta,
       selectionOffset: selectionOffset,
+      selectionLength: selectionLength,
     ));
 
     offsetDelta += edit.replacement.length - edit.length;
