@@ -1168,6 +1168,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: self::@extension::E::@method::+::@parameter::_
     staticType: int
   staticElement: self::@extension::E::@method::+
   staticInvokeType: int Function(int)
@@ -1195,6 +1196,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: self::@extension::E::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@extension::E::@method::[]
@@ -1222,6 +1224,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: self::@extension::E::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@extension::E::@method::[]
@@ -1339,6 +1342,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
+    parameter: self::@extension::E::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
@@ -1375,6 +1379,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
+    parameter: self::@extension::E::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
@@ -1434,6 +1439,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 2
+        parameter: self::@class::C::@method::call::@parameter::x
         staticType: int
     rightParenthesis: )
   staticElement: self::@class::C::@method::call
@@ -1452,6 +1458,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 2
+        parameter: self::@class::C::@method::call::@parameter::x
         staticType: int*
     rightParenthesis: )
   staticElement: self::@class::C::@method::call
@@ -1486,6 +1493,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 2
+        parameter: self::@extension::E::@method::call::@parameter::x
         staticType: int
     rightParenthesis: )
   staticElement: self::@extension::E::@method::call
@@ -1504,6 +1512,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 2
+        parameter: self::@extension::E::@method::call::@parameter::x
         staticType: int*
     rightParenthesis: )
   staticElement: self::@extension::E::@method::call
@@ -1535,6 +1544,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 2
+        parameter: self::@extension::E::@method::call::@parameter::x
         staticType: int
     rightParenthesis: )
   staticElement: self::@extension::E::@method::call
@@ -1552,6 +1562,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 2
+        parameter: self::@extension::E::@method::call::@parameter::x
         staticType: int*
     rightParenthesis: )
   staticElement: self::@extension::E::@method::call
@@ -1584,6 +1595,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
+    parameter: self::@class::C::@method::+::@parameter::i
     staticType: int
   readElement: self::@function::f::@parameter::c
   readType: C
@@ -1602,6 +1614,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
+    parameter: self::@class::C::@method::+::@parameter::i
     staticType: int*
   readElement: self::@function::f::@parameter::c
   readType: C*
@@ -1634,6 +1647,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
+    parameter: self::@extension::E::@method::+::@parameter::i
     staticType: int
   readElement: self::@function::f::@parameter::c
   readType: C
@@ -1652,6 +1666,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
+    parameter: self::@extension::E::@method::+::@parameter::i
     staticType: int*
   readElement: self::@function::f::@parameter::c
   readType: C*
@@ -1902,6 +1917,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -1927,6 +1943,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -2405,6 +2422,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: o
+        parameter: root::@parameter::x
         staticElement: self::@function::f::@parameter::o
         staticType: C
     rightParenthesis: )
@@ -2430,6 +2448,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: o
+        parameter: root::@parameter::x
         staticElement: self::@function::f::@parameter::o
         staticType: C*
     rightParenthesis: )
@@ -2462,6 +2481,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 2
+    parameter: self::@class::C::@method::+::@parameter::i
     staticType: int
   staticElement: self::@class::C::@method::+
   staticInvokeType: void Function(int)
@@ -2477,6 +2497,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 2
+    parameter: self::@class::C::@method::+::@parameter::i
     staticType: int*
   staticElement: self::@class::C::@method::+
   staticInvokeType: void Function(int*)*
@@ -2505,6 +2526,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 2
+    parameter: self::@extension::E::@method::+::@parameter::i
     staticType: int
   staticElement: self::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -2520,6 +2542,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 2
+    parameter: self::@extension::E::@method::+::@parameter::i
     staticType: int*
   staticElement: self::@extension::E::@method::+
   staticInvokeType: void Function(int*)*
@@ -2549,6 +2572,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 2
+    parameter: self::@extension::E::@method::+::@parameter::i
     staticType: int
   staticElement: self::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -2564,6 +2588,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 2
+    parameter: self::@extension::E::@method::+::@parameter::i
     staticType: int*
   staticElement: self::@extension::E::@method::+
   staticInvokeType: void Function(int*)*
@@ -2606,6 +2631,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 2
+    parameter: self::@class::C::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@class::C::@method::[]
@@ -2621,6 +2647,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 2
+    parameter: self::@class::C::@method::[]::@parameter::index
     staticType: int*
   rightBracket: ]
   staticElement: self::@class::C::@method::[]
@@ -2649,6 +2676,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 2
+    parameter: self::@extension::E::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@extension::E::@method::[]
@@ -2664,6 +2692,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 2
+    parameter: self::@extension::E::@method::[]::@parameter::index
     staticType: int*
   rightBracket: ]
   staticElement: self::@extension::E::@method::[]
@@ -2693,6 +2722,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 2
+    parameter: self::@extension::E::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@extension::E::@method::[]
@@ -2708,6 +2738,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 2
+    parameter: self::@extension::E::@method::[]::@parameter::index
     staticType: int*
   rightBracket: ]
   staticElement: self::@extension::E::@method::[]
@@ -2740,6 +2771,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 2
+      parameter: self::@class::C::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -2747,6 +2779,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
+    parameter: self::@class::C::@method::[]=::@parameter::value
     staticType: int
   readElement: <null>
   readType: null
@@ -2766,6 +2799,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 2
+      parameter: self::@class::C::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>
@@ -2773,6 +2807,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
+    parameter: self::@class::C::@method::[]=::@parameter::value
     staticType: int*
   readElement: <null>
   readType: null
@@ -2805,6 +2840,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 2
+      parameter: self::@extension::E::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -2812,6 +2848,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@extension::E::@method::[]=::@parameter::value
     staticType: int
   readElement: <null>
   readType: null
@@ -2831,6 +2868,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 2
+      parameter: self::@extension::E::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>
@@ -2838,6 +2876,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@extension::E::@method::[]=::@parameter::value
     staticType: int*
   readElement: <null>
   readType: null
@@ -2871,6 +2910,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 2
+      parameter: self::@extension::E::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -2878,6 +2918,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@extension::E::@method::[]=::@parameter::value
     staticType: int
   readElement: <null>
   readType: null
@@ -2897,6 +2938,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 2
+      parameter: self::@extension::E::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>
@@ -2904,6 +2946,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@extension::E::@method::[]=::@parameter::value
     staticType: int*
   readElement: <null>
   readType: null
@@ -3318,6 +3361,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
+    parameter: self::@extension::E::@setter::a::@parameter::x
     staticType: int
   readElement: <null>
   readType: null
@@ -3344,6 +3388,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
+    parameter: self::@extension::E::@setter::a::@parameter::x
     staticType: int*
   readElement: <null>
   readType: null
@@ -3386,6 +3431,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
+    parameter: self::@extension::E::@setter::a::@parameter::x
     staticType: int
   readElement: <null>
   readType: null
@@ -3412,6 +3458,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
+    parameter: self::@extension::E::@setter::a::@parameter::x
     staticType: int*
   readElement: <null>
   readType: null
@@ -3890,6 +3937,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: package:test/lib.dart::@extension::E::@setter::a::@parameter::x
     staticType: int
   readElement: <null>
   readType: null
@@ -3923,6 +3971,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: package:test/lib.dart::@extension::E::@setter::a::@parameter::x
     staticType: int*
   readElement: <null>
   readType: null
@@ -3965,6 +4014,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@extension::E::@setter::a::@parameter::x
     staticType: int
   readElement: <null>
   readType: null
@@ -3991,6 +4041,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@extension::E::@setter::a::@parameter::x
     staticType: int*
   readElement: <null>
   readType: null
@@ -4109,6 +4160,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 2
+        parameter: self::@extension::E::@method::call::@parameter::x
         staticType: int
     rightParenthesis: )
   staticElement: self::@extension::E::@method::call
@@ -4126,6 +4178,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 2
+        parameter: self::@extension::E::@method::call::@parameter::x
         staticType: int*
     rightParenthesis: )
   staticElement: self::@extension::E::@method::call
@@ -4161,6 +4214,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: <null>
     staticType: int
   readElement: <null>
   readType: null
@@ -4179,6 +4233,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: <null>
     staticType: int*
   readElement: <null>
   readType: null
@@ -4427,6 +4482,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 2
+    parameter: self::@class::C::@method::+::@parameter::i
     staticType: int
   staticElement: self::@class::C::@method::+
   staticInvokeType: void Function(int)
@@ -4441,6 +4497,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 2
+    parameter: self::@class::C::@method::+::@parameter::i
     staticType: int*
   staticElement: self::@class::C::@method::+
   staticInvokeType: void Function(int*)*
@@ -4467,6 +4524,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 2
+    parameter: self::@extension::E::@method::+::@parameter::i
     staticType: int
   staticElement: self::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -4481,6 +4539,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 2
+    parameter: self::@extension::E::@method::+::@parameter::i
     staticType: int*
   staticElement: self::@extension::E::@method::+
   staticInvokeType: void Function(int*)*
@@ -4509,6 +4568,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 2
+    parameter: self::@class::C::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@class::C::@method::[]
@@ -4523,6 +4583,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 2
+    parameter: self::@class::C::@method::[]::@parameter::index
     staticType: int*
   rightBracket: ]
   staticElement: self::@class::C::@method::[]
@@ -4549,6 +4610,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 2
+    parameter: self::@extension::E::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@extension::E::@method::[]
@@ -4563,6 +4625,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 2
+    parameter: self::@extension::E::@method::[]::@parameter::index
     staticType: int*
   rightBracket: ]
   staticElement: self::@extension::E::@method::[]
@@ -4592,6 +4655,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 2
+      parameter: self::@class::C::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -4599,6 +4663,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
+    parameter: self::@class::C::@method::[]=::@parameter::value
     staticType: int
   readElement: <null>
   readType: null
@@ -4617,6 +4682,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 2
+      parameter: self::@class::C::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>
@@ -4624,6 +4690,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
+    parameter: self::@class::C::@method::[]=::@parameter::value
     staticType: int*
   readElement: <null>
   readType: null
@@ -4654,6 +4721,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 2
+      parameter: self::@extension::E::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -4661,6 +4729,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@extension::E::@method::[]=::@parameter::value
     staticType: int
   readElement: <null>
   readType: null
@@ -4679,6 +4748,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 2
+      parameter: self::@extension::E::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>
@@ -4686,6 +4756,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@extension::E::@method::[]=::@parameter::value
     staticType: int*
   readElement: <null>
   readType: null
@@ -4820,6 +4891,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@extension::E::@setter::a::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
@@ -4838,6 +4910,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@extension::E::@setter::a::@parameter::_
     staticType: int*
   readElement: <null>
   readType: null
@@ -4879,6 +4952,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@class::C::@setter::a::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
@@ -4903,6 +4977,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@class::C::@setter::a::@parameter::_
     staticType: int*
   readElement: <null>
   readType: null
@@ -4942,6 +5017,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@extension::E::@setter::a::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
@@ -4966,6 +5042,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@extension::E::@setter::a::@parameter::_
     staticType: int*
   readElement: <null>
   readType: null
@@ -5249,6 +5326,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@extension::E::@setter::a::@parameter::x
     staticType: int
   readElement: <null>
   readType: null
@@ -5267,6 +5345,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@extension::E::@setter::a::@parameter::x
     staticType: int*
   readElement: <null>
   readType: null
@@ -5300,6 +5379,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@extension::E::@setter::a::@parameter::x
     staticType: int
   readElement: <null>
   readType: null
@@ -5318,6 +5398,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: self::@extension::E::@setter::a::@parameter::x
     staticType: int*
   readElement: <null>
   readType: null
@@ -5560,6 +5641,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: self::@setter::a::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
@@ -5578,6 +5660,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: self::@setter::a::@parameter::_
     staticType: int*
   readElement: <null>
   readType: null
@@ -5614,6 +5697,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: self::@setter::a::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
@@ -5632,6 +5716,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: self::@setter::a::@parameter::_
     staticType: int*
   readElement: <null>
   readType: null

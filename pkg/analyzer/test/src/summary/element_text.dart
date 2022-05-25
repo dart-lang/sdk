@@ -214,6 +214,8 @@ class _ElementWriter {
       selfUriStr: selfUriStr,
       sink: buffer,
       indent: indent,
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/49101
+      withParameterElements: false,
       withOffsets: true,
     );
   }

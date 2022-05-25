@@ -320,6 +320,7 @@ PrefixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -343,6 +344,7 @@ PrefixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>
@@ -385,6 +387,7 @@ PrefixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -407,6 +410,7 @@ PrefixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>
@@ -447,6 +451,7 @@ PrefixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -469,6 +474,7 @@ PrefixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>
@@ -552,6 +558,7 @@ PrefixExpression
       arguments
         SimpleIdentifier
           token: c
+          parameter: <null>
           staticElement: self::@function::f::@parameter::c
           staticType: C
       rightParenthesis: )
@@ -578,6 +585,7 @@ PrefixExpression
       arguments
         SimpleIdentifier
           token: c
+          parameter: <null>
           staticElement: self::@function::f::@parameter::c
           staticType: C*
       rightParenthesis: )

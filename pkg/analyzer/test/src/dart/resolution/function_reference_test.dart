@@ -113,6 +113,7 @@ FunctionReference
     operator: =
     rightHandSide: SimpleIdentifier
       token: f
+      parameter: self::@setter::g::@parameter::_g
       staticElement: self::@function::foo::@parameter::f
       staticType: void Function<T>(T)
     readElement: <null>
@@ -150,6 +151,7 @@ FunctionReference
     operator: +=
     rightHandSide: IntegerLiteral
       literal: 1
+      parameter: self::@extension::0::@method::+::@parameter::i
       staticType: int
     readElement: self::@function::foo::@parameter::f
     readType: void Function<T>(T)
@@ -208,6 +210,7 @@ FunctionReference
     operator: +
     rightOperand: IntegerLiteral
       literal: 1
+      parameter: self::@class::C::@method::+::@parameter::i
       staticType: int
     staticElement: self::@class::C::@method::+
     staticInvokeType: void Function<T>(T) Function(int)
@@ -402,6 +405,9 @@ FunctionReference
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: ParameterMember
+        base: dart:core::@class::List::@method::[]::@parameter::index
+        substitution: {E: void Function<T>(T)}
       staticType: int
     rightBracket: ]
     staticElement: MethodMember
@@ -1089,6 +1095,7 @@ FunctionReference
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::bar::@parameter::a
             staticType: A
         rightParenthesis: )
@@ -1221,6 +1228,7 @@ FunctionReference
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::bar::@parameter::a
             staticType: A
         rightParenthesis: )
@@ -1321,6 +1329,7 @@ FunctionReference
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::bar::@parameter::a
             staticType: A
         rightParenthesis: )
@@ -1374,6 +1383,7 @@ FunctionReference
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::bar::@parameter::a
             staticType: A
         rightParenthesis: )
@@ -2272,6 +2282,7 @@ FunctionReference
         operator: ??
         rightOperand: SimpleIdentifier
           token: b
+          parameter: <null>
           staticElement: self::@function::f::@parameter::b
           staticType: A
         staticElement: <null>

@@ -168,8 +168,10 @@ Annotation
           arguments
             IntegerLiteral
               literal: 0
+              parameter: self::@class::A::@constructor::•::@parameter::f
               staticType: int
           rightParenthesis: )
+        parameter: self::@class::A::@constructor::•::@parameter::f
         staticType: A
     rightParenthesis: )
   element: self::@class::A::@constructor::•
@@ -208,6 +210,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 3
+        parameter: self::@class::A::@constructor::•::@parameter::a
         staticType: int
     rightParenthesis: )
   element: self::@class::A::@constructor::•
@@ -248,6 +251,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::•::@parameter::a
+          isLegacy: true
         staticType: int*
     rightParenthesis: )
   element: ConstructorMember
@@ -297,6 +303,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: package:test/a.dart::@class::A::@constructor::named::@parameter::a
+          isLegacy: true
         staticType: int*
     rightParenthesis: )
   element: ConstructorMember
@@ -475,6 +484,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::•::@parameter::a
+          isLegacy: true
         staticType: int*
     rightParenthesis: )
   element: ConstructorMember
@@ -525,6 +537,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::named::@parameter::a
+          isLegacy: true
         staticType: int*
     rightParenthesis: )
   element: ConstructorMember
@@ -646,6 +661,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: self::@class::A::@constructor::named::@parameter::f
         staticType: int
     rightParenthesis: )
   element: self::@class::A::@constructor::named
@@ -718,6 +734,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: self::@class::A::@constructor::•::@parameter::f
         staticType: int
     rightParenthesis: )
   element: self::@class::A::@constructor::•
@@ -770,6 +787,9 @@ Annotation
       ListLiteral
         leftBracket: [
         rightBracket: ]
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::f
+          substitution: {T: Object?}
         staticType: List<List<Object?>>
     rightParenthesis: )
   element: ConstructorMember
@@ -813,6 +833,9 @@ Annotation
       ListLiteral
         leftBracket: [
         rightBracket: ]
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::f
+          substitution: {T: Object?}
         staticType: List<List<Object?>>
     rightParenthesis: )
   element: ConstructorMember
@@ -867,6 +890,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -908,6 +934,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -990,6 +1019,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::f
+          substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1076,6 +1108,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1127,6 +1162,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1169,6 +1207,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::f
+          substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1214,6 +1255,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: ParameterMember
+          base: self::@class::B::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1258,6 +1302,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: ParameterMember
+          base: self::@class::B::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1299,6 +1346,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: ParameterMember
+          base: self::@class::B::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1339,6 +1389,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: ParameterMember
+          base: self::@class::B::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1380,6 +1433,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: ParameterMember
+          base: self::@class::B::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1423,6 +1479,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: ParameterMember
+          base: self::@class::B::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1474,6 +1533,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: ParameterMember
+          base: self::@class::B::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1663,6 +1725,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: package:test/a.dart::@class::A::@constructor::named::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1718,6 +1783,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: package:test/a.dart::@class::A::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1790,6 +1858,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: package:test/a.dart::@class::A::@constructor::named::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1855,6 +1926,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: package:test/a.dart::@class::A::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1952,9 +2026,15 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::t
+          substitution: {T: int, U: double}
         staticType: int
       DoubleLiteral
         literal: 1.2
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::u
+          substitution: {T: int, U: double}
         staticType: double
     rightParenthesis: )
   element: ConstructorMember
@@ -2017,9 +2097,15 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::t
+          substitution: {T: int, U: double}
         staticType: int
       DoubleLiteral
         literal: 1.2
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::u
+          substitution: {T: int, U: double}
         staticType: double
     rightParenthesis: )
   element: ConstructorMember
@@ -2083,6 +2169,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -2127,6 +2216,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -2188,6 +2280,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -2242,6 +2337,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -2298,6 +2396,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -2342,6 +2443,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -2394,6 +2498,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: self::@class::A::@constructor::named::@parameter::f
         staticType: int
     rightParenthesis: )
   element: self::@class::A::@constructor::named
@@ -2435,6 +2540,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: self::@class::A::@constructor::•::@parameter::f
         staticType: int
     rightParenthesis: )
   element: self::@class::A::@constructor::•

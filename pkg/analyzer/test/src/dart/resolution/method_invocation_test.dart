@@ -187,6 +187,7 @@ FunctionExpressionInvocation
     arguments
       SimpleIdentifier
         token: c
+        parameter: root::@parameter::
         staticElement: self::@function::f::@parameter::c
         staticType: C
     rightParenthesis: )
@@ -534,6 +535,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -571,6 +573,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -679,6 +682,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        parameter: self::@function::foo::@parameter::a
         staticInvokeType: A Function()
         staticType: A
         typeArgumentTypes
@@ -698,6 +702,7 @@ MethodInvocation
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
+          parameter: <null>
           staticInvokeType: C? Function()
           staticType: C?
           typeArgumentTypes
@@ -710,6 +715,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        parameter: self::@function::foo::@parameter::b
         staticInvokeType: B Function()
         staticType: B
         typeArgumentTypes
@@ -729,6 +735,7 @@ MethodInvocation
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
+          parameter: <null>
           staticInvokeType: D? Function()
           staticType: D?
           typeArgumentTypes
@@ -915,6 +922,9 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: o
+        parameter: ParameterMember
+          base: root::@parameter::value
+          substitution: {T: Object}
         staticElement: self::@function::f::@parameter::o
         staticType: dynamic
     rightParenthesis: )
@@ -946,6 +956,9 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: o
+        parameter: ParameterMember
+          base: root::@parameter::value
+          substitution: {T: Object}
         staticElement: self::@function::f::@parameter::o
         staticType: List<void>
     rightParenthesis: )
@@ -999,6 +1012,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
               staticInvokeType: double Function()
               staticType: double
               typeArgumentTypes
@@ -1011,11 +1025,13 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
               staticInvokeType: double Function()
               staticType: double
               typeArgumentTypes
                 double
           rightParenthesis: )
+        parameter: self::@function::h::@parameter::x
         staticInvokeType: num Function(num, num)
         staticType: double
     rightParenthesis: )
@@ -1055,6 +1071,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: root::@parameter::lowerLimit
               staticInvokeType: num* Function()*
               staticType: num*
               typeArgumentTypes
@@ -1067,11 +1084,13 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: root::@parameter::upperLimit
               staticInvokeType: num* Function()*
               staticType: num*
               typeArgumentTypes
                 num*
           rightParenthesis: )
+        parameter: self::@function::h::@parameter::x
         staticInvokeType: num* Function(num*, num*)*
         staticType: num*
     rightParenthesis: )
@@ -1126,6 +1145,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
               staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
@@ -1138,11 +1158,13 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
               staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
                 num
           rightParenthesis: )
+        parameter: self::@function::h::@parameter::x
         staticInvokeType: num Function(num, num)
         staticType: num
     rightParenthesis: )
@@ -1182,6 +1204,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: root::@parameter::lowerLimit
               staticInvokeType: num* Function()*
               staticType: num*
               typeArgumentTypes
@@ -1194,11 +1217,13 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: root::@parameter::upperLimit
               staticInvokeType: num* Function()*
               staticType: num*
               typeArgumentTypes
                 num*
           rightParenthesis: )
+        parameter: self::@function::h::@parameter::x
         staticInvokeType: num* Function(num*, num*)*
         staticType: num*
     rightParenthesis: )
@@ -1240,6 +1265,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticInvokeType: num Function()
         staticType: num
         typeArgumentTypes
@@ -1252,6 +1278,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticInvokeType: num Function()
         staticType: num
         typeArgumentTypes
@@ -1285,6 +1312,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        parameter: root::@parameter::lowerLimit
         staticInvokeType: num* Function()*
         staticType: num*
         typeArgumentTypes
@@ -1297,6 +1325,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        parameter: root::@parameter::upperLimit
         staticInvokeType: num* Function()*
         staticType: num*
         typeArgumentTypes
@@ -1333,10 +1362,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
@@ -1362,10 +1393,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: double*
       SimpleIdentifier
         token: c
+        parameter: root::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: double*
     rightParenthesis: )
@@ -1400,10 +1433,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -1429,10 +1464,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: double*
       SimpleIdentifier
         token: c
+        parameter: root::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
@@ -1467,10 +1504,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
@@ -1496,10 +1535,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
+        parameter: root::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: double*
     rightParenthesis: )
@@ -1534,10 +1575,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -1563,10 +1606,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
+        parameter: root::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
@@ -1621,6 +1666,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
               staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
@@ -1633,11 +1679,13 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
               staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
                 num
           rightParenthesis: )
+        parameter: self::@function::h::@parameter::x
         staticInvokeType: num Function(num, num)
         staticType: num
     rightParenthesis: )
@@ -1677,6 +1725,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: root::@parameter::lowerLimit
               staticInvokeType: num* Function()*
               staticType: num*
               typeArgumentTypes
@@ -1689,11 +1738,13 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: root::@parameter::upperLimit
               staticInvokeType: num* Function()*
               staticType: num*
               typeArgumentTypes
                 num*
           rightParenthesis: )
+        parameter: self::@function::h::@parameter::x
         staticInvokeType: num* Function(num*, num*)*
         staticType: num*
     rightParenthesis: )
@@ -1744,6 +1795,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
               staticInvokeType: int Function()
               staticType: int
               typeArgumentTypes
@@ -1756,11 +1808,13 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
               staticInvokeType: int Function()
               staticType: int
               typeArgumentTypes
                 int
           rightParenthesis: )
+        parameter: self::@function::h::@parameter::x
         staticInvokeType: num Function(num, num)
         staticType: int
     rightParenthesis: )
@@ -1800,6 +1854,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: root::@parameter::lowerLimit
               staticInvokeType: num* Function()*
               staticType: num*
               typeArgumentTypes
@@ -1812,11 +1867,13 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: root::@parameter::upperLimit
               staticInvokeType: num* Function()*
               staticType: num*
               typeArgumentTypes
                 num*
           rightParenthesis: )
+        parameter: self::@function::h::@parameter::x
         staticInvokeType: num* Function(num*, num*)*
         staticType: num*
     rightParenthesis: )
@@ -1858,6 +1915,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticInvokeType: num Function()
         staticType: num
         typeArgumentTypes
@@ -1870,6 +1928,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticInvokeType: num Function()
         staticType: num
         typeArgumentTypes
@@ -1903,6 +1962,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        parameter: root::@parameter::lowerLimit
         staticInvokeType: num* Function()*
         staticType: num*
         typeArgumentTypes
@@ -1915,6 +1975,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        parameter: root::@parameter::upperLimit
         staticInvokeType: num* Function()*
         staticType: num*
         typeArgumentTypes
@@ -1951,10 +2012,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
@@ -1980,10 +2043,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: double*
       SimpleIdentifier
         token: c
+        parameter: root::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: double*
     rightParenthesis: )
@@ -2018,10 +2083,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: dynamic
     rightParenthesis: )
@@ -2047,10 +2114,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: double*
       SimpleIdentifier
         token: c
+        parameter: root::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: dynamic
     rightParenthesis: )
@@ -2085,10 +2154,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -2114,10 +2185,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: double*
       SimpleIdentifier
         token: c
+        parameter: root::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
@@ -2152,10 +2225,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: dynamic
       SimpleIdentifier
         token: c
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
@@ -2181,10 +2256,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: dynamic
       SimpleIdentifier
         token: c
+        parameter: root::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: double*
     rightParenthesis: )
@@ -2219,10 +2296,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: dynamic
       SimpleIdentifier
         token: c
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -2248,10 +2327,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: dynamic
       SimpleIdentifier
         token: c
+        parameter: root::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
@@ -2286,10 +2367,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
@@ -2315,10 +2398,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
+        parameter: root::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: double*
     rightParenthesis: )
@@ -2353,10 +2438,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: dynamic
     rightParenthesis: )
@@ -2382,10 +2469,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
+        parameter: root::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: dynamic
     rightParenthesis: )
@@ -2420,10 +2509,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -2449,10 +2540,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
+        parameter: root::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
@@ -2487,10 +2580,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -2512,10 +2607,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
+        parameter: root::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
@@ -2549,6 +2646,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: int
       rightParenthesis: )
@@ -2564,10 +2662,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: self::@extension::E::@method::clamp::@parameter::x
         staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
+        parameter: self::@extension::E::@method::clamp::@parameter::y
         staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -2587,6 +2687,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: int*
       rightParenthesis: )
@@ -2602,10 +2703,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: self::@extension::E::@method::clamp::@parameter::x
         staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
+        parameter: self::@extension::E::@method::clamp::@parameter::y
         staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
@@ -2640,10 +2743,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: Never
     rightParenthesis: )
@@ -2669,10 +2774,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
+        parameter: root::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: Null*
     rightParenthesis: )
@@ -2711,10 +2818,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: Never
       SimpleIdentifier
         token: c
+        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -2740,10 +2849,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::lowerLimit
         staticElement: self::@function::f::@parameter::b
         staticType: Null*
       SimpleIdentifier
         token: c
+        parameter: root::@parameter::upperLimit
         staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
@@ -2785,10 +2896,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: <null>
         staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
+        parameter: <null>
         staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -2812,10 +2925,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: <null>
         staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
+        parameter: <null>
         staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
@@ -2873,6 +2988,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: self::@class::A::@method::clamp::@parameter::x
               staticInvokeType: String Function()
               staticType: String
               typeArgumentTypes
@@ -2885,11 +3001,13 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: self::@class::A::@method::clamp::@parameter::y
               staticInvokeType: String Function()
               staticType: String
               typeArgumentTypes
                 String
           rightParenthesis: )
+        parameter: self::@function::h::@parameter::x
         staticInvokeType: num Function(String, String)
         staticType: num
     rightParenthesis: )
@@ -2927,6 +3045,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: self::@class::A::@method::clamp::@parameter::x
               staticInvokeType: String* Function()*
               staticType: String*
               typeArgumentTypes
@@ -2939,11 +3058,13 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              parameter: self::@class::A::@method::clamp::@parameter::y
               staticInvokeType: String* Function()*
               staticType: String*
               typeArgumentTypes
                 String*
           rightParenthesis: )
+        parameter: self::@function::h::@parameter::x
         staticInvokeType: num* Function(String*, String*)*
         staticType: num*
     rightParenthesis: )
@@ -2981,10 +3102,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: self::@class::A::@method::clamp::@parameter::x
         staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
+        parameter: self::@class::A::@method::clamp::@parameter::y
         staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -3008,10 +3131,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: self::@class::A::@method::clamp::@parameter::x
         staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
+        parameter: self::@class::A::@method::clamp::@parameter::y
         staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
@@ -3046,6 +3171,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -3061,10 +3187,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: self::@extension::E::@method::clamp::@parameter::x
         staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
+        parameter: self::@extension::E::@method::clamp::@parameter::y
         staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -3084,6 +3212,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -3099,10 +3228,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: self::@extension::E::@method::clamp::@parameter::x
         staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
+        parameter: self::@extension::E::@method::clamp::@parameter::y
         staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
@@ -3141,10 +3272,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: self::@extension::E::@method::clamp::@parameter::x
         staticElement: self::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
+        parameter: self::@extension::E::@method::clamp::@parameter::y
         staticElement: self::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -3168,10 +3301,12 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: self::@extension::E::@method::clamp::@parameter::x
         staticElement: self::@function::f::@parameter::b
         staticType: int*
       SimpleIdentifier
         token: c
+        parameter: self::@extension::E::@method::clamp::@parameter::y
         staticElement: self::@function::f::@parameter::c
         staticType: int*
     rightParenthesis: )
@@ -3206,6 +3341,9 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: s
+        parameter: ParameterMember
+          base: root::@parameter::t
+          substitution: {T: S}
         staticElement: self::@function::f::@parameter::s
         staticType: S & int
     rightParenthesis: )
@@ -3226,6 +3364,9 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: s
+        parameter: ParameterMember
+          base: root::@parameter::t
+          substitution: {T: S*}
         staticElement: self::@function::f::@parameter::s
         staticType: S* & int*
     rightParenthesis: )
@@ -3269,6 +3410,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: package:test/a.dart::@function::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -3286,6 +3428,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: package:test/a.dart::@function::foo::@parameter::_
         staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function(int*)*
@@ -3331,6 +3474,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: package:test/a.dart::@function::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -3353,6 +3497,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: package:test/a.dart::@function::foo::@parameter::_
         staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function(int*)*
@@ -3392,6 +3537,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -3414,6 +3560,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@method::foo::@parameter::_
         staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function(int*)*
@@ -3632,9 +3779,11 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 1
+        parameter: <null>
         staticType: int
       IntegerLiteral
         literal: 2
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -3653,9 +3802,11 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 1
+        parameter: <null>
         staticType: int*
       IntegerLiteral
         literal: 2
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -3693,6 +3844,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::_
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -3713,6 +3865,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::_
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -4138,6 +4291,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4155,6 +4309,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4192,6 +4347,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4214,6 +4370,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4249,6 +4406,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4271,6 +4429,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4307,6 +4466,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4329,6 +4489,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4367,6 +4528,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: x
+        parameter: <null>
         staticElement: self::@getter::x
         staticType: int
     rightParenthesis: )
@@ -4390,6 +4552,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: x
+        parameter: <null>
         staticElement: self::@getter::x
         staticType: int*
     rightParenthesis: )
@@ -4433,6 +4596,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4455,6 +4619,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4613,6 +4778,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4634,6 +4800,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4670,6 +4837,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4692,6 +4860,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4724,6 +4893,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4741,6 +4911,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4840,6 +5011,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4857,6 +5029,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4922,6 +5095,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4943,6 +5117,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -4983,6 +5158,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function()
@@ -5000,6 +5176,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function()*
@@ -5041,6 +5218,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 1
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -5063,6 +5241,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 1
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -5099,6 +5278,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 1
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -5116,6 +5296,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 1
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -5617,6 +5798,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -5642,6 +5824,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -5680,6 +5863,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::C::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -5702,6 +5886,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::C::@method::foo::@parameter::_
         staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function(int*)*
@@ -5799,7 +5984,9 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
+          parameter: dart:core::@class::num::@method::+::@parameter::other
           staticType: int
+        parameter: <null>
         staticElement: dart:core::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
@@ -5831,7 +6018,9 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
+          parameter: root::@parameter::other
           staticType: int*
+        parameter: <null>
         staticElement: MethodMember
           base: dart:core::@class::num::@method::+
           isLegacy: true
@@ -5869,9 +6058,11 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int
       IntegerLiteral
         literal: 1
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -5894,9 +6085,11 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int*
       IntegerLiteral
         literal: 1
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -5932,6 +6125,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@function::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -5954,6 +6148,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@function::foo::@parameter::_
         staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function(int*)*
@@ -5989,6 +6184,9 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: root::@parameter::_
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -6013,6 +6211,9 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: root::@parameter::_
+          substitution: {T: int*}
         staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function(int*)*
@@ -6054,9 +6255,15 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 1
+        parameter: ParameterMember
+          base: root::@parameter::a
+          substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
+        parameter: ParameterMember
+          base: root::@parameter::b
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticInvokeType: int Function(int, int)
@@ -6081,9 +6288,15 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 1
+        parameter: ParameterMember
+          base: root::@parameter::a
+          substitution: {T: int*}
         staticType: int*
       IntegerLiteral
         literal: 2
+        parameter: ParameterMember
+          base: root::@parameter::b
+          substitution: {T: int*}
         staticType: int*
     rightParenthesis: )
   staticInvokeType: int* Function(int*, int*)*
@@ -6128,9 +6341,15 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 1
+        parameter: ParameterMember
+          base: root::@parameter::a
+          substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
+        parameter: ParameterMember
+          base: root::@parameter::b
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -6159,9 +6378,15 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 1
+        parameter: ParameterMember
+          base: root::@parameter::a
+          substitution: {T: int*}
         staticType: int*
       IntegerLiteral
         literal: 2
+        parameter: ParameterMember
+          base: root::@parameter::b
+          substitution: {T: int*}
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -6200,6 +6425,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -6222,6 +6448,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -6257,6 +6484,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -6279,6 +6507,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: <null>
         staticType: int*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -6318,6 +6547,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -6343,6 +6573,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -6383,6 +6614,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -6401,6 +6633,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -6499,6 +6732,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::C::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -6521,6 +6755,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::C::@method::foo::@parameter::_
         staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function(int*)*
@@ -6560,6 +6795,9 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: root::@parameter::a
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticInvokeType: int Function(int)
@@ -6584,6 +6822,9 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: root::@parameter::a
+          substitution: {T: int*}
         staticType: int*
     rightParenthesis: )
   staticInvokeType: int* Function(int*)*
@@ -6695,6 +6936,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -6717,6 +6959,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@method::foo::@parameter::_
         staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function(int*)*
@@ -6768,6 +7011,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -6801,6 +7045,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -6851,6 +7096,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: package:test/a.dart::@class::C::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -6881,6 +7127,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: package:test/a.dart::@class::C::@method::foo::@parameter::_
         staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function(int*)*
@@ -6921,6 +7168,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -6945,6 +7193,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -6984,6 +7233,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -7005,6 +7255,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@method::foo::@parameter::_
         staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function(int*)*
@@ -7133,6 +7384,7 @@ MethodInvocation
           colon: :
         expression: BooleanLiteral
           literal: false
+          parameter: <null>
           staticType: bool
       NamedExpression
         name: Label
@@ -7143,6 +7395,7 @@ MethodInvocation
           colon: :
         expression: IntegerLiteral
           literal: 0
+          parameter: <null>
           staticType: int
     rightParenthesis: )
   staticInvokeType: void Function({int? a, bool? b})
@@ -7167,6 +7420,7 @@ MethodInvocation
           colon: :
         expression: BooleanLiteral
           literal: false
+          parameter: <null>
           staticType: bool*
       NamedExpression
         name: Label
@@ -7177,6 +7431,7 @@ MethodInvocation
           colon: :
         expression: IntegerLiteral
           literal: 0
+          parameter: <null>
           staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function({int* a, bool* b})*
@@ -7211,6 +7466,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -7229,6 +7485,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -7262,6 +7519,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -7280,6 +7538,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -7352,6 +7611,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: foo@16::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -7369,6 +7629,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: foo@16::@parameter::_
         staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function(int*)*
@@ -7401,6 +7662,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::C::@method::call::@parameter::_
         staticType: int
     rightParenthesis: )
   staticElement: self::@class::C::@method::call
@@ -7419,6 +7681,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::C::@method::call::@parameter::_
         staticType: int*
     rightParenthesis: )
   staticElement: self::@class::C::@method::call
@@ -7451,6 +7714,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: @-1
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -7469,6 +7733,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: @-1
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -7504,6 +7769,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -7521,6 +7787,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@method::foo::@parameter::_
         staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function(int*)*
@@ -7553,6 +7820,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::C::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -7570,6 +7838,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::C::@method::foo::@parameter::_
         staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function(int*)*
@@ -7598,6 +7867,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -7616,6 +7886,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -7653,6 +7924,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 1
+        parameter: root::@parameter::
         staticType: int
     rightParenthesis: )
   staticInvokeType: double Function(int)
@@ -7675,6 +7947,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 1
+        parameter: root::@parameter::
         staticType: int*
     rightParenthesis: )
   staticInvokeType: double* Function(int*)*
@@ -7750,6 +8023,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@function::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -7767,6 +8041,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@function::foo::@parameter::_
         staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function(int*)*
@@ -7797,6 +8072,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -7815,6 +8091,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -7846,6 +8123,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -7864,6 +8142,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -7898,6 +8177,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: <null>
         staticElement: self::@function::f::@parameter::b
         staticType: int
     rightParenthesis: )
@@ -7921,6 +8201,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: <null>
         staticElement: self::@function::f::@parameter::b
         staticType: int*
     rightParenthesis: )
@@ -8050,6 +8331,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  parameter: dart:core::@class::num::@method::remainder::@parameter::other
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -8065,6 +8347,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  parameter: root::@parameter::other
   staticInvokeType: num* Function()*
   staticType: num*
   typeArgumentTypes
@@ -8093,6 +8376,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  parameter: dart:core::@class::num::@method::remainder::@parameter::other
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -8108,6 +8392,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  parameter: root::@parameter::other
   staticInvokeType: num* Function()*
   staticType: num*
   typeArgumentTypes
@@ -8136,6 +8421,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  parameter: dart:core::@class::num::@method::remainder::@parameter::other
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -8151,6 +8437,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  parameter: root::@parameter::other
   staticInvokeType: num* Function()*
   staticType: num*
   typeArgumentTypes
@@ -8184,6 +8471,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  parameter: self::@extension::E::@method::remainder::@parameter::x
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -8199,6 +8487,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  parameter: self::@extension::E::@method::remainder::@parameter::x
   staticInvokeType: num* Function()*
   staticType: num*
   typeArgumentTypes
@@ -8226,6 +8515,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  parameter: dart:core::@class::num::@method::remainder::@parameter::other
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -8241,6 +8531,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  parameter: root::@parameter::other
   staticInvokeType: num* Function()*
   staticType: num*
   typeArgumentTypes
@@ -8274,6 +8565,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::remainder::@parameter::other
         staticElement: self::@function::f::@parameter::b
         staticType: double
     rightParenthesis: )
@@ -8299,6 +8591,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::other
         staticElement: self::@function::f::@parameter::b
         staticType: double*
     rightParenthesis: )
@@ -8333,6 +8626,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::remainder::@parameter::other
         staticElement: self::@function::f::@parameter::b
         staticType: int
     rightParenthesis: )
@@ -8358,6 +8652,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::other
         staticElement: self::@function::f::@parameter::b
         staticType: int*
     rightParenthesis: )
@@ -8399,6 +8694,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: dart:core::@class::num::@method::remainder::@parameter::other
         staticElement: self::@function::f::@parameter::b
         staticType: int
     rightParenthesis: )
@@ -8431,6 +8727,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: b
+        parameter: root::@parameter::other
         staticElement: self::@function::f::@parameter::b
         staticType: int*
     rightParenthesis: )
@@ -8466,6 +8763,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  parameter: self::@extension::E::@method::remainder::@parameter::x
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -8481,6 +8779,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  parameter: self::@extension::E::@method::remainder::@parameter::x
   staticInvokeType: num* Function()*
   staticType: num*
   typeArgumentTypes
@@ -8515,6 +8814,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  parameter: self::@extension::E::@method::remainder::@parameter::x
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -8530,6 +8830,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  parameter: self::@extension::E::@method::remainder::@parameter::x
   staticInvokeType: num* Function()*
   staticType: num*
   typeArgumentTypes
@@ -8569,7 +8870,9 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
+          parameter: dart:core::@class::num::@method::+::@parameter::other
           staticType: int
+        parameter: <null>
         staticElement: dart:core::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
@@ -8580,6 +8883,7 @@ MethodInvocation
             literal: 0
             staticType: int
         rightBracket: ]
+        parameter: <null>
         staticType: List<int>
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -8602,7 +8906,9 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
+          parameter: root::@parameter::other
           staticType: int*
+        parameter: <null>
         staticElement: MethodMember
           base: dart:core::@class::num::@method::+
           isLegacy: true
@@ -8615,6 +8921,7 @@ MethodInvocation
             literal: 0
             staticType: int*
         rightBracket: ]
+        parameter: <null>
         staticType: List<int*>*
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -8650,6 +8957,9 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: root::@parameter::a
+          substitution: {T: int, U: bool}
         staticType: int
     rightParenthesis: )
   staticInvokeType: bool Function(int)
@@ -8670,6 +8980,9 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: root::@parameter::a
+          substitution: {T: int*, U: bool*}
         staticType: int*
     rightParenthesis: )
   staticInvokeType: bool* Function(int*)*
@@ -8888,6 +9201,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@function::foo::@parameter::a
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -8905,6 +9219,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@function::foo::@parameter::a
         staticType: int*
     rightParenthesis: )
   staticInvokeType: void Function(int*)*

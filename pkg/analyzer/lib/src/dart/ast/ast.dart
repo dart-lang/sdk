@@ -3903,6 +3903,7 @@ abstract class ExpressionImpl extends AstNodeImpl
         return parent._staticParameterElementForIndex;
       }
     } else if (parent is BinaryExpressionImpl) {
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/49102
       if (identical(parent.rightOperand, this)) {
         var parameters = parent.staticInvokeType?.parameters;
         if (parameters != null && parameters.isNotEmpty) {
@@ -3915,8 +3916,12 @@ abstract class ExpressionImpl extends AstNodeImpl
         return parent._staticParameterElementForRightHandSide;
       }
     } else if (parent is PrefixExpressionImpl) {
+      // TODO(scheglov) This does not look right, there is no element for
+      // the operand, for `a++` we invoke `a = a + 1`, so the parameter
+      // is for `1`, not for `a`.
       return parent._staticParameterElementForOperand;
     } else if (parent is PostfixExpressionImpl) {
+      // TODO(scheglov) The same as above.
       return parent._staticParameterElementForOperand;
     }
     return null;

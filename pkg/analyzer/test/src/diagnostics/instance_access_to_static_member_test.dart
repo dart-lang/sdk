@@ -177,6 +177,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
+    parameter: self::@extension::E::@setter::a::@parameter::v
     staticType: int
   readElement: <null>
   readType: null
