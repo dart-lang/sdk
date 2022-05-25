@@ -62,7 +62,6 @@ class NullCheckOnNullableTypeParameter extends LintRule {
     }
 
     var visitor = _Visitor(this, context);
-    registry.addCompilationUnit(this, visitor);
     registry.addPostfixExpression(this, visitor);
   }
 }
