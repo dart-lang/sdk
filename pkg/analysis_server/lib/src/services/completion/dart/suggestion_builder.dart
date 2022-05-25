@@ -87,7 +87,7 @@ class MemberSuggestionBuilder {
   void addSuggestionForAccessor(
       {required PropertyAccessorElement accessor,
       required double inheritanceDistance}) {
-    if (accessor.isAccessibleIn(request.libraryElement)) {
+    if (accessor.isAccessibleIn2(request.libraryElement)) {
       var member = accessor.isSynthetic ? accessor.variable : accessor;
       if (_shouldAddSuggestion(member)) {
         builder.suggestAccessor(accessor,
@@ -101,7 +101,7 @@ class MemberSuggestionBuilder {
       {required MethodElement method,
       required CompletionSuggestionKind kind,
       required double inheritanceDistance}) {
-    if (method.isAccessibleIn(request.libraryElement) &&
+    if (method.isAccessibleIn2(request.libraryElement) &&
         _shouldAddSuggestion(method)) {
       builder.suggestMethod(method,
           kind: kind, inheritanceDistance: inheritanceDistance);

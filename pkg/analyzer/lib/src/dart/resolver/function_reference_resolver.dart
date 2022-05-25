@@ -770,7 +770,7 @@ class FunctionReferenceResolver {
     }
     element ??= classElement.getGetter(name);
     element ??= classElement.getMethod(name);
-    if (element != null && element.isAccessibleIn(_resolver.definingLibrary)) {
+    if (element != null && element.isAccessibleIn2(_resolver.definingLibrary)) {
       return element;
     }
     return null;

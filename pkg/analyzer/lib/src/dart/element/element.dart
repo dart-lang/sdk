@@ -292,13 +292,13 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
           String methodName, LibraryElement library) =>
       _first(_implementationsOfMethod(methodName).where(
           (MethodElement method) =>
-              !method.isAbstract && method.isAccessibleIn(library)));
+              !method.isAbstract && method.isAccessibleIn2(library)));
 
   @override
   PropertyAccessorElement? lookUpGetter(
           String getterName, LibraryElement library) =>
       _first(_implementationsOfGetter(getterName).where(
-          (PropertyAccessorElement getter) => getter.isAccessibleIn(library)));
+          (PropertyAccessorElement getter) => getter.isAccessibleIn2(library)));
 
   @override
   PropertyAccessorElement? lookUpInheritedConcreteGetter(
@@ -307,7 +307,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
           (PropertyAccessorElement getter) =>
               !getter.isAbstract &&
               !getter.isStatic &&
-              getter.isAccessibleIn(library) &&
+              getter.isAccessibleIn2(library) &&
               getter.enclosingElement != this));
 
   ExecutableElement? lookUpInheritedConcreteMember(
@@ -327,7 +327,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
           (MethodElement method) =>
               !method.isAbstract &&
               !method.isStatic &&
-              method.isAccessibleIn(library) &&
+              method.isAccessibleIn2(library) &&
               method.enclosingElement != this));
 
   @override
@@ -337,7 +337,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
           (PropertyAccessorElement setter) =>
               !setter.isAbstract &&
               !setter.isStatic &&
-              setter.isAccessibleIn(library) &&
+              setter.isAccessibleIn2(library) &&
               setter.enclosingElement != this));
 
   @override
@@ -346,19 +346,19 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
       _first(_implementationsOfMethod(methodName).where(
           (MethodElement method) =>
               !method.isStatic &&
-              method.isAccessibleIn(library) &&
+              method.isAccessibleIn2(library) &&
               method.enclosingElement != this));
 
   @override
   MethodElement? lookUpMethod(String methodName, LibraryElement library) =>
       _first(_implementationsOfMethod(methodName)
-          .where((MethodElement method) => method.isAccessibleIn(library)));
+          .where((MethodElement method) => method.isAccessibleIn2(library)));
 
   @override
   PropertyAccessorElement? lookUpSetter(
           String setterName, LibraryElement library) =>
       _first(_implementationsOfSetter(setterName).where(
-          (PropertyAccessorElement setter) => setter.isAccessibleIn(library)));
+          (PropertyAccessorElement setter) => setter.isAccessibleIn2(library)));
 
   /// Return the static getter with the [name], accessible to the [library].
   ///
@@ -368,7 +368,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   PropertyAccessorElement? lookupStaticGetter(
       String name, LibraryElement library) {
     return _first(_implementationsOfGetter(name).where((element) {
-      return element.isStatic && element.isAccessibleIn(library);
+      return element.isStatic && element.isAccessibleIn2(library);
     }));
   }
 
@@ -379,7 +379,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   /// or a superclass.
   MethodElement? lookupStaticMethod(String name, LibraryElement library) {
     return _first(_implementationsOfMethod(name).where((element) {
-      return element.isStatic && element.isAccessibleIn(library);
+      return element.isStatic && element.isAccessibleIn2(library);
     }));
   }
 
@@ -391,7 +391,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   PropertyAccessorElement? lookupStaticSetter(
       String name, LibraryElement library) {
     return _first(_implementationsOfSetter(name).where((element) {
-      return element.isStatic && element.isAccessibleIn(library);
+      return element.isStatic && element.isAccessibleIn2(library);
     }));
   }
 
@@ -883,7 +883,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
     if (!superElement.isMixinApplication) {
       final library = this.library;
       constructorsToForward = superElement.constructors
-          .where((constructor) => constructor.isAccessibleIn(library))
+          .where((constructor) => constructor.isAccessibleIn2(library))
           .where((constructor) => !constructor.isFactory);
     } else {
       if (visitedClasses == null) {
@@ -2485,8 +2485,17 @@ abstract class ElementImpl implements Element {
   bool hasModifier(Modifier modifier) =>
       BooleanArray.get(_modifiers, modifier.ordinal);
 
+  @Deprecated('Use isAccessibleIn2() instead')
   @override
   bool isAccessibleIn(LibraryElement? library) {
+    if (Identifier.isPrivateName(name!)) {
+      return library == this.library;
+    }
+    return true;
+  }
+
+  @override
+  bool isAccessibleIn2(LibraryElement library) {
     if (Identifier.isPrivateName(name!)) {
       return library == this.library;
     }
@@ -4710,10 +4719,21 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     return displayName;
   }
 
+  @Deprecated('Use isAccessibleIn2() instead')
   @override
   bool isAccessibleIn(LibraryElement? library) {
     for (Element element in conflictingElements) {
       if (element.isAccessibleIn(library)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool isAccessibleIn2(LibraryElement library) {
+    for (Element element in conflictingElements) {
+      if (element.isAccessibleIn2(library)) {
         return true;
       }
     }

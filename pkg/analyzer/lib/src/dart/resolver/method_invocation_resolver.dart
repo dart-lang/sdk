@@ -351,7 +351,7 @@ class MethodInvocationResolver {
     }
     element ??= classElement.getGetter(name);
     element ??= classElement.getMethod(name);
-    if (element != null && element.isAccessibleIn(_definingLibrary)) {
+    if (element != null && element.isAccessibleIn2(_definingLibrary)) {
       return element;
     }
     return null;

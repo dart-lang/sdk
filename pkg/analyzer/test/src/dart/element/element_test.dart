@@ -524,14 +524,14 @@ class ElementImplTest extends AbstractTypeSystemTest {
     (library1.definingCompilationUnit).classes = <ClassElement>[classElement];
     LibraryElementImpl library2 =
         ElementFactory.library(analysisContext, "lib2");
-    expect(classElement.isAccessibleIn(library2), isFalse);
+    expect(classElement.isAccessibleIn2(library2), isFalse);
   }
 
   void test_isAccessibleIn_private_sameLibrary() {
     LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     ClassElement classElement = ElementFactory.classElement2("_C");
     (library.definingCompilationUnit).classes = <ClassElement>[classElement];
-    expect(classElement.isAccessibleIn(library), isTrue);
+    expect(classElement.isAccessibleIn2(library), isTrue);
   }
 
   void test_isAccessibleIn_public_differentLibrary() {
@@ -541,14 +541,14 @@ class ElementImplTest extends AbstractTypeSystemTest {
     (library1.definingCompilationUnit).classes = <ClassElement>[classElement];
     LibraryElementImpl library2 =
         ElementFactory.library(analysisContext, "lib2");
-    expect(classElement.isAccessibleIn(library2), isTrue);
+    expect(classElement.isAccessibleIn2(library2), isTrue);
   }
 
   void test_isAccessibleIn_public_sameLibrary() {
     LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     ClassElement classElement = ElementFactory.classElement2("C");
     (library.definingCompilationUnit).classes = <ClassElement>[classElement];
-    expect(classElement.isAccessibleIn(library), isTrue);
+    expect(classElement.isAccessibleIn2(library), isTrue);
   }
 
   void test_isPrivate_false() {

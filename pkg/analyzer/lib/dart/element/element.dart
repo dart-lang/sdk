@@ -726,9 +726,17 @@ abstract class Element implements AnalysisTarget {
   /// A declaration <i>m</i> is accessible to library <i>L</i> if <i>m</i> is
   /// declared in <i>L</i> or if <i>m</i> is public.
   /// </blockquote>
-  ///
-  /// TODO(migration): should not be nullable
+  @Deprecated('Use isAccessibleIn2() instead')
   bool isAccessibleIn(LibraryElement? library);
+
+  /// Return `true` if this element, assuming that it is within scope, is
+  /// accessible to code in the given [library]. This is defined by the Dart
+  /// Language Specification in section 6.2:
+  /// <blockquote>
+  /// A declaration <i>m</i> is accessible to a library <i>L</i> if <i>m</i> is
+  /// declared in <i>L</i> or if <i>m</i> is public.
+  /// </blockquote>
+  bool isAccessibleIn2(LibraryElement library);
 
   /// Return either this element or the most immediate ancestor of this element
   /// for which the [predicate] returns `true`, or `null` if there is no such

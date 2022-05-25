@@ -326,7 +326,7 @@ class PropertyElementResolver {
   }
 
   bool _isAccessible(ExecutableElement element) {
-    return element.isAccessibleIn(_definingLibrary);
+    return element.isAccessibleIn2(_definingLibrary);
   }
 
   void _reportUnresolvedIndex(
