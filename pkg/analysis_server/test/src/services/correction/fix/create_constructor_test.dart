@@ -79,7 +79,6 @@ class A {
 ''', target: a);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49046')
   Future<void> test_inPart_partOfName_noLibrary() async {
     await resolveTestCode('''
 part of my_lib;

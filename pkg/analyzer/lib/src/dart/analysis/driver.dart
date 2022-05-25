@@ -1045,14 +1045,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _fileTracker.fileWasAnalyzed(path);
       try {
         final result = await _computeAnalysisResult(path, withUnit: true);
-        final SomeResolvedUnitResult unitResult;
-        if (result != null) {
-          unitResult = result.unitResult!;
-        } else {
-          unitResult = PartWithoutLibraryResultImpl(
-            path: path,
-          );
-        }
+        final unitResult = result.unitResult!;
         for (final completer in completers) {
           completer.complete(unitResult);
         }
@@ -1091,7 +1084,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       var result = await _computeErrors(
         path: path,
       );
-      result ??= PartWithoutLibraryResultImpl(path: path);
       for (var completer in completers) {
         completer.complete(result);
       }
@@ -1112,8 +1104,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_unitElementRequestedFiles.isNotEmpty) {
       String path = _unitElementRequestedFiles.keys.first;
       var completers = _unitElementRequestedFiles.remove(path)!;
-      SomeUnitElementResult? result = await _computeUnitElement(path);
-      result ??= PartWithoutLibraryResultImpl(path: path);
+      final result = await _computeUnitElement(path);
       for (var completer in completers) {
         completer.complete(result);
       }
@@ -1154,18 +1145,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         if (_fileTracker.isFilePending(path)) {
           try {
             var result = await _computeAnalysisResult(path, withUnit: true);
-            if (result == null) {
-              // We report an invalid result (instead of silently ignoring
-              // this disconnected part) so that the listener of the stream
-              // knows, and for example removes all errors.
-              _resultController.add(
-                PartWithoutLibraryResultImpl(
-                  path: path,
-                ),
-              );
-            } else {
-              _resultController.add(result.unitResult!);
-            }
+            _resultController.add(result.unitResult!);
           } catch (exception, stackTrace) {
             _reportException(path, exception, stackTrace);
             _clearLibraryContextAfterException();
@@ -1183,13 +1163,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       try {
         var result = await _computeAnalysisResult(path,
             withUnit: false, skipIfSameSignature: true);
-        if (result == null) {
-          _resultController.add(
-            PartWithoutLibraryResultImpl(
-              path: path,
-            ),
-          );
-        } else if (result.isUnchangedErrors) {
+        if (result.isUnchangedErrors) {
           // We found that the set of errors is the same as we produced the
           // last time, so we don't need to produce it again now.
         } else {
@@ -1302,31 +1276,22 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// When `true`, [AnalysisResult.unitResult] will be set.
   /// Otherwise [AnalysisResult.errorsResult] will be set.
   ///
-  /// Return `null` if the file is a part of an unknown library, so cannot be
-  /// analyzed yet. But [asIsIfPartWithoutLibrary] is `true`, then the file is
-  /// analyzed anyway, even without a library.
-  ///
   /// Return [AnalysisResult._UNCHANGED] if [skipIfSameSignature] is `true` and
   /// the resolved signature of the file in its library is the same as the one
   /// that was the most recently produced to the client.
-  Future<AnalysisResult?> _computeAnalysisResult(String path,
-      {required bool withUnit,
-      bool asIsIfPartWithoutLibrary = false,
-      bool skipIfSameSignature = false}) async {
+  Future<AnalysisResult> _computeAnalysisResult(String path,
+      {required bool withUnit, bool skipIfSameSignature = false}) async {
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
-    FileState? library = file.isPart ? file.library : file;
-    if (library == null) {
-      if (asIsIfPartWithoutLibrary) {
-        library = file;
-      } else {
-        return null;
-      }
-    }
-
-    if (file.kind is PartFileStateKind && !library.partedFiles.contains(file)) {
-      return null;
+    final FileState library;
+    final kind = file.kind;
+    if (kind is LibraryFileStateKind) {
+      library = kind.file;
+    } else if (kind is PartFileStateKind) {
+      library = kind.library ?? kind.asLibrary.file;
+    } else {
+      throw UnimplementedError('${kind.runtimeType}');
     }
 
     // Prepare the signature and key.
@@ -1363,7 +1328,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           return _newMissingDartLibraryResult(file, 'dart:async');
         }
 
-        await libraryContext.load(library!);
+        await libraryContext.load(library);
 
         var results = LibraryAnalyzer(
           analysisOptions as AnalysisOptionsImpl,
@@ -1401,22 +1366,22 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         return result;
       } catch (exception, stackTrace) {
         String? contextKey =
-            _storeExceptionContext(path, library!, exception, stackTrace);
+            _storeExceptionContext(path, library, exception, stackTrace);
         throw _ExceptionState(exception, stackTrace, contextKey);
       }
     });
   }
 
-  Future<SomeErrorsResult?> _computeErrors({
+  Future<SomeErrorsResult> _computeErrors({
     required String path,
   }) async {
     var analysisResult = await _computeAnalysisResult(path, withUnit: false);
-    return analysisResult?.errorsResult;
+    return analysisResult.errorsResult!;
   }
 
-  Future<AnalysisDriverUnitIndex?> _computeIndex(String path) async {
+  Future<AnalysisDriverUnitIndex> _computeIndex(String path) async {
     var analysisResult = await _computeAnalysisResult(path, withUnit: false);
-    return analysisResult?._index;
+    return analysisResult._index!;
   }
 
   /// Return the newly computed resolution result of the library with the
@@ -1464,23 +1429,23 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     });
   }
 
-  Future<UnitElementResult?> _computeUnitElement(String path,
-      {bool asIsIfPartWithoutLibrary = false}) async {
+  Future<UnitElementResult?> _computeUnitElement(String path) async {
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
-    FileState? library = file.isPart ? file.library : file;
-    if (library == null) {
-      if (asIsIfPartWithoutLibrary) {
-        library = file;
-      } else {
-        return null;
-      }
+    final FileState library;
+    final kind = file.kind;
+    if (kind is LibraryFileStateKind) {
+      library = kind.file;
+    } else if (kind is PartFileStateKind) {
+      library = kind.library ?? kind.asLibrary.file;
+    } else {
+      throw UnimplementedError('${kind.runtimeType}');
     }
 
     return _logger.runAsync('Compute unit element for $path', () async {
       _logger.writeln('Work in $name');
-      await libraryContext.load(library!);
+      await libraryContext.load(library);
       var element = libraryContext.computeUnitElement(library, file);
       return UnitElementResultImpl(
         currentSession,

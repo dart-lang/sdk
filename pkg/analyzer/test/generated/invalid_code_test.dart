@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -397,13 +396,10 @@ C<int Function()> c;
   }
 
   test_invalidPart_withPart() async {
-    newFile(testFilePath, '''
+    await _assertCanBeAnalyzed('''
 part of a;
 part 'test.dart';
 ''');
-    final analysisSession = contextFor(testFile.path).currentSession;
-    final result = await analysisSession.getResolvedUnit(testFile.path);
-    result as PartWithoutLibraryResult;
   }
 
   test_issue_48688() async {

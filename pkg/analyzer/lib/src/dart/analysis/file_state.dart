@@ -1128,7 +1128,6 @@ class FileSystemState {
   }
 
   FileState _newFile(File resource, String path, Uri uri) {
-    // print('[_newFile][uri: $uri][path: $path]');
     FileSource uriSource = FileSource(resource, uri);
     WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
     FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
@@ -1238,6 +1237,15 @@ abstract class PartFileStateKind extends FileStateKind {
   PartFileStateKind({
     required super.file,
   });
+
+  /// When [library] returns `null`, this getter is used to look at this
+  /// file itself as a library.
+  LibraryFileStateKind get asLibrary {
+    return LibraryFileStateKind(
+      file: file,
+      name: null,
+    );
+  }
 
   /// Returns the library in which this part should be analyzed.
   FileState? get library;

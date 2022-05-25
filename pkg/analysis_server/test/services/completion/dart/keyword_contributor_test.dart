@@ -2272,7 +2272,6 @@ void m() {
     assertSuggestKeywords([]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49046')
   Future<void> test_part_of() async {
     addTestSource('part of foo;^');
     await computeSuggestions();
