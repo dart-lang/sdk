@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
-import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart' as yaml;
