@@ -397,7 +397,7 @@ abstract class ClassMemberElement implements Element {
 /// An element representing a compilation unit.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class CompilationUnitElement implements Element, UriReferencedElement {
+abstract class CompilationUnitElement implements UriReferencedElement {
   /// Return a list containing all of the top-level accessors (getters and
   /// setters) contained in this compilation unit.
   List<PropertyAccessorElement> get accessors;
@@ -1140,7 +1140,7 @@ abstract class ExecutableElement implements FunctionTypedElement {
 /// An export directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ExportElement implements Element, UriReferencedElement {
+abstract class ExportElement implements UriReferencedElement {
   /// Return a list containing the combinators that were specified as part of
   /// the export directive in the order in which they were specified.
   List<NamespaceCombinator> get combinators;
@@ -1296,7 +1296,7 @@ abstract class HideElementCombinator implements NamespaceCombinator {
 /// A single import directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ImportElement implements Element, UriReferencedElement {
+abstract class ImportElement implements UriReferencedElement {
   /// Return a list containing the combinators that were specified as part of
   /// the import directive in the order in which they were specified.
   List<NamespaceCombinator> get combinators;
