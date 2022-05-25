@@ -1,0 +1,17 @@
+org-dartlang-testcase:///main.dart:
+import 'nonexisting.dart' if (dart.library.io) 'exists.dart';
+export 'nonexisting.dart' if (dart.library.html) 'exists2.dart' if (dart.library.io) 'exists.dart';
+Foo x() {}
+
+
+
+
+org-dartlang-testcase:///exists2.dart:
+class Foo2 {}
+
+
+
+
+org-dartlang-testcase:///exists.dart:
+export 'nonexisting.dart' if (dart.library.io) 'exists2.dart';
+class Foo {}

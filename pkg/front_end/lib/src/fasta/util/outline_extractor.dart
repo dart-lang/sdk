@@ -78,9 +78,18 @@ Future<Map<Uri, String>> extractOutline(List<Uri> entryPointUris,
     ..packagesFileUri = packages
     ..sdkSummary = platform
     ..sdkRoot = sdk;
-  ProcessedOptions pOptions =
+  ProcessedOptions processedOptions =
       new ProcessedOptions(options: options, inputs: entryPointUris);
-  return CompilerContext.runWithOptions(pOptions, (CompilerContext c) async {
+  return extractOutlineWithProcessedOptions(entryPointUris,
+      verbosityLevel: verbosityLevel, processedOptions: processedOptions);
+}
+
+Future<Map<Uri, String>> extractOutlineWithProcessedOptions(
+    List<Uri> entryPointUris,
+    {int verbosityLevel: 0,
+    required ProcessedOptions processedOptions}) {
+  return CompilerContext.runWithOptions(processedOptions,
+      (CompilerContext c) async {
     FileSystem fileSystem = c.options.fileSystem;
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     _Processor processor =
@@ -208,15 +217,24 @@ class _Processor {
           await _premarkTopLevel(worklist, closed, partTopLevel);
         }
       } else if (child is Export) {
-        for (Uri importedUri in child.uris) {
-          if (!importedUri.isScheme("dart")) {
-            TopLevel exportTopLevel =
-                parsed[importedUri] ?? await preprocessUri(importedUri);
-            await _premarkTopLevel(worklist, closed, exportTopLevel);
-          }
+        for (Uri exportedUri in child.uris) {
+          if (exportedUri.isScheme("dart")) continue;
+          // E.g. conditional exports could point to non-existing files.
+          if (!await _exists(exportedUri)) continue;
+          TopLevel exportTopLevel =
+              parsed[exportedUri] ?? await preprocessUri(exportedUri);
+          await _premarkTopLevel(worklist, closed, exportTopLevel);
         }
       }
     }
+  }
+
+  Future<bool> _exists(Uri uri) {
+    Uri fileUri = uri;
+    if (fileUri.isScheme("package")) {
+      fileUri = uriTranslator.translate(fileUri)!;
+    }
+    return fileSystem.entityForUri(fileUri).exists();
   }
 
   Future<List<TopLevel>> _preprocessImportsAsNeeded(
@@ -230,11 +248,13 @@ class _Processor {
         if (child is Import) {
           child.marked = Coloring.Marked;
           for (Uri importedUri in child.uris) {
-            if (!importedUri.isScheme("dart")) {
-              TopLevel importedTopLevel =
-                  parsed[importedUri] ?? await preprocessUri(importedUri);
-              imported.add(importedTopLevel);
-            }
+            if (importedUri.isScheme("dart")) continue;
+            // E.g. conditional imports could point to non-existing files.
+            if (!await _exists(importedUri)) continue;
+
+            TopLevel importedTopLevel =
+                parsed[importedUri] ?? await preprocessUri(importedUri);
+            imported.add(importedTopLevel);
           }
         } else if (child is PartOf) {
           child.marked = Coloring.Marked;
@@ -399,10 +419,11 @@ class _Processor {
           } else if (child is Export) {
             child.marked = Coloring.Marked;
             // do stuff to export.
-            for (Uri importedUri in child.uris) {
-              if (!importedUri.isScheme("dart")) {
-                other = parsed[importedUri] ?? await preprocessUri(importedUri);
-              }
+            for (Uri exportedUri in child.uris) {
+              if (exportedUri.isScheme("dart")) continue;
+              // E.g. conditional exports could point to non-existing files.
+              if (!await _exists(exportedUri)) continue;
+              other = parsed[exportedUri] ?? await preprocessUri(exportedUri);
             }
           } else if (child is Extension) {
             // TODO: Maybe put on a list to process later and only include if
@@ -645,16 +666,12 @@ class _ParserAstVisitor extends ParserAstVisitor {
       currentContainer.addChild(classFactoryMethod, map);
       log("Hello from factory method ${ids.first.token}.${ids.last.token}");
     } else {
-      Container findTopLevel = currentContainer;
-      while (findTopLevel is! TopLevel) {
-        findTopLevel = findTopLevel.parent!;
-      }
-      String src = findTopLevel.sourceText
-          .substring(startInclusive.charOffset, endInclusive.charEnd);
-      throw "Unexpected identifiers in class factory method: $ids "
-          "(${ids.map((e) => e.token.lexeme).toList()}) --- "
-          "error on source ${src} --- "
-          "${node.children}";
+      debugDumpSource(
+          startInclusive,
+          endInclusive,
+          node,
+          "Unexpected identifiers in class factory method: $ids "
+          "(${ids.map((e) => e.token.lexeme).toList()}).");
     }
 
     super.visitClassFactoryMethod(node, startInclusive, endInclusive);
@@ -678,20 +695,7 @@ class _ParserAstVisitor extends ParserAstVisitor {
       ClassMethodEnd node, Token startInclusive, Token endInclusive) {
     assert(currentContainer is Class);
 
-    String identifier;
-    try {
-      identifier = node.getNameIdentifier();
-    } catch (e) {
-      Container findTopLevel = currentContainer;
-      while (findTopLevel is! TopLevel) {
-        findTopLevel = findTopLevel.parent!;
-      }
-      String src = findTopLevel.sourceText
-          .substring(startInclusive.charOffset, endInclusive.charEnd);
-      throw "Unexpected identifiers in visitClassMethod --- "
-          "error on source ${src} --- "
-          "${node.children}";
-    }
+    String identifier = node.getNameIdentifier();
     ClassMethod classMethod =
         new ClassMethod(node, identifier, startInclusive, endInclusive);
     currentContainer.addChild(classMethod, map);
@@ -701,18 +705,16 @@ class _ParserAstVisitor extends ParserAstVisitor {
 
   @override
   void visitEnum(EnumEnd node, Token startInclusive, Token endInclusive) {
+    TopLevelDeclarationEnd parent = node.parent! as TopLevelDeclarationEnd;
+    IdentifierHandle identifier = parent.getIdentifier();
     List<IdentifierHandle> ids = node.getIdentifiers();
 
-    Enum e = new Enum(
-        node,
-        ids.first.token.lexeme,
-        ids.skip(1).map((e) => e.token.lexeme).toList(),
-        startInclusive,
-        endInclusive);
+    Enum e = new Enum(node, identifier.token.lexeme,
+        ids.map((e) => e.token.lexeme).toList(), startInclusive, endInclusive);
     currentContainer.addChild(e, map);
 
-    log("Hello from enum ${ids.first.token} with content "
-        "${ids.skip(1).map((e) => e.token).join(", ")}");
+    log("Hello from enum ${identifier.token} with content "
+        "${ids.map((e) => e.token).join(", ")}");
     super.visitEnum(node, startInclusive, endInclusive);
   }
 
@@ -788,6 +790,19 @@ class _ParserAstVisitor extends ParserAstVisitor {
     currentContainer.addChild(extensionMethod, map);
     log("Hello from extension method ${node.getNameIdentifier()}");
     super.visitExtensionMethod(node, startInclusive, endInclusive);
+  }
+
+  void debugDumpSource(Token startInclusive, Token endInclusive,
+      ParserAstNode node, String message) {
+    Container findTopLevel = currentContainer;
+    while (findTopLevel is! TopLevel) {
+      findTopLevel = findTopLevel.parent!;
+    }
+    String src = findTopLevel.sourceText
+        .substring(startInclusive.charOffset, endInclusive.charEnd);
+    throw "Error on source ${src} --- \n\n"
+        "$message ---\n\n"
+        "${node.children}";
   }
 
   @override
@@ -904,6 +919,7 @@ class _ParserAstVisitor extends ParserAstVisitor {
   void visitPartOf(PartOfEnd node, Token startInclusive, Token endInclusive) {
     // We'll assume we've gotten here via a "part" so we'll ignore that for now.
     // TODO: partOfUri could - in an error case - be null.
+    if (partOfUri == null) throw "partOfUri is null -- uri $uri";
     PartOf partof = new PartOf(node, partOfUri!, startInclusive, endInclusive);
     partof.marked = Coloring.Marked;
     currentContainer.addChild(partof, map);

@@ -100,13 +100,12 @@ class OutlineExtractorStep
   @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) async {
-    Uri? packages = description.uri.resolve(".dart_tool/package_config.json");
+    Uri? packages = description.uri.resolve(".packages");
     if (!new File.fromUri(packages).existsSync()) {
       packages = null;
     }
     Map<Uri, String> result =
         await extractOutline([description.uri], packages: packages);
-
     StringBuffer sb = new StringBuffer();
     Uri uri = description.uri;
     Uri base = uri.resolve(".");
@@ -142,7 +141,7 @@ class CompileAndCompareStep
   @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) async {
-    Uri? packages = description.uri.resolve(".dart_tool/package_config.json");
+    Uri? packages = description.uri.resolve(".packages");
     if (!new File.fromUri(packages).existsSync()) {
       packages = null;
     }

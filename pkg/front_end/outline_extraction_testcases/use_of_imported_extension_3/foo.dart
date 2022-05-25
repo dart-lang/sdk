@@ -7,13 +7,13 @@ enum Foo {
 }
 
 extension FooExtension on Foo {
-  int get giveInt => 42;
+  Function(int) get foobar => (int value) => 42;
 }
 
 // The below doesn't have to be included.
 
 extension BarExtension on Bar {
-  int get giveInt => 42;
+  Function(int) get foobar => (int value) => 42;
 }
 
 class Bar {}
