@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.11
+
 /// Command-line tool to convert an info.json file ouputted by dart2js to the
 /// alternative protobuf format.
 
@@ -26,7 +28,6 @@ class ToProtoCommand extends Command<void> with PrintUsageException {
   void run() async {
     if (argResults.rest.isEmpty) {
       usageException('Missing argument: <input-info>');
-      exit(1);
     }
 
     String filename = argResults.rest[0];
