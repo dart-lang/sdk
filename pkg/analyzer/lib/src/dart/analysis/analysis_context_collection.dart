@@ -122,13 +122,17 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     throw StateError('Unable to find the context to $path');
   }
 
-  void dispose() {
+  void dispose({
+    bool forTesting = false,
+  }) {
     for (var analysisContext in contexts) {
       analysisContext.driver.dispose();
     }
     macroExecutor.close();
     // If there are other collections, they will have to start it again.
-    KernelCompilationService.dispose();
+    if (!forTesting) {
+      KernelCompilationService.dispose();
+    }
   }
 
   /// Check every element with [_throwIfNotAbsoluteNormalizedPath].

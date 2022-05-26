@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -176,7 +177,9 @@ abstract class ContextResolutionTest
   void disposeAnalysisContextCollection() {
     final analysisContextCollection = _analysisContextCollection;
     if (analysisContextCollection != null) {
-      analysisContextCollection.dispose();
+      analysisContextCollection.dispose(
+        forTesting: true,
+      );
       _analysisContextCollection = null;
     }
   }
@@ -218,6 +221,9 @@ abstract class ContextResolutionTest
   @mustCallSuper
   Future<void> tearDown() async {
     disposeAnalysisContextCollection();
+    KernelCompilationService.disposeDelayed(
+      const Duration(milliseconds: 500),
+    );
   }
 
   /// Override this method to update [analysisOptions] for every context root,
