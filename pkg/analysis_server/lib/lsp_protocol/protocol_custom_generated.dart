@@ -6,9 +6,6 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
-// ignore_for_file: prefer_is_not_operator
-// ignore_for_file: unnecessary_parenthesis
-
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
 import 'dart:convert' show JsonEncoder;
@@ -58,7 +55,7 @@ class AnalyzerStatusParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(isAnalyzing is bool)) {
+        if (isAnalyzing is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -133,7 +130,7 @@ class ClosingLabel implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(label is String)) {
+        if (label is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -151,7 +148,7 @@ class ClosingLabel implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -202,10 +199,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
   }
 
   @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    return result;
-  }
+  Map<String, Object?> toJson() => {};
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
@@ -271,7 +265,7 @@ class DartDiagnosticServer implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(port is int)) {
+        if (port is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -378,7 +372,7 @@ class DartSuggestionSetCompletionItemResolutionInfo
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(displayUri is String)) {
+        if (displayUri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -396,7 +390,7 @@ class DartSuggestionSetCompletionItemResolutionInfo
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(file is String)) {
+        if (file is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -414,7 +408,7 @@ class DartSuggestionSetCompletionItemResolutionInfo
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(iLength is int)) {
+        if (iLength is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -432,7 +426,7 @@ class DartSuggestionSetCompletionItemResolutionInfo
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(libId is int)) {
+        if (libId is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -450,7 +444,7 @@ class DartSuggestionSetCompletionItemResolutionInfo
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(offset is int)) {
+        if (offset is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -468,7 +462,7 @@ class DartSuggestionSetCompletionItemResolutionInfo
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(rLength is int)) {
+        if (rLength is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -486,7 +480,7 @@ class DartSuggestionSetCompletionItemResolutionInfo
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(rOffset is int)) {
+        if (rOffset is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -611,7 +605,7 @@ class Element implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(kind is String)) {
+        if (kind is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -629,7 +623,7 @@ class Element implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(name is String)) {
+        if (name is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -639,7 +633,7 @@ class Element implements ToJsonable {
       reporter.push('parameters');
       try {
         final parameters = obj['parameters'];
-        if (parameters != null && !(parameters is String)) {
+        if (parameters != null && parameters is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -649,7 +643,7 @@ class Element implements ToJsonable {
       reporter.push('range');
       try {
         final range = obj['range'];
-        if (range != null && !(Range.canParse(range, reporter))) {
+        if (range != null && !Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -659,7 +653,7 @@ class Element implements ToJsonable {
       reporter.push('returnType');
       try {
         final returnType = obj['returnType'];
-        if (returnType != null && !(returnType is String)) {
+        if (returnType != null && returnType is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -669,7 +663,7 @@ class Element implements ToJsonable {
       reporter.push('typeParameters');
       try {
         final typeParameters = obj['typeParameters'];
-        if (typeParameters != null && !(typeParameters is String)) {
+        if (typeParameters != null && typeParameters is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -810,9 +804,9 @@ class FlutterOutline implements ToJsonable {
       try {
         final attributes = obj['attributes'];
         if (attributes != null &&
-            !((attributes is List<Object?> &&
-                (attributes.every((item) =>
-                    FlutterOutlineAttribute.canParse(item, reporter)))))) {
+            (attributes is! List<Object?> ||
+                attributes.any((item) =>
+                    !FlutterOutlineAttribute.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<FlutterOutlineAttribute>');
           return false;
         }
@@ -823,9 +817,9 @@ class FlutterOutline implements ToJsonable {
       try {
         final children = obj['children'];
         if (children != null &&
-            !((children is List<Object?> &&
-                (children.every(
-                    (item) => FlutterOutline.canParse(item, reporter)))))) {
+            (children is! List<Object?> ||
+                children
+                    .any((item) => !FlutterOutline.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<FlutterOutline>');
           return false;
         }
@@ -835,7 +829,7 @@ class FlutterOutline implements ToJsonable {
       reporter.push('className');
       try {
         final className = obj['className'];
-        if (className != null && !(className is String)) {
+        if (className != null && className is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -853,7 +847,7 @@ class FlutterOutline implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(codeRange, reporter))) {
+        if (!Range.canParse(codeRange, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -863,7 +857,7 @@ class FlutterOutline implements ToJsonable {
       reporter.push('dartElement');
       try {
         final dartElement = obj['dartElement'];
-        if (dartElement != null && !(Element.canParse(dartElement, reporter))) {
+        if (dartElement != null && !Element.canParse(dartElement, reporter)) {
           reporter.reportError('must be of type Element');
           return false;
         }
@@ -881,7 +875,7 @@ class FlutterOutline implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(kind is String)) {
+        if (kind is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -891,7 +885,7 @@ class FlutterOutline implements ToJsonable {
       reporter.push('label');
       try {
         final label = obj['label'];
-        if (label != null && !(label is String)) {
+        if (label != null && label is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -909,7 +903,7 @@ class FlutterOutline implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -919,7 +913,7 @@ class FlutterOutline implements ToJsonable {
       reporter.push('variableName');
       try {
         final variableName = obj['variableName'];
-        if (variableName != null && !(variableName is String)) {
+        if (variableName != null && variableName is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1027,7 +1021,7 @@ class FlutterOutlineAttribute implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(label is String)) {
+        if (label is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1045,7 +1039,7 @@ class FlutterOutlineAttribute implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(name is String)) {
+        if (name is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1055,7 +1049,7 @@ class FlutterOutlineAttribute implements ToJsonable {
       reporter.push('valueRange');
       try {
         final valueRange = obj['valueRange'];
-        if (valueRange != null && !(Range.canParse(valueRange, reporter))) {
+        if (valueRange != null && !Range.canParse(valueRange, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -1153,7 +1147,7 @@ class IncomingMessage implements Message, ToJsonable {
       reporter.push('clientRequestTime');
       try {
         final clientRequestTime = obj['clientRequestTime'];
-        if (clientRequestTime != null && !(clientRequestTime is int)) {
+        if (clientRequestTime != null && clientRequestTime is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -1171,7 +1165,7 @@ class IncomingMessage implements Message, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(jsonrpc is String)) {
+        if (jsonrpc is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1189,7 +1183,7 @@ class IncomingMessage implements Message, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Method.canParse(method, reporter))) {
+        if (!Method.canParse(method, reporter)) {
           reporter.reportError('must be of type Method');
           return false;
         }
@@ -1272,7 +1266,7 @@ class Message implements ToJsonable {
       reporter.push('clientRequestTime');
       try {
         final clientRequestTime = obj['clientRequestTime'];
-        if (clientRequestTime != null && !(clientRequestTime is int)) {
+        if (clientRequestTime != null && clientRequestTime is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -1290,7 +1284,7 @@ class Message implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(jsonrpc is String)) {
+        if (jsonrpc is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1381,7 +1375,7 @@ class NotificationMessage implements IncomingMessage, ToJsonable {
       reporter.push('clientRequestTime');
       try {
         final clientRequestTime = obj['clientRequestTime'];
-        if (clientRequestTime != null && !(clientRequestTime is int)) {
+        if (clientRequestTime != null && clientRequestTime is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -1399,7 +1393,7 @@ class NotificationMessage implements IncomingMessage, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(jsonrpc is String)) {
+        if (jsonrpc is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1417,7 +1411,7 @@ class NotificationMessage implements IncomingMessage, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Method.canParse(method, reporter))) {
+        if (!Method.canParse(method, reporter)) {
           reporter.reportError('must be of type Method');
           return false;
         }
@@ -1510,9 +1504,8 @@ class Outline implements ToJsonable {
       try {
         final children = obj['children'];
         if (children != null &&
-            !((children is List<Object?> &&
-                (children
-                    .every((item) => Outline.canParse(item, reporter)))))) {
+            (children is! List<Object?> ||
+                children.any((item) => !Outline.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<Outline>');
           return false;
         }
@@ -1530,7 +1523,7 @@ class Outline implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(codeRange, reporter))) {
+        if (!Range.canParse(codeRange, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -1548,7 +1541,7 @@ class Outline implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Element.canParse(element, reporter))) {
+        if (!Element.canParse(element, reporter)) {
           reporter.reportError('must be of type Element');
           return false;
         }
@@ -1566,7 +1559,7 @@ class Outline implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -1646,7 +1639,7 @@ class PubPackageCompletionItemResolutionInfo
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(packageName is String)) {
+        if (packageName is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1724,8 +1717,8 @@ class PublishClosingLabelsParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((labels is List<Object?> &&
-            (labels.every((item) => ClosingLabel.canParse(item, reporter)))))) {
+        if (labels is! List<Object?> ||
+            labels.any((item) => !ClosingLabel.canParse(item, reporter))) {
           reporter.reportError('must be of type List<ClosingLabel>');
           return false;
         }
@@ -1743,7 +1736,7 @@ class PublishClosingLabelsParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1825,7 +1818,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(FlutterOutline.canParse(outline, reporter))) {
+        if (!FlutterOutline.canParse(outline, reporter)) {
           reporter.reportError('must be of type FlutterOutline');
           return false;
         }
@@ -1843,7 +1836,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1921,7 +1914,7 @@ class PublishOutlineParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Outline.canParse(outline, reporter))) {
+        if (!Outline.canParse(outline, reporter)) {
           reporter.reportError('must be of type Outline');
           return false;
         }
@@ -1939,7 +1932,7 @@ class PublishOutlineParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -2039,7 +2032,7 @@ class RequestMessage implements IncomingMessage, ToJsonable {
       reporter.push('clientRequestTime');
       try {
         final clientRequestTime = obj['clientRequestTime'];
-        if (clientRequestTime != null && !(clientRequestTime is int)) {
+        if (clientRequestTime != null && clientRequestTime is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -2057,7 +2050,7 @@ class RequestMessage implements IncomingMessage, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((id is int || id is String))) {
+        if (id is! int && id is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -2075,7 +2068,7 @@ class RequestMessage implements IncomingMessage, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(jsonrpc is String)) {
+        if (jsonrpc is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -2093,7 +2086,7 @@ class RequestMessage implements IncomingMessage, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Method.canParse(method, reporter))) {
+        if (!Method.canParse(method, reporter)) {
           reporter.reportError('must be of type Method');
           return false;
         }
@@ -2189,7 +2182,7 @@ class ResponseError implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(ErrorCodes.canParse(code, reporter))) {
+        if (!ErrorCodes.canParse(code, reporter)) {
           reporter.reportError('must be of type ErrorCodes');
           return false;
         }
@@ -2199,7 +2192,7 @@ class ResponseError implements ToJsonable {
       reporter.push('data');
       try {
         final data = obj['data'];
-        if (data != null && !(data is String)) {
+        if (data != null && data is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -2217,7 +2210,7 @@ class ResponseError implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(message is String)) {
+        if (message is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -2325,7 +2318,7 @@ class ResponseMessage implements Message, ToJsonable {
       reporter.push('clientRequestTime');
       try {
         final clientRequestTime = obj['clientRequestTime'];
-        if (clientRequestTime != null && !(clientRequestTime is int)) {
+        if (clientRequestTime != null && clientRequestTime is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -2335,7 +2328,7 @@ class ResponseMessage implements Message, ToJsonable {
       reporter.push('error');
       try {
         final error = obj['error'];
-        if (error != null && !(ResponseError.canParse(error, reporter))) {
+        if (error != null && !ResponseError.canParse(error, reporter)) {
           reporter.reportError('must be of type ResponseError');
           return false;
         }
@@ -2349,7 +2342,7 @@ class ResponseMessage implements Message, ToJsonable {
           return false;
         }
         final id = obj['id'];
-        if (id != null && !((id is int || id is String))) {
+        if (id != null && id is! int && id is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -2367,7 +2360,7 @@ class ResponseMessage implements Message, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(jsonrpc is String)) {
+        if (jsonrpc is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -2466,7 +2459,7 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(InsertTextFormat.canParse(insertTextFormat, reporter))) {
+        if (!InsertTextFormat.canParse(insertTextFormat, reporter)) {
           reporter.reportError('must be of type InsertTextFormat');
           return false;
         }
@@ -2484,7 +2477,7 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(newText is String)) {
+        if (newText is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -2502,7 +2495,7 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -2577,7 +2570,7 @@ class ValidateRefactorResult implements ToJsonable {
       reporter.push('message');
       try {
         final message = obj['message'];
-        if (message != null && !(message is String)) {
+        if (message != null && message is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -2595,7 +2588,7 @@ class ValidateRefactorResult implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(valid is bool)) {
+        if (valid is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
