@@ -144,7 +144,7 @@ testIterators() async {
   checkState(G, currentNode: G, stack: []);
   Expect.isFalse(iterator.moveNext());
   checkState(G, currentNode: null, stack: []);
-  Expect.isNull(iterator.current);
+  Expect.throws(() => iterator.current);
 
   iterator = new ClassHierarchyNodeIterable(
           world.classHierarchy.getClassHierarchyNode(G), ClassHierarchyNode.ALL,

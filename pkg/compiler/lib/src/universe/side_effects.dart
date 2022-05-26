@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library universe.side_effects;
 
 import '../elements/entities.dart';
@@ -259,7 +257,7 @@ class SideEffectsBuilder {
   final MemberEntity _member;
   final SideEffects _sideEffects = SideEffects.empty();
   final bool _free;
-  Set<SideEffectsBuilder> _depending;
+  Set<SideEffectsBuilder>? _depending;
 
   SideEffectsBuilder(this._member) : _free = false;
 
