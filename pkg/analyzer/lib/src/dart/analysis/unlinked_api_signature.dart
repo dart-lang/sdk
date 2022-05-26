@@ -130,6 +130,7 @@ class _UnitApiSignatureComputer {
     if (node != null) {
       signature.addBool(node.isSynchronous);
       signature.addBool(node.isGenerator);
+      signature.addBool(node is NativeFunctionBody);
     }
   }
 
