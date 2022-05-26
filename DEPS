@@ -123,7 +123,7 @@ vars = {
   "json_rpc_2_rev": "7e00f893440a72de0637970325e4ea44bd1e8c8e",
   "linter_rev": "a8529c6692922b45bc287543b355c90d7b1286d3", # 1.24.0
   "lints_rev": "8294e5648ab49474541527e2911e72e4c5aefe55",
-  "logging_rev": "dfbe88b890c3b4f7bc06da5a7b3b43e9e263b688",
+  "logging_rev": "f6979e3bc3b6e1847a08335b7eb6304e18986195",
   "markdown_rev": "5699cafa9ef004875fd7de8ae9ea00e5295e87a4", # 5.0.0
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "matcher_rev": "12cdc5fbafd666ed908359ae215d5d0306087969",
