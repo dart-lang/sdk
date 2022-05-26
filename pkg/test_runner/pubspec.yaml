@@ -7,6 +7,7 @@ name: test_runner
 publish_to: none
 environment:
   sdk: "^2.9.0"
+
 dependencies:
   args: any
   dart2js_tools: any
@@ -20,5 +21,4 @@ dependencies:
 dev_dependencies:
   analyzer: any
   expect: any
-  file: any
   glob: any
