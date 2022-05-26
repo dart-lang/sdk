@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show SuggestionBuilder;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
@@ -52,10 +53,14 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
       _addConstructorSuggestions(element);
     }
     if (opType.includeReturnValueSuggestions) {
-      if (element.isEnum) {
-        for (var field in element.fields) {
-          if (field.isEnumConstant) {
-            builder.suggestEnumConstant(field, prefix: prefix);
+      final typeSystem = request.libraryElement.typeSystem;
+      final contextType = request.contextType;
+      if (contextType is InterfaceType) {
+        // TODO(scheglov) This looks not ideal - we should suggest getters.
+        for (final field in element.fields) {
+          if (field.isStatic &&
+              typeSystem.isSubtypeOf(field.type, contextType)) {
+            builder.suggestStaticField(field, prefix: prefix);
           }
         }
       }

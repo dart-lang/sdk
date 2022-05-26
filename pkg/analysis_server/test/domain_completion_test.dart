@@ -391,44 +391,6 @@ void f() {
       ..suggestions.withElementClass.isEmpty;
   }
 
-  Future<void> test_notImported_lowerRelevance_enumConstant() async {
-    newFile('$testPackageLibPath/a.dart', '''
-enum E1 {
-  foo01
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', '''
-enum E2 {
-  foo02
-}
-''');
-
-    await _configureWithWorkspaceRoot();
-
-    var response = await _getTestCodeSuggestions('''
-import 'b.dart';
-
-void f() {
-  foo0^
-}
-''');
-
-    check(response)
-      ..assertComplete()
-      ..hasReplacement(left: 4);
-
-    // `foo01` relevance is decreased because it is not yet imported.
-    check(response).suggestions.matches([
-      (suggestion) => suggestion
-        ..completion.isEqualTo('E2.foo02')
-        ..libraryUriToImport.isNull,
-      (suggestion) => suggestion
-        ..completion.isEqualTo('E1.foo01')
-        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
-    ]);
-  }
-
   Future<void> test_notImported_lowerRelevance_extension_getter() async {
     await _configureWithWorkspaceRoot();
 

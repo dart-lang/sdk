@@ -267,7 +267,7 @@ class CompletionWithSuggestionsTest1 extends AbstractCompletionDriverTest
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
 
-  @failingTest
+  @FailingTest(reason: 'This test fails with available suggestions')
   @override
   Future<void> test_project_lib_multipleExports() async {
     return super.test_project_lib_multipleExports();
@@ -329,7 +329,7 @@ export 'a.dart';
     await addTestFile('''
 import 'a.dart';
 void f() {
-  ^
+  E v = ^
 }
 ''');
     assertSuggestion(
@@ -605,7 +605,7 @@ void f() {
   Future<void> test_project_lib_setters_static() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
-  static set g(int g) {}
+  static set foo(int _) {}
 }
 ''');
 
@@ -619,7 +619,7 @@ void f() {
 }
 ''');
 
-    assertNoSuggestion(completion: 'A.g');
+    assertNoSuggestion(completion: 'A.foo');
   }
 
   /// See: https://github.com/dart-lang/sdk/issues/40626

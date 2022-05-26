@@ -213,24 +213,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClass(ClassDeclaration declaration) {
-    var classElt = declaration.declaredElement;
-    if (classElt != null && visibilityTracker._isVisible(classElt)) {
-      if (opType.includeTypeNameSuggestions) {
-        builder.suggestClass(classElt);
-      }
-
-      // Generate the suggestions for the constructors. We are required to loop
-      // through elements here instead of using declaredConstructor() due to
-      // implicit constructors (i.e. there is no AstNode for an implicit
-      // constructor)
-      if (!opType.isPrefixed && opType.includeConstructorSuggestions) {
-        for (var constructor in classElt.constructors) {
-          if (!classElt.isAbstract || constructor.isFactory) {
-            builder.suggestConstructor(constructor);
-          }
-        }
-      }
-    }
+    _declaredClassElement(declaration.declaredElement);
   }
 
   @override
@@ -248,20 +231,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredEnum(EnumDeclaration declaration) {
-    var declaredElement = declaration.declaredElement;
-    if (declaredElement != null &&
-        visibilityTracker._isVisible(declaredElement) &&
-        opType.includeTypeNameSuggestions) {
-      builder.suggestClass(declaredElement);
-      for (var enumConstant in declaration.constants) {
-        if (!enumConstant.isSynthetic) {
-          var constantElement = enumConstant.declaredElement;
-          if (constantElement is FieldElement) {
-            builder.suggestEnumConstant(constantElement);
-          }
-        }
-      }
-    }
+    _declaredClassElement(declaration.declaredElement);
   }
 
   @override
@@ -435,6 +405,38 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void visitExtendsClause(ExtendsClause node) {
     inExtendsClause = true;
     super.visitExtendsClause(node);
+  }
+
+  void _declaredClassElement(ClassElement? class_) {
+    if (class_ != null && visibilityTracker._isVisible(class_)) {
+      if (opType.includeTypeNameSuggestions) {
+        builder.suggestClass(class_);
+      }
+
+      if (!opType.isPrefixed &&
+          opType.includeConstructorSuggestions &&
+          !class_.isEnum) {
+        for (final constructor in class_.constructors) {
+          if (!class_.isAbstract || constructor.isFactory) {
+            builder.suggestConstructor(constructor);
+          }
+        }
+      }
+
+      if (!opType.isPrefixed && opType.includeReturnValueSuggestions) {
+        final typeSystem = request.libraryElement.typeSystem;
+        final contextType = request.contextType;
+        if (contextType is InterfaceType) {
+          // TODO(scheglov) This looks not ideal - we should suggest getters.
+          for (final field in class_.fields) {
+            if (field.isStatic &&
+                typeSystem.isSubtypeOf(field.type, contextType)) {
+              builder.suggestStaticField(field);
+            }
+          }
+        }
+      }
+    }
   }
 
   /// Return `true` if the [identifier] is composed of one or more underscore

@@ -401,7 +401,7 @@ enum E { e }
     _assertHasClass(text: 'String');
     _assertHasConstructor(text: 'A');
     _assertHasConstructor(text: 'B');
-    _assertHasEnumConstant(text: 'E.e');
+    _assertHasEnum(text: 'E');
     _assertHasMethod(text: 'foo');
     _assertHasMethod(text: 'bar');
     _assertHasParameter(text: 'a');
@@ -661,10 +661,10 @@ import 'a.dart';
     return matching.single;
   }
 
-  CompletionSuggestion _assertHasEnumConstant({required String text}) {
+  CompletionSuggestion _assertHasEnum({required String text}) {
     var matching = _matchingCompletions(
       text: text,
-      elementKind: ElementKind.ENUM_CONSTANT,
+      elementKind: ElementKind.ENUM,
     );
     expect(matching, hasLength(1), reason: 'Expected exactly one completion');
     return matching.single;
