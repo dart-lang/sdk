@@ -39,6 +39,9 @@ main() {
       "d87becaa3701c97b31b5b808");
   expectShifted("d87becaa3701c97b31b5b8084f2b5b34e7857092", 65,
       "6c3df6551b80e4bd98dadc04");
+  expectShifted("d87becaa3701c97b31b5b8084f2b5b34e7857092", 127, "1b0f7d954");
+  expectShifted("d87becaa3701c97b31b5b8084f2b5b34e7857092", 128, "d87becaa");
+  expectShifted("d87becaa3701c97b31b5b8084f2b5b34e7857092", 129, "6c3df655");
 
   expectShifted("-d87becaa3701c97b31b5b8084f2b5b34e7857092", 0,
       "-d87becaa3701c97b31b5b8084f2b5b34e7857092");
@@ -58,4 +61,7 @@ main() {
       "-d87becaa3701c97b31b5b809");
   expectShifted("-d87becaa3701c97b31b5b8084f2b5b34e7857092", 65,
       "-6c3df6551b80e4bd98dadc05");
+  expectShifted("-d87becaa3701c97b31b5b8084f2b5b34e7857092", 127, "-1b0f7d955");
+  expectShifted("-d87becaa3701c97b31b5b8084f2b5b34e7857092", 128, "-d87becab");
+  expectShifted("-d87becaa3701c97b31b5b8084f2b5b34e7857092", 129, "-6c3df656");
 }

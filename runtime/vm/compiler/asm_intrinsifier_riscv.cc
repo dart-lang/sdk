@@ -245,11 +245,12 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ andi(T5, T2, target::kBitsPerWord - 1);  // T5 = bit shift
   __ li(T6, target::kBitsPerWord);
   __ sub(T6, T6, T5);  // T6 = carry bit shift
+  __ sub(T1, T1, T4);  // T1 = words to process
 
   __ slli(TMP, T4, target::kWordSizeLog2);
   __ add(T0, T0, TMP);  // T0 = &src_digits[word_shift]
 
-  __ li(T2, 0);  // carry
+  // T2 = carry
   __ lx(T2, FieldAddress(T0, target::TypedData::payload_offset()));
   __ srl(T2, T2, T5);
   __ addi(T0, T0, target::kWordSize);
