@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.58.0';
+const String vmServiceVersion = '3.57.0';
 
 /// @optional
 const String optional = 'optional';
@@ -945,12 +945,9 @@ abstract class VmServiceInterface {
   /// If a URI is not known, the corresponding entry in the [UriList] response
   /// will be `null`.
   ///
-  /// If `local` is true, the VM will attempt to return local file paths instead
-  /// of relative paths, but this is not guaranteed.
-  ///
   /// See [UriList].
-  Future<UriList> lookupResolvedPackageUris(String isolateId, List<String> uris,
-      {bool? local});
+  Future<UriList> lookupResolvedPackageUris(
+      String isolateId, List<String> uris);
 
   /// The `lookupPackageUris` RPC is used to convert a list of URIs to their
   /// unresolved paths. For example, URIs passed to this RPC are mapped in the
@@ -1555,7 +1552,6 @@ class VmServerConnection {
           response = await _serviceImplementation.lookupResolvedPackageUris(
             params!['isolateId'],
             List<String>.from(params['uris'] ?? []),
-            local: params['local'],
           );
           break;
         case 'lookupPackageUris':
@@ -2090,13 +2086,10 @@ class VmService implements VmServiceInterface {
       _call('kill', {'isolateId': isolateId});
 
   @override
-  Future<UriList> lookupResolvedPackageUris(String isolateId, List<String> uris,
-          {bool? local}) =>
-      _call('lookupResolvedPackageUris', {
-        'isolateId': isolateId,
-        'uris': uris,
-        if (local != null) 'local': local,
-      });
+  Future<UriList> lookupResolvedPackageUris(
+          String isolateId, List<String> uris) =>
+      _call(
+          'lookupResolvedPackageUris', {'isolateId': isolateId, 'uris': uris});
 
   @override
   Future<UriList> lookupPackageUris(String isolateId, List<String> uris) =>

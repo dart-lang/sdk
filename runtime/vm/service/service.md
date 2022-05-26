@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.58
+# Dart VM Service Protocol 3.57
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.58_ of the Dart VM Service Protocol. This
+This document describes of _version 3.57_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -1220,7 +1220,7 @@ See [Success](#success).
 ### lookupResolvedPackageUris
 
 ```
-UriList lookupResolvedPackageUris(string isolateId, string[] uris, bool local [optional])
+UriList lookupResolvedPackageUris(string isolateId, string[] uris)
 ```
 
 The _lookupResolvedPackageUris_ RPC is used to convert a list of URIs to their
@@ -1233,8 +1233,6 @@ the following ways:
 
 If a URI is not known, the corresponding entry in the [UriList] response will be
 `null`.
-
-If `local` is true, the VM will attempt to return local file paths instead of relative paths, but this is not guaranteed.
 
 See [UriList](#urilist).
 
@@ -4371,6 +4369,5 @@ version | comments
 3.55 | Added `streamCpuSamplesWithUserTag` RPC.
 3.56 | Added optional `line` and `column` properties to `SourceLocation`. Added a new `SourceReportKind`, `BranchCoverage`, which reports branch level coverage information.
 3.57 | Added optional `libraryFilters` parameter to `getSourceReport` RPC.
-3.58 | Added optional `local` parameter to `lookupResolvedPackageUris` RPC.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

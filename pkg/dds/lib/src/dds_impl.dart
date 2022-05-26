@@ -26,7 +26,6 @@ import 'constants.dart';
 import 'devtools/handler.dart';
 import 'expression_evaluator.dart';
 import 'isolate_manager.dart';
-import 'package_uri_converter.dart';
 import 'stream_manager.dart';
 
 @visibleForTesting
@@ -60,13 +59,11 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     this._devToolsConfiguration,
     this.shouldLogRequests,
     this._enableServicePortFallback,
-    this.uriConverter,
   ) {
     _clientManager = ClientManager(this);
     _expressionEvaluator = ExpressionEvaluator(this);
     _isolateManager = IsolateManager(this);
     _streamManager = StreamManager(this);
-    _packageUriConverter = PackageUriConverter(this);
     _authCode = _authCodesEnabled ? _makeAuthToken() : '';
   }
 
@@ -435,10 +432,6 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   Completer _done = Completer<void>();
   bool _initializationComplete = false;
   bool _shuttingDown = false;
-
-  UriConverter? uriConverter;
-  PackageUriConverter get packageUriConverter => _packageUriConverter;
-  late PackageUriConverter _packageUriConverter;
 
   ClientManager get clientManager => _clientManager;
   late ClientManager _clientManager;
