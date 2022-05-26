@@ -6497,6 +6497,27 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49106')
+  Future<void> test_map_read_does_not_require_index_cast() async {
+    var content = '''
+int f(Map<String, int> m, Object o) => m[o];
+''';
+    var expected = '''
+int? f(Map<String, int> m, Object o) => m[o];
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_map_write_requires_index_cast() async {
+    var content = '''
+void f(Map<String, int> m, Object o, int i) => m[o] = i;
+''';
+    var expected = '''
+void f(Map<String, int> m, Object o, int i) => m[o as String] = i;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_methodInvocation_extension_invocation() async {
     var content = '''
 extension on bool {
