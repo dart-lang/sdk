@@ -58,7 +58,6 @@ class UnnecessaryStatements extends LintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(_ReportNoClearEffectVisitor(this));
-    registry.addAsExpression(this, visitor);
     registry.addExpressionStatement(this, visitor);
     registry.addForStatement(this, visitor);
     registry.addCascadeExpression(this, visitor);

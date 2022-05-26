@@ -85,6 +85,9 @@ else
   # Verify that the libraries are error free.
   dart analyze --fatal-infos .
 
+  # Enforce some linter-specific checks.
+  dart tool/checks/driver.dart
+
   echo ""
 
   # Run tests.

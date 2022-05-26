@@ -54,7 +54,6 @@ class UnsafeHtml extends LintRule {
     var visitor = _Visitor(this);
     registry.addAssignmentExpression(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
-    registry.addFunctionExpressionInvocation(this, visitor);
     registry.addMethodInvocation(this, visitor);
   }
 
