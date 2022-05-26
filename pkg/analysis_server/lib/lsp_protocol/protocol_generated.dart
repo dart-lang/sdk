@@ -6,7 +6,6 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
-// ignore_for_file: annotate_overrides
 // ignore_for_file: prefer_is_not_operator
 // ignore_for_file: unnecessary_parenthesis
 
@@ -51,12 +50,15 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
   final String annotationId;
 
   /// The string to be inserted. For delete operations use an empty string.
+  @override
   final String newText;
 
   /// The range of the text document to be manipulated. To insert text into a
   /// document create a range where start === end.
+  @override
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['annotationId'] = annotationId;
@@ -178,6 +180,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
   /// user interface for example on an undo stack to undo the workspace edit.
   final String? label;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['edit'] = edit.toJson();
@@ -282,6 +285,7 @@ class ApplyWorkspaceEditResult implements ToJsonable {
   /// error for a request that triggered the edit.
   final String? failureReason;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['applied'] = applied;
@@ -387,6 +391,7 @@ class CallHierarchyClientCapabilities implements ToJsonable {
   /// capability as well.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -460,6 +465,7 @@ class CallHierarchyIncomingCall implements ToJsonable {
   /// denoted by [`this.from`](#CallHierarchyIncomingCall.from).
   final List<Range> fromRanges;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['from'] = from.toJson();
@@ -577,11 +583,14 @@ class CallHierarchyIncomingCallsParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['item'] = item.toJson();
@@ -742,6 +751,7 @@ class CallHierarchyItem implements ToJsonable {
   /// The resource identifier of this item.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (data != null) {
@@ -934,8 +944,10 @@ class CallHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -1009,6 +1021,7 @@ class CallHierarchyOutgoingCall implements ToJsonable {
   /// The item that is called.
   final CallHierarchyItem to;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['fromRanges'] = fromRanges.map((item) => item.toJson()).toList();
@@ -1126,11 +1139,14 @@ class CallHierarchyOutgoingCallsParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['item'] = item.toJson();
@@ -1249,14 +1265,18 @@ class CallHierarchyPrepareParams
   }
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['position'] = position.toJson();
@@ -1381,13 +1401,17 @@ class CallHierarchyRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -1499,6 +1523,7 @@ class CancelParams implements ToJsonable {
   /// The request id to cancel.
   final Either2<int, String> id;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['id'] = id;
@@ -1586,6 +1611,7 @@ class ChangeAnnotation implements ToJsonable {
   /// the change.
   final bool? needsConfirmation;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (description != null) {
@@ -1738,6 +1764,7 @@ class ClientCapabilities implements ToJsonable {
   /// Workspace specific client capabilities.
   final WorkspaceClientCapabilities? workspace;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (experimental != null) {
@@ -1967,6 +1994,7 @@ class CodeAction implements ToJsonable {
   /// A short, human-readable, title for this code action.
   final String title;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (command != null) {
@@ -2200,6 +2228,7 @@ class CodeActionClientCapabilities implements ToJsonable {
   ///  @since 3.16.0
   final CodeActionClientCapabilitiesResolveSupport? resolveSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (codeActionLiteralSupport != null) {
@@ -2366,6 +2395,7 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
   /// The code action kind is supported with the following value set.
   final CodeActionLiteralSupportCodeActionKind codeActionKind;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['codeActionKind'] = codeActionKind.toJson();
@@ -2442,6 +2472,7 @@ class CodeActionClientCapabilitiesResolveSupport implements ToJsonable {
   /// The properties that a client can resolve lazily.
   final List<String> properties;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['properties'] = properties;
@@ -2546,6 +2577,7 @@ class CodeActionContext implements ToJsonable {
   ///  @since 3.17.0
   final CodeActionTriggerKind? triggerKind;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['diagnostics'] = diagnostics.map((item) => item.toJson()).toList();
@@ -2657,6 +2689,7 @@ class CodeActionDisabled implements ToJsonable {
   /// This is displayed in the code actions UI.
   final String reason;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['reason'] = reason;
@@ -2774,6 +2807,7 @@ class CodeActionKind implements ToJsonable {
   /// Base kind for an organize imports source action: `source.organizeImports`.
   static const SourceOrganizeImports = CodeActionKind('source.organizeImports');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -2782,6 +2816,7 @@ class CodeActionKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is CodeActionKind && other._value == _value;
 }
@@ -2811,6 +2846,7 @@ class CodeActionLiteralSupportCodeActionKind implements ToJsonable {
   /// gracefully and falls back to a default value when unknown.
   final List<CodeActionKind> valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
@@ -2905,8 +2941,10 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
   /// action.
   ///  @since 3.16.0
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (codeActionKinds != null) {
@@ -3041,6 +3079,7 @@ class CodeActionParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The range for which the command was invoked.
@@ -3050,8 +3089,10 @@ class CodeActionParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['context'] = context.toJson();
@@ -3216,18 +3257,23 @@ class CodeActionRegistrationOptions
   ///
   /// The list of kinds may be generic, such as `CodeActionKind.Refactor`, or
   /// the server may list out every specific kind they provide.
+  @override
   final List<CodeActionKind>? codeActionKinds;
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The server provides support to resolve additional information for a code
   /// action.
   ///  @since 3.16.0
+  @override
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (codeActionKinds != null) {
@@ -3356,6 +3402,7 @@ class CodeActionTriggerKind implements ToJsonable {
   /// Code actions were explicitly requested by the user or by an extension.
   static const Invoked = CodeActionTriggerKind(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -3364,6 +3411,7 @@ class CodeActionTriggerKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is CodeActionTriggerKind && other._value == _value;
 }
@@ -3390,6 +3438,7 @@ class CodeDescription implements ToJsonable {
   /// An URI to open with more information about the diagnostic error.
   final String href;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['href'] = href;
@@ -3482,6 +3531,7 @@ class CodeLens implements ToJsonable {
   /// line.
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (command != null) {
@@ -3573,6 +3623,7 @@ class CodeLensClientCapabilities implements ToJsonable {
   /// Whether code lens supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -3642,8 +3693,10 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// Code lens has a resolve provider as well.
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (resolveProvider != null) {
@@ -3745,14 +3798,17 @@ class CodeLensParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The document to request code lens for.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -3867,12 +3923,16 @@ class CodeLensRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// Code lens has a resolve provider as well.
+  @override
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -3987,6 +4047,7 @@ class CodeLensWorkspaceClientCapabilities implements ToJsonable {
   /// change that requires such a calculation.
   final bool? refreshSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (refreshSupport != null) {
@@ -4073,6 +4134,7 @@ class Color implements ToJsonable {
   /// The red component of this color in the range [0-1].
   final num red;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['alpha'] = alpha;
@@ -4214,6 +4276,7 @@ class ColorInformation implements ToJsonable {
   /// The range in the document where this color appears.
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['color'] = color.toJson();
@@ -4328,6 +4391,7 @@ class ColorPresentation implements ToJsonable {
   /// [label](#ColorPresentation.label) is used.
   final TextEdit? textEdit;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (additionalTextEdits != null) {
@@ -4466,6 +4530,7 @@ class ColorPresentationParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The range where the color would be inserted. Serves as a context.
@@ -4475,8 +4540,10 @@ class ColorPresentationParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['color'] = color.toJson();
@@ -4638,6 +4705,7 @@ class Command implements ToJsonable {
   /// Title of the command, like `save`.
   final String title;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (arguments != null) {
@@ -4796,6 +4864,7 @@ class CompletionClientCapabilities implements ToJsonable {
   ///  @since 3.17.0
   final InsertTextMode? insertTextMode;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (completionItem != null) {
@@ -5042,6 +5111,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
   ///  @since 3.15.0
   final CompletionItemTagSupport? tagSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (commitCharactersSupport != null) {
@@ -5265,6 +5335,7 @@ class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
   /// of the protocol.
   final List<CompletionItemKind>? valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (valueSet != null) {
@@ -5342,6 +5413,7 @@ class CompletionClientCapabilitiesCompletionList implements ToJsonable {
   ///  @since 3.17.0
   final List<String>? itemDefaults;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (itemDefaults != null) {
@@ -5420,6 +5492,7 @@ class CompletionContext implements ToJsonable {
   /// How the completion was triggered.
   final CompletionTriggerKind triggerKind;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (triggerCharacter != null) {
@@ -5743,6 +5816,7 @@ class CompletionItem implements ToJsonable {
   ///  @since 3.17.0
   final String? textEditText;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (additionalTextEdits != null) {
@@ -6110,6 +6184,7 @@ class CompletionItemEditRange implements ToJsonable {
   final Range insert;
   final Range replace;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['insert'] = insert.toJson();
@@ -6203,6 +6278,7 @@ class CompletionItemInsertTextModeSupport implements ToJsonable {
 
   final List<InsertTextMode> valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
@@ -6294,6 +6370,7 @@ class CompletionItemKind implements ToJsonable {
   static const Value = CompletionItemKind(12);
   static const Variable = CompletionItemKind(6);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -6302,6 +6379,7 @@ class CompletionItemKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is CompletionItemKind && other._value == _value;
 }
@@ -6339,6 +6417,7 @@ class CompletionItemLabelDetails implements ToJsonable {
   /// for function signatures or type annotations.
   final String? detail;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (description != null) {
@@ -6420,6 +6499,7 @@ class CompletionItemResolveSupport implements ToJsonable {
   /// The properties that a client can resolve lazily.
   final List<String> properties;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['properties'] = properties;
@@ -6488,6 +6568,7 @@ class CompletionItemTag implements ToJsonable {
   /// Render a completion as obsolete, usually using a strike-out.
   static const Deprecated = CompletionItemTag(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -6496,6 +6577,7 @@ class CompletionItemTag implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is CompletionItemTag && other._value == _value;
 }
@@ -6522,6 +6604,7 @@ class CompletionItemTagSupport implements ToJsonable {
   /// The tags supported by the client.
   final List<CompletionItemTag> valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
@@ -6630,6 +6713,7 @@ class CompletionList implements ToJsonable {
   /// The completion items.
   final List<CompletionItem> items;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['isIncomplete'] = isIncomplete;
@@ -6789,6 +6873,7 @@ class CompletionListItemDefaults implements ToJsonable {
   ///  @since 3.17.0
   final InsertTextMode? insertTextMode;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (commitCharacters != null) {
@@ -6966,8 +7051,10 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
   /// valid inside an identifier (for example `.` in JavaScript) list them in
   /// `triggerCharacters`.
   final List<String>? triggerCharacters;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (allCommitCharacters != null) {
@@ -7105,6 +7192,7 @@ class CompletionOptionsCompletionItem implements ToJsonable {
   ///  @since 3.17.0
   final bool? labelDetailsSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (labelDetailsSupport != null) {
@@ -7207,17 +7295,22 @@ class CompletionParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (context != null) {
@@ -7394,18 +7487,22 @@ class CompletionRegistrationOptions
   /// If a server provides both `allCommitCharacters` and commit characters on
   /// an individual completion item the ones on the completion item win.
   ///  @since 3.2.0
+  @override
   final List<String>? allCommitCharacters;
 
   /// The server supports the following `CompletionItem` specific capabilities.
   ///  @since 3.17.0
+  @override
   final CompletionOptionsCompletionItem? completionItem;
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The server provides support to resolve additional information for a
   /// completion item.
+  @override
   final bool? resolveProvider;
 
   /// Most tools trigger completion request automatically without explicitly
@@ -7418,9 +7515,12 @@ class CompletionRegistrationOptions
   /// If code complete should automatically be trigger on characters not being
   /// valid inside an identifier (for example `.` in JavaScript) list them in
   /// `triggerCharacters`.
+  @override
   final List<String>? triggerCharacters;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (allCommitCharacters != null) {
@@ -7590,6 +7690,7 @@ class CompletionTriggerKind implements ToJsonable {
   /// Completion was re-triggered as the current completion list is incomplete.
   static const TriggerForIncompleteCompletions = CompletionTriggerKind._(3);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -7598,6 +7699,7 @@ class CompletionTriggerKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is CompletionTriggerKind && other._value == _value;
 }
@@ -7629,6 +7731,7 @@ class ConfigurationItem implements ToJsonable {
   /// The configuration section asked for.
   final String? section;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (scopeUri != null) {
@@ -7708,6 +7811,7 @@ class ConfigurationParams implements ToJsonable {
 
   final List<ConfigurationItem> items;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['items'] = items.map((item) => item.toJson()).toList();
@@ -7810,6 +7914,7 @@ class CreateFile implements ToJsonable {
   /// The resource to create.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (annotationId != null) {
@@ -7941,6 +8046,7 @@ class CreateFileOptions implements ToJsonable {
   /// Overwrite existing file. Overwrite wins over `ignoreIfExists`
   final bool? overwrite;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (ignoreIfExists != null) {
@@ -8026,6 +8132,7 @@ class CreateFilesParams implements ToJsonable {
   /// An array of all files/folders created in this operation.
   final List<FileCreate> files;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['files'] = files.map((item) => item.toJson()).toList();
@@ -8106,6 +8213,7 @@ class DeclarationClientCapabilities implements ToJsonable {
   /// The client supports additional metadata in the form of declaration links.
   final bool? linkSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -8187,8 +8295,10 @@ class DeclarationOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -8281,17 +8391,22 @@ class DeclarationParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -8431,13 +8546,17 @@ class DeclarationRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -8553,6 +8672,7 @@ class DefinitionClientCapabilities implements ToJsonable {
   ///  @since 3.14.0
   final bool? linkSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -8634,8 +8754,10 @@ class DefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -8727,17 +8849,22 @@ class DefinitionParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -8869,9 +8996,12 @@ class DefinitionRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -8993,6 +9123,7 @@ class DeleteFile implements ToJsonable {
   /// The file to delete.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (annotationId != null) {
@@ -9124,6 +9255,7 @@ class DeleteFileOptions implements ToJsonable {
   /// Delete the content recursively if a folder is denoted.
   final bool? recursive;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (ignoreIfNotExists != null) {
@@ -9209,6 +9341,7 @@ class DeleteFilesParams implements ToJsonable {
   /// An array of all files/folders deleted in this operation.
   final List<FileDelete> files;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['files'] = files.map((item) => item.toJson()).toList();
@@ -9353,6 +9486,7 @@ class Diagnostic implements ToJsonable {
   ///  @since 3.15.0
   final List<DiagnosticTag>? tags;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (code != null) {
@@ -9569,6 +9703,7 @@ class DiagnosticClientCapabilities implements ToJsonable {
   /// pulls.
   final bool? relatedDocumentSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -9674,11 +9809,13 @@ class DiagnosticOptions implements WorkDoneProgressOptions, ToJsonable {
   /// Inter file dependencies are common for most programming languages and
   /// typically uncommon for linters.
   final bool interFileDependencies;
+  @override
   final bool? workDoneProgress;
 
   /// The server provides support for workspace diagnostics as well.
   final bool workspaceDiagnostics;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (identifier != null) {
@@ -9830,26 +9967,33 @@ class DiagnosticRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
 
   /// An optional identifier under which the diagnostics are managed by the
   /// client.
+  @override
   final String? identifier;
 
   /// Whether the language has inter file dependencies meaning that editing code
   /// in one file can result in a different diagnostic set in another file.
   /// Inter file dependencies are common for most programming languages and
   /// typically uncommon for linters.
+  @override
   final bool interFileDependencies;
+  @override
   final bool? workDoneProgress;
 
   /// The server provides support for workspace diagnostics as well.
+  @override
   final bool workspaceDiagnostics;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -10024,6 +10168,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
   /// The message of this related diagnostic information.
   final String message;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['location'] = location.toJson();
@@ -10116,6 +10261,7 @@ class DiagnosticServerCancellationData implements ToJsonable {
 
   final bool retriggerRequest;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['retriggerRequest'] = retriggerRequest;
@@ -10187,6 +10333,7 @@ class DiagnosticSeverity implements ToJsonable {
   /// Reports a warning.
   static const Warning = DiagnosticSeverity(2);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -10195,6 +10342,7 @@ class DiagnosticSeverity implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is DiagnosticSeverity && other._value == _value;
 }
@@ -10222,6 +10370,7 @@ class DiagnosticTag implements ToJsonable {
   /// of having an error squiggle.
   static const Unnecessary = DiagnosticTag(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -10230,6 +10379,7 @@ class DiagnosticTag implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is DiagnosticTag && other._value == _value;
 }
@@ -10263,6 +10413,7 @@ class DiagnosticWorkspaceClientCapabilities implements ToJsonable {
   /// wide change that requires such a calculation.
   final bool? refreshSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (refreshSupport != null) {
@@ -10328,6 +10479,7 @@ class DidChangeConfigurationClientCapabilities implements ToJsonable {
   /// Did change configuration notification supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -10392,6 +10544,7 @@ class DidChangeConfigurationParams implements ToJsonable {
   /// The actual changed settings
   final Object? settings;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['settings'] = settings;
@@ -10465,6 +10618,7 @@ class DidChangeNotebookDocumentParams implements ToJsonable {
   /// version after all provided changes have been applied.
   final VersionedNotebookDocumentIdentifier notebookDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['change'] = change.toJson();
@@ -10594,6 +10748,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
   /// after all provided content changes have been applied.
   final VersionedTextDocumentIdentifier textDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['contentChanges'] = contentChanges;
@@ -10714,6 +10869,7 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
   ///  @since 3.17.0
   final bool? relativePatternSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -10799,6 +10955,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
   /// The actual file events.
   final List<FileEvent> changes;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['changes'] = changes.map((item) => item.toJson()).toList();
@@ -10875,6 +11032,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
   /// The watchers to register.
   final List<FileSystemWatcher> watchers;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['watchers'] = watchers.map((item) => item.toJson()).toList();
@@ -10950,6 +11108,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
   /// The actual workspace folder change event.
   final WorkspaceFoldersChangeEvent event;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['event'] = event.toJson();
@@ -11033,6 +11192,7 @@ class DidCloseNotebookDocumentParams implements ToJsonable {
   /// The notebook document that got closed.
   final NotebookDocumentIdentifier notebookDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['cellTextDocuments'] =
@@ -11132,6 +11292,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
   /// The document that was closed.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['textDocument'] = textDocument.toJson();
@@ -11213,6 +11374,7 @@ class DidOpenNotebookDocumentParams implements ToJsonable {
   /// The notebook document that got opened.
   final NotebookDocument notebookDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['cellTextDocuments'] =
@@ -11311,6 +11473,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
   /// The document that was opened.
   final TextDocumentItem textDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['textDocument'] = textDocument.toJson();
@@ -11383,6 +11546,7 @@ class DidSaveNotebookDocumentParams implements ToJsonable {
   /// The notebook document that got saved.
   final NotebookDocumentIdentifier notebookDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['notebookDocument'] = notebookDocument.toJson();
@@ -11462,6 +11626,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
   /// The document that was saved.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (text != null) {
@@ -11547,6 +11712,7 @@ class DocumentColorClientCapabilities implements ToJsonable {
   /// Whether document color supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -11610,8 +11776,10 @@ class DocumentColorOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -11696,14 +11864,17 @@ class DocumentColorParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -11823,13 +11994,17 @@ class DocumentColorRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -11971,6 +12146,7 @@ class DocumentDiagnosticParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The result id of a previous response if provided.
@@ -11980,8 +12156,10 @@ class DocumentDiagnosticParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (identifier != null) {
@@ -12114,6 +12292,7 @@ class DocumentDiagnosticReportKind implements ToJsonable {
   /// A report indicating that the last returned report is still accurate.
   static const Unchanged = DocumentDiagnosticReportKind('unchanged');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -12122,6 +12301,7 @@ class DocumentDiagnosticReportKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is DocumentDiagnosticReportKind && other._value == _value;
 }
@@ -12163,6 +12343,7 @@ class DocumentDiagnosticReportPartialResult implements ToJsonable {
       Either2<FullDocumentDiagnosticReport,
           UnchangedDocumentDiagnosticReport>> relatedDocuments;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['relatedDocuments'] = relatedDocuments;
@@ -12251,6 +12432,7 @@ class DocumentFormattingClientCapabilities implements ToJsonable {
   /// Whether formatting supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -12316,8 +12498,10 @@ class DocumentFormattingOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -12401,8 +12585,10 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['options'] = options.toJson();
@@ -12523,9 +12709,12 @@ class DocumentFormattingRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -12631,6 +12820,7 @@ class DocumentHighlight implements ToJsonable {
   /// The range this highlight applies to.
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (kind != null) {
@@ -12716,6 +12906,7 @@ class DocumentHighlightClientCapabilities implements ToJsonable {
   /// Whether document highlight supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -12780,6 +12971,7 @@ class DocumentHighlightKind implements ToJsonable {
   /// Write-access of a symbol, like writing to a variable.
   static const Write = DocumentHighlightKind(3);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -12788,6 +12980,7 @@ class DocumentHighlightKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is DocumentHighlightKind && other._value == _value;
 }
@@ -12813,8 +13006,10 @@ class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -12907,17 +13102,22 @@ class DocumentHighlightParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -13054,9 +13254,12 @@ class DocumentHighlightRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -13180,6 +13383,7 @@ class DocumentLink implements ToJsonable {
   ///  @since 3.15.0
   final String? tooltip;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (data != null) {
@@ -13294,6 +13498,7 @@ class DocumentLinkClientCapabilities implements ToJsonable {
   ///  @since 3.15.0
   final bool? tooltipSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -13381,8 +13586,10 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// Document links have a resolve provider as well.
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (resolveProvider != null) {
@@ -13485,14 +13692,17 @@ class DocumentLinkParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The document to provide document links for.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -13611,12 +13821,16 @@ class DocumentLinkRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// Document links have a resolve provider as well.
+  @override
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -13725,6 +13939,7 @@ class DocumentOnTypeFormattingClientCapabilities implements ToJsonable {
   /// Whether on type formatting supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -13802,6 +14017,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
   /// More trigger characters.
   final List<String>? moreTriggerCharacter;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['firstTriggerCharacter'] = firstTriggerCharacter;
@@ -13920,6 +14136,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
   /// The document to format.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['ch'] = ch;
@@ -14072,14 +14289,18 @@ class DocumentOnTypeFormattingRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// A character on which formatting should be triggered, like `{`.
+  @override
   final String firstTriggerCharacter;
 
   /// More trigger characters.
+  @override
   final List<String>? moreTriggerCharacter;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -14198,6 +14419,7 @@ class DocumentRangeFormattingClientCapabilities implements ToJsonable {
   /// Whether formatting supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -14264,8 +14486,10 @@ class DocumentRangeFormattingOptions
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -14357,8 +14581,10 @@ class DocumentRangeFormattingParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['options'] = options.toJson();
@@ -14500,9 +14726,12 @@ class DocumentRangeFormattingRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -14662,6 +14891,7 @@ class DocumentSymbol implements ToJsonable {
   ///  @since 3.16.0
   final List<SymbolTag>? tags;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (children != null) {
@@ -14904,6 +15134,7 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
   ///  @since 3.16.0
   final DocumentSymbolClientCapabilitiesTagSupport? tagSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -15048,6 +15279,7 @@ class DocumentSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   /// from `File` to `Array` as defined in the initial version of the protocol.
   final List<SymbolKind>? valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (valueSet != null) {
@@ -15120,6 +15352,7 @@ class DocumentSymbolClientCapabilitiesTagSupport implements ToJsonable {
   /// The tags supported by the client.
   final List<SymbolTag> valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
@@ -15201,8 +15434,10 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   /// shown for the same document.
   ///  @since 3.16.0
   final String? label;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (label != null) {
@@ -15305,14 +15540,17 @@ class DocumentSymbolParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -15431,14 +15669,18 @@ class DocumentSymbolRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// A human-readable string that is shown when multiple outlines trees are
   /// shown for the same document.
   ///  @since 3.16.0
+  @override
   final String? label;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -15593,6 +15835,7 @@ class ErrorCodes implements ToJsonable {
   static const ServerNotInitialized = ErrorCodes(-32002);
   static const UnknownErrorCode = ErrorCodes(-32001);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -15601,6 +15844,7 @@ class ErrorCodes implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is ErrorCodes && other._value == _value;
 }
@@ -15625,6 +15869,7 @@ class ExecuteCommandClientCapabilities implements ToJsonable {
   /// Execute command supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -15695,8 +15940,10 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// The commands to be executed on the server
   final List<String> commands;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['commands'] = commands;
@@ -15805,8 +16052,10 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
   final String command;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (arguments != null) {
@@ -15918,9 +16167,12 @@ class ExecuteCommandRegistrationOptions
   }
 
   /// The commands to be executed on the server
+  @override
   final List<String> commands;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['commands'] = commands;
@@ -16018,6 +16270,7 @@ class ExecutionSummary implements ToJsonable {
   /// Whether the execution was successful or not if known by the client.
   final bool? success;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['executionOrder'] = executionOrder;
@@ -16120,6 +16373,7 @@ class FailureHandlingKind implements ToJsonable {
   /// guarantee that this is succeeding.
   static const Undo = FailureHandlingKind._('undo');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -16128,6 +16382,7 @@ class FailureHandlingKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is FailureHandlingKind && other._value == _value;
 }
@@ -16152,6 +16407,7 @@ class FileChangeType implements ToJsonable {
   /// The file got deleted.
   static const Deleted = FileChangeType(3);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -16160,6 +16416,7 @@ class FileChangeType implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is FileChangeType && other._value == _value;
 }
@@ -16186,6 +16443,7 @@ class FileCreate implements ToJsonable {
   /// A file:// URI for the location of the file/folder being created.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -16256,6 +16514,7 @@ class FileDelete implements ToJsonable {
   /// A file:// URI for the location of the file/folder being deleted.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -16332,6 +16591,7 @@ class FileEvent implements ToJsonable {
   /// The file's URI.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['type'] = type;
@@ -16465,6 +16725,7 @@ class FileOperationClientCapabilities implements ToJsonable {
   /// The client has support for sending willRenameFiles requests.
   final bool? willRename;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (didCreate != null) {
@@ -16632,6 +16893,7 @@ class FileOperationFilter implements ToJsonable {
   /// A Uri like `file` or `untitled`.
   final String? scheme;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['pattern'] = pattern.toJson();
@@ -16770,6 +17032,7 @@ class FileOperationOptions implements ToJsonable {
   /// The server is interested in receiving willRenameFiles requests.
   final FileOperationRegistrationOptions? willRename;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (didCreate != null) {
@@ -16960,6 +17223,7 @@ class FileOperationPattern implements ToJsonable {
   /// Additional options used during matching.
   final FileOperationPatternOptions? options;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['glob'] = glob;
@@ -17062,6 +17326,7 @@ class FileOperationPatternKind implements ToJsonable {
   /// The pattern matches a folder only.
   static const folder = FileOperationPatternKind('folder');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -17070,6 +17335,7 @@ class FileOperationPatternKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is FileOperationPatternKind && other._value == _value;
 }
@@ -17096,6 +17362,7 @@ class FileOperationPatternOptions implements ToJsonable {
   /// The pattern should be matched ignoring casing.
   final bool? ignoreCase;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (ignoreCase != null) {
@@ -17164,6 +17431,7 @@ class FileOperationRegistrationOptions implements ToJsonable {
   /// The actual filters.
   final List<FileOperationFilter> filters;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['filters'] = filters.map((item) => item.toJson()).toList();
@@ -17246,6 +17514,7 @@ class FileRename implements ToJsonable {
   /// A file:// URI for the original location of the file/folder being renamed.
   final String oldUri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['newUri'] = newUri;
@@ -17351,6 +17620,7 @@ class FileSystemWatcher implements ToJsonable {
   /// | WatchKind.Change | WatchKind.Delete which is 7.
   final WatchKind? kind;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['globPattern'] = globPattern;
@@ -17488,6 +17758,7 @@ class FoldingRange implements ToJsonable {
   /// larger and smaller than the number of lines in the document.
   final int startLine;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (collapsedText != null) {
@@ -17682,6 +17953,7 @@ class FoldingRangeClientCapabilities implements ToJsonable {
   /// limit.
   final int? rangeLimit;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -17817,6 +18089,7 @@ class FoldingRangeClientCapabilitiesFoldingRange implements ToJsonable {
   ///  @since 3.17.0
   final bool? collapsedText;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (collapsedText != null) {
@@ -17886,6 +18159,7 @@ class FoldingRangeClientCapabilitiesFoldingRangeKind implements ToJsonable {
   /// set gracefully and falls back to a default value when unknown.
   final List<FoldingRangeKind>? valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (valueSet != null) {
@@ -17955,6 +18229,7 @@ class FoldingRangeKind implements ToJsonable {
   /// Folding range for a region (e.g. `#region`)
   static const Region = FoldingRangeKind('region');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -17963,6 +18238,7 @@ class FoldingRangeKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is FoldingRangeKind && other._value == _value;
 }
@@ -17987,8 +18263,10 @@ class FoldingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -18073,14 +18351,17 @@ class FoldingRangeParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -18200,13 +18481,17 @@ class FoldingRangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -18346,6 +18631,7 @@ class FormattingOptions implements ToJsonable {
   ///  @since 3.15.0
   final bool? trimTrailingWhitespace;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (insertFinalNewline != null) {
@@ -18515,6 +18801,7 @@ class FullDocumentDiagnosticReport implements ToJsonable {
   /// request for the same document.
   final String? resultId;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['items'] = items.map((item) => item.toJson()).toList();
@@ -18676,6 +18963,7 @@ class GeneralClientCapabilities implements ToJsonable {
   ///  @since 3.17.0
   final GeneralClientCapabilitiesStaleRequestSupport? staleRequestSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (markdown != null) {
@@ -18810,6 +19098,7 @@ class GeneralClientCapabilitiesStaleRequestSupport implements ToJsonable {
   /// receives a response with error code `ContentModified``
   final List<String> retryOnContentModified;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['cancel'] = cancel;
@@ -18922,6 +19211,7 @@ class Hover implements ToJsonable {
   /// visualize a hover, e.g. by changing the background color.
   final Range? range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['contents'] = contents;
@@ -19019,6 +19309,7 @@ class HoverClientCapabilities implements ToJsonable {
   /// Whether hover supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (contentFormat != null) {
@@ -19105,8 +19396,10 @@ class HoverOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -19183,14 +19476,18 @@ class HoverParams
   }
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['position'] = position.toJson();
@@ -19306,9 +19603,12 @@ class HoverRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -19411,6 +19711,7 @@ class ImplementationClientCapabilities implements ToJsonable {
   ///  @since 3.14.0
   final bool? linkSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -19492,8 +19793,10 @@ class ImplementationOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -19586,17 +19889,22 @@ class ImplementationParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -19737,13 +20045,17 @@ class ImplementationRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -19935,6 +20247,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   final String? trace;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
   /// The workspace folders configured in the client when the server starts.
@@ -19944,6 +20257,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   ///  @since 3.6.0
   final List<WorkspaceFolder>? workspaceFolders;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['capabilities'] = capabilities.toJson();
@@ -20160,6 +20474,7 @@ class InitializeParamsClientInfo implements ToJsonable {
   /// The client's version as defined by the client.
   final String? version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['name'] = name;
@@ -20257,6 +20572,7 @@ class InitializeResult implements ToJsonable {
   ///  @since 3.15.0
   final InitializeResultServerInfo? serverInfo;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['capabilities'] = capabilities.toJson();
@@ -20351,6 +20667,7 @@ class InitializeResultServerInfo implements ToJsonable {
   /// The server's version as defined by the server.
   final String? version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['name'] = name;
@@ -20426,6 +20743,7 @@ class InitializedParams implements ToJsonable {
     return InitializedParams();
   }
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     return result;
@@ -20568,6 +20886,7 @@ class InlayHint implements ToJsonable {
   /// might resolve this property late using the resolve request.
   final Either2<MarkupContent, String>? tooltip;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (data != null) {
@@ -20763,6 +21082,7 @@ class InlayHintClientCapabilities implements ToJsonable {
   /// Indicates which properties a client can resolve lazily on a inlay hint.
   final InlayHintClientCapabilitiesResolveSupport? resolveSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -20850,6 +21170,7 @@ class InlayHintClientCapabilitiesResolveSupport implements ToJsonable {
   /// The properties that a client can resolve lazily.
   final List<String> properties;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['properties'] = properties;
@@ -20921,6 +21242,7 @@ class InlayHintKind implements ToJsonable {
   /// An inlay hint that for a type annotation.
   static const Type = InlayHintKind(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -20929,6 +21251,7 @@ class InlayHintKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is InlayHintKind && other._value == _value;
 }
@@ -21002,6 +21325,7 @@ class InlayHintLabelPart implements ToJsonable {
   /// The value of this label part.
   final String value;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (command != null) {
@@ -21131,8 +21455,10 @@ class InlayHintOptions implements WorkDoneProgressOptions, ToJsonable {
   /// The server provides support to resolve additional information for an inlay
   /// hint item.
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (resolveProvider != null) {
@@ -21234,8 +21560,10 @@ class InlayHintParams implements WorkDoneProgressParams, ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['range'] = range.toJson();
@@ -21365,17 +21693,22 @@ class InlayHintRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
 
   /// The server provides support to resolve additional information for an inlay
   /// hint item.
+  @override
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -21507,6 +21840,7 @@ class InlayHintWorkspaceClientCapabilities implements ToJsonable {
   /// change that requires such a calculation.
   final bool? refreshSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (refreshSupport != null) {
@@ -21574,6 +21908,7 @@ class InlineValueClientCapabilities implements ToJsonable {
   /// providers.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -21647,6 +21982,7 @@ class InlineValueContext implements ToJsonable {
   /// of the range denotes the line where the inline values are shown.
   final Range stoppedLocation;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['frameId'] = frameId;
@@ -21755,6 +22091,7 @@ class InlineValueEvaluatableExpression implements ToJsonable {
   /// to extract the evaluatable expression from the underlying document.
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (expression != null) {
@@ -21842,8 +22179,10 @@ class InlineValueOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -21937,8 +22276,10 @@ class InlineValueParams implements WorkDoneProgressParams, ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['context'] = context.toJson();
@@ -22085,13 +22426,17 @@ class InlineValueRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -22208,6 +22553,7 @@ class InlineValueText implements ToJsonable {
   /// The text of the inline value.
   final String text;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['range'] = range.toJson();
@@ -22320,6 +22666,7 @@ class InlineValueVariableLookup implements ToJsonable {
   /// If specified the name of the variable to look up.
   final String? variableName;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['caseSensitiveLookup'] = caseSensitiveLookup;
@@ -22437,6 +22784,7 @@ class InlineValueWorkspaceClientCapabilities implements ToJsonable {
   /// change that requires such a calculation.
   final bool? refreshSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (refreshSupport != null) {
@@ -22517,6 +22865,7 @@ class InsertReplaceEdit implements ToJsonable {
   /// The range if the replace is requested.
   final Range replace;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['insert'] = insert.toJson();
@@ -22638,6 +22987,7 @@ class InsertTextFormat implements ToJsonable {
   /// one will update others too.
   static const Snippet = InsertTextFormat._(2);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -22646,6 +22996,7 @@ class InsertTextFormat implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is InsertTextFormat && other._value == _value;
 }
@@ -22676,6 +23027,7 @@ class InsertTextMode implements ToJsonable {
   /// adjustments to the string.
   static const asIs = InsertTextMode(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -22684,6 +23036,7 @@ class InsertTextMode implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is InsertTextMode && other._value == _value;
 }
@@ -22712,6 +23065,7 @@ class LinkedEditingRangeClientCapabilities implements ToJsonable {
   /// capability as well.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -22777,8 +23131,10 @@ class LinkedEditingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -22856,14 +23212,18 @@ class LinkedEditingRangeParams
   }
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['position'] = position.toJson();
@@ -22989,13 +23349,17 @@ class LinkedEditingRangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -23117,6 +23481,7 @@ class LinkedEditingRanges implements ToJsonable {
   /// configuration's word pattern will be used.
   final String? wordPattern;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['ranges'] = ranges.map((item) => item.toJson()).toList();
@@ -23209,6 +23574,7 @@ class Location implements ToJsonable {
   final Range range;
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['range'] = range.toJson();
@@ -23331,6 +23697,7 @@ class LocationLink implements ToJsonable {
   /// The target resource identifier of this link.
   final String targetUri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (originSelectionRange != null) {
@@ -23467,6 +23834,7 @@ class LogMessageParams implements ToJsonable {
   /// The message type.
   final MessageType type;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['message'] = message;
@@ -23565,6 +23933,7 @@ class LogTraceParams implements ToJsonable {
   /// is set to `'verbose'`
   final String? verbose;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['message'] = message;
@@ -23668,6 +24037,7 @@ class MarkdownClientCapabilities implements ToJsonable {
   /// The version of the parser.
   final String? version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (allowedTags != null) {
@@ -23800,6 +24170,7 @@ class MarkupContent implements ToJsonable {
   /// The content itself
   final String value;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['kind'] = kind.toJson();
@@ -23896,6 +24267,7 @@ class MarkupKind implements ToJsonable {
   /// Plain text is supported as a content format
   static const PlainText = MarkupKind._('plaintext');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -23904,6 +24276,7 @@ class MarkupKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is MarkupKind && other._value == _value;
 }
@@ -23928,6 +24301,7 @@ class MessageActionItem implements ToJsonable {
   /// A short title like 'Retry', 'Open Log' etc.
   final String title;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['title'] = title;
@@ -23998,6 +24372,7 @@ class MessageType implements ToJsonable {
   /// A warning message.
   static const Warning = MessageType(2);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -24006,6 +24381,7 @@ class MessageType implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is MessageType && other._value == _value;
 }
@@ -24325,6 +24701,7 @@ class Method implements ToJsonable {
   /// Constant for the 'workspaceSymbol/resolve' method.
   static const workspaceSymbol_resolve = Method('workspaceSymbol/resolve');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -24333,6 +24710,7 @@ class Method implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) => other is Method && other._value == _value;
 }
 
@@ -24380,6 +24758,7 @@ class Moniker implements ToJsonable {
   /// The scope in which the moniker is unique
   final UniquenessLevel unique;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['identifier'] = identifier;
@@ -24511,6 +24890,7 @@ class MonikerClientCapabilities implements ToJsonable {
   /// capability as well.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -24575,6 +24955,7 @@ class MonikerKind implements ToJsonable {
   /// variable of a function, a class not visible outside the project, ...)
   static const local = MonikerKind('local');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -24583,6 +24964,7 @@ class MonikerKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is MonikerKind && other._value == _value;
 }
@@ -24607,8 +24989,10 @@ class MonikerOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -24700,17 +25084,22 @@ class MonikerParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -24842,9 +25231,12 @@ class MonikerRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -24967,6 +25359,7 @@ class NotebookCell implements ToJsonable {
   /// Additional metadata stored with the cell.
   final Object? metadata;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['document'] = document;
@@ -25098,6 +25491,7 @@ class NotebookCellArrayChange implements ToJsonable {
   /// The start oftest of the cell that changed.
   final int start;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (cells != null) {
@@ -25208,6 +25602,7 @@ class NotebookCellKind implements ToJsonable {
   /// A markup-cell is formatted source that is used for display.
   static const Markup = NotebookCellKind(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -25216,6 +25611,7 @@ class NotebookCellKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is NotebookCellKind && other._value == _value;
 }
@@ -25272,6 +25668,7 @@ class NotebookCellTextDocumentFilter implements ToJsonable {
           NotebookDocumentFilter3>,
       String> notebook;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (language != null) {
@@ -25394,6 +25791,7 @@ class NotebookDocument implements ToJsonable {
   /// including undo/redo).
   final int version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['cells'] = cells.map((item) => item.toJson()).toList();
@@ -25547,6 +25945,7 @@ class NotebookDocumentChangeEvent implements ToJsonable {
   /// The changed meta data if any.
   final Object? metadata;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (cells != null) {
@@ -25641,6 +26040,7 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
   /// Changes to the text content of notebook cells.
   final List<NotebookDocumentChangeEventCellsTextContent>? textContent;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (data != null) {
@@ -25776,6 +26176,7 @@ class NotebookDocumentChangeEventCellsStructure implements ToJsonable {
   /// Additional opened cell text documents.
   final List<TextDocumentItem>? didOpen;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['array'] = array.toJson();
@@ -25906,6 +26307,7 @@ class NotebookDocumentChangeEventCellsTextContent implements ToJsonable {
           TextDocumentContentChangeEvent2>> changes;
   final VersionedTextDocumentIdentifier document;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['changes'] = changes;
@@ -26019,6 +26421,7 @@ class NotebookDocumentClientCapabilities implements ToJsonable {
   ///  @since 3.17.0
   final NotebookDocumentSyncClientCapabilities synchronization;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['synchronization'] = synchronization.toJson();
@@ -26105,6 +26508,7 @@ class NotebookDocumentFilter1 implements ToJsonable {
   /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
   final String? scheme;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['notebookType'] = notebookType;
@@ -26221,6 +26625,7 @@ class NotebookDocumentFilter2 implements ToJsonable {
   /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
   final String scheme;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (notebookType != null) {
@@ -26337,6 +26742,7 @@ class NotebookDocumentFilter3 implements ToJsonable {
   /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
   final String? scheme;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (notebookType != null) {
@@ -26441,6 +26847,7 @@ class NotebookDocumentIdentifier implements ToJsonable {
   /// The notebook document's uri.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -26523,6 +26930,7 @@ class NotebookDocumentSyncClientCapabilities implements ToJsonable {
   /// The client supports sending execution summary data per cell.
   final bool? executionSummarySupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -26640,6 +27048,7 @@ class NotebookDocumentSyncOptions implements ToJsonable {
   /// honored if mode === `notebook`.
   final bool? save;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['notebookSelector'] = notebookSelector;
@@ -26772,6 +27181,7 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
           NotebookDocumentFilter3>,
       String> notebook;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (cells != null) {
@@ -26906,6 +27316,7 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
           NotebookDocumentFilter3>,
       String>? notebook;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['cells'] = cells.map((item) => item.toJson()).toList();
@@ -27008,6 +27419,7 @@ class NotebookDocumentSyncOptionsNotebookSelector2Cells implements ToJsonable {
 
   final String language;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['language'] = language;
@@ -27079,6 +27491,7 @@ class NotebookDocumentSyncOptionsNotebookSelectorCells implements ToJsonable {
 
   final String language;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['language'] = language;
@@ -27174,17 +27587,21 @@ class NotebookDocumentSyncRegistrationOptions
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
 
   /// The notebooks to be synced
+  @override
   final List<
       Either2<NotebookDocumentSyncOptionsNotebookSelector,
           NotebookDocumentSyncOptionsNotebookSelector2>> notebookSelector;
 
   /// Whether save notification should be forwarded to the server. Will only be
   /// honored if mode === `notebook`.
+  @override
   final bool? save;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (id != null) {
@@ -27307,6 +27724,7 @@ class OptionalVersionedTextDocumentIdentifier
   }
 
   /// The text document's URI.
+  @override
   final String uri;
 
   /// The version number of this document. If an optional versioned text
@@ -27320,6 +27738,7 @@ class OptionalVersionedTextDocumentIdentifier
   /// including undo/redo. The number doesn't need to be consecutive.
   final int? version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -27434,6 +27853,7 @@ class ParameterInformation implements ToJsonable {
   /// part in the `SignatureInformation.label`.
   final String label;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (documentation != null) {
@@ -27609,6 +28029,7 @@ class PartialResultParams implements ToJsonable {
   /// streaming) to the client.
   final Either2<int, String>? partialResultToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -27677,6 +28098,7 @@ class PlaceholderAndRange implements ToJsonable {
   final String placeholder;
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['placeholder'] = placeholder;
@@ -27779,6 +28201,7 @@ class Position implements ToJsonable {
   /// Line position in a document (zero-based).
   final int line;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['character'] = character;
@@ -27876,6 +28299,7 @@ class PositionEncodingKind implements ToJsonable {
   /// Character offsets count UTF-8 code units.
   static const UTF8 = PositionEncodingKind('utf-8');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -27884,6 +28308,7 @@ class PositionEncodingKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is PositionEncodingKind && other._value == _value;
 }
@@ -27922,14 +28347,18 @@ class PrepareRenameParams
   }
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['position'] = position.toJson();
@@ -28033,6 +28462,7 @@ class PrepareSupportDefaultBehavior implements ToJsonable {
   /// language's syntax rule.
   static const Identifier = PrepareSupportDefaultBehavior(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -28041,6 +28471,7 @@ class PrepareSupportDefaultBehavior implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is PrepareSupportDefaultBehavior && other._value == _value;
 }
@@ -28074,6 +28505,7 @@ class PreviousResultId implements ToJsonable {
   /// The value of the previous result id.
   final String value;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -28175,6 +28607,7 @@ class ProgressParams<T> implements ToJsonable {
   /// The progress data.
   final Object? value;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['token'] = token;
@@ -28287,6 +28720,7 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
   ///  @since 3.15.0
   final bool? versionSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (codeDescriptionSupport != null) {
@@ -28421,6 +28855,7 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
   /// The tags supported by the client.
   final List<DiagnosticTag> valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
@@ -28513,6 +28948,7 @@ class PublishDiagnosticsParams implements ToJsonable {
   ///  @since 3.15.0
   final int? version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['diagnostics'] = diagnostics.map((item) => item.toJson()).toList();
@@ -28631,6 +29067,7 @@ class Range implements ToJsonable {
   /// The range's start position.
   final Position start;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['end'] = end.toJson();
@@ -28721,6 +29158,7 @@ class ReferenceClientCapabilities implements ToJsonable {
   /// Whether references supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -28784,6 +29222,7 @@ class ReferenceContext implements ToJsonable {
   /// Include the declaration of the current symbol.
   final bool includeDeclaration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['includeDeclaration'] = includeDeclaration;
@@ -28852,8 +29291,10 @@ class ReferenceOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -28952,17 +29393,22 @@ class ReferenceParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['context'] = context.toJson();
@@ -29115,9 +29561,12 @@ class ReferenceRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -29226,6 +29675,7 @@ class Registration implements ToJsonable {
   /// Options necessary for the registration.
   final Object? registerOptions;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['id'] = id;
@@ -29324,6 +29774,7 @@ class RegistrationParams implements ToJsonable {
 
   final List<Registration> registrations;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['registrations'] =
@@ -29407,6 +29858,7 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
   /// The engine's version.
   final String? version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['engine'] = engine;
@@ -29525,9 +29977,11 @@ class RelatedFullDocumentDiagnosticReport
   }
 
   /// The actual items.
+  @override
   final List<Diagnostic> items;
 
   /// A full document diagnostic report.
+  @override
   final String kind;
 
   /// Diagnostics of related documents. This information is useful in
@@ -29543,8 +29997,10 @@ class RelatedFullDocumentDiagnosticReport
 
   /// An optional result id. If provided it will be sent on the next diagnostic
   /// request for the same document.
+  @override
   final String? resultId;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['items'] = items.map((item) => item.toJson()).toList();
@@ -29716,6 +30172,7 @@ class RelatedUnchangedDocumentDiagnosticReport
 
   /// A document diagnostic report indicating no changes to the last result. A
   /// server can only return `unchanged` if result ids are provided.
+  @override
   final String kind;
 
   /// Diagnostics of related documents. This information is useful in
@@ -29731,8 +30188,10 @@ class RelatedUnchangedDocumentDiagnosticReport
 
   /// A result id which will be sent on the next diagnostic request for the same
   /// document.
+  @override
   final String resultId;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['kind'] = kind;
@@ -29877,6 +30336,7 @@ class RelativePattern implements ToJsonable {
   /// The actual glob pattern;
   final String pattern;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['baseUri'] = baseUri;
@@ -30005,6 +30465,7 @@ class RenameClientCapabilities implements ToJsonable {
   ///  @since version 3.16.0
   final PrepareSupportDefaultBehavior? prepareSupportDefaultBehavior;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -30158,6 +30619,7 @@ class RenameFile implements ToJsonable {
   /// Rename options.
   final RenameFileOptions? options;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (annotationId != null) {
@@ -30310,6 +30772,7 @@ class RenameFileOptions implements ToJsonable {
   /// Overwrite target if existing. Overwrite wins over `ignoreIfExists`
   final bool? overwrite;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (ignoreIfExists != null) {
@@ -30396,6 +30859,7 @@ class RenameFilesParams implements ToJsonable {
   /// renamed, only the folder will be included, and not its children.
   final List<FileRename> files;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['files'] = files.map((item) => item.toJson()).toList();
@@ -30473,8 +30937,10 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// Renames should be checked and tested before being executed.
   final bool? prepareProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (prepareProvider != null) {
@@ -30577,14 +31043,18 @@ class RenameParams
   final String newName;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['newName'] = newName;
@@ -30725,12 +31195,16 @@ class RenameRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// Renames should be checked and tested before being executed.
+  @override
   final bool? prepareProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -30843,6 +31317,7 @@ class ResourceOperationKind implements ToJsonable {
   /// Supports renaming existing files and folders.
   static const Rename = ResourceOperationKind._('rename');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -30851,6 +31326,7 @@ class ResourceOperationKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is ResourceOperationKind && other._value == _value;
 }
@@ -30875,6 +31351,7 @@ class SaveOptions implements ToJsonable {
   /// The client is supposed to include the content on save.
   final bool? includeText;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (includeText != null) {
@@ -30947,6 +31424,7 @@ class SelectionRange implements ToJsonable {
   /// The range ([Range]) of this selection range.
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (parent != null) {
@@ -31034,6 +31512,7 @@ class SelectionRangeClientCapabilities implements ToJsonable {
   /// server capability as well.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -31097,8 +31576,10 @@ class SelectionRangeOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -31189,6 +31670,7 @@ class SelectionRangeParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The positions inside the text document.
@@ -31198,8 +31680,10 @@ class SelectionRangeParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -31342,13 +31826,17 @@ class SelectionRangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -31457,6 +31945,7 @@ class SemanticTokenModifiers implements ToJsonable {
   static const readonly = SemanticTokenModifiers('readonly');
   static const static = SemanticTokenModifiers('static');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -31465,6 +31954,7 @@ class SemanticTokenModifiers implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is SemanticTokenModifiers && other._value == _value;
 }
@@ -31508,6 +31998,7 @@ class SemanticTokenTypes implements ToJsonable {
   static const typeParameter = SemanticTokenTypes('typeParameter');
   static const variable = SemanticTokenTypes('variable');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -31516,6 +32007,7 @@ class SemanticTokenTypes implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is SemanticTokenTypes && other._value == _value;
 }
@@ -31551,6 +32043,7 @@ class SemanticTokens implements ToJsonable {
   /// a delta.
   final String? resultId;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['data'] = data;
@@ -31719,6 +32212,7 @@ class SemanticTokensClientCapabilities implements ToJsonable {
   /// The token types that the client supports.
   final List<String> tokenTypes;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (augmentsSyntaxTokens != null) {
@@ -31970,6 +32464,7 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
   /// the server provides a corresponding handler.
   final Either2<bool, SemanticTokensClientCapabilitiesRequestsRange>? range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (full != null) {
@@ -32060,6 +32555,7 @@ class SemanticTokensClientCapabilitiesRequestsFull implements ToJsonable {
   /// if the server provides a corresponding handler.
   final bool? delta;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (delta != null) {
@@ -32115,6 +32611,7 @@ class SemanticTokensClientCapabilitiesRequestsRange implements ToJsonable {
     return SemanticTokensClientCapabilitiesRequestsRange();
   }
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     return result;
@@ -32174,6 +32671,7 @@ class SemanticTokensDelta implements ToJsonable {
   final List<SemanticTokensEdit> edits;
   final String? resultId;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['edits'] = edits.map((item) => item.toJson()).toList();
@@ -32289,6 +32787,7 @@ class SemanticTokensDeltaParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The result id of a previous response. The result Id can either point to a
@@ -32299,8 +32798,10 @@ class SemanticTokensDeltaParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -32428,6 +32929,7 @@ class SemanticTokensDeltaPartialResult implements ToJsonable {
 
   final List<SemanticTokensEdit> edits;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['edits'] = edits.map((item) => item.toJson()).toList();
@@ -32516,6 +33018,7 @@ class SemanticTokensEdit implements ToJsonable {
   /// The start offset of the edit.
   final int start;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (data != null) {
@@ -32636,6 +33139,7 @@ class SemanticTokensLegend implements ToJsonable {
   /// The token types a server uses.
   final List<String> tokenTypes;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['tokenModifiers'] = tokenModifiers;
@@ -32772,8 +33276,10 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
   /// Server supports providing semantic tokens for a specific range of a
   /// document.
   final Either2<bool, SemanticTokensOptionsRange>? range;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (full != null) {
@@ -32897,6 +33403,7 @@ class SemanticTokensOptionsFull implements ToJsonable {
   /// The server supports deltas for full documents.
   final bool? delta;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (delta != null) {
@@ -32950,6 +33457,7 @@ class SemanticTokensOptionsRange implements ToJsonable {
     return SemanticTokensOptionsRange();
   }
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     return result;
@@ -33021,14 +33529,17 @@ class SemanticTokensParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -33133,6 +33644,7 @@ class SemanticTokensPartialResult implements ToJsonable {
 
   final List<int> data;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['data'] = data;
@@ -33227,6 +33739,7 @@ class SemanticTokensRangeParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The range the semantic tokens are requested for.
@@ -33236,8 +33749,10 @@ class SemanticTokensRangeParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -33408,23 +33923,30 @@ class SemanticTokensRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// Server supports providing semantic tokens for a full document.
+  @override
   final Either2<bool, SemanticTokensOptionsFull>? full;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
 
   /// The legend used by the server
+  @override
   final SemanticTokensLegend legend;
 
   /// Server supports providing semantic tokens for a specific range of a
   /// document.
+  @override
   final Either2<bool, SemanticTokensOptionsRange>? range;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -33596,6 +34118,7 @@ class SemanticTokensWorkspaceClientCapabilities implements ToJsonable {
   /// change that requires such a calculation.
   final bool? refreshSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (refreshSupport != null) {
@@ -34287,6 +34810,7 @@ class ServerCapabilities implements ToJsonable {
   /// The server provides workspace symbol support.
   final Either2<bool, WorkspaceSymbolOptions>? workspaceSymbolProvider;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (callHierarchyProvider != null) {
@@ -35002,6 +35526,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
   ///  @since 3.6.0
   final WorkspaceFoldersServerCapabilities? workspaceFolders;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (fileOperations != null) {
@@ -35089,6 +35614,7 @@ class SetTraceParams implements ToJsonable {
   /// The new value that should be assigned to the trace setting.
   final String value;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['value'] = value;
@@ -35160,6 +35686,7 @@ class ShowDocumentClientCapabilities implements ToJsonable {
   /// The client has support for the show document request.
   final bool support;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['support'] = support;
@@ -35260,6 +35787,7 @@ class ShowDocumentParams implements ToJsonable {
   /// The document uri to show.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (external != null) {
@@ -35379,6 +35907,7 @@ class ShowDocumentResult implements ToJsonable {
   /// A boolean indicating if the show was successful.
   final bool success;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['success'] = success;
@@ -35455,6 +35984,7 @@ class ShowMessageParams implements ToJsonable {
   /// The message type.
   final MessageType type;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['message'] = message;
@@ -35551,6 +36081,7 @@ class ShowMessageRequestClientCapabilities implements ToJsonable {
   final ShowMessageRequestClientCapabilitiesMessageActionItem?
       messageActionItem;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (messageActionItem != null) {
@@ -35622,6 +36153,7 @@ class ShowMessageRequestClientCapabilitiesMessageActionItem
   /// sent back to the server in the request's response.
   final bool? additionalPropertiesSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (additionalPropertiesSupport != null) {
@@ -35706,6 +36238,7 @@ class ShowMessageRequestParams implements ToJsonable {
   /// The message type.
   final MessageType type;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (actions != null) {
@@ -35851,6 +36384,7 @@ class SignatureHelp implements ToJsonable {
   /// request should return `null`.
   final List<SignatureInformation> signatures;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (activeParameter != null) {
@@ -35978,6 +36512,7 @@ class SignatureHelpClientCapabilities implements ToJsonable {
   final SignatureHelpClientCapabilitiesSignatureInformation?
       signatureInformation;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (contextSupport != null) {
@@ -36101,6 +36636,7 @@ class SignatureHelpClientCapabilitiesSignatureInformation
   /// Client capabilities specific to parameter information.
   final SignatureInformationParameterInformation? parameterInformation;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (activeParameterSupport != null) {
@@ -36246,6 +36782,7 @@ class SignatureHelpContext implements ToJsonable {
   /// Action that caused signature help to be triggered.
   final SignatureHelpTriggerKind triggerKind;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (activeSignatureHelp != null) {
@@ -36391,8 +36928,10 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// The characters that trigger signature help automatically.
   final List<String>? triggerCharacters;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (retriggerCharacters != null) {
@@ -36521,14 +37060,18 @@ class SignatureHelpParams
   final SignatureHelpContext? context;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (context != null) {
@@ -36676,6 +37219,7 @@ class SignatureHelpRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// List of characters that re-trigger signature help.
@@ -36683,12 +37227,16 @@ class SignatureHelpRegistrationOptions
   /// These trigger characters are only active when signature help is already
   /// showing. All trigger characters are also counted as re-trigger characters.
   ///  @since 3.15.0
+  @override
   final List<String>? retriggerCharacters;
 
   /// The characters that trigger signature help automatically.
+  @override
   final List<String>? triggerCharacters;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -36819,6 +37367,7 @@ class SignatureHelpTriggerKind implements ToJsonable {
   /// Signature help was triggered by a trigger character.
   static const TriggerCharacter = SignatureHelpTriggerKind(2);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -36827,6 +37376,7 @@ class SignatureHelpTriggerKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is SignatureHelpTriggerKind && other._value == _value;
 }
@@ -36888,6 +37438,7 @@ class SignatureInformation implements ToJsonable {
   /// The parameters of this signature.
   final List<ParameterInformation>? parameters;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (activeParameter != null) {
@@ -37015,6 +37566,7 @@ class SignatureInformationParameterInformation implements ToJsonable {
   ///  @since 3.14.0
   final bool? labelOffsetSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (labelOffsetSupport != null) {
@@ -37125,6 +37677,7 @@ class StaticRegistrationOptions implements ToJsonable {
   /// request again. See also Registration#id.
   final String? id;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (id != null) {
@@ -37241,6 +37794,7 @@ class SymbolInformation implements ToJsonable {
   ///  @since 3.16.0
   final List<SymbolTag>? tags;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (containerName != null) {
@@ -37419,6 +37973,7 @@ class SymbolKind implements ToJsonable {
   static const TypeParameter = SymbolKind(26);
   static const Variable = SymbolKind(13);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -37427,6 +37982,7 @@ class SymbolKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is SymbolKind && other._value == _value;
 }
@@ -37446,6 +38002,7 @@ class SymbolTag implements ToJsonable {
   /// Render a symbol as obsolete, usually using a strike-out.
   static const Deprecated = SymbolTag(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -37454,6 +38011,7 @@ class SymbolTag implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is SymbolTag && other._value == _value;
 }
@@ -37488,12 +38046,14 @@ class TextDocumentChangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// How documents are synced to the server. See TextDocumentSyncKind.Full and
   /// TextDocumentSyncKind.Incremental.
   final TextDocumentSyncKind syncKind;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -37900,6 +38460,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
   ///  @since 3.17.0
   final TypeHierarchyClientCapabilities? typeHierarchy;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (callHierarchy != null) {
@@ -38482,6 +39043,7 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
   /// The new text for the provided range.
   final String text;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['range'] = range.toJson();
@@ -38590,6 +39152,7 @@ class TextDocumentContentChangeEvent2 implements ToJsonable {
   /// The new text of the whole document.
   final String text;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['text'] = text;
@@ -38680,6 +39243,7 @@ class TextDocumentEdit implements ToJsonable {
   /// The text document to change.
   final OptionalVersionedTextDocumentIdentifier textDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['edits'] = edits;
@@ -38811,6 +39375,7 @@ class TextDocumentFilterWithScheme implements ToJsonable {
   /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
   final String? scheme;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (language != null) {
@@ -38914,6 +39479,7 @@ class TextDocumentIdentifier implements ToJsonable {
   /// The text document's URI.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -39005,6 +39571,7 @@ class TextDocumentItem implements ToJsonable {
   /// including undo/redo).
   final int version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['languageId'] = languageId;
@@ -39192,6 +39759,7 @@ class TextDocumentPositionParams implements ToJsonable {
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['position'] = position.toJson();
@@ -39387,6 +39955,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   /// null the document selector provided on the client side will be used.
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -39463,6 +40032,7 @@ class TextDocumentSaveReason implements ToJsonable {
   /// or by an API call.
   static const Manual = TextDocumentSaveReason(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -39471,6 +40041,7 @@ class TextDocumentSaveReason implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is TextDocumentSaveReason && other._value == _value;
 }
@@ -39503,11 +40074,13 @@ class TextDocumentSaveRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The client is supposed to include the content on save.
   final bool? includeText;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -39625,6 +40198,7 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
   /// saved.
   final bool? willSaveWaitUntil;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (didSave != null) {
@@ -39739,6 +40313,7 @@ class TextDocumentSyncKind implements ToJsonable {
   /// Documents should not be synced at all.
   static const None = TextDocumentSyncKind(0);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -39747,6 +40322,7 @@ class TextDocumentSyncKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is TextDocumentSyncKind && other._value == _value;
 }
@@ -39815,6 +40391,7 @@ class TextDocumentSyncOptions implements ToJsonable {
   /// omitted the request should not be sent.
   final bool? willSaveWaitUntil;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (change != null) {
@@ -39957,6 +40534,7 @@ class TextEdit implements ToJsonable {
   /// document create a range where start === end.
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['newText'] = newText;
@@ -40039,6 +40617,7 @@ class TokenFormat implements ToJsonable {
 
   static const Relative = TokenFormat('relative');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -40047,6 +40626,7 @@ class TokenFormat implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is TokenFormat && other._value == _value;
 }
@@ -40081,6 +40661,7 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
   ///  @since 3.14.0
   final bool? linkSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -40162,8 +40743,10 @@ class TypeDefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -40256,17 +40839,22 @@ class TypeDefinitionParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -40407,13 +40995,17 @@ class TypeDefinitionRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -40524,6 +41116,7 @@ class TypeHierarchyClientCapabilities implements ToJsonable {
   /// capability as well.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -40645,6 +41238,7 @@ class TypeHierarchyItem implements ToJsonable {
   /// The resource identifier of this item.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (data != null) {
@@ -40837,8 +41431,10 @@ class TypeHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -40916,14 +41512,18 @@ class TypeHierarchyPrepareParams
   }
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['position'] = position.toJson();
@@ -41048,13 +41648,17 @@ class TypeHierarchyRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -41184,11 +41788,14 @@ class TypeHierarchySubtypesParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['item'] = item.toJson();
@@ -41315,11 +41922,14 @@ class TypeHierarchySupertypesParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['item'] = item.toJson();
@@ -41448,6 +42058,7 @@ class UnchangedDocumentDiagnosticReport implements ToJsonable {
   /// document.
   final String resultId;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['kind'] = kind;
@@ -41545,6 +42156,7 @@ class UniquenessLevel implements ToJsonable {
   /// The moniker is unique inside the moniker scheme.
   static const scheme = UniquenessLevel('scheme');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -41553,6 +42165,7 @@ class UniquenessLevel implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is UniquenessLevel && other._value == _value;
 }
@@ -41586,6 +42199,7 @@ class Unregistration implements ToJsonable {
   /// The method / capability to unregister for.
   final String method;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['id'] = id;
@@ -41680,6 +42294,7 @@ class UnregistrationParams implements ToJsonable {
   /// of the specification.
   final List<Unregistration> unregisterations;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['unregisterations'] =
@@ -41764,6 +42379,7 @@ class VersionedNotebookDocumentIdentifier implements ToJsonable {
   /// The version number of this notebook document.
   final int version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -41859,6 +42475,7 @@ class VersionedTextDocumentIdentifier
   }
 
   /// The text document's URI.
+  @override
   final String uri;
 
   /// The version number of this document.
@@ -41867,6 +42484,7 @@ class VersionedTextDocumentIdentifier
   /// including undo/redo. The number doesn't need to be consecutive.
   final int version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -41957,6 +42575,7 @@ class WatchKind implements ToJsonable {
   /// Interested in delete events
   static const Delete = WatchKind(4);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -41965,6 +42584,7 @@ class WatchKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is WatchKind && other._value == _value;
 }
@@ -41998,6 +42618,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
   /// The document that will be saved.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['reason'] = reason.toJson();
@@ -42119,6 +42740,7 @@ class WindowClientCapabilities implements ToJsonable {
   ///  @since 3.15.0
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (showDocument != null) {
@@ -42265,6 +42887,7 @@ class WorkDoneProgressBegin implements ToJsonable {
   /// Examples: "Indexing" or "Linking dependencies".
   final String title;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (cancellable != null) {
@@ -42407,6 +43030,7 @@ class WorkDoneProgressCancelParams implements ToJsonable {
   /// The token to be used to report progress.
   final Either2<int, String> token;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['token'] = token;
@@ -42480,6 +43104,7 @@ class WorkDoneProgressCreateParams implements ToJsonable {
   /// The token to be used to report progress.
   final Either2<int, String> token;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['token'] = token;
@@ -42560,6 +43185,7 @@ class WorkDoneProgressEnd implements ToJsonable {
   /// of the operation.
   final String? message;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['kind'] = kind;
@@ -42731,6 +43357,7 @@ class WorkDoneProgressOptions implements ToJsonable {
 
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -42917,6 +43544,7 @@ class WorkDoneProgressParams implements ToJsonable {
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneToken != null) {
@@ -43017,6 +43645,7 @@ class WorkDoneProgressReport implements ToJsonable {
   /// that are not following this rule. The value range is [0, 100]
   final int? percentage;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (cancellable != null) {
@@ -43270,6 +43899,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
   ///  @since 3.6.0
   final bool? workspaceFolders;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (applyEdit != null) {
@@ -43594,14 +44224,17 @@ class WorkspaceDiagnosticParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The currently known diagnostic reports with their previous result ids.
   final List<PreviousResultId> previousResultIds;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (identifier != null) {
@@ -43740,6 +44373,7 @@ class WorkspaceDiagnosticReport implements ToJsonable {
       Either2<WorkspaceFullDocumentDiagnosticReport,
           WorkspaceUnchangedDocumentDiagnosticReport>> items;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['items'] = items;
@@ -43841,6 +44475,7 @@ class WorkspaceDiagnosticReportPartialResult implements ToJsonable {
       Either2<WorkspaceFullDocumentDiagnosticReport,
           WorkspaceUnchangedDocumentDiagnosticReport>> items;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['items'] = items;
@@ -43981,6 +44616,7 @@ class WorkspaceEdit implements ToJsonable {
   final List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>?
       documentChanges;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (changeAnnotations != null) {
@@ -44151,6 +44787,7 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
   ///  @since 3.13.0
   final List<ResourceOperationKind>? resourceOperations;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (changeAnnotationSupport != null) {
@@ -44290,6 +44927,7 @@ class WorkspaceEditClientCapabilitiesChangeAnnotationSupport
   /// node.
   final bool? groupsOnLabel;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (groupsOnLabel != null) {
@@ -44363,6 +45001,7 @@ class WorkspaceFolder implements ToJsonable {
   /// The associated URI for this workspace folder.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['name'] = name;
@@ -44465,6 +45104,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
   /// The array of the removed workspace folders
   final List<WorkspaceFolder> removed;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['added'] = added.map((item) => item.toJson()).toList();
@@ -44583,6 +45223,7 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
   /// The server has support for workspace folders
   final bool? supported;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (changeNotifications != null) {
@@ -44690,13 +45331,16 @@ class WorkspaceFullDocumentDiagnosticReport
   }
 
   /// The actual items.
+  @override
   final List<Diagnostic> items;
 
   /// A full document diagnostic report.
+  @override
   final String kind;
 
   /// An optional result id. If provided it will be sent on the next diagnostic
   /// request for the same document.
+  @override
   final String? resultId;
 
   /// The URI for which diagnostic information is reported.
@@ -44706,6 +45350,7 @@ class WorkspaceFullDocumentDiagnosticReport
   /// is not marked as open `null` can be provided.
   final int? version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['items'] = items.map((item) => item.toJson()).toList();
@@ -44901,6 +45546,7 @@ class WorkspaceSymbol implements ToJsonable {
   /// Tags for this completion item.
   final List<SymbolTag>? tags;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (containerName != null) {
@@ -45084,6 +45730,7 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
   ///  @since 3.16.0
   final WorkspaceSymbolClientCapabilitiesTagSupport? tagSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -45207,6 +45854,7 @@ class WorkspaceSymbolClientCapabilitiesResolveSupport implements ToJsonable {
   /// The properties that a client can resolve lazily. Usually `location.range`
   final List<String> properties;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['properties'] = properties;
@@ -45288,6 +45936,7 @@ class WorkspaceSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   /// from `File` to `Array` as defined in the initial version of the protocol.
   final List<SymbolKind>? valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (valueSet != null) {
@@ -45360,6 +46009,7 @@ class WorkspaceSymbolClientCapabilitiesTagSupport implements ToJsonable {
   /// The tags supported by the client.
   final List<SymbolTag> valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
@@ -45432,6 +46082,7 @@ class WorkspaceSymbolLocation implements ToJsonable {
 
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -45510,8 +46161,10 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   /// workspace symbol.
   ///  @since 3.17.0
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (resolveProvider != null) {
@@ -45614,6 +46267,7 @@ class WorkspaceSymbolParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// A query string to filter symbols by. Clients may send an empty string here
@@ -45621,8 +46275,10 @@ class WorkspaceSymbolParams
   final String query;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -45733,9 +46389,12 @@ class WorkspaceSymbolRegistrationOptions
   /// The server provides support to resolve additional information for a
   /// workspace symbol.
   ///  @since 3.17.0
+  @override
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (resolveProvider != null) {
@@ -45837,10 +46496,12 @@ class WorkspaceUnchangedDocumentDiagnosticReport
 
   /// A document diagnostic report indicating no changes to the last result. A
   /// server can only return `unchanged` if result ids are provided.
+  @override
   final String kind;
 
   /// A result id which will be sent on the next diagnostic request for the same
   /// document.
+  @override
   final String resultId;
 
   /// The URI for which diagnostic information is reported.
@@ -45850,6 +46511,7 @@ class WorkspaceUnchangedDocumentDiagnosticReport
   /// is not marked as open `null` can be provided.
   final int? version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['kind'] = kind;

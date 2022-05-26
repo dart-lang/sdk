@@ -221,6 +221,21 @@ String _getTypeCheckFailureMessage(TypeBase type) {
   }
 }
 
+bool _isOverride(Interface interface, Field field) {
+  for (var parentType in interface.baseTypes) {
+    var parent = _interfaces[(parentType as Type).name];
+    if (parent != null) {
+      if (parent.members.any((m) => m.name == field.name)) {
+        return true;
+      }
+      if (_isOverride(parent, field)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 bool _isSimpleType(TypeBase type) {
   const literals = ['num', 'String', 'bool', 'int'];
   return type is Type && literals.contains(type.dartType);
@@ -531,14 +546,14 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
   });
   buffer
     ..writeln()
-    ..writeIndentedln('Object toJson() => _value;')
+    ..writeIndentedln('@override Object toJson() => _value;')
     ..writeln()
     ..writeIndentedln('@override String toString() => _value.toString();')
     ..writeln()
     ..writeIndentedln('@override int get hashCode => _value.hashCode;')
     ..writeln()
     ..writeIndentedln(
-        'bool operator ==(Object other) => other is $namespaceName && other._value == _value;')
+        '@override bool operator ==(Object other) => other is $namespaceName && other._value == _value;')
     ..outdent()
     ..writeln('}')
     ..writeln();
@@ -590,10 +605,14 @@ void _writeEqualsExpression(IndentableStringBuffer buffer, TypeBase type,
   }
 }
 
-void _writeField(IndentableStringBuffer buffer, Field field) {
+void _writeField(
+    IndentableStringBuffer buffer, Interface interface, Field field) {
   _writeDocCommentsAndAnnotations(buffer, field);
   final needsNullable =
       (field.allowsNull || field.allowsUndefined) && !isAnyType(field.type);
+  if (_isOverride(interface, field)) {
+    buffer.writeIndentedln('@override');
+  }
   buffer
     ..writeIndented('final ')
     ..write(field.type.dartTypeWithTypeArgs)
@@ -821,9 +840,9 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   final consts = interface.members.whereType<Const>().toList();
   final fields = _getAllFields(interface);
   buffer.writeln();
-  _writeMembers(buffer, consts);
+  _writeMembers(buffer, interface, consts);
   buffer.writeln();
-  _writeMembers(buffer, fields);
+  _writeMembers(buffer, interface, fields);
   buffer.writeln();
   _writeToJsonMethod(buffer, interface);
   _writeCanParseMethod(buffer, interface);
@@ -866,9 +885,10 @@ void _writeJsonMapAssignment(
   }
 }
 
-void _writeMember(IndentableStringBuffer buffer, Member member) {
+void _writeMember(
+    IndentableStringBuffer buffer, Interface interface, Member member) {
   if (member is Field) {
-    _writeField(buffer, member);
+    _writeField(buffer, interface, member);
   } else if (member is Const) {
     _writeConst(buffer, member);
   } else {
@@ -876,8 +896,9 @@ void _writeMember(IndentableStringBuffer buffer, Member member) {
   }
 }
 
-void _writeMembers(IndentableStringBuffer buffer, List<Member> members) {
-  _getSortedUnique(members).forEach((m) => _writeMember(buffer, m));
+void _writeMembers(
+    IndentableStringBuffer buffer, Interface interface, List<Member> members) {
+  _getSortedUnique(members).forEach((m) => _writeMember(buffer, interface, m));
 }
 
 void _writeToJsonCode(IndentableStringBuffer buffer, TypeBase type,
@@ -925,6 +946,7 @@ void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
       ['result', 'map', 'json', 'toReturn', 'results', 'value', 'values']);
 
   buffer
+    ..writeIndentedln('@override')
     ..writeIndentedln('Map<String, Object?> toJson() {')
     ..indent()
     ..writeIndentedln('var $mapName = <String, Object?>{};');

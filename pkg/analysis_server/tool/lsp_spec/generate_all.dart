@@ -166,7 +166,6 @@ String generatedFileHeader(int year, {bool importCustom = false}) => '''
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
-// ignore_for_file: annotate_overrides
 // ignore_for_file: prefer_is_not_operator
 // ignore_for_file: unnecessary_parenthesis
 

@@ -6,7 +6,6 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
-// ignore_for_file: annotate_overrides
 // ignore_for_file: prefer_is_not_operator
 // ignore_for_file: unnecessary_parenthesis
 
@@ -39,6 +38,7 @@ class AnalyzerStatusParams implements ToJsonable {
 
   final bool isAnalyzing;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['isAnalyzing'] = isAnalyzing;
@@ -112,6 +112,7 @@ class ClosingLabel implements ToJsonable {
   final String label;
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['label'] = label;
@@ -200,6 +201,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
     return CompletionItemResolutionInfo();
   }
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     return result;
@@ -249,6 +251,7 @@ class DartDiagnosticServer implements ToJsonable {
 
   final int port;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['port'] = port;
@@ -349,6 +352,7 @@ class DartSuggestionSetCompletionItemResolutionInfo
   final int rLength;
   final int rOffset;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['displayUri'] = displayUri;
@@ -574,6 +578,7 @@ class Element implements ToJsonable {
   final String? returnType;
   final String? typeParameters;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['kind'] = kind;
@@ -772,6 +777,7 @@ class FlutterOutline implements ToJsonable {
   final Range range;
   final String? variableName;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (attributes != null) {
@@ -997,6 +1003,7 @@ class FlutterOutlineAttribute implements ToJsonable {
   final String name;
   final Range? valueRange;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['label'] = label;
@@ -1120,11 +1127,14 @@ class IncomingMessage implements Message, ToJsonable {
     );
   }
 
+  @override
   final int? clientRequestTime;
+  @override
   final String jsonrpc;
   final Method method;
   final Object? params;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (clientRequestTime != null) {
@@ -1247,6 +1257,7 @@ class Message implements ToJsonable {
   final int? clientRequestTime;
   final String jsonrpc;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (clientRequestTime != null) {
@@ -1342,11 +1353,16 @@ class NotificationMessage implements IncomingMessage, ToJsonable {
     );
   }
 
+  @override
   final int? clientRequestTime;
+  @override
   final String jsonrpc;
+  @override
   final Method method;
+  @override
   final Object? params;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (clientRequestTime != null) {
@@ -1476,6 +1492,7 @@ class Outline implements ToJsonable {
   final Element element;
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (children != null) {
@@ -1609,6 +1626,7 @@ class PubPackageCompletionItemResolutionInfo
 
   final String packageName;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['packageName'] = packageName;
@@ -1685,6 +1703,7 @@ class PublishClosingLabelsParams implements ToJsonable {
   final List<ClosingLabel> labels;
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['labels'] = labels.map((item) => item.toJson()).toList();
@@ -1785,6 +1804,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
   final FlutterOutline outline;
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['outline'] = outline.toJson();
@@ -1880,6 +1900,7 @@ class PublishOutlineParams implements ToJsonable {
   final Outline outline;
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['outline'] = outline.toJson();
@@ -1988,12 +2009,17 @@ class RequestMessage implements IncomingMessage, ToJsonable {
     );
   }
 
+  @override
   final int? clientRequestTime;
   final Either2<int, String> id;
+  @override
   final String jsonrpc;
+  @override
   final Method method;
+  @override
   final Object? params;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (clientRequestTime != null) {
@@ -2139,6 +2165,7 @@ class ResponseError implements ToJsonable {
   final String? data;
   final String message;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['code'] = code.toJson();
@@ -2267,12 +2294,15 @@ class ResponseMessage implements Message, ToJsonable {
     );
   }
 
+  @override
   final int? clientRequestTime;
   final ResponseError? error;
   final Either2<int, String>? id;
+  @override
   final String jsonrpc;
   final Object? result;
 
+  @override
   Map<String, Object?> toJson() {
     var map = <String, Object?>{};
     if (clientRequestTime != null) {
@@ -2406,12 +2436,15 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
   final InsertTextFormat insertTextFormat;
 
   /// The string to be inserted. For delete operations use an empty string.
+  @override
   final String newText;
 
   /// The range of the text document to be manipulated. To insert text into a
   /// document create a range where start === end.
+  @override
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['insertTextFormat'] = insertTextFormat.toJson();
@@ -2529,6 +2562,7 @@ class ValidateRefactorResult implements ToJsonable {
   final String? message;
   final bool valid;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (message != null) {
