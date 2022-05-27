@@ -36,7 +36,13 @@ class BuildSdkSummaryTest with ResourceProviderMixin {
 class NotObject {}
 ''');
     newFile('${skyEngineLib.path}/ui/ui.dart', r'''
+library dart.ui;
+part 'text.dart';
 class Offset {}
+''');
+    newFile('${skyEngineLib.path}/ui/text.dart', r'''
+part of dart.ui;
+class FontStyle {}
 ''');
     final embedderFile = newFile('${skyEngineLib.path}/_embedder.yaml', r'''
 embedded_libs:
@@ -83,6 +89,7 @@ embedded_libs:
     expect(dartAsync.getType('Stream'), isNotNull);
     expect(dartCore.getType('String'), isNotNull);
     expect(dartMath.getType('Random'), isNotNull);
+    expect(dartUi.getType('FontStyle'), isNotNull);
     expect(dartUi.getType('Offset'), isNotNull);
   }
 
