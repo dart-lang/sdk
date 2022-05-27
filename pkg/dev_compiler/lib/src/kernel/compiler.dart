@@ -652,7 +652,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _currentLibrary = c.enclosingLibrary;
     _currentUri = c.fileUri;
 
-    moduleItems.add(_emitClassDeclaration(c));
+    // Mixins are unrolled in _defineClass.
+    // If this class is annotated with `@JS`, then there is nothing to emit.
+    if (!c.isAnonymousMixin && !hasJSInteropAnnotation(c)) {
+      moduleItems.add(_emitClassDeclaration(c));
+    }
 
     // The const table depends on dart.defineLazy, so emit it after the SDK.
     if (isSdkInternalRuntime(_currentLibrary)) {
@@ -687,12 +691,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       js_ast.TemporaryId(js_ast.toJSIdentifier(name));
 
   js_ast.Statement _emitClassDeclaration(Class c) {
-    // Mixins are unrolled in _defineClass.
-    if (c.isAnonymousMixin) return null;
-
-    // If this class is annotated with `@JS`, then there is nothing to emit.
-    if (findAnnotation(c, isPublicJSAnnotation) != null) return null;
-
     // Generic classes will be defined inside a function that closes over the
     // type parameter. So we can use their local variable name directly.
     //
@@ -3433,7 +3431,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         ? _emitSyncFunctionBody(f, name)
         : _emitGeneratorFunctionBody(f, name);
 
-    block = super.exitFunction(name, formals, block);
+    block = super.exitFunction(formals, block);
     return js_ast.Fun(formals, block);
   }
 
