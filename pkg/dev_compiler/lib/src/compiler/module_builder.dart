@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:path/path.dart' as p;
 
@@ -104,7 +102,7 @@ Program transformModuleFormat(ModuleFormat format, Program module) {
 /// structure as possible with the original. The transformation is a shallow one
 /// that affects the [ImportDeclaration]s from [items].
 ///
-/// Returns a new function that combines all statements from tranformed imports
+/// Returns a new function that combines all statements from transformed imports
 /// from [items] and the body of the [function].
 Fun transformFunctionModuleFormat(
     List<ModuleItem> items, Fun function, ModuleFormat format) {
@@ -191,11 +189,11 @@ class DdcModuleBuilder extends _ModuleBuilder {
       Identifier moduleVar, ImportDeclaration import, bool deferModules) {
     var items = <Statement>[];
 
-    for (var importName in import.namedImports) {
+    for (var importName in import.namedImports!) {
       // import * is not emitted by the compiler, so we don't handle it here.
       assert(!importName.isStar);
       var asName = importName.asName ?? importName.name;
-      var fromName = importName.name.name;
+      var fromName = importName.name!.name;
       // Load non-SDK modules on demand (i.e., deferred).
       if (deferModules && import.from.valueWithoutQuotes != dartSdkModule) {
         items.add(js.statement(
@@ -220,10 +218,11 @@ class DdcModuleBuilder extends _ModuleBuilder {
       items.add(js.comment('Exports:'));
       // TODO(jmesserly): make these immutable in JS?
       for (var export in exports) {
-        var names = export.exportedNames;
-        assert(names != null); // export * not supported in ddc modules.
+        // export * (exportedNames is null) is not emitted by the compiler, so
+        // we don't handle it here.
+        var names = export.exportedNames!;
         for (var name in names) {
-          var alias = name.asName ?? name.name;
+          var alias = name.asName ?? name.name!;
           items.add(
               js.statement('#.# = #;', [exportsVar, alias.name, name.name]));
         }
@@ -238,7 +237,7 @@ class DdcModuleBuilder extends _ModuleBuilder {
   /// compilation, in order to include all the context needed for evaluation
   /// inside it.
   ///
-  /// Returns a new function that combines all statements from tranformed
+  /// Returns a new function that combines all statements from transformed
   /// imports from [items] and the body of the [function].
   Fun buildFunctionWithImports(List<ModuleItem> items, Fun function) {
     clear();
@@ -279,19 +278,20 @@ class DdcModuleBuilder extends _ModuleBuilder {
       importStatements.addAll(buildImports(moduleVar, import, true));
     }
 
-    // Prepend import statetements.
+    // Prepend import statements.
     statements.insertAll(0, importStatements);
 
     // Append export statements.
     statements.addAll(buildExports(exportsVar, exports));
 
+    var moduleName = module.name!;
     var resultModule = NamedFunction(
-        loadFunctionIdentifier(module.name),
+        loadFunctionIdentifier(moduleName),
         js.fun("function(#) { 'use strict'; #; }", [parameters, statements]),
         true);
 
     var moduleDef = js.statement('dart_library.library(#, #, #, #, #)', [
-      js.string(module.name, "'"),
+      js.string(moduleName, "'"),
       LiteralNull(),
       js.commentExpression(
           'Imports', ArrayInitializer(importNames, multiline: true)),
@@ -320,12 +320,12 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
           .add(js.statement('const # = require(#);', [moduleVar, import.from]));
 
       // TODO(jmesserly): optimize for the common case of a single import.
-      for (var importName in import.namedImports) {
+      for (var importName in import.namedImports!) {
         // import * is not emitted by the compiler, so we don't support it here.
         assert(!importName.isStar);
         var asName = importName.asName ?? importName.name;
         importStatements.add(js.statement(
-            'const # = #.#', [asName, moduleVar, importName.name.name]));
+            'const # = #.#', [asName, moduleVar, importName.name!.name]));
       }
     }
     statements.insertAll(0, importStatements);
@@ -334,11 +334,11 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
       var exportsVar = Identifier('exports');
       statements.add(js.comment('Exports:'));
       for (var export in exports) {
-        var names = export.exportedNames;
-        // export * is not emitted by the compiler, so we don't handle it here.
-        assert(names != null);
+        // export * (exportedNames is null) is not emitted by the compiler, so
+        // we don't handle it here.
+        var names = export.exportedNames!;
         for (var name in names) {
-          var alias = name.asName ?? name.name;
+          var alias = name.asName ?? name.name!;
           statements.add(
               js.statement('#.# = #;', [exportsVar, alias.name, name.name]));
         }
@@ -366,12 +366,12 @@ class AmdModuleBuilder extends _ModuleBuilder {
       Identifier moduleVar, ImportDeclaration import) {
     var items = <Statement>[];
 
-    for (var importName in import.namedImports) {
+    for (var importName in import.namedImports!) {
       // import * is not emitted by the compiler, so we don't handle it here.
       assert(!importName.isStar);
       var asName = importName.asName ?? importName.name;
       items.add(js.statement(
-          'const # = #.#', [asName, moduleVar, importName.name.name]));
+          'const # = #.#', [asName, moduleVar, importName.name!.name]));
     }
     return items;
   }
@@ -383,12 +383,12 @@ class AmdModuleBuilder extends _ModuleBuilder {
     if (exports.isNotEmpty) {
       var exportedProps = <Property>[];
       for (var export in exports) {
-        var names = export.exportedNames;
-        // export * is not emitted by the compiler, so we don't handle it here.
-        assert(names != null);
+        // export * (exportedNames is null) is not emitted by the compiler, so
+        // we don't handle it here.
+        var names = export.exportedNames!;
         for (var name in names) {
-          var alias = name.asName ?? name.name;
-          exportedProps.add(Property(js.string(alias.name), name.name));
+          var alias = name.asName ?? name.name!;
+          exportedProps.add(Property(js.string(alias.name), name.name!));
         }
       }
       items.add(js.comment('Exports:'));
@@ -403,7 +403,7 @@ class AmdModuleBuilder extends _ModuleBuilder {
   /// compilation, in order to include all the context needed for evaluation
   /// inside it.
   ///
-  /// Returns a new function that combines all statements from tranformed
+  /// Returns a new function that combines all statements from transformed
   /// imports from [items] and the body of the [function].
   Fun buildFunctionWithImports(List<ModuleItem> items, Fun function) {
     clear();
@@ -442,14 +442,14 @@ class AmdModuleBuilder extends _ModuleBuilder {
       importStatements.addAll(buildImports(moduleVar, import));
     }
 
-    // Prepend import statetements.
+    // Prepend import statements.
     statements.insertAll(0, importStatements);
 
     // Append export statements.
     statements.addAll(buildExports(exports));
 
     var resultModule = NamedFunction(
-        loadFunctionIdentifier(module.name),
+        loadFunctionIdentifier(module.name!),
         js.fun("function(#) { 'use strict'; #; }", [fnParams, statements]),
         true);
     var block = js.statement(
