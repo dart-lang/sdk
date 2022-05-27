@@ -6,6 +6,7 @@ publish_to: none
 environment:
   sdk: '>=2.16.0 <3.0.0'
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   _fe_analyzer_shared: any
   collection: any
@@ -15,5 +16,6 @@ dependencies:
   source_maps: any
   source_span: any
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   lints: any

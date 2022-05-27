@@ -6,6 +6,7 @@ publish_to: none
 environment:
   sdk: '>=2.15.0 <3.0.0'
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   args: any
   build_integration: any
@@ -15,6 +16,7 @@ dependencies:
   kernel: any
   package_config: any
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   expect: any
   json_rpc_2: any

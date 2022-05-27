@@ -5,9 +5,11 @@
 name: test_runner
 # This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
+
 environment:
   sdk: "^2.9.0"
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   args: any
   dart2js_tools: any
@@ -18,6 +20,7 @@ dependencies:
   status_file: any
   webdriver: any
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   analyzer: any
   expect: any

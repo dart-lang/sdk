@@ -8,6 +8,7 @@ description: >-
 environment:
   sdk: '>=2.16.0 <3.0.0'
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   args: any
   collection: any
@@ -17,6 +18,7 @@ dependencies:
   shelf: any
   yaml: any
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   lints: any
   test: any

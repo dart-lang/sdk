@@ -20,13 +20,16 @@ dependencies:
   watcher: ^1.0.0
   yaml: ^3.0.0
 
+# We use 'any' version constraints here as we get our package versions from
+# the dart-lang/sdk repo's DEPS file. Note that this is a special case; the
+# best practice for packages is to specify their compatible version ranges.
+# See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
-  analyzer_utilities:
-    path: ../analyzer_utilities
-  args: ^2.0.0
-  async: ^2.5.0
-  linter: ^1.12.0
-  lints: ^2.0.0
-  matcher: ^0.12.10
-  test: ^1.16.0
-  test_reflective_loader: ^0.2.0
+  analyzer_utilities: any
+  args: any
+  async: any
+  linter: any
+  lints: any
+  matcher: any
+  test: any
+  test_reflective_loader: any

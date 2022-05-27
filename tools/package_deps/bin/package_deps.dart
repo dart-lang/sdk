@@ -251,41 +251,39 @@ class Package implements Comparable<Package> {
       fail = true;
     }
 
-    // Validate that we don't have relative deps into third_party.
-    // TODO(devoncarew): This is currently just enforced for publishable
-    // packages.
     if (publishable) {
-      for (PubDep dep in [..._declaredPubDeps, ..._declaredDevPubDeps]) {
-        if (dep is PathPubDep) {
-          var path = dep.path;
-
-          if (path.contains('third_party/pkg_tested/') ||
-              path.contains('third_party/pkg/')) {
-            out('  Prefer a semver dependency for packages brought in via DEPS:');
-            out('    $dep');
-            fail = true;
-          }
-        }
-      }
-    }
-
-    // Validate that published packages don't use path deps.
-    if (publishable) {
+      // Validate that deps for published packages use semver (but not any).
       for (PubDep dep in _declaredPubDeps) {
-        if (dep is PathPubDep) {
-          out('  Published packages should use semver deps:');
-          out('    $dep');
-          fail = true;
-        }
+        if (dep is SemverPubDep) continue;
+
+        out('  Published packages should use semver deps:');
+        out('    $dep');
+        fail = true;
+      }
+
+      // Validate that dev deps for published packages use an 'any' constraint.
+      for (PubDep dep in _declaredDevPubDeps) {
+        if (dep is AnyPubDep) continue;
+
+        out('  Prefer an `any` constraint for dev dependencies');
+        out('    $dep');
+        fail = true;
+      }
+    } else {
+      // Validate that non-publishable packages use an 'any' constraint.
+      for (PubDep dep in [..._declaredPubDeps, ..._declaredDevPubDeps]) {
+        if (dep is AnyPubDep) continue;
+
+        out('  Prefer an `any` constraint for unpublished packages');
+        out('    $dep');
+        fail = true;
       }
     }
 
     // Validate that the version of any package dep'd in works with our declared
     // version ranges.
     for (PubDep dep in [..._declaredPubDeps, ..._declaredDevPubDeps]) {
-      if (dep is! SemverPubDep) {
-        continue;
-      }
+      if (dep is! SemverPubDep) continue;
 
       ResolvedDep? resolvedDep = sdkDeps.resolve(dep.name);
       if (resolvedDep == null) {
@@ -318,17 +316,6 @@ class Package implements Comparable<Package> {
         out('  $packageName depends on ${dep.name} with a range of '
             '${dep.value}, but the version of ${resolvedDep.packageName} '
             'in the repo is ${resolvedDep.version}.');
-        fail = true;
-      }
-    }
-
-    // Validate that non-published packages use relative a (relative) path dep
-    // for pkg/ packages.
-    if (!publishable) {
-      for (PubDep dep in [..._declaredPubDeps, ..._declaredDevPubDeps]) {
-        if (dep is AnyPubDep) continue;
-        out('  Prefer `any` dependencies for unpublished packages');
-        out('    $dep');
         fail = true;
       }
     }

@@ -5,6 +5,7 @@ publish_to: none
 environment:
   sdk: '>=2.17.0 <3.0.0'
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   _fe_analyzer_shared: any
   analyzer: any
@@ -25,6 +26,7 @@ dependencies:
   watcher: any
   yaml: any
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   analyzer_utilities: any
   cli_util: any

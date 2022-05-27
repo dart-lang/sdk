@@ -11,6 +11,10 @@ environment:
 
 dependencies:
 
+# We use 'any' version constraints here as we get our package versions from
+# the dart-lang/sdk repo's DEPS file. Note that this is a special case; the
+# best practice for packages is to specify their compatible version ranges.
+# See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
   async: any
   expect: any
@@ -19,5 +23,5 @@ dev_dependencies:
   mockito: any
   path: any
   pub_semver: any
-  test: any
   test_package: any
+  test: any

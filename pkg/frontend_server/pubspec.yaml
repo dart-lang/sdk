@@ -6,6 +6,7 @@ publish_to: none
 environment:
   sdk: "^2.15.0"
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   _fe_analyzer_shared: any
   args: any
@@ -19,6 +20,7 @@ dependencies:
   usage: any
   vm: any
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   mockito: any
   test: any
