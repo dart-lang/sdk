@@ -43,7 +43,9 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
+import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/macro.dart';
+import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:meta/meta.dart';
@@ -480,6 +482,45 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _accumulatedAffected = {};
       return Future.value(accumulatedAffected);
     }
+  }
+
+  /// Builds elements for library files from [uriList], and packs them into
+  /// a bundle suitable for [PackageBundleReader].
+  ///
+  /// Disconnected non-library files are ignored.
+  Future<Uint8List> buildPackageBundle({
+    required List<Uri> uriList,
+    PackageBundleSdk? packageBundleSdk,
+  }) async {
+    final elementFactory = libraryContext.elementFactory;
+
+    final bundleWriter = BundleWriter(
+      elementFactory.dynamicRef,
+    );
+    final packageBundleBuilder = PackageBundleBuilder();
+
+    for (final uri in uriList) {
+      final uriStr = uri.toString();
+      final libraryResult = await getLibraryByUri(uriStr);
+      if (libraryResult is LibraryElementResult) {
+        final libraryElement = libraryResult.element as LibraryElementImpl;
+        bundleWriter.writeLibraryElement(libraryElement);
+
+        packageBundleBuilder.addLibrary(
+          uriStr,
+          libraryElement.units.map((e) {
+            return e.source.uri.toString();
+          }).toList(),
+        );
+      }
+    }
+
+    final writeWriterResult = bundleWriter.finish();
+
+    return packageBundleBuilder.finish(
+      resolutionBytes: writeWriterResult.resolutionBytes,
+      sdk: packageBundleSdk,
+    );
   }
 
   /// The file with the given [path] might have changed - updated, added or

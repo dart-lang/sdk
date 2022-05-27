@@ -4,17 +4,14 @@
 
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:yaml/yaml.dart';
 
@@ -65,33 +62,10 @@ Future<Uint8List> buildSdkSummary2({
   );
   scheduler.start();
 
-  final analysisSession = analysisDriver.currentSession;
-  final elementFactory = analysisDriver.libraryContext.elementFactory;
-
-  final bundleWriter = BundleWriter(
-    elementFactory.dynamicRef,
-  );
-  final packageBuilder = PackageBundleBuilder();
-
-  for (final uriStr in sdk.uris) {
-    final libraryResult = await analysisSession.getLibraryByUri(uriStr);
-    libraryResult as LibraryElementResult;
-    final libraryElement = libraryResult.element as LibraryElementImpl;
-    bundleWriter.writeLibraryElement(libraryElement);
-
-    packageBuilder.addLibrary(
-      uriStr,
-      libraryElement.units.map((e) {
-        return e.source.uri.toString();
-      }).toList(),
-    );
-  }
-
-  final writeWriterResult = bundleWriter.finish();
-
-  return packageBuilder.finish(
-    resolutionBytes: writeWriterResult.resolutionBytes,
-    sdk: PackageBundleSdk(
+  final libraryUriList = sdk.uris.map(Uri.parse).toList();
+  return await analysisDriver.buildPackageBundle(
+    uriList: libraryUriList,
+    packageBundleSdk: PackageBundleSdk(
       languageVersionMajor: sdk.languageVersion.major,
       languageVersionMinor: sdk.languageVersion.minor,
       allowedExperimentsJson: sdk.allowedExperimentsJson,
