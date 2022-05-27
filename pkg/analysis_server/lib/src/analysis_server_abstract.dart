@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
-import 'package:analysis_server/src/analytics/noop_analytics_manager.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
@@ -156,6 +155,7 @@ abstract class AbstractAnalysisServer {
     this.options,
     this.sdkManager,
     this.diagnosticServer,
+    this.analyticsManager,
     this.crashReportingAttachmentsBuilder,
     ResourceProvider baseResourceProvider,
     this.instrumentationService,
@@ -164,8 +164,7 @@ abstract class AbstractAnalysisServer {
     this.notificationManager, {
     this.requestStatistics,
     bool enableBazelWatcher = false,
-  })  : analyticsManager = NoopAnalyticsManager(),
-        resourceProvider = OverlayResourceProvider(baseResourceProvider),
+  })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
         pubApi = PubApi(instrumentationService, httpClient,
             Platform.environment['PUB_HOSTED_URL']) {
     // We can only spawn processes (eg. to run pub commands) when backed by

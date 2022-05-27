@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/analytics/noop_analytics_manager.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -98,6 +99,7 @@ class AnalysisServerTest with ResourceProviderMixin {
         resourceProvider,
         AnalysisServerOptions(),
         DartSdkManager(sdkRoot.path),
+        NoopAnalyticsManager(),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
   }

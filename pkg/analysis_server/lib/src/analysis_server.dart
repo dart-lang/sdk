@@ -12,6 +12,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_server_abstract.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/context_manager.dart';
@@ -326,6 +327,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     ResourceProvider baseResourceProvider,
     AnalysisServerOptions options,
     DartSdkManager sdkManager,
+    AnalyticsManager analyticsManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService, {
     http.Client? httpClient,
@@ -339,6 +341,7 @@ class AnalysisServer extends AbstractAnalysisServer {
           options,
           sdkManager,
           diagnosticServer,
+          analyticsManager,
           crashReportingAttachmentsBuilder,
           baseResourceProvider,
           instrumentationService,

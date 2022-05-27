@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
@@ -35,10 +36,17 @@ class SocketServer implements AbstractSocketServer {
   final DartSdkManager sdkManager;
 
   final CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder;
+
   final InstrumentationService instrumentationService;
+
   final RequestStatisticsHelper? requestStatistics;
+
   @override
   final DiagnosticServer? diagnosticServer;
+
+  /// The object through which analytics are to be sent.
+  final AnalyticsManager analyticsManager;
+
   final DetachableFileSystemManager? detachableFileSystemManager;
 
   /// The analysis server that was created when a client established a
@@ -53,6 +61,7 @@ class SocketServer implements AbstractSocketServer {
       this.instrumentationService,
       this.requestStatistics,
       this.diagnosticServer,
+      this.analyticsManager,
       this.detachableFileSystemManager);
 
   /// Create an analysis server which will communicate with the client using the
@@ -76,6 +85,7 @@ class SocketServer implements AbstractSocketServer {
       resourceProvider,
       analysisServerOptions,
       sdkManager,
+      analyticsManager,
       crashReportingAttachmentsBuilder,
       instrumentationService,
       requestStatistics: requestStatistics,

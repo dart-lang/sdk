@@ -10,6 +10,8 @@ import 'dart:math';
 import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
+import 'package:analysis_server/src/analytics/noop_analytics_manager.dart';
 import 'package:analysis_server/src/lsp/lsp_socket_server.dart';
 import 'package:analysis_server/src/server/crash_reporting.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
@@ -140,6 +142,7 @@ class Driver implements ServerStarter {
     SendPort? sendPort,
     bool defaultToLsp = false,
   }) {
+    var sessionStartTime = DateTime.now();
     var parser = createArgParser(defaultToLsp: defaultToLsp);
     var results = parser.parse(arguments);
 
@@ -147,7 +150,6 @@ class Driver implements ServerStarter {
     analysisServerOptions.newAnalysisDriverLog =
         (results[ANALYSIS_DRIVER_LOG] ?? results[ANALYSIS_DRIVER_LOG_ALIAS])
             as String?;
-    analysisServerOptions.clientId = results[CLIENT_ID] as String?;
     if (results.wasParsed(USE_LSP)) {
       analysisServerOptions.useLanguageServerProtocol =
           results[USE_LSP] as bool;
@@ -157,11 +159,11 @@ class Driver implements ServerStarter {
     }
     // For clients that don't supply their own identifier, use a default based
     // on whether the server will run in LSP mode or not.
-    analysisServerOptions.clientId ??=
-        analysisServerOptions.useLanguageServerProtocol
+    var clientId = (results[CLIENT_ID] as String?) ??
+        (analysisServerOptions.useLanguageServerProtocol
             ? 'unknown.client.lsp'
-            : 'unknown.client.classic';
-
+            : 'unknown.client.classic');
+    analysisServerOptions.clientId = clientId;
     analysisServerOptions.clientVersion = results[CLIENT_VERSION] as String?;
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER] as String?;
     analysisServerOptions.packagesFile = results[PACKAGES_FILE] as String?;
@@ -194,6 +196,7 @@ class Driver implements ServerStarter {
     if (analysisServerOptions.clientVersion != null) {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
+    var analyticsManager = NoopAnalyticsManager();
 
     bool shouldSendCallback() {
       // Check sdkConfig to optionally force reporting on.
@@ -241,9 +244,18 @@ class Driver implements ServerStarter {
     final dartSdkManager = DartSdkManager(defaultSdkPath);
 
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
-    // cannot be re-used, but the SDK is needed to create a package map provider
+    // can't be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
     var defaultSdk = _createDefaultSdk(defaultSdkPath);
+    //
+    // Record the start of the session.
+    //
+    analyticsManager.startUp(
+        time: sessionStartTime,
+        arguments: _getArgumentsForAnalytics(results),
+        clientId: clientId,
+        clientVersion: analysisServerOptions.clientVersion,
+        sdkVersion: defaultSdk.sdkVersion);
     //
     // Initialize the instrumentation service.
     //
@@ -296,14 +308,21 @@ class Driver implements ServerStarter {
         throw UnimplementedError(
             'Isolate usage not implemented for LspAnalysisServer');
       }
-      startLspServer(results, analysisServerOptions, dartSdkManager,
-          instrumentationService, diagnosticServerPort, errorNotifier);
+      startLspServer(
+          results,
+          analysisServerOptions,
+          dartSdkManager,
+          analyticsManager,
+          instrumentationService,
+          diagnosticServerPort,
+          errorNotifier);
     } else {
       startAnalysisServer(
           results,
           analysisServerOptions,
           parser,
           dartSdkManager,
+          analyticsManager,
           crashReportingAttachmentsBuilder,
           instrumentationService,
           RequestStatisticsHelper(),
@@ -319,6 +338,7 @@ class Driver implements ServerStarter {
     AnalysisServerOptions analysisServerOptions,
     ArgParser parser,
     DartSdkManager dartSdkManager,
+    AnalyticsManager analyticsManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService,
     RequestStatisticsHelper requestStatistics,
@@ -358,6 +378,7 @@ class Driver implements ServerStarter {
         instrumentationService,
         requestStatistics,
         diagnosticServer,
+        analyticsManager,
         detachableFileSystemManager);
     httpServer = HttpAnalysisServer(socketServer);
 
@@ -439,6 +460,7 @@ class Driver implements ServerStarter {
     ArgResults args,
     AnalysisServerOptions analysisServerOptions,
     DartSdkManager dartSdkManager,
+    AnalyticsManager analyticsManager,
     InstrumentationService instrumentationService,
     int? diagnosticServerPort,
     ErrorNotifier errorNotifier,
@@ -454,6 +476,7 @@ class Driver implements ServerStarter {
     final socketServer = LspSocketServer(
       analysisServerOptions,
       diagnosticServer,
+      analyticsManager,
       dartSdkManager,
       instrumentationService,
     );
@@ -516,6 +539,52 @@ class Driver implements ServerStarter {
     var millisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
     var random = Random().nextInt(0x3fffffff);
     return '$millisecondsSinceEpoch$random';
+  }
+
+  /// Return a list of the known command-line arguments that were parsed when
+  /// creating the given [results]. We return only the names of the arguments,
+  /// not the values of the arguments, in order to prevent the collection of any
+  /// PII.
+  List<String> _getArgumentsForAnalytics(ArgResults results) {
+    // The arguments that are literal strings are deprecated and no longer read
+    // from, but we still want to know if clients are using them.
+    var knownArguments = [
+      ANALYTICS_FLAG,
+      CACHE_FOLDER,
+      CLIENT_ID,
+      CLIENT_VERSION,
+      'completion-model',
+      'dartpad',
+      DART_SDK,
+      DART_SDK_ALIAS,
+      DIAGNOSTIC_PORT,
+      DIAGNOSTIC_PORT_ALIAS,
+      DISABLE_SERVER_EXCEPTION_HANDLING,
+      DISABLE_SERVER_FEATURE_COMPLETION,
+      DISABLE_SERVER_FEATURE_SEARCH,
+      'enable-completion-model',
+      'enable-experiment',
+      'enable-instrumentation',
+      'file-read-mode',
+      HELP_OPTION,
+      'ignore-unrecognized-flags',
+      INTERNAL_PRINT_TO_CONSOLE,
+      PACKAGES_FILE,
+      'preview-dart-2',
+      PROTOCOL_TRAFFIC_LOG,
+      PROTOCOL_TRAFFIC_LOG_ALIAS,
+      REPORT_PROTOCOL_VERSION,
+      SERVER_PROTOCOL,
+      SUPPRESS_ANALYTICS_FLAG,
+      TRAIN_USING,
+      'useAnalysisHighlight2',
+      USE_LSP,
+      'use-new-relevance',
+      'use-fasta-parser',
+    ];
+    return knownArguments
+        .where((argument) => results.wasParsed(argument))
+        .toList();
   }
 
   String _getSdkPath(ArgResults args) {
