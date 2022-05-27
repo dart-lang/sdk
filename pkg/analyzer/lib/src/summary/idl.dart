@@ -566,14 +566,3 @@ enum IndexSyntheticElementKind {
   /// The containing unit itself.
   unit
 }
-
-/// Summary information about a package.
-@TopLevel('PBdl')
-abstract class PackageBundle extends base.SummaryClass {
-  factory PackageBundle.fromBuffer(List<int> buffer) =>
-      generated.readPackageBundle(buffer);
-
-  /// The version 2 of the summary.
-  @Id(0)
-  int get fake;
-}

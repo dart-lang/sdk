@@ -436,12 +436,6 @@ table DirectiveInfo {
   templateValues:[string] (id: 1);
 }
 
-/// Summary information about a package.
-table PackageBundle {
-  /// The version 2 of the summary.
-  fake:uint (id: 0);
-}
+root_type AnalysisDriverResolvedUnit;
 
-root_type PackageBundle;
-
-file_identifier "PBdl";
+file_identifier "ADRU";
