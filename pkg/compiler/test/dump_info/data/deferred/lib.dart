@@ -36,7 +36,8 @@
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
   "code": "_static_0(A, \"lib__defaultArg$closure\", \"defaultArg\", 0);\n\ndefaultArg() {\n      return \"\";\n    }",
-  "type": "dynamic Function()"
+  "type": "dynamic Function()",
+  "functionKind": 0
 }]*/
 defaultArg() => "";
 
@@ -66,7 +67,8 @@ defaultArg() => "";
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,
   "code": "_static(A, \"lib__funky$closure\", 0, null, [\"call$1\", \"call$0\"], [\"funky\", function() {\n      return A.funky(A.lib__defaultArg$closure());\n    }], 1, 0);\n\nfunky(x) {\n      return x.call$0();\n    }",
-  "type": "dynamic Function([dynamic])"
+  "type": "dynamic Function([dynamic])",
+  "functionKind": 0
 }]*/
 funky([x = defaultArg]) => x();
 

@@ -1180,7 +1180,7 @@ class DumpInfoTask extends CompilerTask
       {LibraryEntity library}) {
     if (compiler.options.dumpInfo) {
       _entityToNodes.putIfAbsent(entity, () => <jsAst.Node>[]).add(code);
-      _nodeData[code] ??= useBinaryFormat ? CodeSpan() : _CodeData();
+      _nodeData[code] ??= useBinaryFormat ? CodeSpan.empty() : _CodeData();
     }
   }
 
@@ -1189,7 +1189,7 @@ class DumpInfoTask extends CompilerTask
       assert(_constantToNode[constant] == null ||
           _constantToNode[constant] == code);
       _constantToNode[constant] = code;
-      _nodeData[code] ??= useBinaryFormat ? CodeSpan() : _CodeData();
+      _nodeData[code] ??= useBinaryFormat ? CodeSpan.empty() : _CodeData();
     }
   }
 
@@ -1495,6 +1495,8 @@ class _CodeData extends CodeSpan {
   @override
   String get text => '$_text';
   int get length => end - start;
+
+  _CodeData() : super.empty();
 }
 
 /// Holds dump-info's mutable state.

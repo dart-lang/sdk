@@ -176,6 +176,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   ConstantInfo parseConstant(Map json) {
     ConstantInfo result = parseId(json['id']);
     return result
+      ..name = json['name']
       ..code = parseCode(json['code'])
       ..size = json['size']
       ..outputUnit = parseId(json['outputUnit']);
@@ -191,43 +192,36 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   }
 
   ProgramInfo parseProgram(Map json) {
-    var programInfo = ProgramInfo()
-      ..entrypoint = parseId(json['entrypoint'])
-      ..size = json['size']
-      ..compilationMoment = DateTime.parse(json['compilationMoment'])
-      ..dart2jsVersion = json['dart2jsVersion']
-      ..noSuchMethodEnabled = json['noSuchMethodEnabled']
-      ..isRuntimeTypeUsed = json['isRuntimeTypeUsed']
-      ..isIsolateInUse = json['isIsolateInUse']
-      ..isFunctionApplyUsed = json['isFunctionApplyUsed']
-      ..isMirrorsUsed = json['isMirrorsUsed']
-      ..minified = json['minified'];
-
     // TODO(het): Revert this when the dart2js with the new codec is in stable
-    var compilationDuration = json['compilationDuration'];
-    if (compilationDuration is String) {
-      programInfo.compilationDuration = _parseDuration(compilationDuration);
-    } else {
-      assert(compilationDuration is int);
-      programInfo.compilationDuration =
-          Duration(microseconds: compilationDuration);
-    }
+    final compilationDuration = json['compilationDuration'];
+    final compilationDurationParsed = compilationDuration is String
+        ? _parseDuration(compilationDuration)
+        : Duration(microseconds: compilationDuration as int);
 
-    var toJsonDuration = json['toJsonDuration'];
-    if (toJsonDuration is String) {
-      programInfo.toJsonDuration = _parseDuration(toJsonDuration);
-    } else {
-      assert(toJsonDuration is int);
-      programInfo.toJsonDuration = Duration(microseconds: toJsonDuration);
-    }
+    final toJsonDuration = json['toJsonDuration'];
+    final toJsonDurationParsed = toJsonDuration is String
+        ? _parseDuration(toJsonDuration)
+        : Duration(microseconds: toJsonDuration as int);
 
-    var dumpInfoDuration = json['dumpInfoDuration'];
-    if (dumpInfoDuration is String) {
-      programInfo.dumpInfoDuration = _parseDuration(dumpInfoDuration);
-    } else {
-      assert(dumpInfoDuration is int);
-      programInfo.dumpInfoDuration = Duration(microseconds: dumpInfoDuration);
-    }
+    final dumpInfoDuration = json['dumpInfoDuration'];
+    final dumpInfoDurationParsed = dumpInfoDuration is String
+        ? _parseDuration(dumpInfoDuration)
+        : Duration(microseconds: dumpInfoDuration as int);
+
+    final programInfo = ProgramInfo(
+        entrypoint: parseId(json['entrypoint']),
+        size: json['size'],
+        compilationMoment: DateTime.parse(json['compilationMoment']),
+        dart2jsVersion: json['dart2jsVersion'],
+        noSuchMethodEnabled: json['noSuchMethodEnabled'],
+        isRuntimeTypeUsed: json['isRuntimeTypeUsed'],
+        isIsolateInUse: json['isIsolateInUse'],
+        isFunctionApplyUsed: json['isFunctionApplyUsed'],
+        isMirrorsUsed: json['isMirrorsUsed'],
+        minified: json['minified'],
+        compilationDuration: compilationDurationParsed,
+        toJsonDuration: toJsonDurationParsed,
+        dumpInfoDuration: dumpInfoDurationParsed);
 
     return programInfo;
   }
@@ -258,6 +252,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       ..coverageId = json['coverageId']
       ..outputUnit = parseId(json['outputUnit'])
       ..size = json['size']
+      ..functionKind = json['functionKind']
       ..type = json['type']
       ..returnType = json['returnType']
       ..inferredReturnType = json['inferredReturnType']
@@ -370,7 +365,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     String name;
     if (info is ConstantInfo) {
       // No name and no parent, so `longName` isn't helpful
-      assert(info.name == null);
+      assert(info.name.isEmpty);
       assert(info.parent == null);
       assert(info.code != null);
       // Instead, use the content of the code.
@@ -592,6 +587,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
         'inlinedCount': info.inlinedCount,
         'code': _serializeCode(info.code),
         'type': info.type,
+        'functionKind': info.functionKind,
         // Note: version 3.2 of dump-info serializes `uses` in a section called
         // `holding` at the top-level.
       });

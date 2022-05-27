@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.11
-
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -89,7 +87,7 @@ abstract class DataSink {
 /// Mixin that implements all convenience methods of [DataSink].
 abstract class DataSinkMixin implements DataSink {
   @override
-  void writeIntOrNull(int value) {
+  void writeIntOrNull(int? value) {
     writeBool(value != null);
     if (value != null) {
       writeInt(value);
@@ -97,7 +95,7 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeStringOrNull(String value) {
+  void writeStringOrNull(String? value) {
     writeBool(value != null);
     if (value != null) {
       writeString(value);
@@ -105,7 +103,7 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeStrings(Iterable<String> values, {bool allowNull = false}) {
+  void writeStrings(Iterable<String>? values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
       writeInt(0);
@@ -118,7 +116,7 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeStringMap<V>(Map<String, V> map, void Function(V value) f,
+  void writeStringMap<V>(Map<String, V>? map, void Function(V value) f,
       {bool allowNull = false}) {
     if (map == null) {
       assert(allowNull);
@@ -133,7 +131,7 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeList<E>(Iterable<E> values, void Function(E value) f,
+  void writeList<E>(Iterable<E>? values, void Function(E value) f,
       {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -165,7 +163,7 @@ class IndexedSink<E> {
   /// If [value] has not been canonicalized yet, [writeValue] is called to
   /// serialize the [value] itself.
   void write(E value, void Function(E value) writeValue) {
-    int index = _cache[value];
+    int? index = _cache[value];
     if (index == null) {
       index = _cache.length;
       _cache[value] = index;
@@ -180,8 +178,8 @@ class IndexedSink<E> {
 /// Base implementation of [DataSink] using [DataSinkMixin] to implement
 /// convenience methods.
 abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
-  IndexedSink<String> _stringIndex;
-  IndexedSink<Uri> _uriIndex;
+  late final IndexedSink<String> _stringIndex;
+  late final IndexedSink<Uri> _uriIndex;
   final Map<Type, IndexedSink> _generalCaches = {};
 
   AbstractDataSink() {
@@ -202,25 +200,21 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
 
   @override
   void writeBool(bool value) {
-    assert(value != null);
     _writeIntInternal(value ? 1 : 0);
   }
 
   @override
   void writeUri(Uri value) {
-    assert(value != null);
     _writeUri(value);
   }
 
   @override
   void writeString(String value) {
-    assert(value != null);
     _writeString(value);
   }
 
   @override
   void writeInt(int value) {
-    assert(value != null);
     assert(value >= 0 && value >> 30 == 0);
     _writeIntInternal(value);
   }
@@ -252,7 +246,8 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
 /// This data sink works together with [BinarySource].
 class BinarySink extends AbstractDataSink {
   final Sink<List<int>> sink;
-  BufferedSink _bufferedSink;
+  // Nullable so we can allow it to be GCed on close.
+  BufferedSink? _bufferedSink;
   int _length = 0;
 
   BinarySink(this.sink) : _bufferedSink = BufferedSink(sink);
@@ -266,7 +261,7 @@ class BinarySink extends AbstractDataSink {
   void _writeStringInternal(String value) {
     List<int> bytes = utf8.encode(value);
     _writeIntInternal(bytes.length);
-    _bufferedSink.addBytes(bytes);
+    _bufferedSink!.addBytes(bytes);
     _length += bytes.length;
   }
 
@@ -274,13 +269,13 @@ class BinarySink extends AbstractDataSink {
   void _writeIntInternal(int value) {
     assert(value >= 0 && value >> 30 == 0);
     if (value < 0x80) {
-      _bufferedSink.addByte(value);
+      _bufferedSink!.addByte(value);
       _length += 1;
     } else if (value < 0x4000) {
-      _bufferedSink.addByte2((value >> 8) | 0x80, value & 0xFF);
+      _bufferedSink!.addByte2((value >> 8) | 0x80, value & 0xFF);
       _length += 2;
     } else {
-      _bufferedSink.addByte4((value >> 24) | 0xC0, (value >> 16) & 0xFF,
+      _bufferedSink!.addByte4((value >> 24) | 0xC0, (value >> 16) & 0xFF,
           (value >> 8) & 0xFF, value & 0xFF);
       _length += 4;
     }
@@ -293,7 +288,7 @@ class BinarySink extends AbstractDataSink {
 
   @override
   void close() {
-    _bufferedSink.flushAndDestroy();
+    _bufferedSink!.flushAndDestroy();
     _bufferedSink = null;
     sink.close();
   }
@@ -316,19 +311,20 @@ class BufferedSink {
   int flushedLength = 0;
 
   final Float64List _doubleBuffer = Float64List(1);
-  Uint8List _doubleBufferUint8;
+  Uint8List? _doubleBufferUint8;
 
   int get offset => length + flushedLength;
 
   BufferedSink(this._sink);
 
   void addDouble(double d) {
-    _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
+    final doubleBufferUint8 =
+        _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
     _doubleBuffer[0] = d;
-    addByte4(_doubleBufferUint8[0], _doubleBufferUint8[1],
-        _doubleBufferUint8[2], _doubleBufferUint8[3]);
-    addByte4(_doubleBufferUint8[4], _doubleBufferUint8[5],
-        _doubleBufferUint8[6], _doubleBufferUint8[7]);
+    addByte4(doubleBufferUint8[0], doubleBufferUint8[1], doubleBufferUint8[2],
+        doubleBufferUint8[3]);
+    addByte4(doubleBufferUint8[4], doubleBufferUint8[5], doubleBufferUint8[6],
+        doubleBufferUint8[7]);
   }
 
   void addByte(int byte) {

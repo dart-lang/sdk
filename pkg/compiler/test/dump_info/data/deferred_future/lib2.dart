@@ -52,7 +52,8 @@ class A {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
   "code": "",
-  "type": "dynamic Function()"
+  "type": "dynamic Function()",
+  "functionKind": 2
 }]*/
   method() {}
 }
