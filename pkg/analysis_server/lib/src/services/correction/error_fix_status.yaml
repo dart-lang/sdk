@@ -1528,7 +1528,7 @@ LanguageCode.IMPLICIT_DYNAMIC_VARIABLE:
 LintCode.always_declare_return_types:
   status: hasFix
 LintCode.always_put_control_body_on_new_line:
-  status: needsEvaluation
+  status: hasFix
 LintCode.always_put_required_named_parameters_first:
   status: needsEvaluation
 LintCode.always_require_non_null_named_parameters:
