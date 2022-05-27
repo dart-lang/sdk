@@ -1923,8 +1923,8 @@ void f() {
     assertSuggestEnumConst('E.two');
 
     assertSuggestEnum('F');
-    assertSuggestEnumConst('F.three');
-    assertSuggestEnumConst('F.four');
+    assertNotSuggested('F.three');
+    assertNotSuggested('F.four');
   }
 
   Future<void> test_ExpressionStatement_identifier() async {

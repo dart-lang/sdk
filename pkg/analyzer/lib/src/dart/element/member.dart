@@ -612,9 +612,14 @@ abstract class Member implements Element {
   String getExtendedDisplayName(String? shortName) =>
       _declaration.getExtendedDisplayName(shortName);
 
+  @Deprecated('Use isAccessibleIn2() instead')
   @override
   bool isAccessibleIn(LibraryElement? library) =>
       _declaration.isAccessibleIn(library);
+
+  @override
+  bool isAccessibleIn2(LibraryElement library) =>
+      _declaration.isAccessibleIn2(library);
 
   /// Use the given [visitor] to visit all of the [children].
   void safelyVisitChildren(List<Element> children, ElementVisitor visitor) {

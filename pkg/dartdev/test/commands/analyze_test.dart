@@ -53,6 +53,10 @@ void main() {
 }
 ''';
 
+/// The exit code of the analysis server when the highest severity issue is a
+/// warning.
+const int _warningExitCode = 2;
+
 void defineAnalysisError() {
   group('contextMessages', () {
     test('none', () {
@@ -389,7 +393,7 @@ void defineAnalyze() {
     );
     var result = await p.run(['analyze', p.dirPath]);
 
-    expect(result.exitCode, equals(0));
+    expect(result.exitCode, equals(_warningExitCode));
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('lib/main.dart:2:6 '));
     expect(result.stdout, contains('TODO: Implement this - todo'));

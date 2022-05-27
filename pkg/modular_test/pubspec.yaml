@@ -2,18 +2,20 @@ name: modular_test
 # This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 description: >
- Small framework to test modular pipelines.
- This is used within the Dart SDK to define and validate modular tests, and to
- execute them using the modular pipeline of different SDK tools.
+ Small framework to test modular pipelines. This is used within the Dart SDK to
+ define and validate modular tests, and to execute them using the modular
+ pipeline of different SDK tools.
 
 environment:
   sdk: '>=2.16.0 <3.0.0'
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   args: any
   package_config: any
   yaml: any
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   async_helper: any
   expect: any

@@ -4,6 +4,7 @@ publish_to: none
 environment:
   sdk: '>=2.12.0'
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   _js_interop_checks: any
   front_end: any

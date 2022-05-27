@@ -83,6 +83,9 @@ class SourceReference {
 
   bool get isResolved => _match.isResolved;
 
+  /// Return the [LibraryElement] for the [file].
+  LibraryElement get libraryElement => _match.libraryElement;
+
   SourceRange get range => _match.sourceRange;
 
   Source get unitSource => _match.unitSource;

@@ -56,6 +56,12 @@ public class SourceChange {
   private final Position selection;
 
   /**
+   * The length of the selection (starting at Position) that should be selected after the edits have
+   * been applied.
+   */
+  private final Integer selectionLength;
+
+  /**
    * The optional identifier of the change kind. The identifier remains stable even if the message
    * changes, or is parameterized.
    */
@@ -64,11 +70,12 @@ public class SourceChange {
   /**
    * Constructor for {@link SourceChange}.
    */
-  public SourceChange(String message, List<SourceFileEdit> edits, List<LinkedEditGroup> linkedEditGroups, Position selection, String id) {
+  public SourceChange(String message, List<SourceFileEdit> edits, List<LinkedEditGroup> linkedEditGroups, Position selection, Integer selectionLength, String id) {
     this.message = message;
     this.edits = edits;
     this.linkedEditGroups = linkedEditGroups;
     this.selection = selection;
+    this.selectionLength = selectionLength;
     this.id = id;
   }
 
@@ -81,6 +88,7 @@ public class SourceChange {
         ObjectUtilities.equals(other.edits, edits) &&
         ObjectUtilities.equals(other.linkedEditGroups, linkedEditGroups) &&
         ObjectUtilities.equals(other.selection, selection) &&
+        ObjectUtilities.equals(other.selectionLength, selectionLength) &&
         ObjectUtilities.equals(other.id, id);
     }
     return false;
@@ -91,8 +99,9 @@ public class SourceChange {
     List<SourceFileEdit> edits = SourceFileEdit.fromJsonArray(jsonObject.get("edits").getAsJsonArray());
     List<LinkedEditGroup> linkedEditGroups = LinkedEditGroup.fromJsonArray(jsonObject.get("linkedEditGroups").getAsJsonArray());
     Position selection = jsonObject.get("selection") == null ? null : Position.fromJson(jsonObject.get("selection").getAsJsonObject());
+    Integer selectionLength = jsonObject.get("selectionLength") == null ? null : jsonObject.get("selectionLength").getAsInt();
     String id = jsonObject.get("id") == null ? null : jsonObject.get("id").getAsString();
-    return new SourceChange(message, edits, linkedEditGroups, selection, id);
+    return new SourceChange(message, edits, linkedEditGroups, selection, selectionLength, id);
   }
 
   public static List<SourceChange> fromJsonArray(JsonArray jsonArray) {
@@ -143,6 +152,14 @@ public class SourceChange {
     return selection;
   }
 
+  /**
+   * The length of the selection (starting at Position) that should be selected after the edits have
+   * been applied.
+   */
+  public Integer getSelectionLength() {
+    return selectionLength;
+  }
+
   @Override
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
@@ -150,6 +167,7 @@ public class SourceChange {
     builder.append(edits);
     builder.append(linkedEditGroups);
     builder.append(selection);
+    builder.append(selectionLength);
     builder.append(id);
     return builder.toHashCode();
   }
@@ -170,6 +188,9 @@ public class SourceChange {
     if (selection != null) {
       jsonObject.add("selection", selection.toJson());
     }
+    if (selectionLength != null) {
+      jsonObject.addProperty("selectionLength", selectionLength);
+    }
     if (id != null) {
       jsonObject.addProperty("id", id);
     }
@@ -188,6 +209,8 @@ public class SourceChange {
     builder.append(StringUtils.join(linkedEditGroups, ", ") + ", ");
     builder.append("selection=");
     builder.append(selection + ", ");
+    builder.append("selectionLength=");
+    builder.append(selectionLength + ", ");
     builder.append("id=");
     builder.append(id);
     builder.append("]");

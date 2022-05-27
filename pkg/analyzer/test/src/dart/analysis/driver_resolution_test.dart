@@ -810,6 +810,7 @@ BinaryExpression
   operator: >>>
   rightOperand: IntegerLiteral
     literal: 3
+    parameter: self::@class::A::@method::>>>::@parameter::amount
     staticType: int
   staticElement: self::@class::A::@method::>>>
   staticInvokeType: A Function(int)

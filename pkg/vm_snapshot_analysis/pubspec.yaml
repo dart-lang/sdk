@@ -14,6 +14,10 @@ dependencies:
   collection: ^1.15.0
   path: ^1.8.0
 
+# We use 'any' version constraints here as we get our package versions from
+# the dart-lang/sdk repo's DEPS file. Note that this is a special case; the
+# best practice for packages is to specify their compatible version ranges.
+# See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
   lints: any
-  test: ^1.16.8
+  test: any

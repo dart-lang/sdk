@@ -931,6 +931,15 @@ word SmiValue(const dart::Object& a) {
   return static_cast<word>(dart::Smi::Cast(a).Value());
 }
 
+bool IsDouble(const dart::Object& a) {
+  return a.IsDouble();
+}
+
+double DoubleValue(const dart::Object& a) {
+  RELEASE_ASSERT(IsDouble(a));
+  return dart::Double::Cast(a).value();
+}
+
 #if defined(TARGET_ARCH_IA32)
 uword Code::EntryPointOf(const dart::Code& code) {
   static_assert(kHostWordSize == kWordSize,

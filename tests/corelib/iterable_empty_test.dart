@@ -18,7 +18,7 @@ main() {
     Expect.throwsRangeError(() => it.elementAt(0), name);
     Expect.throwsStateError(() => it.reduce((a, b) => a), name);
     Expect.throwsStateError(() => it.singleWhere((_) => true), name);
-    Expect.equals(42, it.fold(42, (a, b) => "not 42"), name);
+    Expect.equals(42, it.fold<dynamic>(42, (a, b) => "not 42"), name);
     Expect.equals(42, it.firstWhere((v) => true, orElse: () => 42), name);
     Expect.equals(42, it.lastWhere((v) => true, orElse: () => 42), name);
     Expect.equals("", it.join("separator"), name);

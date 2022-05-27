@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.33.0
+  1.33.1
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -236,6 +236,11 @@ a:focus, a:hover {
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.33.1</h4>
+<ul>
+  <li><tt>SourceChange</tt> now has an optional <tt>selectionLength</tt> that may be
+  provided when <tt>selection</tt> is.</li>
+</ul>
 <h4>1.33.0</h4>
 <ul>
   <li>Requests <tt>getSuggestions2</tt> and <tt>getSuggestionDetails2</tt>
@@ -5874,6 +5879,12 @@ a:focus, a:hover {
         <p>
           The position that should be selected after the edits have been
           applied.
+        </p>
+      </dd><dt class="field"><b>selectionLength: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The length of the selection (starting at Position) that should be selected after
+          the edits have been applied.
         </p>
       </dd><dt class="field"><b>id: String<span style="color:#999999"> (optional)</span></b></dt><dd>
         

@@ -4,12 +4,18 @@ name: sourcemap_testing
 publish_to: none
 
 environment:
-  sdk: '>=2.1.0 <3.0.0'
+  sdk: '>=2.16.0 <3.0.0'
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   _fe_analyzer_shared: any
-  dart2js_tools:  any
-  expect:  any
+  collection: any
+  dart2js_tools: any
+  expect: any
   path: any
   source_maps: any
   source_span: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  lints: any

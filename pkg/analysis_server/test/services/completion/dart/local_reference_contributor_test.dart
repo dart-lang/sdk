@@ -2312,7 +2312,7 @@ void f() {^}
   }
 
   Future<void> test_enum() async {
-    addTestSource('enum E { one, two } void f() {^}');
+    addTestSource('enum E { one, two } void f() {E v = ^}');
     await computeSuggestions();
     assertSuggestEnum('E');
     assertSuggestEnumConst('E.one');
@@ -2322,7 +2322,7 @@ void f() {^}
   }
 
   Future<void> test_enum_deprecated() async {
-    addTestSource('@deprecated enum E { one, two } void f() {^}');
+    addTestSource('@deprecated enum E { one, two } void f() {E v = ^}');
     await computeSuggestions();
     assertSuggestEnum('E', isDeprecated: true);
     assertSuggestEnumConst('E.one', isDeprecated: true);
@@ -2349,8 +2349,8 @@ void f() {
     assertSuggestEnumConst('E.two');
 
     assertSuggestEnum('F');
-    assertSuggestEnumConst('F.three');
-    assertSuggestEnumConst('F.four');
+    assertNotSuggested('F.three');
+    assertNotSuggested('F.four');
   }
 
   Future<void> test_enum_filter_assignment() async {
@@ -2370,8 +2370,8 @@ void f() {
     assertSuggestEnumConst('E.two');
 
     assertSuggestEnum('F');
-    assertSuggestEnumConst('F.three');
-    assertSuggestEnumConst('F.four');
+    assertNotSuggested('F.three');
+    assertNotSuggested('F.four');
   }
 
   Future<void> test_enum_filter_binaryEquals() async {
@@ -2412,8 +2412,8 @@ void f(E e) {
     assertSuggestEnumConst('E.two');
 
     assertSuggestEnum('F');
-    assertSuggestEnumConst('F.three');
-    assertSuggestEnumConst('F.four');
+    assertNotSuggested('F.three');
+    assertNotSuggested('F.four');
   }
 
   Future<void> test_enum_filter_variableDeclaration() async {
@@ -2432,8 +2432,8 @@ void f() {
     assertSuggestEnumConst('E.two');
 
     assertSuggestEnum('F');
-    assertSuggestEnumConst('F.three');
-    assertSuggestEnumConst('F.four');
+    assertNotSuggested('F.three');
+    assertNotSuggested('F.four');
   }
 
   Future<void> test_enum_shadowed() async {

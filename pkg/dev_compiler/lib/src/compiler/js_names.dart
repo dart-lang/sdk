@@ -9,6 +9,22 @@ import '../js_ast/js_ast.dart';
 /// The ES6 name for the Dart SDK.  All dart:* libraries are in this module.
 const String dartSdkModule = 'dart_sdk';
 
+/// Names expected to be used without renaming.
+///
+/// These are fixed by the dart:_rti library and are accessed through the
+/// `JsGetName` enum.
+abstract class FixedNames {
+  static const operatorIsPrefix = r'$is';
+  static const operatorSignature = r'$signature';
+  static const rtiName = r'$ti';
+  // TODO(48585) Fix this name.
+  static const futureClassName = 'TODO';
+  // TODO(48585) Fix this name.
+  static const listClassName = 'TODO';
+  static const rtiAsField = '_as';
+  static const rtiIsField = '_is';
+}
+
 /// Unique instance for temporary variables. Will be renamed consistently
 /// across the entire file. Different instances will be named differently
 /// even if they have the same name, this makes it safe to use in code

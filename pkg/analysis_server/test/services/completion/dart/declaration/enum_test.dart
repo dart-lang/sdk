@@ -30,8 +30,12 @@ class EnumTest2 extends AbstractCompletionDriverTest with EnumTestCases {
 mixin EnumTestCases on AbstractCompletionDriverTest {
   Future<void> test_enumConstantName() async {
     await _check_locations(
-      declaration: 'enum MyEnum { foo01 }',
-      codeAtCompletion: 'foo0^',
+      declaration: '''
+enum MyEnum { foo01 }
+enum OtherEnum { foo02 }
+''',
+      declarationForContextType: 'void useMyEnum(MyEnum _) {}',
+      codeAtCompletion: 'useMyEnum(foo0^);',
       validator: (response) {
         check(response).hasReplacement(left: 4);
 
@@ -61,6 +65,7 @@ mixin EnumTestCases on AbstractCompletionDriverTest {
   Future<void> test_enumConstantName_imported_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
 enum MyEnum { foo01 }
+enum OtherEnum { foo02 }
 ''');
 
     if (isProtocolVersion1) {
@@ -70,8 +75,10 @@ enum MyEnum { foo01 }
     var response = await getTestCodeSuggestions('''
 import 'a.dart' as prefix;
 
+void useMyEnum(prefix.MyEnum _) {}
+
 void f() {
-  foo0^
+  useMyEnum(foo0^);
 }
 ''');
 
@@ -223,7 +230,8 @@ void f() {
   Future<void> test_nothing() async {
     await _check_locations(
       declaration: 'enum MyEnum { v }',
-      codeAtCompletion: '^',
+      declarationForContextType: 'void useMyEnum(MyEnum _) {}',
+      codeAtCompletion: 'useMyEnum(^);',
       validator: (response) {
         check(response).hasEmptyReplacement();
 
@@ -257,8 +265,10 @@ enum MyEnum { v }
     var response = await getTestCodeSuggestions('''
 import 'a.dart' as prefix;
 
+void useMyEnum(prefix.MyEnum _) {}
+
 void f() {
-  ^
+  useMyEnum(^);
 }
 ''');
 
@@ -288,6 +298,7 @@ void f() {
 
   Future<void> _check_locations({
     required String declaration,
+    String declarationForContextType = '',
     required String codeAtCompletion,
     required void Function(CompletionResponseForTesting response) validator,
   }) async {
@@ -295,6 +306,7 @@ void f() {
     {
       var response = await getTestCodeSuggestions('''
 $declaration
+$declarationForContextType
 void f() {
   $codeAtCompletion
 }
@@ -312,6 +324,7 @@ $declaration
       }
       var response = await getTestCodeSuggestions('''
 import 'a.dart';
+$declarationForContextType
 void f() {
   $codeAtCompletion
 }
@@ -324,10 +337,15 @@ void f() {
       newFile('$testPackageLibPath/a.dart', '''
 $declaration
 ''');
+      newFile('$testPackageLibPath/context_type.dart', '''
+import 'a.dart'; // ignore: unused_import
+$declarationForContextType
+''');
       if (isProtocolVersion1) {
         await waitForSetWithUri('package:test/a.dart');
       }
       var response = await getTestCodeSuggestions('''
+import 'context_type.dart';
 void f() {
   $codeAtCompletion
 }

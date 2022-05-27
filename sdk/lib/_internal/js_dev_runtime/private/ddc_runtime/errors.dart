@@ -44,6 +44,21 @@ void _checkModuleNullSafetyMode(@notNull bool isModuleSound) {
   }
 }
 
+/// Throws if [useNewTypes] does not match the version of the type
+/// representation of this SDK.
+///
+/// The call to this method is inserted into every module at compile time.
+void _checkModuleRuntimeTypes(@notNull bool useNewTypes) {
+  if (useNewTypes != compileTimeFlag('newRuntimeTypes')) {
+    var sdkTypes = compileTimeFlag('newRuntimeTypes') ? 'new' : 'old';
+    var moduleTypes = useNewTypes ? 'new' : 'old';
+
+    throw AssertionError('The Dart SDK module is using the $sdkTypes runtime '
+        'type representation and is incompatible with the $moduleTypes '
+        'representation used in this module.');
+  }
+}
+
 final _nullFailedSet = JS('!', 'new Set()');
 
 String _nullFailedMessage(variableName) =>

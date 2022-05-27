@@ -105,7 +105,6 @@ void f() {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49046')
   Future<void> test_function_hasZero_partOfName_noLibrary() async {
     await resolveTestCode('''
 part of my_lib;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.11
+
 /// Tool used mainly by dart2js developers to debug the generated info and check
 /// that it is consistent and that it covers all the data we expect it to cover.
 library dart2js_info.bin.debug_info;

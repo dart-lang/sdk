@@ -95,7 +95,8 @@ class InvocationInferenceHelper {
       } else {
         var name = constructorIdentifier.name;
         rawElement = typeElement.getNamedConstructor(name);
-        if (rawElement != null && !rawElement.isAccessibleIn(definingLibrary)) {
+        if (rawElement != null &&
+            !rawElement.isAccessibleIn2(definingLibrary)) {
           rawElement = null;
         }
       }

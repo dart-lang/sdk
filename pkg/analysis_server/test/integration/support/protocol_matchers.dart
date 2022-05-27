@@ -1622,6 +1622,7 @@ final Matcher isServerService = MatchesEnum('ServerService', ['LOG', 'STATUS']);
 ///   "edits": List<SourceFileEdit>
 ///   "linkedEditGroups": List<LinkedEditGroup>
 ///   "selection": optional Position
+///   "selectionLength": optional int
 ///   "id": optional String
 /// }
 final Matcher isSourceChange =
@@ -1631,6 +1632,7 @@ final Matcher isSourceChange =
           'linkedEditGroups': isListOf(isLinkedEditGroup)
         }, optionalFields: {
           'selection': isPosition,
+          'selectionLength': isInt,
           'id': isString
         }));
 

@@ -314,6 +314,64 @@ void f(A a) {
     }
   }
 
+  Future<void> test_partDirective() async {
+    final partFile = newFile(
+      '$testPackageLibPath/a.dart',
+      '''
+part of 'test.dart';
+''',
+    );
+    addTestFile('''
+part 'a.dart';
+''');
+    await waitForTasksFinished();
+    await _getNavigation(offset: 8, length: 0);
+    expect(regions, hasLength(1));
+    assertHasRegionString("'a.dart'");
+    expect(testTargets, hasLength(1));
+    expect(testTargets[0].kind, ElementKind.COMPILATION_UNIT);
+    assertHasFileTarget(partFile.path, 0, 0);
+  }
+
+  Future<void> test_partOfDirective_named() async {
+    final partOfFile = newFile(
+      '$testPackageLibPath/a.dart',
+      '''
+library foo;
+part 'test.dart';
+''',
+    );
+    addTestFile('''
+part of foo;
+''');
+    await waitForTasksFinished();
+    await _getNavigation(offset: 10, length: 0);
+    expect(regions, hasLength(1));
+    assertHasRegionString("foo");
+    expect(testTargets, hasLength(1));
+    expect(testTargets[0].kind, ElementKind.LIBRARY);
+    assertHasFileTarget(partOfFile.path, 8, 3); // library [[foo]]
+  }
+
+  Future<void> test_partOfDirective_uri() async {
+    final partOfFile = newFile(
+      '$testPackageLibPath/a.dart',
+      '''
+part 'test.dart';
+''',
+    );
+    addTestFile('''
+part of 'a.dart';
+''');
+    await waitForTasksFinished();
+    await _getNavigation(offset: 11, length: 0);
+    expect(regions, hasLength(1));
+    assertHasRegionString("'a.dart'");
+    expect(testTargets, hasLength(1));
+    expect(testTargets[0].kind, ElementKind.LIBRARY);
+    assertHasFileTarget(partOfFile.path, 0, 0);
+  }
+
   Future<void> test_zeroLength_end() async {
     addTestFile('''
 void f() {

@@ -73,23 +73,26 @@ Iterable<AstNode> renameTypes(List<AstNode> types) sync* {
     //   the migration to JSON meta_model.
     'ClientCapabilitiesWindow': 'WindowClientCapabilities',
     'ClientCapabilitiesWorkspace': 'WorkspaceClientCapabilities',
-    'ClientCapabilitiesFileOperations': 'FileOperationClientCapabilities',
-    'ServerCapabilitiesFileOperations': 'FileOperationOptions',
+    'ClientCapabilitiesWorkspaceFileOperations':
+        'FileOperationClientCapabilities',
+    'ServerCapabilitiesWorkspaceFileOperations': 'FileOperationOptions',
     'ClientCapabilitiesGeneral': 'GeneralClientCapabilities',
-    'CompletionClientCapabilitiesInsertTextModeSupport':
+    'CompletionClientCapabilitiesCompletionItemInsertTextModeSupport':
         'CompletionItemInsertTextModeSupport',
-    'CompletionClientCapabilitiesResolveSupport':
+    'CompletionClientCapabilitiesCompletionItemResolveSupport':
         'CompletionItemResolveSupport',
-    'CompletionClientCapabilitiesTagSupport': 'CompletionItemTagSupport',
-    'CodeActionClientCapabilitiesCodeActionKind':
+    'CompletionClientCapabilitiesCompletionItemTagSupport':
+        'CompletionItemTagSupport',
+    'CodeActionClientCapabilitiesCodeActionLiteralSupportCodeActionKind':
         'CodeActionLiteralSupportCodeActionKind',
-    'DocumentFilter': 'TextDocumentFilter',
-    'ClientCapabilitiesStaleRequestSupport':
+    // In JSON model this becomes a union of literals which we assign improved
+    // names to (to avoid numeric suffixes).
+    'DocumentFilter': 'TextDocumentFilterWithScheme',
+    'ClientCapabilitiesGeneralStaleRequestSupport':
         'GeneralClientCapabilitiesStaleRequestSupport',
-    'SignatureHelpClientCapabilitiesParameterInformation':
+    'SignatureHelpClientCapabilitiesSignatureInformationParameterInformation':
         'SignatureInformationParameterInformation',
-    'NotebookDocumentChangeEventStructure':
-        'NotebookDocumentChangeEventCellsStructure',
+    'CompletionListItemDefaultsEditRange': 'CompletionItemEditRange',
   };
 
   for (final type in types) {
@@ -216,6 +219,21 @@ String _getTypeCheckFailureMessage(TypeBase type) {
   } else {
     return 'must be of type ${type.dartTypeWithTypeArgs}';
   }
+}
+
+bool _isOverride(Interface interface, Field field) {
+  for (var parentType in interface.baseTypes) {
+    var parent = _interfaces[(parentType as Type).name];
+    if (parent != null) {
+      if (parent.members.any((m) => m.name == field.name)) {
+        return true;
+      }
+      if (_isOverride(parent, field)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 bool _isSimpleType(TypeBase type) {
@@ -364,14 +382,15 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
         ..writeIndentedln('}');
     }
     buffer.writeIndented('if (');
-    if (field.allowsNull || field.allowsUndefined) {
+    final nullCheck = field.allowsNull || field.allowsUndefined;
+    if (nullCheck) {
       buffer.write('$localName != null && ');
     }
-    buffer.write('!(');
     _writeTypeCheckCondition(
-        buffer, interface, localName, field.type, 'reporter');
+        buffer, interface, localName, field.type, 'reporter',
+        negation: true, parenForCollection: nullCheck);
     buffer
-      ..write(')) {')
+      ..write(') {')
       ..indent()
       ..writeIndentedln(
           "reporter.reportError('${_getTypeCheckFailureMessage(field.type).replaceAll("'", "\\'")}');")
@@ -528,14 +547,14 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
   });
   buffer
     ..writeln()
-    ..writeIndentedln('Object toJson() => _value;')
+    ..writeIndentedln('@override Object toJson() => _value;')
     ..writeln()
     ..writeIndentedln('@override String toString() => _value.toString();')
     ..writeln()
     ..writeIndentedln('@override int get hashCode => _value.hashCode;')
     ..writeln()
     ..writeIndentedln(
-        'bool operator ==(Object other) => other is $namespaceName && other._value == _value;')
+        '@override bool operator ==(Object other) => other is $namespaceName && other._value == _value;')
     ..outdent()
     ..writeln('}')
     ..writeln();
@@ -587,10 +606,14 @@ void _writeEqualsExpression(IndentableStringBuffer buffer, TypeBase type,
   }
 }
 
-void _writeField(IndentableStringBuffer buffer, Field field) {
+void _writeField(
+    IndentableStringBuffer buffer, Interface interface, Field field) {
   _writeDocCommentsAndAnnotations(buffer, field);
   final needsNullable =
       (field.allowsNull || field.allowsUndefined) && !isAnyType(field.type);
+  if (_isOverride(interface, field)) {
+    buffer.writeIndentedln('@override');
+  }
   buffer
     ..writeIndented('final ')
     ..write(field.type.dartTypeWithTypeArgs)
@@ -628,7 +651,10 @@ void _writeFromJsonCode(
     // Lists need to be map()'d so we can recursively call writeFromJsonCode
     // as they may need fromJson on each element.
     final listCast = requiresCast ? ' as List<Object?>$nullOperator' : '';
-    buffer.write('($valueCode$listCast)$nullOperator.map((item) => ');
+    final leftParen = requiresCast ? '(' : '';
+    final rightParen = requiresCast ? ')' : '';
+    buffer.write(
+        '$leftParen$valueCode$listCast$rightParen$nullOperator.map((item) => ');
     _writeFromJsonCode(buffer, type.elementType, 'item', allowsNull: false);
     buffer.write(').toList()');
   } else if (type is MapType) {
@@ -818,9 +844,9 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   final consts = interface.members.whereType<Const>().toList();
   final fields = _getAllFields(interface);
   buffer.writeln();
-  _writeMembers(buffer, consts);
+  _writeMembers(buffer, interface, consts);
   buffer.writeln();
-  _writeMembers(buffer, fields);
+  _writeMembers(buffer, interface, fields);
   buffer.writeln();
   _writeToJsonMethod(buffer, interface);
   _writeCanParseMethod(buffer, interface);
@@ -863,9 +889,10 @@ void _writeJsonMapAssignment(
   }
 }
 
-void _writeMember(IndentableStringBuffer buffer, Member member) {
+void _writeMember(
+    IndentableStringBuffer buffer, Interface interface, Member member) {
   if (member is Field) {
-    _writeField(buffer, member);
+    _writeField(buffer, interface, member);
   } else if (member is Const) {
     _writeConst(buffer, member);
   } else {
@@ -873,8 +900,9 @@ void _writeMember(IndentableStringBuffer buffer, Member member) {
   }
 }
 
-void _writeMembers(IndentableStringBuffer buffer, List<Member> members) {
-  _getSortedUnique(members).forEach((m) => _writeMember(buffer, m));
+void _writeMembers(
+    IndentableStringBuffer buffer, Interface interface, List<Member> members) {
+  _getSortedUnique(members).forEach((m) => _writeMember(buffer, interface, m));
 }
 
 void _writeToJsonCode(IndentableStringBuffer buffer, TypeBase type,
@@ -918,11 +946,22 @@ void _writeToJsonFieldsForResponseMessage(
 }
 
 void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
-  final mapName = _determineVariableName(interface,
-      ['result', 'map', 'json', 'toReturn', 'results', 'value', 'values']);
+  final fields = _getAllFields(interface);
 
   buffer
-    ..writeIndentedln('Map<String, Object?> toJson() {')
+    ..writeIndentedln('@override')
+    ..write('Map<String, Object?> toJson() ');
+  if (fields.isEmpty) {
+    buffer
+      ..writeIndentedln('=> {};')
+      ..writeln();
+    return;
+  }
+
+  final mapName = _determineVariableName(interface,
+      ['result', 'map', 'json', 'toReturn', 'results', 'value', 'values']);
+  buffer
+    ..writeIndentedln('{')
     ..indent()
     ..writeIndentedln('var $mapName = <String, Object?>{};');
   // ResponseMessage must confirm to JSON-RPC which says only one of
@@ -931,7 +970,7 @@ void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
   if (interface.name == 'ResponseMessage') {
     _writeToJsonFieldsForResponseMessage(buffer, interface, mapName);
   } else {
-    for (var field in _getAllFields(interface)) {
+    for (var field in fields) {
       _writeJsonMapAssignment(buffer, field, mapName);
     }
   }
@@ -963,62 +1002,88 @@ void _writeType(IndentableStringBuffer buffer, AstNode type) {
 }
 
 void _writeTypeCheckCondition(IndentableStringBuffer buffer,
-    Interface? interface, String valueCode, TypeBase type, String reporter) {
+    Interface? interface, String valueCode, TypeBase type, String reporter,
+    {bool negation = false, bool parenForCollection = false}) {
   type = resolveTypeAlias(type);
 
   final dartType = type.dartType;
   final fullDartType = type.dartTypeWithTypeArgs;
+
+  final operator = negation ? '!' : '';
+  final and = negation ? '||' : '&&';
+  final every = negation ? 'any' : 'every';
+
   if (fullDartType == 'Object?') {
-    buffer.write('true');
+    buffer.write(negation ? 'false' : 'true');
   } else if (_isSimpleType(type)) {
-    buffer.write('$valueCode is $fullDartType');
+    buffer.write('$valueCode is$operator $fullDartType');
   } else if (type is LiteralType) {
-    buffer.write('$valueCode == ${type.literal}');
+    final equals = negation ? '!=' : '==';
+    buffer.write('$valueCode $equals ${type.literal}');
   } else if (_isSpecType(type)) {
-    buffer.write('$dartType.canParse($valueCode, $reporter)');
+    buffer.write('$operator$dartType.canParse($valueCode, $reporter)');
   } else if (type is ArrayType) {
-    buffer.write('($valueCode is List<Object?>');
+    if (parenForCollection) {
+      buffer.write('(');
+    }
+    buffer.write('$valueCode is$operator List<Object?>');
     if (fullDartType != 'Object?') {
       // TODO(dantup): If we're happy to assume we never have two lists in a union
       // we could skip this bit.
-      buffer.write(' && ($valueCode.every((item) => ');
+      buffer.write(' $and $valueCode.$every((item) => ');
       _writeTypeCheckCondition(
-          buffer, interface, 'item', type.elementType, reporter);
-      buffer.write('))');
+          buffer, interface, 'item', type.elementType, reporter,
+          negation: negation);
+      buffer.write(')');
     }
-    buffer.write(')');
+    if (parenForCollection) {
+      buffer.write(')');
+    }
   } else if (type is MapType) {
-    buffer.write('($valueCode is Map');
+    if (parenForCollection) {
+      buffer.write('(');
+    }
+    buffer.write('$valueCode is$operator Map');
     if (fullDartType != 'Object?') {
       buffer
-        ..write(' && (')
-        ..write('$valueCode.keys.every((item) => ');
+        ..write(' $and (')
+        ..write('$valueCode.keys.$every((item) => ');
       _writeTypeCheckCondition(
-          buffer, interface, 'item', type.indexType, reporter);
-      buffer.write('&& $valueCode.values.every((item) => ');
+          buffer, interface, 'item', type.indexType, reporter,
+          negation: negation);
+      buffer.write('$and $valueCode.values.$every((item) => ');
       _writeTypeCheckCondition(
-          buffer, interface, 'item', type.valueType, reporter);
+          buffer, interface, 'item', type.valueType, reporter,
+          negation: negation);
       buffer.write(')))');
     }
-    buffer.write(')');
+    if (parenForCollection) {
+      buffer.write(')');
+    }
   } else if (type is UnionType) {
+    if (parenForCollection && !negation) {
+      buffer.write('(');
+    }
+    var or = negation ? '&&' : '||';
     // To type check a union, we just recursively check against each of its types.
-    buffer.write('(');
     for (var i = 0; i < type.types.length; i++) {
       if (i != 0) {
-        buffer.write(' || ');
+        buffer.write(' $or ');
       }
       _writeTypeCheckCondition(
-          buffer, interface, valueCode, type.types[i], reporter);
+          buffer, interface, valueCode, type.types[i], reporter,
+          negation: negation);
     }
-    buffer.write(')');
+    if (parenForCollection && !negation) {
+      buffer.write(')');
+    }
   } else if (interface != null &&
       interface.typeArgs.any((typeArg) => typeArg.lexeme == fullDartType)) {
-    final comment = '/* $fullDartType.canParse($valueCode) */';
+    final comment = '/* $operator$fullDartType.canParse($valueCode) */';
     print(
         'WARN: Unable to write a type check for $valueCode with generic type $fullDartType. '
         'Please review the generated code annotated with $comment');
-    buffer.write('true $comment');
+    buffer.write('${negation ? 'false' : 'true'} $comment');
   } else {
     throw 'Unable to type check $valueCode against $fullDartType';
   }

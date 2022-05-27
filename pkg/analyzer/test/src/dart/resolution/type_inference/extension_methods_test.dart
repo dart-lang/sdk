@@ -199,6 +199,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: self::@extension::E::@setter::foo::@parameter::value
+      substitution: {T: int}
     staticType: int
   readElement: <null>
   readType: null
@@ -227,6 +230,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: self::@extension::E::@setter::foo::@parameter::value
+      substitution: {T: int*}
     staticType: int*
   readElement: <null>
   readType: null
@@ -368,6 +374,9 @@ AssignmentExpression
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
+    parameter: ParameterMember
+      base: self::@extension::Test::@setter::test::@parameter::_
+      substitution: {T: S}
     staticInvokeType: S Function()
     staticType: S
     typeArgumentTypes
@@ -408,6 +417,9 @@ AssignmentExpression
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
+    parameter: ParameterMember
+      base: self::@extension::Test::@setter::test::@parameter::_
+      substitution: {T: num*}
     staticInvokeType: num* Function()*
     staticType: num*
     typeArgumentTypes
@@ -586,6 +598,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A<int>
         rightParenthesis: )
@@ -602,6 +615,9 @@ AssignmentExpression
   operator: =
   rightHandSide: DoubleLiteral
     literal: 1.2
+    parameter: ParameterMember
+      base: self::@extension::E::@setter::foo::@parameter::value
+      substitution: {T: num}
     staticType: double
   readElement: <null>
   readType: null
@@ -636,6 +652,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A<int*>*
         rightParenthesis: )
@@ -652,6 +669,9 @@ AssignmentExpression
   operator: =
   rightHandSide: DoubleLiteral
     literal: 1.2
+    parameter: ParameterMember
+      base: self::@extension::E::@setter::foo::@parameter::value
+      substitution: {T: num*}
     staticType: double*
   readElement: <null>
   readType: null
@@ -793,6 +813,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A<int>
         rightParenthesis: )
@@ -809,6 +830,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: self::@extension::E::@setter::foo::@parameter::value
+      substitution: {T: int}
     staticType: int
   readElement: <null>
   readType: null
@@ -833,6 +857,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A<int*>*
         rightParenthesis: )
@@ -849,6 +874,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: self::@extension::E::@setter::foo::@parameter::value
+      substitution: {T: int*}
     staticType: int*
   readElement: <null>
   readType: null

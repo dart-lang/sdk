@@ -358,6 +358,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
+    parameter: <null>
     staticType: int
   readElement: <null>
   readType: null

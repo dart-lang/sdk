@@ -6822,12 +6822,6 @@ LocationSummary* EnterHandleScopeInstr::MakeLocationSummary(
 void EnterHandleScopeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(kEnterHandleScopeRuntimeEntry.is_leaf());
 
-  if (kind_ == Kind::kGetTopHandleScope) {
-    __ LoadMemoryValue(CallingConventions::kReturnReg, THR,
-                       compiler::target::Thread::api_top_scope_offset());
-    return;
-  }
-
   Location arg_loc = FirstArgumentLocation();
   __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
   NoTemporaryAllocator no_temp;

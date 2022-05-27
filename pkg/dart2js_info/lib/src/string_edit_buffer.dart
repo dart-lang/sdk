@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.11
+
 /// Defines [StringEditBuffer], a buffer that can be used to apply edits on a
 /// string.
 // TODO(sigmund): this should move to a separate package.

@@ -399,6 +399,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::•::@parameter::a
+          substitution: {T: int, U: String}
         staticType: int
     rightParenthesis: )
   staticType: A<int, String>
@@ -464,6 +467,9 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@function::A::@parameter::a
+          substitution: {T: int, U: String}
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -521,6 +527,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::•::@parameter::_
+          substitution: {T: int, U: String}
         staticType: int
     rightParenthesis: )
   staticType: A<int, String>
@@ -590,6 +599,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::named::@parameter::a
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticType: A<int>
@@ -658,6 +670,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::named::@parameter::a
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticType: A<int>
@@ -726,6 +741,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::•::@parameter::a
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticType: A<int>
@@ -774,6 +792,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: package:test/a.dart::@class::A::@method::bar::@parameter::a
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -831,6 +850,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::named::@parameter::a
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticType: A<int>
@@ -873,6 +895,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::named::@parameter::a
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticType: A<int>
@@ -936,6 +961,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::named::@parameter::a
+          substitution: {T: dynamic, U: dynamic}
         staticType: int
     rightParenthesis: )
   staticType: A<dynamic, dynamic>
@@ -999,6 +1027,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::•::@parameter::a
+          substitution: {T: dynamic, U: dynamic}
         staticType: int
     rightParenthesis: )
   staticType: A<dynamic, dynamic>
@@ -1077,6 +1108,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::•::@parameter::a
+          substitution: {T: int, U: String}
         staticType: int
     rightParenthesis: )
   staticType: A<int, String>
@@ -1158,6 +1192,9 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@function::A::@parameter::a
+          substitution: {T: int, U: String}
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -1206,6 +1243,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::named::@parameter::a
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticType: A<int>

@@ -49,6 +49,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: package:test/a.dart::@class::A::@setter::_foo::@parameter::__foo
     staticType: int
   readElement: <null>
   readType: null
@@ -108,6 +109,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: package:test/a.dart::@class::A::@setter::_foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
@@ -152,6 +154,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: package:test/a.dart::@class::A::@setter::_foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null

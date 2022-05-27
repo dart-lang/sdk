@@ -11,5 +11,6 @@ environment:
   # a later version of the SDK without it being a breaking change.
   sdk: ">=2.14.0 <2.15.0"
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   expect: any

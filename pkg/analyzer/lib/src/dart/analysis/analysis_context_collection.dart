@@ -43,12 +43,14 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     bool enableIndex = false,
     required List<String> includedPaths,
     List<String>? excludedPaths,
+    List<String>? librarySummaryPaths,
     String? optionsFile,
     String? packagesFile,
     PerformanceLog? performanceLog,
     ResourceProvider? resourceProvider,
     bool retainDataForTesting = false,
     String? sdkPath,
+    String? sdkSummaryPath,
     AnalysisDriverScheduler? scheduler,
     FileContentCache? fileContentCache,
     void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
@@ -78,9 +80,11 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         declaredVariables: DeclaredVariables.fromMap(declaredVariables ?? {}),
         drainStreams: drainStreams,
         enableIndex: enableIndex,
+        librarySummaryPaths: librarySummaryPaths,
         performanceLog: performanceLog,
         retainDataForTesting: retainDataForTesting,
         sdkPath: sdkPath,
+        sdkSummaryPath: sdkSummaryPath,
         scheduler: scheduler,
         updateAnalysisOptions: updateAnalysisOptions,
         fileContentCache: fileContentCache,
@@ -118,13 +122,17 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     throw StateError('Unable to find the context to $path');
   }
 
-  void dispose() {
+  void dispose({
+    bool forTesting = false,
+  }) {
     for (var analysisContext in contexts) {
       analysisContext.driver.dispose();
     }
     macroExecutor.close();
     // If there are other collections, they will have to start it again.
-    KernelCompilationService.dispose();
+    if (!forTesting) {
+      KernelCompilationService.dispose();
+    }
   }
 
   /// Check every element with [_throwIfNotAbsoluteNormalizedPath].

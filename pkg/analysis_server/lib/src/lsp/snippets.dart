@@ -21,6 +21,7 @@ String buildSnippetStringForEditGroups(
   required List<server.LinkedEditGroup> editGroups,
   required int editOffset,
   int? selectionOffset,
+  int? selectionLength,
 }) =>
     _buildSnippetString(
       text,
@@ -29,6 +30,7 @@ String buildSnippetStringForEditGroups(
       editGroupsOffset: editOffset,
       selectionOffset:
           selectionOffset != null ? selectionOffset - editOffset : null,
+      selectionLength: selectionLength,
     );
 
 /// Builds an LSP snippet string with supplied ranges as tab stops.

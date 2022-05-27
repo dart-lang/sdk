@@ -436,6 +436,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
+    parameter: self::@class::A::@setter::x::@parameter::_x
     staticType: int
   readElement: <null>
   readType: null
@@ -473,6 +474,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
+    parameter: self::@class::A::@setter::x::@parameter::_x
     staticType: int
   readElement: <null>
   readType: null
@@ -504,6 +506,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: <null>
     staticType: int
   readElement: <null>
   readType: null
@@ -526,6 +529,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: <null>
     staticType: int
   readElement: <null>
   readType: null
@@ -586,6 +590,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: self::@class::A::@getter::x
   readType: int
@@ -623,6 +628,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: self::@class::A::@getter::y
   readType: int?
@@ -682,6 +688,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 1
+    parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: self::@class::A::@getter::x
   readType: int
@@ -715,6 +722,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
+    parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: self::@class::A::@getter::x
   readType: int
@@ -746,6 +754,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: self::@function::m::@parameter::x
   readType: int
@@ -768,6 +777,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: self::@function::m::@parameter::y
   readType: int?

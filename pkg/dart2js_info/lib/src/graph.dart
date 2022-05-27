@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.11
+
 /// A library to work with graphs. It contains a couple algorithms, including
 /// Tarjan's algorithm to compute strongly connected components in a graph and
 /// Cooper et al's dominator algorithm.

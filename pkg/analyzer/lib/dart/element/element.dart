@@ -397,7 +397,7 @@ abstract class ClassMemberElement implements Element {
 /// An element representing a compilation unit.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class CompilationUnitElement implements Element, UriReferencedElement {
+abstract class CompilationUnitElement implements UriReferencedElement {
   /// Return a list containing all of the top-level accessors (getters and
   /// setters) contained in this compilation unit.
   List<PropertyAccessorElement> get accessors;
@@ -726,9 +726,17 @@ abstract class Element implements AnalysisTarget {
   /// A declaration <i>m</i> is accessible to library <i>L</i> if <i>m</i> is
   /// declared in <i>L</i> or if <i>m</i> is public.
   /// </blockquote>
-  ///
-  /// TODO(migration): should not be nullable
+  @Deprecated('Use isAccessibleIn2() instead')
   bool isAccessibleIn(LibraryElement? library);
+
+  /// Return `true` if this element, assuming that it is within scope, is
+  /// accessible to code in the given [library]. This is defined by the Dart
+  /// Language Specification in section 6.2:
+  /// <blockquote>
+  /// A declaration <i>m</i> is accessible to a library <i>L</i> if <i>m</i> is
+  /// declared in <i>L</i> or if <i>m</i> is public.
+  /// </blockquote>
+  bool isAccessibleIn2(LibraryElement library);
 
   /// Return either this element or the most immediate ancestor of this element
   /// for which the [predicate] returns `true`, or `null` if there is no such
@@ -1132,7 +1140,7 @@ abstract class ExecutableElement implements FunctionTypedElement {
 /// An export directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ExportElement implements Element, UriReferencedElement {
+abstract class ExportElement implements UriReferencedElement {
   /// Return a list containing the combinators that were specified as part of
   /// the export directive in the order in which they were specified.
   List<NamespaceCombinator> get combinators;
@@ -1288,7 +1296,7 @@ abstract class HideElementCombinator implements NamespaceCombinator {
 /// A single import directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ImportElement implements Element, UriReferencedElement {
+abstract class ImportElement implements UriReferencedElement {
   /// Return a list containing the combinators that were specified as part of
   /// the import directive in the order in which they were specified.
   List<NamespaceCombinator> get combinators;

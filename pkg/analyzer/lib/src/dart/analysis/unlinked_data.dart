@@ -90,6 +90,26 @@ class MacroClass {
   }
 }
 
+class UnlinkedImportAugmentationDirective {
+  final String uri;
+
+  UnlinkedImportAugmentationDirective({
+    required this.uri,
+  });
+
+  factory UnlinkedImportAugmentationDirective.read(
+    SummaryDataReader reader,
+  ) {
+    return UnlinkedImportAugmentationDirective(
+      uri: reader.readStringUtf8(),
+    );
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeStringUtf8(uri);
+  }
+}
+
 class UnlinkedLibraryAugmentationDirective {
   final String uri;
   final UnlinkedSourceRange uriRange;
@@ -285,6 +305,9 @@ class UnlinkedUnit {
   /// TODO(scheglov) Do we need it?
   final Uint8List apiSignature;
 
+  /// `import augmentation` directives.
+  final List<UnlinkedImportAugmentationDirective> augmentations;
+
   /// URIs of `export` directives.
   final List<UnlinkedNamespaceDirective> exports;
 
@@ -317,6 +340,7 @@ class UnlinkedUnit {
 
   UnlinkedUnit({
     required this.apiSignature,
+    required this.augmentations,
     required this.exports,
     required this.imports,
     required this.informativeBytes,
@@ -332,6 +356,9 @@ class UnlinkedUnit {
   factory UnlinkedUnit.read(SummaryDataReader reader) {
     return UnlinkedUnit(
       apiSignature: reader.readUint8List(),
+      augmentations: reader.readTypedList(
+        () => UnlinkedImportAugmentationDirective.read(reader),
+      ),
       exports: reader.readTypedList(
         () => UnlinkedNamespaceDirective.read(reader),
       ),
@@ -361,6 +388,9 @@ class UnlinkedUnit {
 
   void write(BufferedSink sink) {
     sink.writeUint8List(apiSignature);
+    sink.writeList<UnlinkedImportAugmentationDirective>(augmentations, (x) {
+      x.write(sink);
+    });
     sink.writeList<UnlinkedNamespaceDirective>(exports, (x) {
       x.write(sink);
     });

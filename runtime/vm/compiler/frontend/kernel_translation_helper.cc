@@ -1891,9 +1891,11 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
   Zone* zone = thread->zone();
   intptr_t unit_count = helper_->ReadUInt();
   Array& loading_units = Array::Handle(zone, Array::New(unit_count + 1));
+  Array& loading_unit_uris = Array::Handle(zone, Array::New(unit_count + 1));
   LoadingUnit& unit = LoadingUnit::Handle(zone);
   LoadingUnit& parent = LoadingUnit::Handle(zone);
   Library& lib = Library::Handle(zone);
+  Array& uris = Array::Handle(zone);
 
   for (int i = 0; i < unit_count; i++) {
     intptr_t id = helper_->ReadUInt();
@@ -1907,6 +1909,7 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
     unit.set_parent(parent);
 
     intptr_t library_count = helper_->ReadUInt();
+    uris = Array::New(library_count);
     for (intptr_t j = 0; j < library_count; j++) {
       const String& uri =
           translation_helper_.DartSymbolPlain(helper_->ReadStringReference());
@@ -1915,14 +1918,18 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
         FATAL1("Missing library: %s\n", uri.ToCString());
       }
       lib.set_loading_unit(unit);
+      uris.SetAt(j, uri);
     }
 
     loading_units.SetAt(id, unit);
+    loading_unit_uris.SetAt(id, uris);
   }
 
   ObjectStore* object_store = IG->object_store();
   ASSERT(object_store->loading_units() == Array::null());
   object_store->set_loading_units(loading_units);
+  ASSERT(object_store->loading_unit_uris() == Array::null());
+  object_store->set_loading_unit_uris(loading_unit_uris);
 }
 
 CallSiteAttributesMetadataHelper::CallSiteAttributesMetadataHelper(

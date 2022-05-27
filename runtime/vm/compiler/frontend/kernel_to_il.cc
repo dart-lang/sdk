@@ -3982,17 +3982,17 @@ Fragment FlowGraphBuilder::LoadIndexedTypedDataUnboxed(
 }
 
 Fragment FlowGraphBuilder::EnterHandleScope() {
-  auto* instr = new (Z)
-      EnterHandleScopeInstr(EnterHandleScopeInstr::Kind::kEnterHandleScope);
+  auto* instr = new (Z) EnterHandleScopeInstr();
   Push(instr);
   return Fragment(instr);
 }
 
 Fragment FlowGraphBuilder::GetTopHandleScope() {
-  auto* instr = new (Z)
-      EnterHandleScopeInstr(EnterHandleScopeInstr::Kind::kGetTopHandleScope);
-  Push(instr);
-  return Fragment(instr);
+  Fragment body;
+  body += LoadThread();
+  body += LoadUntagged(compiler::target::Thread::api_top_scope_offset());
+  body += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
+  return body;
 }
 
 Fragment FlowGraphBuilder::ExitHandleScope() {

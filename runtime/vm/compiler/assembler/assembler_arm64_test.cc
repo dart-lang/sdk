@@ -969,10 +969,8 @@ ASSEMBLER_TEST_RUN(LoadStoreDoublePair, test) {
       "fmovd v1, 3.000000\n"
       "fmovd v2, 4.000000\n"
       "fstpd v1, v2, [sp, #-16]!\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v1, tmp\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v2, tmp\n"
+      "veor v1, v1, v1\n"
+      "veor v2, v2, v2\n"
       "fldpd v1, v2, [sp], #16 !\n"
       "fsubd v0, v2, v1\n"
       "mov csp, sp\n"
@@ -1001,10 +999,8 @@ ASSEMBLER_TEST_RUN(LoadStoreQuadPair, test) {
       "fmovd v1, 3.000000\n"
       "fmovd v2, 4.000000\n"
       "fstpq v1, v2, [sp, #-32]!\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v1, tmp\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v2, tmp\n"
+      "veor v1, v1, v1\n"
+      "veor v2, v2, v2\n"
       "fldpq v1, v2, [sp], #32 !\n"
       "fsubd v0, v2, v1\n"
       "mov csp, sp\n"
@@ -2598,9 +2594,8 @@ ASSEMBLER_TEST_RUN(FcmpEqBranch, test) {
       "movk tmp, #0x406d lsl 48\n"
       "fmovdr v2, tmp\n"
       "fcmpd v1, v2\n"
-      "beq +12\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "beq +8\n"
+      "veor v0, v0, v0\n"
       "ret\n");
 }
 
@@ -2696,8 +2691,7 @@ ASSEMBLER_TEST_RUN(FcmpEqBranchNotTaken, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
   EXPECT_DISASSEMBLY(
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "veor v0, v0, v0\n"
       "movz tmp, #0x2000 lsl 32\n"
       "movk tmp, #0x406d lsl 48\n"
       "fmovdr v1, tmp\n"
@@ -2748,8 +2742,7 @@ ASSEMBLER_TEST_RUN(FcmpLtBranchNotTaken, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
   EXPECT_DISASSEMBLY(
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "veor v0, v0, v0\n"
       "movz tmp, #0x6000 lsl 32\n"
       "movk tmp, #0x406d lsl 48\n"
       "fmovdr v1, tmp\n"
@@ -2789,9 +2782,8 @@ ASSEMBLER_TEST_RUN(FcmpzGtBranch, test) {
       "movk tmp, #0x406d lsl 48\n"
       "fmovdr v1, tmp\n"
       "fcmpd v1, #0.0\n"
-      "bgt +16\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "bgt +12\n"
+      "veor v0, v0, v0\n"
       "ret\n"
       "movz tmp, #0x4045 lsl 48\n"
       "fmovdr v0, tmp\n"
@@ -5608,8 +5600,7 @@ ASSEMBLER_TEST_RUN(Vadds, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(12.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
   EXPECT_DISASSEMBLY(
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "veor v0, v0, v0\n"
       "fmovd v1, 1.000000\n"
       "fmovd v2, 2.000000\n"
       "fmovd v3, 3.000000\n"
@@ -5675,14 +5666,11 @@ ASSEMBLER_TEST_RUN(Vsubs, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(-6.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
   EXPECT_DISASSEMBLY(
-      ""
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "veor v0, v0, v0\n"
       "fmovd v1, 1.000000\n"
       "fmovd v2, 2.000000\n"
       "fmovd v3, 3.000000\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v5, tmp\n"
+      "veor v5, v5, v5\n"
       "fcvtsd v0, v0\n"
       "fcvtsd v1, v1\n"
       "fcvtsd v2, v2\n"
@@ -5744,9 +5732,7 @@ ASSEMBLER_TEST_RUN(Vmuls, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(14.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
   EXPECT_DISASSEMBLY(
-      ""
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "veor v0, v0, v0\n"
       "fmovd v1, 1.000000\n"
       "fmovd v2, 2.000000\n"
       "fmovd v3, 3.000000\n"
@@ -5811,9 +5797,7 @@ ASSEMBLER_TEST_RUN(Vdivs, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(4.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
   EXPECT_DISASSEMBLY(
-      ""
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "veor v0, v0, v0\n"
       "fmovd v1, 1.000000\n"
       "fmovd v2, 2.000000\n"
       "fmovd v3, 3.000000\n"
@@ -5895,8 +5879,7 @@ ASSEMBLER_TEST_RUN(Vsubd, test) {
   EXPECT_DISASSEMBLY(
       "fmovd v0, 2.000000\n"
       "fmovd v1, 3.000000\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v5, tmp\n"
+      "veor v5, v5, v5\n"
       "vinsd v4[0], v0[0]\n"
       "vinsd v4[1], v1[0]\n"
       "vsubd v5, v5, v4\n"
@@ -6151,8 +6134,7 @@ ASSEMBLER_TEST_RUN(Vinss, test) {
       "fcvtsd v0, v0\n"
       "vinss v1[3], v0[0]\n"
       "vinss v1[1], v0[0]\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "veor v0, v0, v0\n"
       "fcvtsd v0, v0\n"
       "vinss v1[2], v0[0]\n"
       "vinss v1[0], v0[0]\n"

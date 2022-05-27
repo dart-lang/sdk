@@ -1412,6 +1412,9 @@ class Assembler : public MicroAssembler {
                               Register rs2,
                               Label* overflow);
 
+  // Clobbers [rs].
+  void CountLeadingZeroes(Register rd, Register rs);
+
  private:
   bool constant_pool_allowed_;
 

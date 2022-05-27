@@ -17,6 +17,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   final flutter = Flutter.instance;
 
   late ClassElement? classWidget;
+  late ClassElement? classContainer;
 
   FlutterSnippetProducer(super.request);
 
@@ -24,6 +25,10 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   @mustCallSuper
   Future<bool> isValid() async {
     if ((classWidget = await _getClass('Widget')) == null) {
+      return false;
+    }
+
+    if ((classContainer = await _getClass('Container')) == null) {
       return false;
     }
 
@@ -344,6 +349,7 @@ mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
     // Checked by isValid() before this will be called.
     final classBuildContext = this.classBuildContext!;
     final classWidget = this.classWidget!;
+    final classContainer = this.classContainer!;
 
     // Add the build method.
     builder.writeln('  @override');
@@ -359,9 +365,12 @@ mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
       },
       bodyWriter: () {
         builder.writeln('{');
-        builder.write('    ');
-        builder.selectHere();
-        builder.writeln();
+        builder.write('    return ');
+        builder.selectAll(() {
+          builder.writeType(_getType(classContainer));
+          builder.write('()');
+        });
+        builder.writeln(';');
         builder.writeln('  }');
       },
     );

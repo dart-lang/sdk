@@ -45,9 +45,6 @@ class MacroElementsTest extends ElementsBaseTest {
   @override
   bool get keepLinkingLibraries => false;
 
-  /// The path for external packages.
-  String get packagesRootPath => '/packages';
-
   /// Return the code for `DeclarationTextMacro`.
   String get _declarationTextCode {
     var code = MacrosEnvironment.instance.packageAnalyzerFolder
@@ -79,7 +76,8 @@ class MacroElementsTest extends ElementsBaseTest {
 
   @override
   Future<void> setUp() async {
-    await super.setUp();
+    super.setUp();
+
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
       macrosEnvironment: MacrosEnvironment.instance,
@@ -92,6 +90,8 @@ import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
   FutureOr<void> buildTypesForClass(clazz, builder) {
     builder.declareType(
       'MyClass',
@@ -135,7 +135,7 @@ library
   parts
     package:test/_macro_types.dart
       classes
-        class MyClass @6
+        class MyClass @-1
           constructors
             synthetic @-1
   exportScope
@@ -196,7 +196,7 @@ library
   parts
     package:test/_macro_types.dart
       classes
-        class MyClass @6
+        class MyClass @-1
           constructors
             synthetic @-1
   exportScope
@@ -212,6 +212,8 @@ import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
   FutureOr<void> buildTypesForClass(clazz, builder) {
     builder.declareType(
       'MyClass',
@@ -263,7 +265,7 @@ library
   parts
     package:test/_macro_types.dart
       classes
-        class MyClass @6
+        class MyClass @-1
           constructors
             synthetic @-1
   exportScope
@@ -332,7 +334,7 @@ library
   parts
     package:test/_macro_types.dart
       classes
-        class MyClass @6
+        class MyClass @-1
           constructors
             synthetic @-1
   exportScope
@@ -348,6 +350,8 @@ import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
   FutureOr<void> buildTypesForClass(clazz, builder) {
     builder.declareType(
       'MyClass',
@@ -392,7 +396,7 @@ library
   parts
     package:test/_macro_types.dart
       classes
-        class MyClass @6
+        class MyClass @-1
           constructors
             synthetic @-1
   exportScope
@@ -462,7 +466,7 @@ library
   parts
     package:test/_macro_types.dart
       classes
-        class MyClass @6
+        class MyClass @-1
           constructors
             synthetic @-1
   exportScope
@@ -477,6 +481,8 @@ library
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
   buildTypesForClass(clazz, builder) {
     builder.declareType(
       'MyClass',
@@ -529,7 +535,7 @@ library
   parts
     package:test/_macro_types.dart
       classes
-        class MyClass @6
+        class MyClass @-1
           constructors
             synthetic @-1
   exportScope
@@ -603,7 +609,7 @@ library
   parts
     package:test/_macro_types.dart
       classes
-        class MyClass @6
+        class MyClass @-1
           constructors
             synthetic @-1
   exportScope
@@ -1612,6 +1618,8 @@ class A {}
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
   buildTypesForClass(clazz, builder) {
     unresolved;
   }
@@ -1642,6 +1650,8 @@ class A {}
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
   buildTypesForClass(clazz, builder) {
     throw 'foo bar';
   }
@@ -1708,34 +1718,6 @@ library
         superclassConstraints
           Object
 ''');
-  }
-
-  void writeTestPackageConfig(
-    PackageConfigFileBuilder config, {
-    MacrosEnvironment? macrosEnvironment,
-  }) {
-    config = config.copy();
-
-    config.add(
-      name: 'test',
-      rootPath: testPackageRootPath,
-    );
-
-    if (macrosEnvironment != null) {
-      var packagesRootFolder = getFolder(packagesRootPath);
-      macrosEnvironment.packageSharedFolder.copyTo(packagesRootFolder);
-      config.add(
-        name: '_fe_analyzer_shared',
-        rootPath: getFolder('$packagesRootPath/_fe_analyzer_shared').path,
-      );
-    }
-
-    newPackageConfigJsonFile(
-      testPackageRootPath,
-      config.toContent(
-        toUriStr: toUriStr,
-      ),
-    );
   }
 
   /// Assert that the textual dump of the introspection information for

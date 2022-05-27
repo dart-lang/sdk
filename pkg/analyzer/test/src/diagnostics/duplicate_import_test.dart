@@ -16,20 +16,48 @@ main() {
 
 @reflectiveTest
 class DuplicateImportTest extends PubPackageResolutionTest {
-  test_duplicateImport() async {
-    newFile('$testPackageLibPath/lib1.dart', r'''
-library lib1;
-class A {}''');
+  test_duplicateImport_absolute_absolute() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
 
-    newFile('$testPackageLibPath/lib2.dart', r'''
-library L;
-import 'lib1.dart';
-import 'lib1.dart';
-A a = A();''');
+    await assertErrorsInCode(r'''
+import 'package:test/a.dart';
+import 'package:test/a.dart';
 
-    await _resolveFile('$testPackageLibPath/lib1.dart');
-    await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.DUPLICATE_IMPORT, 38, 11),
+final a = A();
+''', [
+      error(HintCode.DUPLICATE_IMPORT, 37, 21),
+    ]);
+  }
+
+  test_duplicateImport_relative_absolute() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+import 'package:test/a.dart';
+
+final a = A();
+''', [
+      error(HintCode.DUPLICATE_IMPORT, 24, 21),
+    ]);
+  }
+
+  test_duplicateImport_relative_relative() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+import 'a.dart';
+
+final a = A();
+''', [
+      error(HintCode.DUPLICATE_IMPORT, 24, 8),
     ]);
   }
 

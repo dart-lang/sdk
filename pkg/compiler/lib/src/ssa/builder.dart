@@ -599,7 +599,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           field, parameter, type);
       // TODO(sra): Pass source information to
       // [potentiallyCheckOrTrustTypeOfParameter].
-      // TODO(sra): The source information should indiciate the field and
+      // TODO(sra): The source information should indicate the field and
       // possibly its type but not the initializer.
       value.sourceInformation ??= _sourceInformationBuilder.buildSet(node);
       value = _potentiallyAssertNotNull(field, node, value, type);
@@ -1812,7 +1812,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     _handleInTryStatement();
     if (_inliningStack.isEmpty && targetElement.isSetter) {
       if (node.parent is ir.FunctionNode) {
-        // An arrow function definition of a setter has a ReturnStatemnt as a
+        // An arrow function definition of a setter has a ReturnStatement as a
         // body, e.g. "set foo(x) => this._x = x;". There is no way to access
         // the returned value, so don't emit a return.
         return;
@@ -1964,7 +1964,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       // moved to the loop update.
 
       // Find a type for the element. Use the element type of the indexer of the
-      // array, as this is stronger than the iterator's `get current` type, for
+      // array, as this is stronger than the Iterator's `get current` type, for
       // example, `get current` includes null.
       // TODO(sra): The element type of a container type mask might be better.
       AbstractValue type = _typeInferenceMap.inferredIndexType(node);
@@ -3021,7 +3021,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         localsHandler = savedLocals.mergeMultiple(caseHandlers, joinBlock);
       }
     } else {
-      // The joinblock is not used.
+      // The joinBlock is not used.
       joinBlock = null;
     }
 
@@ -4313,7 +4313,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           } else {
             reporter.internalError(
                 computeSourceSpanFromTreeNode(invocation),
-                "Unexpected named arguments value in createInvocationMirrror: "
+                "Unexpected named arguments value in createInvocationMirror: "
                 "${namedArgumentsLiteral}.");
           }
           CallStructure callStructure = CallStructure(
@@ -5669,10 +5669,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   void _pushIsTest(ir.DartType type, HInstruction expression,
       SourceInformation sourceInformation) {
-    // Note: The call to "unalias" this type like in the original SSA builder is
-    // unnecessary in kernel because Kernel has no notion of typedef.
-    // TODO(efortuna): Add test for this.
-
     if (type is ir.InvalidType) {
       // TODO(sra): Make InvalidType carry a message.
       _generateTypeError('invalid type', sourceInformation);
@@ -7638,7 +7634,7 @@ class InlineWeeder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // In addition to the initializer expressions and body calls, there is an
     // allocator call.
     if (hasCallToSomeConstructorBody) {
-      // A temporary is requried so we have
+      // A temporary is required so we have
       //
       //     t=new ...;
       //     ...;
@@ -7646,7 +7642,7 @@ class InlineWeeder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       //
       // I'm guessing it takes about 4 nodes to introduce the temporary and
       // assign it.
-      registerRegularNode(4); // A temporary is requried.
+      registerRegularNode(4); // A temporary is required.
     }
     // The initial field values are passed to the allocator.
     registerRegularNode(

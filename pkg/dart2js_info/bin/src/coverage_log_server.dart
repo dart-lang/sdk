@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.11
+
 /// A tool to gather coverage data from an app generated with dart2js. This
 /// depends on code that has been landed in the bleeding_edge version of dart2js
 /// and that we expect to become publicly visible in version 0.13.0 of the Dart

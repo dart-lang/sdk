@@ -6,10 +6,6 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
-// ignore_for_file: annotate_overrides
-// ignore_for_file: prefer_is_not_operator
-// ignore_for_file: unnecessary_parenthesis
-
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
 import 'dart:convert' show JsonEncoder;
@@ -51,12 +47,15 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
   final String annotationId;
 
   /// The string to be inserted. For delete operations use an empty string.
+  @override
   final String newText;
 
   /// The range of the text document to be manipulated. To insert text into a
   /// document create a range where start === end.
+  @override
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['annotationId'] = annotationId;
@@ -78,7 +77,7 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(annotationId is String)) {
+        if (annotationId is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -96,7 +95,7 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(newText is String)) {
+        if (newText is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -114,7 +113,7 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -178,6 +177,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
   /// user interface for example on an undo stack to undo the workspace edit.
   final String? label;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['edit'] = edit.toJson();
@@ -200,7 +200,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(WorkspaceEdit.canParse(edit, reporter))) {
+        if (!WorkspaceEdit.canParse(edit, reporter)) {
           reporter.reportError('must be of type WorkspaceEdit');
           return false;
         }
@@ -210,7 +210,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
       reporter.push('label');
       try {
         final label = obj['label'];
-        if (label != null && !(label is String)) {
+        if (label != null && label is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -282,6 +282,7 @@ class ApplyWorkspaceEditResult implements ToJsonable {
   /// error for a request that triggered the edit.
   final String? failureReason;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['applied'] = applied;
@@ -307,7 +308,7 @@ class ApplyWorkspaceEditResult implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(applied is bool)) {
+        if (applied is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -317,7 +318,7 @@ class ApplyWorkspaceEditResult implements ToJsonable {
       reporter.push('failedChange');
       try {
         final failedChange = obj['failedChange'];
-        if (failedChange != null && !(failedChange is int)) {
+        if (failedChange != null && failedChange is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -327,7 +328,7 @@ class ApplyWorkspaceEditResult implements ToJsonable {
       reporter.push('failureReason');
       try {
         final failureReason = obj['failureReason'];
-        if (failureReason != null && !(failureReason is String)) {
+        if (failureReason != null && failureReason is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -387,6 +388,7 @@ class CallHierarchyClientCapabilities implements ToJsonable {
   /// capability as well.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -400,7 +402,7 @@ class CallHierarchyClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -460,6 +462,7 @@ class CallHierarchyIncomingCall implements ToJsonable {
   /// denoted by [`this.from`](#CallHierarchyIncomingCall.from).
   final List<Range> fromRanges;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['from'] = from.toJson();
@@ -480,7 +483,7 @@ class CallHierarchyIncomingCall implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(CallHierarchyItem.canParse(from, reporter))) {
+        if (!CallHierarchyItem.canParse(from, reporter)) {
           reporter.reportError('must be of type CallHierarchyItem');
           return false;
         }
@@ -498,8 +501,8 @@ class CallHierarchyIncomingCall implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((fromRanges is List<Object?> &&
-            (fromRanges.every((item) => Range.canParse(item, reporter)))))) {
+        if (fromRanges is! List<Object?> ||
+            fromRanges.any((item) => !Range.canParse(item, reporter))) {
           reporter.reportError('must be of type List<Range>');
           return false;
         }
@@ -577,11 +580,14 @@ class CallHierarchyIncomingCallsParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['item'] = item.toJson();
@@ -607,7 +613,7 @@ class CallHierarchyIncomingCallsParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(CallHierarchyItem.canParse(item, reporter))) {
+        if (!CallHierarchyItem.canParse(item, reporter)) {
           reporter.reportError('must be of type CallHierarchyItem');
           return false;
         }
@@ -618,7 +624,8 @@ class CallHierarchyIncomingCallsParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -629,7 +636,8 @@ class CallHierarchyIncomingCallsParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -742,6 +750,7 @@ class CallHierarchyItem implements ToJsonable {
   /// The resource identifier of this item.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (data != null) {
@@ -766,7 +775,7 @@ class CallHierarchyItem implements ToJsonable {
       reporter.push('detail');
       try {
         final detail = obj['detail'];
-        if (detail != null && !(detail is String)) {
+        if (detail != null && detail is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -784,7 +793,7 @@ class CallHierarchyItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(SymbolKind.canParse(kind, reporter))) {
+        if (!SymbolKind.canParse(kind, reporter)) {
           reporter.reportError('must be of type SymbolKind');
           return false;
         }
@@ -802,7 +811,7 @@ class CallHierarchyItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(name is String)) {
+        if (name is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -820,7 +829,7 @@ class CallHierarchyItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -838,7 +847,7 @@ class CallHierarchyItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(selectionRange, reporter))) {
+        if (!Range.canParse(selectionRange, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -849,8 +858,8 @@ class CallHierarchyItem implements ToJsonable {
       try {
         final tags = obj['tags'];
         if (tags != null &&
-            !((tags is List<Object?> &&
-                (tags.every((item) => SymbolTag.canParse(item, reporter)))))) {
+            (tags is! List<Object?> ||
+                tags.any((item) => !SymbolTag.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;
         }
@@ -868,7 +877,7 @@ class CallHierarchyItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -934,8 +943,10 @@ class CallHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -949,7 +960,7 @@ class CallHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -1009,6 +1020,7 @@ class CallHierarchyOutgoingCall implements ToJsonable {
   /// The item that is called.
   final CallHierarchyItem to;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['fromRanges'] = fromRanges.map((item) => item.toJson()).toList();
@@ -1029,8 +1041,8 @@ class CallHierarchyOutgoingCall implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((fromRanges is List<Object?> &&
-            (fromRanges.every((item) => Range.canParse(item, reporter)))))) {
+        if (fromRanges is! List<Object?> ||
+            fromRanges.any((item) => !Range.canParse(item, reporter))) {
           reporter.reportError('must be of type List<Range>');
           return false;
         }
@@ -1048,7 +1060,7 @@ class CallHierarchyOutgoingCall implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(CallHierarchyItem.canParse(to, reporter))) {
+        if (!CallHierarchyItem.canParse(to, reporter)) {
           reporter.reportError('must be of type CallHierarchyItem');
           return false;
         }
@@ -1126,11 +1138,14 @@ class CallHierarchyOutgoingCallsParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['item'] = item.toJson();
@@ -1156,7 +1171,7 @@ class CallHierarchyOutgoingCallsParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(CallHierarchyItem.canParse(item, reporter))) {
+        if (!CallHierarchyItem.canParse(item, reporter)) {
           reporter.reportError('must be of type CallHierarchyItem');
           return false;
         }
@@ -1167,7 +1182,8 @@ class CallHierarchyOutgoingCallsParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -1178,7 +1194,8 @@ class CallHierarchyOutgoingCallsParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -1249,14 +1266,18 @@ class CallHierarchyPrepareParams
   }
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['position'] = position.toJson();
@@ -1280,7 +1301,7 @@ class CallHierarchyPrepareParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -1298,7 +1319,7 @@ class CallHierarchyPrepareParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -1309,7 +1330,8 @@ class CallHierarchyPrepareParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -1365,8 +1387,8 @@ class CallHierarchyRegistrationOptions
   static CallHierarchyRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -1381,13 +1403,17 @@ class CallHierarchyRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -1410,10 +1436,11 @@ class CallHierarchyRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -1422,7 +1449,7 @@ class CallHierarchyRegistrationOptions
       reporter.push('id');
       try {
         final id = obj['id'];
-        if (id != null && !(id is String)) {
+        if (id != null && id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1432,7 +1459,7 @@ class CallHierarchyRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -1450,8 +1477,12 @@ class CallHierarchyRegistrationOptions
   bool operator ==(Object other) {
     if (other is CallHierarchyRegistrationOptions &&
         other.runtimeType == CallHierarchyRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -1494,6 +1525,7 @@ class CancelParams implements ToJsonable {
   /// The request id to cancel.
   final Either2<int, String> id;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['id'] = id;
@@ -1513,7 +1545,7 @@ class CancelParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((id is int || id is String))) {
+        if (id is! int && id is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -1581,6 +1613,7 @@ class ChangeAnnotation implements ToJsonable {
   /// the change.
   final bool? needsConfirmation;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (description != null) {
@@ -1598,7 +1631,7 @@ class ChangeAnnotation implements ToJsonable {
       reporter.push('description');
       try {
         final description = obj['description'];
-        if (description != null && !(description is String)) {
+        if (description != null && description is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1616,7 +1649,7 @@ class ChangeAnnotation implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(label is String)) {
+        if (label is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1626,7 +1659,7 @@ class ChangeAnnotation implements ToJsonable {
       reporter.push('needsConfirmation');
       try {
         final needsConfirmation = obj['needsConfirmation'];
-        if (needsConfirmation != null && !(needsConfirmation is bool)) {
+        if (needsConfirmation != null && needsConfirmation is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -1733,6 +1766,7 @@ class ClientCapabilities implements ToJsonable {
   /// Workspace specific client capabilities.
   final WorkspaceClientCapabilities? workspace;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (experimental != null) {
@@ -1762,7 +1796,7 @@ class ClientCapabilities implements ToJsonable {
       try {
         final general = obj['general'];
         if (general != null &&
-            !(GeneralClientCapabilities.canParse(general, reporter))) {
+            !GeneralClientCapabilities.canParse(general, reporter)) {
           reporter.reportError('must be of type GeneralClientCapabilities');
           return false;
         }
@@ -1773,8 +1807,8 @@ class ClientCapabilities implements ToJsonable {
       try {
         final notebookDocument = obj['notebookDocument'];
         if (notebookDocument != null &&
-            !(NotebookDocumentClientCapabilities.canParse(
-                notebookDocument, reporter))) {
+            !NotebookDocumentClientCapabilities.canParse(
+                notebookDocument, reporter)) {
           reporter.reportError(
               'must be of type NotebookDocumentClientCapabilities');
           return false;
@@ -1786,8 +1820,7 @@ class ClientCapabilities implements ToJsonable {
       try {
         final textDocument = obj['textDocument'];
         if (textDocument != null &&
-            !(TextDocumentClientCapabilities.canParse(
-                textDocument, reporter))) {
+            !TextDocumentClientCapabilities.canParse(textDocument, reporter)) {
           reporter
               .reportError('must be of type TextDocumentClientCapabilities');
           return false;
@@ -1799,7 +1832,7 @@ class ClientCapabilities implements ToJsonable {
       try {
         final window = obj['window'];
         if (window != null &&
-            !(WindowClientCapabilities.canParse(window, reporter))) {
+            !WindowClientCapabilities.canParse(window, reporter)) {
           reporter.reportError('must be of type WindowClientCapabilities');
           return false;
         }
@@ -1810,7 +1843,7 @@ class ClientCapabilities implements ToJsonable {
       try {
         final workspace = obj['workspace'];
         if (workspace != null &&
-            !(WorkspaceClientCapabilities.canParse(workspace, reporter))) {
+            !WorkspaceClientCapabilities.canParse(workspace, reporter)) {
           reporter.reportError('must be of type WorkspaceClientCapabilities');
           return false;
         }
@@ -1962,6 +1995,7 @@ class CodeAction implements ToJsonable {
   /// A short, human-readable, title for this code action.
   final String title;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (command != null) {
@@ -1995,7 +2029,7 @@ class CodeAction implements ToJsonable {
       reporter.push('command');
       try {
         final command = obj['command'];
-        if (command != null && !(Command.canParse(command, reporter))) {
+        if (command != null && !Command.canParse(command, reporter)) {
           reporter.reportError('must be of type Command');
           return false;
         }
@@ -2006,9 +2040,9 @@ class CodeAction implements ToJsonable {
       try {
         final diagnostics = obj['diagnostics'];
         if (diagnostics != null &&
-            !((diagnostics is List<Object?> &&
-                (diagnostics
-                    .every((item) => Diagnostic.canParse(item, reporter)))))) {
+            (diagnostics is! List<Object?> ||
+                diagnostics
+                    .any((item) => !Diagnostic.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<Diagnostic>');
           return false;
         }
@@ -2019,7 +2053,7 @@ class CodeAction implements ToJsonable {
       try {
         final disabled = obj['disabled'];
         if (disabled != null &&
-            !(CodeActionDisabled.canParse(disabled, reporter))) {
+            !CodeActionDisabled.canParse(disabled, reporter)) {
           reporter.reportError('must be of type CodeActionDisabled');
           return false;
         }
@@ -2029,7 +2063,7 @@ class CodeAction implements ToJsonable {
       reporter.push('edit');
       try {
         final edit = obj['edit'];
-        if (edit != null && !(WorkspaceEdit.canParse(edit, reporter))) {
+        if (edit != null && !WorkspaceEdit.canParse(edit, reporter)) {
           reporter.reportError('must be of type WorkspaceEdit');
           return false;
         }
@@ -2039,7 +2073,7 @@ class CodeAction implements ToJsonable {
       reporter.push('isPreferred');
       try {
         final isPreferred = obj['isPreferred'];
-        if (isPreferred != null && !(isPreferred is bool)) {
+        if (isPreferred != null && isPreferred is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2049,7 +2083,7 @@ class CodeAction implements ToJsonable {
       reporter.push('kind');
       try {
         final kind = obj['kind'];
-        if (kind != null && !(CodeActionKind.canParse(kind, reporter))) {
+        if (kind != null && !CodeActionKind.canParse(kind, reporter)) {
           reporter.reportError('must be of type CodeActionKind');
           return false;
         }
@@ -2067,7 +2101,7 @@ class CodeAction implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(title is String)) {
+        if (title is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -2195,6 +2229,7 @@ class CodeActionClientCapabilities implements ToJsonable {
   ///  @since 3.16.0
   final CodeActionClientCapabilitiesResolveSupport? resolveSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (codeActionLiteralSupport != null) {
@@ -2227,8 +2262,8 @@ class CodeActionClientCapabilities implements ToJsonable {
       try {
         final codeActionLiteralSupport = obj['codeActionLiteralSupport'];
         if (codeActionLiteralSupport != null &&
-            !(CodeActionClientCapabilitiesCodeActionLiteralSupport.canParse(
-                codeActionLiteralSupport, reporter))) {
+            !CodeActionClientCapabilitiesCodeActionLiteralSupport.canParse(
+                codeActionLiteralSupport, reporter)) {
           reporter.reportError(
               'must be of type CodeActionClientCapabilitiesCodeActionLiteralSupport');
           return false;
@@ -2239,7 +2274,7 @@ class CodeActionClientCapabilities implements ToJsonable {
       reporter.push('dataSupport');
       try {
         final dataSupport = obj['dataSupport'];
-        if (dataSupport != null && !(dataSupport is bool)) {
+        if (dataSupport != null && dataSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2249,7 +2284,7 @@ class CodeActionClientCapabilities implements ToJsonable {
       reporter.push('disabledSupport');
       try {
         final disabledSupport = obj['disabledSupport'];
-        if (disabledSupport != null && !(disabledSupport is bool)) {
+        if (disabledSupport != null && disabledSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2259,7 +2294,7 @@ class CodeActionClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2270,7 +2305,7 @@ class CodeActionClientCapabilities implements ToJsonable {
       try {
         final honorsChangeAnnotations = obj['honorsChangeAnnotations'];
         if (honorsChangeAnnotations != null &&
-            !(honorsChangeAnnotations is bool)) {
+            honorsChangeAnnotations is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2280,7 +2315,7 @@ class CodeActionClientCapabilities implements ToJsonable {
       reporter.push('isPreferredSupport');
       try {
         final isPreferredSupport = obj['isPreferredSupport'];
-        if (isPreferredSupport != null && !(isPreferredSupport is bool)) {
+        if (isPreferredSupport != null && isPreferredSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2291,8 +2326,8 @@ class CodeActionClientCapabilities implements ToJsonable {
       try {
         final resolveSupport = obj['resolveSupport'];
         if (resolveSupport != null &&
-            !(CodeActionClientCapabilitiesResolveSupport.canParse(
-                resolveSupport, reporter))) {
+            !CodeActionClientCapabilitiesResolveSupport.canParse(
+                resolveSupport, reporter)) {
           reporter.reportError(
               'must be of type CodeActionClientCapabilitiesResolveSupport');
           return false;
@@ -2361,6 +2396,7 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
   /// The code action kind is supported with the following value set.
   final CodeActionLiteralSupportCodeActionKind codeActionKind;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['codeActionKind'] = codeActionKind.toJson();
@@ -2380,8 +2416,8 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(CodeActionLiteralSupportCodeActionKind.canParse(
-            codeActionKind, reporter))) {
+        if (!CodeActionLiteralSupportCodeActionKind.canParse(
+            codeActionKind, reporter)) {
           reporter.reportError(
               'must be of type CodeActionLiteralSupportCodeActionKind');
           return false;
@@ -2437,6 +2473,7 @@ class CodeActionClientCapabilitiesResolveSupport implements ToJsonable {
   /// The properties that a client can resolve lazily.
   final List<String> properties;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['properties'] = properties;
@@ -2456,8 +2493,8 @@ class CodeActionClientCapabilitiesResolveSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((properties is List<Object?> &&
-            (properties.every((item) => item is String))))) {
+        if (properties is! List<Object?> ||
+            properties.any((item) => item is! String)) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -2541,6 +2578,7 @@ class CodeActionContext implements ToJsonable {
   ///  @since 3.17.0
   final CodeActionTriggerKind? triggerKind;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['diagnostics'] = diagnostics.map((item) => item.toJson()).toList();
@@ -2566,9 +2604,8 @@ class CodeActionContext implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((diagnostics is List<Object?> &&
-            (diagnostics
-                .every((item) => Diagnostic.canParse(item, reporter)))))) {
+        if (diagnostics is! List<Object?> ||
+            diagnostics.any((item) => !Diagnostic.canParse(item, reporter))) {
           reporter.reportError('must be of type List<Diagnostic>');
           return false;
         }
@@ -2579,9 +2616,8 @@ class CodeActionContext implements ToJsonable {
       try {
         final only = obj['only'];
         if (only != null &&
-            !((only is List<Object?> &&
-                (only.every(
-                    (item) => CodeActionKind.canParse(item, reporter)))))) {
+            (only is! List<Object?> ||
+                only.any((item) => !CodeActionKind.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<CodeActionKind>');
           return false;
         }
@@ -2592,7 +2628,7 @@ class CodeActionContext implements ToJsonable {
       try {
         final triggerKind = obj['triggerKind'];
         if (triggerKind != null &&
-            !(CodeActionTriggerKind.canParse(triggerKind, reporter))) {
+            !CodeActionTriggerKind.canParse(triggerKind, reporter)) {
           reporter.reportError('must be of type CodeActionTriggerKind');
           return false;
         }
@@ -2652,6 +2688,7 @@ class CodeActionDisabled implements ToJsonable {
   /// This is displayed in the code actions UI.
   final String reason;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['reason'] = reason;
@@ -2671,7 +2708,7 @@ class CodeActionDisabled implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(reason is String)) {
+        if (reason is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -2769,6 +2806,7 @@ class CodeActionKind implements ToJsonable {
   /// Base kind for an organize imports source action: `source.organizeImports`.
   static const SourceOrganizeImports = CodeActionKind('source.organizeImports');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -2777,6 +2815,7 @@ class CodeActionKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is CodeActionKind && other._value == _value;
 }
@@ -2806,6 +2845,7 @@ class CodeActionLiteralSupportCodeActionKind implements ToJsonable {
   /// gracefully and falls back to a default value when unknown.
   final List<CodeActionKind> valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
@@ -2825,9 +2865,8 @@ class CodeActionLiteralSupportCodeActionKind implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((valueSet is List<Object?> &&
-            (valueSet
-                .every((item) => CodeActionKind.canParse(item, reporter)))))) {
+        if (valueSet is! List<Object?> ||
+            valueSet.any((item) => !CodeActionKind.canParse(item, reporter))) {
           reporter.reportError('must be of type List<CodeActionKind>');
           return false;
         }
@@ -2900,8 +2939,10 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
   /// action.
   ///  @since 3.16.0
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (codeActionKinds != null) {
@@ -2923,9 +2964,9 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
       try {
         final codeActionKinds = obj['codeActionKinds'];
         if (codeActionKinds != null &&
-            !((codeActionKinds is List<Object?> &&
-                (codeActionKinds.every(
-                    (item) => CodeActionKind.canParse(item, reporter)))))) {
+            (codeActionKinds is! List<Object?> ||
+                codeActionKinds
+                    .any((item) => !CodeActionKind.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<CodeActionKind>');
           return false;
         }
@@ -2935,7 +2976,7 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('resolveProvider');
       try {
         final resolveProvider = obj['resolveProvider'];
-        if (resolveProvider != null && !(resolveProvider is bool)) {
+        if (resolveProvider != null && resolveProvider is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2945,7 +2986,7 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -3036,6 +3077,7 @@ class CodeActionParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The range for which the command was invoked.
@@ -3045,8 +3087,10 @@ class CodeActionParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['context'] = context.toJson();
@@ -3074,7 +3118,7 @@ class CodeActionParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(CodeActionContext.canParse(context, reporter))) {
+        if (!CodeActionContext.canParse(context, reporter)) {
           reporter.reportError('must be of type CodeActionContext');
           return false;
         }
@@ -3085,7 +3129,8 @@ class CodeActionParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -3103,7 +3148,7 @@ class CodeActionParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -3121,7 +3166,7 @@ class CodeActionParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -3132,7 +3177,8 @@ class CodeActionParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -3192,8 +3238,8 @@ class CodeActionRegistrationOptions
         .toList();
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final resolveProviderJson = json['resolveProvider'];
     final resolveProvider = resolveProviderJson as bool?;
@@ -3211,18 +3257,23 @@ class CodeActionRegistrationOptions
   ///
   /// The list of kinds may be generic, such as `CodeActionKind.Refactor`, or
   /// the server may list out every specific kind they provide.
+  @override
   final List<CodeActionKind>? codeActionKinds;
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The server provides support to resolve additional information for a code
   /// action.
   ///  @since 3.16.0
+  @override
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (codeActionKinds != null) {
@@ -3245,9 +3296,9 @@ class CodeActionRegistrationOptions
       try {
         final codeActionKinds = obj['codeActionKinds'];
         if (codeActionKinds != null &&
-            !((codeActionKinds is List<Object?> &&
-                (codeActionKinds.every(
-                    (item) => CodeActionKind.canParse(item, reporter)))))) {
+            (codeActionKinds is! List<Object?> ||
+                codeActionKinds
+                    .any((item) => !CodeActionKind.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<CodeActionKind>');
           return false;
         }
@@ -3262,10 +3313,11 @@ class CodeActionRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -3274,7 +3326,7 @@ class CodeActionRegistrationOptions
       reporter.push('resolveProvider');
       try {
         final resolveProvider = obj['resolveProvider'];
-        if (resolveProvider != null && !(resolveProvider is bool)) {
+        if (resolveProvider != null && resolveProvider is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -3284,7 +3336,7 @@ class CodeActionRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -3304,8 +3356,12 @@ class CodeActionRegistrationOptions
         other.runtimeType == CodeActionRegistrationOptions) {
       return listEqual(codeActionKinds, other.codeActionKinds,
               (CodeActionKind a, CodeActionKind b) => a == b) &&
-          listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+          listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           resolveProvider == other.resolveProvider &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -3346,6 +3402,7 @@ class CodeActionTriggerKind implements ToJsonable {
   /// Code actions were explicitly requested by the user or by an extension.
   static const Invoked = CodeActionTriggerKind(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -3354,6 +3411,7 @@ class CodeActionTriggerKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is CodeActionTriggerKind && other._value == _value;
 }
@@ -3380,6 +3438,7 @@ class CodeDescription implements ToJsonable {
   /// An URI to open with more information about the diagnostic error.
   final String href;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['href'] = href;
@@ -3399,7 +3458,7 @@ class CodeDescription implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(href is String)) {
+        if (href is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -3472,6 +3531,7 @@ class CodeLens implements ToJsonable {
   /// line.
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (command != null) {
@@ -3489,7 +3549,7 @@ class CodeLens implements ToJsonable {
       reporter.push('command');
       try {
         final command = obj['command'];
-        if (command != null && !(Command.canParse(command, reporter))) {
+        if (command != null && !Command.canParse(command, reporter)) {
           reporter.reportError('must be of type Command');
           return false;
         }
@@ -3507,7 +3567,7 @@ class CodeLens implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -3563,6 +3623,7 @@ class CodeLensClientCapabilities implements ToJsonable {
   /// Whether code lens supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -3576,7 +3637,7 @@ class CodeLensClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -3632,8 +3693,10 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// Code lens has a resolve provider as well.
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (resolveProvider != null) {
@@ -3650,7 +3713,7 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('resolveProvider');
       try {
         final resolveProvider = obj['resolveProvider'];
-        if (resolveProvider != null && !(resolveProvider is bool)) {
+        if (resolveProvider != null && resolveProvider is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -3660,7 +3723,7 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -3735,14 +3798,17 @@ class CodeLensParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The document to request code lens for.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -3761,7 +3827,8 @@ class CodeLensParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -3779,7 +3846,7 @@ class CodeLensParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -3790,7 +3857,8 @@ class CodeLensParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -3841,8 +3909,8 @@ class CodeLensRegistrationOptions
   static CodeLensRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final resolveProviderJson = json['resolveProvider'];
     final resolveProvider = resolveProviderJson as bool?;
@@ -3857,12 +3925,16 @@ class CodeLensRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// Code lens has a resolve provider as well.
+  @override
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -3885,10 +3957,11 @@ class CodeLensRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -3897,7 +3970,7 @@ class CodeLensRegistrationOptions
       reporter.push('resolveProvider');
       try {
         final resolveProvider = obj['resolveProvider'];
-        if (resolveProvider != null && !(resolveProvider is bool)) {
+        if (resolveProvider != null && resolveProvider is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -3907,7 +3980,7 @@ class CodeLensRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -3925,8 +3998,12 @@ class CodeLensRegistrationOptions
   bool operator ==(Object other) {
     if (other is CodeLensRegistrationOptions &&
         other.runtimeType == CodeLensRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           resolveProvider == other.resolveProvider &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -3972,6 +4049,7 @@ class CodeLensWorkspaceClientCapabilities implements ToJsonable {
   /// change that requires such a calculation.
   final bool? refreshSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (refreshSupport != null) {
@@ -3985,7 +4063,7 @@ class CodeLensWorkspaceClientCapabilities implements ToJsonable {
       reporter.push('refreshSupport');
       try {
         final refreshSupport = obj['refreshSupport'];
-        if (refreshSupport != null && !(refreshSupport is bool)) {
+        if (refreshSupport != null && refreshSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -4058,6 +4136,7 @@ class Color implements ToJsonable {
   /// The red component of this color in the range [0-1].
   final num red;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['alpha'] = alpha;
@@ -4080,7 +4159,7 @@ class Color implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(alpha is num)) {
+        if (alpha is! num) {
           reporter.reportError('must be of type num');
           return false;
         }
@@ -4098,7 +4177,7 @@ class Color implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(blue is num)) {
+        if (blue is! num) {
           reporter.reportError('must be of type num');
           return false;
         }
@@ -4116,7 +4195,7 @@ class Color implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(green is num)) {
+        if (green is! num) {
           reporter.reportError('must be of type num');
           return false;
         }
@@ -4134,7 +4213,7 @@ class Color implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(red is num)) {
+        if (red is! num) {
           reporter.reportError('must be of type num');
           return false;
         }
@@ -4199,6 +4278,7 @@ class ColorInformation implements ToJsonable {
   /// The range in the document where this color appears.
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['color'] = color.toJson();
@@ -4219,7 +4299,7 @@ class ColorInformation implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Color.canParse(color, reporter))) {
+        if (!Color.canParse(color, reporter)) {
           reporter.reportError('must be of type Color');
           return false;
         }
@@ -4237,7 +4317,7 @@ class ColorInformation implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -4313,6 +4393,7 @@ class ColorPresentation implements ToJsonable {
   /// [label](#ColorPresentation.label) is used.
   final TextEdit? textEdit;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (additionalTextEdits != null) {
@@ -4332,9 +4413,9 @@ class ColorPresentation implements ToJsonable {
       try {
         final additionalTextEdits = obj['additionalTextEdits'];
         if (additionalTextEdits != null &&
-            !((additionalTextEdits is List<Object?> &&
-                (additionalTextEdits
-                    .every((item) => TextEdit.canParse(item, reporter)))))) {
+            (additionalTextEdits is! List<Object?> ||
+                additionalTextEdits
+                    .any((item) => !TextEdit.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<TextEdit>');
           return false;
         }
@@ -4352,7 +4433,7 @@ class ColorPresentation implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(label is String)) {
+        if (label is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -4362,7 +4443,7 @@ class ColorPresentation implements ToJsonable {
       reporter.push('textEdit');
       try {
         final textEdit = obj['textEdit'];
-        if (textEdit != null && !(TextEdit.canParse(textEdit, reporter))) {
+        if (textEdit != null && !TextEdit.canParse(textEdit, reporter)) {
           reporter.reportError('must be of type TextEdit');
           return false;
         }
@@ -4451,6 +4532,7 @@ class ColorPresentationParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The range where the color would be inserted. Serves as a context.
@@ -4460,8 +4542,10 @@ class ColorPresentationParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['color'] = color.toJson();
@@ -4489,7 +4573,7 @@ class ColorPresentationParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Color.canParse(color, reporter))) {
+        if (!Color.canParse(color, reporter)) {
           reporter.reportError('must be of type Color');
           return false;
         }
@@ -4500,7 +4584,8 @@ class ColorPresentationParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -4518,7 +4603,7 @@ class ColorPresentationParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -4536,7 +4621,7 @@ class ColorPresentationParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -4547,7 +4632,8 @@ class ColorPresentationParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -4623,6 +4709,7 @@ class Command implements ToJsonable {
   /// Title of the command, like `save`.
   final String title;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (arguments != null) {
@@ -4639,8 +4726,7 @@ class Command implements ToJsonable {
       try {
         final arguments = obj['arguments'];
         if (arguments != null &&
-            !((arguments is List<Object?> &&
-                (arguments.every((item) => true))))) {
+            (arguments is! List<Object?> || arguments.any((item) => false))) {
           reporter.reportError('must be of type List<Object?>');
           return false;
         }
@@ -4658,7 +4744,7 @@ class Command implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(command is String)) {
+        if (command is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -4676,7 +4762,7 @@ class Command implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(title is String)) {
+        if (title is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -4781,6 +4867,7 @@ class CompletionClientCapabilities implements ToJsonable {
   ///  @since 3.17.0
   final InsertTextMode? insertTextMode;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (completionItem != null) {
@@ -4810,8 +4897,8 @@ class CompletionClientCapabilities implements ToJsonable {
       try {
         final completionItem = obj['completionItem'];
         if (completionItem != null &&
-            !(CompletionClientCapabilitiesCompletionItem.canParse(
-                completionItem, reporter))) {
+            !CompletionClientCapabilitiesCompletionItem.canParse(
+                completionItem, reporter)) {
           reporter.reportError(
               'must be of type CompletionClientCapabilitiesCompletionItem');
           return false;
@@ -4823,8 +4910,8 @@ class CompletionClientCapabilities implements ToJsonable {
       try {
         final completionItemKind = obj['completionItemKind'];
         if (completionItemKind != null &&
-            !(CompletionClientCapabilitiesCompletionItemKind.canParse(
-                completionItemKind, reporter))) {
+            !CompletionClientCapabilitiesCompletionItemKind.canParse(
+                completionItemKind, reporter)) {
           reporter.reportError(
               'must be of type CompletionClientCapabilitiesCompletionItemKind');
           return false;
@@ -4836,8 +4923,8 @@ class CompletionClientCapabilities implements ToJsonable {
       try {
         final completionList = obj['completionList'];
         if (completionList != null &&
-            !(CompletionClientCapabilitiesCompletionList.canParse(
-                completionList, reporter))) {
+            !CompletionClientCapabilitiesCompletionList.canParse(
+                completionList, reporter)) {
           reporter.reportError(
               'must be of type CompletionClientCapabilitiesCompletionList');
           return false;
@@ -4848,7 +4935,7 @@ class CompletionClientCapabilities implements ToJsonable {
       reporter.push('contextSupport');
       try {
         final contextSupport = obj['contextSupport'];
-        if (contextSupport != null && !(contextSupport is bool)) {
+        if (contextSupport != null && contextSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -4858,7 +4945,7 @@ class CompletionClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -4869,7 +4956,7 @@ class CompletionClientCapabilities implements ToJsonable {
       try {
         final insertTextMode = obj['insertTextMode'];
         if (insertTextMode != null &&
-            !(InsertTextMode.canParse(insertTextMode, reporter))) {
+            !InsertTextMode.canParse(insertTextMode, reporter)) {
           reporter.reportError('must be of type InsertTextMode');
           return false;
         }
@@ -5027,6 +5114,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
   ///  @since 3.15.0
   final CompletionItemTagSupport? tagSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (commitCharactersSupport != null) {
@@ -5069,7 +5157,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       try {
         final commitCharactersSupport = obj['commitCharactersSupport'];
         if (commitCharactersSupport != null &&
-            !(commitCharactersSupport is bool)) {
+            commitCharactersSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -5079,7 +5167,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       reporter.push('deprecatedSupport');
       try {
         final deprecatedSupport = obj['deprecatedSupport'];
-        if (deprecatedSupport != null && !(deprecatedSupport is bool)) {
+        if (deprecatedSupport != null && deprecatedSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -5090,9 +5178,9 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       try {
         final documentationFormat = obj['documentationFormat'];
         if (documentationFormat != null &&
-            !((documentationFormat is List<Object?> &&
-                (documentationFormat
-                    .every((item) => MarkupKind.canParse(item, reporter)))))) {
+            (documentationFormat is! List<Object?> ||
+                documentationFormat
+                    .any((item) => !MarkupKind.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<MarkupKind>');
           return false;
         }
@@ -5102,7 +5190,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       reporter.push('insertReplaceSupport');
       try {
         final insertReplaceSupport = obj['insertReplaceSupport'];
-        if (insertReplaceSupport != null && !(insertReplaceSupport is bool)) {
+        if (insertReplaceSupport != null && insertReplaceSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -5113,8 +5201,8 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       try {
         final insertTextModeSupport = obj['insertTextModeSupport'];
         if (insertTextModeSupport != null &&
-            !(CompletionItemInsertTextModeSupport.canParse(
-                insertTextModeSupport, reporter))) {
+            !CompletionItemInsertTextModeSupport.canParse(
+                insertTextModeSupport, reporter)) {
           reporter.reportError(
               'must be of type CompletionItemInsertTextModeSupport');
           return false;
@@ -5125,7 +5213,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       reporter.push('labelDetailsSupport');
       try {
         final labelDetailsSupport = obj['labelDetailsSupport'];
-        if (labelDetailsSupport != null && !(labelDetailsSupport is bool)) {
+        if (labelDetailsSupport != null && labelDetailsSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -5135,7 +5223,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       reporter.push('preselectSupport');
       try {
         final preselectSupport = obj['preselectSupport'];
-        if (preselectSupport != null && !(preselectSupport is bool)) {
+        if (preselectSupport != null && preselectSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -5146,8 +5234,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       try {
         final resolveSupport = obj['resolveSupport'];
         if (resolveSupport != null &&
-            !(CompletionItemResolveSupport.canParse(
-                resolveSupport, reporter))) {
+            !CompletionItemResolveSupport.canParse(resolveSupport, reporter)) {
           reporter.reportError('must be of type CompletionItemResolveSupport');
           return false;
         }
@@ -5157,7 +5244,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       reporter.push('snippetSupport');
       try {
         final snippetSupport = obj['snippetSupport'];
-        if (snippetSupport != null && !(snippetSupport is bool)) {
+        if (snippetSupport != null && snippetSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -5168,7 +5255,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       try {
         final tagSupport = obj['tagSupport'];
         if (tagSupport != null &&
-            !(CompletionItemTagSupport.canParse(tagSupport, reporter))) {
+            !CompletionItemTagSupport.canParse(tagSupport, reporter)) {
           reporter.reportError('must be of type CompletionItemTagSupport');
           return false;
         }
@@ -5250,6 +5337,7 @@ class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
   /// of the protocol.
   final List<CompletionItemKind>? valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (valueSet != null) {
@@ -5264,9 +5352,9 @@ class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
       try {
         final valueSet = obj['valueSet'];
         if (valueSet != null &&
-            !((valueSet is List<Object?> &&
-                (valueSet.every(
-                    (item) => CompletionItemKind.canParse(item, reporter)))))) {
+            (valueSet is! List<Object?> ||
+                valueSet.any(
+                    (item) => !CompletionItemKind.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<CompletionItemKind>');
           return false;
         }
@@ -5327,6 +5415,7 @@ class CompletionClientCapabilitiesCompletionList implements ToJsonable {
   ///  @since 3.17.0
   final List<String>? itemDefaults;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (itemDefaults != null) {
@@ -5341,8 +5430,8 @@ class CompletionClientCapabilitiesCompletionList implements ToJsonable {
       try {
         final itemDefaults = obj['itemDefaults'];
         if (itemDefaults != null &&
-            !((itemDefaults is List<Object?> &&
-                (itemDefaults.every((item) => item is String))))) {
+            (itemDefaults is! List<Object?> ||
+                itemDefaults.any((item) => item is! String))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -5405,6 +5494,7 @@ class CompletionContext implements ToJsonable {
   /// How the completion was triggered.
   final CompletionTriggerKind triggerKind;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (triggerCharacter != null) {
@@ -5419,7 +5509,7 @@ class CompletionContext implements ToJsonable {
       reporter.push('triggerCharacter');
       try {
         final triggerCharacter = obj['triggerCharacter'];
-        if (triggerCharacter != null && !(triggerCharacter is String)) {
+        if (triggerCharacter != null && triggerCharacter is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -5437,7 +5527,7 @@ class CompletionContext implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(CompletionTriggerKind.canParse(triggerKind, reporter))) {
+        if (!CompletionTriggerKind.canParse(triggerKind, reporter)) {
           reporter.reportError('must be of type CompletionTriggerKind');
           return false;
         }
@@ -5728,6 +5818,7 @@ class CompletionItem implements ToJsonable {
   ///  @since 3.17.0
   final String? textEditText;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (additionalTextEdits != null) {
@@ -5795,9 +5886,9 @@ class CompletionItem implements ToJsonable {
       try {
         final additionalTextEdits = obj['additionalTextEdits'];
         if (additionalTextEdits != null &&
-            !((additionalTextEdits is List<Object?> &&
-                (additionalTextEdits
-                    .every((item) => TextEdit.canParse(item, reporter)))))) {
+            (additionalTextEdits is! List<Object?> ||
+                additionalTextEdits
+                    .any((item) => !TextEdit.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<TextEdit>');
           return false;
         }
@@ -5807,7 +5898,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('command');
       try {
         final command = obj['command'];
-        if (command != null && !(Command.canParse(command, reporter))) {
+        if (command != null && !Command.canParse(command, reporter)) {
           reporter.reportError('must be of type Command');
           return false;
         }
@@ -5818,8 +5909,8 @@ class CompletionItem implements ToJsonable {
       try {
         final commitCharacters = obj['commitCharacters'];
         if (commitCharacters != null &&
-            !((commitCharacters is List<Object?> &&
-                (commitCharacters.every((item) => item is String))))) {
+            (commitCharacters is! List<Object?> ||
+                commitCharacters.any((item) => item is! String))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -5830,7 +5921,7 @@ class CompletionItem implements ToJsonable {
       try {
         final data = obj['data'];
         if (data != null &&
-            !(CompletionItemResolutionInfo.canParse(data, reporter))) {
+            !CompletionItemResolutionInfo.canParse(data, reporter)) {
           reporter.reportError('must be of type CompletionItemResolutionInfo');
           return false;
         }
@@ -5840,7 +5931,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('deprecated');
       try {
         final deprecated = obj['deprecated'];
-        if (deprecated != null && !(deprecated is bool)) {
+        if (deprecated != null && deprecated is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -5850,7 +5941,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('detail');
       try {
         final detail = obj['detail'];
-        if (detail != null && !(detail is String)) {
+        if (detail != null && detail is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -5861,8 +5952,8 @@ class CompletionItem implements ToJsonable {
       try {
         final documentation = obj['documentation'];
         if (documentation != null &&
-            !((MarkupContent.canParse(documentation, reporter) ||
-                documentation is String))) {
+            !MarkupContent.canParse(documentation, reporter) &&
+            documentation is! String) {
           reporter
               .reportError('must be of type Either2<MarkupContent, String>');
           return false;
@@ -5873,7 +5964,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('filterText');
       try {
         final filterText = obj['filterText'];
-        if (filterText != null && !(filterText is String)) {
+        if (filterText != null && filterText is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -5883,7 +5974,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('insertText');
       try {
         final insertText = obj['insertText'];
-        if (insertText != null && !(insertText is String)) {
+        if (insertText != null && insertText is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -5894,7 +5985,7 @@ class CompletionItem implements ToJsonable {
       try {
         final insertTextFormat = obj['insertTextFormat'];
         if (insertTextFormat != null &&
-            !(InsertTextFormat.canParse(insertTextFormat, reporter))) {
+            !InsertTextFormat.canParse(insertTextFormat, reporter)) {
           reporter.reportError('must be of type InsertTextFormat');
           return false;
         }
@@ -5905,7 +5996,7 @@ class CompletionItem implements ToJsonable {
       try {
         final insertTextMode = obj['insertTextMode'];
         if (insertTextMode != null &&
-            !(InsertTextMode.canParse(insertTextMode, reporter))) {
+            !InsertTextMode.canParse(insertTextMode, reporter)) {
           reporter.reportError('must be of type InsertTextMode');
           return false;
         }
@@ -5915,7 +6006,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('kind');
       try {
         final kind = obj['kind'];
-        if (kind != null && !(CompletionItemKind.canParse(kind, reporter))) {
+        if (kind != null && !CompletionItemKind.canParse(kind, reporter)) {
           reporter.reportError('must be of type CompletionItemKind');
           return false;
         }
@@ -5933,7 +6024,7 @@ class CompletionItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(label is String)) {
+        if (label is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -5944,7 +6035,7 @@ class CompletionItem implements ToJsonable {
       try {
         final labelDetails = obj['labelDetails'];
         if (labelDetails != null &&
-            !(CompletionItemLabelDetails.canParse(labelDetails, reporter))) {
+            !CompletionItemLabelDetails.canParse(labelDetails, reporter)) {
           reporter.reportError('must be of type CompletionItemLabelDetails');
           return false;
         }
@@ -5954,7 +6045,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('preselect');
       try {
         final preselect = obj['preselect'];
-        if (preselect != null && !(preselect is bool)) {
+        if (preselect != null && preselect is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -5964,7 +6055,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('sortText');
       try {
         final sortText = obj['sortText'];
-        if (sortText != null && !(sortText is String)) {
+        if (sortText != null && sortText is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -5975,9 +6066,9 @@ class CompletionItem implements ToJsonable {
       try {
         final tags = obj['tags'];
         if (tags != null &&
-            !((tags is List<Object?> &&
-                (tags.every(
-                    (item) => CompletionItemTag.canParse(item, reporter)))))) {
+            (tags is! List<Object?> ||
+                tags.any(
+                    (item) => !CompletionItemTag.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<CompletionItemTag>');
           return false;
         }
@@ -5988,8 +6079,8 @@ class CompletionItem implements ToJsonable {
       try {
         final textEdit = obj['textEdit'];
         if (textEdit != null &&
-            !((InsertReplaceEdit.canParse(textEdit, reporter) ||
-                TextEdit.canParse(textEdit, reporter)))) {
+            !InsertReplaceEdit.canParse(textEdit, reporter) &&
+            !TextEdit.canParse(textEdit, reporter)) {
           reporter.reportError(
               'must be of type Either2<InsertReplaceEdit, TextEdit>');
           return false;
@@ -6000,7 +6091,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('textEditText');
       try {
         final textEditText = obj['textEditText'];
-        if (textEditText != null && !(textEditText is String)) {
+        if (textEditText != null && textEditText is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -6071,6 +6162,102 @@ class CompletionItem implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class CompletionItemEditRange implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    CompletionItemEditRange.canParse,
+    CompletionItemEditRange.fromJson,
+  );
+
+  CompletionItemEditRange({
+    required this.insert,
+    required this.replace,
+  });
+  static CompletionItemEditRange fromJson(Map<String, Object?> json) {
+    final insertJson = json['insert'];
+    final insert = Range.fromJson(insertJson as Map<String, Object?>);
+    final replaceJson = json['replace'];
+    final replace = Range.fromJson(replaceJson as Map<String, Object?>);
+    return CompletionItemEditRange(
+      insert: insert,
+      replace: replace,
+    );
+  }
+
+  final Range insert;
+  final Range replace;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['insert'] = insert.toJson();
+    result['replace'] = replace.toJson();
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('insert');
+      try {
+        if (!obj.containsKey('insert')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final insert = obj['insert'];
+        if (insert == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!Range.canParse(insert, reporter)) {
+          reporter.reportError('must be of type Range');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('replace');
+      try {
+        if (!obj.containsKey('replace')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final replace = obj['replace'];
+        if (replace == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!Range.canParse(replace, reporter)) {
+          reporter.reportError('must be of type Range');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type CompletionItemEditRange');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is CompletionItemEditRange &&
+        other.runtimeType == CompletionItemEditRange) {
+      return insert == other.insert && replace == other.replace && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        insert,
+        replace,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class CompletionItemInsertTextModeSupport implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CompletionItemInsertTextModeSupport.canParse,
@@ -6093,6 +6280,7 @@ class CompletionItemInsertTextModeSupport implements ToJsonable {
 
   final List<InsertTextMode> valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
@@ -6112,9 +6300,8 @@ class CompletionItemInsertTextModeSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((valueSet is List<Object?> &&
-            (valueSet
-                .every((item) => InsertTextMode.canParse(item, reporter)))))) {
+        if (valueSet is! List<Object?> ||
+            valueSet.any((item) => !InsertTextMode.canParse(item, reporter))) {
           reporter.reportError('must be of type List<InsertTextMode>');
           return false;
         }
@@ -6184,6 +6371,7 @@ class CompletionItemKind implements ToJsonable {
   static const Value = CompletionItemKind(12);
   static const Variable = CompletionItemKind(6);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -6192,6 +6380,7 @@ class CompletionItemKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is CompletionItemKind && other._value == _value;
 }
@@ -6229,6 +6418,7 @@ class CompletionItemLabelDetails implements ToJsonable {
   /// for function signatures or type annotations.
   final String? detail;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (description != null) {
@@ -6245,7 +6435,7 @@ class CompletionItemLabelDetails implements ToJsonable {
       reporter.push('description');
       try {
         final description = obj['description'];
-        if (description != null && !(description is String)) {
+        if (description != null && description is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -6255,7 +6445,7 @@ class CompletionItemLabelDetails implements ToJsonable {
       reporter.push('detail');
       try {
         final detail = obj['detail'];
-        if (detail != null && !(detail is String)) {
+        if (detail != null && detail is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -6310,6 +6500,7 @@ class CompletionItemResolveSupport implements ToJsonable {
   /// The properties that a client can resolve lazily.
   final List<String> properties;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['properties'] = properties;
@@ -6329,8 +6520,8 @@ class CompletionItemResolveSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((properties is List<Object?> &&
-            (properties.every((item) => item is String))))) {
+        if (properties is! List<Object?> ||
+            properties.any((item) => item is! String)) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -6378,6 +6569,7 @@ class CompletionItemTag implements ToJsonable {
   /// Render a completion as obsolete, usually using a strike-out.
   static const Deprecated = CompletionItemTag(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -6386,6 +6578,7 @@ class CompletionItemTag implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is CompletionItemTag && other._value == _value;
 }
@@ -6412,6 +6605,7 @@ class CompletionItemTagSupport implements ToJsonable {
   /// The tags supported by the client.
   final List<CompletionItemTag> valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
@@ -6431,9 +6625,9 @@ class CompletionItemTagSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((valueSet is List<Object?> &&
-            (valueSet.every(
-                (item) => CompletionItemTag.canParse(item, reporter)))))) {
+        if (valueSet is! List<Object?> ||
+            valueSet
+                .any((item) => !CompletionItemTag.canParse(item, reporter))) {
           reporter.reportError('must be of type List<CompletionItemTag>');
           return false;
         }
@@ -6520,6 +6714,7 @@ class CompletionList implements ToJsonable {
   /// The completion items.
   final List<CompletionItem> items;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['isIncomplete'] = isIncomplete;
@@ -6543,7 +6738,7 @@ class CompletionList implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(isIncomplete is bool)) {
+        if (isIncomplete is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -6554,7 +6749,7 @@ class CompletionList implements ToJsonable {
       try {
         final itemDefaults = obj['itemDefaults'];
         if (itemDefaults != null &&
-            !(CompletionListItemDefaults.canParse(itemDefaults, reporter))) {
+            !CompletionListItemDefaults.canParse(itemDefaults, reporter)) {
           reporter.reportError('must be of type CompletionListItemDefaults');
           return false;
         }
@@ -6572,9 +6767,8 @@ class CompletionList implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((items is List<Object?> &&
-            (items
-                .every((item) => CompletionItem.canParse(item, reporter)))))) {
+        if (items is! List<Object?> ||
+            items.any((item) => !CompletionItem.canParse(item, reporter))) {
           reporter.reportError('must be of type List<CompletionItem>');
           return false;
         }
@@ -6611,101 +6805,6 @@ class CompletionList implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class CompletionListEditRange implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    CompletionListEditRange.canParse,
-    CompletionListEditRange.fromJson,
-  );
-
-  CompletionListEditRange({
-    required this.insert,
-    required this.replace,
-  });
-  static CompletionListEditRange fromJson(Map<String, Object?> json) {
-    final insertJson = json['insert'];
-    final insert = Range.fromJson(insertJson as Map<String, Object?>);
-    final replaceJson = json['replace'];
-    final replace = Range.fromJson(replaceJson as Map<String, Object?>);
-    return CompletionListEditRange(
-      insert: insert,
-      replace: replace,
-    );
-  }
-
-  final Range insert;
-  final Range replace;
-
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['insert'] = insert.toJson();
-    result['replace'] = replace.toJson();
-    return result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('insert');
-      try {
-        if (!obj.containsKey('insert')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final insert = obj['insert'];
-        if (insert == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(Range.canParse(insert, reporter))) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      reporter.push('replace');
-      try {
-        if (!obj.containsKey('replace')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final replace = obj['replace'];
-        if (replace == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(Range.canParse(replace, reporter))) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError('must be of type CompletionListEditRange');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is CompletionListEditRange &&
-        other.runtimeType == CompletionListEditRange) {
-      return insert == other.insert && replace == other.replace && true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        insert,
-        replace,
-      );
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
 class CompletionListItemDefaults implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CompletionListItemDefaults.canParse,
@@ -6714,6 +6813,7 @@ class CompletionListItemDefaults implements ToJsonable {
 
   CompletionListItemDefaults({
     this.commitCharacters,
+    this.data,
     this.editRange,
     this.insertTextFormat,
     this.insertTextMode,
@@ -6723,17 +6823,19 @@ class CompletionListItemDefaults implements ToJsonable {
     final commitCharacters = (commitCharactersJson as List<Object?>?)
         ?.map((item) => item as String)
         .toList();
+    final dataJson = json['data'];
+    final data = dataJson;
     final editRangeJson = json['editRange'];
     final editRange = editRangeJson == null
         ? null
-        : (CompletionListEditRange.canParse(editRangeJson, nullLspJsonReporter)
-            ? Either2<CompletionListEditRange, Range>.t1(
-                CompletionListEditRange.fromJson(
+        : (CompletionItemEditRange.canParse(editRangeJson, nullLspJsonReporter)
+            ? Either2<CompletionItemEditRange, Range>.t1(
+                CompletionItemEditRange.fromJson(
                     editRangeJson as Map<String, Object?>))
             : (Range.canParse(editRangeJson, nullLspJsonReporter)
-                ? Either2<CompletionListEditRange, Range>.t2(
+                ? Either2<CompletionItemEditRange, Range>.t2(
                     Range.fromJson(editRangeJson as Map<String, Object?>))
-                : (throw '''$editRangeJson was not one of (CompletionListEditRange, Range)''')));
+                : (throw '''$editRangeJson was not one of (CompletionItemEditRange, Range)''')));
     final insertTextFormatJson = json['insertTextFormat'];
     final insertTextFormat = insertTextFormatJson != null
         ? InsertTextFormat.fromJson(insertTextFormatJson as int)
@@ -6744,6 +6846,7 @@ class CompletionListItemDefaults implements ToJsonable {
         : null;
     return CompletionListItemDefaults(
       commitCharacters: commitCharacters,
+      data: data,
       editRange: editRange,
       insertTextFormat: insertTextFormat,
       insertTextMode: insertTextMode,
@@ -6754,9 +6857,13 @@ class CompletionListItemDefaults implements ToJsonable {
   ///  @since 3.17.0
   final List<String>? commitCharacters;
 
+  /// A default data value.
+  ///  @since 3.17.0
+  final Object? data;
+
   /// A default edit range
   ///  @since 3.17.0
-  final Either2<CompletionListEditRange, Range>? editRange;
+  final Either2<CompletionItemEditRange, Range>? editRange;
 
   /// A default insert text format
   ///  @since 3.17.0
@@ -6766,10 +6873,14 @@ class CompletionListItemDefaults implements ToJsonable {
   ///  @since 3.17.0
   final InsertTextMode? insertTextMode;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (commitCharacters != null) {
       result['commitCharacters'] = commitCharacters;
+    }
+    if (data != null) {
+      result['data'] = data;
     }
     if (editRange != null) {
       result['editRange'] = editRange;
@@ -6789,8 +6900,8 @@ class CompletionListItemDefaults implements ToJsonable {
       try {
         final commitCharacters = obj['commitCharacters'];
         if (commitCharacters != null &&
-            !((commitCharacters is List<Object?> &&
-                (commitCharacters.every((item) => item is String))))) {
+            (commitCharacters is! List<Object?> ||
+                commitCharacters.any((item) => item is! String))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -6801,10 +6912,10 @@ class CompletionListItemDefaults implements ToJsonable {
       try {
         final editRange = obj['editRange'];
         if (editRange != null &&
-            !((CompletionListEditRange.canParse(editRange, reporter) ||
-                Range.canParse(editRange, reporter)))) {
+            !CompletionItemEditRange.canParse(editRange, reporter) &&
+            !Range.canParse(editRange, reporter)) {
           reporter.reportError(
-              'must be of type Either2<CompletionListEditRange, Range>');
+              'must be of type Either2<CompletionItemEditRange, Range>');
           return false;
         }
       } finally {
@@ -6814,7 +6925,7 @@ class CompletionListItemDefaults implements ToJsonable {
       try {
         final insertTextFormat = obj['insertTextFormat'];
         if (insertTextFormat != null &&
-            !(InsertTextFormat.canParse(insertTextFormat, reporter))) {
+            !InsertTextFormat.canParse(insertTextFormat, reporter)) {
           reporter.reportError('must be of type InsertTextFormat');
           return false;
         }
@@ -6825,7 +6936,7 @@ class CompletionListItemDefaults implements ToJsonable {
       try {
         final insertTextMode = obj['insertTextMode'];
         if (insertTextMode != null &&
-            !(InsertTextMode.canParse(insertTextMode, reporter))) {
+            !InsertTextMode.canParse(insertTextMode, reporter)) {
           reporter.reportError('must be of type InsertTextMode');
           return false;
         }
@@ -6845,6 +6956,7 @@ class CompletionListItemDefaults implements ToJsonable {
         other.runtimeType == CompletionListItemDefaults) {
       return listEqual(commitCharacters, other.commitCharacters,
               (String a, String b) => a == b) &&
+          data == other.data &&
           editRange == other.editRange &&
           insertTextFormat == other.insertTextFormat &&
           insertTextMode == other.insertTextMode &&
@@ -6856,6 +6968,7 @@ class CompletionListItemDefaults implements ToJsonable {
   @override
   int get hashCode => Object.hash(
         lspHashCode(commitCharacters),
+        data,
         editRange,
         insertTextFormat,
         insertTextMode,
@@ -6938,8 +7051,10 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
   /// valid inside an identifier (for example `.` in JavaScript) list them in
   /// `triggerCharacters`.
   final List<String>? triggerCharacters;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (allCommitCharacters != null) {
@@ -6966,8 +7081,8 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
       try {
         final allCommitCharacters = obj['allCommitCharacters'];
         if (allCommitCharacters != null &&
-            !((allCommitCharacters is List<Object?> &&
-                (allCommitCharacters.every((item) => item is String))))) {
+            (allCommitCharacters is! List<Object?> ||
+                allCommitCharacters.any((item) => item is! String))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -6978,8 +7093,8 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
       try {
         final completionItem = obj['completionItem'];
         if (completionItem != null &&
-            !(CompletionOptionsCompletionItem.canParse(
-                completionItem, reporter))) {
+            !CompletionOptionsCompletionItem.canParse(
+                completionItem, reporter)) {
           reporter
               .reportError('must be of type CompletionOptionsCompletionItem');
           return false;
@@ -6990,7 +7105,7 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('resolveProvider');
       try {
         final resolveProvider = obj['resolveProvider'];
-        if (resolveProvider != null && !(resolveProvider is bool)) {
+        if (resolveProvider != null && resolveProvider is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -7001,8 +7116,8 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
       try {
         final triggerCharacters = obj['triggerCharacters'];
         if (triggerCharacters != null &&
-            !((triggerCharacters is List<Object?> &&
-                (triggerCharacters.every((item) => item is String))))) {
+            (triggerCharacters is! List<Object?> ||
+                triggerCharacters.any((item) => item is! String))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -7012,7 +7127,7 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -7077,6 +7192,7 @@ class CompletionOptionsCompletionItem implements ToJsonable {
   ///  @since 3.17.0
   final bool? labelDetailsSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (labelDetailsSupport != null) {
@@ -7090,7 +7206,7 @@ class CompletionOptionsCompletionItem implements ToJsonable {
       reporter.push('labelDetailsSupport');
       try {
         final labelDetailsSupport = obj['labelDetailsSupport'];
-        if (labelDetailsSupport != null && !(labelDetailsSupport is bool)) {
+        if (labelDetailsSupport != null && labelDetailsSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -7179,17 +7295,22 @@ class CompletionParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (context != null) {
@@ -7211,8 +7332,7 @@ class CompletionParams
       reporter.push('context');
       try {
         final context = obj['context'];
-        if (context != null &&
-            !(CompletionContext.canParse(context, reporter))) {
+        if (context != null && !CompletionContext.canParse(context, reporter)) {
           reporter.reportError('must be of type CompletionContext');
           return false;
         }
@@ -7223,7 +7343,8 @@ class CompletionParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -7241,7 +7362,7 @@ class CompletionParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -7259,7 +7380,7 @@ class CompletionParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -7270,7 +7391,8 @@ class CompletionParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -7337,8 +7459,8 @@ class CompletionRegistrationOptions
         : null;
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final resolveProviderJson = json['resolveProvider'];
     final resolveProvider = resolveProviderJson as bool?;
@@ -7366,18 +7488,22 @@ class CompletionRegistrationOptions
   /// If a server provides both `allCommitCharacters` and commit characters on
   /// an individual completion item the ones on the completion item win.
   ///  @since 3.2.0
+  @override
   final List<String>? allCommitCharacters;
 
   /// The server supports the following `CompletionItem` specific capabilities.
   ///  @since 3.17.0
+  @override
   final CompletionOptionsCompletionItem? completionItem;
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The server provides support to resolve additional information for a
   /// completion item.
+  @override
   final bool? resolveProvider;
 
   /// Most tools trigger completion request automatically without explicitly
@@ -7390,9 +7516,12 @@ class CompletionRegistrationOptions
   /// If code complete should automatically be trigger on characters not being
   /// valid inside an identifier (for example `.` in JavaScript) list them in
   /// `triggerCharacters`.
+  @override
   final List<String>? triggerCharacters;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (allCommitCharacters != null) {
@@ -7420,8 +7549,8 @@ class CompletionRegistrationOptions
       try {
         final allCommitCharacters = obj['allCommitCharacters'];
         if (allCommitCharacters != null &&
-            !((allCommitCharacters is List<Object?> &&
-                (allCommitCharacters.every((item) => item is String))))) {
+            (allCommitCharacters is! List<Object?> ||
+                allCommitCharacters.any((item) => item is! String))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -7432,8 +7561,8 @@ class CompletionRegistrationOptions
       try {
         final completionItem = obj['completionItem'];
         if (completionItem != null &&
-            !(CompletionOptionsCompletionItem.canParse(
-                completionItem, reporter))) {
+            !CompletionOptionsCompletionItem.canParse(
+                completionItem, reporter)) {
           reporter
               .reportError('must be of type CompletionOptionsCompletionItem');
           return false;
@@ -7449,10 +7578,11 @@ class CompletionRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -7461,7 +7591,7 @@ class CompletionRegistrationOptions
       reporter.push('resolveProvider');
       try {
         final resolveProvider = obj['resolveProvider'];
-        if (resolveProvider != null && !(resolveProvider is bool)) {
+        if (resolveProvider != null && resolveProvider is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -7472,8 +7602,8 @@ class CompletionRegistrationOptions
       try {
         final triggerCharacters = obj['triggerCharacters'];
         if (triggerCharacters != null &&
-            !((triggerCharacters is List<Object?> &&
-                (triggerCharacters.every((item) => item is String))))) {
+            (triggerCharacters is! List<Object?> ||
+                triggerCharacters.any((item) => item is! String))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -7483,7 +7613,7 @@ class CompletionRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -7504,8 +7634,12 @@ class CompletionRegistrationOptions
       return listEqual(allCommitCharacters, other.allCommitCharacters,
               (String a, String b) => a == b) &&
           completionItem == other.completionItem &&
-          listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+          listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           resolveProvider == other.resolveProvider &&
           listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
@@ -7557,6 +7691,7 @@ class CompletionTriggerKind implements ToJsonable {
   /// Completion was re-triggered as the current completion list is incomplete.
   static const TriggerForIncompleteCompletions = CompletionTriggerKind._(3);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -7565,6 +7700,7 @@ class CompletionTriggerKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is CompletionTriggerKind && other._value == _value;
 }
@@ -7596,6 +7732,7 @@ class ConfigurationItem implements ToJsonable {
   /// The configuration section asked for.
   final String? section;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (scopeUri != null) {
@@ -7612,7 +7749,7 @@ class ConfigurationItem implements ToJsonable {
       reporter.push('scopeUri');
       try {
         final scopeUri = obj['scopeUri'];
-        if (scopeUri != null && !(scopeUri is String)) {
+        if (scopeUri != null && scopeUri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -7622,7 +7759,7 @@ class ConfigurationItem implements ToJsonable {
       reporter.push('section');
       try {
         final section = obj['section'];
-        if (section != null && !(section is String)) {
+        if (section != null && section is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -7675,6 +7812,7 @@ class ConfigurationParams implements ToJsonable {
 
   final List<ConfigurationItem> items;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['items'] = items.map((item) => item.toJson()).toList();
@@ -7694,9 +7832,8 @@ class ConfigurationParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((items is List<Object?> &&
-            (items.every(
-                (item) => ConfigurationItem.canParse(item, reporter)))))) {
+        if (items is! List<Object?> ||
+            items.any((item) => !ConfigurationItem.canParse(item, reporter))) {
           reporter.reportError('must be of type List<ConfigurationItem>');
           return false;
         }
@@ -7777,6 +7914,7 @@ class CreateFile implements ToJsonable {
   /// The resource to create.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (annotationId != null) {
@@ -7795,7 +7933,7 @@ class CreateFile implements ToJsonable {
       reporter.push('annotationId');
       try {
         final annotationId = obj['annotationId'];
-        if (annotationId != null && !(annotationId is String)) {
+        if (annotationId != null && annotationId is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -7813,7 +7951,7 @@ class CreateFile implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(kind == 'create')) {
+        if (kind != 'create') {
           reporter.reportError('must be the literal \'create\'');
           return false;
         }
@@ -7823,8 +7961,7 @@ class CreateFile implements ToJsonable {
       reporter.push('options');
       try {
         final options = obj['options'];
-        if (options != null &&
-            !(CreateFileOptions.canParse(options, reporter))) {
+        if (options != null && !CreateFileOptions.canParse(options, reporter)) {
           reporter.reportError('must be of type CreateFileOptions');
           return false;
         }
@@ -7842,7 +7979,7 @@ class CreateFile implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -7908,6 +8045,7 @@ class CreateFileOptions implements ToJsonable {
   /// Overwrite existing file. Overwrite wins over `ignoreIfExists`
   final bool? overwrite;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (ignoreIfExists != null) {
@@ -7924,7 +8062,7 @@ class CreateFileOptions implements ToJsonable {
       reporter.push('ignoreIfExists');
       try {
         final ignoreIfExists = obj['ignoreIfExists'];
-        if (ignoreIfExists != null && !(ignoreIfExists is bool)) {
+        if (ignoreIfExists != null && ignoreIfExists is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -7934,7 +8072,7 @@ class CreateFileOptions implements ToJsonable {
       reporter.push('overwrite');
       try {
         final overwrite = obj['overwrite'];
-        if (overwrite != null && !(overwrite is bool)) {
+        if (overwrite != null && overwrite is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -7993,6 +8131,7 @@ class CreateFilesParams implements ToJsonable {
   /// An array of all files/folders created in this operation.
   final List<FileCreate> files;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['files'] = files.map((item) => item.toJson()).toList();
@@ -8012,8 +8151,8 @@ class CreateFilesParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((files is List<Object?> &&
-            (files.every((item) => FileCreate.canParse(item, reporter)))))) {
+        if (files is! List<Object?> ||
+            files.any((item) => !FileCreate.canParse(item, reporter))) {
           reporter.reportError('must be of type List<FileCreate>');
           return false;
         }
@@ -8073,6 +8212,7 @@ class DeclarationClientCapabilities implements ToJsonable {
   /// The client supports additional metadata in the form of declaration links.
   final bool? linkSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -8089,7 +8229,7 @@ class DeclarationClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -8099,7 +8239,7 @@ class DeclarationClientCapabilities implements ToJsonable {
       reporter.push('linkSupport');
       try {
         final linkSupport = obj['linkSupport'];
-        if (linkSupport != null && !(linkSupport is bool)) {
+        if (linkSupport != null && linkSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -8154,8 +8294,10 @@ class DeclarationOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -8169,7 +8311,7 @@ class DeclarationOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -8248,17 +8390,22 @@ class DeclarationParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -8278,7 +8425,8 @@ class DeclarationParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -8296,7 +8444,7 @@ class DeclarationParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -8314,7 +8462,7 @@ class DeclarationParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -8325,7 +8473,8 @@ class DeclarationParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -8382,8 +8531,8 @@ class DeclarationRegistrationOptions
   static DeclarationRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -8398,13 +8547,17 @@ class DeclarationRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -8427,10 +8580,11 @@ class DeclarationRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -8439,7 +8593,7 @@ class DeclarationRegistrationOptions
       reporter.push('id');
       try {
         final id = obj['id'];
-        if (id != null && !(id is String)) {
+        if (id != null && id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -8449,7 +8603,7 @@ class DeclarationRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -8467,8 +8621,12 @@ class DeclarationRegistrationOptions
   bool operator ==(Object other) {
     if (other is DeclarationRegistrationOptions &&
         other.runtimeType == DeclarationRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -8515,6 +8673,7 @@ class DefinitionClientCapabilities implements ToJsonable {
   ///  @since 3.14.0
   final bool? linkSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -8531,7 +8690,7 @@ class DefinitionClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -8541,7 +8700,7 @@ class DefinitionClientCapabilities implements ToJsonable {
       reporter.push('linkSupport');
       try {
         final linkSupport = obj['linkSupport'];
-        if (linkSupport != null && !(linkSupport is bool)) {
+        if (linkSupport != null && linkSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -8596,8 +8755,10 @@ class DefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -8611,7 +8772,7 @@ class DefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -8689,17 +8850,22 @@ class DefinitionParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -8719,7 +8885,8 @@ class DefinitionParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -8737,7 +8904,7 @@ class DefinitionParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -8755,7 +8922,7 @@ class DefinitionParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -8766,7 +8933,8 @@ class DefinitionParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -8818,8 +8986,8 @@ class DefinitionRegistrationOptions
   static DefinitionRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -8831,9 +8999,12 @@ class DefinitionRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -8853,10 +9024,11 @@ class DefinitionRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -8865,7 +9037,7 @@ class DefinitionRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -8883,8 +9055,12 @@ class DefinitionRegistrationOptions
   bool operator ==(Object other) {
     if (other is DefinitionRegistrationOptions &&
         other.runtimeType == DefinitionRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           workDoneProgress == other.workDoneProgress &&
           true;
     }
@@ -8950,6 +9126,7 @@ class DeleteFile implements ToJsonable {
   /// The file to delete.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (annotationId != null) {
@@ -8968,7 +9145,7 @@ class DeleteFile implements ToJsonable {
       reporter.push('annotationId');
       try {
         final annotationId = obj['annotationId'];
-        if (annotationId != null && !(annotationId is String)) {
+        if (annotationId != null && annotationId is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -8986,7 +9163,7 @@ class DeleteFile implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(kind == 'delete')) {
+        if (kind != 'delete') {
           reporter.reportError('must be the literal \'delete\'');
           return false;
         }
@@ -8996,8 +9173,7 @@ class DeleteFile implements ToJsonable {
       reporter.push('options');
       try {
         final options = obj['options'];
-        if (options != null &&
-            !(DeleteFileOptions.canParse(options, reporter))) {
+        if (options != null && !DeleteFileOptions.canParse(options, reporter)) {
           reporter.reportError('must be of type DeleteFileOptions');
           return false;
         }
@@ -9015,7 +9191,7 @@ class DeleteFile implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -9081,6 +9257,7 @@ class DeleteFileOptions implements ToJsonable {
   /// Delete the content recursively if a folder is denoted.
   final bool? recursive;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (ignoreIfNotExists != null) {
@@ -9097,7 +9274,7 @@ class DeleteFileOptions implements ToJsonable {
       reporter.push('ignoreIfNotExists');
       try {
         final ignoreIfNotExists = obj['ignoreIfNotExists'];
-        if (ignoreIfNotExists != null && !(ignoreIfNotExists is bool)) {
+        if (ignoreIfNotExists != null && ignoreIfNotExists is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -9107,7 +9284,7 @@ class DeleteFileOptions implements ToJsonable {
       reporter.push('recursive');
       try {
         final recursive = obj['recursive'];
-        if (recursive != null && !(recursive is bool)) {
+        if (recursive != null && recursive is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -9166,6 +9343,7 @@ class DeleteFilesParams implements ToJsonable {
   /// An array of all files/folders deleted in this operation.
   final List<FileDelete> files;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['files'] = files.map((item) => item.toJson()).toList();
@@ -9185,8 +9363,8 @@ class DeleteFilesParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((files is List<Object?> &&
-            (files.every((item) => FileDelete.canParse(item, reporter)))))) {
+        if (files is! List<Object?> ||
+            files.any((item) => !FileDelete.canParse(item, reporter))) {
           reporter.reportError('must be of type List<FileDelete>');
           return false;
         }
@@ -9310,6 +9488,7 @@ class Diagnostic implements ToJsonable {
   ///  @since 3.15.0
   final List<DiagnosticTag>? tags;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (code != null) {
@@ -9344,7 +9523,7 @@ class Diagnostic implements ToJsonable {
       reporter.push('code');
       try {
         final code = obj['code'];
-        if (code != null && !(code is String)) {
+        if (code != null && code is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -9355,7 +9534,7 @@ class Diagnostic implements ToJsonable {
       try {
         final codeDescription = obj['codeDescription'];
         if (codeDescription != null &&
-            !(CodeDescription.canParse(codeDescription, reporter))) {
+            !CodeDescription.canParse(codeDescription, reporter)) {
           reporter.reportError('must be of type CodeDescription');
           return false;
         }
@@ -9373,7 +9552,7 @@ class Diagnostic implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(message is String)) {
+        if (message is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -9391,7 +9570,7 @@ class Diagnostic implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -9402,9 +9581,9 @@ class Diagnostic implements ToJsonable {
       try {
         final relatedInformation = obj['relatedInformation'];
         if (relatedInformation != null &&
-            !((relatedInformation is List<Object?> &&
-                (relatedInformation.every((item) =>
-                    DiagnosticRelatedInformation.canParse(item, reporter)))))) {
+            (relatedInformation is! List<Object?> ||
+                relatedInformation.any((item) =>
+                    !DiagnosticRelatedInformation.canParse(item, reporter)))) {
           reporter.reportError(
               'must be of type List<DiagnosticRelatedInformation>');
           return false;
@@ -9416,7 +9595,7 @@ class Diagnostic implements ToJsonable {
       try {
         final severity = obj['severity'];
         if (severity != null &&
-            !(DiagnosticSeverity.canParse(severity, reporter))) {
+            !DiagnosticSeverity.canParse(severity, reporter)) {
           reporter.reportError('must be of type DiagnosticSeverity');
           return false;
         }
@@ -9426,7 +9605,7 @@ class Diagnostic implements ToJsonable {
       reporter.push('source');
       try {
         final source = obj['source'];
-        if (source != null && !(source is String)) {
+        if (source != null && source is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -9437,9 +9616,8 @@ class Diagnostic implements ToJsonable {
       try {
         final tags = obj['tags'];
         if (tags != null &&
-            !((tags is List<Object?> &&
-                (tags.every(
-                    (item) => DiagnosticTag.canParse(item, reporter)))))) {
+            (tags is! List<Object?> ||
+                tags.any((item) => !DiagnosticTag.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<DiagnosticTag>');
           return false;
         }
@@ -9526,6 +9704,7 @@ class DiagnosticClientCapabilities implements ToJsonable {
   /// pulls.
   final bool? relatedDocumentSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -9542,7 +9721,7 @@ class DiagnosticClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -9552,8 +9731,7 @@ class DiagnosticClientCapabilities implements ToJsonable {
       reporter.push('relatedDocumentSupport');
       try {
         final relatedDocumentSupport = obj['relatedDocumentSupport'];
-        if (relatedDocumentSupport != null &&
-            !(relatedDocumentSupport is bool)) {
+        if (relatedDocumentSupport != null && relatedDocumentSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -9631,11 +9809,13 @@ class DiagnosticOptions implements WorkDoneProgressOptions, ToJsonable {
   /// Inter file dependencies are common for most programming languages and
   /// typically uncommon for linters.
   final bool interFileDependencies;
+  @override
   final bool? workDoneProgress;
 
   /// The server provides support for workspace diagnostics as well.
   final bool workspaceDiagnostics;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (identifier != null) {
@@ -9654,7 +9834,7 @@ class DiagnosticOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('identifier');
       try {
         final identifier = obj['identifier'];
-        if (identifier != null && !(identifier is String)) {
+        if (identifier != null && identifier is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -9672,7 +9852,7 @@ class DiagnosticOptions implements WorkDoneProgressOptions, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(interFileDependencies is bool)) {
+        if (interFileDependencies is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -9682,7 +9862,7 @@ class DiagnosticOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -9700,7 +9880,7 @@ class DiagnosticOptions implements WorkDoneProgressOptions, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(workspaceDiagnostics is bool)) {
+        if (workspaceDiagnostics is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -9762,8 +9942,8 @@ class DiagnosticRegistrationOptions
   static DiagnosticRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -9787,26 +9967,33 @@ class DiagnosticRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
 
   /// An optional identifier under which the diagnostics are managed by the
   /// client.
+  @override
   final String? identifier;
 
   /// Whether the language has inter file dependencies meaning that editing code
   /// in one file can result in a different diagnostic set in another file.
   /// Inter file dependencies are common for most programming languages and
   /// typically uncommon for linters.
+  @override
   final bool interFileDependencies;
+  @override
   final bool? workDoneProgress;
 
   /// The server provides support for workspace diagnostics as well.
+  @override
   final bool workspaceDiagnostics;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -9834,10 +10021,11 @@ class DiagnosticRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -9846,7 +10034,7 @@ class DiagnosticRegistrationOptions
       reporter.push('id');
       try {
         final id = obj['id'];
-        if (id != null && !(id is String)) {
+        if (id != null && id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -9856,7 +10044,7 @@ class DiagnosticRegistrationOptions
       reporter.push('identifier');
       try {
         final identifier = obj['identifier'];
-        if (identifier != null && !(identifier is String)) {
+        if (identifier != null && identifier is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -9874,7 +10062,7 @@ class DiagnosticRegistrationOptions
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(interFileDependencies is bool)) {
+        if (interFileDependencies is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -9884,7 +10072,7 @@ class DiagnosticRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -9902,7 +10090,7 @@ class DiagnosticRegistrationOptions
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(workspaceDiagnostics is bool)) {
+        if (workspaceDiagnostics is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -9920,8 +10108,12 @@ class DiagnosticRegistrationOptions
   bool operator ==(Object other) {
     if (other is DiagnosticRegistrationOptions &&
         other.runtimeType == DiagnosticRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           identifier == other.identifier &&
           interFileDependencies == other.interFileDependencies &&
@@ -9976,6 +10168,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
   /// The message of this related diagnostic information.
   final String message;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['location'] = location.toJson();
@@ -9996,7 +10189,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Location.canParse(location, reporter))) {
+        if (!Location.canParse(location, reporter)) {
           reporter.reportError('must be of type Location');
           return false;
         }
@@ -10014,7 +10207,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(message is String)) {
+        if (message is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -10068,6 +10261,7 @@ class DiagnosticServerCancellationData implements ToJsonable {
 
   final bool retriggerRequest;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['retriggerRequest'] = retriggerRequest;
@@ -10087,7 +10281,7 @@ class DiagnosticServerCancellationData implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(retriggerRequest is bool)) {
+        if (retriggerRequest is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -10139,6 +10333,7 @@ class DiagnosticSeverity implements ToJsonable {
   /// Reports a warning.
   static const Warning = DiagnosticSeverity(2);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -10147,6 +10342,7 @@ class DiagnosticSeverity implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is DiagnosticSeverity && other._value == _value;
 }
@@ -10174,6 +10370,7 @@ class DiagnosticTag implements ToJsonable {
   /// of having an error squiggle.
   static const Unnecessary = DiagnosticTag(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -10182,6 +10379,7 @@ class DiagnosticTag implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is DiagnosticTag && other._value == _value;
 }
@@ -10215,6 +10413,7 @@ class DiagnosticWorkspaceClientCapabilities implements ToJsonable {
   /// wide change that requires such a calculation.
   final bool? refreshSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (refreshSupport != null) {
@@ -10228,7 +10427,7 @@ class DiagnosticWorkspaceClientCapabilities implements ToJsonable {
       reporter.push('refreshSupport');
       try {
         final refreshSupport = obj['refreshSupport'];
-        if (refreshSupport != null && !(refreshSupport is bool)) {
+        if (refreshSupport != null && refreshSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -10280,6 +10479,7 @@ class DidChangeConfigurationClientCapabilities implements ToJsonable {
   /// Did change configuration notification supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -10293,7 +10493,7 @@ class DidChangeConfigurationClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -10344,6 +10544,7 @@ class DidChangeConfigurationParams implements ToJsonable {
   /// The actual changed settings
   final Object? settings;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['settings'] = settings;
@@ -10417,6 +10618,7 @@ class DidChangeNotebookDocumentParams implements ToJsonable {
   /// version after all provided changes have been applied.
   final VersionedNotebookDocumentIdentifier notebookDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['change'] = change.toJson();
@@ -10437,7 +10639,7 @@ class DidChangeNotebookDocumentParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(NotebookDocumentChangeEvent.canParse(change, reporter))) {
+        if (!NotebookDocumentChangeEvent.canParse(change, reporter)) {
           reporter.reportError('must be of type NotebookDocumentChangeEvent');
           return false;
         }
@@ -10455,8 +10657,8 @@ class DidChangeNotebookDocumentParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(VersionedNotebookDocumentIdentifier.canParse(
-            notebookDocument, reporter))) {
+        if (!VersionedNotebookDocumentIdentifier.canParse(
+            notebookDocument, reporter)) {
           reporter.reportError(
               'must be of type VersionedNotebookDocumentIdentifier');
           return false;
@@ -10546,6 +10748,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
   /// after all provided content changes have been applied.
   final VersionedTextDocumentIdentifier textDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['contentChanges'] = contentChanges;
@@ -10566,11 +10769,10 @@ class DidChangeTextDocumentParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((contentChanges is List<Object?> &&
-            (contentChanges.every((item) =>
-                (TextDocumentContentChangeEvent1.canParse(item, reporter) ||
-                    TextDocumentContentChangeEvent2.canParse(
-                        item, reporter))))))) {
+        if (contentChanges is! List<Object?> ||
+            contentChanges.any((item) =>
+                !TextDocumentContentChangeEvent1.canParse(item, reporter) &&
+                !TextDocumentContentChangeEvent2.canParse(item, reporter))) {
           reporter.reportError(
               'must be of type List<Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>>');
           return false;
@@ -10589,8 +10791,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(VersionedTextDocumentIdentifier.canParse(
-            textDocument, reporter))) {
+        if (!VersionedTextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter
               .reportError('must be of type VersionedTextDocumentIdentifier');
           return false;
@@ -10666,6 +10867,7 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
   ///  @since 3.17.0
   final bool? relativePatternSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -10682,7 +10884,7 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -10692,8 +10894,7 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
       reporter.push('relativePatternSupport');
       try {
         final relativePatternSupport = obj['relativePatternSupport'];
-        if (relativePatternSupport != null &&
-            !(relativePatternSupport is bool)) {
+        if (relativePatternSupport != null && relativePatternSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -10751,6 +10952,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
   /// The actual file events.
   final List<FileEvent> changes;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['changes'] = changes.map((item) => item.toJson()).toList();
@@ -10770,8 +10972,8 @@ class DidChangeWatchedFilesParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((changes is List<Object?> &&
-            (changes.every((item) => FileEvent.canParse(item, reporter)))))) {
+        if (changes is! List<Object?> ||
+            changes.any((item) => !FileEvent.canParse(item, reporter))) {
           reporter.reportError('must be of type List<FileEvent>');
           return false;
         }
@@ -10827,6 +11029,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
   /// The watchers to register.
   final List<FileSystemWatcher> watchers;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['watchers'] = watchers.map((item) => item.toJson()).toList();
@@ -10846,9 +11049,9 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((watchers is List<Object?> &&
-            (watchers.every(
-                (item) => FileSystemWatcher.canParse(item, reporter)))))) {
+        if (watchers is! List<Object?> ||
+            watchers
+                .any((item) => !FileSystemWatcher.canParse(item, reporter))) {
           reporter.reportError('must be of type List<FileSystemWatcher>');
           return false;
         }
@@ -10902,6 +11105,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
   /// The actual workspace folder change event.
   final WorkspaceFoldersChangeEvent event;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['event'] = event.toJson();
@@ -10921,7 +11125,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(WorkspaceFoldersChangeEvent.canParse(event, reporter))) {
+        if (!WorkspaceFoldersChangeEvent.canParse(event, reporter)) {
           reporter.reportError('must be of type WorkspaceFoldersChangeEvent');
           return false;
         }
@@ -10985,6 +11189,7 @@ class DidCloseNotebookDocumentParams implements ToJsonable {
   /// The notebook document that got closed.
   final NotebookDocumentIdentifier notebookDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['cellTextDocuments'] =
@@ -11006,9 +11211,9 @@ class DidCloseNotebookDocumentParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((cellTextDocuments is List<Object?> &&
-            (cellTextDocuments.every(
-                (item) => TextDocumentIdentifier.canParse(item, reporter)))))) {
+        if (cellTextDocuments is! List<Object?> ||
+            cellTextDocuments.any(
+                (item) => !TextDocumentIdentifier.canParse(item, reporter))) {
           reporter.reportError('must be of type List<TextDocumentIdentifier>');
           return false;
         }
@@ -11026,8 +11231,7 @@ class DidCloseNotebookDocumentParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(NotebookDocumentIdentifier.canParse(
-            notebookDocument, reporter))) {
+        if (!NotebookDocumentIdentifier.canParse(notebookDocument, reporter)) {
           reporter.reportError('must be of type NotebookDocumentIdentifier');
           return false;
         }
@@ -11084,6 +11288,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
   /// The document that was closed.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['textDocument'] = textDocument.toJson();
@@ -11103,7 +11308,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -11165,6 +11370,7 @@ class DidOpenNotebookDocumentParams implements ToJsonable {
   /// The notebook document that got opened.
   final NotebookDocument notebookDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['cellTextDocuments'] =
@@ -11186,9 +11392,9 @@ class DidOpenNotebookDocumentParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((cellTextDocuments is List<Object?> &&
-            (cellTextDocuments.every(
-                (item) => TextDocumentItem.canParse(item, reporter)))))) {
+        if (cellTextDocuments is! List<Object?> ||
+            cellTextDocuments
+                .any((item) => !TextDocumentItem.canParse(item, reporter))) {
           reporter.reportError('must be of type List<TextDocumentItem>');
           return false;
         }
@@ -11206,7 +11412,7 @@ class DidOpenNotebookDocumentParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(NotebookDocument.canParse(notebookDocument, reporter))) {
+        if (!NotebookDocument.canParse(notebookDocument, reporter)) {
           reporter.reportError('must be of type NotebookDocument');
           return false;
         }
@@ -11263,6 +11469,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
   /// The document that was opened.
   final TextDocumentItem textDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['textDocument'] = textDocument.toJson();
@@ -11282,7 +11489,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentItem.canParse(textDocument, reporter))) {
+        if (!TextDocumentItem.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentItem');
           return false;
         }
@@ -11335,6 +11542,7 @@ class DidSaveNotebookDocumentParams implements ToJsonable {
   /// The notebook document that got saved.
   final NotebookDocumentIdentifier notebookDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['notebookDocument'] = notebookDocument.toJson();
@@ -11354,8 +11562,7 @@ class DidSaveNotebookDocumentParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(NotebookDocumentIdentifier.canParse(
-            notebookDocument, reporter))) {
+        if (!NotebookDocumentIdentifier.canParse(notebookDocument, reporter)) {
           reporter.reportError('must be of type NotebookDocumentIdentifier');
           return false;
         }
@@ -11414,6 +11621,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
   /// The document that was saved.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (text != null) {
@@ -11428,7 +11636,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
       reporter.push('text');
       try {
         final text = obj['text'];
-        if (text != null && !(text is String)) {
+        if (text != null && text is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -11446,7 +11654,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -11499,6 +11707,7 @@ class DocumentColorClientCapabilities implements ToJsonable {
   /// Whether document color supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -11512,7 +11721,7 @@ class DocumentColorClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -11562,8 +11771,10 @@ class DocumentColorOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -11577,7 +11788,7 @@ class DocumentColorOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -11648,14 +11859,17 @@ class DocumentColorParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -11674,7 +11888,8 @@ class DocumentColorParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -11692,7 +11907,7 @@ class DocumentColorParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -11703,7 +11918,8 @@ class DocumentColorParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -11759,8 +11975,8 @@ class DocumentColorRegistrationOptions
   static DocumentColorRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -11775,13 +11991,17 @@ class DocumentColorRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -11804,10 +12024,11 @@ class DocumentColorRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -11816,7 +12037,7 @@ class DocumentColorRegistrationOptions
       reporter.push('id');
       try {
         final id = obj['id'];
-        if (id != null && !(id is String)) {
+        if (id != null && id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -11826,7 +12047,7 @@ class DocumentColorRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -11844,8 +12065,12 @@ class DocumentColorRegistrationOptions
   bool operator ==(Object other) {
     if (other is DocumentColorRegistrationOptions &&
         other.runtimeType == DocumentColorRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -11918,6 +12143,7 @@ class DocumentDiagnosticParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The result id of a previous response if provided.
@@ -11927,8 +12153,10 @@ class DocumentDiagnosticParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (identifier != null) {
@@ -11952,7 +12180,7 @@ class DocumentDiagnosticParams
       reporter.push('identifier');
       try {
         final identifier = obj['identifier'];
-        if (identifier != null && !(identifier is String)) {
+        if (identifier != null && identifier is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -11963,7 +12191,8 @@ class DocumentDiagnosticParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -11973,7 +12202,7 @@ class DocumentDiagnosticParams
       reporter.push('previousResultId');
       try {
         final previousResultId = obj['previousResultId'];
-        if (previousResultId != null && !(previousResultId is String)) {
+        if (previousResultId != null && previousResultId is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -11991,7 +12220,7 @@ class DocumentDiagnosticParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -12002,7 +12231,8 @@ class DocumentDiagnosticParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -12061,6 +12291,7 @@ class DocumentDiagnosticReportKind implements ToJsonable {
   /// A report indicating that the last returned report is still accurate.
   static const Unchanged = DocumentDiagnosticReportKind('unchanged');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -12069,6 +12300,7 @@ class DocumentDiagnosticReportKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is DocumentDiagnosticReportKind && other._value == _value;
 }
@@ -12110,6 +12342,7 @@ class DocumentDiagnosticReportPartialResult implements ToJsonable {
       Either2<FullDocumentDiagnosticReport,
           UnchangedDocumentDiagnosticReport>> relatedDocuments;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['relatedDocuments'] = relatedDocuments;
@@ -12129,13 +12362,13 @@ class DocumentDiagnosticReportPartialResult implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((relatedDocuments is Map &&
-            (relatedDocuments.keys.every((item) =>
-                item is String &&
-                relatedDocuments.values.every((item) =>
-                    (FullDocumentDiagnosticReport.canParse(item, reporter) ||
-                        UnchangedDocumentDiagnosticReport.canParse(
-                            item, reporter)))))))) {
+        if (relatedDocuments is! Map ||
+            (relatedDocuments.keys.any((item) =>
+                item is! String ||
+                relatedDocuments.values.any((item) =>
+                    !FullDocumentDiagnosticReport.canParse(item, reporter) &&
+                    !UnchangedDocumentDiagnosticReport.canParse(
+                        item, reporter))))) {
           reporter.reportError(
               'must be of type Map<String, Either2<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>');
           return false;
@@ -12198,6 +12431,7 @@ class DocumentFormattingClientCapabilities implements ToJsonable {
   /// Whether formatting supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -12211,7 +12445,7 @@ class DocumentFormattingClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -12263,8 +12497,10 @@ class DocumentFormattingOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -12278,7 +12514,7 @@ class DocumentFormattingOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -12348,8 +12584,10 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['options'] = options.toJson();
@@ -12373,7 +12611,7 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(FormattingOptions.canParse(options, reporter))) {
+        if (!FormattingOptions.canParse(options, reporter)) {
           reporter.reportError('must be of type FormattingOptions');
           return false;
         }
@@ -12391,7 +12629,7 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -12402,7 +12640,8 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -12457,8 +12696,8 @@ class DocumentFormattingRegistrationOptions
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -12470,9 +12709,12 @@ class DocumentFormattingRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -12492,10 +12734,11 @@ class DocumentFormattingRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -12504,7 +12747,7 @@ class DocumentFormattingRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -12523,8 +12766,12 @@ class DocumentFormattingRegistrationOptions
   bool operator ==(Object other) {
     if (other is DocumentFormattingRegistrationOptions &&
         other.runtimeType == DocumentFormattingRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           workDoneProgress == other.workDoneProgress &&
           true;
     }
@@ -12573,6 +12820,7 @@ class DocumentHighlight implements ToJsonable {
   /// The range this highlight applies to.
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (kind != null) {
@@ -12587,7 +12835,7 @@ class DocumentHighlight implements ToJsonable {
       reporter.push('kind');
       try {
         final kind = obj['kind'];
-        if (kind != null && !(DocumentHighlightKind.canParse(kind, reporter))) {
+        if (kind != null && !DocumentHighlightKind.canParse(kind, reporter)) {
           reporter.reportError('must be of type DocumentHighlightKind');
           return false;
         }
@@ -12605,7 +12853,7 @@ class DocumentHighlight implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -12658,6 +12906,7 @@ class DocumentHighlightClientCapabilities implements ToJsonable {
   /// Whether document highlight supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -12671,7 +12920,7 @@ class DocumentHighlightClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -12722,6 +12971,7 @@ class DocumentHighlightKind implements ToJsonable {
   /// Write-access of a symbol, like writing to a variable.
   static const Write = DocumentHighlightKind(3);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -12730,6 +12980,7 @@ class DocumentHighlightKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is DocumentHighlightKind && other._value == _value;
 }
@@ -12755,8 +13006,10 @@ class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -12770,7 +13023,7 @@ class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -12849,17 +13102,22 @@ class DocumentHighlightParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -12879,7 +13137,8 @@ class DocumentHighlightParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -12897,7 +13156,7 @@ class DocumentHighlightParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -12915,7 +13174,7 @@ class DocumentHighlightParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -12926,7 +13185,8 @@ class DocumentHighlightParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -12983,8 +13243,8 @@ class DocumentHighlightRegistrationOptions
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -12996,9 +13256,12 @@ class DocumentHighlightRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -13018,10 +13281,11 @@ class DocumentHighlightRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -13030,7 +13294,7 @@ class DocumentHighlightRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -13049,8 +13313,12 @@ class DocumentHighlightRegistrationOptions
   bool operator ==(Object other) {
     if (other is DocumentHighlightRegistrationOptions &&
         other.runtimeType == DocumentHighlightRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           workDoneProgress == other.workDoneProgress &&
           true;
     }
@@ -13117,6 +13385,7 @@ class DocumentLink implements ToJsonable {
   ///  @since 3.15.0
   final String? tooltip;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (data != null) {
@@ -13145,7 +13414,7 @@ class DocumentLink implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -13155,7 +13424,7 @@ class DocumentLink implements ToJsonable {
       reporter.push('target');
       try {
         final target = obj['target'];
-        if (target != null && !(target is String)) {
+        if (target != null && target is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -13165,7 +13434,7 @@ class DocumentLink implements ToJsonable {
       reporter.push('tooltip');
       try {
         final tooltip = obj['tooltip'];
-        if (tooltip != null && !(tooltip is String)) {
+        if (tooltip != null && tooltip is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -13231,6 +13500,7 @@ class DocumentLinkClientCapabilities implements ToJsonable {
   ///  @since 3.15.0
   final bool? tooltipSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -13247,7 +13517,7 @@ class DocumentLinkClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -13257,7 +13527,7 @@ class DocumentLinkClientCapabilities implements ToJsonable {
       reporter.push('tooltipSupport');
       try {
         final tooltipSupport = obj['tooltipSupport'];
-        if (tooltipSupport != null && !(tooltipSupport is bool)) {
+        if (tooltipSupport != null && tooltipSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -13318,8 +13588,10 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// Document links have a resolve provider as well.
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (resolveProvider != null) {
@@ -13336,7 +13608,7 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('resolveProvider');
       try {
         final resolveProvider = obj['resolveProvider'];
-        if (resolveProvider != null && !(resolveProvider is bool)) {
+        if (resolveProvider != null && resolveProvider is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -13346,7 +13618,7 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -13422,14 +13694,17 @@ class DocumentLinkParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The document to provide document links for.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -13448,7 +13723,8 @@ class DocumentLinkParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -13466,7 +13742,7 @@ class DocumentLinkParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -13477,7 +13753,8 @@ class DocumentLinkParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -13532,8 +13809,8 @@ class DocumentLinkRegistrationOptions
   static DocumentLinkRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final resolveProviderJson = json['resolveProvider'];
     final resolveProvider = resolveProviderJson as bool?;
@@ -13548,12 +13825,16 @@ class DocumentLinkRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// Document links have a resolve provider as well.
+  @override
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -13576,10 +13857,11 @@ class DocumentLinkRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -13588,7 +13870,7 @@ class DocumentLinkRegistrationOptions
       reporter.push('resolveProvider');
       try {
         final resolveProvider = obj['resolveProvider'];
-        if (resolveProvider != null && !(resolveProvider is bool)) {
+        if (resolveProvider != null && resolveProvider is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -13598,7 +13880,7 @@ class DocumentLinkRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -13616,8 +13898,12 @@ class DocumentLinkRegistrationOptions
   bool operator ==(Object other) {
     if (other is DocumentLinkRegistrationOptions &&
         other.runtimeType == DocumentLinkRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           resolveProvider == other.resolveProvider &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -13657,6 +13943,7 @@ class DocumentOnTypeFormattingClientCapabilities implements ToJsonable {
   /// Whether on type formatting supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -13670,7 +13957,7 @@ class DocumentOnTypeFormattingClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -13734,6 +14021,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
   /// More trigger characters.
   final List<String>? moreTriggerCharacter;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['firstTriggerCharacter'] = firstTriggerCharacter;
@@ -13756,7 +14044,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(firstTriggerCharacter is String)) {
+        if (firstTriggerCharacter is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -13767,8 +14055,8 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
       try {
         final moreTriggerCharacter = obj['moreTriggerCharacter'];
         if (moreTriggerCharacter != null &&
-            !((moreTriggerCharacter is List<Object?> &&
-                (moreTriggerCharacter.every((item) => item is String))))) {
+            (moreTriggerCharacter is! List<Object?> ||
+                moreTriggerCharacter.any((item) => item is! String))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -13852,6 +14140,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
   /// The document to format.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['ch'] = ch;
@@ -13874,7 +14163,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(ch is String)) {
+        if (ch is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -13892,7 +14181,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(FormattingOptions.canParse(options, reporter))) {
+        if (!FormattingOptions.canParse(options, reporter)) {
           reporter.reportError('must be of type FormattingOptions');
           return false;
         }
@@ -13910,7 +14199,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -13928,7 +14217,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -13986,8 +14275,8 @@ class DocumentOnTypeFormattingRegistrationOptions
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final firstTriggerCharacterJson = json['firstTriggerCharacter'];
     final firstTriggerCharacter = firstTriggerCharacterJson as String;
@@ -14004,14 +14293,18 @@ class DocumentOnTypeFormattingRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// A character on which formatting should be triggered, like `{`.
+  @override
   final String firstTriggerCharacter;
 
   /// More trigger characters.
+  @override
   final List<String>? moreTriggerCharacter;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -14032,10 +14325,11 @@ class DocumentOnTypeFormattingRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -14052,7 +14346,7 @@ class DocumentOnTypeFormattingRegistrationOptions
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(firstTriggerCharacter is String)) {
+        if (firstTriggerCharacter is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -14063,8 +14357,8 @@ class DocumentOnTypeFormattingRegistrationOptions
       try {
         final moreTriggerCharacter = obj['moreTriggerCharacter'];
         if (moreTriggerCharacter != null &&
-            !((moreTriggerCharacter is List<Object?> &&
-                (moreTriggerCharacter.every((item) => item is String))))) {
+            (moreTriggerCharacter is! List<Object?> ||
+                moreTriggerCharacter.any((item) => item is! String))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -14083,8 +14377,12 @@ class DocumentOnTypeFormattingRegistrationOptions
   bool operator ==(Object other) {
     if (other is DocumentOnTypeFormattingRegistrationOptions &&
         other.runtimeType == DocumentOnTypeFormattingRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           firstTriggerCharacter == other.firstTriggerCharacter &&
           listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
               (String a, String b) => a == b) &&
@@ -14125,6 +14423,7 @@ class DocumentRangeFormattingClientCapabilities implements ToJsonable {
   /// Whether formatting supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -14138,7 +14437,7 @@ class DocumentRangeFormattingClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -14191,8 +14490,10 @@ class DocumentRangeFormattingOptions
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -14206,7 +14507,7 @@ class DocumentRangeFormattingOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -14284,8 +14585,10 @@ class DocumentRangeFormattingParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['options'] = options.toJson();
@@ -14310,7 +14613,7 @@ class DocumentRangeFormattingParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(FormattingOptions.canParse(options, reporter))) {
+        if (!FormattingOptions.canParse(options, reporter)) {
           reporter.reportError('must be of type FormattingOptions');
           return false;
         }
@@ -14328,7 +14631,7 @@ class DocumentRangeFormattingParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -14346,7 +14649,7 @@ class DocumentRangeFormattingParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -14357,7 +14660,8 @@ class DocumentRangeFormattingParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -14414,8 +14718,8 @@ class DocumentRangeFormattingRegistrationOptions
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -14427,9 +14731,12 @@ class DocumentRangeFormattingRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -14449,10 +14756,11 @@ class DocumentRangeFormattingRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -14461,7 +14769,7 @@ class DocumentRangeFormattingRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -14480,8 +14788,12 @@ class DocumentRangeFormattingRegistrationOptions
   bool operator ==(Object other) {
     if (other is DocumentRangeFormattingRegistrationOptions &&
         other.runtimeType == DocumentRangeFormattingRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           workDoneProgress == other.workDoneProgress &&
           true;
     }
@@ -14584,6 +14896,7 @@ class DocumentSymbol implements ToJsonable {
   ///  @since 3.16.0
   final List<SymbolTag>? tags;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (children != null) {
@@ -14611,9 +14924,9 @@ class DocumentSymbol implements ToJsonable {
       try {
         final children = obj['children'];
         if (children != null &&
-            !((children is List<Object?> &&
-                (children.every(
-                    (item) => DocumentSymbol.canParse(item, reporter)))))) {
+            (children is! List<Object?> ||
+                children
+                    .any((item) => !DocumentSymbol.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<DocumentSymbol>');
           return false;
         }
@@ -14623,7 +14936,7 @@ class DocumentSymbol implements ToJsonable {
       reporter.push('deprecated');
       try {
         final deprecated = obj['deprecated'];
-        if (deprecated != null && !(deprecated is bool)) {
+        if (deprecated != null && deprecated is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -14633,7 +14946,7 @@ class DocumentSymbol implements ToJsonable {
       reporter.push('detail');
       try {
         final detail = obj['detail'];
-        if (detail != null && !(detail is String)) {
+        if (detail != null && detail is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -14651,7 +14964,7 @@ class DocumentSymbol implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(SymbolKind.canParse(kind, reporter))) {
+        if (!SymbolKind.canParse(kind, reporter)) {
           reporter.reportError('must be of type SymbolKind');
           return false;
         }
@@ -14669,7 +14982,7 @@ class DocumentSymbol implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(name is String)) {
+        if (name is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -14687,7 +15000,7 @@ class DocumentSymbol implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -14705,7 +15018,7 @@ class DocumentSymbol implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(selectionRange, reporter))) {
+        if (!Range.canParse(selectionRange, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -14716,8 +15029,8 @@ class DocumentSymbol implements ToJsonable {
       try {
         final tags = obj['tags'];
         if (tags != null &&
-            !((tags is List<Object?> &&
-                (tags.every((item) => SymbolTag.canParse(item, reporter)))))) {
+            (tags is! List<Object?> ||
+                tags.any((item) => !SymbolTag.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;
         }
@@ -14826,6 +15139,7 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
   ///  @since 3.16.0
   final DocumentSymbolClientCapabilitiesTagSupport? tagSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -14852,7 +15166,7 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -14864,7 +15178,7 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
         final hierarchicalDocumentSymbolSupport =
             obj['hierarchicalDocumentSymbolSupport'];
         if (hierarchicalDocumentSymbolSupport != null &&
-            !(hierarchicalDocumentSymbolSupport is bool)) {
+            hierarchicalDocumentSymbolSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -14874,7 +15188,7 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
       reporter.push('labelSupport');
       try {
         final labelSupport = obj['labelSupport'];
-        if (labelSupport != null && !(labelSupport is bool)) {
+        if (labelSupport != null && labelSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -14885,8 +15199,8 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
       try {
         final symbolKind = obj['symbolKind'];
         if (symbolKind != null &&
-            !(DocumentSymbolClientCapabilitiesSymbolKind.canParse(
-                symbolKind, reporter))) {
+            !DocumentSymbolClientCapabilitiesSymbolKind.canParse(
+                symbolKind, reporter)) {
           reporter.reportError(
               'must be of type DocumentSymbolClientCapabilitiesSymbolKind');
           return false;
@@ -14898,8 +15212,8 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
       try {
         final tagSupport = obj['tagSupport'];
         if (tagSupport != null &&
-            !(DocumentSymbolClientCapabilitiesTagSupport.canParse(
-                tagSupport, reporter))) {
+            !DocumentSymbolClientCapabilitiesTagSupport.canParse(
+                tagSupport, reporter)) {
           reporter.reportError(
               'must be of type DocumentSymbolClientCapabilitiesTagSupport');
           return false;
@@ -14970,6 +15284,7 @@ class DocumentSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   /// from `File` to `Array` as defined in the initial version of the protocol.
   final List<SymbolKind>? valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (valueSet != null) {
@@ -14984,9 +15299,8 @@ class DocumentSymbolClientCapabilitiesSymbolKind implements ToJsonable {
       try {
         final valueSet = obj['valueSet'];
         if (valueSet != null &&
-            !((valueSet is List<Object?> &&
-                (valueSet
-                    .every((item) => SymbolKind.canParse(item, reporter)))))) {
+            (valueSet is! List<Object?> ||
+                valueSet.any((item) => !SymbolKind.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<SymbolKind>');
           return false;
         }
@@ -15042,6 +15356,7 @@ class DocumentSymbolClientCapabilitiesTagSupport implements ToJsonable {
   /// The tags supported by the client.
   final List<SymbolTag> valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
@@ -15061,8 +15376,8 @@ class DocumentSymbolClientCapabilitiesTagSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((valueSet is List<Object?> &&
-            (valueSet.every((item) => SymbolTag.canParse(item, reporter)))))) {
+        if (valueSet is! List<Object?> ||
+            valueSet.any((item) => !SymbolTag.canParse(item, reporter))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;
         }
@@ -15123,8 +15438,10 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   /// shown for the same document.
   ///  @since 3.16.0
   final String? label;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (label != null) {
@@ -15141,7 +15458,7 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('label');
       try {
         final label = obj['label'];
-        if (label != null && !(label is String)) {
+        if (label != null && label is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -15151,7 +15468,7 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -15227,14 +15544,17 @@ class DocumentSymbolParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -15253,7 +15573,8 @@ class DocumentSymbolParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -15271,7 +15592,7 @@ class DocumentSymbolParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -15282,7 +15603,8 @@ class DocumentSymbolParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -15337,8 +15659,8 @@ class DocumentSymbolRegistrationOptions
   static DocumentSymbolRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final labelJson = json['label'];
     final label = labelJson as String?;
@@ -15353,14 +15675,18 @@ class DocumentSymbolRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// A human-readable string that is shown when multiple outlines trees are
   /// shown for the same document.
   ///  @since 3.16.0
+  @override
   final String? label;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -15383,10 +15709,11 @@ class DocumentSymbolRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -15395,7 +15722,7 @@ class DocumentSymbolRegistrationOptions
       reporter.push('label');
       try {
         final label = obj['label'];
-        if (label != null && !(label is String)) {
+        if (label != null && label is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -15405,7 +15732,7 @@ class DocumentSymbolRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -15423,8 +15750,12 @@ class DocumentSymbolRegistrationOptions
   bool operator ==(Object other) {
     if (other is DocumentSymbolRegistrationOptions &&
         other.runtimeType == DocumentSymbolRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           label == other.label &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -15510,6 +15841,7 @@ class ErrorCodes implements ToJsonable {
   static const ServerNotInitialized = ErrorCodes(-32002);
   static const UnknownErrorCode = ErrorCodes(-32001);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -15518,6 +15850,7 @@ class ErrorCodes implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is ErrorCodes && other._value == _value;
 }
@@ -15542,6 +15875,7 @@ class ExecuteCommandClientCapabilities implements ToJsonable {
   /// Execute command supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -15555,7 +15889,7 @@ class ExecuteCommandClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -15612,8 +15946,10 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// The commands to be executed on the server
   final List<String> commands;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['commands'] = commands;
@@ -15636,8 +15972,8 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((commands is List<Object?> &&
-            (commands.every((item) => item is String))))) {
+        if (commands is! List<Object?> ||
+            commands.any((item) => item is! String)) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -15647,7 +15983,7 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -15722,8 +16058,10 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
   final String command;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (arguments != null) {
@@ -15742,8 +16080,7 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
       try {
         final arguments = obj['arguments'];
         if (arguments != null &&
-            !((arguments is List<Object?> &&
-                (arguments.every((item) => true))))) {
+            (arguments is! List<Object?> || arguments.any((item) => false))) {
           reporter.reportError('must be of type List<Object?>');
           return false;
         }
@@ -15761,7 +16098,7 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(command is String)) {
+        if (command is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -15772,7 +16109,8 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -15835,9 +16173,12 @@ class ExecuteCommandRegistrationOptions
   }
 
   /// The commands to be executed on the server
+  @override
   final List<String> commands;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['commands'] = commands;
@@ -15860,8 +16201,8 @@ class ExecuteCommandRegistrationOptions
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((commands is List<Object?> &&
-            (commands.every((item) => item is String))))) {
+        if (commands is! List<Object?> ||
+            commands.any((item) => item is! String)) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -15871,7 +16212,7 @@ class ExecuteCommandRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -15935,6 +16276,7 @@ class ExecutionSummary implements ToJsonable {
   /// Whether the execution was successful or not if known by the client.
   final bool? success;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['executionOrder'] = executionOrder;
@@ -15957,7 +16299,7 @@ class ExecutionSummary implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(executionOrder is int)) {
+        if (executionOrder is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -15967,7 +16309,7 @@ class ExecutionSummary implements ToJsonable {
       reporter.push('success');
       try {
         final success = obj['success'];
-        if (success != null && !(success is bool)) {
+        if (success != null && success is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -16037,6 +16379,7 @@ class FailureHandlingKind implements ToJsonable {
   /// guarantee that this is succeeding.
   static const Undo = FailureHandlingKind._('undo');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -16045,6 +16388,7 @@ class FailureHandlingKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is FailureHandlingKind && other._value == _value;
 }
@@ -16069,6 +16413,7 @@ class FileChangeType implements ToJsonable {
   /// The file got deleted.
   static const Deleted = FileChangeType(3);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -16077,6 +16422,7 @@ class FileChangeType implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is FileChangeType && other._value == _value;
 }
@@ -16103,6 +16449,7 @@ class FileCreate implements ToJsonable {
   /// A file:// URI for the location of the file/folder being created.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -16122,7 +16469,7 @@ class FileCreate implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -16173,6 +16520,7 @@ class FileDelete implements ToJsonable {
   /// A file:// URI for the location of the file/folder being deleted.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -16192,7 +16540,7 @@ class FileDelete implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -16249,6 +16597,7 @@ class FileEvent implements ToJsonable {
   /// The file's URI.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['type'] = type;
@@ -16269,7 +16618,7 @@ class FileEvent implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(type is int)) {
+        if (type is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -16287,7 +16636,7 @@ class FileEvent implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -16382,6 +16731,7 @@ class FileOperationClientCapabilities implements ToJsonable {
   /// The client has support for sending willRenameFiles requests.
   final bool? willRename;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (didCreate != null) {
@@ -16413,7 +16763,7 @@ class FileOperationClientCapabilities implements ToJsonable {
       reporter.push('didCreate');
       try {
         final didCreate = obj['didCreate'];
-        if (didCreate != null && !(didCreate is bool)) {
+        if (didCreate != null && didCreate is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -16423,7 +16773,7 @@ class FileOperationClientCapabilities implements ToJsonable {
       reporter.push('didDelete');
       try {
         final didDelete = obj['didDelete'];
-        if (didDelete != null && !(didDelete is bool)) {
+        if (didDelete != null && didDelete is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -16433,7 +16783,7 @@ class FileOperationClientCapabilities implements ToJsonable {
       reporter.push('didRename');
       try {
         final didRename = obj['didRename'];
-        if (didRename != null && !(didRename is bool)) {
+        if (didRename != null && didRename is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -16443,7 +16793,7 @@ class FileOperationClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -16453,7 +16803,7 @@ class FileOperationClientCapabilities implements ToJsonable {
       reporter.push('willCreate');
       try {
         final willCreate = obj['willCreate'];
-        if (willCreate != null && !(willCreate is bool)) {
+        if (willCreate != null && willCreate is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -16463,7 +16813,7 @@ class FileOperationClientCapabilities implements ToJsonable {
       reporter.push('willDelete');
       try {
         final willDelete = obj['willDelete'];
-        if (willDelete != null && !(willDelete is bool)) {
+        if (willDelete != null && willDelete is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -16473,7 +16823,7 @@ class FileOperationClientCapabilities implements ToJsonable {
       reporter.push('willRename');
       try {
         final willRename = obj['willRename'];
-        if (willRename != null && !(willRename is bool)) {
+        if (willRename != null && willRename is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -16549,6 +16899,7 @@ class FileOperationFilter implements ToJsonable {
   /// A Uri like `file` or `untitled`.
   final String? scheme;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['pattern'] = pattern.toJson();
@@ -16571,7 +16922,7 @@ class FileOperationFilter implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(FileOperationPattern.canParse(pattern, reporter))) {
+        if (!FileOperationPattern.canParse(pattern, reporter)) {
           reporter.reportError('must be of type FileOperationPattern');
           return false;
         }
@@ -16581,7 +16932,7 @@ class FileOperationFilter implements ToJsonable {
       reporter.push('scheme');
       try {
         final scheme = obj['scheme'];
-        if (scheme != null && !(scheme is String)) {
+        if (scheme != null && scheme is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -16687,6 +17038,7 @@ class FileOperationOptions implements ToJsonable {
   /// The server is interested in receiving willRenameFiles requests.
   final FileOperationRegistrationOptions? willRename;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (didCreate != null) {
@@ -16716,7 +17068,7 @@ class FileOperationOptions implements ToJsonable {
       try {
         final didCreate = obj['didCreate'];
         if (didCreate != null &&
-            !(FileOperationRegistrationOptions.canParse(didCreate, reporter))) {
+            !FileOperationRegistrationOptions.canParse(didCreate, reporter)) {
           reporter
               .reportError('must be of type FileOperationRegistrationOptions');
           return false;
@@ -16728,7 +17080,7 @@ class FileOperationOptions implements ToJsonable {
       try {
         final didDelete = obj['didDelete'];
         if (didDelete != null &&
-            !(FileOperationRegistrationOptions.canParse(didDelete, reporter))) {
+            !FileOperationRegistrationOptions.canParse(didDelete, reporter)) {
           reporter
               .reportError('must be of type FileOperationRegistrationOptions');
           return false;
@@ -16740,7 +17092,7 @@ class FileOperationOptions implements ToJsonable {
       try {
         final didRename = obj['didRename'];
         if (didRename != null &&
-            !(FileOperationRegistrationOptions.canParse(didRename, reporter))) {
+            !FileOperationRegistrationOptions.canParse(didRename, reporter)) {
           reporter
               .reportError('must be of type FileOperationRegistrationOptions');
           return false;
@@ -16752,8 +17104,7 @@ class FileOperationOptions implements ToJsonable {
       try {
         final willCreate = obj['willCreate'];
         if (willCreate != null &&
-            !(FileOperationRegistrationOptions.canParse(
-                willCreate, reporter))) {
+            !FileOperationRegistrationOptions.canParse(willCreate, reporter)) {
           reporter
               .reportError('must be of type FileOperationRegistrationOptions');
           return false;
@@ -16765,8 +17116,7 @@ class FileOperationOptions implements ToJsonable {
       try {
         final willDelete = obj['willDelete'];
         if (willDelete != null &&
-            !(FileOperationRegistrationOptions.canParse(
-                willDelete, reporter))) {
+            !FileOperationRegistrationOptions.canParse(willDelete, reporter)) {
           reporter
               .reportError('must be of type FileOperationRegistrationOptions');
           return false;
@@ -16778,8 +17128,7 @@ class FileOperationOptions implements ToJsonable {
       try {
         final willRename = obj['willRename'];
         if (willRename != null &&
-            !(FileOperationRegistrationOptions.canParse(
-                willRename, reporter))) {
+            !FileOperationRegistrationOptions.canParse(willRename, reporter)) {
           reporter
               .reportError('must be of type FileOperationRegistrationOptions');
           return false;
@@ -16877,6 +17226,7 @@ class FileOperationPattern implements ToJsonable {
   /// Additional options used during matching.
   final FileOperationPatternOptions? options;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['glob'] = glob;
@@ -16902,7 +17252,7 @@ class FileOperationPattern implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(glob is String)) {
+        if (glob is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -16913,7 +17263,7 @@ class FileOperationPattern implements ToJsonable {
       try {
         final matches = obj['matches'];
         if (matches != null &&
-            !(FileOperationPatternKind.canParse(matches, reporter))) {
+            !FileOperationPatternKind.canParse(matches, reporter)) {
           reporter.reportError('must be of type FileOperationPatternKind');
           return false;
         }
@@ -16924,7 +17274,7 @@ class FileOperationPattern implements ToJsonable {
       try {
         final options = obj['options'];
         if (options != null &&
-            !(FileOperationPatternOptions.canParse(options, reporter))) {
+            !FileOperationPatternOptions.canParse(options, reporter)) {
           reporter.reportError('must be of type FileOperationPatternOptions');
           return false;
         }
@@ -16979,6 +17329,7 @@ class FileOperationPatternKind implements ToJsonable {
   /// The pattern matches a folder only.
   static const folder = FileOperationPatternKind('folder');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -16987,6 +17338,7 @@ class FileOperationPatternKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is FileOperationPatternKind && other._value == _value;
 }
@@ -17013,6 +17365,7 @@ class FileOperationPatternOptions implements ToJsonable {
   /// The pattern should be matched ignoring casing.
   final bool? ignoreCase;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (ignoreCase != null) {
@@ -17026,7 +17379,7 @@ class FileOperationPatternOptions implements ToJsonable {
       reporter.push('ignoreCase');
       try {
         final ignoreCase = obj['ignoreCase'];
-        if (ignoreCase != null && !(ignoreCase is bool)) {
+        if (ignoreCase != null && ignoreCase is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -17081,6 +17434,7 @@ class FileOperationRegistrationOptions implements ToJsonable {
   /// The actual filters.
   final List<FileOperationFilter> filters;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['filters'] = filters.map((item) => item.toJson()).toList();
@@ -17100,9 +17454,9 @@ class FileOperationRegistrationOptions implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((filters is List<Object?> &&
-            (filters.every(
-                (item) => FileOperationFilter.canParse(item, reporter)))))) {
+        if (filters is! List<Object?> ||
+            filters
+                .any((item) => !FileOperationFilter.canParse(item, reporter))) {
           reporter.reportError('must be of type List<FileOperationFilter>');
           return false;
         }
@@ -17163,6 +17517,7 @@ class FileRename implements ToJsonable {
   /// A file:// URI for the original location of the file/folder being renamed.
   final String oldUri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['newUri'] = newUri;
@@ -17183,7 +17538,7 @@ class FileRename implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(newUri is String)) {
+        if (newUri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -17201,7 +17556,7 @@ class FileRename implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(oldUri is String)) {
+        if (oldUri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -17268,6 +17623,7 @@ class FileSystemWatcher implements ToJsonable {
   /// | WatchKind.Change | WatchKind.Delete which is 7.
   final WatchKind? kind;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['globPattern'] = globPattern;
@@ -17290,8 +17646,8 @@ class FileSystemWatcher implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((globPattern is String ||
-            RelativePattern.canParse(globPattern, reporter)))) {
+        if (globPattern is! String &&
+            !RelativePattern.canParse(globPattern, reporter)) {
           reporter
               .reportError('must be of type Either2<String, RelativePattern>');
           return false;
@@ -17302,7 +17658,7 @@ class FileSystemWatcher implements ToJsonable {
       reporter.push('kind');
       try {
         final kind = obj['kind'];
-        if (kind != null && !(WatchKind.canParse(kind, reporter))) {
+        if (kind != null && !WatchKind.canParse(kind, reporter)) {
           reporter.reportError('must be of type WatchKind');
           return false;
         }
@@ -17405,6 +17761,7 @@ class FoldingRange implements ToJsonable {
   /// larger and smaller than the number of lines in the document.
   final int startLine;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (collapsedText != null) {
@@ -17429,7 +17786,7 @@ class FoldingRange implements ToJsonable {
       reporter.push('collapsedText');
       try {
         final collapsedText = obj['collapsedText'];
-        if (collapsedText != null && !(collapsedText is String)) {
+        if (collapsedText != null && collapsedText is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -17439,7 +17796,7 @@ class FoldingRange implements ToJsonable {
       reporter.push('endCharacter');
       try {
         final endCharacter = obj['endCharacter'];
-        if (endCharacter != null && !(endCharacter is int)) {
+        if (endCharacter != null && endCharacter is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -17457,7 +17814,7 @@ class FoldingRange implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(endLine is int)) {
+        if (endLine is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -17467,7 +17824,7 @@ class FoldingRange implements ToJsonable {
       reporter.push('kind');
       try {
         final kind = obj['kind'];
-        if (kind != null && !(FoldingRangeKind.canParse(kind, reporter))) {
+        if (kind != null && !FoldingRangeKind.canParse(kind, reporter)) {
           reporter.reportError('must be of type FoldingRangeKind');
           return false;
         }
@@ -17477,7 +17834,7 @@ class FoldingRange implements ToJsonable {
       reporter.push('startCharacter');
       try {
         final startCharacter = obj['startCharacter'];
-        if (startCharacter != null && !(startCharacter is int)) {
+        if (startCharacter != null && startCharacter is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -17495,7 +17852,7 @@ class FoldingRange implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(startLine is int)) {
+        if (startLine is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -17599,6 +17956,7 @@ class FoldingRangeClientCapabilities implements ToJsonable {
   /// limit.
   final int? rangeLimit;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -17624,7 +17982,7 @@ class FoldingRangeClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -17635,8 +17993,8 @@ class FoldingRangeClientCapabilities implements ToJsonable {
       try {
         final foldingRange = obj['foldingRange'];
         if (foldingRange != null &&
-            !(FoldingRangeClientCapabilitiesFoldingRange.canParse(
-                foldingRange, reporter))) {
+            !FoldingRangeClientCapabilitiesFoldingRange.canParse(
+                foldingRange, reporter)) {
           reporter.reportError(
               'must be of type FoldingRangeClientCapabilitiesFoldingRange');
           return false;
@@ -17648,8 +18006,8 @@ class FoldingRangeClientCapabilities implements ToJsonable {
       try {
         final foldingRangeKind = obj['foldingRangeKind'];
         if (foldingRangeKind != null &&
-            !(FoldingRangeClientCapabilitiesFoldingRangeKind.canParse(
-                foldingRangeKind, reporter))) {
+            !FoldingRangeClientCapabilitiesFoldingRangeKind.canParse(
+                foldingRangeKind, reporter)) {
           reporter.reportError(
               'must be of type FoldingRangeClientCapabilitiesFoldingRangeKind');
           return false;
@@ -17660,7 +18018,7 @@ class FoldingRangeClientCapabilities implements ToJsonable {
       reporter.push('lineFoldingOnly');
       try {
         final lineFoldingOnly = obj['lineFoldingOnly'];
-        if (lineFoldingOnly != null && !(lineFoldingOnly is bool)) {
+        if (lineFoldingOnly != null && lineFoldingOnly is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -17670,7 +18028,7 @@ class FoldingRangeClientCapabilities implements ToJsonable {
       reporter.push('rangeLimit');
       try {
         final rangeLimit = obj['rangeLimit'];
-        if (rangeLimit != null && !(rangeLimit is int)) {
+        if (rangeLimit != null && rangeLimit is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -17734,6 +18092,7 @@ class FoldingRangeClientCapabilitiesFoldingRange implements ToJsonable {
   ///  @since 3.17.0
   final bool? collapsedText;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (collapsedText != null) {
@@ -17747,7 +18106,7 @@ class FoldingRangeClientCapabilitiesFoldingRange implements ToJsonable {
       reporter.push('collapsedText');
       try {
         final collapsedText = obj['collapsedText'];
-        if (collapsedText != null && !(collapsedText is bool)) {
+        if (collapsedText != null && collapsedText is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -17803,6 +18162,7 @@ class FoldingRangeClientCapabilitiesFoldingRangeKind implements ToJsonable {
   /// set gracefully and falls back to a default value when unknown.
   final List<FoldingRangeKind>? valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (valueSet != null) {
@@ -17817,9 +18177,9 @@ class FoldingRangeClientCapabilitiesFoldingRangeKind implements ToJsonable {
       try {
         final valueSet = obj['valueSet'];
         if (valueSet != null &&
-            !((valueSet is List<Object?> &&
-                (valueSet.every(
-                    (item) => FoldingRangeKind.canParse(item, reporter)))))) {
+            (valueSet is! List<Object?> ||
+                valueSet.any(
+                    (item) => !FoldingRangeKind.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<FoldingRangeKind>');
           return false;
         }
@@ -17872,6 +18232,7 @@ class FoldingRangeKind implements ToJsonable {
   /// Folding range for a region (e.g. `#region`)
   static const Region = FoldingRangeKind('region');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -17880,6 +18241,7 @@ class FoldingRangeKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is FoldingRangeKind && other._value == _value;
 }
@@ -17904,8 +18266,10 @@ class FoldingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -17919,7 +18283,7 @@ class FoldingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -17990,14 +18354,17 @@ class FoldingRangeParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -18016,7 +18383,8 @@ class FoldingRangeParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -18034,7 +18402,7 @@ class FoldingRangeParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -18045,7 +18413,8 @@ class FoldingRangeParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -18101,8 +18470,8 @@ class FoldingRangeRegistrationOptions
   static FoldingRangeRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -18117,13 +18486,17 @@ class FoldingRangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -18146,10 +18519,11 @@ class FoldingRangeRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -18158,7 +18532,7 @@ class FoldingRangeRegistrationOptions
       reporter.push('id');
       try {
         final id = obj['id'];
-        if (id != null && !(id is String)) {
+        if (id != null && id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -18168,7 +18542,7 @@ class FoldingRangeRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -18186,8 +18560,12 @@ class FoldingRangeRegistrationOptions
   bool operator ==(Object other) {
     if (other is FoldingRangeRegistrationOptions &&
         other.runtimeType == FoldingRangeRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -18258,6 +18636,7 @@ class FormattingOptions implements ToJsonable {
   ///  @since 3.15.0
   final bool? trimTrailingWhitespace;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (insertFinalNewline != null) {
@@ -18279,7 +18658,7 @@ class FormattingOptions implements ToJsonable {
       reporter.push('insertFinalNewline');
       try {
         final insertFinalNewline = obj['insertFinalNewline'];
-        if (insertFinalNewline != null && !(insertFinalNewline is bool)) {
+        if (insertFinalNewline != null && insertFinalNewline is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -18297,7 +18676,7 @@ class FormattingOptions implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(insertSpaces is bool)) {
+        if (insertSpaces is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -18315,7 +18694,7 @@ class FormattingOptions implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(tabSize is int)) {
+        if (tabSize is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -18325,7 +18704,7 @@ class FormattingOptions implements ToJsonable {
       reporter.push('trimFinalNewlines');
       try {
         final trimFinalNewlines = obj['trimFinalNewlines'];
-        if (trimFinalNewlines != null && !(trimFinalNewlines is bool)) {
+        if (trimFinalNewlines != null && trimFinalNewlines is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -18335,8 +18714,7 @@ class FormattingOptions implements ToJsonable {
       reporter.push('trimTrailingWhitespace');
       try {
         final trimTrailingWhitespace = obj['trimTrailingWhitespace'];
-        if (trimTrailingWhitespace != null &&
-            !(trimTrailingWhitespace is bool)) {
+        if (trimTrailingWhitespace != null && trimTrailingWhitespace is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -18427,6 +18805,7 @@ class FullDocumentDiagnosticReport implements ToJsonable {
   /// request for the same document.
   final String? resultId;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['items'] = items.map((item) => item.toJson()).toList();
@@ -18450,8 +18829,8 @@ class FullDocumentDiagnosticReport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((items is List<Object?> &&
-            (items.every((item) => Diagnostic.canParse(item, reporter)))))) {
+        if (items is! List<Object?> ||
+            items.any((item) => !Diagnostic.canParse(item, reporter))) {
           reporter.reportError('must be of type List<Diagnostic>');
           return false;
         }
@@ -18469,7 +18848,7 @@ class FullDocumentDiagnosticReport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(kind == 'full')) {
+        if (kind != 'full') {
           reporter.reportError('must be the literal \'full\'');
           return false;
         }
@@ -18479,7 +18858,7 @@ class FullDocumentDiagnosticReport implements ToJsonable {
       reporter.push('resultId');
       try {
         final resultId = obj['resultId'];
-        if (resultId != null && !(resultId is String)) {
+        if (resultId != null && resultId is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -18588,6 +18967,7 @@ class GeneralClientCapabilities implements ToJsonable {
   ///  @since 3.17.0
   final GeneralClientCapabilitiesStaleRequestSupport? staleRequestSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (markdown != null) {
@@ -18612,7 +18992,7 @@ class GeneralClientCapabilities implements ToJsonable {
       try {
         final markdown = obj['markdown'];
         if (markdown != null &&
-            !(MarkdownClientCapabilities.canParse(markdown, reporter))) {
+            !MarkdownClientCapabilities.canParse(markdown, reporter)) {
           reporter.reportError('must be of type MarkdownClientCapabilities');
           return false;
         }
@@ -18623,9 +19003,9 @@ class GeneralClientCapabilities implements ToJsonable {
       try {
         final positionEncodings = obj['positionEncodings'];
         if (positionEncodings != null &&
-            !((positionEncodings is List<Object?> &&
-                (positionEncodings.every((item) =>
-                    PositionEncodingKind.canParse(item, reporter)))))) {
+            (positionEncodings is! List<Object?> ||
+                positionEncodings.any((item) =>
+                    !PositionEncodingKind.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<PositionEncodingKind>');
           return false;
         }
@@ -18636,8 +19016,8 @@ class GeneralClientCapabilities implements ToJsonable {
       try {
         final regularExpressions = obj['regularExpressions'];
         if (regularExpressions != null &&
-            !(RegularExpressionsClientCapabilities.canParse(
-                regularExpressions, reporter))) {
+            !RegularExpressionsClientCapabilities.canParse(
+                regularExpressions, reporter)) {
           reporter.reportError(
               'must be of type RegularExpressionsClientCapabilities');
           return false;
@@ -18649,8 +19029,8 @@ class GeneralClientCapabilities implements ToJsonable {
       try {
         final staleRequestSupport = obj['staleRequestSupport'];
         if (staleRequestSupport != null &&
-            !(GeneralClientCapabilitiesStaleRequestSupport.canParse(
-                staleRequestSupport, reporter))) {
+            !GeneralClientCapabilitiesStaleRequestSupport.canParse(
+                staleRequestSupport, reporter)) {
           reporter.reportError(
               'must be of type GeneralClientCapabilitiesStaleRequestSupport');
           return false;
@@ -18722,6 +19102,7 @@ class GeneralClientCapabilitiesStaleRequestSupport implements ToJsonable {
   /// receives a response with error code `ContentModified``
   final List<String> retryOnContentModified;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['cancel'] = cancel;
@@ -18742,7 +19123,7 @@ class GeneralClientCapabilitiesStaleRequestSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(cancel is bool)) {
+        if (cancel is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -18760,8 +19141,8 @@ class GeneralClientCapabilitiesStaleRequestSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((retryOnContentModified is List<Object?> &&
-            (retryOnContentModified.every((item) => item is String))))) {
+        if (retryOnContentModified is! List<Object?> ||
+            retryOnContentModified.any((item) => item is! String)) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -18834,6 +19215,7 @@ class Hover implements ToJsonable {
   /// visualize a hover, e.g. by changing the background color.
   final Range? range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['contents'] = contents;
@@ -18856,8 +19238,8 @@ class Hover implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((MarkupContent.canParse(contents, reporter) ||
-            contents is String))) {
+        if (!MarkupContent.canParse(contents, reporter) &&
+            contents is! String) {
           reporter
               .reportError('must be of type Either2<MarkupContent, String>');
           return false;
@@ -18868,7 +19250,7 @@ class Hover implements ToJsonable {
       reporter.push('range');
       try {
         final range = obj['range'];
-        if (range != null && !(Range.canParse(range, reporter))) {
+        if (range != null && !Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -18931,6 +19313,7 @@ class HoverClientCapabilities implements ToJsonable {
   /// Whether hover supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (contentFormat != null) {
@@ -18949,9 +19332,9 @@ class HoverClientCapabilities implements ToJsonable {
       try {
         final contentFormat = obj['contentFormat'];
         if (contentFormat != null &&
-            !((contentFormat is List<Object?> &&
-                (contentFormat
-                    .every((item) => MarkupKind.canParse(item, reporter)))))) {
+            (contentFormat is! List<Object?> ||
+                contentFormat
+                    .any((item) => !MarkupKind.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<MarkupKind>');
           return false;
         }
@@ -18961,7 +19344,7 @@ class HoverClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -19017,8 +19400,10 @@ class HoverOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -19032,7 +19417,7 @@ class HoverOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -19095,14 +19480,18 @@ class HoverParams
   }
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['position'] = position.toJson();
@@ -19126,7 +19515,7 @@ class HoverParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -19144,7 +19533,7 @@ class HoverParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -19155,7 +19544,8 @@ class HoverParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -19205,8 +19595,8 @@ class HoverRegistrationOptions
   static HoverRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -19218,9 +19608,12 @@ class HoverRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -19240,10 +19633,11 @@ class HoverRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -19252,7 +19646,7 @@ class HoverRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -19270,8 +19664,12 @@ class HoverRegistrationOptions
   bool operator ==(Object other) {
     if (other is HoverRegistrationOptions &&
         other.runtimeType == HoverRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           workDoneProgress == other.workDoneProgress &&
           true;
     }
@@ -19318,6 +19716,7 @@ class ImplementationClientCapabilities implements ToJsonable {
   ///  @since 3.14.0
   final bool? linkSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -19334,7 +19733,7 @@ class ImplementationClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -19344,7 +19743,7 @@ class ImplementationClientCapabilities implements ToJsonable {
       reporter.push('linkSupport');
       try {
         final linkSupport = obj['linkSupport'];
-        if (linkSupport != null && !(linkSupport is bool)) {
+        if (linkSupport != null && linkSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -19399,8 +19798,10 @@ class ImplementationOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -19414,7 +19815,7 @@ class ImplementationOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -19493,17 +19894,22 @@ class ImplementationParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -19523,7 +19929,8 @@ class ImplementationParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -19541,7 +19948,7 @@ class ImplementationParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -19559,7 +19966,7 @@ class ImplementationParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -19570,7 +19977,8 @@ class ImplementationParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -19628,8 +20036,8 @@ class ImplementationRegistrationOptions
   static ImplementationRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -19644,13 +20052,17 @@ class ImplementationRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -19673,10 +20085,11 @@ class ImplementationRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -19685,7 +20098,7 @@ class ImplementationRegistrationOptions
       reporter.push('id');
       try {
         final id = obj['id'];
-        if (id != null && !(id is String)) {
+        if (id != null && id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -19695,7 +20108,7 @@ class ImplementationRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -19713,8 +20126,12 @@ class ImplementationRegistrationOptions
   bool operator ==(Object other) {
     if (other is ImplementationRegistrationOptions &&
         other.runtimeType == ImplementationRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -19837,6 +20254,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   final String? trace;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
   /// The workspace folders configured in the client when the server starts.
@@ -19846,6 +20264,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   ///  @since 3.6.0
   final List<WorkspaceFolder>? workspaceFolders;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['capabilities'] = capabilities.toJson();
@@ -19889,7 +20308,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(ClientCapabilities.canParse(capabilities, reporter))) {
+        if (!ClientCapabilities.canParse(capabilities, reporter)) {
           reporter.reportError('must be of type ClientCapabilities');
           return false;
         }
@@ -19900,7 +20319,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       try {
         final clientInfo = obj['clientInfo'];
         if (clientInfo != null &&
-            !(InitializeParamsClientInfo.canParse(clientInfo, reporter))) {
+            !InitializeParamsClientInfo.canParse(clientInfo, reporter)) {
           reporter.reportError('must be of type InitializeParamsClientInfo');
           return false;
         }
@@ -19910,7 +20329,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       reporter.push('locale');
       try {
         final locale = obj['locale'];
-        if (locale != null && !(locale is String)) {
+        if (locale != null && locale is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -19924,7 +20343,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
           return false;
         }
         final processId = obj['processId'];
-        if (processId != null && !(processId is int)) {
+        if (processId != null && processId is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -19934,7 +20353,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       reporter.push('rootPath');
       try {
         final rootPath = obj['rootPath'];
-        if (rootPath != null && !(rootPath is String)) {
+        if (rootPath != null && rootPath is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -19948,7 +20367,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
           return false;
         }
         final rootUri = obj['rootUri'];
-        if (rootUri != null && !(rootUri is String)) {
+        if (rootUri != null && rootUri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -19959,7 +20378,9 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       try {
         final trace = obj['trace'];
         if (trace != null &&
-            !((trace == 'off' || trace == 'messages' || trace == 'verbose'))) {
+            trace != 'off' &&
+            trace != 'messages' &&
+            trace != 'verbose') {
           reporter.reportError(
               'must be one of the literals \'off\', \'messages\', \'verbose\'');
           return false;
@@ -19971,7 +20392,8 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -19982,9 +20404,9 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       try {
         final workspaceFolders = obj['workspaceFolders'];
         if (workspaceFolders != null &&
-            !((workspaceFolders is List<Object?> &&
-                (workspaceFolders.every(
-                    (item) => WorkspaceFolder.canParse(item, reporter)))))) {
+            (workspaceFolders is! List<Object?> ||
+                workspaceFolders.any(
+                    (item) => !WorkspaceFolder.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<WorkspaceFolder>');
           return false;
         }
@@ -20062,6 +20484,7 @@ class InitializeParamsClientInfo implements ToJsonable {
   /// The client's version as defined by the client.
   final String? version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['name'] = name;
@@ -20084,7 +20507,7 @@ class InitializeParamsClientInfo implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(name is String)) {
+        if (name is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -20094,7 +20517,7 @@ class InitializeParamsClientInfo implements ToJsonable {
       reporter.push('version');
       try {
         final version = obj['version'];
-        if (version != null && !(version is String)) {
+        if (version != null && version is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -20159,6 +20582,7 @@ class InitializeResult implements ToJsonable {
   ///  @since 3.15.0
   final InitializeResultServerInfo? serverInfo;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['capabilities'] = capabilities.toJson();
@@ -20181,7 +20605,7 @@ class InitializeResult implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(ServerCapabilities.canParse(capabilities, reporter))) {
+        if (!ServerCapabilities.canParse(capabilities, reporter)) {
           reporter.reportError('must be of type ServerCapabilities');
           return false;
         }
@@ -20192,7 +20616,7 @@ class InitializeResult implements ToJsonable {
       try {
         final serverInfo = obj['serverInfo'];
         if (serverInfo != null &&
-            !(InitializeResultServerInfo.canParse(serverInfo, reporter))) {
+            !InitializeResultServerInfo.canParse(serverInfo, reporter)) {
           reporter.reportError('must be of type InitializeResultServerInfo');
           return false;
         }
@@ -20253,6 +20677,7 @@ class InitializeResultServerInfo implements ToJsonable {
   /// The server's version as defined by the server.
   final String? version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['name'] = name;
@@ -20275,7 +20700,7 @@ class InitializeResultServerInfo implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(name is String)) {
+        if (name is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -20285,7 +20710,7 @@ class InitializeResultServerInfo implements ToJsonable {
       reporter.push('version');
       try {
         final version = obj['version'];
-        if (version != null && !(version is String)) {
+        if (version != null && version is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -20328,10 +20753,8 @@ class InitializedParams implements ToJsonable {
     return InitializedParams();
   }
 
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    return result;
-  }
+  @override
+  Map<String, Object?> toJson() => {};
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
@@ -20382,10 +20805,10 @@ class InlayHint implements ToJsonable {
     final kind =
         kindJson != null ? InlayHintKind.fromJson(kindJson as int) : null;
     final labelJson = json['label'];
-    final label = (labelJson is List<Object?> &&
-            (labelJson.every((item) =>
-                InlayHintLabelPart.canParse(item, nullLspJsonReporter))))
-        ? Either2<List<InlayHintLabelPart>, String>.t1((labelJson)
+    final label = labelJson is List<Object?> &&
+            labelJson.every((item) =>
+                InlayHintLabelPart.canParse(item, nullLspJsonReporter))
+        ? Either2<List<InlayHintLabelPart>, String>.t1(labelJson
             .map((item) =>
                 InlayHintLabelPart.fromJson(item as Map<String, Object?>))
             .toList())
@@ -20470,6 +20893,7 @@ class InlayHint implements ToJsonable {
   /// might resolve this property late using the resolve request.
   final Either2<MarkupContent, String>? tooltip;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (data != null) {
@@ -20500,7 +20924,7 @@ class InlayHint implements ToJsonable {
       reporter.push('kind');
       try {
         final kind = obj['kind'];
-        if (kind != null && !(InlayHintKind.canParse(kind, reporter))) {
+        if (kind != null && !InlayHintKind.canParse(kind, reporter)) {
           reporter.reportError('must be of type InlayHintKind');
           return false;
         }
@@ -20518,10 +20942,9 @@ class InlayHint implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(((label is List<Object?> &&
-                (label.every(
-                    (item) => InlayHintLabelPart.canParse(item, reporter)))) ||
-            label is String))) {
+        if (label is! List<Object?> ||
+            label.any((item) => !InlayHintLabelPart.canParse(item, reporter)) &&
+                label is! String) {
           reporter.reportError(
               'must be of type Either2<List<InlayHintLabelPart>, String>');
           return false;
@@ -20532,7 +20955,7 @@ class InlayHint implements ToJsonable {
       reporter.push('paddingLeft');
       try {
         final paddingLeft = obj['paddingLeft'];
-        if (paddingLeft != null && !(paddingLeft is bool)) {
+        if (paddingLeft != null && paddingLeft is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -20542,7 +20965,7 @@ class InlayHint implements ToJsonable {
       reporter.push('paddingRight');
       try {
         final paddingRight = obj['paddingRight'];
-        if (paddingRight != null && !(paddingRight is bool)) {
+        if (paddingRight != null && paddingRight is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -20560,7 +20983,7 @@ class InlayHint implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -20571,9 +20994,8 @@ class InlayHint implements ToJsonable {
       try {
         final textEdits = obj['textEdits'];
         if (textEdits != null &&
-            !((textEdits is List<Object?> &&
-                (textEdits
-                    .every((item) => TextEdit.canParse(item, reporter)))))) {
+            (textEdits is! List<Object?> ||
+                textEdits.any((item) => !TextEdit.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<TextEdit>');
           return false;
         }
@@ -20584,8 +21006,8 @@ class InlayHint implements ToJsonable {
       try {
         final tooltip = obj['tooltip'];
         if (tooltip != null &&
-            !((MarkupContent.canParse(tooltip, reporter) ||
-                tooltip is String))) {
+            !MarkupContent.canParse(tooltip, reporter) &&
+            tooltip is! String) {
           reporter
               .reportError('must be of type Either2<MarkupContent, String>');
           return false;
@@ -20665,6 +21087,7 @@ class InlayHintClientCapabilities implements ToJsonable {
   /// Indicates which properties a client can resolve lazily on a inlay hint.
   final InlayHintClientCapabilitiesResolveSupport? resolveSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -20681,7 +21104,7 @@ class InlayHintClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -20692,8 +21115,8 @@ class InlayHintClientCapabilities implements ToJsonable {
       try {
         final resolveSupport = obj['resolveSupport'];
         if (resolveSupport != null &&
-            !(InlayHintClientCapabilitiesResolveSupport.canParse(
-                resolveSupport, reporter))) {
+            !InlayHintClientCapabilitiesResolveSupport.canParse(
+                resolveSupport, reporter)) {
           reporter.reportError(
               'must be of type InlayHintClientCapabilitiesResolveSupport');
           return false;
@@ -20752,6 +21175,7 @@ class InlayHintClientCapabilitiesResolveSupport implements ToJsonable {
   /// The properties that a client can resolve lazily.
   final List<String> properties;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['properties'] = properties;
@@ -20771,8 +21195,8 @@ class InlayHintClientCapabilitiesResolveSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((properties is List<Object?> &&
-            (properties.every((item) => item is String))))) {
+        if (properties is! List<Object?> ||
+            properties.any((item) => item is! String)) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -20823,6 +21247,7 @@ class InlayHintKind implements ToJsonable {
   /// An inlay hint that for a type annotation.
   static const Type = InlayHintKind(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -20831,6 +21256,7 @@ class InlayHintKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is InlayHintKind && other._value == _value;
 }
@@ -20904,6 +21330,7 @@ class InlayHintLabelPart implements ToJsonable {
   /// The value of this label part.
   final String value;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (command != null) {
@@ -20924,7 +21351,7 @@ class InlayHintLabelPart implements ToJsonable {
       reporter.push('command');
       try {
         final command = obj['command'];
-        if (command != null && !(Command.canParse(command, reporter))) {
+        if (command != null && !Command.canParse(command, reporter)) {
           reporter.reportError('must be of type Command');
           return false;
         }
@@ -20934,7 +21361,7 @@ class InlayHintLabelPart implements ToJsonable {
       reporter.push('location');
       try {
         final location = obj['location'];
-        if (location != null && !(Location.canParse(location, reporter))) {
+        if (location != null && !Location.canParse(location, reporter)) {
           reporter.reportError('must be of type Location');
           return false;
         }
@@ -20945,8 +21372,8 @@ class InlayHintLabelPart implements ToJsonable {
       try {
         final tooltip = obj['tooltip'];
         if (tooltip != null &&
-            !((MarkupContent.canParse(tooltip, reporter) ||
-                tooltip is String))) {
+            !MarkupContent.canParse(tooltip, reporter) &&
+            tooltip is! String) {
           reporter
               .reportError('must be of type Either2<MarkupContent, String>');
           return false;
@@ -20965,7 +21392,7 @@ class InlayHintLabelPart implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(value is String)) {
+        if (value is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -21033,8 +21460,10 @@ class InlayHintOptions implements WorkDoneProgressOptions, ToJsonable {
   /// The server provides support to resolve additional information for an inlay
   /// hint item.
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (resolveProvider != null) {
@@ -21051,7 +21480,7 @@ class InlayHintOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('resolveProvider');
       try {
         final resolveProvider = obj['resolveProvider'];
-        if (resolveProvider != null && !(resolveProvider is bool)) {
+        if (resolveProvider != null && resolveProvider is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -21061,7 +21490,7 @@ class InlayHintOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -21136,8 +21565,10 @@ class InlayHintParams implements WorkDoneProgressParams, ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['range'] = range.toJson();
@@ -21161,7 +21592,7 @@ class InlayHintParams implements WorkDoneProgressParams, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -21179,7 +21610,7 @@ class InlayHintParams implements WorkDoneProgressParams, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -21190,7 +21621,8 @@ class InlayHintParams implements WorkDoneProgressParams, ToJsonable {
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -21248,8 +21680,8 @@ class InlayHintRegistrationOptions
   static InlayHintRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -21267,17 +21699,22 @@ class InlayHintRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
 
   /// The server provides support to resolve additional information for an inlay
   /// hint item.
+  @override
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -21303,10 +21740,11 @@ class InlayHintRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -21315,7 +21753,7 @@ class InlayHintRegistrationOptions
       reporter.push('id');
       try {
         final id = obj['id'];
-        if (id != null && !(id is String)) {
+        if (id != null && id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -21325,7 +21763,7 @@ class InlayHintRegistrationOptions
       reporter.push('resolveProvider');
       try {
         final resolveProvider = obj['resolveProvider'];
-        if (resolveProvider != null && !(resolveProvider is bool)) {
+        if (resolveProvider != null && resolveProvider is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -21335,7 +21773,7 @@ class InlayHintRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -21353,8 +21791,12 @@ class InlayHintRegistrationOptions
   bool operator ==(Object other) {
     if (other is InlayHintRegistrationOptions &&
         other.runtimeType == InlayHintRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           resolveProvider == other.resolveProvider &&
           workDoneProgress == other.workDoneProgress &&
@@ -21404,6 +21846,7 @@ class InlayHintWorkspaceClientCapabilities implements ToJsonable {
   /// change that requires such a calculation.
   final bool? refreshSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (refreshSupport != null) {
@@ -21417,7 +21860,7 @@ class InlayHintWorkspaceClientCapabilities implements ToJsonable {
       reporter.push('refreshSupport');
       try {
         final refreshSupport = obj['refreshSupport'];
-        if (refreshSupport != null && !(refreshSupport is bool)) {
+        if (refreshSupport != null && refreshSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -21471,6 +21914,7 @@ class InlineValueClientCapabilities implements ToJsonable {
   /// providers.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -21484,7 +21928,7 @@ class InlineValueClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -21544,6 +21988,7 @@ class InlineValueContext implements ToJsonable {
   /// of the range denotes the line where the inline values are shown.
   final Range stoppedLocation;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['frameId'] = frameId;
@@ -21564,7 +22009,7 @@ class InlineValueContext implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(frameId is int)) {
+        if (frameId is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -21582,7 +22027,7 @@ class InlineValueContext implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(stoppedLocation, reporter))) {
+        if (!Range.canParse(stoppedLocation, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -21652,6 +22097,7 @@ class InlineValueEvaluatableExpression implements ToJsonable {
   /// to extract the evaluatable expression from the underlying document.
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (expression != null) {
@@ -21666,7 +22112,7 @@ class InlineValueEvaluatableExpression implements ToJsonable {
       reporter.push('expression');
       try {
         final expression = obj['expression'];
-        if (expression != null && !(expression is String)) {
+        if (expression != null && expression is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -21684,7 +22130,7 @@ class InlineValueEvaluatableExpression implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -21739,8 +22185,10 @@ class InlineValueOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -21754,7 +22202,7 @@ class InlineValueOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -21834,8 +22282,10 @@ class InlineValueParams implements WorkDoneProgressParams, ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['context'] = context.toJson();
@@ -21860,7 +22310,7 @@ class InlineValueParams implements WorkDoneProgressParams, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(InlineValueContext.canParse(context, reporter))) {
+        if (!InlineValueContext.canParse(context, reporter)) {
           reporter.reportError('must be of type InlineValueContext');
           return false;
         }
@@ -21878,7 +22328,7 @@ class InlineValueParams implements WorkDoneProgressParams, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -21896,7 +22346,7 @@ class InlineValueParams implements WorkDoneProgressParams, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -21907,7 +22357,8 @@ class InlineValueParams implements WorkDoneProgressParams, ToJsonable {
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -21966,8 +22417,8 @@ class InlineValueRegistrationOptions
   static InlineValueRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -21982,13 +22433,17 @@ class InlineValueRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -22011,10 +22466,11 @@ class InlineValueRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -22023,7 +22479,7 @@ class InlineValueRegistrationOptions
       reporter.push('id');
       try {
         final id = obj['id'];
-        if (id != null && !(id is String)) {
+        if (id != null && id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -22033,7 +22489,7 @@ class InlineValueRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -22051,8 +22507,12 @@ class InlineValueRegistrationOptions
   bool operator ==(Object other) {
     if (other is InlineValueRegistrationOptions &&
         other.runtimeType == InlineValueRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -22100,6 +22560,7 @@ class InlineValueText implements ToJsonable {
   /// The text of the inline value.
   final String text;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['range'] = range.toJson();
@@ -22120,7 +22581,7 @@ class InlineValueText implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -22138,7 +22599,7 @@ class InlineValueText implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(text is String)) {
+        if (text is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -22212,6 +22673,7 @@ class InlineValueVariableLookup implements ToJsonable {
   /// If specified the name of the variable to look up.
   final String? variableName;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['caseSensitiveLookup'] = caseSensitiveLookup;
@@ -22235,7 +22697,7 @@ class InlineValueVariableLookup implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(caseSensitiveLookup is bool)) {
+        if (caseSensitiveLookup is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -22253,7 +22715,7 @@ class InlineValueVariableLookup implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -22263,7 +22725,7 @@ class InlineValueVariableLookup implements ToJsonable {
       reporter.push('variableName');
       try {
         final variableName = obj['variableName'];
-        if (variableName != null && !(variableName is String)) {
+        if (variableName != null && variableName is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -22329,6 +22791,7 @@ class InlineValueWorkspaceClientCapabilities implements ToJsonable {
   /// change that requires such a calculation.
   final bool? refreshSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (refreshSupport != null) {
@@ -22342,7 +22805,7 @@ class InlineValueWorkspaceClientCapabilities implements ToJsonable {
       reporter.push('refreshSupport');
       try {
         final refreshSupport = obj['refreshSupport'];
-        if (refreshSupport != null && !(refreshSupport is bool)) {
+        if (refreshSupport != null && refreshSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -22409,6 +22872,7 @@ class InsertReplaceEdit implements ToJsonable {
   /// The range if the replace is requested.
   final Range replace;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['insert'] = insert.toJson();
@@ -22430,7 +22894,7 @@ class InsertReplaceEdit implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(insert, reporter))) {
+        if (!Range.canParse(insert, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -22448,7 +22912,7 @@ class InsertReplaceEdit implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(newText is String)) {
+        if (newText is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -22466,7 +22930,7 @@ class InsertReplaceEdit implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(replace, reporter))) {
+        if (!Range.canParse(replace, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -22530,6 +22994,7 @@ class InsertTextFormat implements ToJsonable {
   /// one will update others too.
   static const Snippet = InsertTextFormat._(2);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -22538,6 +23003,7 @@ class InsertTextFormat implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is InsertTextFormat && other._value == _value;
 }
@@ -22568,6 +23034,7 @@ class InsertTextMode implements ToJsonable {
   /// adjustments to the string.
   static const asIs = InsertTextMode(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -22576,6 +23043,7 @@ class InsertTextMode implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is InsertTextMode && other._value == _value;
 }
@@ -22604,6 +23072,7 @@ class LinkedEditingRangeClientCapabilities implements ToJsonable {
   /// capability as well.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -22617,7 +23086,7 @@ class LinkedEditingRangeClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -22669,8 +23138,10 @@ class LinkedEditingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -22684,7 +23155,7 @@ class LinkedEditingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -22748,14 +23219,18 @@ class LinkedEditingRangeParams
   }
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['position'] = position.toJson();
@@ -22779,7 +23254,7 @@ class LinkedEditingRangeParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -22797,7 +23272,7 @@ class LinkedEditingRangeParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -22808,7 +23283,8 @@ class LinkedEditingRangeParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -22865,8 +23341,8 @@ class LinkedEditingRangeRegistrationOptions
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -22881,13 +23357,17 @@ class LinkedEditingRangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -22910,10 +23390,11 @@ class LinkedEditingRangeRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -22922,7 +23403,7 @@ class LinkedEditingRangeRegistrationOptions
       reporter.push('id');
       try {
         final id = obj['id'];
-        if (id != null && !(id is String)) {
+        if (id != null && id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -22932,7 +23413,7 @@ class LinkedEditingRangeRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -22951,8 +23432,12 @@ class LinkedEditingRangeRegistrationOptions
   bool operator ==(Object other) {
     if (other is LinkedEditingRangeRegistrationOptions &&
         other.runtimeType == LinkedEditingRangeRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -23004,6 +23489,7 @@ class LinkedEditingRanges implements ToJsonable {
   /// configuration's word pattern will be used.
   final String? wordPattern;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['ranges'] = ranges.map((item) => item.toJson()).toList();
@@ -23026,8 +23512,8 @@ class LinkedEditingRanges implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((ranges is List<Object?> &&
-            (ranges.every((item) => Range.canParse(item, reporter)))))) {
+        if (ranges is! List<Object?> ||
+            ranges.any((item) => !Range.canParse(item, reporter))) {
           reporter.reportError('must be of type List<Range>');
           return false;
         }
@@ -23037,7 +23523,7 @@ class LinkedEditingRanges implements ToJsonable {
       reporter.push('wordPattern');
       try {
         final wordPattern = obj['wordPattern'];
-        if (wordPattern != null && !(wordPattern is String)) {
+        if (wordPattern != null && wordPattern is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -23096,6 +23582,7 @@ class Location implements ToJsonable {
   final Range range;
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['range'] = range.toJson();
@@ -23116,7 +23603,7 @@ class Location implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -23134,7 +23621,7 @@ class Location implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -23218,6 +23705,7 @@ class LocationLink implements ToJsonable {
   /// The target resource identifier of this link.
   final String targetUri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (originSelectionRange != null) {
@@ -23235,7 +23723,7 @@ class LocationLink implements ToJsonable {
       try {
         final originSelectionRange = obj['originSelectionRange'];
         if (originSelectionRange != null &&
-            !(Range.canParse(originSelectionRange, reporter))) {
+            !Range.canParse(originSelectionRange, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -23253,7 +23741,7 @@ class LocationLink implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(targetRange, reporter))) {
+        if (!Range.canParse(targetRange, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -23271,7 +23759,7 @@ class LocationLink implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(targetSelectionRange, reporter))) {
+        if (!Range.canParse(targetSelectionRange, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -23289,7 +23777,7 @@ class LocationLink implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(targetUri is String)) {
+        if (targetUri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -23354,6 +23842,7 @@ class LogMessageParams implements ToJsonable {
   /// The message type.
   final MessageType type;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['message'] = message;
@@ -23374,7 +23863,7 @@ class LogMessageParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(message is String)) {
+        if (message is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -23392,7 +23881,7 @@ class LogMessageParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(MessageType.canParse(type, reporter))) {
+        if (!MessageType.canParse(type, reporter)) {
           reporter.reportError('must be of type MessageType');
           return false;
         }
@@ -23452,6 +23941,7 @@ class LogTraceParams implements ToJsonable {
   /// is set to `'verbose'`
   final String? verbose;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['message'] = message;
@@ -23474,7 +23964,7 @@ class LogTraceParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(message is String)) {
+        if (message is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -23484,7 +23974,7 @@ class LogTraceParams implements ToJsonable {
       reporter.push('verbose');
       try {
         final verbose = obj['verbose'];
-        if (verbose != null && !(verbose is String)) {
+        if (verbose != null && verbose is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -23555,6 +24045,7 @@ class MarkdownClientCapabilities implements ToJsonable {
   /// The version of the parser.
   final String? version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (allowedTags != null) {
@@ -23573,8 +24064,8 @@ class MarkdownClientCapabilities implements ToJsonable {
       try {
         final allowedTags = obj['allowedTags'];
         if (allowedTags != null &&
-            !((allowedTags is List<Object?> &&
-                (allowedTags.every((item) => item is String))))) {
+            (allowedTags is! List<Object?> ||
+                allowedTags.any((item) => item is! String))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -23592,7 +24083,7 @@ class MarkdownClientCapabilities implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(parser is String)) {
+        if (parser is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -23602,7 +24093,7 @@ class MarkdownClientCapabilities implements ToJsonable {
       reporter.push('version');
       try {
         final version = obj['version'];
-        if (version != null && !(version is String)) {
+        if (version != null && version is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -23687,6 +24178,7 @@ class MarkupContent implements ToJsonable {
   /// The content itself
   final String value;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['kind'] = kind.toJson();
@@ -23707,7 +24199,7 @@ class MarkupContent implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(MarkupKind.canParse(kind, reporter))) {
+        if (!MarkupKind.canParse(kind, reporter)) {
           reporter.reportError('must be of type MarkupKind');
           return false;
         }
@@ -23725,7 +24217,7 @@ class MarkupContent implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(value is String)) {
+        if (value is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -23783,6 +24275,7 @@ class MarkupKind implements ToJsonable {
   /// Plain text is supported as a content format
   static const PlainText = MarkupKind._('plaintext');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -23791,6 +24284,7 @@ class MarkupKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is MarkupKind && other._value == _value;
 }
@@ -23815,6 +24309,7 @@ class MessageActionItem implements ToJsonable {
   /// A short title like 'Retry', 'Open Log' etc.
   final String title;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['title'] = title;
@@ -23834,7 +24329,7 @@ class MessageActionItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(title is String)) {
+        if (title is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -23885,6 +24380,7 @@ class MessageType implements ToJsonable {
   /// A warning message.
   static const Warning = MessageType(2);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -23893,6 +24389,7 @@ class MessageType implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is MessageType && other._value == _value;
 }
@@ -24212,6 +24709,7 @@ class Method implements ToJsonable {
   /// Constant for the 'workspaceSymbol/resolve' method.
   static const workspaceSymbol_resolve = Method('workspaceSymbol/resolve');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -24220,6 +24718,7 @@ class Method implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) => other is Method && other._value == _value;
 }
 
@@ -24267,6 +24766,7 @@ class Moniker implements ToJsonable {
   /// The scope in which the moniker is unique
   final UniquenessLevel unique;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['identifier'] = identifier;
@@ -24291,7 +24791,7 @@ class Moniker implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(identifier is String)) {
+        if (identifier is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -24301,7 +24801,7 @@ class Moniker implements ToJsonable {
       reporter.push('kind');
       try {
         final kind = obj['kind'];
-        if (kind != null && !(MonikerKind.canParse(kind, reporter))) {
+        if (kind != null && !MonikerKind.canParse(kind, reporter)) {
           reporter.reportError('must be of type MonikerKind');
           return false;
         }
@@ -24319,7 +24819,7 @@ class Moniker implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(scheme is String)) {
+        if (scheme is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -24337,7 +24837,7 @@ class Moniker implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(UniquenessLevel.canParse(unique, reporter))) {
+        if (!UniquenessLevel.canParse(unique, reporter)) {
           reporter.reportError('must be of type UniquenessLevel');
           return false;
         }
@@ -24398,6 +24898,7 @@ class MonikerClientCapabilities implements ToJsonable {
   /// capability as well.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -24411,7 +24912,7 @@ class MonikerClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -24462,6 +24963,7 @@ class MonikerKind implements ToJsonable {
   /// variable of a function, a class not visible outside the project, ...)
   static const local = MonikerKind('local');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -24470,6 +24972,7 @@ class MonikerKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is MonikerKind && other._value == _value;
 }
@@ -24494,8 +24997,10 @@ class MonikerOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -24509,7 +25014,7 @@ class MonikerOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -24587,17 +25092,22 @@ class MonikerParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -24617,7 +25127,8 @@ class MonikerParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -24635,7 +25146,7 @@ class MonikerParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -24653,7 +25164,7 @@ class MonikerParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -24664,7 +25175,8 @@ class MonikerParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -24716,8 +25228,8 @@ class MonikerRegistrationOptions
   static MonikerRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -24729,9 +25241,12 @@ class MonikerRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -24751,10 +25266,11 @@ class MonikerRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -24763,7 +25279,7 @@ class MonikerRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -24781,8 +25297,12 @@ class MonikerRegistrationOptions
   bool operator ==(Object other) {
     if (other is MonikerRegistrationOptions &&
         other.runtimeType == MonikerRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           workDoneProgress == other.workDoneProgress &&
           true;
     }
@@ -24849,6 +25369,7 @@ class NotebookCell implements ToJsonable {
   /// Additional metadata stored with the cell.
   final Object? metadata;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['document'] = document;
@@ -24875,7 +25396,7 @@ class NotebookCell implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(document is String)) {
+        if (document is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -24886,7 +25407,7 @@ class NotebookCell implements ToJsonable {
       try {
         final executionSummary = obj['executionSummary'];
         if (executionSummary != null &&
-            !(ExecutionSummary.canParse(executionSummary, reporter))) {
+            !ExecutionSummary.canParse(executionSummary, reporter)) {
           reporter.reportError('must be of type ExecutionSummary');
           return false;
         }
@@ -24904,7 +25425,7 @@ class NotebookCell implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(NotebookCellKind.canParse(kind, reporter))) {
+        if (!NotebookCellKind.canParse(kind, reporter)) {
           reporter.reportError('must be of type NotebookCellKind');
           return false;
         }
@@ -24980,6 +25501,7 @@ class NotebookCellArrayChange implements ToJsonable {
   /// The start oftest of the cell that changed.
   final int start;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (cells != null) {
@@ -24996,9 +25518,8 @@ class NotebookCellArrayChange implements ToJsonable {
       try {
         final cells = obj['cells'];
         if (cells != null &&
-            !((cells is List<Object?> &&
-                (cells.every(
-                    (item) => NotebookCell.canParse(item, reporter)))))) {
+            (cells is! List<Object?> ||
+                cells.any((item) => !NotebookCell.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<NotebookCell>');
           return false;
         }
@@ -25016,7 +25537,7 @@ class NotebookCellArrayChange implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(deleteCount is int)) {
+        if (deleteCount is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -25034,7 +25555,7 @@ class NotebookCellArrayChange implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(start is int)) {
+        if (start is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -25090,6 +25611,7 @@ class NotebookCellKind implements ToJsonable {
   /// A markup-cell is formatted source that is used for display.
   static const Markup = NotebookCellKind(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -25098,6 +25620,7 @@ class NotebookCellKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is NotebookCellKind && other._value == _value;
 }
@@ -25119,10 +25642,10 @@ class NotebookCellTextDocumentFilter implements ToJsonable {
     final languageJson = json['language'];
     final language = languageJson as String?;
     final notebookJson = json['notebook'];
-    final notebook = (NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter) ||
+    final notebook = NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter) ||
             NotebookDocumentFilter2.canParse(
                 notebookJson, nullLspJsonReporter) ||
-            NotebookDocumentFilter3.canParse(notebookJson, nullLspJsonReporter))
+            NotebookDocumentFilter3.canParse(notebookJson, nullLspJsonReporter)
         ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t1(
             NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter)
                 ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(NotebookDocumentFilter1.fromJson(
@@ -25154,6 +25677,7 @@ class NotebookCellTextDocumentFilter implements ToJsonable {
           NotebookDocumentFilter3>,
       String> notebook;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (language != null) {
@@ -25168,7 +25692,7 @@ class NotebookCellTextDocumentFilter implements ToJsonable {
       reporter.push('language');
       try {
         final language = obj['language'];
-        if (language != null && !(language is String)) {
+        if (language != null && language is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -25186,10 +25710,10 @@ class NotebookCellTextDocumentFilter implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(((NotebookDocumentFilter1.canParse(notebook, reporter) ||
-                NotebookDocumentFilter2.canParse(notebook, reporter) ||
-                NotebookDocumentFilter3.canParse(notebook, reporter)) ||
-            notebook is String))) {
+        if (!NotebookDocumentFilter1.canParse(notebook, reporter) &&
+            !NotebookDocumentFilter2.canParse(notebook, reporter) &&
+            !NotebookDocumentFilter3.canParse(notebook, reporter) &&
+            notebook is! String) {
           reporter.reportError(
               'must be of type Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>');
           return false;
@@ -25276,6 +25800,7 @@ class NotebookDocument implements ToJsonable {
   /// including undo/redo).
   final int version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['cells'] = cells.map((item) => item.toJson()).toList();
@@ -25301,8 +25826,8 @@ class NotebookDocument implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((cells is List<Object?> &&
-            (cells.every((item) => NotebookCell.canParse(item, reporter)))))) {
+        if (cells is! List<Object?> ||
+            cells.any((item) => !NotebookCell.canParse(item, reporter))) {
           reporter.reportError('must be of type List<NotebookCell>');
           return false;
         }
@@ -25320,7 +25845,7 @@ class NotebookDocument implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(notebookType is String)) {
+        if (notebookType is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -25338,7 +25863,7 @@ class NotebookDocument implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -25356,7 +25881,7 @@ class NotebookDocument implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(version is int)) {
+        if (version is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -25429,6 +25954,7 @@ class NotebookDocumentChangeEvent implements ToJsonable {
   /// The changed meta data if any.
   final Object? metadata;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (cells != null) {
@@ -25446,7 +25972,7 @@ class NotebookDocumentChangeEvent implements ToJsonable {
       try {
         final cells = obj['cells'];
         if (cells != null &&
-            !(NotebookDocumentChangeEventCells.canParse(cells, reporter))) {
+            !NotebookDocumentChangeEventCells.canParse(cells, reporter)) {
           reporter
               .reportError('must be of type NotebookDocumentChangeEventCells');
           return false;
@@ -25503,7 +26029,7 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
         : null;
     final textContentJson = json['textContent'];
     final textContent = (textContentJson as List<Object?>?)
-        ?.map((item) => NotebookDocumentChangeEventTextContent.fromJson(
+        ?.map((item) => NotebookDocumentChangeEventCellsTextContent.fromJson(
             item as Map<String, Object?>))
         .toList();
     return NotebookDocumentChangeEventCells(
@@ -25521,8 +26047,9 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
   final NotebookDocumentChangeEventCellsStructure? structure;
 
   /// Changes to the text content of notebook cells.
-  final List<NotebookDocumentChangeEventTextContent>? textContent;
+  final List<NotebookDocumentChangeEventCellsTextContent>? textContent;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (data != null) {
@@ -25544,9 +26071,8 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
       try {
         final data = obj['data'];
         if (data != null &&
-            !((data is List<Object?> &&
-                (data.every(
-                    (item) => NotebookCell.canParse(item, reporter)))))) {
+            (data is! List<Object?> ||
+                data.any((item) => !NotebookCell.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<NotebookCell>');
           return false;
         }
@@ -25557,8 +26083,8 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
       try {
         final structure = obj['structure'];
         if (structure != null &&
-            !(NotebookDocumentChangeEventCellsStructure.canParse(
-                structure, reporter))) {
+            !NotebookDocumentChangeEventCellsStructure.canParse(
+                structure, reporter)) {
           reporter.reportError(
               'must be of type NotebookDocumentChangeEventCellsStructure');
           return false;
@@ -25570,12 +26096,12 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
       try {
         final textContent = obj['textContent'];
         if (textContent != null &&
-            !((textContent is List<Object?> &&
-                (textContent.every((item) =>
-                    NotebookDocumentChangeEventTextContent.canParse(
-                        item, reporter)))))) {
+            (textContent is! List<Object?> ||
+                textContent.any((item) =>
+                    !NotebookDocumentChangeEventCellsTextContent.canParse(
+                        item, reporter)))) {
           reporter.reportError(
-              'must be of type List<NotebookDocumentChangeEventTextContent>');
+              'must be of type List<NotebookDocumentChangeEventCellsTextContent>');
           return false;
         }
       } finally {
@@ -25598,8 +26124,8 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
           listEqual(
               textContent,
               other.textContent,
-              (NotebookDocumentChangeEventTextContent a,
-                      NotebookDocumentChangeEventTextContent b) =>
+              (NotebookDocumentChangeEventCellsTextContent a,
+                      NotebookDocumentChangeEventCellsTextContent b) =>
                   a == b) &&
           true;
     }
@@ -25658,6 +26184,7 @@ class NotebookDocumentChangeEventCellsStructure implements ToJsonable {
   /// Additional opened cell text documents.
   final List<TextDocumentItem>? didOpen;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['array'] = array.toJson();
@@ -25683,7 +26210,7 @@ class NotebookDocumentChangeEventCellsStructure implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(NotebookCellArrayChange.canParse(array, reporter))) {
+        if (!NotebookCellArrayChange.canParse(array, reporter)) {
           reporter.reportError('must be of type NotebookCellArrayChange');
           return false;
         }
@@ -25694,9 +26221,9 @@ class NotebookDocumentChangeEventCellsStructure implements ToJsonable {
       try {
         final didClose = obj['didClose'];
         if (didClose != null &&
-            !((didClose is List<Object?> &&
-                (didClose.every((item) =>
-                    TextDocumentIdentifier.canParse(item, reporter)))))) {
+            (didClose is! List<Object?> ||
+                didClose.any((item) =>
+                    !TextDocumentIdentifier.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<TextDocumentIdentifier>');
           return false;
         }
@@ -25707,9 +26234,9 @@ class NotebookDocumentChangeEventCellsStructure implements ToJsonable {
       try {
         final didOpen = obj['didOpen'];
         if (didOpen != null &&
-            !((didOpen is List<Object?> &&
-                (didOpen.every(
-                    (item) => TextDocumentItem.canParse(item, reporter)))))) {
+            (didOpen is! List<Object?> ||
+                didOpen.any(
+                    (item) => !TextDocumentItem.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<TextDocumentItem>');
           return false;
         }
@@ -25749,17 +26276,17 @@ class NotebookDocumentChangeEventCellsStructure implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class NotebookDocumentChangeEventTextContent implements ToJsonable {
+class NotebookDocumentChangeEventCellsTextContent implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    NotebookDocumentChangeEventTextContent.canParse,
-    NotebookDocumentChangeEventTextContent.fromJson,
+    NotebookDocumentChangeEventCellsTextContent.canParse,
+    NotebookDocumentChangeEventCellsTextContent.fromJson,
   );
 
-  NotebookDocumentChangeEventTextContent({
+  NotebookDocumentChangeEventCellsTextContent({
     required this.changes,
     required this.document,
   });
-  static NotebookDocumentChangeEventTextContent fromJson(
+  static NotebookDocumentChangeEventCellsTextContent fromJson(
       Map<String, Object?> json) {
     final changesJson = json['changes'];
     final changes = (changesJson as List<Object?>)
@@ -25777,7 +26304,7 @@ class NotebookDocumentChangeEventTextContent implements ToJsonable {
     final documentJson = json['document'];
     final document = VersionedTextDocumentIdentifier.fromJson(
         documentJson as Map<String, Object?>);
-    return NotebookDocumentChangeEventTextContent(
+    return NotebookDocumentChangeEventCellsTextContent(
       changes: changes,
       document: document,
     );
@@ -25788,6 +26315,7 @@ class NotebookDocumentChangeEventTextContent implements ToJsonable {
           TextDocumentContentChangeEvent2>> changes;
   final VersionedTextDocumentIdentifier document;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['changes'] = changes;
@@ -25808,10 +26336,10 @@ class NotebookDocumentChangeEventTextContent implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((changes is List<Object?> &&
-            (changes.every((item) => (TextDocumentContentChangeEvent1.canParse(
-                    item, reporter) ||
-                TextDocumentContentChangeEvent2.canParse(item, reporter))))))) {
+        if (changes is! List<Object?> ||
+            changes.any((item) =>
+                !TextDocumentContentChangeEvent1.canParse(item, reporter) &&
+                !TextDocumentContentChangeEvent2.canParse(item, reporter))) {
           reporter.reportError(
               'must be of type List<Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>>');
           return false;
@@ -25830,7 +26358,7 @@ class NotebookDocumentChangeEventTextContent implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(VersionedTextDocumentIdentifier.canParse(document, reporter))) {
+        if (!VersionedTextDocumentIdentifier.canParse(document, reporter)) {
           reporter
               .reportError('must be of type VersionedTextDocumentIdentifier');
           return false;
@@ -25841,15 +26369,15 @@ class NotebookDocumentChangeEventTextContent implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          'must be of type NotebookDocumentChangeEventTextContent');
+          'must be of type NotebookDocumentChangeEventCellsTextContent');
       return false;
     }
   }
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentChangeEventTextContent &&
-        other.runtimeType == NotebookDocumentChangeEventTextContent) {
+    if (other is NotebookDocumentChangeEventCellsTextContent &&
+        other.runtimeType == NotebookDocumentChangeEventCellsTextContent) {
       return listEqual(
               changes,
               other.changes,
@@ -25901,6 +26429,7 @@ class NotebookDocumentClientCapabilities implements ToJsonable {
   ///  @since 3.17.0
   final NotebookDocumentSyncClientCapabilities synchronization;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['synchronization'] = synchronization.toJson();
@@ -25920,8 +26449,8 @@ class NotebookDocumentClientCapabilities implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(NotebookDocumentSyncClientCapabilities.canParse(
-            synchronization, reporter))) {
+        if (!NotebookDocumentSyncClientCapabilities.canParse(
+            synchronization, reporter)) {
           reporter.reportError(
               'must be of type NotebookDocumentSyncClientCapabilities');
           return false;
@@ -25987,6 +26516,7 @@ class NotebookDocumentFilter1 implements ToJsonable {
   /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
   final String? scheme;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['notebookType'] = notebookType;
@@ -26012,7 +26542,7 @@ class NotebookDocumentFilter1 implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(notebookType is String)) {
+        if (notebookType is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -26022,7 +26552,7 @@ class NotebookDocumentFilter1 implements ToJsonable {
       reporter.push('pattern');
       try {
         final pattern = obj['pattern'];
-        if (pattern != null && !(pattern is String)) {
+        if (pattern != null && pattern is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -26032,7 +26562,7 @@ class NotebookDocumentFilter1 implements ToJsonable {
       reporter.push('scheme');
       try {
         final scheme = obj['scheme'];
-        if (scheme != null && !(scheme is String)) {
+        if (scheme != null && scheme is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -26103,6 +26633,7 @@ class NotebookDocumentFilter2 implements ToJsonable {
   /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
   final String scheme;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (notebookType != null) {
@@ -26120,7 +26651,7 @@ class NotebookDocumentFilter2 implements ToJsonable {
       reporter.push('notebookType');
       try {
         final notebookType = obj['notebookType'];
-        if (notebookType != null && !(notebookType is String)) {
+        if (notebookType != null && notebookType is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -26130,7 +26661,7 @@ class NotebookDocumentFilter2 implements ToJsonable {
       reporter.push('pattern');
       try {
         final pattern = obj['pattern'];
-        if (pattern != null && !(pattern is String)) {
+        if (pattern != null && pattern is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -26148,7 +26679,7 @@ class NotebookDocumentFilter2 implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(scheme is String)) {
+        if (scheme is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -26219,6 +26750,7 @@ class NotebookDocumentFilter3 implements ToJsonable {
   /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
   final String? scheme;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (notebookType != null) {
@@ -26236,7 +26768,7 @@ class NotebookDocumentFilter3 implements ToJsonable {
       reporter.push('notebookType');
       try {
         final notebookType = obj['notebookType'];
-        if (notebookType != null && !(notebookType is String)) {
+        if (notebookType != null && notebookType is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -26254,7 +26786,7 @@ class NotebookDocumentFilter3 implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(pattern is String)) {
+        if (pattern is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -26264,7 +26796,7 @@ class NotebookDocumentFilter3 implements ToJsonable {
       reporter.push('scheme');
       try {
         final scheme = obj['scheme'];
-        if (scheme != null && !(scheme is String)) {
+        if (scheme != null && scheme is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -26323,6 +26855,7 @@ class NotebookDocumentIdentifier implements ToJsonable {
   /// The notebook document's uri.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -26342,7 +26875,7 @@ class NotebookDocumentIdentifier implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -26382,13 +26915,17 @@ class NotebookDocumentSyncClientCapabilities implements ToJsonable {
 
   NotebookDocumentSyncClientCapabilities({
     this.dynamicRegistration,
+    this.executionSummarySupport,
   });
   static NotebookDocumentSyncClientCapabilities fromJson(
       Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final executionSummarySupportJson = json['executionSummarySupport'];
+    final executionSummarySupport = executionSummarySupportJson as bool?;
     return NotebookDocumentSyncClientCapabilities(
       dynamicRegistration: dynamicRegistration,
+      executionSummarySupport: executionSummarySupport,
     );
   }
 
@@ -26398,10 +26935,17 @@ class NotebookDocumentSyncClientCapabilities implements ToJsonable {
   /// capability as well.
   final bool? dynamicRegistration;
 
+  /// The client supports sending execution summary data per cell.
+  final bool? executionSummarySupport;
+
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
       result['dynamicRegistration'] = dynamicRegistration;
+    }
+    if (executionSummarySupport != null) {
+      result['executionSummarySupport'] = executionSummarySupport;
     }
     return result;
   }
@@ -26411,7 +26955,18 @@ class NotebookDocumentSyncClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
+          reporter.reportError('must be of type bool');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('executionSummarySupport');
+      try {
+        final executionSummarySupport = obj['executionSummarySupport'];
+        if (executionSummarySupport != null &&
+            executionSummarySupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -26430,13 +26985,18 @@ class NotebookDocumentSyncClientCapabilities implements ToJsonable {
   bool operator ==(Object other) {
     if (other is NotebookDocumentSyncClientCapabilities &&
         other.runtimeType == NotebookDocumentSyncClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
+      return dynamicRegistration == other.dynamicRegistration &&
+          executionSummarySupport == other.executionSummarySupport &&
+          true;
     }
     return false;
   }
 
   @override
-  int get hashCode => dynamicRegistration.hashCode;
+  int get hashCode => Object.hash(
+        dynamicRegistration,
+        executionSummarySupport,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -26496,6 +27056,7 @@ class NotebookDocumentSyncOptions implements ToJsonable {
   /// honored if mode === `notebook`.
   final bool? save;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['notebookSelector'] = notebookSelector;
@@ -26518,12 +27079,12 @@ class NotebookDocumentSyncOptions implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((notebookSelector is List<Object?> &&
-            (notebookSelector.every((item) =>
-                (NotebookDocumentSyncOptionsNotebookSelector.canParse(
-                        item, reporter) ||
-                    NotebookDocumentSyncOptionsNotebookSelector2.canParse(
-                        item, reporter))))))) {
+        if (notebookSelector is! List<Object?> ||
+            notebookSelector.any((item) =>
+                !NotebookDocumentSyncOptionsNotebookSelector.canParse(
+                    item, reporter) &&
+                !NotebookDocumentSyncOptionsNotebookSelector2.canParse(
+                    item, reporter))) {
           reporter.reportError(
               'must be of type List<Either2<NotebookDocumentSyncOptionsNotebookSelector, NotebookDocumentSyncOptionsNotebookSelector2>>');
           return false;
@@ -26534,7 +27095,7 @@ class NotebookDocumentSyncOptions implements ToJsonable {
       reporter.push('save');
       try {
         final save = obj['save'];
-        if (save != null && !(save is bool)) {
+        if (save != null && save is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -26578,142 +27139,6 @@ class NotebookDocumentSyncOptions implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class NotebookDocumentSyncOptionsCells implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    NotebookDocumentSyncOptionsCells.canParse,
-    NotebookDocumentSyncOptionsCells.fromJson,
-  );
-
-  NotebookDocumentSyncOptionsCells({
-    required this.language,
-  });
-  static NotebookDocumentSyncOptionsCells fromJson(Map<String, Object?> json) {
-    final languageJson = json['language'];
-    final language = languageJson as String;
-    return NotebookDocumentSyncOptionsCells(
-      language: language,
-    );
-  }
-
-  final String language;
-
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['language'] = language;
-    return result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('language');
-      try {
-        if (!obj.containsKey('language')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final language = obj['language'];
-        if (language == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(language is String)) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError('must be of type NotebookDocumentSyncOptionsCells');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is NotebookDocumentSyncOptionsCells &&
-        other.runtimeType == NotebookDocumentSyncOptionsCells) {
-      return language == other.language && true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => language.hashCode;
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class NotebookDocumentSyncOptionsCells2 implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    NotebookDocumentSyncOptionsCells2.canParse,
-    NotebookDocumentSyncOptionsCells2.fromJson,
-  );
-
-  NotebookDocumentSyncOptionsCells2({
-    required this.language,
-  });
-  static NotebookDocumentSyncOptionsCells2 fromJson(Map<String, Object?> json) {
-    final languageJson = json['language'];
-    final language = languageJson as String;
-    return NotebookDocumentSyncOptionsCells2(
-      language: language,
-    );
-  }
-
-  final String language;
-
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['language'] = language;
-    return result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('language');
-      try {
-        if (!obj.containsKey('language')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final language = obj['language'];
-        if (language == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!(language is String)) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter.reportError('must be of type NotebookDocumentSyncOptionsCells2');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is NotebookDocumentSyncOptionsCells2 &&
-        other.runtimeType == NotebookDocumentSyncOptionsCells2) {
-      return language == other.language && true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => language.hashCode;
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
 class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     NotebookDocumentSyncOptionsNotebookSelector.canParse,
@@ -26722,54 +27147,55 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
 
   NotebookDocumentSyncOptionsNotebookSelector({
     this.cells,
-    required this.notebookDocument,
+    required this.notebook,
   });
   static NotebookDocumentSyncOptionsNotebookSelector fromJson(
       Map<String, Object?> json) {
     final cellsJson = json['cells'];
     final cells = (cellsJson as List<Object?>?)
-        ?.map((item) => NotebookDocumentSyncOptionsCells.fromJson(
-            item as Map<String, Object?>))
+        ?.map((item) =>
+            NotebookDocumentSyncOptionsNotebookSelectorCells.fromJson(
+                item as Map<String, Object?>))
         .toList();
-    final notebookDocumentJson = json['notebookDocument'];
-    final notebookDocument = (NotebookDocumentFilter1.canParse(
-                notebookDocumentJson, nullLspJsonReporter) ||
+    final notebookJson = json['notebook'];
+    final notebook = NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter) ||
             NotebookDocumentFilter2.canParse(
-                notebookDocumentJson, nullLspJsonReporter) ||
-            NotebookDocumentFilter3.canParse(
-                notebookDocumentJson, nullLspJsonReporter))
+                notebookJson, nullLspJsonReporter) ||
+            NotebookDocumentFilter3.canParse(notebookJson, nullLspJsonReporter)
         ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t1(
-            NotebookDocumentFilter1.canParse(notebookDocumentJson, nullLspJsonReporter)
-                ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(
-                    NotebookDocumentFilter1.fromJson(
-                        notebookDocumentJson as Map<String, Object?>))
-                : (NotebookDocumentFilter2.canParse(notebookDocumentJson, nullLspJsonReporter)
-                    ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t2(
-                        NotebookDocumentFilter2.fromJson(notebookDocumentJson as Map<String, Object?>))
-                    : (NotebookDocumentFilter3.canParse(notebookDocumentJson, nullLspJsonReporter) ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookDocumentJson as Map<String, Object?>)) : (throw '''$notebookDocumentJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
-        : (notebookDocumentJson is String ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t2(notebookDocumentJson) : (throw '''$notebookDocumentJson was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)'''));
+            NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter)
+                ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(NotebookDocumentFilter1.fromJson(
+                    notebookJson as Map<String, Object?>))
+                : (NotebookDocumentFilter2.canParse(notebookJson, nullLspJsonReporter)
+                    ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t2(NotebookDocumentFilter2.fromJson(
+                        notebookJson as Map<String, Object?>))
+                    : (NotebookDocumentFilter3.canParse(notebookJson, nullLspJsonReporter)
+                        ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookJson as Map<String, Object?>))
+                        : (throw '''$notebookJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
+        : (notebookJson is String ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t2(notebookJson) : (throw '''$notebookJson was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)'''));
     return NotebookDocumentSyncOptionsNotebookSelector(
       cells: cells,
-      notebookDocument: notebookDocument,
+      notebook: notebook,
     );
   }
 
   /// The cells of the matching notebook to be synced.
-  final List<NotebookDocumentSyncOptionsCells>? cells;
+  final List<NotebookDocumentSyncOptionsNotebookSelectorCells>? cells;
 
   /// The notebook to be synced If a string value is provided it matches against
   /// the notebook type. '*' matches every notebook.
   final Either2<
       Either3<NotebookDocumentFilter1, NotebookDocumentFilter2,
           NotebookDocumentFilter3>,
-      String> notebookDocument;
+      String> notebook;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (cells != null) {
       result['cells'] = cells?.map((item) => item.toJson()).toList();
     }
-    result['notebookDocument'] = notebookDocument;
+    result['notebook'] = notebook;
     return result;
   }
 
@@ -26779,32 +27205,32 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
       try {
         final cells = obj['cells'];
         if (cells != null &&
-            !((cells is List<Object?> &&
-                (cells.every((item) =>
-                    NotebookDocumentSyncOptionsCells.canParse(
-                        item, reporter)))))) {
+            (cells is! List<Object?> ||
+                cells.any((item) =>
+                    !NotebookDocumentSyncOptionsNotebookSelectorCells.canParse(
+                        item, reporter)))) {
           reporter.reportError(
-              'must be of type List<NotebookDocumentSyncOptionsCells>');
+              'must be of type List<NotebookDocumentSyncOptionsNotebookSelectorCells>');
           return false;
         }
       } finally {
         reporter.pop();
       }
-      reporter.push('notebookDocument');
+      reporter.push('notebook');
       try {
-        if (!obj.containsKey('notebookDocument')) {
+        if (!obj.containsKey('notebook')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        final notebookDocument = obj['notebookDocument'];
-        if (notebookDocument == null) {
+        final notebook = obj['notebook'];
+        if (notebook == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(((NotebookDocumentFilter1.canParse(notebookDocument, reporter) ||
-                NotebookDocumentFilter2.canParse(notebookDocument, reporter) ||
-                NotebookDocumentFilter3.canParse(notebookDocument, reporter)) ||
-            notebookDocument is String))) {
+        if (!NotebookDocumentFilter1.canParse(notebook, reporter) &&
+            !NotebookDocumentFilter2.canParse(notebook, reporter) &&
+            !NotebookDocumentFilter3.canParse(notebook, reporter) &&
+            notebook is! String) {
           reporter.reportError(
               'must be of type Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>');
           return false;
@@ -26827,10 +27253,10 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
       return listEqual(
               cells,
               other.cells,
-              (NotebookDocumentSyncOptionsCells a,
-                      NotebookDocumentSyncOptionsCells b) =>
+              (NotebookDocumentSyncOptionsNotebookSelectorCells a,
+                      NotebookDocumentSyncOptionsNotebookSelectorCells b) =>
                   a == b) &&
-          notebookDocument == other.notebookDocument &&
+          notebook == other.notebook &&
           true;
     }
     return false;
@@ -26839,7 +27265,7 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
   @override
   int get hashCode => Object.hash(
         lspHashCode(cells),
-        notebookDocument,
+        notebook,
       );
 
   @override
@@ -26854,54 +27280,56 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
 
   NotebookDocumentSyncOptionsNotebookSelector2({
     required this.cells,
-    this.notebookDocument,
+    this.notebook,
   });
   static NotebookDocumentSyncOptionsNotebookSelector2 fromJson(
       Map<String, Object?> json) {
     final cellsJson = json['cells'];
     final cells = (cellsJson as List<Object?>)
-        .map((item) => NotebookDocumentSyncOptionsCells2.fromJson(
-            item as Map<String, Object?>))
+        .map((item) =>
+            NotebookDocumentSyncOptionsNotebookSelector2Cells.fromJson(
+                item as Map<String, Object?>))
         .toList();
-    final notebookDocumentJson = json['notebookDocument'];
-    final notebookDocument = notebookDocumentJson == null
+    final notebookJson = json['notebook'];
+    final notebook = notebookJson == null
         ? null
-        : ((NotebookDocumentFilter1.canParse(notebookDocumentJson, nullLspJsonReporter) ||
+        : (NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter) ||
                 NotebookDocumentFilter2.canParse(
-                    notebookDocumentJson, nullLspJsonReporter) ||
+                    notebookJson, nullLspJsonReporter) ||
                 NotebookDocumentFilter3.canParse(
-                    notebookDocumentJson, nullLspJsonReporter))
+                    notebookJson, nullLspJsonReporter)
             ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t1(
-                NotebookDocumentFilter1.canParse(notebookDocumentJson, nullLspJsonReporter)
+                NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter)
                     ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(
                         NotebookDocumentFilter1.fromJson(
-                            notebookDocumentJson as Map<String, Object?>))
-                    : (NotebookDocumentFilter2.canParse(notebookDocumentJson, nullLspJsonReporter)
+                            notebookJson as Map<String, Object?>))
+                    : (NotebookDocumentFilter2.canParse(notebookJson, nullLspJsonReporter)
                         ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t2(
-                            NotebookDocumentFilter2.fromJson(notebookDocumentJson as Map<String, Object?>))
-                        : (NotebookDocumentFilter3.canParse(notebookDocumentJson, nullLspJsonReporter) ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookDocumentJson as Map<String, Object?>)) : (throw '''$notebookDocumentJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
-            : (notebookDocumentJson is String ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t2(notebookDocumentJson) : (throw '''$notebookDocumentJson was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)''')));
+                            NotebookDocumentFilter2.fromJson(notebookJson as Map<String, Object?>))
+                        : (NotebookDocumentFilter3.canParse(notebookJson, nullLspJsonReporter) ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookJson as Map<String, Object?>)) : (throw '''$notebookJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
+            : (notebookJson is String ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t2(notebookJson) : (throw '''$notebookJson was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)''')));
     return NotebookDocumentSyncOptionsNotebookSelector2(
       cells: cells,
-      notebookDocument: notebookDocument,
+      notebook: notebook,
     );
   }
 
   /// The cells of the matching notebook to be synced.
-  final List<NotebookDocumentSyncOptionsCells2> cells;
+  final List<NotebookDocumentSyncOptionsNotebookSelector2Cells> cells;
 
   /// The notebook to be synced If a string value is provided it matches against
   /// the notebook type. '*' matches every notebook.
   final Either2<
       Either3<NotebookDocumentFilter1, NotebookDocumentFilter2,
           NotebookDocumentFilter3>,
-      String>? notebookDocument;
+      String>? notebook;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['cells'] = cells.map((item) => item.toJson()).toList();
-    if (notebookDocument != null) {
-      result['notebookDocument'] = notebookDocument;
+    if (notebook != null) {
+      result['notebook'] = notebook;
     }
     return result;
   }
@@ -26919,26 +27347,25 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((cells is List<Object?> &&
-            (cells.every((item) => NotebookDocumentSyncOptionsCells2.canParse(
-                item, reporter)))))) {
+        if (cells is! List<Object?> ||
+            cells.any((item) =>
+                !NotebookDocumentSyncOptionsNotebookSelector2Cells.canParse(
+                    item, reporter))) {
           reporter.reportError(
-              'must be of type List<NotebookDocumentSyncOptionsCells2>');
+              'must be of type List<NotebookDocumentSyncOptionsNotebookSelector2Cells>');
           return false;
         }
       } finally {
         reporter.pop();
       }
-      reporter.push('notebookDocument');
+      reporter.push('notebook');
       try {
-        final notebookDocument = obj['notebookDocument'];
-        if (notebookDocument != null &&
-            !(((NotebookDocumentFilter1.canParse(notebookDocument, reporter) ||
-                    NotebookDocumentFilter2.canParse(
-                        notebookDocument, reporter) ||
-                    NotebookDocumentFilter3.canParse(
-                        notebookDocument, reporter)) ||
-                notebookDocument is String))) {
+        final notebook = obj['notebook'];
+        if (notebook != null &&
+            !NotebookDocumentFilter1.canParse(notebook, reporter) &&
+            !NotebookDocumentFilter2.canParse(notebook, reporter) &&
+            !NotebookDocumentFilter3.canParse(notebook, reporter) &&
+            notebook is! String) {
           reporter.reportError(
               'must be of type Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>');
           return false;
@@ -26961,10 +27388,10 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
       return listEqual(
               cells,
               other.cells,
-              (NotebookDocumentSyncOptionsCells2 a,
-                      NotebookDocumentSyncOptionsCells2 b) =>
+              (NotebookDocumentSyncOptionsNotebookSelector2Cells a,
+                      NotebookDocumentSyncOptionsNotebookSelector2Cells b) =>
                   a == b) &&
-          notebookDocument == other.notebookDocument &&
+          notebook == other.notebook &&
           true;
     }
     return false;
@@ -26973,8 +27400,151 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
   @override
   int get hashCode => Object.hash(
         lspHashCode(cells),
-        notebookDocument,
+        notebook,
       );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class NotebookDocumentSyncOptionsNotebookSelector2Cells implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    NotebookDocumentSyncOptionsNotebookSelector2Cells.canParse,
+    NotebookDocumentSyncOptionsNotebookSelector2Cells.fromJson,
+  );
+
+  NotebookDocumentSyncOptionsNotebookSelector2Cells({
+    required this.language,
+  });
+  static NotebookDocumentSyncOptionsNotebookSelector2Cells fromJson(
+      Map<String, Object?> json) {
+    final languageJson = json['language'];
+    final language = languageJson as String;
+    return NotebookDocumentSyncOptionsNotebookSelector2Cells(
+      language: language,
+    );
+  }
+
+  final String language;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['language'] = language;
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('language');
+      try {
+        if (!obj.containsKey('language')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final language = obj['language'];
+        if (language == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (language is! String) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError(
+          'must be of type NotebookDocumentSyncOptionsNotebookSelector2Cells');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is NotebookDocumentSyncOptionsNotebookSelector2Cells &&
+        other.runtimeType ==
+            NotebookDocumentSyncOptionsNotebookSelector2Cells) {
+      return language == other.language && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => language.hashCode;
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class NotebookDocumentSyncOptionsNotebookSelectorCells implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    NotebookDocumentSyncOptionsNotebookSelectorCells.canParse,
+    NotebookDocumentSyncOptionsNotebookSelectorCells.fromJson,
+  );
+
+  NotebookDocumentSyncOptionsNotebookSelectorCells({
+    required this.language,
+  });
+  static NotebookDocumentSyncOptionsNotebookSelectorCells fromJson(
+      Map<String, Object?> json) {
+    final languageJson = json['language'];
+    final language = languageJson as String;
+    return NotebookDocumentSyncOptionsNotebookSelectorCells(
+      language: language,
+    );
+  }
+
+  final String language;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['language'] = language;
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('language');
+      try {
+        if (!obj.containsKey('language')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final language = obj['language'];
+        if (language == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (language is! String) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError(
+          'must be of type NotebookDocumentSyncOptionsNotebookSelectorCells');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is NotebookDocumentSyncOptionsNotebookSelectorCells &&
+        other.runtimeType == NotebookDocumentSyncOptionsNotebookSelectorCells) {
+      return language == other.language && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => language.hashCode;
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -27025,17 +27595,21 @@ class NotebookDocumentSyncRegistrationOptions
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
 
   /// The notebooks to be synced
+  @override
   final List<
       Either2<NotebookDocumentSyncOptionsNotebookSelector,
           NotebookDocumentSyncOptionsNotebookSelector2>> notebookSelector;
 
   /// Whether save notification should be forwarded to the server. Will only be
   /// honored if mode === `notebook`.
+  @override
   final bool? save;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (id != null) {
@@ -27053,7 +27627,7 @@ class NotebookDocumentSyncRegistrationOptions
       reporter.push('id');
       try {
         final id = obj['id'];
-        if (id != null && !(id is String)) {
+        if (id != null && id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -27071,12 +27645,12 @@ class NotebookDocumentSyncRegistrationOptions
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((notebookSelector is List<Object?> &&
-            (notebookSelector.every((item) =>
-                (NotebookDocumentSyncOptionsNotebookSelector.canParse(
-                        item, reporter) ||
-                    NotebookDocumentSyncOptionsNotebookSelector2.canParse(
-                        item, reporter))))))) {
+        if (notebookSelector is! List<Object?> ||
+            notebookSelector.any((item) =>
+                !NotebookDocumentSyncOptionsNotebookSelector.canParse(
+                    item, reporter) &&
+                !NotebookDocumentSyncOptionsNotebookSelector2.canParse(
+                    item, reporter))) {
           reporter.reportError(
               'must be of type List<Either2<NotebookDocumentSyncOptionsNotebookSelector, NotebookDocumentSyncOptionsNotebookSelector2>>');
           return false;
@@ -27087,7 +27661,7 @@ class NotebookDocumentSyncRegistrationOptions
       reporter.push('save');
       try {
         final save = obj['save'];
-        if (save != null && !(save is bool)) {
+        if (save != null && save is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -27158,6 +27732,7 @@ class OptionalVersionedTextDocumentIdentifier
   }
 
   /// The text document's URI.
+  @override
   final String uri;
 
   /// The version number of this document. If an optional versioned text
@@ -27171,6 +27746,7 @@ class OptionalVersionedTextDocumentIdentifier
   /// including undo/redo. The number doesn't need to be consecutive.
   final int? version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -27191,7 +27767,7 @@ class OptionalVersionedTextDocumentIdentifier
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -27205,7 +27781,7 @@ class OptionalVersionedTextDocumentIdentifier
           return false;
         }
         final version = obj['version'];
-        if (version != null && !(version is int)) {
+        if (version != null && version is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -27285,6 +27861,7 @@ class ParameterInformation implements ToJsonable {
   /// part in the `SignatureInformation.label`.
   final String label;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (documentation != null) {
@@ -27300,8 +27877,8 @@ class ParameterInformation implements ToJsonable {
       try {
         final documentation = obj['documentation'];
         if (documentation != null &&
-            !((MarkupContent.canParse(documentation, reporter) ||
-                documentation is String))) {
+            !MarkupContent.canParse(documentation, reporter) &&
+            documentation is! String) {
           reporter
               .reportError('must be of type Either2<MarkupContent, String>');
           return false;
@@ -27320,7 +27897,7 @@ class ParameterInformation implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(label is String)) {
+        if (label is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -27460,6 +28037,7 @@ class PartialResultParams implements ToJsonable {
   /// streaming) to the client.
   final Either2<int, String>? partialResultToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -27474,7 +28052,8 @@ class PartialResultParams implements ToJsonable {
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -27528,6 +28107,7 @@ class PlaceholderAndRange implements ToJsonable {
   final String placeholder;
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['placeholder'] = placeholder;
@@ -27548,7 +28128,7 @@ class PlaceholderAndRange implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(placeholder is String)) {
+        if (placeholder is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -27566,7 +28146,7 @@ class PlaceholderAndRange implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -27630,6 +28210,7 @@ class Position implements ToJsonable {
   /// Line position in a document (zero-based).
   final int line;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['character'] = character;
@@ -27650,7 +28231,7 @@ class Position implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(character is int)) {
+        if (character is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -27668,7 +28249,7 @@ class Position implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(line is int)) {
+        if (line is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -27727,6 +28308,7 @@ class PositionEncodingKind implements ToJsonable {
   /// Character offsets count UTF-8 code units.
   static const UTF8 = PositionEncodingKind('utf-8');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -27735,11 +28317,13 @@ class PositionEncodingKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is PositionEncodingKind && other._value == _value;
 }
 
-class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
+class PrepareRenameParams
+    implements TextDocumentPositionParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     PrepareRenameParams.canParse,
     PrepareRenameParams.fromJson,
@@ -27748,6 +28332,7 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
   PrepareRenameParams({
     required this.position,
     required this.textDocument,
+    this.workDoneToken,
   });
   static PrepareRenameParams fromJson(Map<String, Object?> json) {
     final positionJson = json['position'];
@@ -27755,22 +28340,41 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
+        ? null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return PrepareRenameParams(
       position: position,
       textDocument: textDocument,
+      workDoneToken: workDoneToken,
     );
   }
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
+  /// An optional token that a server can use to report work done progress.
+  @override
+  final Either2<int, String>? workDoneToken;
+
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['position'] = position.toJson();
     result['textDocument'] = textDocument.toJson();
+    if (workDoneToken != null) {
+      result['workDoneToken'] = workDoneToken;
+    }
     return result;
   }
 
@@ -27787,7 +28391,7 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -27805,8 +28409,20 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('workDoneToken');
+      try {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            workDoneToken is! int &&
+            workDoneToken is! String) {
+          reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
       } finally {
@@ -27825,6 +28441,7 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
         other.runtimeType == PrepareRenameParams) {
       return position == other.position &&
           textDocument == other.textDocument &&
+          workDoneToken == other.workDoneToken &&
           true;
     }
     return false;
@@ -27834,6 +28451,7 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
   int get hashCode => Object.hash(
         position,
         textDocument,
+        workDoneToken,
       );
 
   @override
@@ -27850,10 +28468,11 @@ class PrepareSupportDefaultBehavior implements ToJsonable {
     return obj is int;
   }
 
-  /// The client's default behavior is to select the identifier according the to
+  /// The client's default behavior is to select the identifier according to the
   /// language's syntax rule.
   static const Identifier = PrepareSupportDefaultBehavior(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -27862,6 +28481,7 @@ class PrepareSupportDefaultBehavior implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is PrepareSupportDefaultBehavior && other._value == _value;
 }
@@ -27895,6 +28515,7 @@ class PreviousResultId implements ToJsonable {
   /// The value of the previous result id.
   final String value;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -27915,7 +28536,7 @@ class PreviousResultId implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -27933,7 +28554,7 @@ class PreviousResultId implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(value is String)) {
+        if (value is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -27996,6 +28617,7 @@ class ProgressParams<T> implements ToJsonable {
   /// The progress data.
   final Object? value;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['token'] = token;
@@ -28016,7 +28638,7 @@ class ProgressParams<T> implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((token is int || token is String))) {
+        if (token is! int && token is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -28108,6 +28730,7 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
   ///  @since 3.15.0
   final bool? versionSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (codeDescriptionSupport != null) {
@@ -28133,8 +28756,7 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
       reporter.push('codeDescriptionSupport');
       try {
         final codeDescriptionSupport = obj['codeDescriptionSupport'];
-        if (codeDescriptionSupport != null &&
-            !(codeDescriptionSupport is bool)) {
+        if (codeDescriptionSupport != null && codeDescriptionSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -28144,7 +28766,7 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
       reporter.push('dataSupport');
       try {
         final dataSupport = obj['dataSupport'];
-        if (dataSupport != null && !(dataSupport is bool)) {
+        if (dataSupport != null && dataSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -28154,7 +28776,7 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
       reporter.push('relatedInformation');
       try {
         final relatedInformation = obj['relatedInformation'];
-        if (relatedInformation != null && !(relatedInformation is bool)) {
+        if (relatedInformation != null && relatedInformation is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -28165,8 +28787,8 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
       try {
         final tagSupport = obj['tagSupport'];
         if (tagSupport != null &&
-            !(PublishDiagnosticsClientCapabilitiesTagSupport.canParse(
-                tagSupport, reporter))) {
+            !PublishDiagnosticsClientCapabilitiesTagSupport.canParse(
+                tagSupport, reporter)) {
           reporter.reportError(
               'must be of type PublishDiagnosticsClientCapabilitiesTagSupport');
           return false;
@@ -28177,7 +28799,7 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
       reporter.push('versionSupport');
       try {
         final versionSupport = obj['versionSupport'];
-        if (versionSupport != null && !(versionSupport is bool)) {
+        if (versionSupport != null && versionSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -28242,6 +28864,7 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
   /// The tags supported by the client.
   final List<DiagnosticTag> valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
@@ -28261,9 +28884,8 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((valueSet is List<Object?> &&
-            (valueSet
-                .every((item) => DiagnosticTag.canParse(item, reporter)))))) {
+        if (valueSet is! List<Object?> ||
+            valueSet.any((item) => !DiagnosticTag.canParse(item, reporter))) {
           reporter.reportError('must be of type List<DiagnosticTag>');
           return false;
         }
@@ -28334,6 +28956,7 @@ class PublishDiagnosticsParams implements ToJsonable {
   ///  @since 3.15.0
   final int? version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['diagnostics'] = diagnostics.map((item) => item.toJson()).toList();
@@ -28357,9 +28980,8 @@ class PublishDiagnosticsParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((diagnostics is List<Object?> &&
-            (diagnostics
-                .every((item) => Diagnostic.canParse(item, reporter)))))) {
+        if (diagnostics is! List<Object?> ||
+            diagnostics.any((item) => !Diagnostic.canParse(item, reporter))) {
           reporter.reportError('must be of type List<Diagnostic>');
           return false;
         }
@@ -28377,7 +28999,7 @@ class PublishDiagnosticsParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -28387,7 +29009,7 @@ class PublishDiagnosticsParams implements ToJsonable {
       reporter.push('version');
       try {
         final version = obj['version'];
-        if (version != null && !(version is int)) {
+        if (version != null && version is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -28452,6 +29074,7 @@ class Range implements ToJsonable {
   /// The range's start position.
   final Position start;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['end'] = end.toJson();
@@ -28472,7 +29095,7 @@ class Range implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(end, reporter))) {
+        if (!Position.canParse(end, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -28490,7 +29113,7 @@ class Range implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(start, reporter))) {
+        if (!Position.canParse(start, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -28542,6 +29165,7 @@ class ReferenceClientCapabilities implements ToJsonable {
   /// Whether references supports dynamic registration.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -28555,7 +29179,7 @@ class ReferenceClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -28605,6 +29229,7 @@ class ReferenceContext implements ToJsonable {
   /// Include the declaration of the current symbol.
   final bool includeDeclaration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['includeDeclaration'] = includeDeclaration;
@@ -28624,7 +29249,7 @@ class ReferenceContext implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(includeDeclaration is bool)) {
+        if (includeDeclaration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -28673,8 +29298,10 @@ class ReferenceOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -28688,7 +29315,7 @@ class ReferenceOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -28773,17 +29400,22 @@ class ReferenceParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['context'] = context.toJson();
@@ -28811,7 +29443,7 @@ class ReferenceParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(ReferenceContext.canParse(context, reporter))) {
+        if (!ReferenceContext.canParse(context, reporter)) {
           reporter.reportError('must be of type ReferenceContext');
           return false;
         }
@@ -28822,7 +29454,8 @@ class ReferenceParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -28840,7 +29473,7 @@ class ReferenceParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -28858,7 +29491,7 @@ class ReferenceParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -28869,7 +29502,8 @@ class ReferenceParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -28923,8 +29557,8 @@ class ReferenceRegistrationOptions
   static ReferenceRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
@@ -28936,9 +29570,12 @@ class ReferenceRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -28958,10 +29595,11 @@ class ReferenceRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -28970,7 +29608,7 @@ class ReferenceRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -28988,8 +29626,12 @@ class ReferenceRegistrationOptions
   bool operator ==(Object other) {
     if (other is ReferenceRegistrationOptions &&
         other.runtimeType == ReferenceRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           workDoneProgress == other.workDoneProgress &&
           true;
     }
@@ -29042,6 +29684,7 @@ class Registration implements ToJsonable {
   /// Options necessary for the registration.
   final Object? registerOptions;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['id'] = id;
@@ -29065,7 +29708,7 @@ class Registration implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(id is String)) {
+        if (id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -29083,7 +29726,7 @@ class Registration implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(method is String)) {
+        if (method is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -29140,6 +29783,7 @@ class RegistrationParams implements ToJsonable {
 
   final List<Registration> registrations;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['registrations'] =
@@ -29160,9 +29804,9 @@ class RegistrationParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((registrations is List<Object?> &&
-            (registrations
-                .every((item) => Registration.canParse(item, reporter)))))) {
+        if (registrations is! List<Object?> ||
+            registrations
+                .any((item) => !Registration.canParse(item, reporter))) {
           reporter.reportError('must be of type List<Registration>');
           return false;
         }
@@ -29223,6 +29867,7 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
   /// The engine's version.
   final String? version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['engine'] = engine;
@@ -29245,7 +29890,7 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(engine is String)) {
+        if (engine is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -29255,7 +29900,7 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
       reporter.push('version');
       try {
         final version = obj['version'];
-        if (version != null && !(version is String)) {
+        if (version != null && version is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -29341,9 +29986,11 @@ class RelatedFullDocumentDiagnosticReport
   }
 
   /// The actual items.
+  @override
   final List<Diagnostic> items;
 
   /// A full document diagnostic report.
+  @override
   final String kind;
 
   /// Diagnostics of related documents. This information is useful in
@@ -29359,8 +30006,10 @@ class RelatedFullDocumentDiagnosticReport
 
   /// An optional result id. If provided it will be sent on the next diagnostic
   /// request for the same document.
+  @override
   final String? resultId;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['items'] = items.map((item) => item.toJson()).toList();
@@ -29387,8 +30036,8 @@ class RelatedFullDocumentDiagnosticReport
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((items is List<Object?> &&
-            (items.every((item) => Diagnostic.canParse(item, reporter)))))) {
+        if (items is! List<Object?> ||
+            items.any((item) => !Diagnostic.canParse(item, reporter))) {
           reporter.reportError('must be of type List<Diagnostic>');
           return false;
         }
@@ -29406,7 +30055,7 @@ class RelatedFullDocumentDiagnosticReport
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(kind == 'full')) {
+        if (kind != 'full') {
           reporter.reportError('must be the literal \'full\'');
           return false;
         }
@@ -29417,14 +30066,14 @@ class RelatedFullDocumentDiagnosticReport
       try {
         final relatedDocuments = obj['relatedDocuments'];
         if (relatedDocuments != null &&
-            !((relatedDocuments is Map &&
-                (relatedDocuments.keys.every((item) =>
-                    item is String &&
-                    relatedDocuments.values.every((item) =>
-                        (FullDocumentDiagnosticReport.canParse(
-                                item, reporter) ||
-                            UnchangedDocumentDiagnosticReport.canParse(
-                                item, reporter)))))))) {
+            (relatedDocuments is! Map ||
+                (relatedDocuments.keys.any((item) =>
+                    item is! String ||
+                    relatedDocuments.values.any((item) =>
+                        !FullDocumentDiagnosticReport.canParse(
+                            item, reporter) &&
+                        !UnchangedDocumentDiagnosticReport.canParse(
+                            item, reporter)))))) {
           reporter.reportError(
               'must be of type Map<String, Either2<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>');
           return false;
@@ -29435,7 +30084,7 @@ class RelatedFullDocumentDiagnosticReport
       reporter.push('resultId');
       try {
         final resultId = obj['resultId'];
-        if (resultId != null && !(resultId is String)) {
+        if (resultId != null && resultId is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -29532,6 +30181,7 @@ class RelatedUnchangedDocumentDiagnosticReport
 
   /// A document diagnostic report indicating no changes to the last result. A
   /// server can only return `unchanged` if result ids are provided.
+  @override
   final String kind;
 
   /// Diagnostics of related documents. This information is useful in
@@ -29547,8 +30197,10 @@ class RelatedUnchangedDocumentDiagnosticReport
 
   /// A result id which will be sent on the next diagnostic request for the same
   /// document.
+  @override
   final String resultId;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['kind'] = kind;
@@ -29572,7 +30224,7 @@ class RelatedUnchangedDocumentDiagnosticReport
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(kind == 'unchanged')) {
+        if (kind != 'unchanged') {
           reporter.reportError('must be the literal \'unchanged\'');
           return false;
         }
@@ -29583,14 +30235,14 @@ class RelatedUnchangedDocumentDiagnosticReport
       try {
         final relatedDocuments = obj['relatedDocuments'];
         if (relatedDocuments != null &&
-            !((relatedDocuments is Map &&
-                (relatedDocuments.keys.every((item) =>
-                    item is String &&
-                    relatedDocuments.values.every((item) =>
-                        (FullDocumentDiagnosticReport.canParse(
-                                item, reporter) ||
-                            UnchangedDocumentDiagnosticReport.canParse(
-                                item, reporter)))))))) {
+            (relatedDocuments is! Map ||
+                (relatedDocuments.keys.any((item) =>
+                    item is! String ||
+                    relatedDocuments.values.any((item) =>
+                        !FullDocumentDiagnosticReport.canParse(
+                            item, reporter) &&
+                        !UnchangedDocumentDiagnosticReport.canParse(
+                            item, reporter)))))) {
           reporter.reportError(
               'must be of type Map<String, Either2<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>');
           return false;
@@ -29609,7 +30261,7 @@ class RelatedUnchangedDocumentDiagnosticReport
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(resultId is String)) {
+        if (resultId is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -29693,6 +30345,7 @@ class RelativePattern implements ToJsonable {
   /// The actual glob pattern;
   final String pattern;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['baseUri'] = baseUri;
@@ -29713,8 +30366,8 @@ class RelativePattern implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((baseUri is String ||
-            WorkspaceFolder.canParse(baseUri, reporter)))) {
+        if (baseUri is! String &&
+            !WorkspaceFolder.canParse(baseUri, reporter)) {
           reporter
               .reportError('must be of type Either2<String, WorkspaceFolder>');
           return false;
@@ -29733,7 +30386,7 @@ class RelativePattern implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(pattern is String)) {
+        if (pattern is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -29821,6 +30474,7 @@ class RenameClientCapabilities implements ToJsonable {
   ///  @since version 3.16.0
   final PrepareSupportDefaultBehavior? prepareSupportDefaultBehavior;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -29844,7 +30498,7 @@ class RenameClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -29855,7 +30509,7 @@ class RenameClientCapabilities implements ToJsonable {
       try {
         final honorsChangeAnnotations = obj['honorsChangeAnnotations'];
         if (honorsChangeAnnotations != null &&
-            !(honorsChangeAnnotations is bool)) {
+            honorsChangeAnnotations is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -29865,7 +30519,7 @@ class RenameClientCapabilities implements ToJsonable {
       reporter.push('prepareSupport');
       try {
         final prepareSupport = obj['prepareSupport'];
-        if (prepareSupport != null && !(prepareSupport is bool)) {
+        if (prepareSupport != null && prepareSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -29877,8 +30531,8 @@ class RenameClientCapabilities implements ToJsonable {
         final prepareSupportDefaultBehavior =
             obj['prepareSupportDefaultBehavior'];
         if (prepareSupportDefaultBehavior != null &&
-            !(PrepareSupportDefaultBehavior.canParse(
-                prepareSupportDefaultBehavior, reporter))) {
+            !PrepareSupportDefaultBehavior.canParse(
+                prepareSupportDefaultBehavior, reporter)) {
           reporter.reportError('must be of type PrepareSupportDefaultBehavior');
           return false;
         }
@@ -29974,6 +30628,7 @@ class RenameFile implements ToJsonable {
   /// Rename options.
   final RenameFileOptions? options;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (annotationId != null) {
@@ -29993,7 +30648,7 @@ class RenameFile implements ToJsonable {
       reporter.push('annotationId');
       try {
         final annotationId = obj['annotationId'];
-        if (annotationId != null && !(annotationId is String)) {
+        if (annotationId != null && annotationId is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -30011,7 +30666,7 @@ class RenameFile implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(kind == 'rename')) {
+        if (kind != 'rename') {
           reporter.reportError('must be the literal \'rename\'');
           return false;
         }
@@ -30029,7 +30684,7 @@ class RenameFile implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(newUri is String)) {
+        if (newUri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -30047,7 +30702,7 @@ class RenameFile implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(oldUri is String)) {
+        if (oldUri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -30057,8 +30712,7 @@ class RenameFile implements ToJsonable {
       reporter.push('options');
       try {
         final options = obj['options'];
-        if (options != null &&
-            !(RenameFileOptions.canParse(options, reporter))) {
+        if (options != null && !RenameFileOptions.canParse(options, reporter)) {
           reporter.reportError('must be of type RenameFileOptions');
           return false;
         }
@@ -30126,6 +30780,7 @@ class RenameFileOptions implements ToJsonable {
   /// Overwrite target if existing. Overwrite wins over `ignoreIfExists`
   final bool? overwrite;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (ignoreIfExists != null) {
@@ -30142,7 +30797,7 @@ class RenameFileOptions implements ToJsonable {
       reporter.push('ignoreIfExists');
       try {
         final ignoreIfExists = obj['ignoreIfExists'];
-        if (ignoreIfExists != null && !(ignoreIfExists is bool)) {
+        if (ignoreIfExists != null && ignoreIfExists is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30152,7 +30807,7 @@ class RenameFileOptions implements ToJsonable {
       reporter.push('overwrite');
       try {
         final overwrite = obj['overwrite'];
-        if (overwrite != null && !(overwrite is bool)) {
+        if (overwrite != null && overwrite is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30212,6 +30867,7 @@ class RenameFilesParams implements ToJsonable {
   /// renamed, only the folder will be included, and not its children.
   final List<FileRename> files;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['files'] = files.map((item) => item.toJson()).toList();
@@ -30231,8 +30887,8 @@ class RenameFilesParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((files is List<Object?> &&
-            (files.every((item) => FileRename.canParse(item, reporter)))))) {
+        if (files is! List<Object?> ||
+            files.any((item) => !FileRename.canParse(item, reporter))) {
           reporter.reportError('must be of type List<FileRename>');
           return false;
         }
@@ -30289,8 +30945,10 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// Renames should be checked and tested before being executed.
   final bool? prepareProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (prepareProvider != null) {
@@ -30307,7 +30965,7 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('prepareProvider');
       try {
         final prepareProvider = obj['prepareProvider'];
-        if (prepareProvider != null && !(prepareProvider is bool)) {
+        if (prepareProvider != null && prepareProvider is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30317,7 +30975,7 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30393,14 +31051,18 @@ class RenameParams
   final String newName;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['newName'] = newName;
@@ -30425,7 +31087,7 @@ class RenameParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(newName is String)) {
+        if (newName is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -30443,7 +31105,7 @@ class RenameParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -30461,7 +31123,7 @@ class RenameParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -30472,7 +31134,8 @@ class RenameParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -30525,8 +31188,8 @@ class RenameRegistrationOptions
   static RenameRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final prepareProviderJson = json['prepareProvider'];
     final prepareProvider = prepareProviderJson as bool?;
@@ -30541,12 +31204,16 @@ class RenameRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// Renames should be checked and tested before being executed.
+  @override
   final bool? prepareProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -30569,10 +31236,11 @@ class RenameRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -30581,7 +31249,7 @@ class RenameRegistrationOptions
       reporter.push('prepareProvider');
       try {
         final prepareProvider = obj['prepareProvider'];
-        if (prepareProvider != null && !(prepareProvider is bool)) {
+        if (prepareProvider != null && prepareProvider is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30591,7 +31259,7 @@ class RenameRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30609,8 +31277,12 @@ class RenameRegistrationOptions
   bool operator ==(Object other) {
     if (other is RenameRegistrationOptions &&
         other.runtimeType == RenameRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           prepareProvider == other.prepareProvider &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -30654,6 +31326,7 @@ class ResourceOperationKind implements ToJsonable {
   /// Supports renaming existing files and folders.
   static const Rename = ResourceOperationKind._('rename');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -30662,6 +31335,7 @@ class ResourceOperationKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is ResourceOperationKind && other._value == _value;
 }
@@ -30686,6 +31360,7 @@ class SaveOptions implements ToJsonable {
   /// The client is supposed to include the content on save.
   final bool? includeText;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (includeText != null) {
@@ -30699,7 +31374,7 @@ class SaveOptions implements ToJsonable {
       reporter.push('includeText');
       try {
         final includeText = obj['includeText'];
-        if (includeText != null && !(includeText is bool)) {
+        if (includeText != null && includeText is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30758,6 +31433,7 @@ class SelectionRange implements ToJsonable {
   /// The range ([Range]) of this selection range.
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (parent != null) {
@@ -30772,7 +31448,7 @@ class SelectionRange implements ToJsonable {
       reporter.push('parent');
       try {
         final parent = obj['parent'];
-        if (parent != null && !(SelectionRange.canParse(parent, reporter))) {
+        if (parent != null && !SelectionRange.canParse(parent, reporter)) {
           reporter.reportError('must be of type SelectionRange');
           return false;
         }
@@ -30790,7 +31466,7 @@ class SelectionRange implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -30845,6 +31521,7 @@ class SelectionRangeClientCapabilities implements ToJsonable {
   /// server capability as well.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -30858,7 +31535,7 @@ class SelectionRangeClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30908,8 +31585,10 @@ class SelectionRangeOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -30923,7 +31602,7 @@ class SelectionRangeOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -31000,6 +31679,7 @@ class SelectionRangeParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The positions inside the text document.
@@ -31009,8 +31689,10 @@ class SelectionRangeParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -31030,7 +31712,8 @@ class SelectionRangeParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -31048,8 +31731,8 @@ class SelectionRangeParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((positions is List<Object?> &&
-            (positions.every((item) => Position.canParse(item, reporter)))))) {
+        if (positions is! List<Object?> ||
+            positions.any((item) => !Position.canParse(item, reporter))) {
           reporter.reportError('must be of type List<Position>');
           return false;
         }
@@ -31067,7 +31750,7 @@ class SelectionRangeParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -31078,7 +31761,8 @@ class SelectionRangeParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -31137,8 +31821,8 @@ class SelectionRangeRegistrationOptions
   static SelectionRangeRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -31153,13 +31837,17 @@ class SelectionRangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -31182,10 +31870,11 @@ class SelectionRangeRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -31194,7 +31883,7 @@ class SelectionRangeRegistrationOptions
       reporter.push('id');
       try {
         final id = obj['id'];
-        if (id != null && !(id is String)) {
+        if (id != null && id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -31204,7 +31893,7 @@ class SelectionRangeRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -31222,8 +31911,12 @@ class SelectionRangeRegistrationOptions
   bool operator ==(Object other) {
     if (other is SelectionRangeRegistrationOptions &&
         other.runtimeType == SelectionRangeRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -31263,6 +31956,7 @@ class SemanticTokenModifiers implements ToJsonable {
   static const readonly = SemanticTokenModifiers('readonly');
   static const static = SemanticTokenModifiers('static');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -31271,6 +31965,7 @@ class SemanticTokenModifiers implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is SemanticTokenModifiers && other._value == _value;
 }
@@ -31287,6 +31982,9 @@ class SemanticTokenTypes implements ToJsonable {
 
   static const class_ = SemanticTokenTypes('class');
   static const comment = SemanticTokenTypes('comment');
+
+  /// @since 3.17.0
+  static const decorator = SemanticTokenTypes('decorator');
   static const enum_ = SemanticTokenTypes('enum');
   static const enumMember = SemanticTokenTypes('enumMember');
   static const event = SemanticTokenTypes('event');
@@ -31311,6 +32009,7 @@ class SemanticTokenTypes implements ToJsonable {
   static const typeParameter = SemanticTokenTypes('typeParameter');
   static const variable = SemanticTokenTypes('variable');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -31319,6 +32018,7 @@ class SemanticTokenTypes implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is SemanticTokenTypes && other._value == _value;
 }
@@ -31354,6 +32054,7 @@ class SemanticTokens implements ToJsonable {
   /// a delta.
   final String? resultId;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['data'] = data;
@@ -31376,7 +32077,7 @@ class SemanticTokens implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((data is List<Object?> && (data.every((item) => item is int))))) {
+        if (data is! List<Object?> || data.any((item) => item is! int)) {
           reporter.reportError('must be of type List<int>');
           return false;
         }
@@ -31386,7 +32087,7 @@ class SemanticTokens implements ToJsonable {
       reporter.push('resultId');
       try {
         final resultId = obj['resultId'];
-        if (resultId != null && !(resultId is String)) {
+        if (resultId != null && resultId is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -31522,6 +32223,7 @@ class SemanticTokensClientCapabilities implements ToJsonable {
   /// The token types that the client supports.
   final List<String> tokenTypes;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (augmentsSyntaxTokens != null) {
@@ -31551,7 +32253,7 @@ class SemanticTokensClientCapabilities implements ToJsonable {
       reporter.push('augmentsSyntaxTokens');
       try {
         final augmentsSyntaxTokens = obj['augmentsSyntaxTokens'];
-        if (augmentsSyntaxTokens != null && !(augmentsSyntaxTokens is bool)) {
+        if (augmentsSyntaxTokens != null && augmentsSyntaxTokens is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -31561,7 +32263,7 @@ class SemanticTokensClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -31579,8 +32281,8 @@ class SemanticTokensClientCapabilities implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((formats is List<Object?> &&
-            (formats.every((item) => TokenFormat.canParse(item, reporter)))))) {
+        if (formats is! List<Object?> ||
+            formats.any((item) => !TokenFormat.canParse(item, reporter))) {
           reporter.reportError('must be of type List<TokenFormat>');
           return false;
         }
@@ -31590,7 +32292,7 @@ class SemanticTokensClientCapabilities implements ToJsonable {
       reporter.push('multilineTokenSupport');
       try {
         final multilineTokenSupport = obj['multilineTokenSupport'];
-        if (multilineTokenSupport != null && !(multilineTokenSupport is bool)) {
+        if (multilineTokenSupport != null && multilineTokenSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -31601,7 +32303,7 @@ class SemanticTokensClientCapabilities implements ToJsonable {
       try {
         final overlappingTokenSupport = obj['overlappingTokenSupport'];
         if (overlappingTokenSupport != null &&
-            !(overlappingTokenSupport is bool)) {
+            overlappingTokenSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -31619,8 +32321,8 @@ class SemanticTokensClientCapabilities implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(SemanticTokensClientCapabilitiesRequests.canParse(
-            requests, reporter))) {
+        if (!SemanticTokensClientCapabilitiesRequests.canParse(
+            requests, reporter)) {
           reporter.reportError(
               'must be of type SemanticTokensClientCapabilitiesRequests');
           return false;
@@ -31631,7 +32333,7 @@ class SemanticTokensClientCapabilities implements ToJsonable {
       reporter.push('serverCancelSupport');
       try {
         final serverCancelSupport = obj['serverCancelSupport'];
-        if (serverCancelSupport != null && !(serverCancelSupport is bool)) {
+        if (serverCancelSupport != null && serverCancelSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -31649,8 +32351,8 @@ class SemanticTokensClientCapabilities implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((tokenModifiers is List<Object?> &&
-            (tokenModifiers.every((item) => item is String))))) {
+        if (tokenModifiers is! List<Object?> ||
+            tokenModifiers.any((item) => item is! String)) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -31668,8 +32370,8 @@ class SemanticTokensClientCapabilities implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((tokenTypes is List<Object?> &&
-            (tokenTypes.every((item) => item is String))))) {
+        if (tokenTypes is! List<Object?> ||
+            tokenTypes.any((item) => item is! String)) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -31721,114 +32423,6 @@ class SemanticTokensClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class SemanticTokensClientCapabilitiesFull implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    SemanticTokensClientCapabilitiesFull.canParse,
-    SemanticTokensClientCapabilitiesFull.fromJson,
-  );
-
-  SemanticTokensClientCapabilitiesFull({
-    this.delta,
-  });
-  static SemanticTokensClientCapabilitiesFull fromJson(
-      Map<String, Object?> json) {
-    final deltaJson = json['delta'];
-    final delta = deltaJson as bool?;
-    return SemanticTokensClientCapabilitiesFull(
-      delta: delta,
-    );
-  }
-
-  /// The client will send the `textDocument/semanticTokens/full/delta` request
-  /// if the server provides a corresponding handler.
-  final bool? delta;
-
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    if (delta != null) {
-      result['delta'] = delta;
-    }
-    return result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      reporter.push('delta');
-      try {
-        final delta = obj['delta'];
-        if (delta != null && !(delta is bool)) {
-          reporter.reportError('must be of type bool');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
-    } else {
-      reporter
-          .reportError('must be of type SemanticTokensClientCapabilitiesFull');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is SemanticTokensClientCapabilitiesFull &&
-        other.runtimeType == SemanticTokensClientCapabilitiesFull) {
-      return delta == other.delta && true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => delta.hashCode;
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class SemanticTokensClientCapabilitiesRange implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    SemanticTokensClientCapabilitiesRange.canParse,
-    SemanticTokensClientCapabilitiesRange.fromJson,
-  );
-
-  static SemanticTokensClientCapabilitiesRange fromJson(
-      Map<String, Object?> json) {
-    return SemanticTokensClientCapabilitiesRange();
-  }
-
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    return result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      return true;
-    } else {
-      reporter
-          .reportError('must be of type SemanticTokensClientCapabilitiesRange');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is SemanticTokensClientCapabilitiesRange &&
-        other.runtimeType == SemanticTokensClientCapabilitiesRange) {
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode => 42;
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
 class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SemanticTokensClientCapabilitiesRequests.canParse,
@@ -31845,24 +32439,28 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
     final full = fullJson == null
         ? null
         : (fullJson is bool
-            ? Either2<bool, SemanticTokensClientCapabilitiesFull>.t1(fullJson)
-            : (SemanticTokensClientCapabilitiesFull.canParse(
+            ? Either2<bool, SemanticTokensClientCapabilitiesRequestsFull>.t1(
+                fullJson)
+            : (SemanticTokensClientCapabilitiesRequestsFull.canParse(
                     fullJson, nullLspJsonReporter)
-                ? Either2<bool, SemanticTokensClientCapabilitiesFull>.t2(
-                    SemanticTokensClientCapabilitiesFull.fromJson(
+                ? Either2<bool,
+                        SemanticTokensClientCapabilitiesRequestsFull>.t2(
+                    SemanticTokensClientCapabilitiesRequestsFull.fromJson(
                         fullJson as Map<String, Object?>))
-                : (throw '''$fullJson was not one of (bool, SemanticTokensClientCapabilitiesFull)''')));
+                : (throw '''$fullJson was not one of (bool, SemanticTokensClientCapabilitiesRequestsFull)''')));
     final rangeJson = json['range'];
     final range = rangeJson == null
         ? null
         : (rangeJson is bool
-            ? Either2<bool, SemanticTokensClientCapabilitiesRange>.t1(rangeJson)
-            : (SemanticTokensClientCapabilitiesRange.canParse(
+            ? Either2<bool, SemanticTokensClientCapabilitiesRequestsRange>.t1(
+                rangeJson)
+            : (SemanticTokensClientCapabilitiesRequestsRange.canParse(
                     rangeJson, nullLspJsonReporter)
-                ? Either2<bool, SemanticTokensClientCapabilitiesRange>.t2(
-                    SemanticTokensClientCapabilitiesRange.fromJson(
+                ? Either2<bool,
+                        SemanticTokensClientCapabilitiesRequestsRange>.t2(
+                    SemanticTokensClientCapabilitiesRequestsRange.fromJson(
                         rangeJson as Map<String, Object?>))
-                : (throw '''$rangeJson was not one of (bool, SemanticTokensClientCapabilitiesRange)''')));
+                : (throw '''$rangeJson was not one of (bool, SemanticTokensClientCapabilitiesRequestsRange)''')));
     return SemanticTokensClientCapabilitiesRequests(
       full: full,
       range: range,
@@ -31871,12 +32469,13 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
 
   /// The client will send the `textDocument/semanticTokens/full` request if the
   /// server provides a corresponding handler.
-  final Either2<bool, SemanticTokensClientCapabilitiesFull>? full;
+  final Either2<bool, SemanticTokensClientCapabilitiesRequestsFull>? full;
 
   /// The client will send the `textDocument/semanticTokens/range` request if
   /// the server provides a corresponding handler.
-  final Either2<bool, SemanticTokensClientCapabilitiesRange>? range;
+  final Either2<bool, SemanticTokensClientCapabilitiesRequestsRange>? range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (full != null) {
@@ -31894,11 +32493,11 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
       try {
         final full = obj['full'];
         if (full != null &&
-            !((full is bool ||
-                SemanticTokensClientCapabilitiesFull.canParse(
-                    full, reporter)))) {
+            full is! bool &&
+            !SemanticTokensClientCapabilitiesRequestsFull.canParse(
+                full, reporter)) {
           reporter.reportError(
-              'must be of type Either2<bool, SemanticTokensClientCapabilitiesFull>');
+              'must be of type Either2<bool, SemanticTokensClientCapabilitiesRequestsFull>');
           return false;
         }
       } finally {
@@ -31908,11 +32507,11 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
       try {
         final range = obj['range'];
         if (range != null &&
-            !((range is bool ||
-                SemanticTokensClientCapabilitiesRange.canParse(
-                    range, reporter)))) {
+            range is! bool &&
+            !SemanticTokensClientCapabilitiesRequestsRange.canParse(
+                range, reporter)) {
           reporter.reportError(
-              'must be of type Either2<bool, SemanticTokensClientCapabilitiesRange>');
+              'must be of type Either2<bool, SemanticTokensClientCapabilitiesRequestsRange>');
           return false;
         }
       } finally {
@@ -31940,6 +32539,113 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
         full,
         range,
       );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class SemanticTokensClientCapabilitiesRequestsFull implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    SemanticTokensClientCapabilitiesRequestsFull.canParse,
+    SemanticTokensClientCapabilitiesRequestsFull.fromJson,
+  );
+
+  SemanticTokensClientCapabilitiesRequestsFull({
+    this.delta,
+  });
+  static SemanticTokensClientCapabilitiesRequestsFull fromJson(
+      Map<String, Object?> json) {
+    final deltaJson = json['delta'];
+    final delta = deltaJson as bool?;
+    return SemanticTokensClientCapabilitiesRequestsFull(
+      delta: delta,
+    );
+  }
+
+  /// The client will send the `textDocument/semanticTokens/full/delta` request
+  /// if the server provides a corresponding handler.
+  final bool? delta;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (delta != null) {
+      result['delta'] = delta;
+    }
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('delta');
+      try {
+        final delta = obj['delta'];
+        if (delta != null && delta is! bool) {
+          reporter.reportError('must be of type bool');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError(
+          'must be of type SemanticTokensClientCapabilitiesRequestsFull');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is SemanticTokensClientCapabilitiesRequestsFull &&
+        other.runtimeType == SemanticTokensClientCapabilitiesRequestsFull) {
+      return delta == other.delta && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => delta.hashCode;
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class SemanticTokensClientCapabilitiesRequestsRange implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    SemanticTokensClientCapabilitiesRequestsRange.canParse,
+    SemanticTokensClientCapabilitiesRequestsRange.fromJson,
+  );
+
+  static SemanticTokensClientCapabilitiesRequestsRange fromJson(
+      Map<String, Object?> json) {
+    return SemanticTokensClientCapabilitiesRequestsRange();
+  }
+
+  @override
+  Map<String, Object?> toJson() => {};
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return true;
+    } else {
+      reporter.reportError(
+          'must be of type SemanticTokensClientCapabilitiesRequestsRange');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is SemanticTokensClientCapabilitiesRequestsRange &&
+        other.runtimeType == SemanticTokensClientCapabilitiesRequestsRange) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => 42;
 
   @override
   String toString() => jsonEncoder.convert(toJson());
@@ -31973,6 +32679,7 @@ class SemanticTokensDelta implements ToJsonable {
   final List<SemanticTokensEdit> edits;
   final String? resultId;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['edits'] = edits.map((item) => item.toJson()).toList();
@@ -31995,9 +32702,8 @@ class SemanticTokensDelta implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((edits is List<Object?> &&
-            (edits.every(
-                (item) => SemanticTokensEdit.canParse(item, reporter)))))) {
+        if (edits is! List<Object?> ||
+            edits.any((item) => !SemanticTokensEdit.canParse(item, reporter))) {
           reporter.reportError('must be of type List<SemanticTokensEdit>');
           return false;
         }
@@ -32007,7 +32713,7 @@ class SemanticTokensDelta implements ToJsonable {
       reporter.push('resultId');
       try {
         final resultId = obj['resultId'];
-        if (resultId != null && !(resultId is String)) {
+        if (resultId != null && resultId is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -32088,6 +32794,7 @@ class SemanticTokensDeltaParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The result id of a previous response. The result Id can either point to a
@@ -32098,8 +32805,10 @@ class SemanticTokensDeltaParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -32119,7 +32828,8 @@ class SemanticTokensDeltaParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -32137,7 +32847,7 @@ class SemanticTokensDeltaParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(previousResultId is String)) {
+        if (previousResultId is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -32155,7 +32865,7 @@ class SemanticTokensDeltaParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -32166,7 +32876,8 @@ class SemanticTokensDeltaParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -32227,6 +32938,7 @@ class SemanticTokensDeltaPartialResult implements ToJsonable {
 
   final List<SemanticTokensEdit> edits;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['edits'] = edits.map((item) => item.toJson()).toList();
@@ -32246,9 +32958,8 @@ class SemanticTokensDeltaPartialResult implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((edits is List<Object?> &&
-            (edits.every(
-                (item) => SemanticTokensEdit.canParse(item, reporter)))))) {
+        if (edits is! List<Object?> ||
+            edits.any((item) => !SemanticTokensEdit.canParse(item, reporter))) {
           reporter.reportError('must be of type List<SemanticTokensEdit>');
           return false;
         }
@@ -32315,6 +33026,7 @@ class SemanticTokensEdit implements ToJsonable {
   /// The start offset of the edit.
   final int start;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (data != null) {
@@ -32331,7 +33043,7 @@ class SemanticTokensEdit implements ToJsonable {
       try {
         final data = obj['data'];
         if (data != null &&
-            !((data is List<Object?> && (data.every((item) => item is int))))) {
+            (data is! List<Object?> || data.any((item) => item is! int))) {
           reporter.reportError('must be of type List<int>');
           return false;
         }
@@ -32349,7 +33061,7 @@ class SemanticTokensEdit implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(deleteCount is int)) {
+        if (deleteCount is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -32367,7 +33079,7 @@ class SemanticTokensEdit implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(start is int)) {
+        if (start is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -32435,6 +33147,7 @@ class SemanticTokensLegend implements ToJsonable {
   /// The token types a server uses.
   final List<String> tokenTypes;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['tokenModifiers'] = tokenModifiers;
@@ -32455,8 +33168,8 @@ class SemanticTokensLegend implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((tokenModifiers is List<Object?> &&
-            (tokenModifiers.every((item) => item is String))))) {
+        if (tokenModifiers is! List<Object?> ||
+            tokenModifiers.any((item) => item is! String)) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -32474,8 +33187,8 @@ class SemanticTokensLegend implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((tokenTypes is List<Object?> &&
-            (tokenTypes.every((item) => item is String))))) {
+        if (tokenTypes is! List<Object?> ||
+            tokenTypes.any((item) => item is! String)) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -32571,8 +33284,10 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
   /// Server supports providing semantic tokens for a specific range of a
   /// document.
   final Either2<bool, SemanticTokensOptionsRange>? range;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (full != null) {
@@ -32594,8 +33309,8 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
       try {
         final full = obj['full'];
         if (full != null &&
-            !((full is bool ||
-                SemanticTokensOptionsFull.canParse(full, reporter)))) {
+            full is! bool &&
+            !SemanticTokensOptionsFull.canParse(full, reporter)) {
           reporter.reportError(
               'must be of type Either2<bool, SemanticTokensOptionsFull>');
           return false;
@@ -32614,7 +33329,7 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(SemanticTokensLegend.canParse(legend, reporter))) {
+        if (!SemanticTokensLegend.canParse(legend, reporter)) {
           reporter.reportError('must be of type SemanticTokensLegend');
           return false;
         }
@@ -32625,8 +33340,8 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
       try {
         final range = obj['range'];
         if (range != null &&
-            !((range is bool ||
-                SemanticTokensOptionsRange.canParse(range, reporter)))) {
+            range is! bool &&
+            !SemanticTokensOptionsRange.canParse(range, reporter)) {
           reporter.reportError(
               'must be of type Either2<bool, SemanticTokensOptionsRange>');
           return false;
@@ -32637,7 +33352,7 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -32696,6 +33411,7 @@ class SemanticTokensOptionsFull implements ToJsonable {
   /// The server supports deltas for full documents.
   final bool? delta;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (delta != null) {
@@ -32709,7 +33425,7 @@ class SemanticTokensOptionsFull implements ToJsonable {
       reporter.push('delta');
       try {
         final delta = obj['delta'];
-        if (delta != null && !(delta is bool)) {
+        if (delta != null && delta is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -32749,10 +33465,8 @@ class SemanticTokensOptionsRange implements ToJsonable {
     return SemanticTokensOptionsRange();
   }
 
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    return result;
-  }
+  @override
+  Map<String, Object?> toJson() => {};
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
@@ -32820,14 +33534,17 @@ class SemanticTokensParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -32846,7 +33563,8 @@ class SemanticTokensParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -32864,7 +33582,7 @@ class SemanticTokensParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -32875,7 +33593,8 @@ class SemanticTokensParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -32932,6 +33651,7 @@ class SemanticTokensPartialResult implements ToJsonable {
 
   final List<int> data;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['data'] = data;
@@ -32951,7 +33671,7 @@ class SemanticTokensPartialResult implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((data is List<Object?> && (data.every((item) => item is int))))) {
+        if (data is! List<Object?> || data.any((item) => item is! int)) {
           reporter.reportError('must be of type List<int>');
           return false;
         }
@@ -33026,6 +33746,7 @@ class SemanticTokensRangeParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The range the semantic tokens are requested for.
@@ -33035,8 +33756,10 @@ class SemanticTokensRangeParams
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -33056,7 +33779,8 @@ class SemanticTokensRangeParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -33074,7 +33798,7 @@ class SemanticTokensRangeParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -33092,7 +33816,7 @@ class SemanticTokensRangeParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -33103,7 +33827,8 @@ class SemanticTokensRangeParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -33164,8 +33889,8 @@ class SemanticTokensRegistrationOptions
   static SemanticTokensRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final fullJson = json['full'];
     final full = fullJson == null
@@ -33207,23 +33932,30 @@ class SemanticTokensRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// Server supports providing semantic tokens for a full document.
+  @override
   final Either2<bool, SemanticTokensOptionsFull>? full;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
 
   /// The legend used by the server
+  @override
   final SemanticTokensLegend legend;
 
   /// Server supports providing semantic tokens for a specific range of a
   /// document.
+  @override
   final Either2<bool, SemanticTokensOptionsRange>? range;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -33253,10 +33985,11 @@ class SemanticTokensRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -33266,8 +33999,8 @@ class SemanticTokensRegistrationOptions
       try {
         final full = obj['full'];
         if (full != null &&
-            !((full is bool ||
-                SemanticTokensOptionsFull.canParse(full, reporter)))) {
+            full is! bool &&
+            !SemanticTokensOptionsFull.canParse(full, reporter)) {
           reporter.reportError(
               'must be of type Either2<bool, SemanticTokensOptionsFull>');
           return false;
@@ -33278,7 +34011,7 @@ class SemanticTokensRegistrationOptions
       reporter.push('id');
       try {
         final id = obj['id'];
-        if (id != null && !(id is String)) {
+        if (id != null && id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -33296,7 +34029,7 @@ class SemanticTokensRegistrationOptions
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(SemanticTokensLegend.canParse(legend, reporter))) {
+        if (!SemanticTokensLegend.canParse(legend, reporter)) {
           reporter.reportError('must be of type SemanticTokensLegend');
           return false;
         }
@@ -33307,8 +34040,8 @@ class SemanticTokensRegistrationOptions
       try {
         final range = obj['range'];
         if (range != null &&
-            !((range is bool ||
-                SemanticTokensOptionsRange.canParse(range, reporter)))) {
+            range is! bool &&
+            !SemanticTokensOptionsRange.canParse(range, reporter)) {
           reporter.reportError(
               'must be of type Either2<bool, SemanticTokensOptionsRange>');
           return false;
@@ -33319,7 +34052,7 @@ class SemanticTokensRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -33337,8 +34070,12 @@ class SemanticTokensRegistrationOptions
   bool operator ==(Object other) {
     if (other is SemanticTokensRegistrationOptions &&
         other.runtimeType == SemanticTokensRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           full == other.full &&
           id == other.id &&
           legend == other.legend &&
@@ -33390,6 +34127,7 @@ class SemanticTokensWorkspaceClientCapabilities implements ToJsonable {
   /// change that requires such a calculation.
   final bool? refreshSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (refreshSupport != null) {
@@ -33403,7 +34141,7 @@ class SemanticTokensWorkspaceClientCapabilities implements ToJsonable {
       reporter.push('refreshSupport');
       try {
         final refreshSupport = obj['refreshSupport'];
-        if (refreshSupport != null && !(refreshSupport is bool)) {
+        if (refreshSupport != null && refreshSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -34081,6 +34819,7 @@ class ServerCapabilities implements ToJsonable {
   /// The server provides workspace symbol support.
   final Either2<bool, WorkspaceSymbolOptions>? workspaceSymbolProvider;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (callHierarchyProvider != null) {
@@ -34199,11 +34938,10 @@ class ServerCapabilities implements ToJsonable {
       try {
         final callHierarchyProvider = obj['callHierarchyProvider'];
         if (callHierarchyProvider != null &&
-            !((callHierarchyProvider is bool ||
-                CallHierarchyOptions.canParse(
-                    callHierarchyProvider, reporter) ||
-                CallHierarchyRegistrationOptions.canParse(
-                    callHierarchyProvider, reporter)))) {
+            callHierarchyProvider is! bool &&
+            !CallHierarchyOptions.canParse(callHierarchyProvider, reporter) &&
+            !CallHierarchyRegistrationOptions.canParse(
+                callHierarchyProvider, reporter)) {
           reporter.reportError(
               'must be of type Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>');
           return false;
@@ -34215,8 +34953,8 @@ class ServerCapabilities implements ToJsonable {
       try {
         final codeActionProvider = obj['codeActionProvider'];
         if (codeActionProvider != null &&
-            !((codeActionProvider is bool ||
-                CodeActionOptions.canParse(codeActionProvider, reporter)))) {
+            codeActionProvider is! bool &&
+            !CodeActionOptions.canParse(codeActionProvider, reporter)) {
           reporter
               .reportError('must be of type Either2<bool, CodeActionOptions>');
           return false;
@@ -34228,7 +34966,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         final codeLensProvider = obj['codeLensProvider'];
         if (codeLensProvider != null &&
-            !(CodeLensOptions.canParse(codeLensProvider, reporter))) {
+            !CodeLensOptions.canParse(codeLensProvider, reporter)) {
           reporter.reportError('must be of type CodeLensOptions');
           return false;
         }
@@ -34239,10 +34977,10 @@ class ServerCapabilities implements ToJsonable {
       try {
         final colorProvider = obj['colorProvider'];
         if (colorProvider != null &&
-            !((colorProvider is bool ||
-                DocumentColorOptions.canParse(colorProvider, reporter) ||
-                DocumentColorRegistrationOptions.canParse(
-                    colorProvider, reporter)))) {
+            colorProvider is! bool &&
+            !DocumentColorOptions.canParse(colorProvider, reporter) &&
+            !DocumentColorRegistrationOptions.canParse(
+                colorProvider, reporter)) {
           reporter.reportError(
               'must be of type Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>');
           return false;
@@ -34254,7 +34992,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         final completionProvider = obj['completionProvider'];
         if (completionProvider != null &&
-            !(CompletionOptions.canParse(completionProvider, reporter))) {
+            !CompletionOptions.canParse(completionProvider, reporter)) {
           reporter.reportError('must be of type CompletionOptions');
           return false;
         }
@@ -34265,10 +35003,10 @@ class ServerCapabilities implements ToJsonable {
       try {
         final declarationProvider = obj['declarationProvider'];
         if (declarationProvider != null &&
-            !((declarationProvider is bool ||
-                DeclarationOptions.canParse(declarationProvider, reporter) ||
-                DeclarationRegistrationOptions.canParse(
-                    declarationProvider, reporter)))) {
+            declarationProvider is! bool &&
+            !DeclarationOptions.canParse(declarationProvider, reporter) &&
+            !DeclarationRegistrationOptions.canParse(
+                declarationProvider, reporter)) {
           reporter.reportError(
               'must be of type Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>');
           return false;
@@ -34280,8 +35018,8 @@ class ServerCapabilities implements ToJsonable {
       try {
         final definitionProvider = obj['definitionProvider'];
         if (definitionProvider != null &&
-            !((definitionProvider is bool ||
-                DefinitionOptions.canParse(definitionProvider, reporter)))) {
+            definitionProvider is! bool &&
+            !DefinitionOptions.canParse(definitionProvider, reporter)) {
           reporter
               .reportError('must be of type Either2<bool, DefinitionOptions>');
           return false;
@@ -34293,9 +35031,9 @@ class ServerCapabilities implements ToJsonable {
       try {
         final diagnosticProvider = obj['diagnosticProvider'];
         if (diagnosticProvider != null &&
-            !((DiagnosticOptions.canParse(diagnosticProvider, reporter) ||
-                DiagnosticRegistrationOptions.canParse(
-                    diagnosticProvider, reporter)))) {
+            !DiagnosticOptions.canParse(diagnosticProvider, reporter) &&
+            !DiagnosticRegistrationOptions.canParse(
+                diagnosticProvider, reporter)) {
           reporter.reportError(
               'must be of type Either2<DiagnosticOptions, DiagnosticRegistrationOptions>');
           return false;
@@ -34307,9 +35045,9 @@ class ServerCapabilities implements ToJsonable {
       try {
         final documentFormattingProvider = obj['documentFormattingProvider'];
         if (documentFormattingProvider != null &&
-            !((documentFormattingProvider is bool ||
-                DocumentFormattingOptions.canParse(
-                    documentFormattingProvider, reporter)))) {
+            documentFormattingProvider is! bool &&
+            !DocumentFormattingOptions.canParse(
+                documentFormattingProvider, reporter)) {
           reporter.reportError(
               'must be of type Either2<bool, DocumentFormattingOptions>');
           return false;
@@ -34321,9 +35059,9 @@ class ServerCapabilities implements ToJsonable {
       try {
         final documentHighlightProvider = obj['documentHighlightProvider'];
         if (documentHighlightProvider != null &&
-            !((documentHighlightProvider is bool ||
-                DocumentHighlightOptions.canParse(
-                    documentHighlightProvider, reporter)))) {
+            documentHighlightProvider is! bool &&
+            !DocumentHighlightOptions.canParse(
+                documentHighlightProvider, reporter)) {
           reporter.reportError(
               'must be of type Either2<bool, DocumentHighlightOptions>');
           return false;
@@ -34335,7 +35073,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         final documentLinkProvider = obj['documentLinkProvider'];
         if (documentLinkProvider != null &&
-            !(DocumentLinkOptions.canParse(documentLinkProvider, reporter))) {
+            !DocumentLinkOptions.canParse(documentLinkProvider, reporter)) {
           reporter.reportError('must be of type DocumentLinkOptions');
           return false;
         }
@@ -34347,8 +35085,8 @@ class ServerCapabilities implements ToJsonable {
         final documentOnTypeFormattingProvider =
             obj['documentOnTypeFormattingProvider'];
         if (documentOnTypeFormattingProvider != null &&
-            !(DocumentOnTypeFormattingOptions.canParse(
-                documentOnTypeFormattingProvider, reporter))) {
+            !DocumentOnTypeFormattingOptions.canParse(
+                documentOnTypeFormattingProvider, reporter)) {
           reporter
               .reportError('must be of type DocumentOnTypeFormattingOptions');
           return false;
@@ -34361,9 +35099,9 @@ class ServerCapabilities implements ToJsonable {
         final documentRangeFormattingProvider =
             obj['documentRangeFormattingProvider'];
         if (documentRangeFormattingProvider != null &&
-            !((documentRangeFormattingProvider is bool ||
-                DocumentRangeFormattingOptions.canParse(
-                    documentRangeFormattingProvider, reporter)))) {
+            documentRangeFormattingProvider is! bool &&
+            !DocumentRangeFormattingOptions.canParse(
+                documentRangeFormattingProvider, reporter)) {
           reporter.reportError(
               'must be of type Either2<bool, DocumentRangeFormattingOptions>');
           return false;
@@ -34375,9 +35113,8 @@ class ServerCapabilities implements ToJsonable {
       try {
         final documentSymbolProvider = obj['documentSymbolProvider'];
         if (documentSymbolProvider != null &&
-            !((documentSymbolProvider is bool ||
-                DocumentSymbolOptions.canParse(
-                    documentSymbolProvider, reporter)))) {
+            documentSymbolProvider is! bool &&
+            !DocumentSymbolOptions.canParse(documentSymbolProvider, reporter)) {
           reporter.reportError(
               'must be of type Either2<bool, DocumentSymbolOptions>');
           return false;
@@ -34389,8 +35126,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         final executeCommandProvider = obj['executeCommandProvider'];
         if (executeCommandProvider != null &&
-            !(ExecuteCommandOptions.canParse(
-                executeCommandProvider, reporter))) {
+            !ExecuteCommandOptions.canParse(executeCommandProvider, reporter)) {
           reporter.reportError('must be of type ExecuteCommandOptions');
           return false;
         }
@@ -34401,10 +35137,10 @@ class ServerCapabilities implements ToJsonable {
       try {
         final foldingRangeProvider = obj['foldingRangeProvider'];
         if (foldingRangeProvider != null &&
-            !((foldingRangeProvider is bool ||
-                FoldingRangeOptions.canParse(foldingRangeProvider, reporter) ||
-                FoldingRangeRegistrationOptions.canParse(
-                    foldingRangeProvider, reporter)))) {
+            foldingRangeProvider is! bool &&
+            !FoldingRangeOptions.canParse(foldingRangeProvider, reporter) &&
+            !FoldingRangeRegistrationOptions.canParse(
+                foldingRangeProvider, reporter)) {
           reporter.reportError(
               'must be of type Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>');
           return false;
@@ -34416,8 +35152,8 @@ class ServerCapabilities implements ToJsonable {
       try {
         final hoverProvider = obj['hoverProvider'];
         if (hoverProvider != null &&
-            !((hoverProvider is bool ||
-                HoverOptions.canParse(hoverProvider, reporter)))) {
+            hoverProvider is! bool &&
+            !HoverOptions.canParse(hoverProvider, reporter)) {
           reporter.reportError('must be of type Either2<bool, HoverOptions>');
           return false;
         }
@@ -34428,11 +35164,10 @@ class ServerCapabilities implements ToJsonable {
       try {
         final implementationProvider = obj['implementationProvider'];
         if (implementationProvider != null &&
-            !((implementationProvider is bool ||
-                ImplementationOptions.canParse(
-                    implementationProvider, reporter) ||
-                ImplementationRegistrationOptions.canParse(
-                    implementationProvider, reporter)))) {
+            implementationProvider is! bool &&
+            !ImplementationOptions.canParse(implementationProvider, reporter) &&
+            !ImplementationRegistrationOptions.canParse(
+                implementationProvider, reporter)) {
           reporter.reportError(
               'must be of type Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>');
           return false;
@@ -34444,10 +35179,10 @@ class ServerCapabilities implements ToJsonable {
       try {
         final inlayHintProvider = obj['inlayHintProvider'];
         if (inlayHintProvider != null &&
-            !((inlayHintProvider is bool ||
-                InlayHintOptions.canParse(inlayHintProvider, reporter) ||
-                InlayHintRegistrationOptions.canParse(
-                    inlayHintProvider, reporter)))) {
+            inlayHintProvider is! bool &&
+            !InlayHintOptions.canParse(inlayHintProvider, reporter) &&
+            !InlayHintRegistrationOptions.canParse(
+                inlayHintProvider, reporter)) {
           reporter.reportError(
               'must be of type Either3<bool, InlayHintOptions, InlayHintRegistrationOptions>');
           return false;
@@ -34459,10 +35194,10 @@ class ServerCapabilities implements ToJsonable {
       try {
         final inlineValueProvider = obj['inlineValueProvider'];
         if (inlineValueProvider != null &&
-            !((inlineValueProvider is bool ||
-                InlineValueOptions.canParse(inlineValueProvider, reporter) ||
-                InlineValueRegistrationOptions.canParse(
-                    inlineValueProvider, reporter)))) {
+            inlineValueProvider is! bool &&
+            !InlineValueOptions.canParse(inlineValueProvider, reporter) &&
+            !InlineValueRegistrationOptions.canParse(
+                inlineValueProvider, reporter)) {
           reporter.reportError(
               'must be of type Either3<bool, InlineValueOptions, InlineValueRegistrationOptions>');
           return false;
@@ -34474,11 +35209,11 @@ class ServerCapabilities implements ToJsonable {
       try {
         final linkedEditingRangeProvider = obj['linkedEditingRangeProvider'];
         if (linkedEditingRangeProvider != null &&
-            !((linkedEditingRangeProvider is bool ||
-                LinkedEditingRangeOptions.canParse(
-                    linkedEditingRangeProvider, reporter) ||
-                LinkedEditingRangeRegistrationOptions.canParse(
-                    linkedEditingRangeProvider, reporter)))) {
+            linkedEditingRangeProvider is! bool &&
+            !LinkedEditingRangeOptions.canParse(
+                linkedEditingRangeProvider, reporter) &&
+            !LinkedEditingRangeRegistrationOptions.canParse(
+                linkedEditingRangeProvider, reporter)) {
           reporter.reportError(
               'must be of type Either3<bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions>');
           return false;
@@ -34490,10 +35225,9 @@ class ServerCapabilities implements ToJsonable {
       try {
         final monikerProvider = obj['monikerProvider'];
         if (monikerProvider != null &&
-            !((monikerProvider is bool ||
-                MonikerOptions.canParse(monikerProvider, reporter) ||
-                MonikerRegistrationOptions.canParse(
-                    monikerProvider, reporter)))) {
+            monikerProvider is! bool &&
+            !MonikerOptions.canParse(monikerProvider, reporter) &&
+            !MonikerRegistrationOptions.canParse(monikerProvider, reporter)) {
           reporter.reportError(
               'must be of type Either3<bool, MonikerOptions, MonikerRegistrationOptions>');
           return false;
@@ -34505,10 +35239,10 @@ class ServerCapabilities implements ToJsonable {
       try {
         final notebookDocumentSync = obj['notebookDocumentSync'];
         if (notebookDocumentSync != null &&
-            !((NotebookDocumentSyncOptions.canParse(
-                    notebookDocumentSync, reporter) ||
-                NotebookDocumentSyncRegistrationOptions.canParse(
-                    notebookDocumentSync, reporter)))) {
+            !NotebookDocumentSyncOptions.canParse(
+                notebookDocumentSync, reporter) &&
+            !NotebookDocumentSyncRegistrationOptions.canParse(
+                notebookDocumentSync, reporter)) {
           reporter.reportError(
               'must be of type Either2<NotebookDocumentSyncOptions, NotebookDocumentSyncRegistrationOptions>');
           return false;
@@ -34520,7 +35254,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         final positionEncoding = obj['positionEncoding'];
         if (positionEncoding != null &&
-            !(PositionEncodingKind.canParse(positionEncoding, reporter))) {
+            !PositionEncodingKind.canParse(positionEncoding, reporter)) {
           reporter.reportError('must be of type PositionEncodingKind');
           return false;
         }
@@ -34531,8 +35265,8 @@ class ServerCapabilities implements ToJsonable {
       try {
         final referencesProvider = obj['referencesProvider'];
         if (referencesProvider != null &&
-            !((referencesProvider is bool ||
-                ReferenceOptions.canParse(referencesProvider, reporter)))) {
+            referencesProvider is! bool &&
+            !ReferenceOptions.canParse(referencesProvider, reporter)) {
           reporter
               .reportError('must be of type Either2<bool, ReferenceOptions>');
           return false;
@@ -34544,8 +35278,8 @@ class ServerCapabilities implements ToJsonable {
       try {
         final renameProvider = obj['renameProvider'];
         if (renameProvider != null &&
-            !((renameProvider is bool ||
-                RenameOptions.canParse(renameProvider, reporter)))) {
+            renameProvider is! bool &&
+            !RenameOptions.canParse(renameProvider, reporter)) {
           reporter.reportError('must be of type Either2<bool, RenameOptions>');
           return false;
         }
@@ -34556,11 +35290,10 @@ class ServerCapabilities implements ToJsonable {
       try {
         final selectionRangeProvider = obj['selectionRangeProvider'];
         if (selectionRangeProvider != null &&
-            !((selectionRangeProvider is bool ||
-                SelectionRangeOptions.canParse(
-                    selectionRangeProvider, reporter) ||
-                SelectionRangeRegistrationOptions.canParse(
-                    selectionRangeProvider, reporter)))) {
+            selectionRangeProvider is! bool &&
+            !SelectionRangeOptions.canParse(selectionRangeProvider, reporter) &&
+            !SelectionRangeRegistrationOptions.canParse(
+                selectionRangeProvider, reporter)) {
           reporter.reportError(
               'must be of type Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>');
           return false;
@@ -34572,10 +35305,9 @@ class ServerCapabilities implements ToJsonable {
       try {
         final semanticTokensProvider = obj['semanticTokensProvider'];
         if (semanticTokensProvider != null &&
-            !((SemanticTokensOptions.canParse(
-                    semanticTokensProvider, reporter) ||
-                SemanticTokensRegistrationOptions.canParse(
-                    semanticTokensProvider, reporter)))) {
+            !SemanticTokensOptions.canParse(semanticTokensProvider, reporter) &&
+            !SemanticTokensRegistrationOptions.canParse(
+                semanticTokensProvider, reporter)) {
           reporter.reportError(
               'must be of type Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>');
           return false;
@@ -34587,7 +35319,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         final signatureHelpProvider = obj['signatureHelpProvider'];
         if (signatureHelpProvider != null &&
-            !(SignatureHelpOptions.canParse(signatureHelpProvider, reporter))) {
+            !SignatureHelpOptions.canParse(signatureHelpProvider, reporter)) {
           reporter.reportError('must be of type SignatureHelpOptions');
           return false;
         }
@@ -34598,9 +35330,8 @@ class ServerCapabilities implements ToJsonable {
       try {
         final textDocumentSync = obj['textDocumentSync'];
         if (textDocumentSync != null &&
-            !((TextDocumentSyncKind.canParse(textDocumentSync, reporter) ||
-                TextDocumentSyncOptions.canParse(
-                    textDocumentSync, reporter)))) {
+            !TextDocumentSyncKind.canParse(textDocumentSync, reporter) &&
+            !TextDocumentSyncOptions.canParse(textDocumentSync, reporter)) {
           reporter.reportError(
               'must be of type Either2<TextDocumentSyncKind, TextDocumentSyncOptions>');
           return false;
@@ -34612,11 +35343,10 @@ class ServerCapabilities implements ToJsonable {
       try {
         final typeDefinitionProvider = obj['typeDefinitionProvider'];
         if (typeDefinitionProvider != null &&
-            !((typeDefinitionProvider is bool ||
-                TypeDefinitionOptions.canParse(
-                    typeDefinitionProvider, reporter) ||
-                TypeDefinitionRegistrationOptions.canParse(
-                    typeDefinitionProvider, reporter)))) {
+            typeDefinitionProvider is! bool &&
+            !TypeDefinitionOptions.canParse(typeDefinitionProvider, reporter) &&
+            !TypeDefinitionRegistrationOptions.canParse(
+                typeDefinitionProvider, reporter)) {
           reporter.reportError(
               'must be of type Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>');
           return false;
@@ -34628,11 +35358,10 @@ class ServerCapabilities implements ToJsonable {
       try {
         final typeHierarchyProvider = obj['typeHierarchyProvider'];
         if (typeHierarchyProvider != null &&
-            !((typeHierarchyProvider is bool ||
-                TypeHierarchyOptions.canParse(
-                    typeHierarchyProvider, reporter) ||
-                TypeHierarchyRegistrationOptions.canParse(
-                    typeHierarchyProvider, reporter)))) {
+            typeHierarchyProvider is! bool &&
+            !TypeHierarchyOptions.canParse(typeHierarchyProvider, reporter) &&
+            !TypeHierarchyRegistrationOptions.canParse(
+                typeHierarchyProvider, reporter)) {
           reporter.reportError(
               'must be of type Either3<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>');
           return false;
@@ -34644,7 +35373,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         final workspace = obj['workspace'];
         if (workspace != null &&
-            !(ServerCapabilitiesWorkspace.canParse(workspace, reporter))) {
+            !ServerCapabilitiesWorkspace.canParse(workspace, reporter)) {
           reporter.reportError('must be of type ServerCapabilitiesWorkspace');
           return false;
         }
@@ -34655,9 +35384,9 @@ class ServerCapabilities implements ToJsonable {
       try {
         final workspaceSymbolProvider = obj['workspaceSymbolProvider'];
         if (workspaceSymbolProvider != null &&
-            !((workspaceSymbolProvider is bool ||
-                WorkspaceSymbolOptions.canParse(
-                    workspaceSymbolProvider, reporter)))) {
+            workspaceSymbolProvider is! bool &&
+            !WorkspaceSymbolOptions.canParse(
+                workspaceSymbolProvider, reporter)) {
           reporter.reportError(
               'must be of type Either2<bool, WorkspaceSymbolOptions>');
           return false;
@@ -34796,6 +35525,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
   ///  @since 3.6.0
   final WorkspaceFoldersServerCapabilities? workspaceFolders;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (fileOperations != null) {
@@ -34813,7 +35543,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
       try {
         final fileOperations = obj['fileOperations'];
         if (fileOperations != null &&
-            !(FileOperationOptions.canParse(fileOperations, reporter))) {
+            !FileOperationOptions.canParse(fileOperations, reporter)) {
           reporter.reportError('must be of type FileOperationOptions');
           return false;
         }
@@ -34824,8 +35554,8 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
       try {
         final workspaceFolders = obj['workspaceFolders'];
         if (workspaceFolders != null &&
-            !(WorkspaceFoldersServerCapabilities.canParse(
-                workspaceFolders, reporter))) {
+            !WorkspaceFoldersServerCapabilities.canParse(
+                workspaceFolders, reporter)) {
           reporter.reportError(
               'must be of type WorkspaceFoldersServerCapabilities');
           return false;
@@ -34883,6 +35613,7 @@ class SetTraceParams implements ToJsonable {
   /// The new value that should be assigned to the trace setting.
   final String value;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['value'] = value;
@@ -34902,7 +35633,7 @@ class SetTraceParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((value == 'off' || value == 'messages' || value == 'verbose'))) {
+        if (value != 'off' && value != 'messages' && value != 'verbose') {
           reporter.reportError(
               'must be one of the literals \'off\', \'messages\', \'verbose\'');
           return false;
@@ -34954,6 +35685,7 @@ class ShowDocumentClientCapabilities implements ToJsonable {
   /// The client has support for the show document request.
   final bool support;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['support'] = support;
@@ -34973,7 +35705,7 @@ class ShowDocumentClientCapabilities implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(support is bool)) {
+        if (support is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -35054,6 +35786,7 @@ class ShowDocumentParams implements ToJsonable {
   /// The document uri to show.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (external != null) {
@@ -35074,7 +35807,7 @@ class ShowDocumentParams implements ToJsonable {
       reporter.push('external');
       try {
         final external = obj['external'];
-        if (external != null && !(external is bool)) {
+        if (external != null && external is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -35084,7 +35817,7 @@ class ShowDocumentParams implements ToJsonable {
       reporter.push('selection');
       try {
         final selection = obj['selection'];
-        if (selection != null && !(Range.canParse(selection, reporter))) {
+        if (selection != null && !Range.canParse(selection, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -35094,7 +35827,7 @@ class ShowDocumentParams implements ToJsonable {
       reporter.push('takeFocus');
       try {
         final takeFocus = obj['takeFocus'];
-        if (takeFocus != null && !(takeFocus is bool)) {
+        if (takeFocus != null && takeFocus is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -35112,7 +35845,7 @@ class ShowDocumentParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -35173,6 +35906,7 @@ class ShowDocumentResult implements ToJsonable {
   /// A boolean indicating if the show was successful.
   final bool success;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['success'] = success;
@@ -35192,7 +35926,7 @@ class ShowDocumentResult implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(success is bool)) {
+        if (success is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -35249,6 +35983,7 @@ class ShowMessageParams implements ToJsonable {
   /// The message type.
   final MessageType type;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['message'] = message;
@@ -35269,7 +36004,7 @@ class ShowMessageParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(message is String)) {
+        if (message is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -35287,7 +36022,7 @@ class ShowMessageParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(MessageType.canParse(type, reporter))) {
+        if (!MessageType.canParse(type, reporter)) {
           reporter.reportError('must be of type MessageType');
           return false;
         }
@@ -35345,6 +36080,7 @@ class ShowMessageRequestClientCapabilities implements ToJsonable {
   final ShowMessageRequestClientCapabilitiesMessageActionItem?
       messageActionItem;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (messageActionItem != null) {
@@ -35359,8 +36095,8 @@ class ShowMessageRequestClientCapabilities implements ToJsonable {
       try {
         final messageActionItem = obj['messageActionItem'];
         if (messageActionItem != null &&
-            !(ShowMessageRequestClientCapabilitiesMessageActionItem.canParse(
-                messageActionItem, reporter))) {
+            !ShowMessageRequestClientCapabilitiesMessageActionItem.canParse(
+                messageActionItem, reporter)) {
           reporter.reportError(
               'must be of type ShowMessageRequestClientCapabilitiesMessageActionItem');
           return false;
@@ -35416,6 +36152,7 @@ class ShowMessageRequestClientCapabilitiesMessageActionItem
   /// sent back to the server in the request's response.
   final bool? additionalPropertiesSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (additionalPropertiesSupport != null) {
@@ -35430,7 +36167,7 @@ class ShowMessageRequestClientCapabilitiesMessageActionItem
       try {
         final additionalPropertiesSupport = obj['additionalPropertiesSupport'];
         if (additionalPropertiesSupport != null &&
-            !(additionalPropertiesSupport is bool)) {
+            additionalPropertiesSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -35500,6 +36237,7 @@ class ShowMessageRequestParams implements ToJsonable {
   /// The message type.
   final MessageType type;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (actions != null) {
@@ -35516,9 +36254,9 @@ class ShowMessageRequestParams implements ToJsonable {
       try {
         final actions = obj['actions'];
         if (actions != null &&
-            !((actions is List<Object?> &&
-                (actions.every(
-                    (item) => MessageActionItem.canParse(item, reporter)))))) {
+            (actions is! List<Object?> ||
+                actions.any(
+                    (item) => !MessageActionItem.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<MessageActionItem>');
           return false;
         }
@@ -35536,7 +36274,7 @@ class ShowMessageRequestParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(message is String)) {
+        if (message is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -35554,7 +36292,7 @@ class ShowMessageRequestParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(MessageType.canParse(type, reporter))) {
+        if (!MessageType.canParse(type, reporter)) {
           reporter.reportError('must be of type MessageType');
           return false;
         }
@@ -35645,6 +36383,7 @@ class SignatureHelp implements ToJsonable {
   /// request should return `null`.
   final List<SignatureInformation> signatures;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (activeParameter != null) {
@@ -35662,7 +36401,7 @@ class SignatureHelp implements ToJsonable {
       reporter.push('activeParameter');
       try {
         final activeParameter = obj['activeParameter'];
-        if (activeParameter != null && !(activeParameter is int)) {
+        if (activeParameter != null && activeParameter is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -35672,7 +36411,7 @@ class SignatureHelp implements ToJsonable {
       reporter.push('activeSignature');
       try {
         final activeSignature = obj['activeSignature'];
-        if (activeSignature != null && !(activeSignature is int)) {
+        if (activeSignature != null && activeSignature is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -35690,9 +36429,9 @@ class SignatureHelp implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((signatures is List<Object?> &&
-            (signatures.every(
-                (item) => SignatureInformation.canParse(item, reporter)))))) {
+        if (signatures is! List<Object?> ||
+            signatures.any(
+                (item) => !SignatureInformation.canParse(item, reporter))) {
           reporter.reportError('must be of type List<SignatureInformation>');
           return false;
         }
@@ -35772,6 +36511,7 @@ class SignatureHelpClientCapabilities implements ToJsonable {
   final SignatureHelpClientCapabilitiesSignatureInformation?
       signatureInformation;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (contextSupport != null) {
@@ -35791,7 +36531,7 @@ class SignatureHelpClientCapabilities implements ToJsonable {
       reporter.push('contextSupport');
       try {
         final contextSupport = obj['contextSupport'];
-        if (contextSupport != null && !(contextSupport is bool)) {
+        if (contextSupport != null && contextSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -35801,7 +36541,7 @@ class SignatureHelpClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -35812,8 +36552,8 @@ class SignatureHelpClientCapabilities implements ToJsonable {
       try {
         final signatureInformation = obj['signatureInformation'];
         if (signatureInformation != null &&
-            !(SignatureHelpClientCapabilitiesSignatureInformation.canParse(
-                signatureInformation, reporter))) {
+            !SignatureHelpClientCapabilitiesSignatureInformation.canParse(
+                signatureInformation, reporter)) {
           reporter.reportError(
               'must be of type SignatureHelpClientCapabilitiesSignatureInformation');
           return false;
@@ -35895,6 +36635,7 @@ class SignatureHelpClientCapabilitiesSignatureInformation
   /// Client capabilities specific to parameter information.
   final SignatureInformationParameterInformation? parameterInformation;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (activeParameterSupport != null) {
@@ -35915,8 +36656,7 @@ class SignatureHelpClientCapabilitiesSignatureInformation
       reporter.push('activeParameterSupport');
       try {
         final activeParameterSupport = obj['activeParameterSupport'];
-        if (activeParameterSupport != null &&
-            !(activeParameterSupport is bool)) {
+        if (activeParameterSupport != null && activeParameterSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -35927,9 +36667,9 @@ class SignatureHelpClientCapabilitiesSignatureInformation
       try {
         final documentationFormat = obj['documentationFormat'];
         if (documentationFormat != null &&
-            !((documentationFormat is List<Object?> &&
-                (documentationFormat
-                    .every((item) => MarkupKind.canParse(item, reporter)))))) {
+            (documentationFormat is! List<Object?> ||
+                documentationFormat
+                    .any((item) => !MarkupKind.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<MarkupKind>');
           return false;
         }
@@ -35940,8 +36680,8 @@ class SignatureHelpClientCapabilitiesSignatureInformation
       try {
         final parameterInformation = obj['parameterInformation'];
         if (parameterInformation != null &&
-            !(SignatureInformationParameterInformation.canParse(
-                parameterInformation, reporter))) {
+            !SignatureInformationParameterInformation.canParse(
+                parameterInformation, reporter)) {
           reporter.reportError(
               'must be of type SignatureInformationParameterInformation');
           return false;
@@ -36040,6 +36780,7 @@ class SignatureHelpContext implements ToJsonable {
   /// Action that caused signature help to be triggered.
   final SignatureHelpTriggerKind triggerKind;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (activeSignatureHelp != null) {
@@ -36059,7 +36800,7 @@ class SignatureHelpContext implements ToJsonable {
       try {
         final activeSignatureHelp = obj['activeSignatureHelp'];
         if (activeSignatureHelp != null &&
-            !(SignatureHelp.canParse(activeSignatureHelp, reporter))) {
+            !SignatureHelp.canParse(activeSignatureHelp, reporter)) {
           reporter.reportError('must be of type SignatureHelp');
           return false;
         }
@@ -36077,7 +36818,7 @@ class SignatureHelpContext implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(isRetrigger is bool)) {
+        if (isRetrigger is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -36087,7 +36828,7 @@ class SignatureHelpContext implements ToJsonable {
       reporter.push('triggerCharacter');
       try {
         final triggerCharacter = obj['triggerCharacter'];
-        if (triggerCharacter != null && !(triggerCharacter is String)) {
+        if (triggerCharacter != null && triggerCharacter is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -36105,7 +36846,7 @@ class SignatureHelpContext implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(SignatureHelpTriggerKind.canParse(triggerKind, reporter))) {
+        if (!SignatureHelpTriggerKind.canParse(triggerKind, reporter)) {
           reporter.reportError('must be of type SignatureHelpTriggerKind');
           return false;
         }
@@ -36185,8 +36926,10 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// The characters that trigger signature help automatically.
   final List<String>? triggerCharacters;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (retriggerCharacters != null) {
@@ -36207,8 +36950,8 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
       try {
         final retriggerCharacters = obj['retriggerCharacters'];
         if (retriggerCharacters != null &&
-            !((retriggerCharacters is List<Object?> &&
-                (retriggerCharacters.every((item) => item is String))))) {
+            (retriggerCharacters is! List<Object?> ||
+                retriggerCharacters.any((item) => item is! String))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -36219,8 +36962,8 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
       try {
         final triggerCharacters = obj['triggerCharacters'];
         if (triggerCharacters != null &&
-            !((triggerCharacters is List<Object?> &&
-                (triggerCharacters.every((item) => item is String))))) {
+            (triggerCharacters is! List<Object?> ||
+                triggerCharacters.any((item) => item is! String))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -36230,7 +36973,7 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -36315,14 +37058,18 @@ class SignatureHelpParams
   final SignatureHelpContext? context;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (context != null) {
@@ -36342,7 +37089,7 @@ class SignatureHelpParams
       try {
         final context = obj['context'];
         if (context != null &&
-            !(SignatureHelpContext.canParse(context, reporter))) {
+            !SignatureHelpContext.canParse(context, reporter)) {
           reporter.reportError('must be of type SignatureHelpContext');
           return false;
         }
@@ -36360,7 +37107,7 @@ class SignatureHelpParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -36378,7 +37125,7 @@ class SignatureHelpParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -36389,7 +37136,8 @@ class SignatureHelpParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -36447,8 +37195,8 @@ class SignatureHelpRegistrationOptions
   static SignatureHelpRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final retriggerCharactersJson = json['retriggerCharacters'];
     final retriggerCharacters = (retriggerCharactersJson as List<Object?>?)
@@ -36470,19 +37218,24 @@ class SignatureHelpRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// List of characters that re-trigger signature help.
   ///
   /// These trigger characters are only active when signature help is already
   /// showing. All trigger characters are also counted as re-trigger characters.
   ///  @since 3.15.0
+  @override
   final List<String>? retriggerCharacters;
 
   /// The characters that trigger signature help automatically.
+  @override
   final List<String>? triggerCharacters;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -36508,10 +37261,11 @@ class SignatureHelpRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -36521,8 +37275,8 @@ class SignatureHelpRegistrationOptions
       try {
         final retriggerCharacters = obj['retriggerCharacters'];
         if (retriggerCharacters != null &&
-            !((retriggerCharacters is List<Object?> &&
-                (retriggerCharacters.every((item) => item is String))))) {
+            (retriggerCharacters is! List<Object?> ||
+                retriggerCharacters.any((item) => item is! String))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -36533,8 +37287,8 @@ class SignatureHelpRegistrationOptions
       try {
         final triggerCharacters = obj['triggerCharacters'];
         if (triggerCharacters != null &&
-            !((triggerCharacters is List<Object?> &&
-                (triggerCharacters.every((item) => item is String))))) {
+            (triggerCharacters is! List<Object?> ||
+                triggerCharacters.any((item) => item is! String))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -36544,7 +37298,7 @@ class SignatureHelpRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -36562,8 +37316,12 @@ class SignatureHelpRegistrationOptions
   bool operator ==(Object other) {
     if (other is SignatureHelpRegistrationOptions &&
         other.runtimeType == SignatureHelpRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           listEqual(retriggerCharacters, other.retriggerCharacters,
               (String a, String b) => a == b) &&
           listEqual(triggerCharacters, other.triggerCharacters,
@@ -36608,6 +37366,7 @@ class SignatureHelpTriggerKind implements ToJsonable {
   /// Signature help was triggered by a trigger character.
   static const TriggerCharacter = SignatureHelpTriggerKind(2);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -36616,6 +37375,7 @@ class SignatureHelpTriggerKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is SignatureHelpTriggerKind && other._value == _value;
 }
@@ -36677,6 +37437,7 @@ class SignatureInformation implements ToJsonable {
   /// The parameters of this signature.
   final List<ParameterInformation>? parameters;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (activeParameter != null) {
@@ -36697,7 +37458,7 @@ class SignatureInformation implements ToJsonable {
       reporter.push('activeParameter');
       try {
         final activeParameter = obj['activeParameter'];
-        if (activeParameter != null && !(activeParameter is int)) {
+        if (activeParameter != null && activeParameter is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -36708,8 +37469,8 @@ class SignatureInformation implements ToJsonable {
       try {
         final documentation = obj['documentation'];
         if (documentation != null &&
-            !((MarkupContent.canParse(documentation, reporter) ||
-                documentation is String))) {
+            !MarkupContent.canParse(documentation, reporter) &&
+            documentation is! String) {
           reporter
               .reportError('must be of type Either2<MarkupContent, String>');
           return false;
@@ -36728,7 +37489,7 @@ class SignatureInformation implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(label is String)) {
+        if (label is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -36739,9 +37500,9 @@ class SignatureInformation implements ToJsonable {
       try {
         final parameters = obj['parameters'];
         if (parameters != null &&
-            !((parameters is List<Object?> &&
-                (parameters.every((item) =>
-                    ParameterInformation.canParse(item, reporter)))))) {
+            (parameters is! List<Object?> ||
+                parameters.any((item) =>
+                    !ParameterInformation.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<ParameterInformation>');
           return false;
         }
@@ -36804,6 +37565,7 @@ class SignatureInformationParameterInformation implements ToJsonable {
   ///  @since 3.14.0
   final bool? labelOffsetSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (labelOffsetSupport != null) {
@@ -36817,7 +37579,7 @@ class SignatureInformationParameterInformation implements ToJsonable {
       reporter.push('labelOffsetSupport');
       try {
         final labelOffsetSupport = obj['labelOffsetSupport'];
-        if (labelOffsetSupport != null && !(labelOffsetSupport is bool)) {
+        if (labelOffsetSupport != null && labelOffsetSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -36914,6 +37676,7 @@ class StaticRegistrationOptions implements ToJsonable {
   /// request again. See also Registration#id.
   final String? id;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (id != null) {
@@ -36927,7 +37690,7 @@ class StaticRegistrationOptions implements ToJsonable {
       reporter.push('id');
       try {
         final id = obj['id'];
-        if (id != null && !(id is String)) {
+        if (id != null && id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -37030,6 +37793,7 @@ class SymbolInformation implements ToJsonable {
   ///  @since 3.16.0
   final List<SymbolTag>? tags;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (containerName != null) {
@@ -37052,7 +37816,7 @@ class SymbolInformation implements ToJsonable {
       reporter.push('containerName');
       try {
         final containerName = obj['containerName'];
-        if (containerName != null && !(containerName is String)) {
+        if (containerName != null && containerName is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -37062,7 +37826,7 @@ class SymbolInformation implements ToJsonable {
       reporter.push('deprecated');
       try {
         final deprecated = obj['deprecated'];
-        if (deprecated != null && !(deprecated is bool)) {
+        if (deprecated != null && deprecated is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -37080,7 +37844,7 @@ class SymbolInformation implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(SymbolKind.canParse(kind, reporter))) {
+        if (!SymbolKind.canParse(kind, reporter)) {
           reporter.reportError('must be of type SymbolKind');
           return false;
         }
@@ -37098,7 +37862,7 @@ class SymbolInformation implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Location.canParse(location, reporter))) {
+        if (!Location.canParse(location, reporter)) {
           reporter.reportError('must be of type Location');
           return false;
         }
@@ -37116,7 +37880,7 @@ class SymbolInformation implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(name is String)) {
+        if (name is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -37127,8 +37891,8 @@ class SymbolInformation implements ToJsonable {
       try {
         final tags = obj['tags'];
         if (tags != null &&
-            !((tags is List<Object?> &&
-                (tags.every((item) => SymbolTag.canParse(item, reporter)))))) {
+            (tags is! List<Object?> ||
+                tags.any((item) => !SymbolTag.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;
         }
@@ -37208,6 +37972,7 @@ class SymbolKind implements ToJsonable {
   static const TypeParameter = SymbolKind(26);
   static const Variable = SymbolKind(13);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -37216,6 +37981,7 @@ class SymbolKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is SymbolKind && other._value == _value;
 }
@@ -37235,6 +38001,7 @@ class SymbolTag implements ToJsonable {
   /// Render a symbol as obsolete, usually using a strike-out.
   static const Deprecated = SymbolTag(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -37243,6 +38010,7 @@ class SymbolTag implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is SymbolTag && other._value == _value;
 }
@@ -37264,8 +38032,8 @@ class TextDocumentChangeRegistrationOptions
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final syncKindJson = json['syncKind'];
     final syncKind = TextDocumentSyncKind.fromJson(syncKindJson as int);
@@ -37277,12 +38045,14 @@ class TextDocumentChangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// How documents are synced to the server. See TextDocumentSyncKind.Full and
   /// TextDocumentSyncKind.Incremental.
   final TextDocumentSyncKind syncKind;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -37300,10 +38070,11 @@ class TextDocumentChangeRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -37320,7 +38091,7 @@ class TextDocumentChangeRegistrationOptions
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentSyncKind.canParse(syncKind, reporter))) {
+        if (!TextDocumentSyncKind.canParse(syncKind, reporter)) {
           reporter.reportError('must be of type TextDocumentSyncKind');
           return false;
         }
@@ -37339,8 +38110,12 @@ class TextDocumentChangeRegistrationOptions
   bool operator ==(Object other) {
     if (other is TextDocumentChangeRegistrationOptions &&
         other.runtimeType == TextDocumentChangeRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           syncKind == other.syncKind &&
           true;
     }
@@ -37542,7 +38317,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
         : null;
     final typeHierarchyJson = json['typeHierarchy'];
     final typeHierarchy = typeHierarchyJson != null
-        ? TypeHierarchyClientCapabilities1.fromJson(
+        ? TypeHierarchyClientCapabilities.fromJson(
             typeHierarchyJson as Map<String, Object?>)
         : null;
     return TextDocumentClientCapabilities(
@@ -37682,8 +38457,9 @@ class TextDocumentClientCapabilities implements ToJsonable {
 
   /// Capabilities specific to the various type hierarchy requests.
   ///  @since 3.17.0
-  final TypeHierarchyClientCapabilities1? typeHierarchy;
+  final TypeHierarchyClientCapabilities? typeHierarchy;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (callHierarchy != null) {
@@ -37785,8 +38561,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final callHierarchy = obj['callHierarchy'];
         if (callHierarchy != null &&
-            !(CallHierarchyClientCapabilities.canParse(
-                callHierarchy, reporter))) {
+            !CallHierarchyClientCapabilities.canParse(
+                callHierarchy, reporter)) {
           reporter
               .reportError('must be of type CallHierarchyClientCapabilities');
           return false;
@@ -37798,7 +38574,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final codeAction = obj['codeAction'];
         if (codeAction != null &&
-            !(CodeActionClientCapabilities.canParse(codeAction, reporter))) {
+            !CodeActionClientCapabilities.canParse(codeAction, reporter)) {
           reporter.reportError('must be of type CodeActionClientCapabilities');
           return false;
         }
@@ -37809,7 +38585,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final codeLens = obj['codeLens'];
         if (codeLens != null &&
-            !(CodeLensClientCapabilities.canParse(codeLens, reporter))) {
+            !CodeLensClientCapabilities.canParse(codeLens, reporter)) {
           reporter.reportError('must be of type CodeLensClientCapabilities');
           return false;
         }
@@ -37820,8 +38596,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final colorProvider = obj['colorProvider'];
         if (colorProvider != null &&
-            !(DocumentColorClientCapabilities.canParse(
-                colorProvider, reporter))) {
+            !DocumentColorClientCapabilities.canParse(
+                colorProvider, reporter)) {
           reporter
               .reportError('must be of type DocumentColorClientCapabilities');
           return false;
@@ -37833,7 +38609,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final completion = obj['completion'];
         if (completion != null &&
-            !(CompletionClientCapabilities.canParse(completion, reporter))) {
+            !CompletionClientCapabilities.canParse(completion, reporter)) {
           reporter.reportError('must be of type CompletionClientCapabilities');
           return false;
         }
@@ -37844,7 +38620,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final declaration = obj['declaration'];
         if (declaration != null &&
-            !(DeclarationClientCapabilities.canParse(declaration, reporter))) {
+            !DeclarationClientCapabilities.canParse(declaration, reporter)) {
           reporter.reportError('must be of type DeclarationClientCapabilities');
           return false;
         }
@@ -37855,7 +38631,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final definition = obj['definition'];
         if (definition != null &&
-            !(DefinitionClientCapabilities.canParse(definition, reporter))) {
+            !DefinitionClientCapabilities.canParse(definition, reporter)) {
           reporter.reportError('must be of type DefinitionClientCapabilities');
           return false;
         }
@@ -37866,7 +38642,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final diagnostic = obj['diagnostic'];
         if (diagnostic != null &&
-            !(DiagnosticClientCapabilities.canParse(diagnostic, reporter))) {
+            !DiagnosticClientCapabilities.canParse(diagnostic, reporter)) {
           reporter.reportError('must be of type DiagnosticClientCapabilities');
           return false;
         }
@@ -37877,8 +38653,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final documentHighlight = obj['documentHighlight'];
         if (documentHighlight != null &&
-            !(DocumentHighlightClientCapabilities.canParse(
-                documentHighlight, reporter))) {
+            !DocumentHighlightClientCapabilities.canParse(
+                documentHighlight, reporter)) {
           reporter.reportError(
               'must be of type DocumentHighlightClientCapabilities');
           return false;
@@ -37890,8 +38666,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final documentLink = obj['documentLink'];
         if (documentLink != null &&
-            !(DocumentLinkClientCapabilities.canParse(
-                documentLink, reporter))) {
+            !DocumentLinkClientCapabilities.canParse(documentLink, reporter)) {
           reporter
               .reportError('must be of type DocumentLinkClientCapabilities');
           return false;
@@ -37903,8 +38678,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final documentSymbol = obj['documentSymbol'];
         if (documentSymbol != null &&
-            !(DocumentSymbolClientCapabilities.canParse(
-                documentSymbol, reporter))) {
+            !DocumentSymbolClientCapabilities.canParse(
+                documentSymbol, reporter)) {
           reporter
               .reportError('must be of type DocumentSymbolClientCapabilities');
           return false;
@@ -37916,8 +38691,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final foldingRange = obj['foldingRange'];
         if (foldingRange != null &&
-            !(FoldingRangeClientCapabilities.canParse(
-                foldingRange, reporter))) {
+            !FoldingRangeClientCapabilities.canParse(foldingRange, reporter)) {
           reporter
               .reportError('must be of type FoldingRangeClientCapabilities');
           return false;
@@ -37929,8 +38703,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final formatting = obj['formatting'];
         if (formatting != null &&
-            !(DocumentFormattingClientCapabilities.canParse(
-                formatting, reporter))) {
+            !DocumentFormattingClientCapabilities.canParse(
+                formatting, reporter)) {
           reporter.reportError(
               'must be of type DocumentFormattingClientCapabilities');
           return false;
@@ -37942,7 +38716,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final hover = obj['hover'];
         if (hover != null &&
-            !(HoverClientCapabilities.canParse(hover, reporter))) {
+            !HoverClientCapabilities.canParse(hover, reporter)) {
           reporter.reportError('must be of type HoverClientCapabilities');
           return false;
         }
@@ -37953,8 +38727,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final implementation = obj['implementation'];
         if (implementation != null &&
-            !(ImplementationClientCapabilities.canParse(
-                implementation, reporter))) {
+            !ImplementationClientCapabilities.canParse(
+                implementation, reporter)) {
           reporter
               .reportError('must be of type ImplementationClientCapabilities');
           return false;
@@ -37966,7 +38740,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final inlayHint = obj['inlayHint'];
         if (inlayHint != null &&
-            !(InlayHintClientCapabilities.canParse(inlayHint, reporter))) {
+            !InlayHintClientCapabilities.canParse(inlayHint, reporter)) {
           reporter.reportError('must be of type InlayHintClientCapabilities');
           return false;
         }
@@ -37977,7 +38751,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final inlineValue = obj['inlineValue'];
         if (inlineValue != null &&
-            !(InlineValueClientCapabilities.canParse(inlineValue, reporter))) {
+            !InlineValueClientCapabilities.canParse(inlineValue, reporter)) {
           reporter.reportError('must be of type InlineValueClientCapabilities');
           return false;
         }
@@ -37988,8 +38762,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final linkedEditingRange = obj['linkedEditingRange'];
         if (linkedEditingRange != null &&
-            !(LinkedEditingRangeClientCapabilities.canParse(
-                linkedEditingRange, reporter))) {
+            !LinkedEditingRangeClientCapabilities.canParse(
+                linkedEditingRange, reporter)) {
           reporter.reportError(
               'must be of type LinkedEditingRangeClientCapabilities');
           return false;
@@ -38001,7 +38775,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final moniker = obj['moniker'];
         if (moniker != null &&
-            !(MonikerClientCapabilities.canParse(moniker, reporter))) {
+            !MonikerClientCapabilities.canParse(moniker, reporter)) {
           reporter.reportError('must be of type MonikerClientCapabilities');
           return false;
         }
@@ -38012,8 +38786,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final onTypeFormatting = obj['onTypeFormatting'];
         if (onTypeFormatting != null &&
-            !(DocumentOnTypeFormattingClientCapabilities.canParse(
-                onTypeFormatting, reporter))) {
+            !DocumentOnTypeFormattingClientCapabilities.canParse(
+                onTypeFormatting, reporter)) {
           reporter.reportError(
               'must be of type DocumentOnTypeFormattingClientCapabilities');
           return false;
@@ -38025,8 +38799,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final publishDiagnostics = obj['publishDiagnostics'];
         if (publishDiagnostics != null &&
-            !(PublishDiagnosticsClientCapabilities.canParse(
-                publishDiagnostics, reporter))) {
+            !PublishDiagnosticsClientCapabilities.canParse(
+                publishDiagnostics, reporter)) {
           reporter.reportError(
               'must be of type PublishDiagnosticsClientCapabilities');
           return false;
@@ -38038,8 +38812,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final rangeFormatting = obj['rangeFormatting'];
         if (rangeFormatting != null &&
-            !(DocumentRangeFormattingClientCapabilities.canParse(
-                rangeFormatting, reporter))) {
+            !DocumentRangeFormattingClientCapabilities.canParse(
+                rangeFormatting, reporter)) {
           reporter.reportError(
               'must be of type DocumentRangeFormattingClientCapabilities');
           return false;
@@ -38051,7 +38825,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final references = obj['references'];
         if (references != null &&
-            !(ReferenceClientCapabilities.canParse(references, reporter))) {
+            !ReferenceClientCapabilities.canParse(references, reporter)) {
           reporter.reportError('must be of type ReferenceClientCapabilities');
           return false;
         }
@@ -38062,7 +38836,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final rename = obj['rename'];
         if (rename != null &&
-            !(RenameClientCapabilities.canParse(rename, reporter))) {
+            !RenameClientCapabilities.canParse(rename, reporter)) {
           reporter.reportError('must be of type RenameClientCapabilities');
           return false;
         }
@@ -38073,8 +38847,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final selectionRange = obj['selectionRange'];
         if (selectionRange != null &&
-            !(SelectionRangeClientCapabilities.canParse(
-                selectionRange, reporter))) {
+            !SelectionRangeClientCapabilities.canParse(
+                selectionRange, reporter)) {
           reporter
               .reportError('must be of type SelectionRangeClientCapabilities');
           return false;
@@ -38086,8 +38860,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final semanticTokens = obj['semanticTokens'];
         if (semanticTokens != null &&
-            !(SemanticTokensClientCapabilities.canParse(
-                semanticTokens, reporter))) {
+            !SemanticTokensClientCapabilities.canParse(
+                semanticTokens, reporter)) {
           reporter
               .reportError('must be of type SemanticTokensClientCapabilities');
           return false;
@@ -38099,8 +38873,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final signatureHelp = obj['signatureHelp'];
         if (signatureHelp != null &&
-            !(SignatureHelpClientCapabilities.canParse(
-                signatureHelp, reporter))) {
+            !SignatureHelpClientCapabilities.canParse(
+                signatureHelp, reporter)) {
           reporter
               .reportError('must be of type SignatureHelpClientCapabilities');
           return false;
@@ -38112,8 +38886,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final synchronization = obj['synchronization'];
         if (synchronization != null &&
-            !(TextDocumentSyncClientCapabilities.canParse(
-                synchronization, reporter))) {
+            !TextDocumentSyncClientCapabilities.canParse(
+                synchronization, reporter)) {
           reporter.reportError(
               'must be of type TextDocumentSyncClientCapabilities');
           return false;
@@ -38125,8 +38899,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final typeDefinition = obj['typeDefinition'];
         if (typeDefinition != null &&
-            !(TypeDefinitionClientCapabilities.canParse(
-                typeDefinition, reporter))) {
+            !TypeDefinitionClientCapabilities.canParse(
+                typeDefinition, reporter)) {
           reporter
               .reportError('must be of type TypeDefinitionClientCapabilities');
           return false;
@@ -38138,10 +38912,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       try {
         final typeHierarchy = obj['typeHierarchy'];
         if (typeHierarchy != null &&
-            !(TypeHierarchyClientCapabilities1.canParse(
-                typeHierarchy, reporter))) {
+            !TypeHierarchyClientCapabilities.canParse(
+                typeHierarchy, reporter)) {
           reporter
-              .reportError('must be of type TypeHierarchyClientCapabilities1');
+              .reportError('must be of type TypeHierarchyClientCapabilities');
           return false;
         }
       } finally {
@@ -38266,6 +39040,7 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
   /// The new text for the provided range.
   final String text;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['range'] = range.toJson();
@@ -38289,7 +39064,7 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -38299,7 +39074,7 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
       reporter.push('rangeLength');
       try {
         final rangeLength = obj['rangeLength'];
-        if (rangeLength != null && !(rangeLength is int)) {
+        if (rangeLength != null && rangeLength is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -38317,7 +39092,7 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(text is String)) {
+        if (text is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -38374,6 +39149,7 @@ class TextDocumentContentChangeEvent2 implements ToJsonable {
   /// The new text of the whole document.
   final String text;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['text'] = text;
@@ -38393,7 +39169,7 @@ class TextDocumentContentChangeEvent2 implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(text is String)) {
+        if (text is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -38464,6 +39240,7 @@ class TextDocumentEdit implements ToJsonable {
   /// The text document to change.
   final OptionalVersionedTextDocumentIdentifier textDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['edits'] = edits;
@@ -38484,11 +39261,11 @@ class TextDocumentEdit implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((edits is List<Object?> &&
-            (edits.every((item) =>
-                (AnnotatedTextEdit.canParse(item, reporter) ||
-                    SnippetTextEdit.canParse(item, reporter) ||
-                    TextEdit.canParse(item, reporter))))))) {
+        if (edits is! List<Object?> ||
+            edits.any((item) =>
+                !AnnotatedTextEdit.canParse(item, reporter) &&
+                !SnippetTextEdit.canParse(item, reporter) &&
+                !TextEdit.canParse(item, reporter))) {
           reporter.reportError(
               'must be of type List<Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>>');
           return false;
@@ -38507,8 +39284,8 @@ class TextDocumentEdit implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(OptionalVersionedTextDocumentIdentifier.canParse(
-            textDocument, reporter))) {
+        if (!OptionalVersionedTextDocumentIdentifier.canParse(
+            textDocument, reporter)) {
           reporter.reportError(
               'must be of type OptionalVersionedTextDocumentIdentifier');
           return false;
@@ -38549,25 +39326,25 @@ class TextDocumentEdit implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class TextDocumentFilter implements ToJsonable {
+class TextDocumentFilterWithScheme implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    TextDocumentFilter.canParse,
-    TextDocumentFilter.fromJson,
+    TextDocumentFilterWithScheme.canParse,
+    TextDocumentFilterWithScheme.fromJson,
   );
 
-  TextDocumentFilter({
+  TextDocumentFilterWithScheme({
     this.language,
     this.pattern,
     this.scheme,
   });
-  static TextDocumentFilter fromJson(Map<String, Object?> json) {
+  static TextDocumentFilterWithScheme fromJson(Map<String, Object?> json) {
     final languageJson = json['language'];
     final language = languageJson as String?;
     final patternJson = json['pattern'];
     final pattern = patternJson as String?;
     final schemeJson = json['scheme'];
     final scheme = schemeJson as String?;
-    return TextDocumentFilter(
+    return TextDocumentFilterWithScheme(
       language: language,
       pattern: pattern,
       scheme: scheme,
@@ -38595,6 +39372,7 @@ class TextDocumentFilter implements ToJsonable {
   /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
   final String? scheme;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (language != null) {
@@ -38614,7 +39392,7 @@ class TextDocumentFilter implements ToJsonable {
       reporter.push('language');
       try {
         final language = obj['language'];
-        if (language != null && !(language is String)) {
+        if (language != null && language is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -38624,7 +39402,7 @@ class TextDocumentFilter implements ToJsonable {
       reporter.push('pattern');
       try {
         final pattern = obj['pattern'];
-        if (pattern != null && !(pattern is String)) {
+        if (pattern != null && pattern is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -38634,7 +39412,7 @@ class TextDocumentFilter implements ToJsonable {
       reporter.push('scheme');
       try {
         final scheme = obj['scheme'];
-        if (scheme != null && !(scheme is String)) {
+        if (scheme != null && scheme is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -38643,15 +39421,15 @@ class TextDocumentFilter implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError('must be of type TextDocumentFilter');
+      reporter.reportError('must be of type TextDocumentFilterWithScheme');
       return false;
     }
   }
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentFilter &&
-        other.runtimeType == TextDocumentFilter) {
+    if (other is TextDocumentFilterWithScheme &&
+        other.runtimeType == TextDocumentFilterWithScheme) {
       return language == other.language &&
           pattern == other.pattern &&
           scheme == other.scheme &&
@@ -38698,6 +39476,7 @@ class TextDocumentIdentifier implements ToJsonable {
   /// The text document's URI.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -38717,7 +39496,7 @@ class TextDocumentIdentifier implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -38789,6 +39568,7 @@ class TextDocumentItem implements ToJsonable {
   /// including undo/redo).
   final int version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['languageId'] = languageId;
@@ -38811,7 +39591,7 @@ class TextDocumentItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(languageId is String)) {
+        if (languageId is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -38829,7 +39609,7 @@ class TextDocumentItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(text is String)) {
+        if (text is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -38847,7 +39627,7 @@ class TextDocumentItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -38865,7 +39645,7 @@ class TextDocumentItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(version is int)) {
+        if (version is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -38976,6 +39756,7 @@ class TextDocumentPositionParams implements ToJsonable {
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['position'] = position.toJson();
@@ -38996,7 +39777,7 @@ class TextDocumentPositionParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -39014,7 +39795,7 @@ class TextDocumentPositionParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -39159,8 +39940,8 @@ class TextDocumentRegistrationOptions implements ToJsonable {
     }
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     return TextDocumentRegistrationOptions(
       documentSelector: documentSelector,
@@ -39169,8 +39950,9 @@ class TextDocumentRegistrationOptions implements ToJsonable {
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -39187,10 +39969,11 @@ class TextDocumentRegistrationOptions implements ToJsonable {
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -39207,8 +39990,12 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   bool operator ==(Object other) {
     if (other is TextDocumentRegistrationOptions &&
         other.runtimeType == TextDocumentRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           true;
     }
     return false;
@@ -39242,6 +40029,7 @@ class TextDocumentSaveReason implements ToJsonable {
   /// or by an API call.
   static const Manual = TextDocumentSaveReason(1);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -39250,6 +40038,7 @@ class TextDocumentSaveReason implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is TextDocumentSaveReason && other._value == _value;
 }
@@ -39269,8 +40058,8 @@ class TextDocumentSaveRegistrationOptions
       Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final includeTextJson = json['includeText'];
     final includeText = includeTextJson as bool?;
@@ -39282,11 +40071,13 @@ class TextDocumentSaveRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The client is supposed to include the content on save.
   final bool? includeText;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -39306,10 +40097,11 @@ class TextDocumentSaveRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -39318,7 +40110,7 @@ class TextDocumentSaveRegistrationOptions
       reporter.push('includeText');
       try {
         final includeText = obj['includeText'];
-        if (includeText != null && !(includeText is bool)) {
+        if (includeText != null && includeText is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -39337,8 +40129,12 @@ class TextDocumentSaveRegistrationOptions
   bool operator ==(Object other) {
     if (other is TextDocumentSaveRegistrationOptions &&
         other.runtimeType == TextDocumentSaveRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           includeText == other.includeText &&
           true;
     }
@@ -39399,6 +40195,7 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
   /// saved.
   final bool? willSaveWaitUntil;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (didSave != null) {
@@ -39421,7 +40218,7 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
       reporter.push('didSave');
       try {
         final didSave = obj['didSave'];
-        if (didSave != null && !(didSave is bool)) {
+        if (didSave != null && didSave is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -39431,7 +40228,7 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -39441,7 +40238,7 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
       reporter.push('willSave');
       try {
         final willSave = obj['willSave'];
-        if (willSave != null && !(willSave is bool)) {
+        if (willSave != null && willSave is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -39451,7 +40248,7 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
       reporter.push('willSaveWaitUntil');
       try {
         final willSaveWaitUntil = obj['willSaveWaitUntil'];
-        if (willSaveWaitUntil != null && !(willSaveWaitUntil is bool)) {
+        if (willSaveWaitUntil != null && willSaveWaitUntil is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -39513,6 +40310,7 @@ class TextDocumentSyncKind implements ToJsonable {
   /// Documents should not be synced at all.
   static const None = TextDocumentSyncKind(0);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -39521,6 +40319,7 @@ class TextDocumentSyncKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is TextDocumentSyncKind && other._value == _value;
 }
@@ -39589,6 +40388,7 @@ class TextDocumentSyncOptions implements ToJsonable {
   /// omitted the request should not be sent.
   final bool? willSaveWaitUntil;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (change != null) {
@@ -39615,7 +40415,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       try {
         final change = obj['change'];
         if (change != null &&
-            !(TextDocumentSyncKind.canParse(change, reporter))) {
+            !TextDocumentSyncKind.canParse(change, reporter)) {
           reporter.reportError('must be of type TextDocumentSyncKind');
           return false;
         }
@@ -39625,7 +40425,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       reporter.push('openClose');
       try {
         final openClose = obj['openClose'];
-        if (openClose != null && !(openClose is bool)) {
+        if (openClose != null && openClose is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -39636,7 +40436,8 @@ class TextDocumentSyncOptions implements ToJsonable {
       try {
         final save = obj['save'];
         if (save != null &&
-            !((save is bool || SaveOptions.canParse(save, reporter)))) {
+            save is! bool &&
+            !SaveOptions.canParse(save, reporter)) {
           reporter.reportError('must be of type Either2<bool, SaveOptions>');
           return false;
         }
@@ -39646,7 +40447,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       reporter.push('willSave');
       try {
         final willSave = obj['willSave'];
-        if (willSave != null && !(willSave is bool)) {
+        if (willSave != null && willSave is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -39656,7 +40457,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       reporter.push('willSaveWaitUntil');
       try {
         final willSaveWaitUntil = obj['willSaveWaitUntil'];
-        if (willSaveWaitUntil != null && !(willSaveWaitUntil is bool)) {
+        if (willSaveWaitUntil != null && willSaveWaitUntil is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -39731,6 +40532,7 @@ class TextEdit implements ToJsonable {
   /// document create a range where start === end.
   final Range range;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['newText'] = newText;
@@ -39751,7 +40553,7 @@ class TextEdit implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(newText is String)) {
+        if (newText is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -39769,7 +40571,7 @@ class TextEdit implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -39813,6 +40615,7 @@ class TokenFormat implements ToJsonable {
 
   static const Relative = TokenFormat('relative');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -39821,6 +40624,7 @@ class TokenFormat implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is TokenFormat && other._value == _value;
 }
@@ -39855,6 +40659,7 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
   ///  @since 3.14.0
   final bool? linkSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -39871,7 +40676,7 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -39881,7 +40686,7 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
       reporter.push('linkSupport');
       try {
         final linkSupport = obj['linkSupport'];
-        if (linkSupport != null && !(linkSupport is bool)) {
+        if (linkSupport != null && linkSupport is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -39936,8 +40741,10 @@ class TypeDefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -39951,7 +40758,7 @@ class TypeDefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -40030,17 +40837,22 @@ class TypeDefinitionParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -40060,7 +40872,8 @@ class TypeDefinitionParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -40078,7 +40891,7 @@ class TypeDefinitionParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -40096,7 +40909,7 @@ class TypeDefinitionParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -40107,7 +40920,8 @@ class TypeDefinitionParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -40165,8 +40979,8 @@ class TypeDefinitionRegistrationOptions
   static TypeDefinitionRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -40181,13 +40995,17 @@ class TypeDefinitionRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -40210,10 +41028,11 @@ class TypeDefinitionRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -40222,7 +41041,7 @@ class TypeDefinitionRegistrationOptions
       reporter.push('id');
       try {
         final id = obj['id'];
-        if (id != null && !(id is String)) {
+        if (id != null && id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -40232,7 +41051,7 @@ class TypeDefinitionRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -40250,8 +41069,12 @@ class TypeDefinitionRegistrationOptions
   bool operator ==(Object other) {
     if (other is TypeDefinitionRegistrationOptions &&
         other.runtimeType == TypeDefinitionRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -40270,19 +41093,19 @@ class TypeDefinitionRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class TypeHierarchyClientCapabilities1 implements ToJsonable {
+class TypeHierarchyClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    TypeHierarchyClientCapabilities1.canParse,
-    TypeHierarchyClientCapabilities1.fromJson,
+    TypeHierarchyClientCapabilities.canParse,
+    TypeHierarchyClientCapabilities.fromJson,
   );
 
-  TypeHierarchyClientCapabilities1({
+  TypeHierarchyClientCapabilities({
     this.dynamicRegistration,
   });
-  static TypeHierarchyClientCapabilities1 fromJson(Map<String, Object?> json) {
+  static TypeHierarchyClientCapabilities fromJson(Map<String, Object?> json) {
     final dynamicRegistrationJson = json['dynamicRegistration'];
     final dynamicRegistration = dynamicRegistrationJson as bool?;
-    return TypeHierarchyClientCapabilities1(
+    return TypeHierarchyClientCapabilities(
       dynamicRegistration: dynamicRegistration,
     );
   }
@@ -40293,6 +41116,7 @@ class TypeHierarchyClientCapabilities1 implements ToJsonable {
   /// capability as well.
   final bool? dynamicRegistration;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -40306,7 +41130,7 @@ class TypeHierarchyClientCapabilities1 implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -40315,15 +41139,15 @@ class TypeHierarchyClientCapabilities1 implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError('must be of type TypeHierarchyClientCapabilities1');
+      reporter.reportError('must be of type TypeHierarchyClientCapabilities');
       return false;
     }
   }
 
   @override
   bool operator ==(Object other) {
-    if (other is TypeHierarchyClientCapabilities1 &&
-        other.runtimeType == TypeHierarchyClientCapabilities1) {
+    if (other is TypeHierarchyClientCapabilities &&
+        other.runtimeType == TypeHierarchyClientCapabilities) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
     return false;
@@ -40414,6 +41238,7 @@ class TypeHierarchyItem implements ToJsonable {
   /// The resource identifier of this item.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (data != null) {
@@ -40438,7 +41263,7 @@ class TypeHierarchyItem implements ToJsonable {
       reporter.push('detail');
       try {
         final detail = obj['detail'];
-        if (detail != null && !(detail is String)) {
+        if (detail != null && detail is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -40456,7 +41281,7 @@ class TypeHierarchyItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(SymbolKind.canParse(kind, reporter))) {
+        if (!SymbolKind.canParse(kind, reporter)) {
           reporter.reportError('must be of type SymbolKind');
           return false;
         }
@@ -40474,7 +41299,7 @@ class TypeHierarchyItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(name is String)) {
+        if (name is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -40492,7 +41317,7 @@ class TypeHierarchyItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(range, reporter))) {
+        if (!Range.canParse(range, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -40510,7 +41335,7 @@ class TypeHierarchyItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(selectionRange, reporter))) {
+        if (!Range.canParse(selectionRange, reporter)) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -40521,8 +41346,8 @@ class TypeHierarchyItem implements ToJsonable {
       try {
         final tags = obj['tags'];
         if (tags != null &&
-            !((tags is List<Object?> &&
-                (tags.every((item) => SymbolTag.canParse(item, reporter)))))) {
+            (tags is! List<Object?> ||
+                tags.any((item) => !SymbolTag.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;
         }
@@ -40540,7 +41365,7 @@ class TypeHierarchyItem implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -40606,8 +41431,10 @@ class TypeHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
     );
   }
 
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -40621,7 +41448,7 @@ class TypeHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -40685,14 +41512,18 @@ class TypeHierarchyPrepareParams
   }
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['position'] = position.toJson();
@@ -40716,7 +41547,7 @@ class TypeHierarchyPrepareParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(position, reporter))) {
+        if (!Position.canParse(position, reporter)) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -40734,7 +41565,7 @@ class TypeHierarchyPrepareParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -40745,7 +41576,8 @@ class TypeHierarchyPrepareParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -40801,8 +41633,8 @@ class TypeHierarchyRegistrationOptions
   static TypeHierarchyRegistrationOptions fromJson(Map<String, Object?> json) {
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
-        ?.map(
-            (item) => TextDocumentFilter.fromJson(item as Map<String, Object?>))
+        ?.map((item) =>
+            TextDocumentFilterWithScheme.fromJson(item as Map<String, Object?>))
         .toList();
     final idJson = json['id'];
     final id = idJson as String?;
@@ -40817,13 +41649,17 @@ class TypeHierarchyRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
-  final List<TextDocumentFilter>? documentSelector;
+  @override
+  final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The id used to register the request. The id can be used to deregister the
   /// request again. See also Registration#id.
+  @override
   final String? id;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['documentSelector'] = documentSelector;
@@ -40846,10 +41682,11 @@ class TypeHierarchyRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List<Object?> &&
-                (documentSelector.every(
-                    (item) => TextDocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError('must be of type List<TextDocumentFilter>');
+            (documentSelector is! List<Object?> ||
+                documentSelector.any((item) =>
+                    !TextDocumentFilterWithScheme.canParse(item, reporter)))) {
+          reporter.reportError(
+              'must be of type List<TextDocumentFilterWithScheme>');
           return false;
         }
       } finally {
@@ -40858,7 +41695,7 @@ class TypeHierarchyRegistrationOptions
       reporter.push('id');
       try {
         final id = obj['id'];
-        if (id != null && !(id is String)) {
+        if (id != null && id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -40868,7 +41705,7 @@ class TypeHierarchyRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -40886,8 +41723,12 @@ class TypeHierarchyRegistrationOptions
   bool operator ==(Object other) {
     if (other is TypeHierarchyRegistrationOptions &&
         other.runtimeType == TypeHierarchyRegistrationOptions) {
-      return listEqual(documentSelector, other.documentSelector,
-              (TextDocumentFilter a, TextDocumentFilter b) => a == b) &&
+      return listEqual(
+              documentSelector,
+              other.documentSelector,
+              (TextDocumentFilterWithScheme a,
+                      TextDocumentFilterWithScheme b) =>
+                  a == b) &&
           id == other.id &&
           workDoneProgress == other.workDoneProgress &&
           true;
@@ -40948,11 +41789,14 @@ class TypeHierarchySubtypesParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['item'] = item.toJson();
@@ -40978,7 +41822,7 @@ class TypeHierarchySubtypesParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TypeHierarchyItem.canParse(item, reporter))) {
+        if (!TypeHierarchyItem.canParse(item, reporter)) {
           reporter.reportError('must be of type TypeHierarchyItem');
           return false;
         }
@@ -40989,7 +41833,8 @@ class TypeHierarchySubtypesParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -41000,7 +41845,8 @@ class TypeHierarchySubtypesParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -41079,11 +41925,14 @@ class TypeHierarchySupertypesParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['item'] = item.toJson();
@@ -41109,7 +41958,7 @@ class TypeHierarchySupertypesParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TypeHierarchyItem.canParse(item, reporter))) {
+        if (!TypeHierarchyItem.canParse(item, reporter)) {
           reporter.reportError('must be of type TypeHierarchyItem');
           return false;
         }
@@ -41120,7 +41969,8 @@ class TypeHierarchySupertypesParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -41131,7 +41981,8 @@ class TypeHierarchySupertypesParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -41212,6 +42063,7 @@ class UnchangedDocumentDiagnosticReport implements ToJsonable {
   /// document.
   final String resultId;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['kind'] = kind;
@@ -41232,7 +42084,7 @@ class UnchangedDocumentDiagnosticReport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(kind == 'unchanged')) {
+        if (kind != 'unchanged') {
           reporter.reportError('must be the literal \'unchanged\'');
           return false;
         }
@@ -41250,7 +42102,7 @@ class UnchangedDocumentDiagnosticReport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(resultId is String)) {
+        if (resultId is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -41309,6 +42161,7 @@ class UniquenessLevel implements ToJsonable {
   /// The moniker is unique inside the moniker scheme.
   static const scheme = UniquenessLevel('scheme');
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -41317,6 +42170,7 @@ class UniquenessLevel implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is UniquenessLevel && other._value == _value;
 }
@@ -41350,6 +42204,7 @@ class Unregistration implements ToJsonable {
   /// The method / capability to unregister for.
   final String method;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['id'] = id;
@@ -41370,7 +42225,7 @@ class Unregistration implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(id is String)) {
+        if (id is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -41388,7 +42243,7 @@ class Unregistration implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(method is String)) {
+        if (method is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -41444,6 +42299,7 @@ class UnregistrationParams implements ToJsonable {
   /// of the specification.
   final List<Unregistration> unregisterations;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['unregisterations'] =
@@ -41464,9 +42320,9 @@ class UnregistrationParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((unregisterations is List<Object?> &&
-            (unregisterations
-                .every((item) => Unregistration.canParse(item, reporter)))))) {
+        if (unregisterations is! List<Object?> ||
+            unregisterations
+                .any((item) => !Unregistration.canParse(item, reporter))) {
           reporter.reportError('must be of type List<Unregistration>');
           return false;
         }
@@ -41528,6 +42384,7 @@ class VersionedNotebookDocumentIdentifier implements ToJsonable {
   /// The version number of this notebook document.
   final int version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -41548,7 +42405,7 @@ class VersionedNotebookDocumentIdentifier implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -41566,7 +42423,7 @@ class VersionedNotebookDocumentIdentifier implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(version is int)) {
+        if (version is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -41623,6 +42480,7 @@ class VersionedTextDocumentIdentifier
   }
 
   /// The text document's URI.
+  @override
   final String uri;
 
   /// The version number of this document.
@@ -41631,6 +42489,7 @@ class VersionedTextDocumentIdentifier
   /// including undo/redo. The number doesn't need to be consecutive.
   final int version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -41651,7 +42510,7 @@ class VersionedTextDocumentIdentifier
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -41669,7 +42528,7 @@ class VersionedTextDocumentIdentifier
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(version is int)) {
+        if (version is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -41721,6 +42580,7 @@ class WatchKind implements ToJsonable {
   /// Interested in delete events
   static const Delete = WatchKind(4);
 
+  @override
   Object toJson() => _value;
 
   @override
@@ -41729,6 +42589,7 @@ class WatchKind implements ToJsonable {
   @override
   int get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is WatchKind && other._value == _value;
 }
@@ -41762,6 +42623,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
   /// The document that will be saved.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['reason'] = reason.toJson();
@@ -41782,7 +42644,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentSaveReason.canParse(reason, reporter))) {
+        if (!TextDocumentSaveReason.canParse(reason, reporter)) {
           reporter.reportError('must be of type TextDocumentSaveReason');
           return false;
         }
@@ -41800,7 +42662,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
+        if (!TextDocumentIdentifier.canParse(textDocument, reporter)) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -41883,6 +42745,7 @@ class WindowClientCapabilities implements ToJsonable {
   ///  @since 3.15.0
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (showDocument != null) {
@@ -41903,8 +42766,7 @@ class WindowClientCapabilities implements ToJsonable {
       try {
         final showDocument = obj['showDocument'];
         if (showDocument != null &&
-            !(ShowDocumentClientCapabilities.canParse(
-                showDocument, reporter))) {
+            !ShowDocumentClientCapabilities.canParse(showDocument, reporter)) {
           reporter
               .reportError('must be of type ShowDocumentClientCapabilities');
           return false;
@@ -41916,8 +42778,8 @@ class WindowClientCapabilities implements ToJsonable {
       try {
         final showMessage = obj['showMessage'];
         if (showMessage != null &&
-            !(ShowMessageRequestClientCapabilities.canParse(
-                showMessage, reporter))) {
+            !ShowMessageRequestClientCapabilities.canParse(
+                showMessage, reporter)) {
           reporter.reportError(
               'must be of type ShowMessageRequestClientCapabilities');
           return false;
@@ -41928,7 +42790,7 @@ class WindowClientCapabilities implements ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -42029,6 +42891,7 @@ class WorkDoneProgressBegin implements ToJsonable {
   /// Examples: "Indexing" or "Linking dependencies".
   final String title;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (cancellable != null) {
@@ -42050,7 +42913,7 @@ class WorkDoneProgressBegin implements ToJsonable {
       reporter.push('cancellable');
       try {
         final cancellable = obj['cancellable'];
-        if (cancellable != null && !(cancellable is bool)) {
+        if (cancellable != null && cancellable is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -42068,7 +42931,7 @@ class WorkDoneProgressBegin implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(kind == 'begin')) {
+        if (kind != 'begin') {
           reporter.reportError('must be the literal \'begin\'');
           return false;
         }
@@ -42078,7 +42941,7 @@ class WorkDoneProgressBegin implements ToJsonable {
       reporter.push('message');
       try {
         final message = obj['message'];
-        if (message != null && !(message is String)) {
+        if (message != null && message is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -42088,7 +42951,7 @@ class WorkDoneProgressBegin implements ToJsonable {
       reporter.push('percentage');
       try {
         final percentage = obj['percentage'];
-        if (percentage != null && !(percentage is int)) {
+        if (percentage != null && percentage is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -42106,7 +42969,7 @@ class WorkDoneProgressBegin implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(title is String)) {
+        if (title is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -42171,6 +43034,7 @@ class WorkDoneProgressCancelParams implements ToJsonable {
   /// The token to be used to report progress.
   final Either2<int, String> token;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['token'] = token;
@@ -42190,7 +43054,7 @@ class WorkDoneProgressCancelParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((token is int || token is String))) {
+        if (token is! int && token is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -42244,6 +43108,7 @@ class WorkDoneProgressCreateParams implements ToJsonable {
   /// The token to be used to report progress.
   final Either2<int, String> token;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['token'] = token;
@@ -42263,7 +43128,7 @@ class WorkDoneProgressCreateParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((token is int || token is String))) {
+        if (token is! int && token is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -42324,6 +43189,7 @@ class WorkDoneProgressEnd implements ToJsonable {
   /// of the operation.
   final String? message;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['kind'] = kind;
@@ -42346,7 +43212,7 @@ class WorkDoneProgressEnd implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(kind == 'end')) {
+        if (kind != 'end') {
           reporter.reportError('must be the literal \'end\'');
           return false;
         }
@@ -42356,7 +43222,7 @@ class WorkDoneProgressEnd implements ToJsonable {
       reporter.push('message');
       try {
         final message = obj['message'];
-        if (message != null && !(message is String)) {
+        if (message != null && message is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -42495,6 +43361,7 @@ class WorkDoneProgressOptions implements ToJsonable {
 
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneProgress != null) {
@@ -42508,7 +43375,7 @@ class WorkDoneProgressOptions implements ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -42656,6 +43523,9 @@ class WorkDoneProgressParams implements ToJsonable {
     if (MonikerParams.canParse(json, nullLspJsonReporter)) {
       return MonikerParams.fromJson(json);
     }
+    if (PrepareRenameParams.canParse(json, nullLspJsonReporter)) {
+      return PrepareRenameParams.fromJson(json);
+    }
     if (TypeDefinitionParams.canParse(json, nullLspJsonReporter)) {
       return TypeDefinitionParams.fromJson(json);
     }
@@ -42678,6 +43548,7 @@ class WorkDoneProgressParams implements ToJsonable {
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (workDoneToken != null) {
@@ -42692,7 +43563,8 @@ class WorkDoneProgressParams implements ToJsonable {
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -42778,6 +43650,7 @@ class WorkDoneProgressReport implements ToJsonable {
   /// that are not following this rule. The value range is [0, 100]
   final int? percentage;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (cancellable != null) {
@@ -42798,7 +43671,7 @@ class WorkDoneProgressReport implements ToJsonable {
       reporter.push('cancellable');
       try {
         final cancellable = obj['cancellable'];
-        if (cancellable != null && !(cancellable is bool)) {
+        if (cancellable != null && cancellable is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -42816,7 +43689,7 @@ class WorkDoneProgressReport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(kind == 'report')) {
+        if (kind != 'report') {
           reporter.reportError('must be the literal \'report\'');
           return false;
         }
@@ -42826,7 +43699,7 @@ class WorkDoneProgressReport implements ToJsonable {
       reporter.push('message');
       try {
         final message = obj['message'];
-        if (message != null && !(message is String)) {
+        if (message != null && message is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -42836,7 +43709,7 @@ class WorkDoneProgressReport implements ToJsonable {
       reporter.push('percentage');
       try {
         final percentage = obj['percentage'];
-        if (percentage != null && !(percentage is int)) {
+        if (percentage != null && percentage is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -43031,6 +43904,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
   ///  @since 3.6.0
   final bool? workspaceFolders;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (applyEdit != null) {
@@ -43083,7 +43957,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
       reporter.push('applyEdit');
       try {
         final applyEdit = obj['applyEdit'];
-        if (applyEdit != null && !(applyEdit is bool)) {
+        if (applyEdit != null && applyEdit is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -43094,8 +43968,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
       try {
         final codeLens = obj['codeLens'];
         if (codeLens != null &&
-            !(CodeLensWorkspaceClientCapabilities.canParse(
-                codeLens, reporter))) {
+            !CodeLensWorkspaceClientCapabilities.canParse(codeLens, reporter)) {
           reporter.reportError(
               'must be of type CodeLensWorkspaceClientCapabilities');
           return false;
@@ -43106,7 +43979,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
       reporter.push('configuration');
       try {
         final configuration = obj['configuration'];
-        if (configuration != null && !(configuration is bool)) {
+        if (configuration != null && configuration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -43117,8 +43990,8 @@ class WorkspaceClientCapabilities implements ToJsonable {
       try {
         final diagnostics = obj['diagnostics'];
         if (diagnostics != null &&
-            !(DiagnosticWorkspaceClientCapabilities.canParse(
-                diagnostics, reporter))) {
+            !DiagnosticWorkspaceClientCapabilities.canParse(
+                diagnostics, reporter)) {
           reporter.reportError(
               'must be of type DiagnosticWorkspaceClientCapabilities');
           return false;
@@ -43130,8 +44003,8 @@ class WorkspaceClientCapabilities implements ToJsonable {
       try {
         final didChangeConfiguration = obj['didChangeConfiguration'];
         if (didChangeConfiguration != null &&
-            !(DidChangeConfigurationClientCapabilities.canParse(
-                didChangeConfiguration, reporter))) {
+            !DidChangeConfigurationClientCapabilities.canParse(
+                didChangeConfiguration, reporter)) {
           reporter.reportError(
               'must be of type DidChangeConfigurationClientCapabilities');
           return false;
@@ -43143,8 +44016,8 @@ class WorkspaceClientCapabilities implements ToJsonable {
       try {
         final didChangeWatchedFiles = obj['didChangeWatchedFiles'];
         if (didChangeWatchedFiles != null &&
-            !(DidChangeWatchedFilesClientCapabilities.canParse(
-                didChangeWatchedFiles, reporter))) {
+            !DidChangeWatchedFilesClientCapabilities.canParse(
+                didChangeWatchedFiles, reporter)) {
           reporter.reportError(
               'must be of type DidChangeWatchedFilesClientCapabilities');
           return false;
@@ -43156,8 +44029,8 @@ class WorkspaceClientCapabilities implements ToJsonable {
       try {
         final executeCommand = obj['executeCommand'];
         if (executeCommand != null &&
-            !(ExecuteCommandClientCapabilities.canParse(
-                executeCommand, reporter))) {
+            !ExecuteCommandClientCapabilities.canParse(
+                executeCommand, reporter)) {
           reporter
               .reportError('must be of type ExecuteCommandClientCapabilities');
           return false;
@@ -43169,8 +44042,8 @@ class WorkspaceClientCapabilities implements ToJsonable {
       try {
         final fileOperations = obj['fileOperations'];
         if (fileOperations != null &&
-            !(FileOperationClientCapabilities.canParse(
-                fileOperations, reporter))) {
+            !FileOperationClientCapabilities.canParse(
+                fileOperations, reporter)) {
           reporter
               .reportError('must be of type FileOperationClientCapabilities');
           return false;
@@ -43182,8 +44055,8 @@ class WorkspaceClientCapabilities implements ToJsonable {
       try {
         final inlayHint = obj['inlayHint'];
         if (inlayHint != null &&
-            !(InlayHintWorkspaceClientCapabilities.canParse(
-                inlayHint, reporter))) {
+            !InlayHintWorkspaceClientCapabilities.canParse(
+                inlayHint, reporter)) {
           reporter.reportError(
               'must be of type InlayHintWorkspaceClientCapabilities');
           return false;
@@ -43195,8 +44068,8 @@ class WorkspaceClientCapabilities implements ToJsonable {
       try {
         final inlineValue = obj['inlineValue'];
         if (inlineValue != null &&
-            !(InlineValueWorkspaceClientCapabilities.canParse(
-                inlineValue, reporter))) {
+            !InlineValueWorkspaceClientCapabilities.canParse(
+                inlineValue, reporter)) {
           reporter.reportError(
               'must be of type InlineValueWorkspaceClientCapabilities');
           return false;
@@ -43208,8 +44081,8 @@ class WorkspaceClientCapabilities implements ToJsonable {
       try {
         final semanticTokens = obj['semanticTokens'];
         if (semanticTokens != null &&
-            !(SemanticTokensWorkspaceClientCapabilities.canParse(
-                semanticTokens, reporter))) {
+            !SemanticTokensWorkspaceClientCapabilities.canParse(
+                semanticTokens, reporter)) {
           reporter.reportError(
               'must be of type SemanticTokensWorkspaceClientCapabilities');
           return false;
@@ -43221,7 +44094,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
       try {
         final symbol = obj['symbol'];
         if (symbol != null &&
-            !(WorkspaceSymbolClientCapabilities.canParse(symbol, reporter))) {
+            !WorkspaceSymbolClientCapabilities.canParse(symbol, reporter)) {
           reporter
               .reportError('must be of type WorkspaceSymbolClientCapabilities');
           return false;
@@ -43233,8 +44106,8 @@ class WorkspaceClientCapabilities implements ToJsonable {
       try {
         final workspaceEdit = obj['workspaceEdit'];
         if (workspaceEdit != null &&
-            !(WorkspaceEditClientCapabilities.canParse(
-                workspaceEdit, reporter))) {
+            !WorkspaceEditClientCapabilities.canParse(
+                workspaceEdit, reporter)) {
           reporter
               .reportError('must be of type WorkspaceEditClientCapabilities');
           return false;
@@ -43245,7 +44118,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
       reporter.push('workspaceFolders');
       try {
         final workspaceFolders = obj['workspaceFolders'];
-        if (workspaceFolders != null && !(workspaceFolders is bool)) {
+        if (workspaceFolders != null && workspaceFolders is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -43355,14 +44228,17 @@ class WorkspaceDiagnosticParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// The currently known diagnostic reports with their previous result ids.
   final List<PreviousResultId> previousResultIds;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (identifier != null) {
@@ -43384,7 +44260,7 @@ class WorkspaceDiagnosticParams
       reporter.push('identifier');
       try {
         final identifier = obj['identifier'];
-        if (identifier != null && !(identifier is String)) {
+        if (identifier != null && identifier is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -43395,7 +44271,8 @@ class WorkspaceDiagnosticParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -43413,9 +44290,9 @@ class WorkspaceDiagnosticParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((previousResultIds is List<Object?> &&
-            (previousResultIds.every(
-                (item) => PreviousResultId.canParse(item, reporter)))))) {
+        if (previousResultIds is! List<Object?> ||
+            previousResultIds
+                .any((item) => !PreviousResultId.canParse(item, reporter))) {
           reporter.reportError('must be of type List<PreviousResultId>');
           return false;
         }
@@ -43426,7 +44303,8 @@ class WorkspaceDiagnosticParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -43501,6 +44379,7 @@ class WorkspaceDiagnosticReport implements ToJsonable {
       Either2<WorkspaceFullDocumentDiagnosticReport,
           WorkspaceUnchangedDocumentDiagnosticReport>> items;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['items'] = items;
@@ -43520,12 +44399,12 @@ class WorkspaceDiagnosticReport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((items is List<Object?> &&
-            (items.every((item) =>
-                (WorkspaceFullDocumentDiagnosticReport.canParse(
-                        item, reporter) ||
-                    WorkspaceUnchangedDocumentDiagnosticReport.canParse(
-                        item, reporter))))))) {
+        if (items is! List<Object?> ||
+            items.any((item) =>
+                !WorkspaceFullDocumentDiagnosticReport.canParse(
+                    item, reporter) &&
+                !WorkspaceUnchangedDocumentDiagnosticReport.canParse(
+                    item, reporter))) {
           reporter.reportError(
               'must be of type List<Either2<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>>');
           return false;
@@ -43602,6 +44481,7 @@ class WorkspaceDiagnosticReportPartialResult implements ToJsonable {
       Either2<WorkspaceFullDocumentDiagnosticReport,
           WorkspaceUnchangedDocumentDiagnosticReport>> items;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['items'] = items;
@@ -43621,12 +44501,12 @@ class WorkspaceDiagnosticReportPartialResult implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((items is List<Object?> &&
-            (items.every((item) =>
-                (WorkspaceFullDocumentDiagnosticReport.canParse(
-                        item, reporter) ||
-                    WorkspaceUnchangedDocumentDiagnosticReport.canParse(
-                        item, reporter))))))) {
+        if (items is! List<Object?> ||
+            items.any((item) =>
+                !WorkspaceFullDocumentDiagnosticReport.canParse(
+                    item, reporter) &&
+                !WorkspaceUnchangedDocumentDiagnosticReport.canParse(
+                    item, reporter))) {
           reporter.reportError(
               'must be of type List<Either2<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>>');
           return false;
@@ -43742,6 +44622,7 @@ class WorkspaceEdit implements ToJsonable {
   final List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>?
       documentChanges;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (changeAnnotations != null) {
@@ -43762,11 +44643,11 @@ class WorkspaceEdit implements ToJsonable {
       try {
         final changeAnnotations = obj['changeAnnotations'];
         if (changeAnnotations != null &&
-            !((changeAnnotations is Map &&
-                (changeAnnotations.keys.every((item) =>
-                    item is String &&
-                    changeAnnotations.values.every((item) =>
-                        ChangeAnnotation.canParse(item, reporter))))))) {
+            (changeAnnotations is! Map ||
+                (changeAnnotations.keys.any((item) =>
+                    item is! String ||
+                    changeAnnotations.values.any((item) =>
+                        !ChangeAnnotation.canParse(item, reporter)))))) {
           reporter.reportError('must be of type Map<String, ChangeAnnotation>');
           return false;
         }
@@ -43777,12 +44658,13 @@ class WorkspaceEdit implements ToJsonable {
       try {
         final changes = obj['changes'];
         if (changes != null &&
-            !((changes is Map &&
-                (changes.keys.every((item) =>
-                    item is String &&
-                    changes.values.every((item) => (item is List<Object?> &&
-                        (item.every((item) =>
-                            TextEdit.canParse(item, reporter)))))))))) {
+            (changes is! Map ||
+                (changes.keys.any((item) =>
+                    item is! String ||
+                    changes.values.any((item) =>
+                        item is! List<Object?> ||
+                        item.any(
+                            (item) => !TextEdit.canParse(item, reporter))))))) {
           reporter.reportError('must be of type Map<String, List<TextEdit>>');
           return false;
         }
@@ -43793,12 +44675,12 @@ class WorkspaceEdit implements ToJsonable {
       try {
         final documentChanges = obj['documentChanges'];
         if (documentChanges != null &&
-            !((documentChanges is List<Object?> &&
-                (documentChanges.every((item) =>
-                    (CreateFile.canParse(item, reporter) ||
-                        DeleteFile.canParse(item, reporter) ||
-                        RenameFile.canParse(item, reporter) ||
-                        TextDocumentEdit.canParse(item, reporter))))))) {
+            (documentChanges is! List<Object?> ||
+                documentChanges.any((item) =>
+                    !CreateFile.canParse(item, reporter) &&
+                    !DeleteFile.canParse(item, reporter) &&
+                    !RenameFile.canParse(item, reporter) &&
+                    !TextDocumentEdit.canParse(item, reporter)))) {
           reporter.reportError(
               'must be of type List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>');
           return false;
@@ -43912,6 +44794,7 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
   ///  @since 3.13.0
   final List<ResourceOperationKind>? resourceOperations;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (changeAnnotationSupport != null) {
@@ -43939,8 +44822,8 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
       try {
         final changeAnnotationSupport = obj['changeAnnotationSupport'];
         if (changeAnnotationSupport != null &&
-            !(WorkspaceEditClientCapabilitiesChangeAnnotationSupport.canParse(
-                changeAnnotationSupport, reporter))) {
+            !WorkspaceEditClientCapabilitiesChangeAnnotationSupport.canParse(
+                changeAnnotationSupport, reporter)) {
           reporter.reportError(
               'must be of type WorkspaceEditClientCapabilitiesChangeAnnotationSupport');
           return false;
@@ -43951,7 +44834,7 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
       reporter.push('documentChanges');
       try {
         final documentChanges = obj['documentChanges'];
-        if (documentChanges != null && !(documentChanges is bool)) {
+        if (documentChanges != null && documentChanges is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -43962,7 +44845,7 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
       try {
         final failureHandling = obj['failureHandling'];
         if (failureHandling != null &&
-            !(FailureHandlingKind.canParse(failureHandling, reporter))) {
+            !FailureHandlingKind.canParse(failureHandling, reporter)) {
           reporter.reportError('must be of type FailureHandlingKind');
           return false;
         }
@@ -43972,7 +44855,7 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
       reporter.push('normalizesLineEndings');
       try {
         final normalizesLineEndings = obj['normalizesLineEndings'];
-        if (normalizesLineEndings != null && !(normalizesLineEndings is bool)) {
+        if (normalizesLineEndings != null && normalizesLineEndings is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -43983,9 +44866,9 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
       try {
         final resourceOperations = obj['resourceOperations'];
         if (resourceOperations != null &&
-            !((resourceOperations is List<Object?> &&
-                (resourceOperations.every((item) =>
-                    ResourceOperationKind.canParse(item, reporter)))))) {
+            (resourceOperations is! List<Object?> ||
+                resourceOperations.any((item) =>
+                    !ResourceOperationKind.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<ResourceOperationKind>');
           return false;
         }
@@ -44051,6 +44934,7 @@ class WorkspaceEditClientCapabilitiesChangeAnnotationSupport
   /// node.
   final bool? groupsOnLabel;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (groupsOnLabel != null) {
@@ -44064,7 +44948,7 @@ class WorkspaceEditClientCapabilitiesChangeAnnotationSupport
       reporter.push('groupsOnLabel');
       try {
         final groupsOnLabel = obj['groupsOnLabel'];
-        if (groupsOnLabel != null && !(groupsOnLabel is bool)) {
+        if (groupsOnLabel != null && groupsOnLabel is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -44124,6 +45008,7 @@ class WorkspaceFolder implements ToJsonable {
   /// The associated URI for this workspace folder.
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['name'] = name;
@@ -44144,7 +45029,7 @@ class WorkspaceFolder implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(name is String)) {
+        if (name is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -44162,7 +45047,7 @@ class WorkspaceFolder implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -44226,6 +45111,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
   /// The array of the removed workspace folders
   final List<WorkspaceFolder> removed;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['added'] = added.map((item) => item.toJson()).toList();
@@ -44246,9 +45132,8 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((added is List<Object?> &&
-            (added
-                .every((item) => WorkspaceFolder.canParse(item, reporter)))))) {
+        if (added is! List<Object?> ||
+            added.any((item) => !WorkspaceFolder.canParse(item, reporter))) {
           reporter.reportError('must be of type List<WorkspaceFolder>');
           return false;
         }
@@ -44266,9 +45151,8 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((removed is List<Object?> &&
-            (removed
-                .every((item) => WorkspaceFolder.canParse(item, reporter)))))) {
+        if (removed is! List<Object?> ||
+            removed.any((item) => !WorkspaceFolder.canParse(item, reporter))) {
           reporter.reportError('must be of type List<WorkspaceFolder>');
           return false;
         }
@@ -44344,6 +45228,7 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
   /// The server has support for workspace folders
   final bool? supported;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (changeNotifications != null) {
@@ -44361,7 +45246,8 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
       try {
         final changeNotifications = obj['changeNotifications'];
         if (changeNotifications != null &&
-            !((changeNotifications is bool || changeNotifications is String))) {
+            changeNotifications is! bool &&
+            changeNotifications is! String) {
           reporter.reportError('must be of type Either2<bool, String>');
           return false;
         }
@@ -44371,7 +45257,7 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
       reporter.push('supported');
       try {
         final supported = obj['supported'];
-        if (supported != null && !(supported is bool)) {
+        if (supported != null && supported is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -44451,13 +45337,16 @@ class WorkspaceFullDocumentDiagnosticReport
   }
 
   /// The actual items.
+  @override
   final List<Diagnostic> items;
 
   /// A full document diagnostic report.
+  @override
   final String kind;
 
   /// An optional result id. If provided it will be sent on the next diagnostic
   /// request for the same document.
+  @override
   final String? resultId;
 
   /// The URI for which diagnostic information is reported.
@@ -44467,6 +45356,7 @@ class WorkspaceFullDocumentDiagnosticReport
   /// is not marked as open `null` can be provided.
   final int? version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['items'] = items.map((item) => item.toJson()).toList();
@@ -44492,8 +45382,8 @@ class WorkspaceFullDocumentDiagnosticReport
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((items is List<Object?> &&
-            (items.every((item) => Diagnostic.canParse(item, reporter)))))) {
+        if (items is! List<Object?> ||
+            items.any((item) => !Diagnostic.canParse(item, reporter))) {
           reporter.reportError('must be of type List<Diagnostic>');
           return false;
         }
@@ -44511,7 +45401,7 @@ class WorkspaceFullDocumentDiagnosticReport
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(kind == 'full')) {
+        if (kind != 'full') {
           reporter.reportError('must be the literal \'full\'');
           return false;
         }
@@ -44521,7 +45411,7 @@ class WorkspaceFullDocumentDiagnosticReport
       reporter.push('resultId');
       try {
         final resultId = obj['resultId'];
-        if (resultId != null && !(resultId is String)) {
+        if (resultId != null && resultId is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -44539,7 +45429,7 @@ class WorkspaceFullDocumentDiagnosticReport
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -44553,7 +45443,7 @@ class WorkspaceFullDocumentDiagnosticReport
           return false;
         }
         final version = obj['version'];
-        if (version != null && !(version is int)) {
+        if (version != null && version is! int) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -44662,6 +45552,7 @@ class WorkspaceSymbol implements ToJsonable {
   /// Tags for this completion item.
   final List<SymbolTag>? tags;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (containerName != null) {
@@ -44681,7 +45572,7 @@ class WorkspaceSymbol implements ToJsonable {
       reporter.push('containerName');
       try {
         final containerName = obj['containerName'];
-        if (containerName != null && !(containerName is String)) {
+        if (containerName != null && containerName is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -44699,7 +45590,7 @@ class WorkspaceSymbol implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(SymbolKind.canParse(kind, reporter))) {
+        if (!SymbolKind.canParse(kind, reporter)) {
           reporter.reportError('must be of type SymbolKind');
           return false;
         }
@@ -44717,8 +45608,8 @@ class WorkspaceSymbol implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((Location.canParse(location, reporter) ||
-            WorkspaceSymbolLocation.canParse(location, reporter)))) {
+        if (!Location.canParse(location, reporter) &&
+            !WorkspaceSymbolLocation.canParse(location, reporter)) {
           reporter.reportError(
               'must be of type Either2<Location, WorkspaceSymbolLocation>');
           return false;
@@ -44737,7 +45628,7 @@ class WorkspaceSymbol implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(name is String)) {
+        if (name is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -44748,8 +45639,8 @@ class WorkspaceSymbol implements ToJsonable {
       try {
         final tags = obj['tags'];
         if (tags != null &&
-            !((tags is List<Object?> &&
-                (tags.every((item) => SymbolTag.canParse(item, reporter)))))) {
+            (tags is! List<Object?> ||
+                tags.any((item) => !SymbolTag.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;
         }
@@ -44845,6 +45736,7 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
   ///  @since 3.16.0
   final WorkspaceSymbolClientCapabilitiesTagSupport? tagSupport;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (dynamicRegistration != null) {
@@ -44867,7 +45759,7 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
       reporter.push('dynamicRegistration');
       try {
         final dynamicRegistration = obj['dynamicRegistration'];
-        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
+        if (dynamicRegistration != null && dynamicRegistration is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -44878,8 +45770,8 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
       try {
         final resolveSupport = obj['resolveSupport'];
         if (resolveSupport != null &&
-            !(WorkspaceSymbolClientCapabilitiesResolveSupport.canParse(
-                resolveSupport, reporter))) {
+            !WorkspaceSymbolClientCapabilitiesResolveSupport.canParse(
+                resolveSupport, reporter)) {
           reporter.reportError(
               'must be of type WorkspaceSymbolClientCapabilitiesResolveSupport');
           return false;
@@ -44891,8 +45783,8 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
       try {
         final symbolKind = obj['symbolKind'];
         if (symbolKind != null &&
-            !(WorkspaceSymbolClientCapabilitiesSymbolKind.canParse(
-                symbolKind, reporter))) {
+            !WorkspaceSymbolClientCapabilitiesSymbolKind.canParse(
+                symbolKind, reporter)) {
           reporter.reportError(
               'must be of type WorkspaceSymbolClientCapabilitiesSymbolKind');
           return false;
@@ -44904,8 +45796,8 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
       try {
         final tagSupport = obj['tagSupport'];
         if (tagSupport != null &&
-            !(WorkspaceSymbolClientCapabilitiesTagSupport.canParse(
-                tagSupport, reporter))) {
+            !WorkspaceSymbolClientCapabilitiesTagSupport.canParse(
+                tagSupport, reporter)) {
           reporter.reportError(
               'must be of type WorkspaceSymbolClientCapabilitiesTagSupport');
           return false;
@@ -44968,6 +45860,7 @@ class WorkspaceSymbolClientCapabilitiesResolveSupport implements ToJsonable {
   /// The properties that a client can resolve lazily. Usually `location.range`
   final List<String> properties;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['properties'] = properties;
@@ -44987,8 +45880,8 @@ class WorkspaceSymbolClientCapabilitiesResolveSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((properties is List<Object?> &&
-            (properties.every((item) => item is String))))) {
+        if (properties is! List<Object?> ||
+            properties.any((item) => item is! String)) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -45049,6 +45942,7 @@ class WorkspaceSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   /// from `File` to `Array` as defined in the initial version of the protocol.
   final List<SymbolKind>? valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (valueSet != null) {
@@ -45063,9 +45957,8 @@ class WorkspaceSymbolClientCapabilitiesSymbolKind implements ToJsonable {
       try {
         final valueSet = obj['valueSet'];
         if (valueSet != null &&
-            !((valueSet is List<Object?> &&
-                (valueSet
-                    .every((item) => SymbolKind.canParse(item, reporter)))))) {
+            (valueSet is! List<Object?> ||
+                valueSet.any((item) => !SymbolKind.canParse(item, reporter)))) {
           reporter.reportError('must be of type List<SymbolKind>');
           return false;
         }
@@ -45121,6 +46014,7 @@ class WorkspaceSymbolClientCapabilitiesTagSupport implements ToJsonable {
   /// The tags supported by the client.
   final List<SymbolTag> valueSet;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
@@ -45140,8 +46034,8 @@ class WorkspaceSymbolClientCapabilitiesTagSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((valueSet is List<Object?> &&
-            (valueSet.every((item) => SymbolTag.canParse(item, reporter)))))) {
+        if (valueSet is! List<Object?> ||
+            valueSet.any((item) => !SymbolTag.canParse(item, reporter))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;
         }
@@ -45193,6 +46087,7 @@ class WorkspaceSymbolLocation implements ToJsonable {
 
   final String uri;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['uri'] = uri;
@@ -45212,7 +46107,7 @@ class WorkspaceSymbolLocation implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -45271,8 +46166,10 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   /// workspace symbol.
   ///  @since 3.17.0
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (resolveProvider != null) {
@@ -45289,7 +46186,7 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('resolveProvider');
       try {
         final resolveProvider = obj['resolveProvider'];
-        if (resolveProvider != null && !(resolveProvider is bool)) {
+        if (resolveProvider != null && resolveProvider is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -45299,7 +46196,7 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -45375,6 +46272,7 @@ class WorkspaceSymbolParams
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
+  @override
   final Either2<int, String>? partialResultToken;
 
   /// A query string to filter symbols by. Clients may send an empty string here
@@ -45382,8 +46280,10 @@ class WorkspaceSymbolParams
   final String query;
 
   /// An optional token that a server can use to report work done progress.
+  @override
   final Either2<int, String>? workDoneToken;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (partialResultToken != null) {
@@ -45402,7 +46302,8 @@ class WorkspaceSymbolParams
       try {
         final partialResultToken = obj['partialResultToken'];
         if (partialResultToken != null &&
-            !((partialResultToken is int || partialResultToken is String))) {
+            partialResultToken is! int &&
+            partialResultToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -45420,7 +46321,7 @@ class WorkspaceSymbolParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(query is String)) {
+        if (query is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -45431,7 +46332,8 @@ class WorkspaceSymbolParams
       try {
         final workDoneToken = obj['workDoneToken'];
         if (workDoneToken != null &&
-            !((workDoneToken is int || workDoneToken is String))) {
+            workDoneToken is! int &&
+            workDoneToken is! String) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -45494,9 +46396,12 @@ class WorkspaceSymbolRegistrationOptions
   /// The server provides support to resolve additional information for a
   /// workspace symbol.
   ///  @since 3.17.0
+  @override
   final bool? resolveProvider;
+  @override
   final bool? workDoneProgress;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (resolveProvider != null) {
@@ -45513,7 +46418,7 @@ class WorkspaceSymbolRegistrationOptions
       reporter.push('resolveProvider');
       try {
         final resolveProvider = obj['resolveProvider'];
-        if (resolveProvider != null && !(resolveProvider is bool)) {
+        if (resolveProvider != null && resolveProvider is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -45523,7 +46428,7 @@ class WorkspaceSymbolRegistrationOptions
       reporter.push('workDoneProgress');
       try {
         final workDoneProgress = obj['workDoneProgress'];
-        if (workDoneProgress != null && !(workDoneProgress is bool)) {
+        if (workDoneProgress != null && workDoneProgress is! bool) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -45598,10 +46503,12 @@ class WorkspaceUnchangedDocumentDiagnosticReport
 
   /// A document diagnostic report indicating no changes to the last result. A
   /// server can only return `unchanged` if result ids are provided.
+  @override
   final String kind;
 
   /// A result id which will be sent on the next diagnostic request for the same
   /// document.
+  @override
   final String resultId;
 
   /// The URI for which diagnostic information is reported.
@@ -45611,6 +46518,7 @@ class WorkspaceUnchangedDocumentDiagnosticReport
   /// is not marked as open `null` can be provided.
   final int? version;
 
+  @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['kind'] = kind;
@@ -45633,7 +46541,7 @@ class WorkspaceUnchangedDocumentDiagnosticReport
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(kind == 'unchanged')) {
+        if (kind != 'unchanged') {
           reporter.reportError('must be the literal \'unchanged\'');
           return false;
         }
@@ -45651,7 +46559,7 @@ class WorkspaceUnchangedDocumentDiagnosticReport
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(resultId is String)) {
+        if (resultId is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -45669,7 +46577,7 @@ class WorkspaceUnchangedDocumentDiagnosticReport
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(uri is String)) {
+        if (uri is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -45683,7 +46591,7 @@ class WorkspaceUnchangedDocumentDiagnosticReport
           return false;
         }
         final version = obj['version'];
-        if (version != null && !(version is int)) {
+        if (version != null && version is! int) {
           reporter.reportError('must be of type int');
           return false;
         }

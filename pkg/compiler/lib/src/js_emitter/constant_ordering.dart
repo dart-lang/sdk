@@ -182,8 +182,7 @@ class _ConstantOrdering
       DeferredGlobalConstantValue a, DeferredGlobalConstantValue b) {
     int r = compareValues(a.referenced, b.referenced);
     if (r != 0) return r;
-    // TODO(48820): Should unit be non-nullable?
-    return a.unit!.compareTo(b.unit!);
+    return a.unit.compareTo(b.unit);
   }
 
   @override

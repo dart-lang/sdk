@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.11
+
 /// Command-line tool to show the size distribution of generated code among
 /// libraries. Libraries can be grouped using regular expressions. You can
 /// specify what regular expressions to use by providing a `grouping.yaml` file.
@@ -87,9 +89,6 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
     var args = argResults.rest;
     if (args.isEmpty) {
       usageException('Missing argument: info.data');
-      print('usage: dart tool/library_size_split.dart '
-          'path-to-info.json [grouping.yaml]');
-      exit(1);
     }
 
     var info = await infoFromFile(args.first);

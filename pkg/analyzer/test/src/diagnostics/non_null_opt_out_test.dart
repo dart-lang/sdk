@@ -49,6 +49,9 @@ AssignmentExpression
     leftBracket: [
     index: NullLiteral
       literal: null
+      parameter: ParameterMember
+        base: package:test/a.dart::@class::A::@method::[]=::@parameter::a
+        isLegacy: true
       staticType: Null*
     rightBracket: ]
     staticElement: <null>
@@ -56,6 +59,9 @@ AssignmentExpression
   operator: =
   rightHandSide: NullLiteral
     literal: null
+    parameter: ParameterMember
+      base: package:test/a.dart::@class::A::@method::[]=::@parameter::b
+      isLegacy: true
     staticType: Null*
   readElement: <null>
   readType: null
@@ -101,6 +107,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: package:test/a.dart::@class::A::@setter::foo::@parameter::_foo
+      isLegacy: true
     staticType: int*
   readElement: <null>
   readType: null
@@ -147,6 +156,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: package:test/a.dart::@extension::E::@setter::foo::@parameter::_
+      isLegacy: true
     staticType: int*
   readElement: <null>
   readType: null
@@ -192,6 +204,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: package:test/a.dart::@class::A::@setter::foo::@parameter::_foo
+      isLegacy: true
     staticType: int*
   readElement: <null>
   readType: null
@@ -237,6 +252,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: package:test/a.dart::@extension::E::@setter::foo::@parameter::_foo
+      isLegacy: true
     staticType: int*
   readElement: <null>
   readType: null
@@ -280,6 +298,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: package:test/a.dart::@setter::foo::@parameter::_foo
+      isLegacy: true
     staticType: int*
   readElement: <null>
   readType: null
@@ -335,6 +356,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: package:test/a.dart::@class::A::@setter::foo::@parameter::_foo
+      isLegacy: true
     staticType: int*
   readElement: <null>
   readType: null
@@ -391,6 +415,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: package:test/a.dart::@extension::E::@setter::foo::@parameter::a
+      isLegacy: true
     staticType: int*
   readElement: <null>
   readType: null
@@ -433,6 +460,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::main::@parameter::a
             staticType: A*
         rightParenthesis: )
@@ -447,6 +475,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: package:test/a.dart::@extension::E::@setter::foo::@parameter::a
+      isLegacy: true
     staticType: int*
   readElement: <null>
   readType: null
@@ -492,6 +523,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: package:test/a.dart::@class::A::@setter::foo::@parameter::_foo
+      isLegacy: true
     staticType: int*
   readElement: <null>
   readType: null
@@ -527,6 +561,9 @@ AssignmentExpression
   operator: =
   rightHandSide: NullLiteral
     literal: null
+    parameter: ParameterMember
+      base: package:test/a.dart::@setter::foo::@parameter::_foo
+      isLegacy: true
     staticType: Null*
   readElement: <null>
   readType: null

@@ -8,27 +8,29 @@ publish_to: none
 environment:
   sdk: '>=2.13.0 <3.0.0'
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   _fe_analyzer_shared: any
   kernel: any
   package_config: any
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   analyzer: any
   args: any
   async_helper: any
   build_integration: any
   compiler: any
-  dart2wasm: any
   dart_style: any
+  dart2wasm: any
   dev_compiler: any
   expect: any
   json_rpc_2: any
   path: any
-  test: any
   test_reflective_loader: any
+  test: any
   testing: any
-  vm: any
   vm_service: any
+  vm: any
   web_socket_channel: any
   yaml: any

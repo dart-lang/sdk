@@ -430,6 +430,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: self::@class::A::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null

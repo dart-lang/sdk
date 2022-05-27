@@ -40,7 +40,9 @@ BinaryExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
+      parameter: dart:core::@class::num::@method::+::@parameter::other
       staticType: int
+    parameter: <null>
     staticElement: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -76,11 +78,13 @@ BinaryExpression
       operator: +
       rightOperand: IntegerLiteral
         literal: 2
+        parameter: dart:core::@class::num::@method::+::@parameter::other
         staticType: int
       staticElement: dart:core::@class::num::@method::+
       staticInvokeType: num Function(num)
       staticType: int
     rightParenthesis: )
+    parameter: <null>
     staticType: int
   staticElement: <null>
   staticInvokeType: null
@@ -109,7 +113,9 @@ BinaryExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
+      parameter: dart:core::@class::num::@method::+::@parameter::other
       staticType: int
+    parameter: dart:core::@class::Object::@method::==::@parameter::other
     staticElement: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -147,11 +153,13 @@ BinaryExpression
       operator: +
       rightOperand: IntegerLiteral
         literal: 2
+        parameter: dart:core::@class::num::@method::+::@parameter::other
         staticType: int
       staticElement: dart:core::@class::num::@method::+
       staticInvokeType: num Function(num)
       staticType: int
     rightParenthesis: )
+    parameter: <null>
     staticType: int
   staticElement: <null>
   staticInvokeType: null
@@ -215,6 +223,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: <null>
     staticType: int
   rightBracket: ]
   staticElement: <null>
@@ -243,6 +252,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: <null>
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -255,7 +265,9 @@ AssignmentExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
+      parameter: dart:core::@class::num::@method::+::@parameter::other
       staticType: int
+    parameter: <null>
     staticElement: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -288,6 +300,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: <null>
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -300,7 +313,9 @@ AssignmentExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
+      parameter: dart:core::@class::num::@method::+::@parameter::other
       staticType: int
+    parameter: <null>
     staticElement: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -332,6 +347,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: <null>
     staticType: int
   rightBracket: ]
   staticElement: <null>
@@ -360,6 +376,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: <null>
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -372,7 +389,9 @@ AssignmentExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
+      parameter: dart:core::@class::num::@method::+::@parameter::other
       staticType: int
+    parameter: <null>
     staticElement: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -405,6 +424,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: <null>
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -417,7 +437,9 @@ AssignmentExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
+      parameter: dart:core::@class::num::@method::+::@parameter::other
       staticType: int
+    parameter: <null>
     staticElement: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -470,7 +492,9 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
+          parameter: dart:core::@class::num::@method::+::@parameter::other
           staticType: int
+        parameter: <null>
         staticElement: dart:core::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
@@ -512,7 +536,9 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
+          parameter: dart:core::@class::num::@method::+::@parameter::other
           staticType: int
+        parameter: <null>
         staticElement: dart:core::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
@@ -553,7 +579,9 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
+          parameter: dart:core::@class::num::@method::+::@parameter::other
           staticType: int
+        parameter: <null>
         staticElement: dart:core::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
@@ -721,6 +749,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: <null>
     staticType: int
   readElement: <null>
   readType: dynamic
@@ -772,6 +801,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: <null>
     staticType: int
   readElement: <null>
   readType: null
@@ -857,7 +887,9 @@ BinaryExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
+      parameter: root::@parameter::other
       staticType: int*
+    parameter: root::@parameter::other
     staticElement: MethodMember
       base: dart:core::@class::num::@method::+
       isLegacy: true
@@ -899,6 +931,7 @@ BinaryExpression
       operator: +
       rightOperand: IntegerLiteral
         literal: 2
+        parameter: root::@parameter::other
         staticType: int*
       staticElement: MethodMember
         base: dart:core::@class::num::@method::+
@@ -906,6 +939,7 @@ BinaryExpression
       staticInvokeType: num* Function(num*)*
       staticType: int*
     rightParenthesis: )
+    parameter: <null>
     staticType: int*
   staticElement: <null>
   staticInvokeType: null

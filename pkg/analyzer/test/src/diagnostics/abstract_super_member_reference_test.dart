@@ -46,6 +46,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -156,6 +157,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -452,6 +454,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: self::@class::A::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
@@ -494,6 +497,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: self::@class::A::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
@@ -536,6 +540,7 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: a
+    parameter: self::@class::A::@setter::foo::@parameter::a
     staticElement: self::@class::B::@setter::foo::@parameter::a
     staticType: int
   readElement: <null>
@@ -577,6 +582,7 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: a
+    parameter: self::@class::A::@setter::foo::@parameter::a
     staticElement: self::@class::B::@setter::foo::@parameter::a
     staticType: int
   readElement: <null>
@@ -622,6 +628,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: self::@class::A::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null

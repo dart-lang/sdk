@@ -373,6 +373,9 @@ word ToRawSmi(intptr_t value);
 
 word SmiValue(const dart::Object& a);
 
+bool IsDouble(const dart::Object& a);
+double DoubleValue(const dart::Object& a);
+
 // If the given object can be loaded from the thread on the target then
 // return true and set offset (if provided) to the offset from the
 // thread pointer to a field that contains the object.

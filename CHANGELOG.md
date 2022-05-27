@@ -1,5 +1,52 @@
 ## 2.18.0
 
+### Language
+
+The following features are new in the Dart 2.18 [language version][]. To use
+them, you must set the lower bound on the SDK constraint for your package to
+2.18 or greater (`sdk: '>=2.18.0 <3.0.0'`).
+
+[language version]: https://dart.dev/guides/language/evolution
+
+-  **[Enhanced type inference for generic invocations with function
+   literals][]**: Invocations of generic methods/constructors that supply
+   function literal arguments now have improved type inference.  This primarily
+   affects the `Iterable.fold` method.  For example, in previous versions of
+   Dart, the compiler would fail to infer an appropriate type for the parameter
+   `a`:
+
+   ```dart
+   void main() {
+     List<int> ints = [1, 2, 3];
+     var maximum = ints.fold(0, (a, b) => a < b ? b : a);
+   }
+   ```
+
+   With this improvement, `a` receives its type from the initial value, `0`.
+
+   On rare occasions, the wrong type will be inferred, leading to a compile-time
+   error, for example in this code, type inference will infer that `a` has a
+   type of `Null`:
+
+   ```dart
+   void main() {
+     List<int> ints = [1, 2, 3];
+     var maximumOrNull = ints.fold(null,
+         (a, b) => a == null || a < b ? b : a);
+   }
+   ```
+
+   This can be worked around by supplying the appropriate type as an explicit
+   type argument to `fold`:
+
+   ```dart
+   void main() {
+     List<int> ints = [1, 2, 3];
+     var maximumOrNull = ints.fold<int?>(null,
+         (a, b) => a == null || a < b ? b : a);
+   }
+   ```
+
 ### Core libraries
 
 #### `dart:html`

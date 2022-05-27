@@ -1887,7 +1887,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     List<js.Expression> arguments = visitArguments(node.inputs);
     MemberEntity target = node.element;
 
-    // TODO(herhut): The namer should return the appropriate backendname here.
+    // TODO(herhut): The namer should return the appropriate backend name here.
     if (target != null && !node.isInterceptedCall) {
       if (target == _commonElements.jsArrayAdd) {
         methodName = 'push';
@@ -2120,7 +2120,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (_commonElements.isCheckConcurrentModificationError(element)) {
       // Manually inline the [checkConcurrentModificationError] function.  This
       // function is only called from a for-loop update.  Ideally we would just
-      // generate the conditionalcontrol flow in the builder but it adds basic
+      // generate the conditional control flow in the builder but it adds basic
       // blocks in the loop update that interfere with other optimizations and
       // confuses loop recognition.
 
@@ -2384,16 +2384,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       if (target.isStatic || target.isTopLevel) {
         var arguments = visitArguments(inputs, start: 0);
-        js.Expression targeExpression =
+        js.Expression targetExpression =
             js.js.uncachedExpressionTemplate(targetName).instantiate([]);
         js.Expression expression;
         if (target.isGetter) {
-          expression = targeExpression;
+          expression = targetExpression;
         } else if (target.isSetter) {
-          expression = js.js('# = #', [targeExpression, inputs.single]);
+          expression = js.js('# = #', [targetExpression, inputs.single]);
         } else {
           assert(target.isFunction);
-          expression = js.js('#(#)', [targeExpression, arguments]);
+          expression = js.js('#(#)', [targetExpression, arguments]);
         }
         push(expression.withSourceInformation(node.sourceInformation));
         _registry.registerNativeMethod(target);
@@ -3186,7 +3186,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
       case IsTestSpecialization.instanceof:
         DartType dartType = node.dartType;
-        // We don't generate instancof specializations for Never* and Object*.
+        // We don't generate instanceof specializations for Never* and Object*.
         assert(dartType is InterfaceType ||
             (dartType is LegacyType &&
                 !dartType.baseType.isObject &&

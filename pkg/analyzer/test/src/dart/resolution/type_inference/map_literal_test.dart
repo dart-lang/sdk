@@ -53,6 +53,9 @@ MethodInvocation
     arguments
       NullLiteral
         literal: null
+        parameter: ParameterMember
+          base: root::@parameter::t
+          substitution: {T: Map<int, double>?}
         staticType: Null
     rightParenthesis: )
   staticInvokeType: Map<int, double>? Function(Map<int, double>?)

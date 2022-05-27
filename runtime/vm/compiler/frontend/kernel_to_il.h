@@ -380,7 +380,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Generates a call to `Thread::EnterApiScope`.
   Fragment EnterHandleScope();
 
-  // Generates a call to `Thread::api_top_scope`.
+  // Generates a load of `Thread::api_top_scope`.
   Fragment GetTopHandleScope();
 
   // Generates a call to `Thread::ExitApiScope`.

@@ -1287,11 +1287,7 @@ void FfiCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void EnterHandleScopeInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  if (kind_ == Kind::kEnterHandleScope) {
-    f->AddString("<enter handle scope>");
-  } else {
-    f->AddString("<get top api scope>");
-  }
+  f->AddString("<enter handle scope>");
 }
 
 void NativeReturnInstr::PrintOperandsTo(BaseTextBuffer* f) const {

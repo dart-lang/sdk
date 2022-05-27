@@ -20,6 +20,7 @@ class IndexExpressionTest extends PubPackageResolutionTest {
 void f({a = b?[0]}) {}
 ''');
 
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/49101
     assertResolvedNodeText(findNode.index('[0]'), r'''
 IndexExpression
   target: SimpleIdentifier
@@ -29,6 +30,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: <null>
     staticType: int
   rightBracket: ]
   staticElement: <null>
@@ -50,6 +52,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: <null>
     staticType: int
   rightBracket: ]
   staticElement: <null>
@@ -80,6 +83,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: self::@class::A::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@class::A::@method::[]
@@ -108,6 +112,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: self::@class::A::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@class::A::@method::[]
@@ -120,6 +125,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 1
+    parameter: self::@class::A::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@class::A::@method::[]
@@ -152,6 +158,9 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: self::@class::A::@method::[]::@parameter::index
+      substitution: {T: double}
     staticType: int
   rightBracket: ]
   staticElement: MethodMember
@@ -189,6 +198,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: self::@class::A::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@class::A::@method::[]
@@ -228,6 +238,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -235,6 +246,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: DoubleLiteral
     literal: 1.2
+    parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: double
   readElement: self::@class::A::@method::[]
   readType: num
@@ -286,6 +298,9 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: ParameterMember
+        base: self::@class::A::@method::[]=::@parameter::index
+        substitution: {T: double}
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -293,6 +308,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: DoubleLiteral
     literal: 1.2
+    parameter: dart:core::@class::double::@method::+::@parameter::other
     staticType: double
   readElement: MethodMember
     base: self::@class::A::@method::[]
@@ -345,6 +361,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -352,6 +369,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: DoubleLiteral
     literal: 1.2
+    parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: double
   readElement: self::@class::A::@method::[]
   readType: num
@@ -398,6 +416,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -405,6 +424,7 @@ AssignmentExpression
   operator: =
   rightHandSide: DoubleLiteral
     literal: 1.2
+    parameter: self::@class::A::@method::[]=::@parameter::value
     staticType: double
   readElement: <null>
   readType: null
@@ -445,6 +465,7 @@ CascadeExpression
         leftBracket: [
         index: IntegerLiteral
           literal: 0
+          parameter: self::@class::A::@method::[]=::@parameter::index
           staticType: int
         rightBracket: ]
         staticElement: <null>
@@ -452,6 +473,7 @@ CascadeExpression
       operator: =
       rightHandSide: SimpleIdentifier
         token: a
+        parameter: self::@class::A::@method::[]=::@parameter::a
         staticElement: self::@function::f::@parameter::a
         staticType: A
       readElement: <null>
@@ -466,6 +488,7 @@ CascadeExpression
         leftBracket: [
         index: IntegerLiteral
           literal: 1
+          parameter: self::@class::A::@method::[]=::@parameter::index
           staticType: int
         rightBracket: ]
         staticElement: <null>
@@ -473,6 +496,7 @@ CascadeExpression
       operator: =
       rightHandSide: SimpleIdentifier
         token: a
+        parameter: self::@class::A::@method::[]=::@parameter::a
         staticElement: self::@function::f::@parameter::a
         staticType: A
       readElement: <null>
@@ -519,6 +543,9 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: ParameterMember
+        base: self::@class::A::@method::[]=::@parameter::index
+        substitution: {T: double}
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -526,6 +553,9 @@ AssignmentExpression
   operator: =
   rightHandSide: DoubleLiteral
     literal: 1.2
+    parameter: ParameterMember
+      base: self::@class::A::@method::[]=::@parameter::value
+      substitution: {T: double}
     staticType: double
   readElement: <null>
   readType: null
@@ -577,6 +607,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -584,6 +615,7 @@ AssignmentExpression
   operator: =
   rightHandSide: DoubleLiteral
     literal: 1.2
+    parameter: self::@class::A::@method::[]=::@parameter::value
     staticType: double
   readElement: <null>
   readType: null

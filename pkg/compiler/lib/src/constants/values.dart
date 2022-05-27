@@ -1041,7 +1041,7 @@ class DeferredGlobalConstantValue extends ConstantValue {
   DeferredGlobalConstantValue(this.referenced, this.unit);
 
   final ConstantValue referenced;
-  final OutputUnit? unit;
+  final OutputUnit unit;
 
   bool get isReference => true;
 

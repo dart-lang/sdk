@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library js_backend.runtime_types_codegen;
 
 import '../elements/entities.dart';
@@ -47,7 +45,7 @@ class TypeCheck {
 class ClassChecks {
   final Map<ClassEntity, TypeCheck> _map;
 
-  final ClassFunctionType functionType;
+  final ClassFunctionType? functionType;
 
   ClassChecks(this.functionType) : _map = {};
 
@@ -63,7 +61,7 @@ class ClassChecks {
     checks.forEach(add);
   }
 
-  TypeCheck operator [](ClassEntity cls) => _map[cls];
+  TypeCheck? operator [](ClassEntity cls) => _map[cls];
 
   Iterable<TypeCheck> get checks => _map.values;
 
@@ -94,7 +92,7 @@ class Substitution {
   final bool isFunction;
   final List<DartType> arguments;
   final List<DartType> parameters;
-  final int length;
+  final int? length;
 
   const Substitution.trivial()
       : isTrivial = true,

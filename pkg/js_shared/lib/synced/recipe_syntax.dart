@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 /// Constants and predicates used for encoding and decoding type recipes.
 ///
 /// This library is synchronized between the compiler and the runtime system.

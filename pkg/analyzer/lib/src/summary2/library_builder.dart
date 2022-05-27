@@ -333,6 +333,9 @@ class LibraryBuilder {
       unitElement: unitElement,
     ).buildDeclarationElements(unitNode);
 
+    // We move elements, so they don't have real offsets.
+    unitElement.accept(_FlushElementOffsets());
+
     units.add(
       LinkingUnit(
         isDefiningUnit: false,

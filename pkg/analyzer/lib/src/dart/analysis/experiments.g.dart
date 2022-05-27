@@ -197,7 +197,7 @@ class ExperimentalFeatures {
     documentation:
         'Horizontal type inference for function expressions passed to generic invocations.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('2.18.0'),
   );
 
   static final inference_update_2 = ExperimentalFeature(
@@ -350,7 +350,7 @@ class IsEnabledByDefault {
   static const bool generic_metadata = true;
 
   /// Default state of the experiment "inference-update-1"
-  static const bool inference_update_1 = false;
+  static const bool inference_update_1 = true;
 
   /// Default state of the experiment "inference-update-2"
   static const bool inference_update_2 = false;

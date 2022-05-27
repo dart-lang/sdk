@@ -151,8 +151,19 @@ void AsmIntrinsifier::Integer_equal(Assembler* assembler,
 
 void AsmIntrinsifier::Smi_bitLength(Assembler* assembler,
                                     Label* normal_ir_body) {
-  // TODO(riscv)
-  __ Bind(normal_ir_body);
+  __ lx(A0, Address(SP, 0 * target::kWordSize));
+  __ SmiUntag(A0);
+
+  // XOR with sign bit to complement bits if value is negative.
+  __ srai(A1, A0, XLEN - 1);
+  __ xor_(A0, A0, A1);
+
+  __ CountLeadingZeroes(A0, A0);
+
+  __ li(TMP, XLEN);
+  __ sub(A0, TMP, A0);
+  __ SmiTag(A0);
+  __ ret();
 }
 
 void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
@@ -234,11 +245,12 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ andi(T5, T2, target::kBitsPerWord - 1);  // T5 = bit shift
   __ li(T6, target::kBitsPerWord);
   __ sub(T6, T6, T5);  // T6 = carry bit shift
+  __ sub(T1, T1, T4);  // T1 = words to process
 
   __ slli(TMP, T4, target::kWordSizeLog2);
   __ add(T0, T0, TMP);  // T0 = &src_digits[word_shift]
 
-  __ li(T2, 0);  // carry
+  // T2 = carry
   __ lx(T2, FieldAddress(T0, target::TypedData::payload_offset()));
   __ srl(T2, T2, T5);
   __ addi(T0, T0, target::kWordSize);

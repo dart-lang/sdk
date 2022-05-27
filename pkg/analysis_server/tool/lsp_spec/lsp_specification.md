@@ -3819,6 +3819,11 @@ export interface NotebookDocumentSyncClientCapabilities {
 	 * return value for the corresponding server capability as well.
 	 */
 	dynamicRegistration?: boolean;
+
+	/**
+	 * The client supports sending execution summary data per cell.
+	 */
+	executionSummarySupport?: boolean;
 }
 ```
 
@@ -3857,7 +3862,7 @@ export interface NotebookDocumentSyncOptions {
 	 	 * value is provided it matches against the
 	     * notebook type. '*' matches every notebook.
 		 */
-		notebookDocument: string | NotebookDocumentFilter;
+		notebook: string | NotebookDocumentFilter;
 
 		/**
 		 * The cells of the matching notebook to be synced.
@@ -3869,7 +3874,7 @@ export interface NotebookDocumentSyncOptions {
 	 	 * value is provided it matches against the
 	     * notebook type. '*' matches every notebook.
 		 */
-		notebookDocument?: string | NotebookDocumentFilter;
+		notebook?: string | NotebookDocumentFilter;
 
 		/**
 		 * The cells of the matching notebook to be synced.
@@ -4735,7 +4740,7 @@ _Client Capability_:
 <div class="anchorHolder"><a href="#typeHierarchyClientCapabilities" name="typeHierarchyClientCapabilities" class="linkableAnchor"></a></div>
 
 ```typescript
-type TypeHierarchyClientCapabilities = {
+export interface TypeHierarchyClientCapabilities {
 	/**
 	 * Whether implementation supports dynamic registration. If this is set to
 	 * `true` the client supports the new `(TextDocumentRegistrationOptions &
@@ -5998,6 +6003,10 @@ export enum SemanticTokenTypes {
 	number = 'number',
 	regexp = 'regexp',
 	operator = 'operator'
+	/**
+	 * @since 3.17.0
+	 */
+	decorator = 'decorator'
 }
 ```
 
@@ -7601,6 +7610,13 @@ export interface CompletionList {
 		 * @since 3.17.0
 		 */
 		insertTextMode?: InsertTextMode;
+
+		/**
+		 * A default data value.
+		 *
+		 * @since 3.17.0
+		 */
+		data?: LSPAny;
 	}
 
 	/**
@@ -9883,7 +9899,7 @@ _Client Capability_:
 export namespace PrepareSupportDefaultBehavior {
 	/**
 	 * The client's default behavior is to select the identifier
-	 * according the to language's syntax rule.
+	 * according to the language's syntax rule.
 	 */
 	 export const Identifier: 1 = 1;
 }
@@ -9992,7 +10008,7 @@ _Request_:
 <div class="anchorHolder"><a href="#prepareRenameParams" name="prepareRenameParams" class="linkableAnchor"></a></div>
 
 ```typescript
-export interface PrepareRenameParams extends TextDocumentPositionParams {
+export interface PrepareRenameParams extends TextDocumentPositionParams, WorkDoneProgressParams {
 }
 ```
 

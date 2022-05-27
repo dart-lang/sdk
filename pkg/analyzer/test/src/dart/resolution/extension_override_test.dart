@@ -40,6 +40,7 @@ IndexExpression
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: int?
       rightParenthesis: )
@@ -48,6 +49,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: self::@extension::E::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@extension::E::@method::[]
@@ -79,6 +81,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: int?
         rightParenthesis: )
@@ -87,6 +90,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@extension::E::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -94,6 +98,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
+    parameter: self::@extension::E::@method::[]=::@parameter::value
     staticType: int
   readElement: <null>
   readType: null
@@ -128,6 +133,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: int?
       rightParenthesis: )
@@ -203,6 +209,7 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -231,6 +238,7 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -285,6 +293,7 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -327,6 +336,7 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -385,6 +395,7 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -421,6 +432,7 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -486,6 +498,7 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -536,6 +549,7 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -583,6 +597,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -608,6 +623,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -651,6 +667,7 @@ FunctionExpressionInvocation
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
@@ -667,6 +684,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -687,6 +705,7 @@ FunctionExpressionInvocation
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
@@ -703,6 +722,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -747,6 +767,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -786,6 +807,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -841,6 +863,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -874,6 +897,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -935,6 +959,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -982,6 +1007,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -1026,6 +1052,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -1055,6 +1082,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -1109,6 +1137,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -1152,6 +1181,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -1211,6 +1241,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -1248,6 +1279,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -1313,6 +1345,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -1364,6 +1397,7 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -1412,6 +1446,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -1420,6 +1455,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: self::@extension::E::@method::+::@parameter::offset
     staticType: int
   staticElement: self::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -1438,6 +1474,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -1446,6 +1483,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: self::@extension::E::@method::+::@parameter::offset
     staticType: int*
   staticElement: self::@extension::E::@method::+
   staticInvokeType: void Function(int*)*
@@ -1489,6 +1527,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -1499,6 +1538,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: self::@extension::E::@method::+::@parameter::offset
     staticType: int
   staticElement: self::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -1527,6 +1567,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -1537,6 +1578,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: self::@extension::E::@method::+::@parameter::offset
     staticType: int*
   staticElement: self::@extension::E::@method::+
   staticInvokeType: void Function(int*)*
@@ -1574,6 +1616,7 @@ PostfixExpression
         arguments
           IntegerLiteral
             literal: 0
+            parameter: <null>
             staticType: int
         rightParenthesis: )
       extendedType: int
@@ -1606,6 +1649,7 @@ PostfixExpression
         arguments
           IntegerLiteral
             literal: 0
+            parameter: <null>
             staticType: int*
         rightParenthesis: )
       extendedType: int*
@@ -1663,6 +1707,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -1671,6 +1716,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: package:test/lib.dart::@extension::E::@method::+::@parameter::offset
     staticType: int
   staticElement: package:test/lib.dart::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -1697,6 +1743,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -1705,6 +1752,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: package:test/lib.dart::@extension::E::@method::+::@parameter::offset
     staticType: int*
   staticElement: package:test/lib.dart::@extension::E::@method::+
   staticInvokeType: void Function(int*)*
@@ -1759,6 +1807,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
@@ -1769,6 +1818,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: package:test/lib.dart::@extension::E::@method::+::@parameter::offset
     staticType: int
   staticElement: package:test/lib.dart::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -1805,6 +1855,7 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
+          parameter: <null>
           staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
@@ -1815,6 +1866,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: package:test/lib.dart::@extension::E::@method::+::@parameter::offset
     staticType: int*
   staticElement: package:test/lib.dart::@extension::E::@method::+
   staticInvokeType: void Function(int*)*
@@ -1849,6 +1901,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
@@ -1863,6 +1916,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: self::@extension::E::@setter::s::@parameter::x
     staticType: int
   readElement: <null>
   readType: null
@@ -1885,6 +1939,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
@@ -1899,6 +1954,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: self::@extension::E::@setter::s::@parameter::x
     staticType: int*
   readElement: <null>
   readType: null
@@ -1946,6 +2002,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
@@ -1962,6 +2019,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: self::@extension::E::@setter::s::@parameter::x
+      substitution: {T: int}
     staticType: int
   readElement: <null>
   readType: null
@@ -1996,6 +2056,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
@@ -2012,6 +2073,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: self::@extension::E::@setter::s::@parameter::x
+      substitution: {T: int*}
     staticType: int*
   readElement: <null>
   readType: null
@@ -2062,6 +2126,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
@@ -2076,6 +2141,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: package:test/lib.dart::@extension::E::@setter::s::@parameter::x
     staticType: int
   readElement: <null>
   readType: null
@@ -2106,6 +2172,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
@@ -2120,6 +2187,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: package:test/lib.dart::@extension::E::@setter::s::@parameter::x
     staticType: int*
   readElement: <null>
   readType: null
@@ -2178,6 +2246,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
@@ -2194,6 +2263,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: package:test/lib.dart::@extension::E::@setter::s::@parameter::x
+      substitution: {T: int}
     staticType: int
   readElement: <null>
   readType: null
@@ -2236,6 +2308,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
@@ -2252,6 +2325,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: package:test/lib.dart::@extension::E::@setter::s::@parameter::x
+      substitution: {T: int*}
     staticType: int*
   readElement: <null>
   readType: null
@@ -2292,6 +2368,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
@@ -2306,6 +2383,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: self::@extension::E::@getter::s
   readType: int
@@ -2328,6 +2406,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
@@ -2342,6 +2421,9 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: dart:core::@class::num::@method::+::@parameter::other
+      isLegacy: true
     staticType: int*
   readElement: self::@extension::E::@getter::s
   readType: int*
@@ -2392,6 +2474,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
@@ -2408,6 +2491,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: PropertyAccessorMember
     base: self::@extension::E::@getter::s
@@ -2444,6 +2528,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
@@ -2460,6 +2545,9 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: dart:core::@class::num::@method::+::@parameter::other
+      isLegacy: true
     staticType: int*
   readElement: PropertyAccessorMember
     base: self::@extension::E::@getter::s
@@ -2515,6 +2603,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
@@ -2529,6 +2618,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: package:test/lib.dart::@extension::E::@getter::s
   readType: int
@@ -2559,6 +2649,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
@@ -2573,6 +2664,9 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: dart:core::@class::num::@method::+::@parameter::other
+      isLegacy: true
     staticType: int*
   readElement: package:test/lib.dart::@extension::E::@getter::s
   readType: int*
@@ -2634,6 +2728,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
@@ -2650,6 +2745,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: PropertyAccessorMember
     base: package:test/lib.dart::@extension::E::@getter::s
@@ -2694,6 +2790,7 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
+            parameter: <null>
             staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
@@ -2710,6 +2807,9 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: dart:core::@class::num::@method::+::@parameter::other
+      isLegacy: true
     staticType: int*
   readElement: PropertyAccessorMember
     base: package:test/lib.dart::@extension::E::@getter::s
@@ -2752,6 +2852,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: c
+          parameter: <null>
           staticElement: self::@function::f::@parameter::c
           staticType: C
       rightParenthesis: )
@@ -2777,6 +2878,7 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: c
+          parameter: <null>
           staticElement: self::@function::f::@parameter::c
           staticType: C*
       rightParenthesis: )

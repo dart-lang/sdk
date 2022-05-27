@@ -189,6 +189,9 @@ PostfixExpression
       arguments
         NullLiteral
           literal: null
+          parameter: ParameterMember
+            base: root::@parameter::t
+            substitution: {T: int?}
           staticType: Null
       rightParenthesis: )
     staticInvokeType: int? Function(int?)
@@ -411,6 +414,7 @@ PostfixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -434,6 +438,7 @@ PostfixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>
@@ -476,6 +481,7 @@ PostfixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -498,6 +504,7 @@ PostfixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>
@@ -538,6 +545,7 @@ PostfixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -560,6 +568,7 @@ PostfixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>

@@ -83,7 +83,7 @@ vars = {
   "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
   "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
-  "browser_launcher_rev": "c6cc1025d6901926cf022e144ba109677e3548f1",
+  "browser_launcher_rev": "f841375ad337381e23d333b6eaaebde3d8266c68",
   "characters_rev": "4b1d4b7737ad47cd2b8105c47e2159174010f29f",
   "charcode_rev": "84ea427711e24abf3b832923959caa7dd9a8514b",
   "chrome_rev": "19997",
@@ -114,7 +114,7 @@ vars = {
   "glob_rev": "e10eb2407c58427144004458ef85c9bbf7286e56",
   "html_rev": "f108bce59d136c584969fd24a5006914796cf213",
   "http_io_rev": "405fc79233b4a3d4bb079ebf438bb2caf2f49355",
-  "http_multi_server_rev": "34bf7f04b61cce561f47f7f275c2cc811534a05a",
+  "http_multi_server_rev": "35a3b947256768426090e3b1f5132e4fc23c175d",
   "http_parser_rev": "9126ee04e77fd8e4e2e6435b503ee4dd708d7ddc",
   "http_rev": "2c9b418f5086f999c150d18172d2eec1f963de7b",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
@@ -123,16 +123,15 @@ vars = {
   "json_rpc_2_rev": "7e00f893440a72de0637970325e4ea44bd1e8c8e",
   "linter_rev": "a8529c6692922b45bc287543b355c90d7b1286d3", # 1.24.0
   "lints_rev": "8294e5648ab49474541527e2911e72e4c5aefe55",
-  "logging_rev": "dfbe88b890c3b4f7bc06da5a7b3b43e9e263b688",
+  "logging_rev": "f6979e3bc3b6e1847a08335b7eb6304e18986195",
   "markdown_rev": "5699cafa9ef004875fd7de8ae9ea00e5295e87a4", # 5.0.0
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "matcher_rev": "07595a7739d47a8315caba5a8e58fb9ae3d81261",
+  "matcher_rev": "12cdc5fbafd666ed908359ae215d5d0306087969",
   "mime_rev": "c2c5ffd594674f32dc277521369da1557a1622d3",
   "mockito_rev": "1e977a727e82a2e1bdb49b79ef1dce0f23aa1faa",
-  "oauth2_rev": "7cd3284049fe5badbec9f2bea2afc41d14c01057",
-  "package_config_rev": "8731bf10b5375542792a32a0f7c8a6f370583d96",
+  "oauth2_rev": "199ebf15cbd5b07958438184f32e41c4447a57bf",
+  "package_config_rev": "cff98c90acc457a3b0750f0a7da0e351a35e5d0c",
   "path_rev": "3d41ea582f5b0b18de3d90008809b877ff3f69bc",
-  "platform_rev": "1ffad63428bbd1b3ecaa15926bacfb724023648c",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "c40cc32eabecb9d60f1045d1403108d968805f9a",
   "protobuf_rev": "b149f801cf7a5e959cf1dbf72d61068ac275f24b",
@@ -140,7 +139,7 @@ vars = {
   "pub_semver_rev": "ea6c54019948dc03042c595ce9413e17aaf7aa38",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
-  "shelf_rev": "fadca320b04689be9ec960013843a0d9ee6c4fc4",
+  "shelf_rev": "05f42601d22c9bfe490ceda50e812f83b7d1de77",
   "source_map_stack_trace_rev": "8eabd96b1811e30a11d3c54c9b4afae4fb72e98f",
   "source_maps_rev": "c07a01b8d5547ce3a47ee7a7a2b938a2bc09afe3",
   "source_span_rev": "8ae724c3e67f5afaacead44e93ff145bfb8775c7",
@@ -373,8 +372,6 @@ deps = {
       "@" + Var("package_config_rev"),
   Var("dart_root") + "/third_party/pkg/path":
       Var("dart_git") + "path.git" + "@" + Var("path_rev"),
-  Var("dart_root") + "/third_party/pkg/platform":
-       Var("dart_git") + "platform.dart.git" + "@" + Var("platform_rev"),
   Var("dart_root") + "/third_party/pkg/pool":
       Var("dart_git") + "pool.git" + "@" + Var("pool_rev"),
   Var("dart_root") + "/third_party/pkg/protobuf":
