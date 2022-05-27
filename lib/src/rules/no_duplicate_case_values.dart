@@ -40,7 +40,7 @@ switch (v) {
 
 class NoDuplicateCaseValues extends LintRule {
   static const LintCode code = LintCode('no_duplicate_case_values',
-      'Do not use more than one case with same value ({0} and {1}');
+      'Do not use more than one case with same value ({0} and {1})');
 
   NoDuplicateCaseValues()
       : super(
@@ -80,8 +80,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
 
         var duplicateValue = values[value];
+        // TODO(brianwilkeson) This would benefit from having a context message
+        //  pointing at the `duplicateValue`.
         if (duplicateValue != null) {
-          rule.reportLint(member,
+          rule.reportLint(expression,
               errorCode: NoDuplicateCaseValues.code,
               arguments: [duplicateValue.toString(), expression.toString()]);
         } else {
