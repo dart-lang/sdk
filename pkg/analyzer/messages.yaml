@@ -5668,8 +5668,9 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when one class is listed in both the
-      `extends` and `implements` clauses of another class.
+      The analyzer produces this diagnostic when a class is listed in the
+      `extends` clause of a class declaration and also in either the
+      `implements` or `with` clause of the same declaration.
 
       #### Example
 
@@ -5680,6 +5681,15 @@ CompileTimeErrorCode:
       class A {}
 
       class B extends A implements [!A!] {}
+      ```
+
+      The following code produces this diagnostic because the class `A` is used
+      in both the `extends` and `with` clauses for the class `B`:
+  
+      ```dart
+      class A {}
+  
+      class B extends A with [!A!] {}
       ```
 
       #### Common fixes
@@ -8306,7 +8316,7 @@ CompileTimeErrorCode:
       ```
   MIXINS_SUPER_CLASS:
     sharedName: IMPLEMENTS_SUPER_CLASS
-    problemMessage: "'{0}' can't be used in both 'extends' and 'with' clauses."
+    problemMessage: "'{0}' can't be used in both the 'extends' and 'with' clauses."
     correctionMessage: Try removing one of the occurrences.
     hasPublishedDocs: true
     comment: |-
@@ -8705,9 +8715,43 @@ CompileTimeErrorCode:
       class C {}
       ```
   MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS:
-    problemMessage: "Deferred classes can't be used as super-class constraints."
+    problemMessage: "Deferred classes can't be used as superclass constraints."
     correctionMessage: Try changing the import to not be deferred.
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a superclass constraint of a
+      mixin is imported from a deferred library.
+
+      #### Example
+
+      The following code produces this diagnostic because the superclass
+      constraint of `math.Random` is imported from a deferred library:
+
+      ```dart
+      import 'dart:async' deferred as async;
+
+      mixin M<T> on [!async.Stream<T>!] {}
+      ```
+
+      #### Common fixes
+
+      If the import doesn't need to be deferred, then remove the `deferred`
+      keyword:
+
+      ```dart
+      import 'dart:async' as async;
+
+      mixin M<T> on async.Stream<T> {}
+      ```
+
+      If the import does need to be deferred, then remove the superclass
+      constraint:
+
+      ```dart
+      mixin M<T> {}
+      ```
   MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE:
     problemMessage: Only classes and mixins can be used as superclass constraints.
     hasPublishedDocs: true
@@ -15595,21 +15639,216 @@ CompileTimeErrorCode:
       ```
 FfiCode:
   ABI_SPECIFIC_INTEGER_INVALID:
-    problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments."
-    correctionMessage: Try removing all type arguments, removing all members, and adding one const constructor.
+    problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type parameters."
+    correctionMessage: Try removing all type parameters, removing all members, and adding one const constructor.
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class that extends
+      `AbiSpecificInteger` doesn't meet all of the following requirements:
+      - there must be exactly one constructor
+      - the constructor must be marked `const`
+      - there must not be any members of other than the one constructor
+      - there must not be any type parameters
+
+      #### Examples
+
+      The following code produces this diagnostic because the class `C` doesn't
+      define a const constructor:
+
+      ```dart
+      import 'dart:ffi';
+
+      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+      class [!C!] extends AbiSpecificInteger {
+      }
+      ```
+
+      The following code produces this diagnostic because the constructor isn't
+      a `const` constructor:
+
+      ```dart
+      import 'dart:ffi';
+
+      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+      class [!C!] extends AbiSpecificInteger {
+        C();
+      }
+      ```
+
+      The following code produces this diagnostic because the class `C` defines
+      multiple constructors:
+
+      ```dart
+      import 'dart:ffi';
+
+      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+      class [!C!] extends AbiSpecificInteger {
+        const C.zero();
+        const C.one();
+      }
+      ```
+
+      The following code produces this diagnostic because the class `C` defineS
+      a field:
+
+      ```dart
+      import 'dart:ffi';
+
+      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+      class [!C!] extends AbiSpecificInteger {
+        final int i;
+
+        const C(this.i);
+      }
+      ```
+
+      The following code produces this diagnostic because the class `C` has a
+      type parameter:
+
+      ```dart
+      import 'dart:ffi';
+
+      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+      class [!C!]<T> extends AbiSpecificInteger { // type parameters
+        const C();
+      }
+      ```
+
+      #### Common fixes
+
+      Change the class so that it meets the requirements of having no type
+      parameters and a single member that is a `const` constructor:
+
+      ```dart
+      import 'dart:ffi';
+
+      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+      class C extends AbiSpecificInteger {
+        const C();
+      }
+      ```
   ABI_SPECIFIC_INTEGER_MAPPING_EXTRA:
     problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a 'NativeType' integer with a fixed size."
     correctionMessage: Try removing the extra annotation.
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class that extends
+      `AbiSpecificInteger` has more than one `AbiSpecificIntegerMapping`
+      annotation.
+
+      #### Example
+
+      The following code produces this diagnostic because there are two
+      `AbiSpecificIntegerMapping` annotations on the class `C`:
+
+      ```dart
+      import 'dart:ffi';
+
+      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+      @[!AbiSpecificIntegerMapping!]({Abi.linuxX64 : Uint16()})
+      class C extends AbiSpecificInteger {
+        const C();
+      }
+      ```
+
+      #### Common fixes
+
+      Remove all but one of the annotations, merging the arguments as
+      appropriate:
+
+      ```dart
+      import 'dart:ffi';
+
+      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8(), Abi.linuxX64 : Uint16()})
+      class C extends AbiSpecificInteger {
+        const C();
+      }
+      ```
   ABI_SPECIFIC_INTEGER_MAPPING_MISSING:
     problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a 'NativeType' integer with a fixed size."
     correctionMessage: Try adding an annotation.
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class that extends
+      `AbiSpecificInteger` doesn't have an `AbiSpecificIntegerMapping`
+      annotation.
+
+      #### Example
+
+      The following code produces this diagnostic because there's no
+      `AbiSpecificIntegerMapping` annotation on the class `C`:
+
+      ```dart
+      import 'dart:ffi';
+
+      class [!C!] extends AbiSpecificInteger {
+        const C();
+      }
+      ```
+
+      #### Common fixes
+
+      Add an `AbiSpecificIntegerMapping` annotation to the class:
+
+      ```dart
+      import 'dart:ffi';
+
+      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+      class C extends AbiSpecificInteger {
+        const C();
+      }
+      ```
   ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED:
     problemMessage: "Only mappings to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', 'UInt32', and 'Uint64' are supported."
     correctionMessage: Try changing the value to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', 'UInt32', or 'Uint64'.
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a value in the map argument of
+      an `AbiSpecificIntegerMapping` annotation is anything other than one of
+      the following integer types:
+      - `Int8`
+      - `Int16`
+      - `Int32`
+      - `Int64`
+      - `Uint8`
+      - `Uint16`
+      - `UInt32`
+      - `Uint64`
+
+      #### Example
+
+      The following code produces this diagnostic because the value of the map
+      entry is `Array<Uint8>`, which isn't a valid integer type:
+
+      ```dart
+      import 'dart:ffi';
+
+      @[!AbiSpecificIntegerMapping!]({Abi.macosX64 : Array<Uint8>(4)})
+      class C extends AbiSpecificInteger {
+        const C();
+      }
+      ```
+
+      #### Common fixes
+
+      Use one of the valid types as a value in the map:
+
+      ```dart
+      import 'dart:ffi';
+
+      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+      class C extends AbiSpecificInteger {
+        const C();
+      }
+      ```
   ANNOTATION_ON_POINTER_FIELD:
     problemMessage: "Fields in a struct class whose type is 'Pointer' shouldn't have any annotations."
     correctionMessage: Try removing the annotation.
@@ -17690,7 +17929,30 @@ HintCode:
   DIVISION_OPTIMIZATION:
     problemMessage: The operator x ~/ y is more efficient than (x / y).toInt().
     correctionMessage: "Try re-writing the expression to use the '~/' operator."
-    comment: Hint to use the ~/ operator.
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the result of dividing two
+      numbers is converted to an integer using `toInt`. Dart has a built-in
+      integer division operator that is both more efficient and more concise.
+
+      #### Example
+
+      The following code produces this diagnostic because the result of dividing
+      `x` and `y` is converted to an integer using `toInt`:
+
+      ```dart
+      int divide(num x, num y) => [!(x / y).toInt()!];
+      ```
+
+      #### Common fixes
+
+      Use the integer division operator (`~/`):
+
+      ```dart
+      int divide(num x, num y) => x ~/ y;
+      ```
   DUPLICATE_HIDDEN_NAME:
     problemMessage: Duplicate hidden name.
     correctionMessage: Try removing the repeated name from the list of hidden members.
@@ -17960,7 +18222,7 @@ HintCode:
       directory.
   FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE:
     problemMessage: "A file outside the 'lib' directory shouldn't reference a file inside the 'lib' directory using a relative path."
-    correctionMessage: "Try using a package: URI instead."
+    correctionMessage: "Try using a 'package:' URI instead."
     comment: |-
       It is a bad practice for a source file ouside a package "lib" directory
       hierarchy to traverse into that directory hierarchy. For example, a source
@@ -18547,12 +18809,84 @@ HintCode:
       ```
   INVALID_NON_VIRTUAL_ANNOTATION:
     problemMessage: "The annotation '@nonVirtual' can only be applied to a concrete instance member."
-    correctionMessage: Try removing @nonVirtual.
+    correctionMessage: Try removing '@nonVirtual'.
     comment: |-
       This hint is generated anywhere where `@nonVirtual` annotates something
       other than a non-abstract instance member in a class or mixin.
 
       No Parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `nonVirtual` annotation is
+      found on a declaration other than a member of a class, mixin, or enum, or
+      if the member isn't a concrete instance member.
+
+      #### Examples
+
+      The following code produces this diagnostic because the annotation is on a
+      class declaration rather than a member inside the class:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      [!@nonVirtual!]
+      class C {}
+      ```
+
+      The following code produces this diagnostic because the method `m` is an
+      abstract method:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      abstract class C {
+        [!@nonVirtual!]
+        void m();
+      }
+      ```
+
+      The following code produces this diagnostic because the method `m` is a
+      static method:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      abstract class C {
+        [!@nonVirtual!]
+        static void m() {}
+      }
+      ```
+
+      #### Common fixes
+
+      If the declaration isn't a member of a class, mixin, or enum, then remove
+      the annotation:
+
+      ```dart
+      class C {}
+      ```
+
+      If the member is intended to be a concrete instance member, then make it
+      so:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      abstract class C {
+        @nonVirtual
+        void m() {}
+      }
+      ```
+
+      If the member is not intended to be a concrete instance member, then
+      remove the annotation:
+
+      ```dart
+      abstract class C {
+        static void m() {}
+      }
+      ```
   INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
     problemMessage: "The member '{0}' is declared non-virtual in '{1}' and can't be overridden in subclasses."
     comment: |-
@@ -18562,6 +18896,62 @@ HintCode:
       Parameters:
       0: the name of the member
       1: the name of the defining class
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a member of a class, mixin, or
+      enum overrides a member that has the `@nonVirtual` annotation on it.
+
+      #### Example
+
+      The following code produces this diagnostic because the method `m` in `B`
+      overrides the method `m` in `A`, and the method `m` in `A` is annotated
+      with the `@nonVirtual` annotation:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        @nonVirtual
+        void m() {}
+      }
+
+      class B extends A {
+        @override
+        void [!m!]() {}
+      }
+      ```
+
+      #### Common fixes
+
+      If the annotation on the method in the superclass is correct (the method
+      in the superclass is not intended to be overridden), then remove or rename
+      the overriding method:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        @nonVirtual
+        void m() {}
+      }
+
+      class B extends A {}
+      ```
+
+      If the method in the superclass is intended to be overridden, then remove
+      the `@nonVirtual` annotation:
+
+      ```dart
+      class A {
+        void m() {}
+      }
+
+      class B extends A {
+        @override
+        void m() {}
+      }
+      ```
   INVALID_REQUIRED_NAMED_PARAM:
     problemMessage: "The type parameter '{0}' is annotated with @required but only named parameters without a default value can be annotated with it."
     correctionMessage: Remove @required.
@@ -18657,12 +19047,41 @@ HintCode:
       ```
   INVALID_SEALED_ANNOTATION:
     problemMessage: "The annotation '@sealed' can only be applied to classes."
-    correctionMessage: Remove @sealed.
+    correctionMessage: Try removing the '@sealed' annotation.
     comment: |-
       This hint is generated anywhere where `@sealed` annotates something other
       than a class.
 
       No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a declaration other than a
+      class declaration has the `@sealed` annotation on it.
+
+      #### Example
+
+      The following code produces this diagnostic because the `@sealed`
+      annotation is on a method declaration:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class A {
+        [!@sealed!]
+        void m() {}
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the annotation:
+
+      ```dart
+      class A {
+        void m() {}
+      }
+      ```
   INVALID_USE_OF_INTERNAL_MEMBER:
     problemMessage: "The member '{0}' can only be used within its package."
     comment: |-
@@ -18773,6 +19192,58 @@ HintCode:
       Parameters:
       0: the name of the member
       1: the name of the defining class
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a member annotated with
+      `@visibleForTesting` is referenced anywhere other than the library in
+      which it is declared or in a library in the `test` directory.
+
+      #### Example
+
+      Given a file named `c.dart` that contains the following:
+
+      ```dart
+      %uri="lib/c.dart"
+      import 'package:meta/meta.dart';
+
+      class C {
+        @visibleForTesting
+        void m() {}
+      }
+      ```
+
+      The following code, when not inside the `test` directory, produces this
+      diagnostic because the method `m` is marked as being visible only for
+      tests:
+
+      ```dart
+      import 'c.dart';
+
+      void f(C c) {
+        c.[!m!]();
+      }
+      ```
+
+      #### Common fixes
+
+      If the annotated member should not be referenced outside of tests, then
+      remove the reference:
+
+      ```dart
+      import 'c.dart';
+
+      void f(C c) {}
+      ```
+
+      If it's OK to reference the annotated member outside of tests, then remove
+      the annotation:
+
+      ```dart
+      class C {
+        void m() {}
+      }
+      ```
   INVALID_VISIBILITY_ANNOTATION:
     problemMessage: "The member '{0}' is annotated with '{1}', but this annotation is only meaningful on declarations of public members."
     hasPublishedDocs: true
@@ -20430,6 +20901,53 @@ HintCode:
     correctionMessage: Try removing the 'final'.
     hasPublishedDocs: false
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when either a field initializing
+      parameter or a super parameter in a constructor has the keyword `final`.
+      In both cases the keyword is unnecessary because the parameter is
+      implicitly `final`.
+
+      #### Examples
+
+      The following code produces this diagnostic because the field initializing
+      parameter has the keyword `final`:
+
+      ```dart
+      class A {
+        int value;
+
+        A([!final!] this.value);
+      }
+      ```
+
+      The following code produces this diagnostic because the super parameter in
+      `B` has the keyword `final`:
+
+      ```dart
+      class A {
+        A(int value);
+      }
+
+      class B extends A {
+        B([!final!] super.value);
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary `final` keyword:
+
+      ```dart
+      class A {
+        A(int value);
+      }
+
+      class B extends A {
+        B(super.value);
+      }
+      ```
   UNNECESSARY_IGNORE:
     problemMessage: "The diagnostic '{0}' isn't produced at this location so it doesn't need to be ignored."
     correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.

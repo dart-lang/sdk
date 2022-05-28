@@ -296,6 +296,221 @@ that might work in unexpected ways.
 [meta-visibleForOverriding]: https://pub.dev/documentation/meta/latest/meta/visibleForOverriding-constant.html
 [meta-visibleForTesting]: https://pub.dev/documentation/meta/latest/meta/visibleForTesting-constant.html
 
+### abi_specific_integer_invalid
+
+_Classes extending 'AbiSpecificInteger' must have exactly one const constructor,
+no other members, and no type parameters._
+
+#### Description
+
+The analyzer produces this diagnostic when a class that extends
+`AbiSpecificInteger` doesn't meet all of the following requirements:
+- there must be exactly one constructor
+- the constructor must be marked `const`
+- there must not be any members of other than the one constructor
+- there must not be any type parameters
+
+#### Examples
+
+The following code produces this diagnostic because the class `C` doesn't
+define a const constructor:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+class [!C!] extends AbiSpecificInteger {
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the constructor isn't
+a `const` constructor:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+class [!C!] extends AbiSpecificInteger {
+  C();
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the class `C` defines
+multiple constructors:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+class [!C!] extends AbiSpecificInteger {
+  const C.zero();
+  const C.one();
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the class `C` defineS
+a field:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+class [!C!] extends AbiSpecificInteger {
+  final int i;
+
+  const C(this.i);
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the class `C` has a
+type parameter:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+class [!C!]<T> extends AbiSpecificInteger { // type parameters
+  const C();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Change the class so that it meets the requirements of having no type
+parameters and a single member that is a `const` constructor:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+class C extends AbiSpecificInteger {
+  const C();
+}
+{% endprettify %}
+
+### abi_specific_integer_mapping_extra
+
+_Classes extending 'AbiSpecificInteger' must have exactly one
+'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a 'NativeType' integer with a fixed size._
+
+#### Description
+
+The analyzer produces this diagnostic when a class that extends
+`AbiSpecificInteger` has more than one `AbiSpecificIntegerMapping`
+annotation.
+
+#### Example
+
+The following code produces this diagnostic because there are two
+`AbiSpecificIntegerMapping` annotations on the class `C`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+@[!AbiSpecificIntegerMapping!]({Abi.linuxX64 : Uint16()})
+class C extends AbiSpecificInteger {
+  const C();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove all but one of the annotations, merging the arguments as
+appropriate:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@AbiSpecificIntegerMapping({Abi.macosX64 : Int8(), Abi.linuxX64 : Uint16()})
+class C extends AbiSpecificInteger {
+  const C();
+}
+{% endprettify %}
+
+### abi_specific_integer_mapping_missing
+
+_Classes extending 'AbiSpecificInteger' must have exactly one
+'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a 'NativeType' integer with a fixed size._
+
+#### Description
+
+The analyzer produces this diagnostic when a class that extends
+`AbiSpecificInteger` doesn't have an `AbiSpecificIntegerMapping`
+annotation.
+
+#### Example
+
+The following code produces this diagnostic because there's no
+`AbiSpecificIntegerMapping` annotation on the class `C`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class [!C!] extends AbiSpecificInteger {
+  const C();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add an `AbiSpecificIntegerMapping` annotation to the class:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+class C extends AbiSpecificInteger {
+  const C();
+}
+{% endprettify %}
+
+### abi_specific_integer_mapping_unsupported
+
+_Only mappings to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16',
+'UInt32', and 'Uint64' are supported._
+
+#### Description
+
+The analyzer produces this diagnostic when a value in the map argument of
+an `AbiSpecificIntegerMapping` annotation is anything other than one of
+the following integer types:
+- `Int8`
+- `Int16`
+- `Int32`
+- `Int64`
+- `Uint8`
+- `Uint16`
+- `UInt32`
+- `Uint64`
+
+#### Example
+
+The following code produces this diagnostic because the value of the map
+entry is `Array<Uint8>`, which isn't a valid integer type:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@[!AbiSpecificIntegerMapping!]({Abi.macosX64 : Array<Uint8>(4)})
+class C extends AbiSpecificInteger {
+  const C();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Use one of the valid types as a value in the map:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+class C extends AbiSpecificInteger {
+  const C();
+}
+{% endprettify %}
+
 ### abstract_field_initializer
 
 _Abstract fields can't have initializers._
@@ -3845,6 +4060,33 @@ void f() {
 }
 {% endprettify %}
 
+### division_optimization
+
+_The operator x ~/ y is more efficient than (x / y).toInt()._
+
+#### Description
+
+The analyzer produces this diagnostic when the result of dividing two
+numbers is converted to an integer using `toInt`. Dart has a built-in
+integer division operator that is both more efficient and more concise.
+
+#### Example
+
+The following code produces this diagnostic because the result of dividing
+`x` and `y` is converted to an integer using `toInt`:
+
+{% prettify dart tag=pre+code %}
+int divide(num x, num y) => [!(x / y).toInt()!];
+{% endprettify %}
+
+#### Common fixes
+
+Use the integer division operator (`~/`):
+
+{% prettify dart tag=pre+code %}
+int divide(num x, num y) => x ~/ y;
+{% endprettify %}
+
 ### duplicate_constructor
 
 _The constructor with name '{0}' is already defined._
@@ -6731,14 +6973,15 @@ class B implements A {}
 
 ### implements_super_class
 
-_'{0}' can't be used in both 'extends' and 'with' clauses._
-
 _'{0}' can't be used in both the 'extends' and 'implements' clauses._
+
+_'{0}' can't be used in both the 'extends' and 'with' clauses._
 
 #### Description
 
-The analyzer produces this diagnostic when one class is listed in both the
-`extends` and `implements` clauses of another class.
+The analyzer produces this diagnostic when a class is listed in the
+`extends` clause of a class declaration and also in either the
+`implements` or `with` clause of the same declaration.
 
 #### Example
 
@@ -6749,6 +6992,15 @@ in both the `extends` and `implements` clauses for the class `B`:
 class A {}
 
 class B extends A implements [!A!] {}
+{% endprettify %}
+
+The following code produces this diagnostic because the class `A` is used
+in both the `extends` and `with` clauses for the class `B`:
+
+{% prettify dart tag=pre+code %}
+class A {}
+
+class B extends A with [!A!] {}
 {% endprettify %}
 
 #### Common fixes
@@ -8662,6 +8914,83 @@ class C {
 }
 {% endprettify %}
 
+### invalid_non_virtual_annotation
+
+_The annotation '@nonVirtual' can only be applied to a concrete instance
+member._
+
+#### Description
+
+The analyzer produces this diagnostic when the `nonVirtual` annotation is
+found on a declaration other than a member of a class, mixin, or enum, or
+if the member isn't a concrete instance member.
+
+#### Examples
+
+The following code produces this diagnostic because the annotation is on a
+class declaration rather than a member inside the class:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+[!@nonVirtual!]
+class C {}
+{% endprettify %}
+
+The following code produces this diagnostic because the method `m` is an
+abstract method:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+abstract class C {
+  [!@nonVirtual!]
+  void m();
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the method `m` is a
+static method:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+abstract class C {
+  [!@nonVirtual!]
+  static void m() {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the declaration isn't a member of a class, mixin, or enum, then remove
+the annotation:
+
+{% prettify dart tag=pre+code %}
+class C {}
+{% endprettify %}
+
+If the member is intended to be a concrete instance member, then make it
+so:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+abstract class C {
+  @nonVirtual
+  void m() {}
+}
+{% endprettify %}
+
+If the member is not intended to be a concrete instance member, then
+remove the annotation:
+
+{% prettify dart tag=pre+code %}
+abstract class C {
+  static void m() {}
+}
+{% endprettify %}
+
 ### invalid_null_aware_operator
 
 _The receiver can't be null because of short-circuiting, so the null-aware
@@ -8796,6 +9125,67 @@ class A {
 
 class B extends A {
   void m2(String s) {}
+}
+{% endprettify %}
+
+### invalid_override_of_non_virtual_member
+
+_The member '{0}' is declared non-virtual in '{1}' and can't be overridden in
+subclasses._
+
+#### Description
+
+The analyzer produces this diagnostic when a member of a class, mixin, or
+enum overrides a member that has the `@nonVirtual` annotation on it.
+
+#### Example
+
+The following code produces this diagnostic because the method `m` in `B`
+overrides the method `m` in `A`, and the method `m` in `A` is annotated
+with the `@nonVirtual` annotation:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class A {
+  @nonVirtual
+  void m() {}
+}
+
+class B extends A {
+  @override
+  void [!m!]() {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the annotation on the method in the superclass is correct (the method
+in the superclass is not intended to be overridden), then remove or rename
+the overriding method:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class A {
+  @nonVirtual
+  void m() {}
+}
+
+class B extends A {}
+{% endprettify %}
+
+If the method in the superclass is intended to be overridden, then remove
+the `@nonVirtual` annotation:
+
+{% prettify dart tag=pre+code %}
+class A {
+  void m() {}
+}
+
+class B extends A {
+  @override
+  void m() {}
 }
 {% endprettify %}
 
@@ -8943,6 +9333,39 @@ match the callback:
 {% prettify dart tag=pre+code %}
 void f(Future<String> future, String Function(dynamic, StackTrace) callback) {
   future.catchError(callback);
+}
+{% endprettify %}
+
+### invalid_sealed_annotation
+
+_The annotation '@sealed' can only be applied to classes._
+
+#### Description
+
+The analyzer produces this diagnostic when a declaration other than a
+class declaration has the `@sealed` annotation on it.
+
+#### Example
+
+The following code produces this diagnostic because the `@sealed`
+annotation is on a method declaration:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class A {
+  [!@sealed!]
+  void m() {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the annotation:
+
+{% prettify dart tag=pre+code %}
+class A {
+  void m() {}
 }
 {% endprettify %}
 
@@ -9248,6 +9671,61 @@ class B extends A {
 #### Common fixes
 
 Remove the invalid use of the member.
+
+### invalid_use_of_visible_for_testing_member
+
+_The member '{0}' can only be used within '{1}' or a test._
+
+#### Description
+
+The analyzer produces this diagnostic when a member annotated with
+`@visibleForTesting` is referenced anywhere other than the library in
+which it is declared or in a library in the `test` directory.
+
+#### Example
+
+Given a file named `c.dart` that contains the following:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class C {
+  @visibleForTesting
+  void m() {}
+}
+{% endprettify %}
+
+The following code, when not inside the `test` directory, produces this
+diagnostic because the method `m` is marked as being visible only for
+tests:
+
+{% prettify dart tag=pre+code %}
+import 'c.dart';
+
+void f(C c) {
+  c.[!m!]();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the annotated member should not be referenced outside of tests, then
+remove the reference:
+
+{% prettify dart tag=pre+code %}
+import 'c.dart';
+
+void f(C c) {}
+{% endprettify %}
+
+If it's OK to reference the annotated member outside of tests, then remove
+the annotation:
+
+{% prettify dart tag=pre+code %}
+class C {
+  void m() {}
+}
+{% endprettify %}
 
 ### invalid_visibility_annotation
 
@@ -10940,6 +11418,44 @@ import 'package:p/p.dart';
 If the classes that use the mixin don't need to be subclasses of the sealed
 class, then consider adding a field and delegating to the wrapped instance
 of the sealed class.
+
+### mixin_super_class_constraint_deferred_class
+
+_Deferred classes can't be used as superclass constraints._
+
+#### Description
+
+The analyzer produces this diagnostic when a superclass constraint of a
+mixin is imported from a deferred library.
+
+#### Example
+
+The following code produces this diagnostic because the superclass
+constraint of `math.Random` is imported from a deferred library:
+
+{% prettify dart tag=pre+code %}
+import 'dart:async' deferred as async;
+
+mixin M<T> on [!async.Stream<T>!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If the import doesn't need to be deferred, then remove the `deferred`
+keyword:
+
+{% prettify dart tag=pre+code %}
+import 'dart:async' as async;
+
+mixin M<T> on async.Stream<T> {}
+{% endprettify %}
+
+If the import does need to be deferred, then remove the superclass
+constraint:
+
+{% prettify dart tag=pre+code %}
+mixin M<T> {}
+{% endprettify %}
 
 ### mixin_super_class_constraint_non_interface
 
@@ -18478,6 +18994,58 @@ name: example
 dependencies:
   meta: ^1.0.2
 ```
+
+### unnecessary_final
+
+_The keyword 'final' isn't necessary because the parameter is implicitly
+'final'._
+
+#### Description
+
+The analyzer produces this diagnostic when either a field initializing
+parameter or a super parameter in a constructor has the keyword `final`.
+In both cases the keyword is unnecessary because the parameter is
+implicitly `final`.
+
+#### Examples
+
+The following code produces this diagnostic because the field initializing
+parameter has the keyword `final`:
+
+{% prettify dart tag=pre+code %}
+class A {
+  int value;
+
+  A([!final!] this.value);
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the super parameter in
+`B` has the keyword `final`:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int value);
+}
+
+class B extends A {
+  B([!final!] super.value);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the unnecessary `final` keyword:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int value);
+}
+
+class B extends A {
+  B(super.value);
+}
+{% endprettify %}
 
 ### unnecessary_import
 
