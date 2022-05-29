@@ -206,4 +206,8 @@ main() {
 
   yGetValue = 1;
   check(1, () => h.C?.x ??= y, ['h.C.x', 'y', 'h.C.x=1']);
+  //               ^
+  // [cfe] The class 'C' cannot be null.
+  //                ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 }
