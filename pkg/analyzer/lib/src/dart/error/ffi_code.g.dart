@@ -15,10 +15,10 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode ABI_SPECIFIC_INTEGER_INVALID = FfiCode(
     'ABI_SPECIFIC_INTEGER_INVALID',
     "Classes extending 'AbiSpecificInteger' must have exactly one const "
-        "constructor, no other members, and no type arguments.",
+        "constructor, no other members, and no type parameters.",
     correctionMessage:
-        "Try removing all type arguments, removing all members, and adding one "
-        "const constructor.",
+        "Try removing all type parameters, removing all members, and adding "
+        "one const constructor.",
   );
 
   ///  No parameters.

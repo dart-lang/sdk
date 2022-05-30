@@ -1,15 +1,19 @@
-// @dart = 2.9
 library test;
 
 class B<T> {
-  B<T> operator +(B<T> other) => null;
+  B<T> operator +(B<T> other) => throw '';
 }
 
 class C<T> {
-  B<F<T>> operator [](int i) => null;
+  B<F<T>> operator [](int i) => throw '';
   void operator []=(int i, B<F<T>> x) {}
+}
+
+class C2<T> {
+  B<F<T>>? operator [](int i) => throw '';
+  void operator []=(int i, B<F<T>>? x) {}
 }
 
 main() {}
 typedef void F<T>(T x);
-void test(C<num> c) {}
+void test(C<num> c, C2<num> c2) {}

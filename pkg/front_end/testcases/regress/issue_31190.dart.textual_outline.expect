@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Typed<T> {
   T<U> v;
 }

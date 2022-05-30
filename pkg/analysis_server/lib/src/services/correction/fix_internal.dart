@@ -353,6 +353,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.always_declare_return_types: [
       AddReturnType.new,
     ],
+    LintNames.always_put_control_body_on_new_line: [
+      UseCurlyBraces.nonBulk,
+    ],
     LintNames.always_require_non_null_named_parameters: [
       AddRequired.new,
     ],

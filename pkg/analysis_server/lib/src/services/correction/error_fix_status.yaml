@@ -8,25 +8,25 @@
 #   fixes.
 # - 'hasFix', if the diagnostic has one or more fixes.
 # - 'noFix', if no fix seems appropriate for the diagnostic. There should be a
-#   second key named `reason` whose value is text explaining why there is no
+#   second key named `notes` whose value is text explaining why there is no
 #   appropriate fix.
-# - 'needsFix', if the diagnostic needs a fix, with a possible issue link. If an
-#   issue has been opened, there should be a second key named `issue` whose
-#   value is the URL of the issue.
+# - 'needsFix', if the diagnostic needs a fix. If an issue has been opened,
+#   there should be a second key named `issue` whose value is the URL of the
+#   issue.
 #
 # The other keys in the second-level map are all optional, and include
 # - 'since', whose value is the version number of the SDK in which the
 #   diagnostic was added.
-# - 'notes', whose value is text, typically describing why we think a fix for
-#   the diagnostic is not appropriate.
+# - 'notes', whose value is text, typically describing what fix should be
+#   created or why we think a fix for the diagnostic is not appropriate.
 # - 'issue', whose value is a list of the URLs of GitHub issues for the fixes
 #   that should be added. Ideally every issue marked as 'needFix' would have an
 #   issue created for it.
 #
 # Stats:
-# - 759 "needsEvaluation"
-# -  32 "needsFix"
-# - 265 "hasFix"
+# - 760 "needsEvaluation"
+# -  28 "needsFix"
+# - 273 "hasFix"
 # -  41 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -36,15 +36,24 @@ AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
 AnalysisOptionsErrorCode.PARSE_ERROR:
   status: noFix
   notes: |-
-    There isn't enough information to be able to provide a fix.
+    Because of the way the YAML parser works, there isn't enough information to
+    be able to provide a fix.
 AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Provide a fix to remove the deprecated setting.
 AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Provide a fix to remove the deprecated setting.
 AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Provide a fix to remove the deprecated setting.
 AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Provide a fix to remove the deprecated setting.
 AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
   status: noFix
   notes: |-
@@ -52,7 +61,8 @@ AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
     that could be included.
     
     We could potentially have a fix to create the referenced file that currently
-    doesn't exist.
+    doesn't exist, but that would only be useful if the missing file is in the
+    same repository as the including file.
 AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING:
   status: noFix
   notes: |-
@@ -65,7 +75,9 @@ AnalysisOptionsWarningCode.INVALID_OPTION:
 AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT:
   status: needsEvaluation
 AnalysisOptionsWarningCode.SPEC_MODE_REMOVED:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Provide a fix to remove the deprecated setting.
 AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE:
   status: needsEvaluation
 AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE:
@@ -77,27 +89,56 @@ AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES:
 AnalysisOptionsWarningCode.UNSUPPORTED_VALUE:
   status: needsEvaluation
 CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    1. Remove the initializer.
+    2. Remove the `abstract` keyword.
 CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    1. Remove the initializer.
+    2. Remove the `abstract` keyword.
 CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The only fix we could automate is to remove the call to super, which is
+    unlikely to be the right solution.
 CompileTimeErrorCode.AMBIGUOUS_EXPORT:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    For each exported name, add a fix to hide the name.
 CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    For each extension, add a fix to add an extension override.
 CompileTimeErrorCode.AMBIGUOUS_IMPORT:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    1. For each imported name, add a fix to hide the name.
+    2. For each imported name, add a fix to add a prefix. We wouldn't be able to
+       add the prefix everywhere, but could add it wherever the name was already
+       unambiguous.
 CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We could potentially have a pair of fixes: one to remove the elements that
+    force it to be a set and one to remove the map related elements. I doubt
+    that either is the right solution.
 CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We don't have enough information to add type arguments for the user.
 CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE:
   status: hasFix
 CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the assert.
 CompileTimeErrorCode.ASSIGNMENT_TO_CONST:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Making the field non-const doesn't seem to be a good choice, but it is a
+    possibility.
 CompileTimeErrorCode.ASSIGNMENT_TO_FINAL:
   status: hasFix
 CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL:
@@ -1487,7 +1528,7 @@ LanguageCode.IMPLICIT_DYNAMIC_VARIABLE:
 LintCode.always_declare_return_types:
   status: hasFix
 LintCode.always_put_control_body_on_new_line:
-  status: needsEvaluation
+  status: hasFix
 LintCode.always_put_required_named_parameters_first:
   status: needsEvaluation
 LintCode.always_require_non_null_named_parameters:

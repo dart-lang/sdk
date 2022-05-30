@@ -181,7 +181,7 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Hint to use the ~/ operator.
+  ///  No parameters.
   static const HintCode DIVISION_OPTIMIZATION = HintCode(
     'DIVISION_OPTIMIZATION',
     "The operator x ~/ y is more efficient than (x / y).toInt().",
@@ -270,7 +270,7 @@ class HintCode extends AnalyzerErrorCode {
     'FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE',
     "A file outside the 'lib' directory shouldn't reference a file inside the "
         "'lib' directory using a relative path.",
-    correctionMessage: "Try using a package: URI instead.",
+    correctionMessage: "Try using a 'package:' URI instead.",
   );
 
   ///  No parameters.
@@ -542,7 +542,7 @@ class HintCode extends AnalyzerErrorCode {
     'INVALID_NON_VIRTUAL_ANNOTATION',
     "The annotation '@nonVirtual' can only be applied to a concrete instance "
         "member.",
-    correctionMessage: "Try removing @nonVirtual.",
+    correctionMessage: "Try removing '@nonVirtual'.",
   );
 
   ///  This hint is generated anywhere where an instance member annotated with
@@ -600,7 +600,7 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode INVALID_SEALED_ANNOTATION = HintCode(
     'INVALID_SEALED_ANNOTATION',
     "The annotation '@sealed' can only be applied to classes.",
-    correctionMessage: "Remove @sealed.",
+    correctionMessage: "Try removing the '@sealed' annotation.",
   );
 
   ///  Parameters:

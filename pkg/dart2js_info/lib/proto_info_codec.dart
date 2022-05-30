@@ -43,7 +43,7 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
     int id;
     if (info is ConstantInfo) {
       // No name and no parent, so `longName` isn't helpful
-      assert(info.name == null);
+      assert(info.name.isEmpty);
       assert(info.parent == null);
       assert(info.code != null);
       // Instead, use the content of the code.

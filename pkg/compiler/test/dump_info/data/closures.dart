@@ -3,7 +3,7 @@
   {
   "id": "constant/B.C_JS_CONST = function getTagFallback(o) {\n  var s = Object.prototype.toString.call(o);\n  return s.substring(8, s.length - 1);\n};\n",
   "kind": "constant",
-  "name": null,
+  "name": "",
   "size": 131,
   "outputUnit": "outputUnit/main",
   "code": "B.C_JS_CONST = function getTagFallback(o) {\n  var s = Object.prototype.toString.call(o);\n  return s.substring(8, s.length - 1);\n};\n"
@@ -11,7 +11,7 @@
   {
   "id": "constant/B.Interceptor_methods = J.Interceptor.prototype;\n",
   "kind": "constant",
-  "name": null,
+  "name": "",
   "size": 49,
   "outputUnit": "outputUnit/main",
   "code": "B.Interceptor_methods = J.Interceptor.prototype;\n"
@@ -19,7 +19,7 @@
   {
   "id": "constant/B.JSArray_methods = J.JSArray.prototype;\n",
   "kind": "constant",
-  "name": null,
+  "name": "",
   "size": 41,
   "outputUnit": "outputUnit/main",
   "code": "B.JSArray_methods = J.JSArray.prototype;\n"
@@ -27,7 +27,7 @@
   {
   "id": "constant/B.JSString_methods = J.JSString.prototype;\n",
   "kind": "constant",
-  "name": null,
+  "name": "",
   "size": 43,
   "outputUnit": "outputUnit/main",
   "code": "B.JSString_methods = J.JSString.prototype;\n"
@@ -35,7 +35,7 @@
   {
   "id": "constant/B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n",
   "kind": "constant",
-  "name": null,
+  "name": "",
   "size": 59,
   "outputUnit": "outputUnit/main",
   "code": "B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n"
@@ -216,7 +216,8 @@ class Class1<T> {
   "sideEffects": "SideEffects(reads nothing; writes field)",
   "inlinedCount": 0,
   "code": "Class1$($T) {\n      var t1 = new A.Class1(new A.Class1_field_closure($T), null, $T._eval$1(\"Class1<0>\"));\n      t1.Class1$0($T);\n      return t1;\n    }",
-  "type": "dynamic Function()"
+  "type": "dynamic Function()",
+  "functionKind": 3
 }],
    holding=[
     {"id":"function/dart:_rti::Rti._eval","mask":null},
@@ -255,7 +256,8 @@ class Class1<T> {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
   "code": "Class1$setFunc(funcField, $T) {\n      return new A.Class1(new A.Class1_field_closure($T), funcField, $T._eval$1(\"Class1<0>\"));\n    }",
-  "type": "dynamic Function(dynamic)"
+  "type": "dynamic Function(dynamic)",
+  "functionKind": 3
 }],
    holding=[
     {"id":"function/dart:_rti::Rti._eval","mask":null},
@@ -284,7 +286,8 @@ class Class1<T> {
   "sideEffects": "SideEffects(reads nothing; writes field)",
   "inlinedCount": 1,
   "code": "",
-  "type": "Class1<#A> Function<#A extends Object?>()"
+  "type": "Class1<#A> Function<#A extends Object?>()",
+  "functionKind": 3
 }]*/
   factory Class1.fact() => new Class1<T>();
   /*member: Class1.fact2:
@@ -319,7 +322,8 @@ class Class1<T> {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
   "code": "Class1_Class1$fact2($T) {\n      return A.Class1$setFunc(new A.Class1_Class1$fact2_closure($T), $T);\n    }",
-  "type": "Class1<#A> Function<#A extends Object?>()"
+  "type": "Class1<#A> Function<#A extends Object?>()",
+  "functionKind": 3
 }],
    holding=[
     {"id":"function/dart:_rti::_setArrayType","mask":null},
@@ -349,7 +353,8 @@ class Class1<T> {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
   "code": "",
-  "type": "dynamic Function()"
+  "type": "dynamic Function()",
+  "functionKind": 2
 }]*/
   method1() => T;
   /*member: Class1.method2:
@@ -384,7 +389,8 @@ class Class1<T> {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
   "code": "method2$0() {\n      return new A.Class1_method2_closure(this);\n    }",
-  "type": "dynamic Function()"
+  "type": "dynamic Function()",
+  "functionKind": 2
 }],
    holding=[
     {"id":"function/dart:_rti::_setArrayType","mask":null},
@@ -415,7 +421,8 @@ class Class1<T> {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
   "code": "",
-  "type": "dynamic Function<#A extends Object?>()"
+  "type": "dynamic Function<#A extends Object?>()",
+  "functionKind": 2
 }]*/
   method3<S>() => S;
   /*member: Class1.method4:
@@ -450,7 +457,8 @@ class Class1<T> {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
   "code": "method4$1$0($S) {\n      return new A.Class1_method4_closure($S);\n    }",
-  "type": "dynamic Function<#A extends Object?>()"
+  "type": "dynamic Function<#A extends Object?>()",
+  "functionKind": 2
 }],
    holding=[
     {"id":"function/dart:_rti::_setArrayType","mask":null},
@@ -504,7 +512,8 @@ class Class1<T> {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
   "code": "method5$0() {\n      return new A.Class1_method5_local().call$1$0(type$.double);\n    }",
-  "type": "dynamic Function()"
+  "type": "dynamic Function()",
+  "functionKind": 2
 }],
    holding=[
     {"id":"function/dart:_rti::_setArrayType","mask":null},
@@ -583,7 +592,8 @@ class Class1<T> {
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,
   "code": "method6$1$0($S) {\n      return new A.Class1_method6_closure(this, $S).call$1(new A.Class1_method6_local($S).call$1$0(type$.double));\n    }",
-  "type": "dynamic Function<#A extends Object?>()"
+  "type": "dynamic Function<#A extends Object?>()",
+  "functionKind": 2
 }],
    holding=[
     {"id":"function/dart:_rti::_setArrayType","mask":null},
@@ -624,7 +634,8 @@ class Class1<T> {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
   "code": "",
-  "type": "dynamic Function<#A extends Object?>()"
+  "type": "dynamic Function<#A extends Object?>()",
+  "functionKind": 0
 }]*/
   static staticMethod1<S>() => S;
   /*member: Class1.staticMethod2:
@@ -659,7 +670,8 @@ class Class1<T> {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
   "code": "Class1_staticMethod2($S) {\n      return new A.Class1_staticMethod2_closure($S);\n    }",
-  "type": "dynamic Function<#A extends Object?>()"
+  "type": "dynamic Function<#A extends Object?>()",
+  "functionKind": 0
 }],
    holding=[
     {"id":"function/dart:_rti::_setArrayType","mask":null},
@@ -713,7 +725,8 @@ class Class1<T> {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
   "code": "Class1_staticMethod3() {\n      return new A.Class1_staticMethod3_local().call$1$0(type$.double);\n    }",
-  "type": "dynamic Function()"
+  "type": "dynamic Function()",
+  "functionKind": 0
 }],
    holding=[
     {"id":"function/dart:_rti::_setArrayType","mask":null},
@@ -792,7 +805,8 @@ class Class1<T> {
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,
   "code": "Class1_staticMethod4($S) {\n      return new A.Class1_staticMethod4_closure($S).call$1(new A.Class1_staticMethod4_local($S).call$1$0(type$.double));\n    }",
-  "type": "dynamic Function<#A extends Object?>()"
+  "type": "dynamic Function<#A extends Object?>()",
+  "functionKind": 0
 }],
    holding=[
     {"id":"function/dart:_rti::_setArrayType","mask":null},
@@ -834,7 +848,8 @@ class Class1<T> {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
   "code": "",
-  "type": "dynamic Function<#A extends Object?>()"
+  "type": "dynamic Function<#A extends Object?>()",
+  "functionKind": 0
 }]*/
 topLevelMethod1<S>() => S;
 
@@ -870,7 +885,8 @@ topLevelMethod1<S>() => S;
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
   "code": "topLevelMethod2($S) {\n      return new A.topLevelMethod2_closure($S);\n    }",
-  "type": "dynamic Function<#A extends Object?>()"
+  "type": "dynamic Function<#A extends Object?>()",
+  "functionKind": 0
 }],
  holding=[
   {"id":"function/dart:_rti::_setArrayType","mask":null},
@@ -924,7 +940,8 @@ topLevelMethod2<S>() {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
   "code": "topLevelMethod3() {\n      return new A.topLevelMethod3_local().call$1$0(type$.double);\n    }",
-  "type": "dynamic Function()"
+  "type": "dynamic Function()",
+  "functionKind": 0
 }],
  holding=[
   {"id":"function/dart:_rti::_setArrayType","mask":null},
@@ -1003,7 +1020,8 @@ topLevelMethod3() {
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,
   "code": "topLevelMethod4($S) {\n      return new A.topLevelMethod4_closure($S).call$1(new A.topLevelMethod4_local($S).call$1$0(type$.double));\n    }",
-  "type": "dynamic Function<#A extends Object?>()"
+  "type": "dynamic Function<#A extends Object?>()",
+  "functionKind": 0
 }],
  holding=[
   {"id":"function/dart:_rti::_setArrayType","mask":null},
@@ -1067,7 +1085,8 @@ topLevelMethod4<S>() {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
   "code": "twoLocals() {\n      return new A.twoLocals_local2(new A.twoLocals_local1());\n    }",
-  "type": "dynamic Function()"
+  "type": "dynamic Function()",
+  "functionKind": 0
 }],
  holding=[
   {"id":"function/dart:_rti::_setArrayType","mask":null},
@@ -1125,7 +1144,8 @@ dynamic twoLocals() {
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,
   "code": "nested() {\n      var t1 = {};\n      t1.x = null;\n      new A.nested_nested1(t1).call$0();\n      t1.x.call$0();\n    }",
-  "type": "dynamic Function()"
+  "type": "dynamic Function()",
+  "functionKind": 0
 }],
  holding=[
   {"id":"function/dart:_rti::_setArrayType","mask":null},
@@ -1196,7 +1216,8 @@ dynamic nested() {
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,
   "code": "nested2() {\n      A.print(new A.nested2_local1().call$0());\n    }",
-  "type": "dynamic Function()"
+  "type": "dynamic Function()",
+  "functionKind": 0
 }],
  holding=[
   {"id":"function/dart:_rti::_setArrayType","mask":null},
@@ -1267,7 +1288,8 @@ dynamic nested2() {
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,
   "code": "siblings() {\n      A.print(new A.siblings_local1().call$0());\n    }",
-  "type": "dynamic Function()"
+  "type": "dynamic Function()",
+  "functionKind": 0
 }],
  holding=[
   {"id":"function/dart:_rti::_setArrayType","mask":null},
@@ -1307,7 +1329,8 @@ dynamic siblings() {
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,
   "code": "main() {\n      var t2,\n        t1 = type$.int;\n      A.createRuntimeType(A.Class1$(t1).$ti._precomputed1);\n      A.Class1$(t1).method2$0();\n      A.Class1_Class1$fact2(t1).funcField.call$0();\n      A.Class1$(t1);\n      t2 = type$.double;\n      A.createRuntimeType(t2);\n      A.Class1$(t1).method4$1$0(t2);\n      A.Class1$(t1).method5$0();\n      A.Class1$(t1).method6$1$0(t2);\n      A.createRuntimeType(t2);\n      A.Class1_staticMethod2(t2);\n      A.Class1_staticMethod3();\n      A.Class1_staticMethod4(t2);\n      A.createRuntimeType(t2);\n      A.topLevelMethod2(t2);\n      A.topLevelMethod3();\n      A.topLevelMethod4(t2);\n      A.twoLocals();\n      A.nested();\n      A.nested2();\n      A.siblings();\n    }",
-  "type": "dynamic Function()"
+  "type": "dynamic Function()",
+  "functionKind": 0
 }],
  holding=[
   {"id":"field/dart:_rti::Rti._precomputed1","mask":null},

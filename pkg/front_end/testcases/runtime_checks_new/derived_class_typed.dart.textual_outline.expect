@@ -1,9 +1,8 @@
-// @dart = 2.9
 library test;
 
 class B<T> {
   void f(T x) {}
-  void g({T x}) {}
+  void g({required T x}) {}
   void h<U extends T>() {}
 }
 

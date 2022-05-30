@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A {
   get A.named ()=> null;
   get bar => 1;

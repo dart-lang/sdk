@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.11
-
 /// A library to work with graphs. It contains a couple algorithms, including
 /// Tarjan's algorithm to compute strongly connected components in a graph and
 /// Cooper et al's dominator algorithm.
@@ -74,7 +72,7 @@ abstract class Graph<N> {
   /// Returns a list of nodes that form a cycle containing the given node. If
   /// the node is not part of a cycle in this graph, then a list containing only
   /// the node itself will be returned.
-  List<N> findCycleContaining(N node) {
+  List<N>? findCycleContaining(N node) {
     assert(node != null);
     _SccFinder<N> finder = _SccFinder<N>(this);
     return finder._componentContaining(node);
@@ -105,10 +103,10 @@ abstract class Graph<N> {
   /// Internally we compute dominators using (Cooper, Harvey, and Kennedy's
   /// algorithm)[http://www.cs.rice.edu/~keith/EMBED/dom.pdf].
   Graph<N> dominatorTree(N root) {
-    var iDom = (_DominatorFinder(this)..run(root)).immediateDominators;
-    var graph = EdgeListGraph<N>();
+    final iDom = (_DominatorFinder(this)..run(root)).immediateDominators;
+    final graph = EdgeListGraph<N>();
     for (N node in iDom.keys) {
-      if (node != root) graph.addEdge(iDom[node], node);
+      if (node != root) graph.addEdge(iDom[node] as N, node);
     }
     return graph;
   }
@@ -136,12 +134,10 @@ class EdgeListGraph<N> extends Graph<N> {
   Iterable<N> sourcesOf(N source) => _revEdges[source] ?? _empty;
 
   void addEdge(N source, N target) {
-    assert(source != null);
-    assert(target != null);
     addNode(source);
     addNode(target);
-    _edges[source].add(target);
-    _revEdges[target].add(source);
+    _edges[source]!.add(target);
+    _revEdges[target]!.add(source);
   }
 
   void addNode(N node) {
@@ -165,7 +161,7 @@ class EdgeListGraph<N> extends Graph<N> {
     var sources = _revEdges[node];
     if (sources == null) return;
     for (var source in sources) {
-      _edges[source].remove(node);
+      _edges[source]!.remove(node);
     }
   }
 
@@ -189,7 +185,7 @@ class _NodeInfo<N> {
   bool onStack = false;
 
   /// Component that contains the corresponding node.
-  List<N> component;
+  List<N>? component;
 
   _NodeInfo(int depth)
       : index = depth,
@@ -221,7 +217,7 @@ class _SccFinder<N> {
 
   /// Return a list containing the nodes that are part of the strongly connected
   /// component that contains the given node.
-  List<N> _componentContaining(N node) => _strongConnect(node).component;
+  List<N>? _componentContaining(N node) => _strongConnect(node).component;
 
   /// Run Tarjan's algorithm and return the resulting list of strongly connected
   /// components. The list is in topological sort order (each node in a strongly
@@ -238,13 +234,13 @@ class _SccFinder<N> {
   /// Remove and return the top-most element from the stack.
   N _pop() {
     N node = _stack.removeAt(_stack.length - 1);
-    _info[node].onStack = false;
+    _info[node]!.onStack = false;
     return node;
   }
 
   /// Add the given node to the stack.
   void _push(N node) {
-    _info[node].onStack = true;
+    _info[node]!.onStack = true;
     _stack.add(node);
   }
 
@@ -276,7 +272,7 @@ class _SccFinder<N> {
       do {
         w = _pop();
         component.add(w);
-        _info[w].component = component;
+        _info[w]!.component = component;
       } while (!identical(w, v));
       _allComponents.add(component);
     }
@@ -306,7 +302,7 @@ class _DominatorFinder<N> {
       for (var n in nodesInReversedPostOrder) {
         if (n == root) continue;
         bool first = true;
-        N idom;
+        late N idom;
         for (var p in _graph.sourcesOf(n)) {
           if (immediateDominators[p] != null) {
             if (first) {
@@ -329,11 +325,11 @@ class _DominatorFinder<N> {
     var finger1 = b1;
     var finger2 = b2;
     while (finger1 != finger2) {
-      while (postOrderId[finger1] < postOrderId[finger2]) {
-        finger1 = immediateDominators[finger1];
+      while (postOrderId[finger1]! < postOrderId[finger2]!) {
+        finger1 = immediateDominators[finger1] as N;
       }
-      while (postOrderId[finger2] < postOrderId[finger1]) {
-        finger2 = immediateDominators[finger2];
+      while (postOrderId[finger2]! < postOrderId[finger1]!) {
+        finger2 = immediateDominators[finger2] as N;
       }
     }
     return finger1;

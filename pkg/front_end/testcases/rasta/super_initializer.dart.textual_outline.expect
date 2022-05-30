@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Super {
   Super.arg0();
   Super.arg1(a);

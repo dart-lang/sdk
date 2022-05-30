@@ -1,0 +1,9 @@
+library;
+import self as self;
+
+static method test(dynamic value) → dynamic
+  ;
+static method testEmptyCases(dynamic value) → dynamic
+  ;
+static method main() → dynamic
+  ;

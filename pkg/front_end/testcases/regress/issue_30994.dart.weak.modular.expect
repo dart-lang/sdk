@@ -1,4 +1,4 @@
-library lib;
+library lib /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -32,13 +32,13 @@ library lib;
 //
 import self as self;
 
-part org-dartlang-malformed-uri:bad247;
-part org-dartlang-malformed-uri:bad260;
-part org-dartlang-malformed-uri:bad277;
-part org-dartlang-malformed-uri:bad294;
-part org-dartlang-malformed-uri:bad310;
-part org-dartlang-malformed-uri:bad331;
-part org-dartlang-malformed-uri:bad360;
+part org-dartlang-malformed-uri:bad235;
+part org-dartlang-malformed-uri:bad248;
+part org-dartlang-malformed-uri:bad265;
+part org-dartlang-malformed-uri:bad282;
+part org-dartlang-malformed-uri:bad298;
+part org-dartlang-malformed-uri:bad319;
+part org-dartlang-malformed-uri:bad348;
 static method main() → dynamic {}
 
 library /*isNonNullableByDefault*/;

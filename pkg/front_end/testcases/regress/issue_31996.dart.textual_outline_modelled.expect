@@ -1,4 +1,3 @@
-// @dart = 2.9
 abstract class B<T> {}
 
 abstract class C<T> {}

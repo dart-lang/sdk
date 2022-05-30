@@ -183,6 +183,7 @@ class BinaryPrinter implements InfoVisitor<void> {
   void visitFunction(FunctionInfo function) {
     sink.writeCached(function, (FunctionInfo info) {
       _visitBasicInfo(info);
+      sink.writeInt(info.functionKind);
       sink.writeList(info.closures, visitClosure);
       _visitFunctionModifiers(info.modifiers);
       sink.writeString(info.returnType);
@@ -279,14 +280,14 @@ class BinaryReader {
           "$version.$minorVersion, but decoded with "
           "${info.version}.${info.minorVersion}");
     }
-    info.libraries = source.readList(readLibrary);
-    info.classes = source.readList(readClass);
-    info.classTypes = source.readList(readClassType);
-    info.functions = source.readList(readFunction);
-    info.typedefs = source.readList(readTypedef);
-    info.fields = source.readList(readField);
-    info.constants = source.readList(readConstant);
-    info.closures = source.readList(readClosure);
+    info.libraries.addAll(source.readList(readLibrary));
+    info.classes.addAll(source.readList(readClass));
+    info.classTypes.addAll(source.readList(readClassType));
+    info.functions.addAll(source.readList(readFunction));
+    info.typedefs.addAll(source.readList(readTypedef));
+    info.fields.addAll(source.readList(readField));
+    info.constants.addAll(source.readList(readConstant));
+    info.closures.addAll(source.readList(readClosure));
 
     void readDependencies(CodeInfo info) {
       info.uses = source.readList(_readDependencyInfo);
@@ -303,7 +304,7 @@ class BinaryReader {
       dependenciesTotal--;
     }
 
-    info.outputUnits = source.readList(readOutput);
+    info.outputUnits.addAll(source.readList(readOutput));
 
     Map<String, Map<String, dynamic>> map =
         jsonDecode(source.readString()).cast<String, Map<String, dynamic>>();
@@ -324,21 +325,33 @@ class BinaryReader {
   }
 
   ProgramInfo readProgram() {
-    var info = ProgramInfo();
-    info.entrypoint = readFunction();
-    info.size = source.readInt();
-    info.dart2jsVersion = source.readStringOrNull();
-    info.compilationMoment = readDate();
-    info.compilationDuration = readDuration();
-    info.toJsonDuration = Duration(microseconds: 0);
-    info.dumpInfoDuration = readDuration();
-    info.noSuchMethodEnabled = source.readBool();
-    info.isRuntimeTypeUsed = source.readBool();
-    info.isIsolateInUse = source.readBool();
-    info.isFunctionApplyUsed = source.readBool();
-    info.isMirrorsUsed = source.readBool();
-    info.minified = source.readBool();
-    return info;
+    final entrypoint = readFunction();
+    final size = source.readInt();
+    final dart2jsVersion = source.readStringOrNull();
+    final compilationMoment = readDate();
+    final compilationDuration = readDuration();
+    final toJsonDuration = Duration(microseconds: 0);
+    final dumpInfoDuration = readDuration();
+    final noSuchMethodEnabled = source.readBool();
+    final isRuntimeTypeUsed = source.readBool();
+    final isIsolateInUse = source.readBool();
+    final isFunctionApplyUsed = source.readBool();
+    final isMirrorsUsed = source.readBool();
+    final minified = source.readBool();
+    return ProgramInfo(
+        entrypoint: entrypoint,
+        size: size,
+        dart2jsVersion: dart2jsVersion,
+        compilationMoment: compilationMoment,
+        compilationDuration: compilationDuration,
+        toJsonDuration: toJsonDuration,
+        dumpInfoDuration: dumpInfoDuration,
+        noSuchMethodEnabled: noSuchMethodEnabled,
+        isRuntimeTypeUsed: isRuntimeTypeUsed,
+        isIsolateInUse: isIsolateInUse,
+        isFunctionApplyUsed: isFunctionApplyUsed,
+        isMirrorsUsed: isMirrorsUsed,
+        minified: minified);
   }
 
   void _readBasicInfo(BasicInfo info) {
@@ -353,11 +366,11 @@ class BinaryReader {
         LibraryInfo info = LibraryInfo.internal();
         info.uri = source.readUri();
         _readBasicInfo(info);
-        info.topLevelFunctions = source.readList(readFunction);
-        info.topLevelVariables = source.readList(readField);
-        info.classes = source.readList(readClass);
-        info.classTypes = source.readList(readClassType);
-        info.typedefs = source.readList(readTypedef);
+        info.topLevelFunctions.addAll(source.readList(readFunction));
+        info.topLevelVariables.addAll(source.readList(readField));
+        info.classes.addAll(source.readList(readClass));
+        info.classTypes.addAll(source.readList(readClassType));
+        info.typedefs.addAll(source.readList(readTypedef));
 
         setParent(BasicInfo child) => child.parent = info;
         info.topLevelFunctions.forEach(setParent);
@@ -372,8 +385,8 @@ class BinaryReader {
         ClassInfo info = ClassInfo.internal();
         _readBasicInfo(info);
         info.isAbstract = source.readBool();
-        info.fields = source.readList(readField);
-        info.functions = source.readList(readFunction);
+        info.fields.addAll(source.readList(readField));
+        info.functions.addAll(source.readList(readFunction));
 
         setParent(BasicInfo child) => child.parent = info;
         info.fields.forEach(setParent);
@@ -405,10 +418,10 @@ class BinaryReader {
       });
 
   CodeSpan _readCodeSpan() {
-    return CodeSpan()
-      ..start = source.readIntOrNull()
-      ..end = source.readIntOrNull()
-      ..text = source.readStringOrNull();
+    final start = source.readIntOrNull();
+    final end = source.readIntOrNull();
+    final text = source.readStringOrNull();
+    return CodeSpan(start: start, end: end, text: text);
   }
 
   ConstantInfo _readConstantOrNull() {
@@ -441,6 +454,7 @@ class BinaryReader {
   FunctionInfo readFunction() => source.readCached<FunctionInfo>(() {
         FunctionInfo info = FunctionInfo.internal();
         _readBasicInfo(info);
+        info.functionKind = source.readInt();
         info.closures = source.readList(readClosure);
         info.modifiers = _readFunctionModifiers();
         info.returnType = source.readString();
@@ -484,7 +498,7 @@ class BinaryReader {
         OutputUnitInfo info = OutputUnitInfo.internal();
         _readBasicInfo(info);
         info.filename = source.readStringOrNull();
-        info.imports = source.readList(source.readString);
+        info.imports.addAll(source.readList(source.readString));
         return info;
       });
 }

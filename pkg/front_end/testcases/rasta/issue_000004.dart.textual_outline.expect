@@ -1,8 +1,7 @@
-// @dart = 2.9
 import 'package:expect/expect.dart';
 
 fact4() {}
 fact5() {}
-var global;
+int global = 0;
 fact6() {}
 main() {}

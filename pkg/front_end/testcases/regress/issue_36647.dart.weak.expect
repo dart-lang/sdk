@@ -1,10 +1,10 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 
 import "org-dartlang-testcase:///issue_36647_lib1.dart";
 
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self2;
 import "issue_36647_lib2.dart" as iss;
 additionalExports = (iss::xxx,
@@ -16,7 +16,7 @@ additionalExports = (iss::xxx,
 export "org-dartlang-testcase:///issue_36647_lib2.dart";
 
 
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -67,19 +67,9 @@ import self as iss;
 import "dart:core" as core;
 
 class xxx extends core::Object {
-  synthetic constructor •() → iss::xxx*
+  synthetic constructor •() → iss::xxx
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static field invalid-type XXX;
 static field dynamic extends;

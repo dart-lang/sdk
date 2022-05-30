@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -47,7 +47,7 @@ import "dart:core" as core;
 
 static method f1() → invalid-type
   ;
-static method Future<List extends core::Object* = dynamic>() → invalid-type
+static method Future<List extends core::Object? = dynamic>() → invalid-type
   ;
 static method f2() → dynamic async 
   ;

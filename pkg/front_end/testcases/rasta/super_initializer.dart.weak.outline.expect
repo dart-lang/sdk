@@ -1,31 +1,21 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class Super extends core::Object {
-  constructor arg0() → self::Super*
+  constructor arg0() → self::Super
     ;
-  constructor arg1(dynamic a) → self::Super*
+  constructor arg1(dynamic a) → self::Super
     ;
-  constructor arg2(dynamic a, dynamic b) → self::Super*
+  constructor arg2(dynamic a, dynamic b) → self::Super
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Sub extends self::Super {
   field dynamic field;
-  constructor arg0() → self::Sub*
+  constructor arg0() → self::Sub
     ;
-  constructor arg1(dynamic a) → self::Sub*
+  constructor arg1(dynamic a) → self::Sub
     ;
-  constructor arg2(dynamic a, dynamic b) → self::Sub*
+  constructor arg2(dynamic a, dynamic b) → self::Sub
     ;
 }

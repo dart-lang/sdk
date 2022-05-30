@@ -1,8 +1,7 @@
-// @dart = 2.9
 library test;
 
 class B<T> {
-  T x;
+  T x = throw '';
 }
 
 class C extends B<num> {}

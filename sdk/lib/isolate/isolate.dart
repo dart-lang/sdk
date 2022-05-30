@@ -224,6 +224,9 @@ class Isolate {
   ///
   /// Returns a future which will complete with an [Isolate] instance if the
   /// spawning succeeded. It will complete with an error otherwise.
+  ///
+  /// One can expect the base memory overhead of an isolate to be in the order
+  /// of 30 kb.
   external static Future<Isolate> spawn<T>(
       void entryPoint(T message), T message,
       {bool paused = false,

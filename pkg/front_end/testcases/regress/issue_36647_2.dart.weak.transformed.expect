@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "issue_36647_2_lib1.dart" as iss;
 additionalExports = (iss::foo,
@@ -9,7 +9,7 @@ additionalExports = (iss::foo,
 export "org-dartlang-testcase:///issue_36647_2_lib1.dart";
 
 
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -37,8 +37,8 @@ library;
 import self as iss;
 import "dart:core" as core;
 
-typedef bar = () →* core::bool*;
-static field core::int* foo;
-static method baz() → core::int* {
+typedef bar = () → core::bool;
+static field core::int foo;
+static method baz() → core::int {
   return 42;
 }

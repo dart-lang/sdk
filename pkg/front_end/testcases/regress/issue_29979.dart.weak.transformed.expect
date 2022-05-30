@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -9,5 +9,5 @@ library;
 import self as self;
 
 static method main() → dynamic {
-  (let final () →* Null f = () → Null {} in f)(){() →* Null};
+  (let final () → Null f = () → Null {} in f)(){() → Null};
 }

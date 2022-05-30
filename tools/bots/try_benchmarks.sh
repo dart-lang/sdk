@@ -137,8 +137,6 @@ for command; do
     tar -czf linux-ia32.tar.gz \
       --exclude .git \
       --exclude .gitignore \
-      --exclude pkg/analysis_server/language_model \
-      --exclude out/ReleaseIA32/dart-sdk/bin/model \
       --exclude pkg/front_end/testcases \
       -- \
       out/ReleaseIA32/dart2js_platform.dill \
@@ -280,8 +278,6 @@ EOF
     tar -czf linux-x64.tar.gz \
       --exclude .git \
       --exclude .gitignore \
-      --exclude pkg/analysis_server/language_model \
-      --exclude out/ReleaseX64/dart-sdk/bin/model \
       --exclude pkg/front_end/testcases \
       -- \
       out/ReleaseX64/dart2js_platform.dill \

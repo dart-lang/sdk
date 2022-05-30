@@ -1,34 +1,34 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/regress/issue_31188.dart:7:18: Error: Expected ';' after this.
+// pkg/front_end/testcases/regress/issue_31188.dart:9:18: Error: Expected ';' after this.
 // type T = Map<A, B>
 //                  ^
 //
-// pkg/front_end/testcases/regress/issue_31188.dart:7:1: Error: Type 'type' not found.
+// pkg/front_end/testcases/regress/issue_31188.dart:9:1: Error: Type 'type' not found.
 // type T = Map<A, B>
 // ^^^^
 //
-// pkg/front_end/testcases/regress/issue_31188.dart:7:1: Error: 'type' isn't a type.
+// pkg/front_end/testcases/regress/issue_31188.dart:9:1: Error: 'type' isn't a type.
 // type T = Map<A, B>
 // ^^^^
 //
-// pkg/front_end/testcases/regress/issue_31188.dart:7:14: Error: 'A' isn't a type.
+// pkg/front_end/testcases/regress/issue_31188.dart:9:14: Error: 'A' isn't a type.
 // type T = Map<A, B>
 //              ^
 //
-// pkg/front_end/testcases/regress/issue_31188.dart:7:17: Error: 'B' isn't a type.
+// pkg/front_end/testcases/regress/issue_31188.dart:9:17: Error: 'B' isn't a type.
 // type T = Map<A, B>
 //                 ^
 //
-// pkg/front_end/testcases/regress/issue_31188.dart:7:13: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// pkg/front_end/testcases/regress/issue_31188.dart:9:13: Error: The 'constructor-tearoffs' language feature is disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
 // type T = Map<A, B>
 //             ^
-// pkg/front_end/testcases/regress/issue_31188.dart:4:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
-// // @dart=2.9
-// ^^^^^^^^^^^^
+// pkg/front_end/testcases/regress/issue_31188.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

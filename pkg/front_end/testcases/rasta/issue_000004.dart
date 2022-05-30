@@ -1,7 +1,7 @@
 // Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
-// @dart=2.9
+
 import 'package:expect/expect.dart';
 
 fact4() {
@@ -13,14 +13,14 @@ fact4() {
 }
 
 fact5() {
-  var f = 1, n;
+  int f = 1, n;
   for (n in [1, 2, 3, 4, 5]) {
     f *= n;
   }
   return f;
 }
 
-var global;
+int global = 0;
 fact6() {
   var f = 1;
   for (global in [1, 2, 3, 4, 5, 6]) {

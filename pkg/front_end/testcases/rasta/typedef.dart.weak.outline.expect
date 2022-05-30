@@ -1,6 +1,6 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 
-typedef Foo = () →* void;
+typedef Foo = () → void;
 static method main() → dynamic
   ;

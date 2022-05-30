@@ -5053,16 +5053,20 @@ main() {
   }
 
   test_error_undefinedMethod_typeLiteral_conditional() async {
-    // When applied to a type literal, the conditional access operator '?.'
-    // cannot be used to access instance methods of Type.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 main() {
   A?.toString();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 8),
-    ]);
+''',
+      expectedErrorsByNullability(nullable: [
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 23, 2),
+        error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 8),
+      ], legacy: [
+        error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 8),
+      ]),
+    );
   }
 
   test_error_undefinedSuperMethod() async {

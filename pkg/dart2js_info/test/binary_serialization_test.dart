@@ -28,6 +28,8 @@ main() {
       var helloWorld = File.fromUri(uri);
       var contents = helloWorld.readAsStringSync();
       var json = jsonDecode(contents);
+      // Clear toJsonDuration for consistency.
+      json['program']['toJsonDuration'] = 0;
       var info = AllInfoJsonCodec().decode(json);
 
       var sink = ByteSink();
@@ -35,7 +37,6 @@ main() {
       var info2 = binary.decode(sink.builder.toBytes());
       var json2 = AllInfoJsonCodec().encode(info2);
 
-      info.program.toJsonDuration = Duration(milliseconds: 0);
       var json1 = AllInfoJsonCodec().encode(info);
       var contents1 = const JsonEncoder.withIndent("  ").convert(json1);
       var contents2 = const JsonEncoder.withIndent("  ").convert(json2);

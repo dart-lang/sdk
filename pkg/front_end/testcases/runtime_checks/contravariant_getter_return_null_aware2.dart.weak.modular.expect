@@ -1,0 +1,36 @@
+library test /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/runtime_checks/contravariant_getter_return_null_aware2.dart:13:13: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     return [this?.f1];
+//             ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F<contravariant T extends core::Object? = dynamic> = (T%) → void;
+class C<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T%>
+    : super core::Object::•()
+    ;
+  get f1() → (self::C::T%) → void
+    return throw "";
+  get f2() → core::List<(self::C::T%) → void> {
+    return <(self::C::T%) → void>[this.{self::C::f1}{(self::C::T%) → void}];
+  }
+}
+static method g1(self::C<core::num>? c) → void {
+  (core::num) →? void x = let final self::C<core::num>? #t1 = c in #t1 == null ?{(core::num) →? void} null : #t1{self::C<core::num>}.{self::C::f1}{(core::num) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::num) → void;
+  core::print("hello");
+  let final (core::num) →? void #t2 = x in #t2 == null ?{void} null : #t2{(core::num) → void}(1.5){(core::num) → void};
+}
+static method g2(self::C<core::num>? c) → void {
+  (core::int) →? void x = let final self::C<core::num>? #t3 = c in #t3 == null ?{(core::num) →? void} null : #t3{self::C<core::num>}.{self::C::f1}{(core::num) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::num) → void;
+  let final (core::int) →? void #t4 = x in #t4 == null ?{void} null : #t4{(core::int) → void}(1){(core::int) → void};
+}
+static method g3(self::C<core::num>? c) → void {
+  core::List<(core::num) → void>? x = let final self::C<core::num>? #t5 = c in #t5 == null ?{core::List<(core::num) → void>?} null : #t5{self::C<core::num>}.{self::C::f2}{core::List<(core::num) → void>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} core::List<(core::num) → void>;
+}
+static method main() → void {}

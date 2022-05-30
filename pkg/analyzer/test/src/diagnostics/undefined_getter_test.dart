@@ -479,15 +479,18 @@ main() {
     ]);
   }
 
-  test_static_conditionalAcces_defined() async {
-    // The conditional access operator '?.' can be used to access static
-    // fields.
-    await assertNoErrorsInCode('''
+  test_static_conditionalAccess_defined() async {
+    await assertErrorsInCode(
+      '''
 class A {
   static var x;
 }
 var a = A?.x;
-''');
+''',
+      expectedErrorsByNullability(nullable: [
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 37, 2),
+      ], legacy: []),
+    );
   }
 
   test_static_definedInSuperclass() async {
@@ -527,14 +530,18 @@ main() {
   }
 
   test_typeLiteral_conditionalAccess() async {
-    // When applied to a type literal, the conditional access operator '?.'
-    // cannot be used to access instance getters of Type.
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 f() => A?.hashCode;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 21, 8),
-    ]);
+''',
+      expectedErrorsByNullability(nullable: [
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 19, 2),
+        error(CompileTimeErrorCode.UNDEFINED_GETTER, 21, 8),
+      ], legacy: [
+        error(CompileTimeErrorCode.UNDEFINED_GETTER, 21, 8),
+      ]),
+    );
   }
 
   test_typeSubstitution_defined() async {

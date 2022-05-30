@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -11,5 +11,5 @@ import self as self;
 static method foo(dynamic a, dynamic b) → dynamic
   return null;
 static method main() → dynamic {
-  self::foo(null, let final () →* Null f = () → Null {} in f);
+  self::foo(null, let final () → Null f = () → Null {} in f);
 }

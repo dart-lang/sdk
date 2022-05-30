@@ -1,31 +1,21 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 import "mixin_library.dart" as mix;
 
 import "org-dartlang-testcase:///mixin_library.dart" show Mixin;
 
-class Super<S extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::Super<self::Super::S*>*
+class Super<S extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Super<self::Super::S%>
     : super core::Object::•()
     ;
   method foo() → dynamic
     return 40;
   method f() → dynamic
     return 3;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-abstract class _C&Super&Mixin<V extends core::Object* = dynamic> = self::Super<self::_C&Super&Mixin::V*> with mix::Mixin<self::_C&Super&Mixin::V*> /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_C&Super&Mixin<self::_C&Super&Mixin::V*>*
+abstract class _C&Super&Mixin<V extends core::Object? = dynamic> = self::Super<self::_C&Super&Mixin::V%> with mix::Mixin<self::_C&Super&Mixin::V%> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_C&Super&Mixin<self::_C&Super&Mixin::V%>
     : super self::Super::•()
     ;
   mixin-super-stub get x() → dynamic
@@ -40,13 +30,13 @@ abstract class _C&Super&Mixin<V extends core::Object* = dynamic> = self::Super<s
     return super.{mix::Mixin::z};
   mixin-super-stub set z(dynamic value) → void
     return super.{mix::Mixin::z} = value;
-  mixin-super-stub get t() → self::_C&Super&Mixin::V*
+  mixin-super-stub get t() → self::_C&Super&Mixin::V?
     return super.{mix::Mixin::t};
-  mixin-super-stub set t(covariant-by-class self::_C&Super&Mixin::V* value) → void
+  mixin-super-stub set t(covariant-by-class self::_C&Super&Mixin::V? value) → void
     return super.{mix::Mixin::t} = value;
   mixin-super-stub method foo() → dynamic
     return super.{mix::Mixin::foo}();
-  mixin-super-stub method g(covariant-by-class self::_C&Super&Mixin::V* a) → self::_C&Super&Mixin::V*
+  mixin-super-stub method g(covariant-by-class self::_C&Super&Mixin::V% a) → self::_C&Super&Mixin::V?
     return super.{mix::Mixin::g}(a);
   mixin-super-stub method h() → dynamic
     return super.{mix::Mixin::h}();
@@ -57,13 +47,13 @@ abstract class _C&Super&Mixin<V extends core::Object* = dynamic> = self::Super<s
   mixin-super-stub method publicMethod() → dynamic
     return super.{mix::Mixin::publicMethod}();
 }
-class C<V extends core::Object* = dynamic> extends self::_C&Super&Mixin<self::C::V*> {
-  synthetic constructor •() → self::C<self::C::V*>*
+class C<V extends core::Object? = dynamic> extends self::_C&Super&Mixin<self::C::V%> {
+  synthetic constructor •() → self::C<self::C::V%>
     : super self::_C&Super&Mixin::•()
     ;
 }
 abstract class _D&Super&Mixin = self::Super<dynamic> with mix::Mixin<dynamic> /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_D&Super&Mixin*
+  synthetic constructor •() → self::_D&Super&Mixin
     : super self::Super::•()
     ;
   mixin-super-stub get x() → dynamic
@@ -96,12 +86,12 @@ abstract class _D&Super&Mixin = self::Super<dynamic> with mix::Mixin<dynamic> /*
     return super.{mix::Mixin::publicMethod}();
 }
 class D extends self::_D&Super&Mixin {
-  synthetic constructor •() → self::D*
+  synthetic constructor •() → self::D
     : super self::_D&Super&Mixin::•()
     ;
 }
-class C2<V extends core::Object* = dynamic> = self::Super<self::C2::V*> with mix::Mixin<self::C2::V*> {
-  synthetic constructor •() → self::C2<self::C2::V*>*
+class C2<V extends core::Object? = dynamic> = self::Super<self::C2::V%> with mix::Mixin<self::C2::V%> {
+  synthetic constructor •() → self::C2<self::C2::V%>
     : super self::Super::•()
     ;
   mixin-super-stub get x() → dynamic
@@ -116,13 +106,13 @@ class C2<V extends core::Object* = dynamic> = self::Super<self::C2::V*> with mix
     return super.{mix::Mixin::z};
   mixin-super-stub set z(dynamic value) → void
     return super.{mix::Mixin::z} = value;
-  mixin-super-stub get t() → self::C2::V*
+  mixin-super-stub get t() → self::C2::V?
     return super.{mix::Mixin::t};
-  mixin-super-stub set t(covariant-by-class self::C2::V* value) → void
+  mixin-super-stub set t(covariant-by-class self::C2::V? value) → void
     return super.{mix::Mixin::t} = value;
   mixin-super-stub method foo() → dynamic
     return super.{mix::Mixin::foo}();
-  mixin-super-stub method g(covariant-by-class self::C2::V* a) → self::C2::V*
+  mixin-super-stub method g(covariant-by-class self::C2::V% a) → self::C2::V?
     return super.{mix::Mixin::g}(a);
   mixin-super-stub method h() → dynamic
     return super.{mix::Mixin::h}();
@@ -134,7 +124,7 @@ class C2<V extends core::Object* = dynamic> = self::Super<self::C2::V*> with mix
     return super.{mix::Mixin::publicMethod}();
 }
 class D2 = self::Super<dynamic> with mix::Mixin<dynamic> {
-  synthetic constructor •() → self::D2*
+  synthetic constructor •() → self::D2
     : super self::Super::•()
     ;
   mixin-super-stub get x() → dynamic
@@ -167,11 +157,11 @@ class D2 = self::Super<dynamic> with mix::Mixin<dynamic> {
     return super.{mix::Mixin::publicMethod}();
 }
 static method main() → dynamic {
-  core::print(new self::C::•<dynamic>().{self::_C&Super&Mixin::foo}(){() →* dynamic});
-  core::print(new self::C2::•<dynamic>().{self::C2::foo}(){() →* dynamic});
+  core::print(new self::C::•<dynamic>().{self::_C&Super&Mixin::foo}(){() → dynamic});
+  core::print(new self::C2::•<dynamic>().{self::C2::foo}(){() → dynamic});
 }
 
-library test.mixin_library;
+library test.mixin_library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -182,17 +172,17 @@ library test.mixin_library;
 import self as mix;
 import "dart:core" as core;
 
-class Mixin<T extends core::Object* = dynamic> extends core::Object {
+class Mixin<T extends core::Object? = dynamic> extends core::Object {
   field dynamic x = mix::f();
   field dynamic y = null;
   field dynamic z = null;
-  covariant-by-class field mix::Mixin::T* t = null;
-  synthetic constructor •() → mix::Mixin<mix::Mixin::T*>*
+  covariant-by-class field mix::Mixin::T? t = null;
+  synthetic constructor •() → mix::Mixin<mix::Mixin::T%>
     : super core::Object::•()
     ;
   method foo() → dynamic
     return super.foo(){dynamic}.+(mix::f());
-  method g(covariant-by-class mix::Mixin::T* a) → mix::Mixin::T*
+  method g(covariant-by-class mix::Mixin::T% a) → mix::Mixin::T?
     return null;
   method h() → dynamic
     return mix::V();
@@ -201,17 +191,7 @@ class Mixin<T extends core::Object* = dynamic> extends core::Object {
   method _privateMethod() → dynamic
     return 49;
   method publicMethod() → dynamic
-    return this.{mix::Mixin::_privateMethod}(){() →* dynamic};
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+    return this.{mix::Mixin::_privateMethod}(){() → dynamic};
 }
 static method f() → dynamic
   return 2;

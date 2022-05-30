@@ -3,7 +3,7 @@
   {
   "id": "constant/B.C_A = new A.A();\n",
   "kind": "constant",
-  "name": null,
+  "name": "",
   "size": 19,
   "outputUnit": "outputUnit/main",
   "code": "B.C_A = new A.A();\n"
@@ -11,7 +11,7 @@
   {
   "id": "constant/B.C_JS_CONST = function getTagFallback(o) {\n  var s = Object.prototype.toString.call(o);\n  return s.substring(8, s.length - 1);\n};\n",
   "kind": "constant",
-  "name": null,
+  "name": "",
   "size": 131,
   "outputUnit": "outputUnit/main",
   "code": "B.C_JS_CONST = function getTagFallback(o) {\n  var s = Object.prototype.toString.call(o);\n  return s.substring(8, s.length - 1);\n};\n"
@@ -19,7 +19,7 @@
   {
   "id": "constant/B.Interceptor_methods = J.Interceptor.prototype;\n",
   "kind": "constant",
-  "name": null,
+  "name": "",
   "size": 49,
   "outputUnit": "outputUnit/main",
   "code": "B.Interceptor_methods = J.Interceptor.prototype;\n"
@@ -27,7 +27,7 @@
   {
   "id": "constant/B.JSArray_methods = J.JSArray.prototype;\n",
   "kind": "constant",
-  "name": null,
+  "name": "",
   "size": 41,
   "outputUnit": "outputUnit/main",
   "code": "B.JSArray_methods = J.JSArray.prototype;\n"
@@ -35,7 +35,7 @@
   {
   "id": "constant/B.JSString_methods = J.JSString.prototype;\n",
   "kind": "constant",
-  "name": null,
+  "name": "",
   "size": 43,
   "outputUnit": "outputUnit/main",
   "code": "B.JSString_methods = J.JSString.prototype;\n"
@@ -43,7 +43,7 @@
   {
   "id": "constant/B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n",
   "kind": "constant",
-  "name": null,
+  "name": "",
   "size": 59,
   "outputUnit": "outputUnit/main",
   "code": "B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n"
@@ -51,7 +51,7 @@
   {
   "id": "constant/B.List_A = A._setArrayType(makeConstList([B.C_A]), A.findType(\"JSArray<A>\"));\n",
   "kind": "constant",
-  "name": null,
+  "name": "",
   "size": 78,
   "outputUnit": "outputUnit/main",
   "code": "B.List_A = A._setArrayType(makeConstList([B.C_A]), A.findType(\"JSArray<A>\"));\n"
@@ -174,7 +174,8 @@ class C {
   "sideEffects": "SideEffects(reads static; writes static)",
   "inlinedCount": 1,
   "code": "",
-  "type": "bool Function()"
+  "type": "bool Function()",
+  "functionKind": 0
 }]*/
   static bool compute() {
     C.counter += 1;
@@ -207,7 +208,8 @@ class C {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
   "code": "",
-  "type": "dynamic Function(Object)"
+  "type": "dynamic Function(Object)",
+  "functionKind": 3
 }]*/
   C._default(Object message) : value = message;
 
@@ -238,7 +240,8 @@ class C {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
   "code": "",
-  "type": "C Function(dynamic)"
+  "type": "C Function(dynamic)",
+  "functionKind": 3
 }],
    holding=[
     {"id":"function/dart:core::Error.Error","mask":"inlined"},
@@ -269,7 +272,8 @@ class C {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
   "code": "F() {\n    }\n_static_0(A, \"main__F$closure\", \"F\", 0);\n",
-  "type": "void Function()"
+  "type": "void Function()",
+  "functionKind": 0
 }]*/
 void F() {}
 
@@ -333,7 +337,8 @@ class A {
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
   "code": "",
-  "type": "dynamic Function()"
+  "type": "dynamic Function()",
+  "functionKind": 3
 }]*/
   const A() : a = "hello";
 }
@@ -375,7 +380,8 @@ final constList = const [
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,
   "code": "main() {\n      var r = [];\n      r.push([B.List_A, B.C_A, A.main__F$closure(), $.$get$C_y(), false, \"hello\"]);\n      r.push(B.C_A);\n      r.push(new A.C());\n      A.printString(A.S(r));\n    }",
-  "type": "dynamic Function()"
+  "type": "dynamic Function()",
+  "functionKind": 0
 }],
  holding=[
   {"id":"field/memory:sdk/tests/web/native/main.dart::C.y","mask":null},

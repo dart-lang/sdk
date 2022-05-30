@@ -212,14 +212,17 @@ f(var a) {
   }
 
   test_static_conditionalAccess_defined() async {
-    // The conditional access operator '?.' can be used to access static
-    // fields.
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   static var x;
 }
 f() { A?.x = 1; }
-''');
+''',
+      expectedErrorsByNullability(nullable: [
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 35, 2),
+      ], legacy: []),
+    );
   }
 
   test_static_definedInSuperclass() async {

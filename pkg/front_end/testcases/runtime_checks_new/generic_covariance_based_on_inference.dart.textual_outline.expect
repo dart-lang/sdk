@@ -1,19 +1,18 @@
-// @dart = 2.9
 library test;
 
 class B<T> {
-  T x;
-  T y;
+  T x = throw '';
+  T y = throw '';
 }
 
 abstract class C<T> implements B<num> {
-  var x;
+  var x = throw '';
   get y;
   set y(value);
 }
 
 abstract class D<T> implements B<T> {
-  var x;
+  var x = throw '';
   get y;
   set y(value);
 }

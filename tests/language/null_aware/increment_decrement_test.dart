@@ -54,6 +54,8 @@ main() {
     Expect.equals(1, C?.staticInt++);
     //               ^
     // [cfe] The class 'C' cannot be null.
+    //                ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(2, C.staticInt);
   }
   {
@@ -61,6 +63,8 @@ main() {
     Expect.equals(1, h.C?.staticInt++);
     //                 ^
     // [cfe] The class 'C' cannot be null.
+    //                  ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(2, h.C.staticInt);
   }
 
@@ -86,6 +90,8 @@ main() {
     E? e2 = D?.staticE++;
     //      ^
     // [cfe] The class 'D' cannot be null.
+    //       ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(e1, e2);
   }
   {
@@ -94,6 +100,8 @@ main() {
     h.E? e2 = h.D?.staticE++;
     //          ^
     // [cfe] The class 'D' cannot be null.
+    //           ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(e1, e2);
   }
   {
@@ -103,6 +111,8 @@ main() {
     //     ^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     // [cfe] The class 'D' cannot be null.
+    //      ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //               ^
     // [cfe] A value of type 'E' can't be assigned to a variable of type 'F?'.
     Expect.identical(f, g);
@@ -115,6 +125,8 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //         ^
     // [cfe] The class 'D' cannot be null.
+    //          ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //                   ^
     // [cfe] A value of type 'E' can't be assigned to a variable of type 'F?'.
     Expect.identical(f, g);
@@ -134,6 +146,8 @@ main() {
     Expect.equals(1, C?.staticInt--);
     //               ^
     // [cfe] The class 'C' cannot be null.
+    //                ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(0, C.staticInt);
   }
   {
@@ -141,6 +155,8 @@ main() {
     Expect.equals(1, h.C?.staticInt--);
     //                 ^
     // [cfe] The class 'C' cannot be null.
+    //                  ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(0, h.C.staticInt);
   }
 
@@ -166,6 +182,8 @@ main() {
     E? e2 = D?.staticE--;
     //      ^
     // [cfe] The class 'D' cannot be null.
+    //       ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(e1, e2);
   }
   {
@@ -174,6 +192,8 @@ main() {
     h.E? e2 = h.D?.staticE--;
     //          ^
     // [cfe] The class 'D' cannot be null.
+    //           ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(e1, e2);
   }
   {
@@ -183,6 +203,8 @@ main() {
     //     ^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     // [cfe] The class 'D' cannot be null.
+    //      ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //               ^
     // [cfe] A value of type 'E' can't be assigned to a variable of type 'F?'.
     Expect.identical(f, g);
@@ -195,6 +217,8 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //         ^
     // [cfe] The class 'D' cannot be null.
+    //          ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //                   ^
     // [cfe] A value of type 'E' can't be assigned to a variable of type 'F?'.
     Expect.identical(f, g);
@@ -214,6 +238,8 @@ main() {
     Expect.equals(2, ++C?.staticInt);
     //                 ^
     // [cfe] The class 'C' cannot be null.
+    //                  ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(2, C.staticInt);
   }
   {
@@ -221,6 +247,8 @@ main() {
     Expect.equals(2, ++h.C?.staticInt);
     //                   ^
     // [cfe] The class 'C' cannot be null.
+    //                    ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(2, h.C.staticInt);
   }
 
@@ -244,6 +272,8 @@ main() {
     F? f = ++D?.staticE;
     //       ^
     // [cfe] The class 'D' cannot be null.
+    //        ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(D.staticE, f);
   }
   {
@@ -251,6 +281,8 @@ main() {
     h.F? f = ++h.D?.staticE;
     //           ^
     // [cfe] The class 'D' cannot be null.
+    //            ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(h.D.staticE, f);
   }
   {
@@ -260,6 +292,8 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //       ^
     // [cfe] The class 'D' cannot be null.
+    //        ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //          ^
     // [cfe] A value of type 'G' can't be assigned to a variable of type 'H?'.
     Expect.identical(D.staticE, h);
@@ -271,6 +305,8 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //            ^
     // [cfe] The class 'D' cannot be null.
+    //             ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //               ^
     // [cfe] A value of type 'G' can't be assigned to a variable of type 'H?'.
     Expect.identical(h.D.staticE, hh);
@@ -290,6 +326,8 @@ main() {
     Expect.equals(0, --C?.staticInt);
     //                 ^
     // [cfe] The class 'C' cannot be null.
+    //                  ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(0, C.staticInt);
   }
   {
@@ -297,6 +335,8 @@ main() {
     Expect.equals(0, --h.C?.staticInt);
     //                   ^
     // [cfe] The class 'C' cannot be null.
+    //                    ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(0, h.C.staticInt);
   }
 
@@ -320,6 +360,8 @@ main() {
     F? f = --D?.staticE;
     //       ^
     // [cfe] The class 'D' cannot be null.
+    //        ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(D.staticE, f);
   }
   {
@@ -327,6 +369,8 @@ main() {
     h.F? f = --h.D?.staticE;
     //           ^
     // [cfe] The class 'D' cannot be null.
+    //            ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(h.D.staticE, f);
   }
   {
@@ -336,6 +380,8 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //       ^
     // [cfe] The class 'D' cannot be null.
+    //        ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //          ^
     // [cfe] A value of type 'G' can't be assigned to a variable of type 'H?'.
     Expect.identical(D.staticE, h);
@@ -347,6 +393,8 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //            ^
     // [cfe] The class 'D' cannot be null.
+    //             ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //               ^
     // [cfe] A value of type 'G' can't be assigned to a variable of type 'H?'.
     Expect.identical(h.D.staticE, hh);

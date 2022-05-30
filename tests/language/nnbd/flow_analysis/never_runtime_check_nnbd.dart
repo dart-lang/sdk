@@ -227,7 +227,8 @@ int? ifNullAssignNullAwareField(C? c, int f()) {
 }
 
 int ifNullAssignNullAwareStatic(int f()) {
-  return C?.staticField ??= f(); // ignore: dead_null_aware_expression
+  // ignore: dead_null_aware_expression, invalid_null_aware_operator
+  return C?.staticField ??= f();
 }
 
 void unnecessaryNullAwareAccess(int f()) {

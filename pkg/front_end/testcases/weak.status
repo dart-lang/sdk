@@ -242,7 +242,6 @@ rasta/issue_000036: RuntimeError
 rasta/issue_000041: RuntimeError
 rasta/issue_000042: RuntimeError
 rasta/issue_000044: RuntimeError
-rasta/issue_000081: RuntimeError
 rasta/malformed_const_constructor: RuntimeError
 rasta/malformed_function: RuntimeError
 rasta/mixin_library: TypeCheckError
@@ -260,11 +259,11 @@ rasta/unresolved_recovery: TypeCheckError
 regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_31180: TypeCheckError
+regress/issue_31180_2: TypeCheckError
 regress/issue_32972: RuntimeError
 regress/issue_33452: RuntimeError # Test has an intentional error
 regress/issue_34225: RuntimeError
 regress/issue_34563: RuntimeError # Test execution after recovery
-regress/issue_35177: RuntimeError
 regress/issue_35258: RuntimeError # Expected
 regress/issue_35259: RuntimeError # Expected
 regress/issue_35260: RuntimeError # Expected
@@ -274,6 +273,7 @@ regress/issue_39091_2: RuntimeError
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
 set_literals/disambiguation_rule: RuntimeError
+set_literals/disambiguation_rule2: RuntimeError
 value_class/copy_with_call_sites: RuntimeError # Expected
 value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected

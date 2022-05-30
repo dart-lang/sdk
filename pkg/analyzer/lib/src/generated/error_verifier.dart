@@ -4518,6 +4518,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         return;
       }
     } else if (targetType == null) {
+      if (target is Identifier) {
+        final targetElement = target.staticElement;
+        if (targetElement is ClassElement ||
+            targetElement is ExtensionElement ||
+            targetElement is TypeAliasElement) {
+          errorReporter.reportErrorForOffset(
+            errorCode,
+            operator.offset,
+            endToken.end - operator.offset,
+            arguments,
+          );
+        }
+      }
       return;
     }
 

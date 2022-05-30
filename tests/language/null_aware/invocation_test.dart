@@ -35,7 +35,11 @@ main() {
 
   // C?.m(...) is equivalent to C.m(...).
   Expect.equals(1, C?.staticF(() => 1));
+  //                ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   Expect.equals(1, h.C?.staticF(() => 1));
+  //                  ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
   // The static type of o?.m(...) is the same as the static type of
   // o.m(...).
@@ -51,15 +55,23 @@ main() {
   //            ^
   // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
   { int? i = C?.staticG(() => 1); Expect.equals(1, i); }
+  //          ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   { int? i = h.C?.staticG(() => 1); Expect.equals(1, i); }
+  //            ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   { String? s = C?.staticG(() => null); Expect.equals(null, s); }
   //            ^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  //             ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //               ^
   // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
   { String? s = h.C?.staticG(() => null); Expect.equals(null, s); }
   //            ^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  //               ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //                 ^
   // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
 
@@ -84,10 +96,14 @@ main() {
 
   // Nor can it be used to access the toString method on the class Type.
   Expect.throwsNoSuchMethodError(() => C?.toString());
+  //                                    ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //                                      ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   // [cfe] Method not found: 'C.toString'.
   Expect.throwsNoSuchMethodError(() => h.C?.toString());
+  //                                      ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //                                        ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   // [cfe] Method not found: 'C.toString'.

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.11
-
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -19,14 +17,14 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeValueOrNull].
-  E readValueOrNull<E>(E Function() f);
+  E? readValueOrNull<E>(E Function() f);
 
   /// Reads a list of [E] values from this data source. If [emptyAsNull] is
   /// `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeList].
-  List<E> readList<E>(E Function() f, {bool emptyAsNull = false});
+  List<E>? readList<E>(E Function() f, {bool emptyAsNull = false});
 
   /// Reads a boolean value from this data source.
   bool readBool();
@@ -39,7 +37,7 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeIntOrNull].
-  int readIntOrNull();
+  int? readIntOrNull();
 
   /// Reads a string value from this data source.
   String readString();
@@ -48,14 +46,14 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeStringOrNull].
-  String readStringOrNull();
+  String? readStringOrNull();
 
   /// Reads a list of string values from this data source. If [emptyAsNull] is
   /// `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeStrings].
-  List<String> readStrings({bool emptyAsNull = false});
+  List<String>? readStrings({bool emptyAsNull = false});
 
   /// Reads a map from string values to [V] values from this data source,
   /// calling [f] to read each value from the data source. If [emptyAsNull] is
@@ -63,7 +61,7 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeStringMap].
-  Map<String, V> readStringMap<V>(V Function() f, {bool emptyAsNull = false});
+  Map<String, V>? readStringMap<V>(V Function() f, {bool emptyAsNull = false});
 
   /// Reads an enum value from the list of enum [values] from this data source.
   ///
@@ -83,7 +81,7 @@ abstract class DataSource {
 /// Mixin that implements all convenience methods of [DataSource].
 abstract class DataSourceMixin implements DataSource {
   @override
-  E readValueOrNull<E>(E Function() f) {
+  E? readValueOrNull<E>(E Function() f) {
     bool hasValue = readBool();
     if (hasValue) {
       return f();
@@ -92,14 +90,14 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<E> readList<E>(E Function() f, {bool emptyAsNull = false}) {
+  List<E>? readList<E>(E Function() f, {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
     return List.generate(count, (i) => f());
   }
 
   @override
-  int readIntOrNull() {
+  int? readIntOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
       return readInt();
@@ -108,7 +106,7 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  String readStringOrNull() {
+  String? readStringOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
       return readString();
@@ -117,14 +115,14 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<String> readStrings({bool emptyAsNull = false}) {
+  List<String>? readStrings({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
     return List.generate(count, (index) => readString());
   }
 
   @override
-  Map<String, V> readStringMap<V>(V Function() f, {bool emptyAsNull = false}) {
+  Map<String, V>? readStringMap<V>(V Function() f, {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
     Map<String, V> map = {};
@@ -140,7 +138,7 @@ abstract class DataSourceMixin implements DataSource {
 /// Data source helper reads canonicalized [E] values through indices.
 class IndexedSource<E> {
   final int Function() _readInt;
-  final List<E> _cache = [];
+  final List<E?> _cache = [];
   final Set<int> _pending = {};
 
   IndexedSource(this._readInt);
@@ -160,7 +158,7 @@ class IndexedSource<E> {
       _cache[index] = value;
       return value;
     } else {
-      return _cache[index];
+      return _cache[index]!;
     }
   }
 }
@@ -169,8 +167,8 @@ class IndexedSource<E> {
 /// convenience methods.
 abstract class AbstractDataSource extends DataSourceMixin
     implements DataSource {
-  IndexedSource<String> _stringIndex;
-  IndexedSource<Uri> _uriIndex;
+  late final IndexedSource<String> _stringIndex;
+  late final IndexedSource<Uri> _uriIndex;
   final Map<Type, IndexedSource> _generalCaches = {};
 
   AbstractDataSource() {

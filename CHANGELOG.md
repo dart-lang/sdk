@@ -93,6 +93,16 @@ Updated the Linter to `1.24.0`, which includes changes that
   It can still be created with the `--legacy-packages-file` flag.
 * `dart pub outdated` now shows which of your dependencies are discontinued.
 
+## 2.17.2 - 2022-06-01
+
+This is a patch release that fixes:
+
+- a Dart VM compiler crash (issue [#100375][]).
+- code completion when writing method overrides (issue [#49086][]).
+
+[#100375]: https://github.com/flutter/flutter/issues/100375
+[#49086]: https://github.com/dart-lang/sdk/issues/49086
+
 ## 2.17.1 - 2022-05-18
 
 This is a patch release that fixes:

@@ -2640,7 +2640,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   ///  0: the name of the class that appears in both "extends" and "with" clauses
   static const CompileTimeErrorCode MIXINS_SUPER_CLASS = CompileTimeErrorCode(
     'IMPLEMENTS_SUPER_CLASS',
-    "'{0}' can't be used in both 'extends' and 'with' clauses.",
+    "'{0}' can't be used in both the 'extends' and 'with' clauses.",
     correctionMessage: "Try removing one of the occurrences.",
     hasPublishedDocs: true,
     uniqueName: 'MIXINS_SUPER_CLASS',
@@ -2760,7 +2760,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode
       MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS = CompileTimeErrorCode(
     'MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS',
-    "Deferred classes can't be used as super-class constraints.",
+    "Deferred classes can't be used as superclass constraints.",
     correctionMessage: "Try changing the import to not be deferred.",
   );
 
