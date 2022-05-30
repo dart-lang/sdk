@@ -87,9 +87,9 @@ class AugmentationUnknownFileStateKind extends AugmentationFileStateKind {
 
 /// A library from [SummaryDataStore].
 class ExternalLibrary {
-  final Uri uri;
+  final InSummarySource source;
 
-  ExternalLibrary._(this.uri);
+  ExternalLibrary._(this.source);
 }
 
 /// [FileContentOverlay] is used to temporary override content of files.
@@ -902,15 +902,6 @@ class FileSystemState {
 
   final FeatureSetProvider featureSetProvider;
 
-  /// The optional store with externally provided unlinked and corresponding
-  /// linked summaries. These summaries are always added to the store for any
-  /// file analysis.
-  ///
-  /// While walking the file graph, when we reach a file that exists in the
-  /// external store, we add a stub [FileState], but don't attempt to read its
-  /// content, or its unlinked unit, or imported libraries, etc.
-  final SummaryDataStore? externalSummaries;
-
   /// Mapping from a URI to the corresponding [FileState].
   final Map<Uri, FileState> _uriToFile = {};
 
@@ -954,7 +945,6 @@ class FileSystemState {
     this._saltForUnlinked,
     this._saltForElements,
     this.featureSetProvider, {
-    this.externalSummaries,
     required FileContentCache fileContentCache,
   }) : _fileContentCache = fileContentCache {
     _testView = FileSystemStateTestView(this);
@@ -1041,20 +1031,16 @@ class FileSystemState {
   /// without a package name), or we don't know this package. The returned
   /// file has the last known state since if was last refreshed.
   Either2<FileState?, ExternalLibrary> getFileForUri(Uri uri) {
+    final uriSource = _sourceFactory.forUri2(uri);
+
     // If the external store has this URI, create a stub file for it.
     // We are given all required unlinked and linked summaries for it.
-    final externalSummaries = this.externalSummaries;
-    if (externalSummaries != null) {
-      String uriStr = uri.toString();
-      if (externalSummaries.uriToSummaryPath.containsKey(uriStr)) {
-        return Either2.t2(ExternalLibrary._(uri));
-      }
+    if (uriSource is InSummarySource) {
+      return Either2.t2(ExternalLibrary._(uriSource));
     }
 
     FileState? file = _uriToFile[uri];
     if (file == null) {
-      Source? uriSource = _sourceFactory.forUri2(uri);
-
       // If the URI cannot be resolved, for example because the factory
       // does not understand the scheme, return the unresolved file instance.
       if (uriSource == null) {

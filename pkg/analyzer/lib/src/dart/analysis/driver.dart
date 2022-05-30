@@ -761,7 +761,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         return UnspecifiedInvalidResult();
       },
       (externalLibrary) async {
-        var element = libraryContext.getLibraryElement(externalLibrary.uri);
+        final uri = externalLibrary.source.uri;
+        // TODO(scheglov) Check if the source is not for library.
+        var element = libraryContext.getLibraryElement(uri);
         return LibraryElementResultImpl(element);
       },
     );
@@ -1528,7 +1530,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _saltForUnlinked,
       _saltForElements,
       featureSetProvider,
-      externalSummaries: _externalSummaries,
       fileContentCache: _fileContentCache,
     );
     _fileTracker = FileTracker(_logger, _fsState);
