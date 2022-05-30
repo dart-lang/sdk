@@ -1,9 +1,9 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_34498.dart:8:3: Error: 'lib.MyClass' can't be used as a type because 'lib' doesn't refer to an import prefix.
-//   lib.MyClass get lib => null; // (1)
+//   lib.MyClass? get lib => null; // (1)
 //   ^^^^^^^^^^^
 //
 // pkg/front_end/testcases/regress/issue_34498.dart:10:3: Error: 'foo' isn't a type.
@@ -28,7 +28,7 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///issue_34498_lib.dart" as lib;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A*
+  synthetic constructor •() → self::A
     ;
   get lib() → invalid-type
     ;
@@ -36,56 +36,26 @@ class A extends core::Object {
     ;
   method bar() → invalid-type
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class B extends self::A {
-  synthetic constructor •() → self::B*
+  synthetic constructor •() → self::B
     ;
 }
-class C<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::C<self::C::T*>*
+class C<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T%>
     ;
   method foo() → invalid-type
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static final field self::A* a;
+static final field self::A? a;
 static method main() → dynamic
   ;
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:core" as core;
 
 class MyClass extends core::Object {
-  synthetic constructor •() → self2::MyClass*
+  synthetic constructor •() → self2::MyClass
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }

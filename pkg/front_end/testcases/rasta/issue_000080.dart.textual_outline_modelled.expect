@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Foo extends Object with Mixin {
   bar() => super.field;
   foo() => super.foo();

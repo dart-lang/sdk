@@ -92,4 +92,5 @@ rasta/super_mixin: TypeCheckError
 rasta/super_operator: TypeCheckError
 rasta/unresolved_recovery: TypeCheckError
 regress/issue_31180: TypeCheckError
+regress/issue_31180_2: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError

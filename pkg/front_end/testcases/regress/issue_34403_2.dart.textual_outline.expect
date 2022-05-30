@@ -1,0 +1,11 @@
+import 'issue_34403_lib.dart' as p;
+
+class C<T> {
+  C.bar();
+}
+
+class D<T> {
+  const D.foo();
+}
+
+main() {}

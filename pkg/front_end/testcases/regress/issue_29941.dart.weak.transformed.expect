@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -11,7 +11,7 @@ import self as self;
 import "dart:core" as core;
 
 static method bad() → dynamic {
-  core::String* a = "";
+  core::String a = "";
   invalid-expression "pkg/front_end/testcases/regress/issue_29941.dart:7:5: Error: Expected an identifier, but got '\"\"'.
 Try inserting an identifier before '\"\"'.
   a.\"\";

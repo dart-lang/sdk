@@ -1,4 +1,3 @@
-// @dart = 2.9
 bool enableRead = true;
 int read(int value) => enableRead ? value : -1;
 int method1() => 0;

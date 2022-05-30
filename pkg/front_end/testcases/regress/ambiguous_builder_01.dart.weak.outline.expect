@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -48,8 +48,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static field core::int* y;
-static field core::bool* z;
+static field core::int y;
+static field core::bool z;
 static method x() → dynamic
   ;
 static method foo() → void

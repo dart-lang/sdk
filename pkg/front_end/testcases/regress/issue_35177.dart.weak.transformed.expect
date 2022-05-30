@@ -1,8 +1,8 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static method main() → dynamic {
-  () →* dynamic f;
-  f(){() →* dynamic}{dynamic}.call<core::int*>();
+static method test() → dynamic {
+  () → dynamic f = () → Null {};
+  f(){() → dynamic}{dynamic}.call<core::int>();
 }

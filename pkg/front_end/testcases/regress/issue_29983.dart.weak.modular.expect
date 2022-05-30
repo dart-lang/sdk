@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -31,6 +31,6 @@ static method g() → dynamic sync*
 g() sync* => dummy;
              ^";
 static method h() → dynamic sync* {
-  (() → core::String* => "return")(){() →* core::String*};
+  (() → core::String => "return")(){() → core::String};
 }
 static method main() → dynamic {}

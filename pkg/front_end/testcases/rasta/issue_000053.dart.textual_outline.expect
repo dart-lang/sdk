@@ -1,4 +1,3 @@
-// @dart = 2.9
 class C {
   operator ==(other) => throw 'x';
   test() {}

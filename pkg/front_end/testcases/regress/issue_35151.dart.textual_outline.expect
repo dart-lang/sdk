@@ -1,6 +1,5 @@
-// @dart = 2.9
 class A {
-  int a;
+  int a = 0;
 }
 class B extends A {
   B() : super.a = 42;

@@ -1,3 +1,2 @@
-// @dart = 2.9
 main() {}
 var list = [1, 2, 3];

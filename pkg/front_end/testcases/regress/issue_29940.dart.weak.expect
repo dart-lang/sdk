@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -10,6 +10,6 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  core::String* a = "";
+  core::String a = "";
   has-declared-initializer invalid-type c = null;
 }

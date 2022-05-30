@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -9,7 +9,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method f(core::int* a, core::int* b) → dynamic {}
+static method f(core::int a, core::int b) → dynamic {}
 static method main() → dynamic {
   self::f(2, 3);
 }

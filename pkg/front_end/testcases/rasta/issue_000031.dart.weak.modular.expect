@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -15,6 +15,6 @@ static method main() → dynamic {
   let final invalid-type #t1 = invalid-expression "pkg/front_end/testcases/rasta/issue_000031.dart:8:3: Error: A prefix can't be used as an expression.
   math..toString();
   ^^^^" in block {
-    #t1.{core::Object::toString}(){() →* core::String*};
+    #t1.{core::Object::toString}(){() → core::String};
   } =>#t1;
 }

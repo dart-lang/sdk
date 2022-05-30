@@ -1,11 +1,11 @@
 // Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
-// @dart=2.9
+
 import "package:expect/expect.dart";
 
 class A<N, S, U> {
-  final List<U> field;
+  final List<U?>? field;
 
   A(N n, S s) : field = <U>[] {
     Expect.isTrue(n is N);
@@ -19,9 +19,9 @@ class A<N, S, U> {
     return new A.empty();
   }
 
-  const A.c(U u, S s) : field = const [null];
+  const A.c(U u, S s) : field = const <Null>[null];
 
-  List<U> get getter {
+  List<U?>? get getter {
     return field;
   }
 

@@ -1,10 +1,9 @@
-// @dart = 2.9
 class Base {
   int hashCode = 42;
 }
 
 class Sub extends Base {
-  int _hashCode = null;
+  int? _hashCode = null;
   get hashCode => _hashCode ??= super.hashCode;
   foo() {}
 }

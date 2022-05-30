@@ -1,8 +1,7 @@
-// @dart = 2.9
 library test;
 
 class C {
-  F get g => null;
+  F get g => throw '';
   dynamic get h => null;
   void f() {}
   void test() {}

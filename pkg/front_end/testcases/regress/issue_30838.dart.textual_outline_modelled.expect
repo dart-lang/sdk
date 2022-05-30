@@ -1,8 +1,7 @@
-// @dart = 2.9
 Foo<int> bar() => foo;
 
 class A {
-  Foo<int> f;
+  Foo<int> f = throw '';
   void test() {}
 }
 

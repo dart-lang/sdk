@@ -5,7 +5,7 @@
 // import 'dart:html';
 //        ^
 //
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 
 import "dart:html";

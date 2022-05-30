@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -158,32 +158,46 @@ library;
 //     use(Foo.staticField());
 //                        ^
 //
+// pkg/front_end/testcases/rasta/static.dart:75:9: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//     Foo.staticConstant ??= 87;
+//         ^
+//
+// pkg/front_end/testcases/rasta/static.dart:76:13: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//     use(Foo.staticConstant ??= 87);
+//             ^
+//
+// pkg/front_end/testcases/rasta/static.dart:77:9: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//     Foo.staticField ??= 87;
+//         ^
+//
+// pkg/front_end/testcases/rasta/static.dart:78:13: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//     use(Foo.staticField ??= 87);
+//             ^
+//
+// pkg/front_end/testcases/rasta/static.dart:79:9: Warning: Operand of null-aware operation '??=' has type 'dynamic Function()' which excludes null.
+//     Foo.staticFunction ??= 87;
+//         ^
+//
+// pkg/front_end/testcases/rasta/static.dart:80:13: Warning: Operand of null-aware operation '??=' has type 'dynamic Function()' which excludes null.
+//     use(Foo.staticFunction ??= 87);
+//             ^
+//
 import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  static const field core::int* staticConstant = #C1;
-  static field core::int* staticField = 42;
-  synthetic constructor •() → self::Foo*
+  static const field core::int staticConstant = #C1;
+  static field core::int staticField = 42;
+  synthetic constructor •() → self::Foo
     : super core::Object::•()
     ;
   static method staticFunction() → dynamic {}
   static get staticGetter() → dynamic
     return null;
   static set staticSetter(dynamic _) → void {}
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method use(dynamic x) → dynamic {
-  if(x =={core::Object::==}{(core::Object*) →* core::bool*} new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int*})
+  if(x =={core::Object::==}{(core::Object) → core::bool} new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int})
     throw "Shouldn't happen";
 }
 static method main() → dynamic {
@@ -205,15 +219,15 @@ static method main() → dynamic {
     invalid-expression "pkg/front_end/testcases/rasta/static.dart:31:9: Error: Setter not found: 'staticConstant'.
     Foo.staticConstant++;
         ^^^^^^^^^^^^^^";
-    self::use(let final core::int* #t1 = #C1 in let final invalid-type #t2 = invalid-expression "pkg/front_end/testcases/rasta/static.dart:32:13: Error: Setter not found: 'staticConstant'.
+    self::use(let final core::int #t1 = #C1 in let final invalid-type #t2 = invalid-expression "pkg/front_end/testcases/rasta/static.dart:32:13: Error: Setter not found: 'staticConstant'.
     use(Foo.staticConstant++);
             ^^^^^^^^^^^^^^" in #t1);
-    self::Foo::staticField = self::Foo::staticField.{core::num::+}(1){(core::num*) →* core::int*};
-    self::use(let final core::int* #t3 = self::Foo::staticField in let final core::int* #t4 = self::Foo::staticField = #t3.{core::num::+}(1){(core::num*) →* core::int*} in #t3);
+    self::Foo::staticField = self::Foo::staticField.{core::num::+}(1){(core::num) → core::int};
+    self::use(let final core::int #t3 = self::Foo::staticField in let final core::int #t4 = self::Foo::staticField = #t3.{core::num::+}(1){(core::num) → core::int} in #t3);
     invalid-expression "pkg/front_end/testcases/rasta/static.dart:35:9: Error: Setter not found: 'staticFunction'.
     Foo.staticFunction++;
         ^^^^^^^^^^^^^^";
-    self::use(let final () →* dynamic #t5 = #C2 in let final invalid-type #t6 = invalid-expression "pkg/front_end/testcases/rasta/static.dart:36:13: Error: Setter not found: 'staticFunction'.
+    self::use(let final () → dynamic #t5 = #C2 in let final invalid-type #t6 = invalid-expression "pkg/front_end/testcases/rasta/static.dart:36:13: Error: Setter not found: 'staticFunction'.
     use(Foo.staticFunction++);
             ^^^^^^^^^^^^^^" in #t5);
     invalid-expression "pkg/front_end/testcases/rasta/static.dart:37:9: Error: Setter not found: 'staticGetter'.
@@ -234,8 +248,8 @@ static method main() → dynamic {
     self::use(invalid-expression "pkg/front_end/testcases/rasta/static.dart:43:15: Error: Setter not found: 'staticConstant'.
     use(++Foo.staticConstant);
               ^^^^^^^^^^^^^^");
-    self::Foo::staticField = self::Foo::staticField.{core::num::+}(1){(core::num*) →* core::int*};
-    self::use(self::Foo::staticField = self::Foo::staticField.{core::num::+}(1){(core::num*) →* core::int*});
+    self::Foo::staticField = self::Foo::staticField.{core::num::+}(1){(core::num) → core::int};
+    self::use(self::Foo::staticField = self::Foo::staticField.{core::num::+}(1){(core::num) → core::int});
     invalid-expression "pkg/front_end/testcases/rasta/static.dart:46:11: Error: Setter not found: 'staticFunction'.
     ++Foo.staticFunction;
           ^^^^^^^^^^^^^^";
@@ -305,15 +319,15 @@ Try correcting the name to the name of an existing method, or defining a method 
     #C1 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/static.dart:75:9: Error: Setter not found: 'staticConstant'.
     Foo.staticConstant ??= 87;
         ^^^^^^^^^^^^^^" : null;
-    self::use(let final core::int* #t11 = #C1 in #t11 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/static.dart:76:13: Error: Setter not found: 'staticConstant'.
+    self::use(let final core::int #t11 = #C1 in #t11 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/static.dart:76:13: Error: Setter not found: 'staticConstant'.
     use(Foo.staticConstant ??= 87);
             ^^^^^^^^^^^^^^" : #t11);
-    self::Foo::staticField == null ?{core::int*} self::Foo::staticField = 87 : null;
-    self::use(let final core::int* #t12 = self::Foo::staticField in #t12 == null ?{core::int*} self::Foo::staticField = 87 : #t12);
+    self::Foo::staticField == null ?{core::int} self::Foo::staticField = 87 : null;
+    self::use(let final core::int #t12 = self::Foo::staticField in #t12 == null ?{core::int} self::Foo::staticField = 87 : #t12);
     #C2 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/static.dart:79:9: Error: Setter not found: 'staticFunction'.
     Foo.staticFunction ??= 87;
         ^^^^^^^^^^^^^^" : null;
-    self::use(let final () →* dynamic #t13 = #C2 in #t13 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/static.dart:80:13: Error: Setter not found: 'staticFunction'.
+    self::use(let final () → dynamic #t13 = #C2 in #t13 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/static.dart:80:13: Error: Setter not found: 'staticFunction'.
     use(Foo.staticFunction ??= 87);
             ^^^^^^^^^^^^^^" : #t13);
     self::Foo::staticGetter == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/static.dart:81:9: Error: Setter not found: 'staticGetter'.
@@ -329,7 +343,7 @@ Try correcting the name to the name of an existing method, or defining a method 
     use(Foo.staticSetter ??= 87);
             ^^^^^^^^^^^^" in #t15 == null ?{invalid-type} self::Foo::staticSetter = 87 : #t15);
   }
-  on core::NoSuchMethodError* catch(no-exception-var) {
+  on core::NoSuchMethodError catch(no-exception-var) {
   }
 }
 

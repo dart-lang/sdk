@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 abstract class I<T> {
@@ -8,12 +7,12 @@ abstract class I<T> {
 
 class C<U> implements I<int> {
   void f1(int x) {}
-  void f2(int x, [U y]) {}
+  void f2(int x, [U? y]) {}
 }
 
 class D<U> extends C<U> {
   void f1(int x) {}
-  void f2(int x, [U y]) {}
+  void f2(int x, [U? y]) {}
 }
 
 void g1(C<num> c) {}

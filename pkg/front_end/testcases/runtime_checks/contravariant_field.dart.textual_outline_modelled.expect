@@ -1,8 +1,7 @@
-// @dart = 2.9
 library test;
 
 class C<T> {
-  F<T> y;
+  F<T> y = throw '';
   void f() {}
 }
 

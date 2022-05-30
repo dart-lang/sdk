@@ -1,4 +1,4 @@
-library foo;
+library foo /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 

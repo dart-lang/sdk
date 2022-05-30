@@ -1,11 +1,10 @@
-// @dart = 2.9
 typedef Foo<S> = S Function<T>(T x);
 int foo<T>(T x) => 3;
 Foo<int> bar() => foo;
 void test1() {}
 
 class A {
-  Foo<int> f;
+  Foo<int> f = throw '';
   void test() {}
 }
 

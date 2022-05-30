@@ -1,7 +1,7 @@
 // Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
-// @dart=2.9
+
 library test.mixin_library;
 
 f() => 2;
@@ -12,9 +12,9 @@ _private() => 117;
 
 class Mixin<T> {
   var x = f(), y, z;
-  T t;
+  T? t;
   foo() => super.foo() + f();
-  T g(T a) => null;
+  T? g(T a) => null;
   h() => V();
   l() => _private();
   _privateMethod() => 49;

@@ -1,4 +1,3 @@
-// @dart = 2.9
 import "mixin_library.dart" show Mixin;
 
 class Super<S> {

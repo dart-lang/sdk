@@ -1,3 +1,2 @@
-// @dart = 2.9
 f(int a, int b) {}
 main() {}

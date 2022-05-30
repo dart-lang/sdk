@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A extends Object with Mixin, Mixin {}
 
 class Mixin {

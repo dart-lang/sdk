@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A {
   A.get(this.name);
   A.set(this.name);

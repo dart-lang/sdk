@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Mixin {
   var field;
   foo() => 87;

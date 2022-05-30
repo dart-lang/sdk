@@ -1,8 +1,7 @@
-// @dart = 2.9
 library test;
 
 class C<T> {
-  F<T> f1() {}
+  F<T> f1() => throw '';
   List<F<T>> f2() {}
 }
 

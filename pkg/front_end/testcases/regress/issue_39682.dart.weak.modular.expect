@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
@@ -6,17 +6,17 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///issue_39682_lib.dart" deferred as foo;
 
 static method main() → dynamic {
-  () →* asy::Future<dynamic>* f = #C1;
-  f(){() →* asy::Future<dynamic>*};
+  () → asy::Future<dynamic> f = #C1;
+  f(){() → asy::Future<dynamic>};
   core::print(self::__loadLibrary_foo());
 }
-static method __loadLibrary_foo() → core::String* {
+static method __loadLibrary_foo() → core::String {
   return "I'll call my methods what I want!";
 }
-static method _#loadLibrary_foo() → asy::Future<dynamic>*
+static method _#loadLibrary_foo() → asy::Future<dynamic>
   return LoadLibrary(foo);
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:core" as core;
 
