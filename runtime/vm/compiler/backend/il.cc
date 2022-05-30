@@ -2389,21 +2389,21 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         return left()->definition();
       } else if (rhs == 0) {
         return right()->definition();
-      } else if (rhs == 2) {
-        const int64_t shift_1 = 1;
-        ConstantInstr* constant_1 =
-            flow_graph->GetConstant(Smi::Handle(Smi::New(shift_1)));
+      } else if ((rhs > 0) && Utils::IsPowerOfTwo(rhs)) {
+        const int64_t shift_amount = Utils::ShiftForPowerOfTwo(rhs);
+        ConstantInstr* constant_shift_amount = flow_graph->GetConstant(
+            Smi::Handle(Smi::New(shift_amount)), representation());
         BinaryIntegerOpInstr* shift = BinaryIntegerOpInstr::Make(
             representation(), Token::kSHL, left()->CopyWithType(),
-            new Value(constant_1), GetDeoptId(), can_overflow(),
+            new Value(constant_shift_amount), GetDeoptId(), can_overflow(),
             is_truncating(), range(), SpeculativeModeOfInputs());
         if (shift != nullptr) {
           // Assign a range to the shift factor, just in case range
           // analysis no longer runs after this rewriting.
           if (auto shift_with_range = shift->AsShiftIntegerOp()) {
             shift_with_range->set_shift_range(
-                new Range(RangeBoundary::FromConstant(shift_1),
-                          RangeBoundary::FromConstant(shift_1)));
+                new Range(RangeBoundary::FromConstant(shift_amount),
+                          RangeBoundary::FromConstant(shift_amount)));
           }
           flow_graph->InsertBefore(this, shift, env(), FlowGraph::kValue);
           return shift;

@@ -130,6 +130,22 @@ class A with foo^ {}
     result.assertResolvedNodes([]);
   }
 
+  test_classDeclaration_body_identifier() async {
+    var result = await _resolveTestCode(r'''
+class A {}
+
+class B {
+  void foo() {}
+
+  bar^
+}
+''');
+
+    result.assertResolvedNodes([
+      'bar;',
+    ]);
+  }
+
   test_constructorDeclaration_body() async {
     var result = await _resolveTestCode(r'''
 class A {}
