@@ -929,9 +929,13 @@ class Assembler : public MicroAssembler {
       CodeEntryKind entry_kind = CodeEntryKind::kNormal);
 
   void Call(Address target);
+  void Call(Register target);
   void Call(const Code& code) { JumpAndLink(code); }
 
   void CallCFunction(Address target) { Call(target); }
+  void CallCFunction(Register target) {
+    Call(target);
+  }
 
   void AddImmediate(Register dest, intx_t imm) {
     AddImmediate(dest, dest, imm);

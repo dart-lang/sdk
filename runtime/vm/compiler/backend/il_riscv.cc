@@ -1426,13 +1426,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #define R(r) (1 << r)
 
-LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
-                                                   bool is_optimizing) const {
-  LocationSummary* summary = MakeLocationSummaryInternal(
-      zone, is_optimizing,
-      (R(CallingConventions::kSecondNonArgumentRegister) |
-       R(CallingConventions::kFfiAnyNonAbiRegister) | R(CALLEE_SAVED_TEMP2)));
-
+static void RemapA3A4A5(LocationSummary* summary) {
   // A3/A4/A5 are unavailable in normal register allocation because they are
   // assigned to TMP/TMP2/PP. This assignment is important for reducing code
   // size. We can't just override the normal blockage of these registers because
@@ -1450,6 +1444,18 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
       summary->set_in(i, Location::RegisterLocation(T5));
     }
   }
+}
+
+#define R(r) (1 << r)
+
+LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
+                                                   bool is_optimizing) const {
+  LocationSummary* summary = MakeLocationSummaryInternal(
+      zone, is_optimizing,
+      (R(CallingConventions::kSecondNonArgumentRegister) |
+       R(CallingConventions::kFfiAnyNonAbiRegister) | R(CALLEE_SAVED_TEMP2)));
+
+  RemapA3A4A5(summary);
   return summary;
 }
 
@@ -1757,6 +1763,47 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadFieldFromOffset(RA, RA, compiler::target::Code::entry_point_offset());
 
   FunctionEntryInstr::EmitNativeCode(compiler);
+}
+
+#define R(r) (1 << r)
+
+LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
+                                                 bool is_optimizing) const {
+  constexpr Register saved_fp = CallingConventions::kSecondNonArgumentRegister;
+  constexpr Register temp0 = CallingConventions::kFfiAnyNonAbiRegister;
+  static_assert(saved_fp < temp0, "Unexpected ordering of registers in set.");
+  LocationSummary* summary =
+      MakeLocationSummaryInternal(zone, (R(saved_fp) | R(temp0)));
+  RemapA3A4A5(summary);
+  return summary;
+}
+
+#undef R
+
+void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register temp0 = locs()->temp(1).reg();
+
+  // Beware! Do not use CODE_REG/TMP/TMP2/PP within FfiCallInstr as they are
+  // assigned to A2/A3/A4/A5, which may be in use as argument registers.
+  __ set_constant_pool_allowed(false);
+
+  __ MoveRegister(saved_fp, FPREG);
+
+  const intptr_t frame_space = native_calling_convention_.StackTopInBytes();
+  __ EnterCFrame(frame_space);
+
+  // Also does the remapping A3/A4/A5.
+  EmitParamMoves(compiler, saved_fp, temp0);
+
+  const Register target_address = locs()->in(TargetAddressIndex()).reg();
+  __ CallCFunction(target_address);
+
+  __ LeaveCFrame();
+
+  // PP is a volatile register, so it must be restored even for leaf FFI calls.
+  __ RestorePoolPointer();
+  __ set_constant_pool_allowed(true);
 }
 
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(

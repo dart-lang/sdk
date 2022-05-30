@@ -9,6 +9,7 @@
 
 #include "vm/class_id.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/tags.h"

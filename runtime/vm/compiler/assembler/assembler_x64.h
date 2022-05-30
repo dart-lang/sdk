@@ -1246,7 +1246,7 @@ class Assembler : public AssemblerBase {
   // offset is not yet known and needs therefore relocation to the right place
   // before the code can be used.
   //
-  // The neccessary information for the "linker" (i.e. the relocation
+  // The necessary information for the "linker" (i.e. the relocation
   // information) is stored in [UntaggedCode::static_calls_target_table_]: an
   // entry of the form
   //

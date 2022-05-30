@@ -428,9 +428,7 @@ struct InstrAttrs {
   M(SpecialParameter, kNoGC)                                                   \
   M(ClosureCall, _)                                                            \
   M(FfiCall, _)                                                                \
-  M(EnterHandleScope, kNoGC)                                                   \
-  M(ExitHandleScope, kNoGC)                                                    \
-  M(AllocateHandle, kNoGC)                                                     \
+  M(CCall, kNoGC)                                                              \
   M(RawStoreField, kNoGC)                                                      \
   M(InstanceCall, _)                                                           \
   M(PolymorphicInstanceCall, _)                                                \
@@ -5349,50 +5347,53 @@ class FfiCallInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(FfiCallInstr);
 };
 
-class EnterHandleScopeInstr : public TemplateDefinition<0, NoThrow> {
+// Has the target address in a register passed as the last input in IL.
+class CCallInstr : public Definition {
  public:
-  EnterHandleScopeInstr() {}
+  CCallInstr(
+      Zone* zone,
+      const compiler::ffi::NativeCallingConvention& native_calling_convention,
+      InputsArray* inputs);
 
-  DECLARE_INSTRUCTION(EnterHandleScope)
+  DECLARE_INSTRUCTION(CCall)
 
-  virtual Representation representation() const { return kUnboxedIntPtr; }
+  LocationSummary* MakeLocationSummaryInternal(Zone* zone,
+                                               const RegList temps) const;
+
+  // Input index of the function pointer to invoke.
+  intptr_t TargetAddressIndex() const {
+    return native_calling_convention_.argument_locations().length();
+  }
+
+  virtual intptr_t InputCount() const { return inputs_->length(); }
+  virtual Value* InputAt(intptr_t i) const { return inputs_->At(i); }
+  virtual bool MayThrow() const { return false; }
+
   virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool HasUnknownSideEffects() const { return true; }
+
+  virtual bool CanCallDart() const { return false; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+  virtual Representation representation() const;
+
+  void EmitParamMoves(FlowGraphCompiler* compiler,
+                      Register saved_fp,
+                      Register temp0);
 
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(EnterHandleScopeInstr);
-};
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    (*inputs_)[i] = value;
+  }
 
-class ExitHandleScopeInstr : public TemplateInstruction<0, NoThrow> {
- public:
-  ExitHandleScopeInstr() {}
+  Zone* const zone_;
+  const compiler::ffi::NativeCallingConvention& native_calling_convention_;
+  InputsArray* inputs_;
 
-  DECLARE_INSTRUCTION(ExitHandleScope)
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool HasUnknownSideEffects() const { return false; }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(ExitHandleScopeInstr);
-};
-
-class AllocateHandleInstr : public TemplateDefinition<1, NoThrow> {
- public:
-  explicit AllocateHandleInstr(Value* scope) { SetInputAt(kScope, scope); }
-
-  enum { kScope = 0 };
-
-  DECLARE_INSTRUCTION(AllocateHandle)
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
-  virtual Representation representation() const { return kUnboxedIntPtr; }
-  virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool HasUnknownSideEffects() const { return false; }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(AllocateHandleInstr);
+  DISALLOW_COPY_AND_ASSIGN(CCallInstr);
 };
 
 // Populates the untagged base + offset outside the heap with a tagged value.

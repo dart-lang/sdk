@@ -1444,6 +1444,34 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   FunctionEntryInstr::EmitNativeCode(compiler);
 }
 
+#define R(r) (1 << r)
+
+LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
+                                                 bool is_optimizing) const {
+  constexpr Register saved_fp = CallingConventions::kSecondNonArgumentRegister;
+  return MakeLocationSummaryInternal(zone, (R(saved_fp)));
+}
+
+#undef R
+
+void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register temp0 = TMP;
+
+  // TODO(http://dartbug.com/47778): If we knew whether the stack was aligned
+  // at this point, we could omit having a frame.
+  __ MoveRegister(saved_fp, FPREG);
+
+  const intptr_t frame_space = native_calling_convention_.StackTopInBytes();
+  __ EnterCFrame(frame_space);
+
+  EmitParamMoves(compiler, saved_fp, temp0);
+  const Register target_address = locs()->in(TargetAddressIndex()).reg();
+  __ CallCFunction(target_address);
+
+  __ LeaveCFrame();
+}
+
 static bool CanBeImmediateIndex(Value* index, intptr_t cid) {
   if (!index->definition()->IsConstant()) return false;
   const Object& constant = index->definition()->AsConstant()->value();

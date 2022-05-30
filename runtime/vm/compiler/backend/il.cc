@@ -4,6 +4,7 @@
 
 #include "vm/compiler/backend/il.h"
 
+#include "platform/assert.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/compiler/aot/dispatch_table_generator.h"
@@ -6800,101 +6801,6 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
   __ Comment("EmitReturnMovesEnd");
 }
 
-static Location FirstArgumentLocation() {
-#ifdef TARGET_ARCH_IA32
-  return Location::StackSlot(0, SPREG);
-#else
-  return Location::RegisterLocation(CallingConventions::ArgumentRegisters[0]);
-#endif
-}
-
-LocationSummary* EnterHandleScopeInstr::MakeLocationSummary(
-    Zone* zone,
-    bool is_optimizing) const {
-  LocationSummary* summary =
-      new (zone) LocationSummary(zone, /*num_inputs=*/0,
-                                 /*num_temps=*/0, LocationSummary::kCall);
-  summary->set_out(0,
-                   Location::RegisterLocation(CallingConventions::kReturnReg));
-  return summary;
-}
-
-void EnterHandleScopeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(kEnterHandleScopeRuntimeEntry.is_leaf());
-
-  Location arg_loc = FirstArgumentLocation();
-  __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
-  NoTemporaryAllocator no_temp;
-  compiler->EmitMove(arg_loc, Location::RegisterLocation(THR), &no_temp);
-  __ CallCFunction(
-      compiler::Address(THR, compiler::target::Thread::OffsetFromThread(
-                                 &kEnterHandleScopeRuntimeEntry)));
-  __ LeaveCFrame();
-}
-
-LocationSummary* ExitHandleScopeInstr::MakeLocationSummary(
-    Zone* zone,
-    bool is_optimizing) const {
-  LocationSummary* summary =
-      new (zone) LocationSummary(zone, /*num_inputs=*/0,
-                                 /*num_temps=*/0, LocationSummary::kCall);
-  return summary;
-}
-
-void ExitHandleScopeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(kEnterHandleScopeRuntimeEntry.is_leaf());
-
-  Location arg_loc = FirstArgumentLocation();
-  __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
-  NoTemporaryAllocator no_temp;
-  compiler->EmitMove(arg_loc, Location::RegisterLocation(THR), &no_temp);
-  __ CallCFunction(
-      compiler::Address(THR, compiler::target::Thread::OffsetFromThread(
-                                 &kExitHandleScopeRuntimeEntry)));
-  __ LeaveCFrame();
-}
-
-LocationSummary* AllocateHandleInstr::MakeLocationSummary(
-    Zone* zone,
-    bool is_optimizing) const {
-  LocationSummary* summary =
-      new (zone) LocationSummary(zone, /*num_inputs=*/1,
-                                 /*num_temps=*/0, LocationSummary::kCall);
-
-  Location arg_loc = FirstArgumentLocation();
-  // Assign input to a register that does not conflict with anything if
-  // argument is passed on the stack.
-  const Register scope_reg =
-      arg_loc.IsStackSlot() ? CallingConventions::kSecondNonArgumentRegister
-                            : arg_loc.reg();
-
-  summary->set_in(kScope, Location::RegisterLocation(scope_reg));
-  summary->set_out(0,
-                   Location::RegisterLocation(CallingConventions::kReturnReg));
-  return summary;
-}
-
-Representation AllocateHandleInstr::RequiredInputRepresentation(
-    intptr_t idx) const {
-  ASSERT(idx == kScope);
-  return kUnboxedIntPtr;
-}
-
-void AllocateHandleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(kEnterHandleScopeRuntimeEntry.is_leaf());
-
-  Location arg_loc = FirstArgumentLocation();
-  __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
-  if (arg_loc.IsStackSlot()) {
-    NoTemporaryAllocator no_temp;
-    compiler->EmitMove(arg_loc, locs()->in(kScope), &no_temp);
-  }
-  __ CallCFunction(
-      compiler::Address(THR, compiler::target::Thread::OffsetFromThread(
-                                 &kAllocateHandleRuntimeEntry)));
-  __ LeaveCFrame();
-}
-
 LocationSummary* RawStoreFieldInstr::MakeLocationSummary(
     Zone* zone,
     bool is_optimizing) const {
@@ -7047,6 +6953,126 @@ Representation FfiCallInstr::representation() const {
 // TODO(http://dartbug.com/48543): integrate with register allocator directly.
 DEFINE_BACKEND(LoadThread, (Register out)) {
   __ MoveRegister(out, THR);
+}
+
+LocationSummary* CCallInstr::MakeLocationSummaryInternal(
+    Zone* zone,
+    const RegList temps) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
+                                 /*num_temps=*/Utils::CountOneBitsWord(temps),
+                                 LocationSummary::kNativeLeafCall);
+
+  intptr_t reg_i = 0;
+  for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
+    if ((temps & (1 << reg)) != 0) {
+      summary->set_temp(reg_i,
+                        Location::RegisterLocation(static_cast<Register>(reg)));
+      reg_i++;
+    }
+  }
+
+  summary->set_in(TargetAddressIndex(),
+                  Location::RegisterLocation(
+                      CallingConventions::kFirstNonArgumentRegister));
+
+  const auto& argument_locations =
+      native_calling_convention_.argument_locations();
+  for (intptr_t i = 0, n = argument_locations.length(); i < n; ++i) {
+    const auto& argument_location = *argument_locations.At(i);
+    if (argument_location.IsRegisters()) {
+      const auto& reg_location = argument_location.AsRegisters();
+      ASSERT(reg_location.num_regs() == 1);
+      summary->set_in(i, reg_location.AsLocation());
+    } else if (argument_location.IsFpuRegisters()) {
+      UNIMPLEMENTED();
+    } else if (argument_location.IsStack()) {
+      summary->set_in(i, Location::Any());
+    } else {
+      UNIMPLEMENTED();
+    }
+  }
+  const auto& return_location = native_calling_convention_.return_location();
+  ASSERT(return_location.IsRegisters());
+  summary->set_out(0, return_location.AsLocation());
+  return summary;
+}
+
+CCallInstr::CCallInstr(
+    Zone* zone,
+    const compiler::ffi::NativeCallingConvention& native_calling_convention,
+    InputsArray* inputs)
+    : Definition(DeoptId::kNone),
+      zone_(zone),
+      native_calling_convention_(native_calling_convention),
+      inputs_(inputs) {
+#ifdef DEBUG
+  const intptr_t num_inputs =
+      native_calling_convention.argument_locations().length() + 1;
+  ASSERT(num_inputs == inputs->length());
+#endif
+  for (intptr_t i = 0, n = inputs_->length(); i < n; ++i) {
+    SetInputAt(i, (*inputs_)[i]);
+  }
+}
+
+Representation CCallInstr::RequiredInputRepresentation(intptr_t idx) const {
+  if (idx < native_calling_convention_.argument_locations().length()) {
+    const auto& argument_type =
+        native_calling_convention_.argument_locations().At(idx)->payload_type();
+    ASSERT(argument_type.IsExpressibleAsRepresentation());
+    return argument_type.AsRepresentation();
+  }
+  ASSERT(idx == TargetAddressIndex());
+  return kUnboxedFfiIntPtr;
+}
+
+void CCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
+                                Register saved_fp,
+                                Register temp0) {
+  if (native_calling_convention_.StackTopInBytes() == 0) {
+    return;
+  }
+
+  ConstantTemporaryAllocator temp_alloc(temp0);
+  compiler::ffi::FrameRebase rebase(zone_, /*old_base=*/FPREG,
+                                    /*new_base=*/saved_fp,
+                                    /*stack_delta=*/0);
+
+  __ Comment("EmitParamMoves");
+  const auto& argument_locations =
+      native_calling_convention_.argument_locations();
+  for (intptr_t i = 0, n = argument_locations.length(); i < n; ++i) {
+    const auto& argument_location = *argument_locations.At(i);
+    if (argument_location.IsRegisters()) {
+      const auto& reg_location = argument_location.AsRegisters();
+      ASSERT(reg_location.num_regs() == 1);
+      const Location src_loc = rebase.Rebase(locs()->in(i));
+      const Representation src_rep = RequiredInputRepresentation(i);
+      compiler->EmitMoveToNative(argument_location, src_loc, src_rep,
+                                 &temp_alloc);
+    } else if (argument_location.IsFpuRegisters()) {
+      UNIMPLEMENTED();
+    } else if (argument_location.IsStack()) {
+      const Location src_loc = rebase.Rebase(locs()->in(i));
+      const Representation src_rep = RequiredInputRepresentation(i);
+      __ Comment("Param %" Pd ": %s %s -> %s", i, src_loc.ToCString(),
+                 RepresentationToCString(src_rep),
+                 argument_location.ToCString());
+      compiler->EmitMoveToNative(argument_location, src_loc, src_rep,
+                                 &temp_alloc);
+    } else {
+      UNIMPLEMENTED();
+    }
+  }
+  __ Comment("EmitParamMovesEnd");
+}
+
+Representation CCallInstr::representation() const {
+  const auto& return_type =
+      native_calling_convention_.return_location().payload_type();
+  ASSERT(return_type.IsExpressibleAsRepresentation());
+  return return_type.AsRepresentation();
 }
 
 // SIMD
@@ -7206,7 +7232,7 @@ struct SimdOpInfo {
   Representation inputs[4];
 };
 
-// Make representaion from type name used by SIMD_OP_LIST.
+// Make representation from type name used by SIMD_OP_LIST.
 #define REP(T) (kUnboxed##T)
 static const Representation kUnboxedBool = kTagged;
 static const Representation kUnboxedInt8 = kUnboxedInt32;

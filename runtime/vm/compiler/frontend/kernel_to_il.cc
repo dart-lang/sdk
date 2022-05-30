@@ -31,6 +31,7 @@
 #include "vm/object_store.h"
 #include "vm/report.h"
 #include "vm/resolver.h"
+#include "vm/runtime_entry.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
@@ -405,6 +406,37 @@ Fragment FlowGraphBuilder::FfiCall(
   body <<= call;
 
   return body;
+}
+
+Fragment FlowGraphBuilder::CCall(
+    const compiler::ffi::NativeCallingConvention& native_calling_convention) {
+  Fragment body;
+
+  const intptr_t num_arguments =
+      native_calling_convention.argument_locations().length() + 1;
+  InputsArray* arguments = new (Z) InputsArray(num_arguments);
+  arguments->FillWith(nullptr, 0, num_arguments);
+  for (intptr_t i = num_arguments - 1; i >= 0; --i) {
+    (*arguments)[i] = Pop();
+  }
+  auto* const call =
+      new (Z) CCallInstr(Z, native_calling_convention, arguments);
+
+  Push(call);
+  body <<= call;
+
+  return body;
+}
+
+Fragment FlowGraphBuilder::CCall(intptr_t num_arguments,
+                                 Representation representation) {
+  const auto& native_function_type =
+      *compiler::ffi::NativeFunctionType::FromUnboxedRepresentation(
+          Z, num_arguments, representation);
+  const auto& native_calling_convention =
+      compiler::ffi::NativeCallingConvention::FromSignature(
+          Z, native_function_type);
+  return CCall(native_calling_convention);
 }
 
 Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
@@ -3982,9 +4014,20 @@ Fragment FlowGraphBuilder::LoadIndexedTypedDataUnboxed(
 }
 
 Fragment FlowGraphBuilder::EnterHandleScope() {
-  auto* instr = new (Z) EnterHandleScopeInstr();
-  Push(instr);
-  return Fragment(instr);
+  Fragment body;
+  body += LoadThread();
+  body += ConvertUntaggedToUnboxed(kUnboxedIntPtr);  // argument.
+
+  // LoadThread again, we can't store it in a temp because it will end up
+  // in the environment of the FfiCall as untagged then.
+  body += LoadThread();
+  body += LoadUntagged(compiler::target::Thread::OffsetFromThread(
+      &kEnterHandleScopeRuntimeEntry));
+  body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);  // function address.
+
+  body += CCall(/*num_arguments=*/1);
+
+  return body;
 }
 
 Fragment FlowGraphBuilder::GetTopHandleScope() {
@@ -3996,18 +4039,33 @@ Fragment FlowGraphBuilder::GetTopHandleScope() {
 }
 
 Fragment FlowGraphBuilder::ExitHandleScope() {
-  auto* instr = new (Z) ExitHandleScopeInstr();
-  return Fragment(instr);
+  Fragment code;
+  code += LoadThread();
+  code += ConvertUntaggedToUnboxed(kUnboxedIntPtr);  // argument.
+
+  code += LoadThread();
+  code += LoadUntagged(compiler::target::Thread::OffsetFromThread(
+      &kExitHandleScopeRuntimeEntry));
+  code += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);  // function address.
+
+  code += CCall(/*num_arguments=*/1);
+
+  code += Drop();
+  return code;
 }
 
 Fragment FlowGraphBuilder::AllocateHandle() {
   Fragment code;
   // Get a reference to the top handle scope.
   code += GetTopHandleScope();
-  Value* api_local_scope_value = Pop();
-  auto* instr = new (Z) AllocateHandleInstr(api_local_scope_value);
-  Push(instr);
-  code <<= instr;
+
+  code += LoadThread();
+  code += LoadUntagged(
+      compiler::target::Thread::OffsetFromThread(&kAllocateHandleRuntimeEntry));
+  code += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);  // function address.
+
+  code += CCall(/*num_arguments=*/1);
+
   return code;
 }
 

@@ -47,6 +47,16 @@ enum BlockAddressMode {
 
 namespace compiler {
 
+class Immediate : public ValueObject {
+ public:
+  explicit Immediate(int32_t value) : value_(value) {}
+
+  int32_t value() const { return value_; }
+
+ private:
+  const int32_t value_;
+};
+
 // Instruction encoding bits.
 enum {
   H = 1 << 5,   // halfword (or byte)
@@ -803,6 +813,10 @@ class Assembler : public AssemblerBase {
 
   void CallCFunction(Address target) { Call(target); }
 
+  void CallCFunction(Register target, Condition cond = AL) {
+    blx(target, cond);
+  }
+
   // Add signed immediate value to rd. May clobber IP.
   void AddImmediate(Register rd, int32_t value, Condition cond = AL) {
     AddImmediate(rd, rd, value, cond);
@@ -867,6 +881,7 @@ class Assembler : public AssemblerBase {
   // These three do not clobber IP.
   void LoadPatchableImmediate(Register rd, int32_t value, Condition cond = AL);
   void LoadDecodableImmediate(Register rd, int32_t value, Condition cond = AL);
+  void LoadImmediate(Register rd, Immediate value, Condition cond = AL);
   void LoadImmediate(Register rd, int32_t value, Condition cond = AL);
   // These two may clobber IP.
   void LoadSImmediate(SRegister sd, float value, Condition cond = AL);

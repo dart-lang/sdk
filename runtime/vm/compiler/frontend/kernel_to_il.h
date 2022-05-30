@@ -196,6 +196,11 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   Fragment FfiCall(const compiler::ffi::CallMarshaller& marshaller);
 
+  Fragment CCall(
+      const compiler::ffi::NativeCallingConvention& native_calling_convention);
+  Fragment CCall(intptr_t num_arguments,
+                 Representation representation = kUnboxedFfiIntPtr);
+
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadLocal(LocalVariable* variable);
   Fragment IndirectGoto(intptr_t target_count);

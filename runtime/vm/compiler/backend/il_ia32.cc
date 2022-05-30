@@ -1248,6 +1248,34 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   FunctionEntryInstr::EmitNativeCode(compiler);
 }
 
+#define R(r) (1 << r)
+
+LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
+                                                 bool is_optimizing) const {
+  constexpr Register saved_fp = CallingConventions::kSecondNonArgumentRegister;
+  constexpr Register temp0 = CallingConventions::kFfiAnyNonAbiRegister;
+  static_assert(saved_fp < temp0, "Unexpected ordering of registers in set.");
+  return MakeLocationSummaryInternal(zone, (R(saved_fp) | R(temp0)));
+}
+
+#undef R
+
+void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register temp0 = locs()->temp(1).reg();
+
+  __ MoveRegister(saved_fp, FPREG);
+  const intptr_t frame_space = native_calling_convention_.StackTopInBytes();
+  __ EnterCFrame(frame_space);
+
+  EmitParamMoves(compiler, saved_fp, temp0);
+
+  const Register target_address = locs()->in(TargetAddressIndex()).reg();
+  __ CallCFunction(target_address);
+
+  __ LeaveCFrame();
+}
+
 static bool CanBeImmediateIndex(Value* value, intptr_t cid) {
   ConstantInstr* constant = value->definition()->AsConstant();
   if ((constant == NULL) ||

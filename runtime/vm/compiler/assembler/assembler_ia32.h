@@ -21,6 +21,7 @@
 #include "vm/pointer_tagging.h"
 
 namespace dart {
+
 namespace compiler {
 
 class Immediate : public ValueObject {
@@ -747,6 +748,10 @@ class Assembler : public AssemblerBase {
     }
   }
 
+  void LoadImmediate(Register reg, Immediate immediate) {
+    LoadImmediate(reg, immediate.value());
+  }
+
   void LoadDImmediate(XmmRegister dst, double value);
 
   void Drop(intptr_t stack_elements);
@@ -873,6 +878,10 @@ class Assembler : public AssemblerBase {
   void Call(Address target) { call(target); }
 
   void CallCFunction(Address target) { Call(target); }
+
+  void CallCFunction(Register target) {
+    call(target);
+  }
 
   void Jmp(const Code& code);
   void J(Condition condition, const Code& code);
