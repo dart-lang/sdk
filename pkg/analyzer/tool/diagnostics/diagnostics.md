@@ -283,6 +283,7 @@ The analyzer produces the following diagnostics for code that
 doesn't conform to the language specification or
 that might work in unexpected ways.
 
+[ffi]: https://dart.dev/guides/libraries/c-interop
 [meta-doNotStore]: https://pub.dev/documentation/meta/latest/meta/doNotStore-constant.html
 [meta-factory]: https://pub.dev/documentation/meta/latest/meta/factory-constant.html
 [meta-immutable]: https://pub.dev/documentation/meta/latest/meta/immutable-constant.html
@@ -901,7 +902,7 @@ The analyzer produces this diagnostic when a field that's declared in a
 subclass of `Struct` and has the type `Pointer` also has an annotation
 associated with it.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -943,7 +944,7 @@ argument whose value isn't a constant expression.
 The analyzer also produces this diagnostic when the value of the
 `exceptionalReturn` argument of `Pointer.fromFunction`.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -2216,7 +2217,7 @@ _The class '{0}' can't implement Finalizable._
 The analyzer produces this diagnostic when a subclass of either `Struct`
 or `Union` implements `Finalizable`.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -3233,7 +3234,7 @@ instantiated by a generative constructor._
 The analyzer produces this diagnostic when a subclass of either `Struct`
 or `Union` is instantiated using a generative constructor.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -4486,7 +4487,7 @@ The analyzer produces this diagnostic when a subclass of `Struct` or
 `Union` doesn't have any fields. Having an empty `Struct` or `Union`
 isn't supported.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -5544,7 +5545,7 @@ The analyzer produces this diagnostic when a field in a subclass of
 `Struct` has more than one annotation describing the native type of the
 field.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -5660,7 +5661,7 @@ The analyzer produces this diagnostic when a field in a subclass of
 `Struct` has more than one annotation describing the size of the native
 array.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -5875,7 +5876,7 @@ initializers._
 The analyzer produces this diagnostic when a constructor in a subclass of
 either `Struct` or `Union` has one or more field initializers.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -6140,7 +6141,7 @@ _Fields in subclasses of 'Struct' and 'Union' can't have initializers._
 The analyzer produces this diagnostic when a field in a subclass of
 `Struct` has an initializer.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -6178,7 +6179,7 @@ _Fields of 'Struct' and 'Union' subclasses must be marked external._
 The analyzer produces this diagnostic when a field in a subclass of either
 `Struct` or `Union` isn't marked as being `external`.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -6604,7 +6605,7 @@ _The class '{0}' can't extend 'Struct' or 'Union' because '{0}' is generic._
 The analyzer produces this diagnostic when a subclass of either `Struct`
 or `Union` has a type parameter.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -8193,7 +8194,7 @@ The analyzer produces this diagnostic when an invocation of the method
 value) and the type to be returned from the invocation is either `void`,
 `Handle` or `Pointer`.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -8516,7 +8517,7 @@ The analyzer produces this diagnostic when a field in a subclass of
 `Struct` has a type other than `int`, `double`, `Array`, `Pointer`, or
 subtype of `Struct` or `Union`.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -10154,7 +10155,7 @@ the annotation is a function type whose return type is `Handle`.
 In all of these cases, leaf calls are only supported for the types `bool`,
 `int`, `float`, `double`, and, as a return type `void`.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -10203,7 +10204,7 @@ argument in an invocation of either `Pointer.asFunction` or
 `DynamicLibrary.lookupFunction` is `true` and the function that would be
 returned would have a parameter of type `Handle`.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -10530,7 +10531,7 @@ _The annotation doesn't match the declared type of the field._
 The analyzer produces this diagnostic when the annotation on a field in a
 subclass of `Struct` or `Union` doesn't match the Dart type of the field.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -10583,7 +10584,7 @@ The Dart types `int`, `double`, and `Array` are used to represent multiple
 C types, and the annotation specifies which of the compatible C types the
 field represents.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -10754,7 +10755,7 @@ The analyzer produces this diagnostic when an invocation of the method
 return value) when the type to be returned from the invocation is neither
 `void`, `Handle`, nor `Pointer`.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -10798,7 +10799,7 @@ The analyzer produces this diagnostic when a field in a subclass of
 an explicit type, and the type must either be `int`, `double`, `Pointer`,
 or a subclass of either `Struct` or `Union`.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -10973,7 +10974,7 @@ The analyzer produces this diagnostic when a field in a subclass of either
 `Struct` or `Union` has a type of `Array` but doesn't have a single
 `Array` annotation indicating the dimensions of the array.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -11614,7 +11615,7 @@ The analyzer produces this diagnostic when an invocation of either
 `Pointer.fromFunction` or `DynamicLibrary.lookupFunction` has a type
 argument(whether explicit or inferred) that isn't a native function type.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -11663,7 +11664,7 @@ The analyzer produces this diagnostic in two cases:
 - In an invocation of `DynamicLibrary.lookupFunction` where the first type
   argument isn't a supertype of the second type argument.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -12544,7 +12545,7 @@ The analyzer produces this diagnostic when the type arguments to a method
 are required to be known at compile time, but a type parameter, whose
 value can't be known at compile time, is used as a type argument.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -12825,7 +12826,7 @@ The analyzer produces this diagnostic when the method `asFunction` is
 invoked on a pointer to a native function, but the signature of the native
 function isn't a valid C function signature.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -12872,7 +12873,7 @@ _Array dimensions must be positive numbers._
 The analyzer produces this diagnostic when a dimension given in an `Array`
 annotation is less than or equal to zero (`0`).
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -12913,7 +12914,7 @@ The analyzer produces this diagnostic when the type argument for the class
 `Double`, `Pointer`, or subtype of `Struct`, `Union`, or
 `AbiSpecificInteger`.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -14048,7 +14049,7 @@ _Structs must have at most one 'Packed' annotation._
 The analyzer produces this diagnostic when a subclass of `Struct` has more
 than one `Packed` annotation.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -14087,7 +14088,7 @@ _Only packing to 1, 2, 4, 8, and 16 bytes is supported._
 The analyzer produces this diagnostic when the argument to the `Packed`
 annotation isn't one of the allowed values: 1, 2, 4, 8, or 16.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -14128,7 +14129,7 @@ annotated as being `Packed` declares a field whose type is also a subclass
 of `Struct` and the field's type is either not packed or is packed less
 tightly.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -16393,7 +16394,7 @@ The analyzer produces this diagnostic when the number of dimensions
 specified in an `Array` annotation doesn't match the number of nested
 arrays specified by the type of a field.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -16613,7 +16614,7 @@ other than `Struct` or `Union`, or implements or mixes in any FFI class.
 `Struct` and `Union` are the only FFI classes that can be subtyped, and
 then only by extending them.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 
@@ -16715,7 +16716,7 @@ The analyzer produces this diagnostic when a class extends, implements, or
 mixes in a class that extends either `Struct` or `Union`. Classes can only
 extend either `Struct` or `Union` directly.
 
-For more information about FFI, see [C interop using dart:ffi][].
+For more information about FFI, see [C interop using dart:ffi][ffi].
 
 #### Example
 

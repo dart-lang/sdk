@@ -15861,7 +15861,7 @@ FfiCode:
       subclass of `Struct` and has the type `Pointer` also has an annotation
       associated with it.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -15906,7 +15906,7 @@ FfiCode:
       The analyzer also produces this diagnostic when the value of the
       `exceptionalReturn` argument of `Pointer.fromFunction`.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -15960,7 +15960,7 @@ FfiCode:
       The analyzer produces this diagnostic when a subclass of either `Struct`
       or `Union` implements `Finalizable`.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -15997,7 +15997,7 @@ FfiCode:
       The analyzer produces this diagnostic when a subclass of either `Struct`
       or `Union` is instantiated using a generative constructor.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16053,7 +16053,7 @@ FfiCode:
       `Union` doesn't have any fields. Having an empty `Struct` or `Union`
       isn't supported.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16106,7 +16106,7 @@ FfiCode:
       `Struct` has more than one annotation describing the native type of the
       field.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16146,7 +16146,7 @@ FfiCode:
       `Struct` has more than one annotation describing the size of the native
       array.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16208,7 +16208,7 @@ FfiCode:
       The analyzer produces this diagnostic when a constructor in a subclass of
       either `Struct` or `Union` has one or more field initializers.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16253,7 +16253,7 @@ FfiCode:
       The analyzer produces this diagnostic when a field in a subclass of
       `Struct` has an initializer.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16292,7 +16292,7 @@ FfiCode:
       The analyzer produces this diagnostic when a field in a subclass of either
       `Struct` or `Union` isn't marked as being `external`.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16333,7 +16333,7 @@ FfiCode:
       The analyzer produces this diagnostic when a subclass of either `Struct`
       or `Union` has a type parameter.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16372,7 +16372,7 @@ FfiCode:
       value) and the type to be returned from the invocation is either `void`,
       `Handle` or `Pointer`.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16420,7 +16420,7 @@ FfiCode:
       `Struct` has a type other than `int`, `double`, `Array`, `Pointer`, or
       subtype of `Struct` or `Union`.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16474,7 +16474,7 @@ FfiCode:
       In all of these cases, leaf calls are only supported for the types `bool`,
       `int`, `float`, `double`, and, as a return type `void`.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16524,7 +16524,7 @@ FfiCode:
       `DynamicLibrary.lookupFunction` is `true` and the function that would be
       returned would have a parameter of type `Handle`.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16573,7 +16573,7 @@ FfiCode:
       The analyzer produces this diagnostic when the annotation on a field in a
       subclass of `Struct` or `Union` doesn't match the Dart type of the field.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16629,7 +16629,7 @@ FfiCode:
       C types, and the annotation specifies which of the compatible C types the
       field represents.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16669,7 +16669,7 @@ FfiCode:
       return value) when the type to be returned from the invocation is neither
       `void`, `Handle`, nor `Pointer`.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16715,7 +16715,7 @@ FfiCode:
       an explicit type, and the type must either be `int`, `double`, `Pointer`,
       or a subclass of either `Struct` or `Union`.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16760,7 +16760,7 @@ FfiCode:
       `Struct` or `Union` has a type of `Array` but doesn't have a single
       `Array` annotation indicating the dimensions of the array.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16802,7 +16802,7 @@ FfiCode:
       `Pointer.fromFunction` or `DynamicLibrary.lookupFunction` has a type
       argument(whether explicit or inferred) that isn't a native function type.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16856,7 +16856,7 @@ FfiCode:
       - In an invocation of `DynamicLibrary.lookupFunction` where the first type
         argument isn't a supertype of the second type argument.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16919,7 +16919,7 @@ FfiCode:
       are required to be known at compile time, but a type parameter, whose
       value can't be known at compile time, is used as a type argument.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -16967,7 +16967,7 @@ FfiCode:
       invoked on a pointer to a native function, but the signature of the native
       function isn't a valid C function signature.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -17015,7 +17015,7 @@ FfiCode:
       The analyzer produces this diagnostic when a dimension given in an `Array`
       annotation is less than or equal to zero (`0`).
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -17058,7 +17058,7 @@ FfiCode:
       `Double`, `Pointer`, or subtype of `Struct`, `Union`, or
       `AbiSpecificInteger`.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -17097,7 +17097,7 @@ FfiCode:
       The analyzer produces this diagnostic when a subclass of `Struct` has more
       than one `Packed` annotation.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -17137,7 +17137,7 @@ FfiCode:
       The analyzer produces this diagnostic when the argument to the `Packed`
       annotation isn't one of the allowed values: 1, 2, 4, 8, or 16.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -17181,7 +17181,7 @@ FfiCode:
       of `Struct` and the field's type is either not packed or is packed less
       tightly.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -17262,7 +17262,7 @@ FfiCode:
       specified in an `Array` annotation doesn't match the number of nested
       arrays specified by the type of a field.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -17320,7 +17320,7 @@ FfiCode:
       `Struct` and `Union` are the only FFI classes that can be subtyped, and
       then only by extending them.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
@@ -17387,7 +17387,7 @@ FfiCode:
       mixes in a class that extends either `Struct` or `Union`. Classes can only
       extend either `Struct` or `Union` directly.
 
-      For more information about FFI, see [C interop using dart:ffi][].
+      For more information about FFI, see [C interop using dart:ffi][ffi].
 
       #### Example
 
