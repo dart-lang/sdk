@@ -1,6 +1,5 @@
-# vm_service
-
 [![pub package](https://img.shields.io/pub/v/vm_service.svg)](https://pub.dev/packages/vm_service)
+[![package publisher](https://img.shields.io/pub/publisher/vm_service.svg)](https://pub.dev/packages/vm_service/publisher)
 
 A library to access the VM Service Protocol.
 
