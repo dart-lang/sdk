@@ -8,7 +8,9 @@ import 'package:analysis_server/src/server/driver.dart' as server_driver;
 import 'package:args/args.dart';
 
 import '../core.dart';
+import '../sdk.dart';
 import '../utils.dart';
+import '../vm_interop_handler.dart';
 
 class LanguageServerCommand extends DartdevCommand {
   static const String commandName = 'language-server';
@@ -38,11 +40,14 @@ For more information about the server's capabilities and configuration, see:
 
   @override
   Future<int> run() async {
-    final driver = server_driver.Driver();
-    driver.start(
-      argResults!.arguments,
-      defaultToLsp: true,
-    );
+    if (!Sdk.checkArtifactExists(sdk.analysisServerSnapshot)) return 255;
+
+    VmInteropHandler.run(
+        sdk.analysisServerSnapshot,
+        [
+          ...argResults!.arguments,
+        ],
+        packageConfigOverride: null);
 
     // The server will continue to run past the return from this method.
     //
