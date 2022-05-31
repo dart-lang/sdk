@@ -490,7 +490,11 @@ const RegList kAbiVolatileFpuRegs =
     R(V17) | R(V18) | R(V19) | R(V20) | R(V21) | R(V22) | R(V23) | R(V24) |
     R(V25) | R(V26) | R(V27) | R(V28) | R(V29) | R(V30) | R(V31);
 
+#ifdef DART_OPTIMIZE_FOR_SIZE
+constexpr int kStoreBufferWrapperSize = 48;
+#else
 constexpr int kStoreBufferWrapperSize = 32;
+#endif
 
 class CallingConventions {
  public:

@@ -81,6 +81,9 @@ declare_args() {
 
   # Whether to use compressed pointers.
   dart_use_compressed_pointers = false
+
+  # Whether to optimize code for size
+  dart_optimize_for_size = false
 }
 
 declare_args() {

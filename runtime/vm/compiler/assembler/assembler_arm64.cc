@@ -1104,6 +1104,7 @@ void Assembler::StoreBarrier(Register object,
   // store buffer (case 1) or add value to the marking stack (case 2).
   // Compare UntaggedObject::StorePointer.
   Label done;
+#ifndef DART_OPTIMIZE_FOR_SIZE
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
   }
@@ -1115,6 +1116,7 @@ void Assembler::StoreBarrier(Register object,
        Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
   tst(TMP, Operand(HEAP_BITS, LSR, 32));
   b(&done, ZERO);
+#endif
 
   if (spill_lr) {
     SPILLS_LR_TO_FRAME(Push(LR));
@@ -1186,6 +1188,7 @@ void Assembler::StoreIntoArrayBarrier(Register object,
   // store buffer (case 1) or add value to the marking stack (case 2).
   // Compare UntaggedObject::StorePointer.
   Label done;
+#ifndef DART_OPTIMIZE_FOR_SIZE
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
   }
@@ -1197,6 +1200,7 @@ void Assembler::StoreIntoArrayBarrier(Register object,
        Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
   tst(TMP, Operand(HEAP_BITS, LSR, 32));
   b(&done, ZERO);
+#endif
   if (spill_lr) {
     SPILLS_LR_TO_FRAME(Push(LR));
   }

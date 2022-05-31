@@ -1863,6 +1863,35 @@ void StubCodeCompiler::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
 
     Register reg = static_cast<Register>(i);
     intptr_t start = __ CodeSize();
+#ifdef DART_OPTIMIZE_FOR_SIZE
+    Label done;
+    __ BranchIfSmi(kWriteBarrierValueReg, &done);
+    __ ldr(TMP, FieldAddress(reg, target::Object::tags_offset(), kByte),
+           kUnsignedByte);
+    __ ldr(TMP2, FieldAddress(kWriteBarrierValueReg, target::Object::tags_offset(), kByte),
+           kUnsignedByte);
+    __ and_(TMP, TMP2,
+            Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
+    __ tst(TMP, Operand(HEAP_BITS, LSR, 32));
+    __ b(&done, ZERO);
+    if (kWriteBarrierObjectReg == reg) {
+      SPILLS_LR_TO_FRAME(__ Push(LR));
+    } else {
+      SPILLS_LR_TO_FRAME(__ PushPair(kWriteBarrierObjectReg, LR));
+      __ mov(kWriteBarrierObjectReg, reg);
+    }
+    __ Call(Address(THR, target::Thread::write_barrier_entry_point_offset()));
+    if (kWriteBarrierObjectReg == reg) {
+      RESTORES_LR_FROM_FRAME(__ Pop(LR));
+    } else {
+      RESTORES_LR_FROM_FRAME(__ PopPair(kWriteBarrierObjectReg, LR));
+    }
+    __ Bind(&done);
+    READS_RETURN_ADDRESS_FROM_LR(__ ret(LR));
+    if (kWriteBarrierObjectReg == reg) {
+      __ Breakpoint(); // padding
+    }
+#else
     SPILLS_LR_TO_FRAME(__ Push(LR));
     __ Push(kWriteBarrierObjectReg);
     __ mov(kWriteBarrierObjectReg, reg);
@@ -1870,6 +1899,7 @@ void StubCodeCompiler::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
     __ Pop(kWriteBarrierObjectReg);
     RESTORES_LR_FROM_FRAME(__ Pop(LR));
     READS_RETURN_ADDRESS_FROM_LR(__ ret(LR));
+#endif
     intptr_t end = __ CodeSize();
 
     RELEASE_ASSERT(end - start == kStoreBufferWrapperSize);
@@ -2047,6 +2077,21 @@ void StubCodeCompiler::GenerateWriteBarrierStub(Assembler* assembler) {
 }
 
 void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
+#ifdef DART_OPTIMIZE_FOR_SIZE
+  Label done, slow_case;
+  __ BranchIfSmi(kWriteBarrierValueReg, &done);
+  __ ldr(TMP, FieldAddress(kWriteBarrierObjectReg, target::Object::tags_offset(), kByte),
+          kUnsignedByte);
+  __ ldr(TMP2, FieldAddress(kWriteBarrierValueReg, target::Object::tags_offset(), kByte),
+          kUnsignedByte);
+  __ and_(TMP, TMP2,
+          Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
+  __ tst(TMP, Operand(HEAP_BITS, LSR, 32));
+  __ b(&slow_case, NOT_ZERO);
+  __ Bind(&done);
+  READS_RETURN_ADDRESS_FROM_LR(__ ret(LR));
+  __ Bind(&slow_case);
+#endif
   GenerateWriteBarrierStubHelper(assembler, true);
 }
 

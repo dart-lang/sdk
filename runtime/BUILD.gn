@@ -144,6 +144,10 @@ config("dart_config") {
     defines += [ "DART_COMPRESSED_POINTERS" ]
   }
 
+  if (dart_optimize_for_size) {
+    defines += [ "DART_OPTIMIZE_FOR_SIZE" ]
+  }
+
   if (is_fuchsia) {
     if (using_fuchsia_gn_sdk) {
       lib_dirs = [ root_out_dir + "/lib" ]

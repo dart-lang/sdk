@@ -1781,13 +1781,16 @@ void Assembler::StoreIntoObject(Register object,
   // store buffer (case 1) or add value to the marking stack (case 2).
   // Compare UntaggedObject::StorePointer.
   Label done;
+#ifndef DART_OPTIMIZE_FOR_SIZE
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
   }
+#endif
   const bool preserve_lr = lr_state().LRContainsReturnAddress();
   if (preserve_lr) {
     SPILLS_LR_TO_FRAME(Push(LR));
   }
+#ifndef DART_OPTIMIZE_FOR_SIZE
   CLOBBERS_LR({
     ldrb(TMP, FieldAddress(object, target::Object::tags_offset()));
     ldrb(LR, FieldAddress(value, target::Object::tags_offset()));
@@ -1796,11 +1799,14 @@ void Assembler::StoreIntoObject(Register object,
     ldr(LR, Address(THR, target::Thread::write_barrier_mask_offset()));
     tst(TMP, Operand(LR));
   });
+#endif
   if (value != kWriteBarrierValueReg) {
     // Unlikely. Only non-graph intrinsics.
     // TODO(rmacnak): Shuffle registers in intrinsics.
     Label restore_and_done;
+#ifndef DART_OPTIMIZE_FOR_SIZE
     b(&restore_and_done, ZERO);
+#endif
     Register objectForCall = object;
     if (object != kWriteBarrierValueReg) {
       Push(kWriteBarrierValueReg);
@@ -1821,7 +1827,11 @@ void Assembler::StoreIntoObject(Register object,
     }
     Bind(&restore_and_done);
   } else {
+#ifndef DART_OPTIMIZE_FOR_SIZE
     generate_invoke_write_barrier_wrapper_(NE, object);
+#else
+    generate_invoke_write_barrier_wrapper_(AL, object);
+#endif
   }
   if (preserve_lr) {
     RESTORES_LR_FROM_FRAME(Pop(LR));
@@ -1851,6 +1861,7 @@ void Assembler::StoreIntoArray(Register object,
   // If so, call the WriteBarrier stub, which will either add object to the
   // store buffer (case 1) or add value to the marking stack (case 2).
   // Compare UntaggedObject::StorePointer.
+#ifndef DART_OPTIMIZE_FOR_SIZE
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
@@ -1881,6 +1892,16 @@ void Assembler::StoreIntoArray(Register object,
     RESTORES_LR_FROM_FRAME(Pop(LR));
   }
   Bind(&done);
+#else
+  const bool preserve_lr = lr_state().LRContainsReturnAddress();
+  if (preserve_lr) {
+    SPILLS_LR_TO_FRAME(Push(LR));
+  }
+  generate_invoke_array_write_barrier_(AL);
+  if (preserve_lr) {
+    RESTORES_LR_FROM_FRAME(Pop(LR));
+  }
+#endif
 }
 
 void Assembler::StoreIntoObjectOffset(Register object,
