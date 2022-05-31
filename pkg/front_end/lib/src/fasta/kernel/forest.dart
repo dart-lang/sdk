@@ -366,7 +366,7 @@ class Forest {
 
   /// Return a representation of a block of [statements] at the given
   /// [fileOffset].
-  Statement createBlock(
+  Block createBlock(
       int fileOffset, int fileEndOffset, List<Statement> statements) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);

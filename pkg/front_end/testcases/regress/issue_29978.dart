@@ -4,6 +4,6 @@
 
 foo(a, b) => null;
 
-main() {
+test() {
   foo(null, f() {});
 }

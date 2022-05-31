@@ -64,7 +64,6 @@ void main() {
     _testInternalPropertyGet();
     _testInternalPropertySet();
     _testExpressionInvocation();
-    _testNamedFunctionExpressionJudgment();
     _testNullAwareMethodInvocation();
     _testNullAwarePropertyGet();
     _testNullAwarePropertySet();
@@ -587,15 +586,6 @@ void _testExpressionInvocation() {
           ])),
       '''
 0<void, dynamic>(1, foo: 2, bar: 3)''');
-}
-
-void _testNamedFunctionExpressionJudgment() {
-  testExpression(
-      new NamedFunctionExpressionJudgment(new VariableDeclarationImpl('foo',
-          initializer:
-              new FunctionExpression(new FunctionNode(new Block([]))))),
-      '''
-let dynamic foo = dynamic () {} in foo''');
 }
 
 void _testNullAwareMethodInvocation() {

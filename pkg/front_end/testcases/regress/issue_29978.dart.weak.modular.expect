@@ -10,6 +10,10 @@ import self as self;
 
 static method foo(dynamic a, dynamic b) → dynamic
   return null;
-static method main() → dynamic {
-  self::foo(null, let final () → Null f = () → Null {} in f);
+static method test() → dynamic {
+  self::foo(null, block {
+    function f() → Null {}
+  } =>invalid-expression "pkg/front_end/testcases/regress/issue_29978.dart:8:13: Error: A function expression can't have a name.
+  foo(null, f() {});
+            ^");
 }

@@ -1226,32 +1226,6 @@ class ExpressionInvocation extends InternalExpression {
   }
 }
 
-/// Concrete shadow object representing a named function expression.
-///
-/// Named function expressions are not legal in Dart, but they are accepted by
-/// the parser and BodyBuilder for error recovery purposes.
-///
-/// A named function expression of the form `f() { ... }` is represented as the
-/// kernel expression:
-///
-///     let f = () { ... } in f
-class NamedFunctionExpressionJudgment extends Let
-    implements ExpressionJudgment {
-  NamedFunctionExpressionJudgment(VariableDeclaration variable)
-      : super(variable, new VariableGet(variable));
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitNamedFunctionExpressionJudgment(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "NamedFunctionExpressionJudgment(${toStringInternal()})";
-  }
-}
-
 /// Internal expression representing a null-aware method invocation.
 ///
 /// A null-aware method invocation of the form `a?.b(...)` is encoded as:

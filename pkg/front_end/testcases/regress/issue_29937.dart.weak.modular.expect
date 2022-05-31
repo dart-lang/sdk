@@ -8,6 +8,10 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 
-static method main() → dynamic {
-  <() → Null>[let final () → Null f = () → Null {} in f];
+static method test() → dynamic {
+  <dynamic>[ block {
+    function f() → Null {}
+  } =>invalid-expression "pkg/front_end/testcases/regress/issue_29937.dart:6:4: Error: A function expression can't have a name.
+  [f() {}];
+   ^"];
 }
