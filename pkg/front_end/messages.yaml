@@ -5223,6 +5223,19 @@ ClassInNullAwareReceiver:
       C?.field;
     }
 
+ExtensionInNullAwareReceiver:
+  problemMessage: "The extension '#name' cannot be null."
+  correctionMessage: "Try replacing '?.' with '.'"
+  severity: WARNING
+  configuration: nnbd-strong
+  script: |
+    extension E on int {
+      static var field;
+    }
+    method() {
+      E?.field;
+    }
+
 NonNullableNotAssignedError:
   problemMessage: "Non-nullable variable '#name' must be assigned before it can be used."
   configuration: nnbd-strong

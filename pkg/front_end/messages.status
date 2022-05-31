@@ -314,6 +314,7 @@ ExtendsVoid/example: Fail # Feature not yet enabled by default.
 ExtensionDeclaresAbstractMember/example: Fail
 ExtensionDeclaresConstructor/example: Fail
 ExtensionDeclaresInstanceField/example: Fail
+ExtensionInNullAwareReceiver/analyzerCode: Fail
 ExtensionMemberConflictsWithObjectMember/analyzerCode: Fail
 ExternalConstructorWithBody/part_wrapped_script1: Fail
 ExternalConstructorWithBody/script1: Fail

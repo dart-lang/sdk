@@ -20,6 +20,7 @@ import '../builder/class_builder.dart';
 import '../builder/declaration_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
@@ -1386,12 +1387,18 @@ class StaticAccessGenerator extends Generator {
   final int? typeOffset;
   final bool isNullAware;
 
+  /// The builder for the parent of [readTarget] and [writeTarget]. This is
+  /// either the builder for the enclosing library,  class, or extension.
+  final Builder? parentBuilder;
+
   StaticAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      this.targetName, this.readTarget, this.writeTarget,
+      this.targetName, this.parentBuilder, this.readTarget, this.writeTarget,
       {this.typeOffset, this.isNullAware: false})
       // ignore: unnecessary_null_comparison
       : assert(targetName != null),
         assert(readTarget != null || writeTarget != null),
+        assert(parentBuilder is DeclarationBuilder ||
+            parentBuilder is LibraryBuilder),
         super(helper, token);
 
   factory StaticAccessGenerator.fromBuilder(
@@ -1402,19 +1409,44 @@ class StaticAccessGenerator extends Generator {
       MemberBuilder? setterBuilder,
       {int? typeOffset,
       bool isNullAware: false}) {
-    return new StaticAccessGenerator(helper, token, targetName,
-        getterBuilder?.readTarget, setterBuilder?.writeTarget,
-        typeOffset: typeOffset, isNullAware: isNullAware);
+    // If both [getterBuilder] and [setterBuilder] exist, they must both be
+    // either top level (potentially from different libraries) or from the same
+    // class/extension.
+    assert(getterBuilder == null ||
+        setterBuilder == null ||
+        (getterBuilder.parent is LibraryBuilder &&
+            setterBuilder.parent is LibraryBuilder) ||
+        getterBuilder.parent == setterBuilder.parent);
+    return new StaticAccessGenerator(
+        helper,
+        token,
+        targetName,
+        getterBuilder?.parent ?? setterBuilder?.parent,
+        getterBuilder?.readTarget,
+        setterBuilder?.writeTarget,
+        typeOffset: typeOffset,
+        isNullAware: isNullAware);
   }
 
   void _reportNonNullableInNullAwareWarningIfNeeded() {
     if (isNullAware && _helper.libraryBuilder.isNonNullableByDefault) {
-      String className = (readTarget ?? writeTarget)!.enclosingClass!.name;
-      _helper.libraryBuilder.addProblem(
-          templateClassInNullAwareReceiver.withArguments(className),
-          typeOffset ?? fileOffset,
-          typeOffset != null ? className.length : noLength,
-          _helper.uri);
+      DeclarationBuilder declarationBuilder =
+          parentBuilder as DeclarationBuilder;
+      if (declarationBuilder.isExtension) {
+        String extensionName = declarationBuilder.name;
+        _helper.libraryBuilder.addProblem(
+            templateExtensionInNullAwareReceiver.withArguments(extensionName),
+            typeOffset ?? fileOffset,
+            typeOffset != null ? extensionName.length : noLength,
+            _helper.uri);
+      } else {
+        String className = declarationBuilder.name;
+        _helper.libraryBuilder.addProblem(
+            templateClassInNullAwareReceiver.withArguments(className),
+            typeOffset ?? fileOffset,
+            typeOffset != null ? className.length : noLength,
+            _helper.uri);
+      }
     }
   }
 

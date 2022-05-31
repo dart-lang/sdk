@@ -177,6 +177,7 @@ Future<ServerSocket> serverSocketBind(dynamic address, int port,
 
 class StdinMock extends Stream<List<int>> implements Stdin {
   bool echoMode = false;
+  bool echoNewlineMode = false;
   bool lineMode = false;
   bool get hasTerminal => throw "";
   bool get supportsAnsiEscapes => throw "";

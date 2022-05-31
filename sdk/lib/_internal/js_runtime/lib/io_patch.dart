@@ -688,6 +688,16 @@ class Stdin {
   }
 
   @patch
+  bool get echoNewlineMode {
+    throw UnsupportedError("Stdin.echoNewlineMode");
+  }
+
+  @patch
+  void set echoNewlineMode(bool enabled) {
+    throw UnsupportedError("Stdin.echoNewlineMode");
+  }
+
+  @patch
   bool get lineMode {
     throw new UnsupportedError("Stdin.lineMode");
   }

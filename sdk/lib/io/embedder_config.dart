@@ -24,6 +24,10 @@ abstract class _EmbedderConfig {
   @pragma('vm:entry-point')
   static bool _maySetEchoMode = true;
 
+  // Whether the isolate may set [Stdin.echoNewlineMode].
+  @pragma('vm:entry-point')
+  static bool _maySetEchoNewlineMode = true;
+
   // Whether the isolate may set [Stdin.lineMode].
   @pragma('vm:entry-point')
   static bool _maySetLineMode = true;
