@@ -2628,12 +2628,8 @@ void Object::InitializeObject(uword address,
       // If the size is greater than both kNewAllocatableSize and
       // kAllocatablePageSize, the object must have been allocated to a new
       // large page, which must already have been zero initialized by the OS.
-#if defined(DART_COMPRESSED_POINTERS)
-      needs_init = true;
-#else
       needs_init = Heap::IsAllocatableInNewSpace(size) ||
                    Heap::IsAllocatableViaFreeLists(size);
-#endif
     } else {
       initial_value = static_cast<uword>(null_);
 #if defined(DART_COMPRESSED_POINTERS)

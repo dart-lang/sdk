@@ -1,3 +1,8 @@
+## 0.4.6
+
+- Upgrade to `package:lints` 2.0.
+- Populate the pubspec `repository` field.
+
 ## 0.4.5
 
 - Handle stack traces larger than 100 entries.

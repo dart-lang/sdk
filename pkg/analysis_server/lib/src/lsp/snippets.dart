@@ -87,11 +87,13 @@ String _buildSnippetString(
         // Use the index as an ID to keep all related positions together (so
         // the remain "linked").
         linkedGroupId: index,
-        // If there is no selection, no tabstops, and only a single edit group
-        // allow it to be the final tabstop.
+        // If there is no selection, no tabstops, only a single edit group and
+        // not multiple suggestions (which map to a choice), allow this to be
+        // the final tabstop.
         isFinal: selectionOffset == null &&
             (tabStopOffsetLengthPairs?.isEmpty ?? false) &&
-            editGroups?.length == 1,
+            editGroups?.length == 1 &&
+            editGroup.suggestions.length <= 1,
       ),
     );
   }
@@ -168,6 +170,7 @@ class SnippetBuilder {
   /// Appends a placeholder with a set of choices to choose from.
   ///
   /// If there are 0 or 1 choices, a placeholder will be inserted instead.
+  /// If there are multiple choices, [placeholderNumber] must not be 0.
   ///
   /// Returns the placeholder number used.
   int appendChoice(Set<String> uniqueChoices, {int? placeholderNumber}) {
@@ -177,6 +180,17 @@ class SnippetBuilder {
         uniqueChoices.firstOrNull ?? '',
         placeholderNumber: placeholderNumber,
       );
+    }
+
+    // Otherwise, we will use a choice. In a choice it'snot valid to be the
+    // final (0th) tabstop.
+    assert(placeholderNumber == null || placeholderNumber > 0);
+
+    // To avoid producing broken choice snippets in release builds (if the
+    // assert above didn't catch issues at dev time), map any final tabstops to
+    // use the next available tabstop to produce a valid snippet.
+    if (placeholderNumber == 0) {
+      placeholderNumber = null;
     }
 
     placeholderNumber = _usePlaceholerNumber(placeholderNumber);
@@ -229,7 +243,7 @@ class SnippetBuilder {
 
   /// Generates the current and next placeholder numbers.
   int _usePlaceholerNumber(int? placeholderNumber) {
-    // If a number was not supplied, use thenext available one.
+    // If a number was not supplied, use the next available one.
     placeholderNumber ??= _nextPlaceholder;
     // If the number we used was the highest seen, set the next one after it.
     _nextPlaceholder = math.max(_nextPlaceholder, placeholderNumber + 1);

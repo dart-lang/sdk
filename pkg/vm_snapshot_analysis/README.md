@@ -1,4 +1,5 @@
-# vm_snapshot_analysis
+[![pub package](https://img.shields.io/pub/v/vm_snapshot_analysis.svg)](https://pub.dev/packages/vm_snapshot_analysis)
+[![package publisher](https://img.shields.io/pub/publisher/vm_snapshot_analysis.svg)](https://pub.dev/packages/vm_snapshot_analysis/publisher)
 
 This package provides libraries and a utility for analysing the size and
 contents of Dart VM AOT snapshots based on the output of
@@ -140,7 +141,6 @@ package:compiler (total 5762761 bytes)
 package:front_end (total 2708981 bytes)
 └── package:package_config (total 64039 bytes)
 ```
-
 
 ### `compare`
 

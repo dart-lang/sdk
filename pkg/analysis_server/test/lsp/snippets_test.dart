@@ -155,8 +155,9 @@ var a = 1;
         ),
       ],
     );
+    // Choices are never 0th placeholders, so this is `$1`.
     expect(result, equals(r'''
-var ${0|a,aaa,bbb\${\}\,\|,ccc|} = 1;
+var ${1|a,aaa,bbb\${\}\,\|,ccc|} = 1;
 '''));
   }
 

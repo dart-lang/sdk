@@ -1709,10 +1709,12 @@ void PageSpaceController::RecordUpdate(SpaceUsage before,
 #endif
 
   if (FLAG_log_growth || FLAG_verbose_gc) {
-    THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd "kB, reason=%s\n",
+    THR_Print("%s: hard_threshold=%" Pd "MB, soft_threshold=%" Pd
+              "MB, idle_threshold=%" Pd "MB, reason=%s\n",
               heap_->isolate_group()->source()->name,
-              RoundWordsToKB(hard_gc_threshold_in_words_),
-              RoundWordsToKB(idle_gc_threshold_in_words_), reason);
+              RoundWordsToMB(hard_gc_threshold_in_words_),
+              RoundWordsToMB(soft_gc_threshold_in_words_),
+              RoundWordsToMB(idle_gc_threshold_in_words_), reason);
   }
 }
 

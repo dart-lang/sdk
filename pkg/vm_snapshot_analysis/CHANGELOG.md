@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.2
+
+- Upgrade to `package:lints` 2.0.
+- Populate the pubspec `repository` field.
+
 ## 0.7.1
 
 - Make `CallGraphNode.dominator` nullable.
