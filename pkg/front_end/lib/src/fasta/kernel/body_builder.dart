@@ -2947,7 +2947,7 @@ class BodyBuilder extends StackListenerImpl
       assert(declaration.isStatic || declaration.isTopLevel);
       MemberBuilder memberBuilder = declaration as MemberBuilder;
       return new StaticAccessGenerator(
-          this, token, name, memberBuilder.member, null);
+          this, token, name, memberBuilder.parent, memberBuilder.member, null);
     } else if (declaration is PrefixBuilder) {
       assert(prefix == null);
       return new PrefixUseGenerator(this, token, declaration);

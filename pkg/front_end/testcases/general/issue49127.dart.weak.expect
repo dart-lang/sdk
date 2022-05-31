@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue49127.dart:10:3: Warning: The extension 'E' cannot be null.
+// Try replacing '?.' with '.'
+//   E?.s;
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension E on core::int {
+  static field s = self::E|s;
+}
+static field core::String E|s = "Lily was here";
+static method test() → dynamic {
+  self::E|s;
+}

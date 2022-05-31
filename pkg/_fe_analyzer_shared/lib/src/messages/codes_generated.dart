@@ -3847,6 +3847,29 @@ const MessageCode messageExtensionDeclaresInstanceField = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
+    templateExtensionInNullAwareReceiver =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate: r"""The extension '#name' cannot be null.""",
+        correctionMessageTemplate: r"""Try replacing '?.' with '.'""",
+        withArguments: _withArgumentsExtensionInNullAwareReceiver);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeExtensionInNullAwareReceiver =
+    const Code<Message Function(String name)>("ExtensionInNullAwareReceiver",
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtensionInNullAwareReceiver(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeExtensionInNullAwareReceiver,
+      problemMessage: """The extension '${name}' cannot be null.""",
+      correctionMessage: """Try replacing '?.' with '.'""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
     templateExtensionMemberConflictsWithObjectMember =
     const Template<Message Function(String name)>(
         problemMessageTemplate:
