@@ -5934,48 +5934,39 @@ class BodyBuilder extends StackListenerImpl
       }
 
       variable.type = function.computeFunctionType(libraryBuilder.nonNullable);
-      if (isFunctionExpression) {
-        Expression? oldInitializer = variable.initializer;
-        variable.initializer = new FunctionExpression(function)
-          ..parent = variable
-          ..fileOffset = formals.charOffset;
-        exitLocalScope();
-        // This is matched by the call to [beginNode] in [enterFunction].
-        typeInferrer.assignedVariables.endNode(variable.initializer!,
-            isClosureOrLateVariableInitializer: true);
-        Expression expression = new NamedFunctionExpressionJudgment(variable);
-        if (oldInitializer != null) {
-          // This must have been a compile-time error.
-          Expression error = oldInitializer;
-          assert(isErroneousNode(error));
-          int offset = expression.fileOffset;
-          push(new Let(
-              new VariableDeclaration.forValue(error)..fileOffset = offset,
-              expression)
-            ..fileOffset = offset);
-        } else {
-          push(expression);
-        }
-      } else {
-        declaration.function = function;
-        function.parent = declaration;
-        if (variable.initializer != null) {
-          // This must have been a compile-time error.
-          assert(isErroneousNode(variable.initializer!));
 
-          push(forest
-              .createBlock(declaration.fileOffset, noLocation, <Statement>[
-            forest.createExpressionStatement(
-                offsetForToken(token), variable.initializer!),
-            declaration
-          ]));
-          variable.initializer = null;
-        } else {
-          push(declaration);
-        }
-        // This is matched by the call to [beginNode] in [enterFunction].
-        typeInferrer.assignedVariables
-            .endNode(declaration, isClosureOrLateVariableInitializer: true);
+      declaration.function = function;
+      function.parent = declaration;
+      Statement statement;
+      if (variable.initializer != null) {
+        // This must have been a compile-time error.
+        assert(isErroneousNode(variable.initializer!));
+
+        statement =
+            forest.createBlock(declaration.fileOffset, noLocation, <Statement>[
+          forest.createExpressionStatement(
+              offsetForToken(token), variable.initializer!),
+          declaration
+        ]);
+        variable.initializer = null;
+      } else {
+        statement = declaration;
+      }
+      // This is matched by the call to [beginNode] in [enterFunction].
+      typeInferrer.assignedVariables
+          .endNode(declaration, isClosureOrLateVariableInitializer: true);
+      if (isFunctionExpression) {
+        // This is an error case. An expression is expected but we got a
+        // function declaration instead. We wrap it in a [BlockExpression].
+        exitLocalScope();
+        push(new BlockExpression(
+            forest.createBlock(declaration.fileOffset, noLocation, [statement]),
+            buildProblem(fasta.messageNamedFunctionExpression,
+                declaration.fileOffset, noLength,
+                // Error has already been reported by the parser.
+                suppressMessage: true)));
+      } else {
+        push(statement);
       }
     } else {
       unhandled("${declaration.runtimeType}", "pushNamedFunction",

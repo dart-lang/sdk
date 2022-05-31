@@ -2364,7 +2364,8 @@ class TypeInferrerImpl implements TypeInferrer {
     if (libraryFeatures.namedArgumentsAnywhere.isEnabled &&
         arguments.argumentsOriginalOrder != null &&
         hoistedExpressions == null &&
-        !isTopLevel) {
+        !isTopLevel &&
+        !isConst) {
       hoistedExpressions = localHoistedExpressions = <VariableDeclaration>[];
     }
 

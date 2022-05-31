@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue49122.dart:8:8: Error: A function expression can't have a name.
+//   test(bar() { print(bar); });
+//        ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic x) → dynamic
+  return x{dynamic}.call();
+static method test2() → void {
+  self::test( block {
+    function bar() → Null {
+      core::print(bar);
+    }
+  } =>invalid-expression "pkg/front_end/testcases/general/issue49122.dart:8:8: Error: A function expression can't have a name.
+  test(bar() { print(bar); });
+       ^");
+}

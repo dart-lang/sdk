@@ -1,0 +1,8 @@
+class A {
+  const A(int x, {String? y});
+  const factory A.redir(int x, {String? y}) = A;
+}
+
+test1() => const A(y: "foo", 0);
+test2() => const A.redir(y: "foo", 0);
+main() {}

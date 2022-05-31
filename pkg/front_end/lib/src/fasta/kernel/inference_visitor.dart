@@ -108,7 +108,19 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitBlockExpression(
       BlockExpression node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
+    // This is only used for error cases. The spec doesn't use this and
+    // therefore doesn't specify the type context for the subterms.
+    if (!inferrer.isTopLevel) {
+      StatementInferenceResult bodyResult = inferrer.inferStatement(node.body);
+      if (bodyResult.hasChanged) {
+        node.body = (bodyResult.statement as Block)..parent = node;
+      }
+    }
+    ExpressionInferenceResult valueResult = inferrer.inferExpression(
+        node.value, const UnknownType(), true,
+        isVoidAllowed: true);
+    node.value = valueResult.expression..parent = node;
+    return new ExpressionInferenceResult(valueResult.inferredType, node);
   }
 
   @override
@@ -2928,16 +2940,6 @@ class InferenceVisitor
         typeContext,
         isExpressionInvocation: true,
         isImplicitCall: true);
-  }
-
-  ExpressionInferenceResult visitNamedFunctionExpressionJudgment(
-      NamedFunctionExpressionJudgment node, DartType typeContext) {
-    ExpressionInferenceResult initializerResult =
-        inferrer.inferExpression(node.variable.initializer!, typeContext, true);
-    node.variable.initializer = initializerResult.expression
-      ..parent = node.variable;
-    node.variable.type = initializerResult.inferredType;
-    return new ExpressionInferenceResult(initializerResult.inferredType, node);
   }
 
   @override

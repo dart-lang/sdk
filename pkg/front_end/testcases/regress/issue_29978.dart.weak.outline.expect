@@ -3,5 +3,5 @@ import self as self;
 
 static method foo(dynamic a, dynamic b) → dynamic
   ;
-static method main() → dynamic
+static method test() → dynamic
   ;

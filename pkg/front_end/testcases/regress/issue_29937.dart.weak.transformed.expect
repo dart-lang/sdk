@@ -9,6 +9,10 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static method main() → dynamic {
-  core::_GrowableList::_literal1<() → Null>(let final () → Null f = () → Null {} in f);
+static method test() → dynamic {
+  core::_GrowableList::_literal1<dynamic>( block {
+    function f() → Null {}
+  } =>invalid-expression "pkg/front_end/testcases/regress/issue_29937.dart:6:4: Error: A function expression can't have a name.
+  [f() {}];
+   ^");
 }

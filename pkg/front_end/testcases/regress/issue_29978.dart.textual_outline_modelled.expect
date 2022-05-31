@@ -1,2 +1,2 @@
 foo(a, b) => null;
-main() {}
+test() {}

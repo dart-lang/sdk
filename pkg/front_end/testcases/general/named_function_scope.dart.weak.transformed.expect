@@ -81,6 +81,11 @@ library /*isNonNullableByDefault*/;
 //     void T(T t) {}
 //            ^
 //
+// pkg/front_end/testcases/general/named_function_scope.dart:41:13: Error: A non-null value must be returned since the return type 'T' doesn't allow null.
+//  - 'T' is from 'pkg/front_end/testcases/general/named_function_scope.dart'.
+//     var x = T T() {};
+//             ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -105,7 +110,11 @@ static method test() → dynamic {
   }
   {
     self::T t;
-    () → Null x = let final () → Null T = () → Null {} in T;
+    invalid-type x = block {
+      function T() → Null {}
+    } =>invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:26:13: Error: A function expression can't have a name.
+    var x = T() {};
+            ^";
   }
   {
     self::V v;
@@ -120,9 +129,21 @@ static method test() → dynamic {
         ^" in null;
   }
   {
-    () → Null x = let final invalid-type #t1 = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:41:15: Error: Can't declare 'T' because it was already used in this scope.
+    invalid-type x = block {
+      {
+        invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:41:15: Error: Can't declare 'T' because it was already used in this scope.
     var x = T T() {};
-              ^" in let final () → Null T = () → Null {} in T;
+              ^";
+        function T() → self::T {
+          return invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:41:13: Error: A non-null value must be returned since the return type 'T' doesn't allow null.
+ - 'T' is from 'pkg/front_end/testcases/general/named_function_scope.dart'.
+    var x = T T() {};
+            ^" in null;
+        }
+      }
+    } =>invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:41:13: Error: A function expression can't have a name.
+    var x = T T() {};
+            ^";
   }
   {
     self::V V = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:47:7: Error: Can't declare 'V' because it was already used in this scope.
@@ -130,9 +151,16 @@ static method test() → dynamic {
       ^";
   }
   {
-    <T extends core::Object? = dynamic>() → Null x = let final invalid-type #t2 = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:52:13: Error: 'T' is already declared in this scope.
+    invalid-type x = block {
+      {
+        invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:52:13: Error: 'T' is already declared in this scope.
     var x = T<T>() {};
-            ^" in let final <T extends core::Object? = dynamic>() → Null T = <T extends core::Object? = dynamic>() → Null {} in T;
+            ^";
+        function T<T extends core::Object? = dynamic>() → Null {}
+      }
+    } =>invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:52:13: Error: A function expression can't have a name.
+    var x = T<T>() {};
+            ^";
   }
   {
     self::T t;
