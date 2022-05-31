@@ -2810,6 +2810,10 @@ void Assembler::LoadDecodableImmediate(Register rd,
   }
 }
 
+void Assembler::LoadImmediate(Register rd, Immediate value, Condition cond) {
+  LoadImmediate(rd, value.value(), cond);
+}
+
 void Assembler::LoadImmediate(Register rd, int32_t value, Condition cond) {
   Operand o;
   if (Operand::CanHold(value, &o)) {

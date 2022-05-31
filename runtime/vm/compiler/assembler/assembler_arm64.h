@@ -1790,7 +1790,15 @@ class Assembler : public AssemblerBase {
   }
   void Call(const Code& code) { BranchLink(code); }
 
-  void CallCFunction(Address target) { Call(target); }
+  // Clobbers LR.
+  void CallCFunction(Address target) {
+    Call(target);
+  }
+  void CallCFunction(Register target) {
+#define __ this->
+    CLOBBERS_LR({ blr(target); });
+#undef __
+  }
 
   void AddImmediate(Register dest, int64_t imm) {
     AddImmediate(dest, dest, imm);
@@ -2054,6 +2062,9 @@ class Assembler : public AssemblerBase {
   void LoadUniqueObject(Register dst, const Object& obj);
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadImmediate(Register reg, int64_t imm);
+  void LoadImmediate(Register reg, Immediate imm) {
+    LoadImmediate(reg, imm.value());
+  }
 
   void LoadDImmediate(VRegister reg, double immd);
   void LoadQImmediate(VRegister reg, simd128_value_t immq);
@@ -2079,6 +2090,9 @@ class Assembler : public AssemblerBase {
   void PushImmediate(int64_t immediate) {
     LoadImmediate(TMP, immediate);
     Push(TMP);
+  }
+  void PushImmediate(Immediate immediate) {
+    PushImmediate(immediate.value());
   }
   void CompareObject(Register reg, const Object& object);
 

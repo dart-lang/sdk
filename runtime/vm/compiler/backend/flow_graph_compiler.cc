@@ -3606,7 +3606,6 @@ void FlowGraphCompiler::EmitMoveFromNative(
   }
 }
 
-
 // The assignment to loading units here must match that in
 // AssignLoadingUnitsCodeVisitor, which runs after compilation is done.
 static intptr_t LoadingUnitOf(Zone* zone, const Function& function) {

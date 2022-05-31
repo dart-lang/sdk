@@ -8,6 +8,7 @@
 #include "platform/globals.h"
 #include "vm/class_id.h"
 #include "vm/compiler/ffi/abi.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/constants.h"
 #include "vm/zone_text_buffer.h"
 
@@ -582,6 +583,23 @@ static PrimitiveType fundamental_rep(Representation rep) {
 NativePrimitiveType& NativeType::FromUnboxedRepresentation(Zone* zone,
                                                            Representation rep) {
   return *new (zone) NativePrimitiveType(fundamental_rep(rep));
+}
+
+const NativeFunctionType* NativeFunctionType::FromUnboxedRepresentation(
+    Zone* zone,
+    intptr_t num_arguments,
+    Representation representation) {
+  const auto& intptr_type =
+      compiler::ffi::NativePrimitiveType::FromUnboxedRepresentation(
+          zone, representation);
+  auto& argument_representations =
+      *new (zone) ZoneGrowableArray<const compiler::ffi::NativeType*>(
+          zone, num_arguments);
+  for (intptr_t i = 0; i < num_arguments; i++) {
+    argument_representations.Add(&intptr_type);
+  }
+  return new (zone)
+      compiler::ffi::NativeFunctionType(argument_representations, intptr_type);
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 

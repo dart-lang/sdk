@@ -404,6 +404,13 @@ class NativeFunctionType : public ZoneAllocated {
                      const NativeType& return_type)
       : argument_types_(argument_types), return_type_(return_type) {}
 
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
+  static const NativeFunctionType* FromUnboxedRepresentation(
+      Zone* zone,
+      intptr_t num_arguments,
+      Representation representation);
+#endif
+
   const NativeTypes& argument_types() const { return argument_types_; }
   const NativeType& return_type() const { return return_type_; }
 

@@ -2719,6 +2719,10 @@ void Assembler::Call(Address target) {
   jalr(RA);
 }
 
+void Assembler::Call(Register target) {
+  jalr(target);
+}
+
 void Assembler::AddImmediate(Register rd,
                              Register rs1,
                              intx_t imm,

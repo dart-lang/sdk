@@ -1577,6 +1577,41 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   FunctionEntryInstr::EmitNativeCode(compiler);
 }
 
+#define R(r) (1 << r)
+
+LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
+                                                 bool is_optimizing) const {
+  constexpr Register saved_csp = kAbiFirstPreservedCpuReg;
+  ASSERT(IsAbiPreservedRegister(saved_csp));
+  return MakeLocationSummaryInternal(zone, (R(saved_csp)));
+}
+
+#undef R
+
+void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register saved_fp = TMP2;
+  const Register temp0 = TMP;
+  const Register saved_csp = locs()->temp(0).reg();
+
+  __ MoveRegister(saved_fp, FPREG);
+
+  const intptr_t frame_space = native_calling_convention_.StackTopInBytes();
+  __ EnterCFrame(frame_space);
+  ASSERT(IsAbiPreservedRegister(saved_csp));
+  __ mov(saved_csp, CSP);
+  __ mov(CSP, SP);
+
+  EmitParamMoves(compiler, saved_fp, temp0);
+
+  const Register target_address = locs()->in(TargetAddressIndex()).reg();
+  __ CallCFunction(target_address);
+
+  // We don't use the DartSP, we leave the frame after this immediately.
+  // However, we need set CSP to a 16 byte aligned value far above the SP.
+  __ mov(CSP, saved_csp);
+  __ LeaveCFrame();
+}
+
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {

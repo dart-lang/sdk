@@ -3722,7 +3722,6 @@ extern "C" Thread* DLRT_GetThreadForNativeCallbackTrampoline(
   return GetThreadForNativeCallback(callback_id, 0);
 }
 
-// This is called directly by EnterHandleScopeInstr.
 extern "C" ApiLocalScope* DLRT_EnterHandleScope(Thread* thread) {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("EnterHandleScope %p", thread);
@@ -3737,7 +3736,6 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     false /* is_float */,
     reinterpret_cast<RuntimeFunction>(&DLRT_EnterHandleScope));
 
-// This is called directly by ExitHandleScopeInstr.
 extern "C" void DLRT_ExitHandleScope(Thread* thread) {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("ExitHandleScope %p", thread);
@@ -3750,7 +3748,6 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     false /* is_float */,
     reinterpret_cast<RuntimeFunction>(&DLRT_ExitHandleScope));
 
-// This is called directly by AllocateHandleInstr.
 extern "C" LocalHandle* DLRT_AllocateHandle(ApiLocalScope* scope) {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("AllocateHandle %p", scope);
