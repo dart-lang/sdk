@@ -220,14 +220,15 @@ mixin FinalizableTransformer on Transformer {
 
   @override
   TreeNode visitVariableDeclaration(VariableDeclaration node) {
+    node = super.visitVariableDeclaration(node) as VariableDeclaration;
     if (_currentScope == null) {
       // Global variable.
-      return super.visitVariableDeclaration(node);
+      return node;
     }
     if (_isFinalizable(node.type)) {
       _currentScope!.addDeclaration(node);
     }
-    return super.visitVariableDeclaration(node);
+    return node;
   }
 
   @override
