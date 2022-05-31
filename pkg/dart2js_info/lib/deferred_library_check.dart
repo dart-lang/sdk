@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.11
-
 /// This tool checks that the output from dart2js meets a given specification,
 /// given in a YAML file. The format of the YAML file is:
 ///
@@ -96,14 +94,14 @@ List<ManifestComplianceFailure> checkDeferredLibraryManifest(
       var packageName = _getPackageName(lib.uri);
       if (!mentionedPackages.contains(packageName)) return;
       var containingParts = <String>[];
-      if (info.outputUnit.name == 'main') {
+      if (info.outputUnit!.name == 'main') {
         containingParts.add('main');
       } else {
-        containingParts.addAll(info.outputUnit.imports);
+        containingParts.addAll(info.outputUnit!.imports);
       }
       for (var part in containingParts) {
         (actualIncludedPackages[part] ??= {}).add(packageName);
-        if (excludedPackages[part].contains(packageName)) {
+        if (excludedPackages[part]!.contains(packageName)) {
           failures.add(_PartContainedExcludedPackage(part, packageName, info));
         }
       }
@@ -116,7 +114,7 @@ List<ManifestComplianceFailure> checkDeferredLibraryManifest(
   includedPackages.forEach((part, packages) {
     for (var package in packages) {
       if (!actualIncludedPackages.containsKey(part) ||
-          !actualIncludedPackages[part].contains(package)) {
+          !actualIncludedPackages[part]!.contains(package)) {
         failures.add(_PartDidNotContainPackage(part, package));
       }
     }
@@ -124,8 +122,8 @@ List<ManifestComplianceFailure> checkDeferredLibraryManifest(
   return failures;
 }
 
-LibraryInfo _getLibraryOf(Info info) {
-  var current = info;
+LibraryInfo? _getLibraryOf(Info info) {
+  Info? current = info;
   while (current is! LibraryInfo) {
     if (current == null) {
       return null;

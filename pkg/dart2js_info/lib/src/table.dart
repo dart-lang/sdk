@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.11
-
 library dart2js_info.src.table;
 
 import 'dart:math' show max;
@@ -37,7 +35,7 @@ class Table {
   bool _sealed = false;
 
   /// Current row being built by [addEntry].
-  List _currentRow;
+  List? _currentRow;
 
   /// Add a column with the given [name].
   void declareColumn(String name,
@@ -67,17 +65,17 @@ class Table {
       _sealed = true;
       _currentRow = [];
     }
-    int pos = _currentRow.length;
+    int pos = _currentRow!.length;
     assert(pos < _totalColumns);
 
     widths[pos] = max(widths[pos], '$entry'.length + 1);
-    _currentRow.add('$entry');
+    _currentRow!.add('$entry');
     if (entry is int && entry != 0) {
       _skipped[pos] = false;
     }
 
     if (pos + 1 == _totalColumns) {
-      rows.add(_currentRow);
+      rows.add(_currentRow!);
       _currentRow = [];
     }
   }
