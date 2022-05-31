@@ -20,6 +20,9 @@ class Stdin {
   static bool GetEchoMode(intptr_t fd, bool* enabled);
   static bool SetEchoMode(intptr_t fd, bool enabled);
 
+  static bool GetEchoNewlineMode(intptr_t fd, bool* enabled);
+  static bool SetEchoNewlineMode(intptr_t fd, bool enabled);
+
   static bool GetLineMode(intptr_t fd, bool* enabled);
   static bool SetLineMode(intptr_t fd, bool enabled);
 

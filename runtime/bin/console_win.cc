@@ -105,6 +105,10 @@ class ConsoleWin {
     /// to reset the state when we cleanup.
     if ((h != INVALID_HANDLE_VALUE) && GetConsoleMode(h, &mode)) {
       old_mode = mode;
+      // No reason to restore the mode on exit if it was already desirable.
+      if ((mode & flags) == flags) {
+        return kInvalidFlag;
+      }
       if (flags != 0) {
         const DWORD request = mode | flags;
         SetConsoleMode(h, request);

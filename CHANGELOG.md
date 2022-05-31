@@ -54,6 +54,52 @@ them, you must set the lower bound on the SDK constraint for your package to
 - Add `connectionState` attribute and `connectionstatechange` listener to
   `RtcPeerConnection`.
 
+#### `dart:io`
+
+- **Breaking Change** [#45630][]: The Dart VM no longer automatically restores
+    the initial terminal settings upon exit. Programs that change the `Stdin`
+    settings `lineMode` and `echoMode` are now responsible for restoring the
+    settings upon program exit. E.g. a program disabling `echoMode` will now
+    need to restore the setting itself and handle exiting by the appropriate
+    signals if desired:
+
+    ```dart
+    import 'dart:io';
+    import 'dart:async';
+
+    main() {
+      bool echoWasEnabled = stdin.echoMode;
+      try {
+        late StreamSubscription subscription;
+        subscription = ProcessSignal.sigint.watch().listen((ProcessSignal signal) {
+          stdin.echoMode = echoWasEnabled;
+          subscription.cancel();
+          Process.killPid(pid, signal); /* Die by the signal. */
+        });
+        stdin.echoMode = false;
+      } finally {
+        stdin.echoMode = echoWasEnabled;
+      }
+    }
+    ```
+
+    This change is needed to fix [#36453][] where the dart programs not caring
+    about the terminal settings can inadverently corrupt the terminal settings
+    when e.g. piping into less.
+
+    Furthermore the `echoMode` setting now only controls the `echo` local mode
+    and no longer sets the `echonl` local mode on POSIX systems (which controls
+    whether newline are echoed even if the regular echo mode is disabled). The
+    `echonl` local mode is usually turned off in common shell environments.
+    Programs that wish to control the `echonl` local mode can use the new
+    `echoNewlineMode` setting.
+
+    The Windows console code pages (if not UTF-8) and ANSI escape code support
+    (if disabled) remain restored when the VM exits.
+
+[#45630]: https://github.com/dart-lang/sdk/issues/45630
+[#36453]: https://github.com/dart-lang/sdk/issues/36453
+
 #### `dart:js_util`
 
 - Added `dartify` and a number of minor helper functions.

@@ -44,9 +44,34 @@ bool Stdin::SetEchoMode(intptr_t fd, bool enabled) {
     return false;
   }
   if (enabled) {
-    term.c_lflag |= (ECHO | ECHONL);
+    term.c_lflag |= ECHO;
   } else {
-    term.c_lflag &= ~(ECHO | ECHONL);
+    term.c_lflag &= ~(ECHO);
+  }
+  status = NO_RETRY_EXPECTED(tcsetattr(fd, TCSANOW, &term));
+  return (status == 0);
+}
+
+bool Stdin::GetEchoNewlineMode(intptr_t fd, bool* enabled) {
+  struct termios term;
+  int status = NO_RETRY_EXPECTED(tcgetattr(fd, &term));
+  if (status != 0) {
+    return false;
+  }
+  *enabled = ((term.c_lflag & ECHONL) != 0);
+  return true;
+}
+
+bool Stdin::SetEchoNewlineMode(intptr_t fd, bool enabled) {
+  struct termios term;
+  int status = NO_RETRY_EXPECTED(tcgetattr(fd, &term));
+  if (status != 0) {
+    return false;
+  }
+  if (enabled) {
+    term.c_lflag |= ECHONL;
+  } else {
+    term.c_lflag &= ~(ECHONL);
   }
   status = NO_RETRY_EXPECTED(tcsetattr(fd, TCSANOW, &term));
   return (status == 0);

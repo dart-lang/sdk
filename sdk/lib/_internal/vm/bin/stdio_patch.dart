@@ -87,6 +87,29 @@ class Stdin {
   }
 
   @patch
+  bool get echoNewlineMode {
+    var result = _echoNewlineMode(_fd);
+    if (result is OSError) {
+      throw new StdinException(
+          "Error getting terminal echo newline mode", result);
+    }
+    return result;
+  }
+
+  @patch
+  void set echoNewlineMode(bool enabled) {
+    if (!_EmbedderConfig._maySetEchoNewlineMode) {
+      throw new UnsupportedError(
+          "This embedder disallows setting Stdin.echoNewlineMode");
+    }
+    var result = _setEchoNewlineMode(_fd, enabled);
+    if (result is OSError) {
+      throw new StdinException(
+          "Error setting terminal echo newline mode", result);
+    }
+  }
+
+  @patch
   bool get lineMode {
     var result = _lineMode(_fd);
     if (result is OSError) {
@@ -120,6 +143,10 @@ class Stdin {
   external static _echoMode(int fd);
   @pragma("vm:external-name", "Stdin_SetEchoMode")
   external static _setEchoMode(int fd, bool enabled);
+  @pragma("vm:external-name", "Stdin_GetEchoNewlineMode")
+  external static _echoNewlineMode(int fd);
+  @pragma("vm:external-name", "Stdin_SetEchoNewlineMode")
+  external static _setEchoNewlineMode(int fd, bool enabled);
   @pragma("vm:external-name", "Stdin_GetLineMode")
   external static _lineMode(int fd);
   @pragma("vm:external-name", "Stdin_SetLineMode")

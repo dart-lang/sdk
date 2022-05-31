@@ -85,6 +85,39 @@ void FUNCTION_NAME(Stdin_SetEchoMode)(Dart_NativeArguments args) {
   }
 }
 
+void FUNCTION_NAME(Stdin_GetEchoNewlineMode)(Dart_NativeArguments args) {
+  bool enabled = false;
+  intptr_t fd;
+  if (!GetIntptrArgument(args, 0, &fd)) {
+    return;
+  }
+  if (Stdin::GetEchoNewlineMode(fd, &enabled)) {
+    Dart_SetBooleanReturnValue(args, enabled);
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
+}
+
+void FUNCTION_NAME(Stdin_SetEchoNewlineMode)(Dart_NativeArguments args) {
+  intptr_t fd;
+  if (!GetIntptrArgument(args, 0, &fd)) {
+    return;
+  }
+  bool enabled;
+  Dart_Handle status = Dart_GetNativeBooleanArgument(args, 1, &enabled);
+  if (Dart_IsError(status)) {
+    // The caller is expecting an OSError if something goes wrong.
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    return;
+  }
+  if (Stdin::SetEchoNewlineMode(fd, enabled)) {
+    Dart_SetReturnValue(args, Dart_True());
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
+}
+
 void FUNCTION_NAME(Stdin_GetLineMode)(Dart_NativeArguments args) {
   bool enabled = false;
   intptr_t fd;

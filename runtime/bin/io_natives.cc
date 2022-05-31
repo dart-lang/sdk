@@ -176,6 +176,8 @@ namespace bin {
   V(Stdin_ReadByte, 1)                                                         \
   V(Stdin_GetEchoMode, 1)                                                      \
   V(Stdin_SetEchoMode, 2)                                                      \
+  V(Stdin_GetEchoNewlineMode, 1)                                               \
+  V(Stdin_SetEchoNewlineMode, 2)                                               \
   V(Stdin_GetLineMode, 1)                                                      \
   V(Stdin_SetLineMode, 2)                                                      \
   V(Stdin_AnsiSupported, 1)                                                    \
