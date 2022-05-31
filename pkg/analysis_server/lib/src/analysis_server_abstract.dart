@@ -534,6 +534,11 @@ abstract class AbstractAnalysisServer {
 
   @mustCallSuper
   void shutdown() {
+    // For now we record plugins only on shutdown. We might want to record them
+    // every time the set of plugins changes, in which case we'll need to listen
+    // to the `PluginManager.pluginsChanged` stream.
+    analyticsManager.changedPlugins(pluginManager);
+
     pubPackageService.shutdown();
     analyticsManager.shutdown();
   }

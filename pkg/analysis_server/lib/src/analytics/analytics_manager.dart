@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/analytics/google_analytics_manager.dart';
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:telemetry/telemetry.dart';
 
 /// An interface for managing and reporting analytics.
@@ -18,6 +19,9 @@ abstract class AnalyticsManager {
   /// [analytics].
   factory AnalyticsManager.forAnalytics(Analytics analytics) =
       GoogleAnalyticsManager;
+
+  /// Record that the set of plugins known to the [pluginManager] has changed.
+  void changedPlugins(PluginManager pluginManager);
 
   /// Record that the given [response] was sent to the client.
   void sentResponse({required Response response});
