@@ -7056,9 +7056,11 @@ void CCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
     } else if (argument_location.IsStack()) {
       const Location src_loc = rebase.Rebase(locs()->in(i));
       const Representation src_rep = RequiredInputRepresentation(i);
+#if defined(INCLUDE_IL_PRINTER)
       __ Comment("Param %" Pd ": %s %s -> %s", i, src_loc.ToCString(),
                  RepresentationToCString(src_rep),
                  argument_location.ToCString());
+#endif
       compiler->EmitMoveToNative(argument_location, src_loc, src_rep,
                                  &temp_alloc);
     } else {
