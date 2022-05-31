@@ -4,9 +4,11 @@ This is a patch release that fixes:
 
 - a Dart VM compiler crash (issue [#100375][]).
 - code completion when writing method overrides (issue [#49086][]).
+- `dart pub login` crashes due to `null` response (issue [pub#3424][])
 
 [#100375]: https://github.com/flutter/flutter/issues/100375
 [#49086]: https://github.com/dart-lang/sdk/issues/49086
+[pub#3424]: https://github.com/dart-lang/pub/issues/3424
 
 ## 2.17.1 - 2022-05-18
 
