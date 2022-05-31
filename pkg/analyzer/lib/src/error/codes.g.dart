@@ -2762,6 +2762,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS',
     "Deferred classes can't be used as superclass constraints.",
     correctionMessage: "Try changing the import to not be deferred.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:

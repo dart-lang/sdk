@@ -8717,6 +8717,7 @@ CompileTimeErrorCode:
   MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS:
     problemMessage: "Deferred classes can't be used as superclass constraints."
     correctionMessage: Try changing the import to not be deferred.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -15641,6 +15642,7 @@ FfiCode:
   ABI_SPECIFIC_INTEGER_INVALID:
     problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type parameters."
     correctionMessage: Try removing all type parameters, removing all members, and adding one const constructor.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -15732,6 +15734,7 @@ FfiCode:
   ABI_SPECIFIC_INTEGER_MAPPING_EXTRA:
     problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a 'NativeType' integer with a fixed size."
     correctionMessage: Try removing the extra annotation.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -15771,6 +15774,7 @@ FfiCode:
   ABI_SPECIFIC_INTEGER_MAPPING_MISSING:
     problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a 'NativeType' integer with a fixed size."
     correctionMessage: Try adding an annotation.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -15807,6 +15811,7 @@ FfiCode:
   ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED:
     problemMessage: "Only mappings to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', 'UInt32', and 'Uint64' are supported."
     correctionMessage: Try changing the value to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', 'UInt32', or 'Uint64'.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -17929,6 +17934,7 @@ HintCode:
   DIVISION_OPTIMIZATION:
     problemMessage: The operator x ~/ y is more efficient than (x / y).toInt().
     correctionMessage: "Try re-writing the expression to use the '~/' operator."
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -18810,6 +18816,7 @@ HintCode:
   INVALID_NON_VIRTUAL_ANNOTATION:
     problemMessage: "The annotation '@nonVirtual' can only be applied to a concrete instance member."
     correctionMessage: Try removing '@nonVirtual'.
+    hasPublishedDocs: true
     comment: |-
       This hint is generated anywhere where `@nonVirtual` annotates something
       other than a non-abstract instance member in a class or mixin.
@@ -18889,6 +18896,7 @@ HintCode:
       ```
   INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
     problemMessage: "The member '{0}' is declared non-virtual in '{1}' and can't be overridden in subclasses."
+    hasPublishedDocs: true
     comment: |-
       This hint is generated anywhere where an instance member annotated with
       `@nonVirtual` is overridden in a subclass.
@@ -19048,6 +19056,7 @@ HintCode:
   INVALID_SEALED_ANNOTATION:
     problemMessage: "The annotation '@sealed' can only be applied to classes."
     correctionMessage: Try removing the '@sealed' annotation.
+    hasPublishedDocs: true
     comment: |-
       This hint is generated anywhere where `@sealed` annotates something other
       than a class.
@@ -19185,6 +19194,7 @@ HintCode:
       1: the name of the defining class
   INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
     problemMessage: "The member '{0}' can only be used within '{1}' or a test."
+    hasPublishedDocs: true
     comment: |-
       This hint is generated anywhere where a member annotated with
       `@visibleForTesting` is used outside the defining library, or a test.
@@ -20899,7 +20909,7 @@ HintCode:
   UNNECESSARY_FINAL:
     problemMessage: The keyword 'final' isn't necessary because the parameter is implicitly 'final'.
     correctionMessage: Try removing the 'final'.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
