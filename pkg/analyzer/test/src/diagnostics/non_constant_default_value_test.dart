@@ -98,6 +98,25 @@ class A {
     ]);
   }
 
+  test_enum_issue49097() async {
+    newFile2('$testPackageLibPath/a.dart', r'''
+class A {
+  static const foo = A();
+  static const bar = A();
+  const A();
+}
+''');
+    await assertNoErrorsInCode(r'''
+import 'a.dart';
+
+enum E {
+  v(f: A.foo);
+  final A f;
+  const E({this.f = A.bar});
+}
+''');
+  }
+
   test_function_named() async {
     await assertErrorsInCode(r'''
 int y = 0;

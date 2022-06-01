@@ -17847,6 +17847,79 @@ library
 ''');
   }
 
+  test_enum_constructor_fieldFormal_optionalNamed_defaultValue() async {
+    var library = await buildLibrary(r'''
+enum E {
+  v;
+  final int x;
+  const E({this.x = 1 + 2});
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: E @-1
+                      staticElement: self::@enum::E
+                      staticType: null
+                    type: E
+                  staticElement: self::@enum::E::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                rightBracket: ] @0
+                staticType: List<E>
+          final x @26
+            type: int
+        constructors
+          const @37
+            parameters
+              optionalNamed final this.x @45
+                type: int
+                constantInitializer
+                  BinaryExpression
+                    leftOperand: IntegerLiteral
+                      literal: 1 @49
+                      staticType: int
+                    operator: + @51
+                    rightOperand: IntegerLiteral
+                      literal: 2 @53
+                      staticType: int
+                    staticElement: dart:core::@class::num::@method::+
+                    staticInvokeType: num Function(num)
+                    staticType: int
+                field: self::@enum::E::@field::x
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get x @-1
+            returnType: int
+''');
+  }
+
   test_enum_constructor_fieldFormal_typed_typed() async {
     var library = await buildLibrary('''
 enum E {
