@@ -2638,7 +2638,21 @@ void Object::InitializeObject(uword address,
         initial_value |= initial_value << 32;
       }
 #endif
-      needs_init = true;
+      if (class_id == kArrayCid) {
+        // If the size is greater than both kNewAllocatableSize and
+        // kAllocatablePageSize, the object must have been allocated to a new
+        // large page, which must already have been zero initialized by the OS.
+        // Zero is a GC-safe value. The caller will initialize the fields to
+        // null with safepoint checks to avoid blocking for the full duration of
+        // initializing this array.
+        needs_init = Heap::IsAllocatableInNewSpace(size) ||
+                     Heap::IsAllocatableViaFreeLists(size);
+        if (!needs_init) {
+          initial_value = 0;  // For ASSERT below.
+        }
+      } else {
+        needs_init = true;
+      }
     }
     if (needs_init) {
       while (cur < end) {
@@ -24321,17 +24335,6 @@ uint32_t Array::CanonicalizeHash() const {
   return hash;
 }
 
-ArrayPtr Array::New(intptr_t len, Heap::Space space) {
-  ASSERT(IsolateGroup::Current()->object_store()->array_class() !=
-         Class::null());
-  ArrayPtr result = New(kClassId, len, space);
-  if (UseCardMarkingForAllocation(len)) {
-    ASSERT(result->IsOldObject());
-    result->untag()->SetCardRememberedBitUnsynchronized();
-  }
-  return result;
-}
-
 ArrayPtr Array::New(intptr_t len,
                     const AbstractType& element_type,
                     Heap::Space space) {
@@ -24345,7 +24348,9 @@ ArrayPtr Array::New(intptr_t len,
   return result.ptr();
 }
 
-ArrayPtr Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
+ArrayPtr Array::NewUninitialized(intptr_t class_id,
+                                 intptr_t len,
+                                 Heap::Space space) {
   if (!IsValidLength(len)) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in Array::New: invalid len %" Pd "\n", len);
@@ -24356,23 +24361,56 @@ ArrayPtr Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
                          Array::ContainsCompressedPointers()));
     NoSafepointScope no_safepoint;
     raw->untag()->set_length(Smi::New(len));
+    if (UseCardMarkingForAllocation(len)) {
+      ASSERT(raw->IsOldObject());
+      raw->untag()->SetCardRememberedBitUnsynchronized();
+    }
     return raw;
   }
+}
+
+ArrayPtr Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
+  if (!UseCardMarkingForAllocation(len)) {
+    return NewUninitialized(class_id, len, space);
+  }
+
+  Thread* thread = Thread::Current();
+  Array& result =
+      Array::Handle(thread->zone(), NewUninitialized(class_id, len, space));
+  result.SetTypeArguments(Object::null_type_arguments());
+  for (intptr_t i = 0; i < len; i++) {
+    result.SetAt(i, Object::null_object(), thread);
+    if (((i + 1) % KB) == 0) {
+      thread->CheckForSafepoint();
+    }
+  }
+  return result.ptr();
 }
 
 ArrayPtr Array::Slice(intptr_t start,
                       intptr_t count,
                       bool with_type_argument) const {
-  // TODO(vegorov) introduce an array allocation method that fills newly
-  // allocated array with values from the given source array instead of
-  // null-initializing all elements.
-  Array& dest = Array::Handle(Array::New(count));
-  dest.StoreArrayPointers(dest.ObjectAddr(0), ObjectAddr(start), count);
-
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Array& dest = Array::Handle(zone, Array::NewUninitialized(count));
   if (with_type_argument) {
-    dest.SetTypeArguments(TypeArguments::Handle(GetTypeArguments()));
+    dest.SetTypeArguments(TypeArguments::Handle(zone, GetTypeArguments()));
+  } else {
+    dest.SetTypeArguments(Object::null_type_arguments());
   }
-
+  if (!UseCardMarkingForAllocation(count)) {
+    NoSafepointScope no_safepoint(thread);
+    for (int i = 0; i < count; i++) {
+      dest.untag()->set_element(i, untag()->element(i + start), thread);
+    }
+  } else {
+    for (int i = 0; i < count; i++) {
+      dest.untag()->set_element(i, untag()->element(i + start), thread);
+      if (((i + 1) % KB) == 0) {
+        thread->CheckForSafepoint();
+      }
+    }
+  }
   return dest.ptr();
 }
 
@@ -24397,19 +24435,30 @@ ArrayPtr Array::Grow(const Array& source,
                      Heap::Space space) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  const Array& result = Array::Handle(zone, Array::New(new_length, space));
+  const Array& result =
+      Array::Handle(zone, Array::NewUninitialized(new_length, space));
   intptr_t len = 0;
   if (!source.IsNull()) {
     len = source.Length();
     result.SetTypeArguments(
         TypeArguments::Handle(zone, source.GetTypeArguments()));
+  } else {
+    result.SetTypeArguments(Object::null_type_arguments());
   }
   ASSERT(new_length >= len);  // Cannot copy 'source' into new array.
   ASSERT(new_length != len);  // Unnecessary copying of array.
-  PassiveObject& obj = PassiveObject::Handle(zone);
-  for (int i = 0; i < len; i++) {
-    obj = source.At(i);
-    result.SetAt(i, obj, thread);
+  if (!UseCardMarkingForAllocation(len)) {
+    NoSafepointScope no_safepoint(thread);
+    for (int i = 0; i < len; i++) {
+      result.untag()->set_element(i, source.untag()->element(i), thread);
+    }
+  } else {
+    for (int i = 0; i < len; i++) {
+      result.untag()->set_element(i, source.untag()->element(i), thread);
+      if (((i + 1) % KB) == 0) {
+        thread->CheckForSafepoint();
+      }
+    }
   }
   return result.ptr();
 }

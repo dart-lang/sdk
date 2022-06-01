@@ -471,27 +471,30 @@ class SlowForwardMap : public ForwardMapBase {
  public:
   explicit SlowForwardMap(Thread* thread)
       : ForwardMapBase(thread),
-        from_to_(thread->zone(), 20),
+        from_to_transition_(thread->zone(), 2),
+        from_to_(GrowableObjectArray::Handle(thread->zone(),
+                                             GrowableObjectArray::New(2))),
         transferables_from_to_(thread->zone(), 0) {
-    from_to_.Resize(2);
-    from_to_[0] = &Object::null_object();
-    from_to_[1] = &Object::null_object();
+    from_to_transition_.Resize(2);
+    from_to_transition_[0] = &PassiveObject::Handle();
+    from_to_transition_[1] = &PassiveObject::Handle();
+    from_to_.Add(Object::null_object());
+    from_to_.Add(Object::null_object());
     fill_cursor_ = 2;
   }
 
   ObjectPtr ForwardedObject(ObjectPtr object) {
     const intptr_t id = GetObjectId(object);
     if (id == 0) return Marker();
-    return from_to_[id + 1]->ptr();
+    return from_to_.At(id + 1);
   }
 
-  void Insert(ObjectPtr from, ObjectPtr to, intptr_t size) {
-    ASSERT(ForwardedObject(from) == Marker());
-    const auto id = from_to_.length();
-    SetObjectId(from, id);
-    from_to_.Resize(id + 2);
-    from_to_[id] = &Object::Handle(Z, from);
-    from_to_[id + 1] = &Object::Handle(Z, to);
+  void Insert(const Object& from, const Object& to, intptr_t size) {
+    ASSERT(ForwardedObject(from.ptr()) == Marker());
+    const auto id = from_to_.Length();
+    SetObjectId(from.ptr(), id);
+    from_to_.Add(from);
+    from_to_.Add(to);
     allocated_bytes += size;
   }
 
@@ -537,7 +540,8 @@ class SlowForwardMap : public ForwardMapBase {
   friend class SlowObjectCopy;
   friend class ObjectGraphCopier;
 
-  GrowableArray<const Object*> from_to_;
+  GrowableArray<const PassiveObject*> from_to_transition_;
+  GrowableObjectArray& from_to_;
   GrowableArray<const TransferableTypedData*> transferables_from_to_;
   GrowableArray<const ExternalTypedData*> external_typed_data_;
   GrowableArray<const Object*> objects_to_rehash_;
@@ -560,6 +564,7 @@ class ObjectCopyBase {
         class_table_(thread->isolate_group()->class_table()),
         new_space_(heap_->new_space()),
         tmp_(Object::Handle(thread->zone())),
+        to_(Object::Handle(thread->zone())),
         expando_cid_(Class::GetClassId(
             thread->isolate_group()->object_store()->expando_class())) {}
   ~ObjectCopyBase() {}
@@ -681,6 +686,7 @@ class ObjectCopyBase {
   ClassTable* class_table_;
   Scavenger* new_space_;
   Object& tmp_;
+  Object& to_;
   intptr_t expando_cid_;
 
   const char* exception_msg_ = nullptr;
@@ -990,9 +996,10 @@ class SlowObjectCopyBase : public ObjectCopyBase {
     if (size == 0) {
       size = from.ptr().untag()->HeapSize();
     }
-    ObjectPtr to = AllocateObject(cid, size);
-    slow_forward_map_.Insert(from.ptr(), to, size);
-    UpdateLengthField(cid, from.ptr(), to);
+    to_ = AllocateObject(cid, size);
+    UpdateLengthField(cid, from.ptr(), to_.ptr());
+    slow_forward_map_.Insert(from, to_, size);  // SAFEPOINT
+    ObjectPtr to = to_.ptr();
     if (cid == kArrayCid && !Heap::IsAllocatableInNewSpace(size)) {
       to.untag()->SetCardRememberedBitUnsynchronized();
     }
@@ -1678,16 +1685,16 @@ class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase> {
     Object& to = Object::Handle(Z);
     while (true) {
       if (slow_forward_map_.fill_cursor_ ==
-          slow_forward_map_.from_to_.length()) {
+          slow_forward_map_.from_to_.Length()) {
         break;
       }
 
       // Run fixpoint to copy all objects.
       while (slow_forward_map_.fill_cursor_ <
-             slow_forward_map_.from_to_.length()) {
+             slow_forward_map_.from_to_.Length()) {
         const intptr_t index = slow_forward_map_.fill_cursor_;
-        from = slow_forward_map_.from_to_[index]->ptr();
-        to = slow_forward_map_.from_to_[index + 1]->ptr();
+        from = slow_forward_map_.from_to_.At(index);
+        to = slow_forward_map_.from_to_.At(index + 1);
         CopyObject(from, to);
         slow_forward_map_.fill_cursor_ += 2;
         if (exception_msg_ != nullptr) {
@@ -1915,6 +1922,8 @@ class ObjectGraphCopier {
                                            /*compact=*/true);
       }
 
+      ObjectifyFromToObjects();
+
       // Fast copy failed due to
       //   - either failure to allocate into new space
       //   - or failure to copy object which we cannot copy
@@ -2021,20 +2030,28 @@ class ObjectGraphCopier {
   void HandlifyFromToObjects() {
     auto& fast_forward_map = fast_object_copy_.fast_forward_map_;
     auto& slow_forward_map = slow_object_copy_.slow_forward_map_;
-
-    const intptr_t cursor = fast_forward_map.fill_cursor_;
     const intptr_t length = fast_forward_map.raw_from_to_.length();
-
-    slow_forward_map.from_to_.Resize(length);
-    for (intptr_t i = 2; i < length; i += 2) {
-      slow_forward_map.from_to_[i] =
-          i < cursor ? nullptr
-                     : &Object::Handle(Z, fast_forward_map.raw_from_to_[i]);
-      slow_forward_map.from_to_[i + 1] =
-          &Object::Handle(Z, fast_forward_map.raw_from_to_[i + 1]);
+    slow_forward_map.from_to_transition_.Resize(length);
+    for (intptr_t i = 0; i < length; i++) {
+      slow_forward_map.from_to_transition_[i] =
+          &PassiveObject::Handle(Z, fast_forward_map.raw_from_to_[i]);
     }
+    ASSERT(slow_forward_map.from_to_transition_.length() == length);
     fast_forward_map.raw_from_to_.Clear();
   }
+  void ObjectifyFromToObjects() {
+    auto& from_to_transition =
+        slow_object_copy_.slow_forward_map_.from_to_transition_;
+    auto& from_to = slow_object_copy_.slow_forward_map_.from_to_;
+    intptr_t length = from_to_transition.length();
+    from_to = GrowableObjectArray::New(length, Heap::kOld);
+    for (intptr_t i = 0; i < length; i++) {
+      from_to.Add(*from_to_transition[i]);
+    }
+    ASSERT(from_to.Length() == length);
+    from_to_transition.Clear();
+  }
+
   void ThrowException(const char* exception_msg) {
     const auto& msg_obj = String::Handle(Z, String::New(exception_msg));
     const auto& args = Array::Handle(Z, Array::New(1));

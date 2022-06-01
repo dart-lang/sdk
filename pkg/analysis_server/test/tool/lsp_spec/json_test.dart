@@ -130,7 +130,7 @@ void main() {
 
     test('canParse returns true for in-spec (restricted) enum values', () {
       expect(
-        MarkupKind.canParse('plaintext', nullLspJsonReporter),
+        MarkupKind.canParse('plaintext', throwingLspJsonReporter),
         isTrue,
       );
     });
@@ -138,7 +138,7 @@ void main() {
     test('canParse returns true for out-of-spec (unrestricted) enum values',
         () {
       expect(
-        SymbolKind.canParse(-1, nullLspJsonReporter),
+        SymbolKind.canParse(-1, throwingLspJsonReporter),
         isTrue,
       );
     });
@@ -150,7 +150,7 @@ void main() {
         'processId': null,
         'rootUri': null,
         'capabilities': <String, Object>{}
-      }, nullLspJsonReporter);
+      }, throwingLspJsonReporter);
       expect(canParse, isTrue);
     });
 
@@ -160,7 +160,7 @@ void main() {
       final canParse = CreateFile.canParse({
         'kind': 'create',
         'uri': 'file:///temp/foo',
-      }, nullLspJsonReporter);
+      }, throwingLspJsonReporter);
       expect(canParse, isTrue);
     });
 
@@ -185,14 +185,17 @@ void main() {
         null: true,
         'invalid': false,
       };
-      for (final testValue in testTraceValues.keys) {
-        final expected = testTraceValues[testValue];
+      for (final entry in testTraceValues.entries) {
+        final testValue = entry.key;
+        final expected = entry.value;
+        final reporter =
+            expected ? throwingLspJsonReporter : nullLspJsonReporter;
         final canParse = InitializeParams.canParse({
           'processId': null,
           'rootUri': null,
           'capabilities': <String, Object>{},
           'trace': testValue,
-        }, nullLspJsonReporter);
+        }, reporter);
         expect(canParse, expected,
             reason: 'InitializeParams.canParse returned $canParse with a '
                 '"trace" value of "$testValue" but expected $expected');
@@ -201,11 +204,12 @@ void main() {
 
     test('canParse validates optional fields', () {
       expect(
-        RenameFileOptions.canParse(<String, Object>{}, nullLspJsonReporter),
+        RenameFileOptions.canParse(<String, Object>{}, throwingLspJsonReporter),
         isTrue,
       );
       expect(
-        RenameFileOptions.canParse({'overwrite': true}, nullLspJsonReporter),
+        RenameFileOptions.canParse(
+            {'overwrite': true}, throwingLspJsonReporter),
         isTrue,
       );
       expect(
@@ -217,7 +221,7 @@ void main() {
     test('canParse ignores fields not in the spec', () {
       expect(
         RenameFileOptions.canParse(
-            {'overwrite': true, 'invalidField': true}, nullLspJsonReporter),
+            {'overwrite': true, 'invalidField': true}, throwingLspJsonReporter),
         isTrue,
       );
       expect(
@@ -397,6 +401,15 @@ void main() {
       expect(message.method, equals(Method('foo')));
       expect(message.params, isNull);
       expect(message.jsonrpc, equals('test'));
+    });
+
+    test('parses JSON with integers in double fields', () {
+      final input = '{"alpha":1.0,"blue":0,"green":1,"red":1.5}';
+      final message = Color.fromJson(jsonDecode(input) as Map<String, Object?>);
+      expect(message.alpha, 1.0);
+      expect(message.blue, 0.0);
+      expect(message.green, 1.0);
+      expect(message.red, 1.5);
     });
   });
 

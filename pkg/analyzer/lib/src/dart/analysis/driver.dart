@@ -741,8 +741,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           return CannotResolveUriResult();
         }
 
-        if (file.isPart) {
+        final kind = file.kind;
+        if (kind is LibraryFileStateKind) {
+        } else if (kind is AugmentationFileStateKind) {
+          return NotLibraryButAugmentationResult();
+        } else if (kind is PartFileStateKind) {
           return NotLibraryButPartResult();
+        } else {
+          throw UnimplementedError('(${kind.runtimeType}) $kind');
         }
 
         var unitResult = await getUnitElement(file.path);
@@ -789,10 +795,15 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return NotPathOfUriResult();
     }
 
-    FileState file = _fsState.getFileForPath(path);
-
-    if (file.isPart) {
+    final file = _fsState.getFileForPath(path);
+    final kind = file.kind;
+    if (kind is LibraryFileStateKind) {
+    } else if (kind is AugmentationFileStateKind) {
+      return NotLibraryButAugmentationResult();
+    } else if (kind is PartFileStateKind) {
       return NotLibraryButPartResult();
+    } else {
+      throw UnimplementedError('(${kind.runtimeType}) $kind');
     }
 
     var units = <ParsedUnitResult>[];
@@ -816,9 +827,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         if (file == null) {
           return CannotResolveUriResult();
         }
-        if (file.isPart) {
-          return NotLibraryButPartResult();
-        }
         return getParsedLibrary(file.path);
       },
       (externalLibrary) {
@@ -841,25 +849,24 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// state (including new states of the files previously reported using
   /// [changeFile]), prior to the next time the analysis state transitions
   /// to "idle".
-  Future<SomeResolvedLibraryResult> getResolvedLibrary(String path) {
+  Future<SomeResolvedLibraryResult> getResolvedLibrary(String path) async {
     if (!_isAbsolutePath(path)) {
-      return Future.value(
-        InvalidPathResult(),
-      );
+      return InvalidPathResult();
     }
 
     if (!_fsState.hasUri(path)) {
-      return Future.value(
-        NotPathOfUriResult(),
-      );
+      return NotPathOfUriResult();
     }
 
-    FileState file = _fsState.getFileForPath(path);
-
-    if (file.isPart) {
-      return Future.value(
-        NotLibraryButPartResult(),
-      );
+    final file = _fsState.getFileForPath(path);
+    final kind = file.kind;
+    if (kind is LibraryFileStateKind) {
+    } else if (kind is AugmentationFileStateKind) {
+      return NotLibraryButAugmentationResult();
+    } else if (kind is PartFileStateKind) {
+      return NotLibraryButPartResult();
+    } else {
+      throw UnimplementedError('(${kind.runtimeType}) $kind');
     }
 
     // Schedule analysis.
@@ -887,9 +894,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       (file) async {
         if (file == null) {
           return CannotResolveUriResult();
-        }
-        if (file.isPart) {
-          return NotLibraryButPartResult();
         }
         return getResolvedLibrary(file.path);
       },
@@ -994,23 +998,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         .add(completer);
     _scheduler.notify(this);
     return completer.future;
-  }
-
-  /// Return `true` is the file with the given absolute [uri] is a library,
-  /// or `false` if it is a part. More specifically, return `true` if the file
-  /// is not known to be a part.
-  ///
-  /// Correspondingly, return `true` if the [uri] does not correspond to a file,
-  /// for any reason, e.g. the file does not exist, or the [uri] cannot be
-  /// resolved to a file path, or the [uri] is invalid, e.g. a `package:` URI
-  /// without a package name. In these cases we cannot prove that the file is
-  /// not a part, so it must be a library.
-  bool isLibraryByUri(Uri uri) {
-    var fileOr = _fsState.getFileForUri(uri);
-    return fileOr.map(
-      (file) => file == null || !file.isPart,
-      (uri) => false,
-    );
   }
 
   /// Return a [Future] that completes with a [ParsedUnitResult] for the file

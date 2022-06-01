@@ -120,6 +120,17 @@ class NotElementOfThisSessionResult
         SomeResolvedLibraryResult {}
 
 /// The type of [InvalidResult] returned when the given file is not a library,
+/// but an augmentation of a library.
+///
+/// Clients may not extend, implement or mix-in this class.
+class NotLibraryButAugmentationResult
+    implements
+        InvalidResult,
+        SomeLibraryElementResult,
+        SomeParsedLibraryResult,
+        SomeResolvedLibraryResult {}
+
+/// The type of [InvalidResult] returned when the given file is not a library,
 /// but a part of a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -311,6 +322,8 @@ abstract class SomeUnitElementResult {}
 /// The result of building the element model for a single file.
 ///
 /// Clients may not extend, implement or mix-in this class.
+///
+/// TODO(scheglov) Stop implementing [FileResult].
 abstract class UnitElementResult implements SomeUnitElementResult, FileResult {
   /// The element of the file.
   CompilationUnitElement get element;

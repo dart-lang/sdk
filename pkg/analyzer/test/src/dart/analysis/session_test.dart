@@ -268,6 +268,26 @@ class B {}
     );
   }
 
+  test_getLibraryByUri_notLibrary_augmentation() async {
+    newFile(testFilePath, r'''
+library augment 'a.dart';
+''');
+
+    final session = contextFor(testFilePath).currentSession;
+    final result = await session.getLibraryByUri('package:test/test.dart');
+    expect(result, isA<NotLibraryButAugmentationResult>());
+  }
+
+  test_getLibraryByUri_notLibrary_part() async {
+    newFile(testFilePath, r'''
+part of 'a.dart';
+''');
+
+    final session = contextFor(testFilePath).currentSession;
+    final result = await session.getLibraryByUri('package:test/test.dart');
+    expect(result, isA<NotLibraryButPartResult>());
+  }
+
   test_getLibraryByUri_unresolvedUri() async {
     var session = contextFor(testFilePath).currentSession;
     var result = await session.getLibraryByUri('package:foo/foo.dart');
@@ -400,6 +420,16 @@ part 'c.dart';
     var test = newFile(testFilePath, 'part of "a.dart";');
     var session = contextFor(testFilePath).currentSession;
     expect(session.getParsedLibrary(test.path), isA<NotLibraryButPartResult>());
+  }
+
+  test_getParsedLibrary_notLibrary_augmentation() async {
+    newFile(testFilePath, r'''
+library augment 'a.dart';
+''');
+
+    final session = contextFor(testFilePath).currentSession;
+    final result = session.getParsedLibrary(testFilePath);
+    expect(result, isA<NotLibraryButAugmentationResult>());
   }
 
   test_getParsedLibrary_parts() async {
@@ -661,7 +691,17 @@ part 'c.dart';
     expect(result, isA<InvalidPathResult>());
   }
 
-  test_getResolvedLibrary_notLibrary() async {
+  test_getResolvedLibrary_notLibrary_augmentation() async {
+    newFile(testFilePath, r'''
+library augment of 'a.dart';
+''');
+
+    final session = contextFor(testFilePath).currentSession;
+    final result = await session.getResolvedLibrary(testFilePath);
+    expect(result, isA<NotLibraryButAugmentationResult>());
+  }
+
+  test_getResolvedLibrary_notLibrary_part() async {
     var test = newFile(testFilePath, 'part of "a.dart";');
 
     var session = contextFor(testFilePath).currentSession;
