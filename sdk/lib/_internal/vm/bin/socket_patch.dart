@@ -2543,7 +2543,6 @@ Datagram _makeDatagram(
 }
 
 @patch
-@pragma("vm:entry-point")
 class ResourceHandle {
   factory ResourceHandle.fromFile(RandomAccessFile file) {
     int fd = (file as _RandomAccessFile).fd;
