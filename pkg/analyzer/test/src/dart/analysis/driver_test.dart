@@ -35,6 +35,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDriverSchedulerTest);
     defineReflectiveTests(AnalysisDriverTest);
+    defineReflectiveTests(AnalysisDriver_PubPackageTest);
     defineReflectiveTests(AnalysisDriver_BazelWorkspaceTest);
   });
 }
@@ -98,6 +99,135 @@ import '$innerUri';
       result as ResolvedUnitResult;
       assertInnerUri(result);
     }
+  }
+}
+
+@reflectiveTest
+class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
+  test_getLibraryByUri_cannotResolveUri() async {
+    final driver = driverFor(testFile.path);
+    expect(
+      await driver.getLibraryByUri('foo:bar'),
+      isA<CannotResolveUriResult>(),
+    );
+  }
+
+  test_getLibraryByUri_notLibrary_augmentation() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'b.dart';
+''');
+
+    final driver = driverFor(a.path);
+    expect(
+      await driver.getLibraryByUri('package:test/a.dart'),
+      isA<NotLibraryButAugmentationResult>(),
+    );
+  }
+
+  test_getLibraryByUri_notLibrary_part() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'b.dart';
+''');
+
+    final driver = driverFor(a.path);
+    expect(
+      await driver.getLibraryByUri('package:test/a.dart'),
+      isA<NotLibraryButPartResult>(),
+    );
+  }
+
+  test_getParsedLibraryByUri_cannotResolveUri() async {
+    final driver = driverFor(testFile.path);
+    final uri = Uri.parse('foo:bar');
+    expect(
+      driver.getParsedLibraryByUri(uri),
+      isA<CannotResolveUriResult>(),
+    );
+  }
+
+  test_getParsedLibraryByUri_notLibrary_augmentation() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'b.dart';
+''');
+
+    final driver = driverFor(a.path);
+    final uri = Uri.parse('package:test/a.dart');
+    expect(
+      driver.getParsedLibraryByUri(uri),
+      isA<NotLibraryButAugmentationResult>(),
+    );
+  }
+
+  test_getParsedLibraryByUri_notLibrary_part() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'b.dart';
+''');
+
+    final driver = driverFor(a.path);
+    final uri = Uri.parse('package:test/a.dart');
+    expect(
+      driver.getParsedLibraryByUri(uri),
+      isA<NotLibraryButPartResult>(),
+    );
+  }
+
+  test_getResolvedLibrary_notLibrary_augmentation() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'b.dart';
+''');
+
+    final driver = driverFor(a.path);
+    expect(
+      await driver.getResolvedLibrary(a.path),
+      isA<NotLibraryButAugmentationResult>(),
+    );
+  }
+
+  test_getResolvedLibrary_notLibrary_part() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'b.dart';
+''');
+
+    final driver = driverFor(a.path);
+    expect(
+      await driver.getResolvedLibrary(a.path),
+      isA<NotLibraryButPartResult>(),
+    );
+  }
+
+  test_getResolvedLibraryByUri_cannotResolveUri() async {
+    final driver = driverFor(testFile.path);
+    final uri = Uri.parse('foo:bar');
+    expect(
+      await driver.getResolvedLibraryByUri(uri),
+      isA<CannotResolveUriResult>(),
+    );
+  }
+
+  test_getResolvedLibraryByUri_notLibrary_augmentation() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'b.dart';
+''');
+
+    final driver = driverFor(a.path);
+    final uri = Uri.parse('package:test/a.dart');
+    expect(
+      await driver.getResolvedLibraryByUri(uri),
+      isA<NotLibraryButAugmentationResult>(),
+    );
+  }
+
+  test_getResolvedLibraryByUri_notLibrary_part() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'b.dart';
+''');
+
+    final driver = driverFor(a.path);
+    final uri = Uri.parse('package:test/a.dart');
+    expect(
+      await driver.getResolvedLibraryByUri(uri),
+      isA<NotLibraryButPartResult>(),
+    );
   }
 }
 
