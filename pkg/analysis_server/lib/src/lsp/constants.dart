@@ -214,7 +214,6 @@ abstract class ServerErrorCodes {
   static const FileHasErrors = ErrorCodes(-32008);
   static const ClientFailedToApplyEdit = ErrorCodes(-32009);
   static const RenameNotValid = ErrorCodes(-32010);
-  static const RefactorFailed = ErrorCodes(-32011);
   static const FeatureDisabled = ErrorCodes(-32012);
 
   /// A file that is expected to be analyzed, but failed.

@@ -475,6 +475,52 @@ void doFoo(void Function() a) => a();
     expect(response.message, contains('Cannot extract closure as method'));
   }
 
+  /// Test if the client does not call refactor.validate it still gets a
+  /// sensible `showMessage` call and not a failed request.
+  Future<void> test_validLocation_failsInitialValidation_noValidation() async {
+    const content = '''
+f() {
+  var a = 0;
+  doFoo([[() => print(a)]]);
+  print(a);
+}
+
+void doFoo(void Function() a) => a();
+
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize(
+      // We expect an error notification so don't fail on it.
+      failTestOnAnyErrorNotification: false,
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
+
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command!,
+    );
+
+    // Call the refactor without any validation and expected an error message
+    // without a request failure.
+    final errorNotification = await expectErrorNotification(() async {
+      final response = await executeCommand(
+        Command(
+            title: command.title,
+            command: command.command,
+            arguments: command.arguments),
+      );
+      expect(response, isNull);
+    });
+    expect(
+      errorNotification.message,
+      contains('Cannot extract closure as method'),
+    );
+  }
+
   Future<void> test_validLocation_passesInitialValidation() async {
     const content = '''
 f() {
