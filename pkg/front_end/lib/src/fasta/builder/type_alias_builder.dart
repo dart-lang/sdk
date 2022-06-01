@@ -27,7 +27,7 @@ import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
 
 abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
-  TypeBuilder? get type;
+  TypeBuilder get type;
 
   /// The [Typedef] built by this builder.
   Typedef get typedef;
@@ -231,7 +231,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     TypeDeclarationBuilder current = this;
     while (current is TypeAliasBuilder) {
       TypeAliasBuilder currentAliasBuilder = current;
-      TypeDeclarationBuilder? next = currentAliasBuilder.type?.declaration;
+      TypeDeclarationBuilder? next = currentAliasBuilder.type.declaration;
       if (next != null) {
         current = next;
       } else {
@@ -325,7 +325,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     List<TypeBuilder>? currentTypeArguments = typeArguments;
     while (currentDeclarationBuilder is TypeAliasBuilder) {
       TypeAliasBuilder currentAliasBuilder = currentDeclarationBuilder;
-      TypeBuilder? nextTypeBuilder = currentAliasBuilder.type;
+      TypeBuilder nextTypeBuilder = currentAliasBuilder.type;
       if (nextTypeBuilder is NamedTypeBuilder) {
         Map<TypeVariableBuilder, TypeBuilder> substitution = {};
         int index = 0;
@@ -420,7 +420,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     List<TypeBuilder>? currentTypeArguments = typeArguments;
     while (currentDeclarationBuilder is TypeAliasBuilder) {
       TypeAliasBuilder currentAliasBuilder = currentDeclarationBuilder;
-      TypeBuilder? nextTypeBuilder = currentAliasBuilder.type;
+      TypeBuilder nextTypeBuilder = currentAliasBuilder.type;
       assert(nextTypeBuilder is NamedTypeBuilder,
           "Expected NamedTypeBuilder, got '${nextTypeBuilder.runtimeType}'.");
       NamedTypeBuilder namedNextTypeBuilder =

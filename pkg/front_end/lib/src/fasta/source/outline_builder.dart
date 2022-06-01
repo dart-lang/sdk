@@ -32,6 +32,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../combinator.dart' show CombinatorBuilder;
@@ -1884,7 +1885,7 @@ class OutlineBuilder extends StackListenerImpl {
           List<TypeVariableBuilder> unboundTypeVariables = [];
           thisType = substitute(thisType, substitution,
               unboundTypes: unboundTypes,
-              unboundTypeVariables: unboundTypeVariables)!;
+              unboundTypeVariables: unboundTypeVariables);
           for (NamedTypeBuilder unboundType in unboundTypes) {
             extension.registerUnresolvedNamedType(unboundType);
           }
@@ -2260,7 +2261,7 @@ class OutlineBuilder extends StackListenerImpl {
           metadata,
           kind,
           modifiers,
-          type,
+          type ?? const OmittedTypeBuilder(),
           name == null ? FormalParameterBuilder.noNameSentinel : name as String,
           thisKeyword != null,
           superKeyword != null,
@@ -2583,7 +2584,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     push(libraryBuilder.addFunctionType(
-        returnType,
+        returnType ?? const OmittedTypeBuilder(),
         typeVariables,
         formals,
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
@@ -2604,7 +2605,7 @@ class OutlineBuilder extends StackListenerImpl {
       reportErrorIfNullableType(question);
     }
     push(libraryBuilder.addFunctionType(
-        returnType,
+        returnType ?? const OmittedTypeBuilder(),
         typeVariables,
         formals,
         libraryBuilder.nullableBuilderIfTrue(question != null),
@@ -2642,8 +2643,13 @@ class OutlineBuilder extends StackListenerImpl {
           TypeParameterScopeKind.functionType, "#function_type",
           hasMembers: false);
       // TODO(cstefantsova): Make sure that RHS of typedefs can't have '?'.
-      aliasedType = libraryBuilder.addFunctionType(returnType, null, formals,
-          const NullabilityBuilder.omitted(), uri, charOffset);
+      aliasedType = libraryBuilder.addFunctionType(
+          returnType ?? const OmittedTypeBuilder(),
+          null,
+          formals,
+          const NullabilityBuilder.omitted(),
+          uri,
+          charOffset);
     } else {
       Object? type = pop();
       typeVariables = pop() as List<TypeVariableBuilder>?;

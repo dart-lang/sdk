@@ -59,12 +59,8 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   int get typeVariablesCount => typedef.typeParameters.length;
 
   @override
-  TypeBuilder? get type {
-    if (_type == null && typedef.type is! InvalidType) {
-      _type = libraryBuilder.loader.computeTypeBuilder(typedef.type!);
-    }
-    // TODO(johnniwinther): Support TypeBuilder for InvalidType.
-    return _type;
+  TypeBuilder get type {
+    return _type ??= libraryBuilder.loader.computeTypeBuilder(typedef.type!);
   }
 
   @override

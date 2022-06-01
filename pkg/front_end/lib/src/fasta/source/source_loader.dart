@@ -52,6 +52,7 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/modifier_builder.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
@@ -1205,20 +1206,20 @@ severity: $severity
       }
     }
     ProcedureBuilder builder = new SourceProcedureBuilder(
-        null,
-        0,
-        null,
+        /* metadata = */ null,
+        /* modifier flags = */ 0,
+        const OmittedTypeBuilder(),
         "debugExpr",
-        null,
-        null,
+        /* type variables = */ null,
+        /* formals = */ null,
         ProcedureKind.Method,
         libraryBuilder,
-        0,
-        0,
-        -1,
-        -1,
-        null,
-        null,
+        /* start char offset = */ 0,
+        /* char offset = */ 0,
+        /* open paren offset = */ -1,
+        /* end offset = */ -1,
+        /* procedure reference = */ null,
+        /* tear off reference = */ null,
         AsyncMarker.Sync,
         new NameScheme(
             className: null,

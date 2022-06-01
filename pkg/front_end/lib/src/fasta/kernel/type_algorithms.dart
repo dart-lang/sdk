@@ -15,6 +15,7 @@ import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -116,11 +117,11 @@ int computeTypeVariableBuilderVariance(TypeVariableBuilder variable,
     }
   } else if (type is FunctionTypeBuilder) {
     int result = Variance.unrelated;
-    if (type.returnType != null) {
+    if (type.returnType is! OmittedTypeBuilder) {
       result = Variance.meet(
           result,
           computeTypeVariableBuilderVariance(
-              variable, type.returnType!, libraryBuilder));
+              variable, type.returnType, libraryBuilder));
     }
     if (type.typeVariables != null) {
       for (TypeVariableBuilder typeVariable in type.typeVariables!) {
@@ -176,8 +177,8 @@ NullabilityBuilder combineNullabilityBuildersForSubstitution(
   return const NullabilityBuilder.omitted();
 }
 
-TypeBuilder? substituteRange(
-    TypeBuilder? type,
+TypeBuilder substituteRange(
+    TypeBuilder type,
     Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
     Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
     List<TypeBuilder> unboundTypes,
@@ -227,7 +228,7 @@ TypeBuilder? substituteRange(
             lowerSubstitution,
             unboundTypes,
             unboundTypeVariables,
-            variance: variance)!;
+            variance: variance);
         if (substitutedArgument != type.arguments![i]) {
           arguments ??= type.arguments!.toList();
           arguments[i] = substitutedArgument;
@@ -241,7 +242,7 @@ TypeBuilder? substituteRange(
             lowerSubstitution,
             unboundTypes,
             unboundTypeVariables,
-            variance: variance)!;
+            variance: variance);
         if (substitutedArgument != type.arguments![i]) {
           arguments ??= type.arguments!.toList();
           arguments[i] = substitutedArgument;
@@ -256,7 +257,7 @@ TypeBuilder? substituteRange(
             lowerSubstitution,
             unboundTypes,
             unboundTypeVariables,
-            variance: Variance.combine(variance, variable.variance))!;
+            variance: Variance.combine(variance, variable.variance));
         if (substitutedArgument != type.arguments![i]) {
           arguments ??= type.arguments!.toList();
           arguments[i] = substitutedArgument;
@@ -294,9 +295,12 @@ TypeBuilder? substituteRange(
     if (type.typeVariables != null) {
       for (int i = 0; i < variables!.length; i++) {
         TypeVariableBuilder variable = type.typeVariables![i];
-        TypeBuilder? bound = substituteRange(variable.bound, upperSubstitution,
-            lowerSubstitution, unboundTypes, unboundTypeVariables,
-            variance: Variance.invariant);
+        TypeBuilder? bound;
+        if (variable.bound != null) {
+          bound = substituteRange(variable.bound!, upperSubstitution,
+              lowerSubstitution, unboundTypes, unboundTypeVariables,
+              variance: Variance.invariant);
+        }
         if (bound != variable.bound) {
           TypeVariableBuilder newTypeVariableBuilder = variables[i] =
               new TypeVariableBuilder(variable.name, variable.parent,
@@ -323,7 +327,7 @@ TypeBuilder? substituteRange(
     if (type.formals != null) {
       for (int i = 0; i < formals!.length; i++) {
         ParameterBuilder formal = type.formals![i];
-        TypeBuilder? parameterType = substituteRange(
+        TypeBuilder parameterType = substituteRange(
             formal.type,
             functionTypeUpperSubstitution ?? upperSubstitution,
             functionTypeLowerSubstitution ?? lowerSubstitution,
@@ -357,8 +361,8 @@ TypeBuilder? substituteRange(
   return type;
 }
 
-TypeBuilder? substitute(
-    TypeBuilder? type, Map<TypeVariableBuilder, TypeBuilder> substitution,
+TypeBuilder substitute(
+    TypeBuilder type, Map<TypeVariableBuilder, TypeBuilder> substitution,
     {required List<TypeBuilder> unboundTypes,
     required List<TypeVariableBuilder> unboundTypeVariables}) {
   return substituteRange(
@@ -404,7 +408,7 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
           nullSubstitution,
           unboundTypes,
           unboundTypeVariables,
-          variance: variable.variance)!;
+          variance: variable.variance);
     }
   }
 
@@ -419,7 +423,7 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
       TypeVariableBuilder variable = variables[j];
       bounds[j] = substituteRange(bounds[j], substitution, nullSubstitution,
           unboundTypes, unboundTypeVariables,
-          variance: variable.variance)!;
+          variance: variable.variance);
     }
   }
 

@@ -58,6 +58,7 @@ import '../builder/member_builder.dart';
 import '../builder/modifier_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
@@ -1182,8 +1183,9 @@ class BodyBuilder extends StackListenerImpl
 
   DartType _computeReturnTypeContext(MemberBuilder member) {
     if (member is SourceProcedureBuilder) {
-      final bool isReturnTypeUndeclared = member.returnType == null &&
-          member.function.returnType is DynamicType;
+      final bool isReturnTypeUndeclared =
+          member.returnType is OmittedTypeBuilder &&
+              member.function.returnType is DynamicType;
       return isReturnTypeUndeclared && libraryBuilder.isNonNullableByDefault
           ? const UnknownType()
           : member.function.returnType;
@@ -1281,7 +1283,7 @@ class BodyBuilder extends StackListenerImpl
           transformCollections, libraryBuilder.library);
     }
 
-    if (builder.returnType != null) {
+    if (builder.returnType is! OmittedTypeBuilder) {
       checkAsyncReturnType(asyncModifier, builder.function.returnType,
           builder.charOffset, builder.name.length);
     }
@@ -1718,7 +1720,7 @@ class BodyBuilder extends StackListenerImpl
                     /* metadata = */ null,
                     FormalParameterKind.requiredPositional,
                     /* modifiers = */ 0,
-                    /* type = */ null,
+                    const OmittedTypeBuilder(),
                     formal.name!,
                     libraryBuilder,
                     formal.fileOffset,
@@ -4175,7 +4177,7 @@ class BodyBuilder extends StackListenerImpl
       }
     }
     TypeBuilder type = formals.toFunctionType(
-        returnType,
+        returnType ?? const OmittedTypeBuilder(),
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
         typeVariables);
     exitLocalScope();
@@ -4378,8 +4380,14 @@ class BodyBuilder extends StackListenerImpl
         return;
       }
     } else {
-      parameter = new FormalParameterBuilder(null, kind, modifiers, type,
-          name?.name ?? '', libraryBuilder, offsetForToken(nameToken),
+      parameter = new FormalParameterBuilder(
+          null,
+          kind,
+          modifiers,
+          type ?? const OmittedTypeBuilder(),
+          name?.name ?? '',
+          libraryBuilder,
+          offsetForToken(nameToken),
           fileUri: uri)
         ..hasDeclaredInitializer = (initializerStart != null);
     }
@@ -4452,8 +4460,10 @@ class BodyBuilder extends StackListenerImpl
     if (!libraryBuilder.isNonNullableByDefault) {
       reportErrorIfNullableType(question);
     }
-    TypeBuilder type = formals.toFunctionType(returnType,
-        libraryBuilder.nullableBuilderIfTrue(question != null), typeVariables);
+    TypeBuilder type = formals.toFunctionType(
+        returnType ?? const OmittedTypeBuilder(),
+        libraryBuilder.nullableBuilderIfTrue(question != null),
+        typeVariables);
     exitLocalScope();
     push(type);
     functionNestingLevel--;
@@ -7075,7 +7085,7 @@ class BodyBuilder extends StackListenerImpl
             ..fileOffset = assignmentOffset
         ];
       } else {
-        if (formal != null && formal.type != null) {
+        if (formal != null && formal.type is! OmittedTypeBuilder) {
           DartType formalType = formal.variable!.type;
           if (!typeEnvironment.isSubtypeOf(formalType, builder.fieldType,
               SubtypeCheckMode.withNullabilities)) {
@@ -7699,7 +7709,7 @@ class FormalParameters {
   }
 
   TypeBuilder toFunctionType(
-      TypeBuilder? returnType, NullabilityBuilder nullabilityBuilder,
+      TypeBuilder returnType, NullabilityBuilder nullabilityBuilder,
       [List<TypeVariableBuilder>? typeParameters]) {
     return new FunctionTypeBuilder(returnType, typeParameters, parameters,
         nullabilityBuilder, uri, charOffset);
