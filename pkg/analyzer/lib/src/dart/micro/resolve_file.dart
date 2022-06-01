@@ -42,9 +42,6 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
-const M = 1024 * 1024 /*1 MiB*/;
-const memoryCacheSize = 200 * M;
-
 class CiderSearchInfo {
   final CharacterLocation startPosition;
   final int length;
@@ -129,24 +126,18 @@ class FileResolver {
   @visibleForTesting
   final Map<String, ResolvedLibraryResult> cachedResults = {};
 
-  FileResolver(
-    PerformanceLog logger,
-    ResourceProvider resourceProvider,
-    SourceFactory sourceFactory,
-    String Function(String path) getFileDigest,
-    void Function(List<String> paths)? prefetchFiles, {
-    required Workspace workspace,
-    bool Function(String path)? isGenerated,
-  }) : this.from(
-          logger: logger,
-          resourceProvider: resourceProvider,
-          sourceFactory: sourceFactory,
-          getFileDigest: getFileDigest,
-          prefetchFiles: prefetchFiles,
-          workspace: workspace,
-          isGenerated: isGenerated,
-        );
+  FileResolver({
+    required this.logger,
+    required this.resourceProvider,
+    required this.sourceFactory,
+    required this.getFileDigest,
+    required this.prefetchFiles,
+    required this.workspace,
+    this.isGenerated,
+    required this.byteStore,
+  });
 
+  @Deprecated('Use the unnamed constructor instead')
   FileResolver.from({
     required this.logger,
     required this.resourceProvider,
@@ -155,8 +146,8 @@ class FileResolver {
     required this.prefetchFiles,
     required this.workspace,
     this.isGenerated,
-    CiderByteStore? byteStore,
-  }) : byteStore = byteStore ?? CiderCachedByteStore(memoryCacheSize);
+    required this.byteStore,
+  });
 
   /// Update the resolver to reflect the fact that the file with the given
   /// [path] was changed. We need to make sure that when this file, of any file
