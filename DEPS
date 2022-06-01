@@ -120,7 +120,7 @@ vars = {
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "intl_rev": "9145f308f1458f37630a1ffce3b7d3b471ebbc56",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
-  "json_rpc_2_rev": "7e00f893440a72de0637970325e4ea44bd1e8c8e",
+  "json_rpc_2_rev": "2de9a1f9821807fa2c85fd48e2f70b9cbcddcb67",
   "linter_rev": "a8529c6692922b45bc287543b355c90d7b1286d3", # 1.24.0
   "lints_rev": "8294e5648ab49474541527e2911e72e4c5aefe55",
   "logging_rev": "f6979e3bc3b6e1847a08335b7eb6304e18986195",
