@@ -159,12 +159,15 @@ class UnlinkedNamespaceDirective {
   /// The configurations that control which library will actually be used.
   final List<UnlinkedNamespaceDirectiveConfiguration> configurations;
 
+  final bool isSyntheticDartCoreImport;
+
   /// The URI referenced by this directive, nad used by default when none
   /// of the [configurations] matches.
   final String uri;
 
   UnlinkedNamespaceDirective({
     required this.configurations,
+    this.isSyntheticDartCoreImport = false,
     required this.uri,
   });
 
@@ -174,6 +177,7 @@ class UnlinkedNamespaceDirective {
         () => UnlinkedNamespaceDirectiveConfiguration.read(reader),
       ),
       uri: reader.readStringUtf8(),
+      isSyntheticDartCoreImport: reader.readBool(),
     );
   }
 
@@ -185,6 +189,7 @@ class UnlinkedNamespaceDirective {
       },
     );
     sink.writeStringUtf8(uri);
+    sink.writeBool(isSyntheticDartCoreImport);
   }
 }
 

@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -21,12 +22,15 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisOptions, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/workspace/basic.dart';
+import 'package:analyzer_utilities/check/check.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -121,8 +125,29 @@ class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
 
 @reflectiveTest
 class FileSystemState_PubPackageTest extends PubPackageResolutionTest {
+  FileState get _dartAsyncState {
+    return fileStateForUriStr('dart:async');
+  }
+
+  FileState get _dartCoreState {
+    return fileStateForUriStr('dart:core');
+  }
+
+  FileState get _dartMathState {
+    return fileStateForUriStr('dart:math');
+  }
+
   FileState fileStateFor(File file) {
     return fsStateFor(file).getFileForPath(file.path);
+  }
+
+  FileState fileStateForUri(Uri uri) {
+    return fsStateFor(testFile).getFileForUri(uri).t1!;
+  }
+
+  FileState fileStateForUriStr(String uriStr) {
+    final uri = Uri.parse(uriStr);
+    return fileStateForUri(uri);
   }
 
   FileSystemState fsStateFor(File file) {
@@ -536,6 +561,487 @@ import augment 'c.dart';
       kind as AugmentationKnownFileStateKind;
       expect(kind.uriFile, same(aState));
       expect(kind.augmented, same(aState));
+    });
+  }
+
+  test_newFile_library_exports_dart() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+export 'dart:async';
+export 'dart:math';
+''');
+
+    final aState = fileStateFor(a);
+    aState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+      check(kind.exports).matches([
+        (export) => export.isLibrary(_dartAsyncState),
+        (export) => export.isLibrary(_dartMathState),
+      ]);
+    });
+  }
+
+  test_newFile_library_exports_inSummary_library() async {
+    // Prepare a bundle where `package:foo/foo.dart` is a library.
+    final librarySummaryFiles = <File>[];
+    {
+      final fooRoot = getFolder('$workspaceRootPath/foo');
+
+      newFile('${fooRoot.path}/lib/foo.dart', 'class F {}');
+
+      final fooPackageConfigFile = getFile(
+        '${fooRoot.path}/.dart_tool/package_config.json',
+      );
+
+      writePackageConfig(
+        fooPackageConfigFile.path,
+        PackageConfigFileBuilder()..add(name: 'foo', rootPath: fooRoot.path),
+      );
+
+      final analysisDriver = driverFor(fooRoot.path);
+      final bundleBytes = await analysisDriver.buildPackageBundle(
+        uriList: [
+          Uri.parse('package:foo/foo.dart'),
+        ],
+      );
+
+      final bundleFile =
+          resourceProvider.getFile('/home/summaries/packages.sum');
+      bundleFile.writeAsBytesSync(bundleBytes);
+
+      librarySummaryFiles.add(bundleFile);
+
+      // Delete, so it is not available as a file.
+      // We don't have a package config for it anyway, but just to be sure.
+      fooRoot.delete();
+    }
+
+    // Prepare for recreating the collection, with summaries.
+    sdkSummaryFile = await _writeSdkSummary();
+    this.librarySummaryFiles = librarySummaryFiles;
+
+    disposeAnalysisContextCollection();
+
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+export 'dart:async';
+export 'package:foo/foo.dart';
+export 'b.dart';
+''');
+
+    final b = getFile('$testPackageLibPath/b.dart');
+
+    final aState = fileStateFor(a);
+    final bState = fileStateFor(b);
+
+    aState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+      check(kind.exports).matches([
+        (import) {
+          final expected = Uri.parse('dart:async');
+          import.withInSummaryLibrary(expected);
+        },
+        (import) {
+          final expected = Uri.parse('package:foo/foo.dart');
+          import.withInSummaryLibrary(expected);
+        },
+        (import) => import.isLibrary(bState),
+      ]);
+    });
+  }
+
+  test_newFile_library_exports_inSummary_part() async {
+    // Prepare a bundle where `package:foo/foo2.dart` is a part.
+    final librarySummaryFiles = <File>[];
+    {
+      final fooRoot = getFolder('$workspaceRootPath/foo');
+
+      newFile('${fooRoot.path}/lib/foo.dart', r'''
+part 'foo2.dart';
+''');
+
+      newFile('${fooRoot.path}/lib/foo2.dart', r'''
+part of 'foo.dart';
+''');
+
+      final fooPackageConfigFile = getFile(
+        '${fooRoot.path}/.dart_tool/package_config.json',
+      );
+
+      writePackageConfig(
+        fooPackageConfigFile.path,
+        PackageConfigFileBuilder()..add(name: 'foo', rootPath: fooRoot.path),
+      );
+
+      final analysisDriver = driverFor(fooRoot.path);
+      final bundleBytes = await analysisDriver.buildPackageBundle(
+        uriList: [
+          Uri.parse('package:foo/foo.dart'),
+        ],
+      );
+
+      final bundleFile =
+          resourceProvider.getFile('/home/summaries/packages.sum');
+      bundleFile.writeAsBytesSync(bundleBytes);
+
+      librarySummaryFiles.add(bundleFile);
+
+      // Delete, so it is not available as a file.
+      // We don't have a package config for it anyway, but just to be sure.
+      fooRoot.delete();
+    }
+
+    // Prepare for recreating the collection, with summaries.
+    sdkSummaryFile = await _writeSdkSummary();
+    this.librarySummaryFiles = librarySummaryFiles;
+
+    disposeAnalysisContextCollection();
+
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+export 'package:foo/foo2.dart';
+export 'b.dart';
+''');
+
+    final b = getFile('$testPackageLibPath/b.dart');
+
+    final aState = fileStateFor(a);
+    final bState = fileStateFor(b);
+
+    aState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+      check(kind.exports).matches([
+        (export) {
+          final expected = Uri.parse('package:foo/foo2.dart');
+          export.withInSummaryNotLibrary(expected);
+        },
+        (export) => export.isLibrary(bState),
+      ]);
+    });
+  }
+
+  test_newFile_library_exports_invalidRelativeUri() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+export '::net';
+''');
+
+    final aState = fileStateFor(a);
+    aState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+      check(kind.exports).matches([
+        (export) => export.isNotFile(),
+      ]);
+    });
+  }
+
+  test_newFile_library_exports_package() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+    final b = newFile('$testPackageLibPath/b.dart', '');
+
+    final c = newFile('$testPackageLibPath/c.dart', r'''
+export 'a.dart';
+export 'package:test/b.dart';
+''');
+
+    final aState = fileStateFor(a);
+    final bState = fileStateFor(b);
+    final cState = fileStateFor(c);
+
+    cState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+      check(kind.exports).matches([
+        (export) => export.isLibrary(aState),
+        (export) => export.isLibrary(bState),
+      ]);
+    });
+  }
+
+  test_newFile_library_exports_part() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part of my.lib;
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+export 'a.dart';
+''');
+
+    final aState = fileStateFor(a);
+    final bState = fileStateFor(b);
+
+    bState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+      check(kind.exports).matches([
+        (export) => export.isFile(aState),
+      ]);
+    });
+  }
+
+  test_newFile_library_imports_library_augmentation() async {
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+''');
+
+    final c = newFile('$testPackageLibPath/c.dart', r'''
+import 'b.dart';
+''');
+
+    final bState = fileStateFor(b);
+    final cState = fileStateFor(c);
+
+    cState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+      check(kind.imports).matches([
+        (import) => import.isFile(bState),
+        (import) => import
+          ..isLibrary(_dartCoreState)
+          ..isSyntheticDartCoreImport.isTrue,
+      ]);
+    });
+  }
+
+  test_newFile_library_imports_library_dart() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import 'dart:async';
+import 'dart:math';
+''');
+
+    final aState = fileStateFor(a);
+    aState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+      check(kind.imports).matches([
+        (import) => import.isLibrary(_dartAsyncState),
+        (import) => import.isLibrary(_dartMathState),
+        (import) => import
+          ..isLibrary(_dartCoreState)
+          ..isSyntheticDartCoreImport.isTrue,
+      ]);
+    });
+  }
+
+  test_newFile_library_imports_library_dart_explicitDartCore() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import 'dart:core';
+import 'dart:math';
+''');
+
+    final aState = fileStateFor(a);
+    aState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+      check(kind.imports).matches([
+        (import) => import
+          ..isLibrary(_dartCoreState)
+          ..isSyntheticDartCoreImport.isFalse,
+        (import) => import.isLibrary(_dartMathState),
+      ]);
+    });
+  }
+
+  test_newFile_library_imports_library_inSummary_library() async {
+    // Prepare a bundle where `package:foo/foo.dart` is a library.
+    final librarySummaryFiles = <File>[];
+    {
+      final fooRoot = getFolder('$workspaceRootPath/foo');
+
+      newFile('${fooRoot.path}/lib/foo.dart', 'class F {}');
+
+      final fooPackageConfigFile = getFile(
+        '${fooRoot.path}/.dart_tool/package_config.json',
+      );
+
+      writePackageConfig(
+        fooPackageConfigFile.path,
+        PackageConfigFileBuilder()..add(name: 'foo', rootPath: fooRoot.path),
+      );
+
+      final analysisDriver = driverFor(fooRoot.path);
+      final bundleBytes = await analysisDriver.buildPackageBundle(
+        uriList: [
+          Uri.parse('package:foo/foo.dart'),
+        ],
+      );
+
+      final bundleFile =
+          resourceProvider.getFile('/home/summaries/packages.sum');
+      bundleFile.writeAsBytesSync(bundleBytes);
+
+      librarySummaryFiles.add(bundleFile);
+
+      // Delete, so it is not available as a file.
+      // We don't have a package config for it anyway, but just to be sure.
+      fooRoot.delete();
+    }
+
+    // Prepare for recreating the collection, with summaries.
+    sdkSummaryFile = await _writeSdkSummary();
+    this.librarySummaryFiles = librarySummaryFiles;
+
+    disposeAnalysisContextCollection();
+
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import 'dart:async';
+import 'package:foo/foo.dart';
+import 'b.dart';
+''');
+
+    final b = getFile('$testPackageLibPath/b.dart');
+
+    final aState = fileStateFor(a);
+    final bState = fileStateFor(b);
+
+    aState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+      check(kind.imports).matches([
+        (import) {
+          final expected = Uri.parse('dart:async');
+          import.withInSummaryLibrary(expected);
+        },
+        (import) {
+          final expected = Uri.parse('package:foo/foo.dart');
+          import.withInSummaryLibrary(expected);
+        },
+        (import) => import.isLibrary(bState),
+        (import) {
+          final expected = Uri.parse('dart:core');
+          import
+            ..withInSummaryLibrary(expected)
+            ..isSyntheticDartCoreImport.isTrue;
+        },
+      ]);
+    });
+  }
+
+  test_newFile_library_imports_library_inSummary_part() async {
+    // Prepare a bundle where `package:foo/foo2.dart` is a part.
+    final librarySummaryFiles = <File>[];
+    {
+      final fooRoot = getFolder('$workspaceRootPath/foo');
+
+      newFile('${fooRoot.path}/lib/foo.dart', r'''
+part 'foo2.dart';
+''');
+
+      newFile('${fooRoot.path}/lib/foo2.dart', r'''
+part of 'foo.dart';
+''');
+
+      final fooPackageConfigFile = getFile(
+        '${fooRoot.path}/.dart_tool/package_config.json',
+      );
+
+      writePackageConfig(
+        fooPackageConfigFile.path,
+        PackageConfigFileBuilder()..add(name: 'foo', rootPath: fooRoot.path),
+      );
+
+      final analysisDriver = driverFor(fooRoot.path);
+      final bundleBytes = await analysisDriver.buildPackageBundle(
+        uriList: [
+          Uri.parse('package:foo/foo.dart'),
+        ],
+      );
+
+      final bundleFile =
+          resourceProvider.getFile('/home/summaries/packages.sum');
+      bundleFile.writeAsBytesSync(bundleBytes);
+
+      librarySummaryFiles.add(bundleFile);
+
+      // Delete, so it is not available as a file.
+      // We don't have a package config for it anyway, but just to be sure.
+      fooRoot.delete();
+    }
+
+    // Prepare for recreating the collection, with summaries.
+    sdkSummaryFile = await _writeSdkSummary();
+    this.librarySummaryFiles = librarySummaryFiles;
+
+    disposeAnalysisContextCollection();
+
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import 'package:foo/foo2.dart';
+import 'b.dart';
+''');
+
+    final b = getFile('$testPackageLibPath/b.dart');
+
+    final aState = fileStateFor(a);
+    final bState = fileStateFor(b);
+
+    aState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+      check(kind.imports).matches([
+        (export) {
+          final expected = Uri.parse('package:foo/foo2.dart');
+          export.withInSummaryNotLibrary(expected);
+        },
+        (export) => export.isLibrary(bState),
+        (export) {
+          final expected = Uri.parse('dart:core');
+          export
+            ..withInSummaryLibrary(expected)
+            ..isSyntheticDartCoreImport.isTrue;
+        },
+      ]);
+    });
+  }
+
+  test_newFile_library_imports_library_invalidRelativeUri() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import '::net';
+''');
+
+    final aState = fileStateFor(a);
+    aState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+      check(kind.imports).matches([
+        (import) => import.isNotFile(),
+        (import) => import.isLibrary(_dartCoreState),
+      ]);
+    });
+  }
+
+  test_newFile_library_imports_library_package() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+    final b = newFile('$testPackageLibPath/b.dart', '');
+
+    final c = newFile('$testPackageLibPath/c.dart', r'''
+import 'a.dart';
+import 'package:test/b.dart';
+''');
+
+    final aState = fileStateFor(a);
+    final bState = fileStateFor(b);
+    final cState = fileStateFor(c);
+
+    cState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+      check(kind.imports).matches([
+        (import) => import.isLibrary(aState),
+        (import) => import.isLibrary(bState),
+        (import) => import
+          ..isLibrary(_dartCoreState)
+          ..isSyntheticDartCoreImport.isTrue,
+      ]);
+    });
+  }
+
+  test_newFile_library_imports_library_part() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part of my.lib;
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+''');
+
+    final aState = fileStateFor(a);
+    final bState = fileStateFor(b);
+
+    bState.assertKind((kind) {
+      kind as LibraryFileStateKind;
+      check(kind.imports).matches([
+        (import) => import.isFile(aState),
+        (import) => import
+          ..isLibrary(_dartCoreState)
+          ..isSyntheticDartCoreImport.isTrue,
+      ]);
     });
   }
 
@@ -1609,6 +2115,16 @@ class A2 {}
     }).toList();
     expect(actualFiles, expected);
   }
+
+  Future<File> _writeSdkSummary() async {
+    final file = resourceProvider.getFile('/home/summaries/sdk.sum');
+    final bytes = await buildSdkSummary2(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+    );
+    file.writeAsBytesSync(bytes);
+    return file;
+  }
 }
 
 @reflectiveTest
@@ -2463,6 +2979,188 @@ extension on PartOfNameFileStateKind {
       return e.kind as LibraryFileStateKind;
     }).toList();
     expect(libraries, unorderedEquals(expectedKinds));
+  }
+}
+
+extension on CheckTarget<ImportDirectiveState> {
+  @useResult
+  CheckTarget<Source?> get importedLibrarySource {
+    return nest(
+      value.importedLibrarySource,
+      (selected) => 'importedLibrarySource ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
+  CheckTarget<bool> get isSyntheticDartCoreImport {
+    return nest(
+      value.isSyntheticDartCoreImport,
+      (selected) => 'isSyntheticDartCoreImport ${valueStr(selected)}',
+    );
+  }
+
+  /// Is [ImportDirectiveWithFile], but not a library.
+  void isFile(FileState expected) {
+    this.isA<ImportDirectiveWithFile>()
+      ..importedFile.isIdenticalTo(expected)
+      ..importedSource.uri.isEqualTo(expected.uri)
+      ..importedLibrary.isNull
+      ..importedLibrarySource.isNull;
+  }
+
+  /// Is [ImportDirectiveWithFile], and is a library.
+  void isLibrary(FileState expected) {
+    final expectedKind = expected.kind as LibraryFileStateKind;
+    this.isA<ImportDirectiveWithFile>()
+      ..importedFile.isIdenticalTo(expected)
+      ..importedSource.uri.isEqualTo(expected.uri)
+      ..importedLibrary.isNotNull.isIdenticalTo(expectedKind)
+      ..importedLibrarySource.isNotNull.uri.isEqualTo(expected.uri);
+  }
+
+  /// Exactly [ImportDirectiveState], even the file is not known.
+  void isNotFile() {
+    hasExactType<ImportDirectiveState>();
+  }
+
+  void withInSummaryLibrary(Uri expected) {
+    this.isA<ImportDirectiveWithInSummarySource>()
+      ..importedSource.uri.isEqualTo(expected)
+      ..importedLibrarySource.isNotNull.uri.isEqualTo(expected);
+  }
+
+  void withInSummaryNotLibrary(Uri expected) {
+    this.isA<ImportDirectiveWithInSummarySource>()
+      ..importedSource.uri.isEqualTo(expected)
+      ..importedLibrarySource.isNull;
+  }
+}
+
+extension on CheckTarget<ExportDirectiveState> {
+  @useResult
+  CheckTarget<Source?> get exportedLibrarySource {
+    return nest(
+      value.exportedLibrarySource,
+      (selected) => 'exportedLibrarySource ${valueStr(selected)}',
+    );
+  }
+
+  /// Is [ExportDirectiveWithFile], but not a library.
+  void isFile(FileState expected) {
+    this.isA<ExportDirectiveWithFile>()
+      ..exportedFile.isIdenticalTo(expected)
+      ..exportedSource.uri.isEqualTo(expected.uri)
+      ..exportedLibrary.isNull
+      ..exportedLibrarySource.isNull;
+  }
+
+  /// Is [ExportDirectiveWithFile], and is a library.
+  void isLibrary(FileState expected) {
+    final expectedKind = expected.kind as LibraryFileStateKind;
+    this.isA<ExportDirectiveWithFile>()
+      ..exportedFile.isIdenticalTo(expected)
+      ..exportedSource.uri.isEqualTo(expected.uri)
+      ..exportedLibrary.isIdenticalTo(expectedKind)
+      ..exportedLibrarySource.isNotNull.uri.isEqualTo(expected.uri);
+  }
+
+  /// Exactly [ExportDirectiveState], even the file is not known.
+  void isNotFile() {
+    hasExactType<ExportDirectiveState>();
+  }
+
+  void withInSummaryLibrary(Uri expected) {
+    this.isA<ExportDirectiveWithInSummarySource>()
+      ..exportedSource.uri.isEqualTo(expected)
+      ..exportedLibrarySource.isNotNull.uri.isEqualTo(expected);
+  }
+
+  void withInSummaryNotLibrary(Uri expected) {
+    this.isA<ExportDirectiveWithInSummarySource>()
+      ..exportedSource.uri.isEqualTo(expected)
+      ..exportedLibrarySource.isNull;
+  }
+}
+
+extension on CheckTarget<ImportDirectiveWithFile> {
+  @useResult
+  CheckTarget<FileState> get importedFile {
+    return nest(
+      value.importedFile,
+      (selected) => 'importedFile ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
+  CheckTarget<LibraryFileStateKind?> get importedLibrary {
+    return nest(
+      value.importedLibrary,
+      (selected) => 'importedLibrary ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
+  CheckTarget<Source> get importedSource {
+    return nest(
+      value.importedSource,
+      (selected) => 'importedSource ${valueStr(selected)}',
+    );
+  }
+}
+
+extension on CheckTarget<ExportDirectiveWithFile> {
+  @useResult
+  CheckTarget<FileState> get exportedFile {
+    return nest(
+      value.exportedFile,
+      (selected) => 'exportedFile ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
+  CheckTarget<LibraryFileStateKind?> get exportedLibrary {
+    return nest(
+      value.exportedLibrary,
+      (selected) => 'exportedLibrary ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
+  CheckTarget<Source> get exportedSource {
+    return nest(
+      value.exportedSource,
+      (selected) => 'exportedSource ${valueStr(selected)}',
+    );
+  }
+}
+
+extension on CheckTarget<ImportDirectiveWithInSummarySource> {
+  @useResult
+  CheckTarget<InSummarySource> get importedSource {
+    return nest(
+      value.importedSource,
+      (selected) => 'importedSource ${valueStr(selected)}',
+    );
+  }
+}
+
+extension on CheckTarget<ExportDirectiveWithInSummarySource> {
+  @useResult
+  CheckTarget<InSummarySource> get exportedSource {
+    return nest(
+      value.exportedSource,
+      (selected) => 'exportedSource ${valueStr(selected)}',
+    );
+  }
+}
+
+extension on CheckTarget<Source> {
+  @useResult
+  CheckTarget<Uri> get uri {
+    return nest(
+      value.uri,
+      (selected) => 'uri ${valueStr(selected)}',
+    );
   }
 }
 

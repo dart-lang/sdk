@@ -975,6 +975,7 @@ class _FileStateUnlinked {
       imports.add(
         UnlinkedNamespaceDirective(
           configurations: [],
+          isSyntheticDartCoreImport: true,
           uri: 'dart:core',
         ),
       );

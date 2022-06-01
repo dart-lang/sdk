@@ -65,7 +65,13 @@ class InSummarySource extends BasicSource {
   /// The summary file where this source was defined.
   final String summaryPath;
 
-  InSummarySource(super.uri, this.summaryPath);
+  final InSummarySourceKind kind;
+
+  InSummarySource({
+    required Uri uri,
+    required this.summaryPath,
+    required this.kind,
+  }) : super(uri);
 
   @override
   TimestampedData<String> get contents => TimestampedData<String>(0, '');
@@ -76,6 +82,8 @@ class InSummarySource extends BasicSource {
   @override
   String toString() => uri.toString();
 }
+
+enum InSummarySourceKind { library, part }
 
 /// The [UriResolver] that knows about sources that are served from their
 /// summaries.
@@ -92,7 +100,13 @@ class InSummaryUriResolver extends UriResolver {
     String uriString = uri.toString();
     String? summaryPath = _dataStore.uriToSummaryPath[uriString];
     if (summaryPath != null) {
-      return InSummarySource(uri, summaryPath);
+      final isLibrary = _dataStore._libraryUris.contains(uriString);
+      return InSummarySource(
+        uri: uri,
+        summaryPath: summaryPath,
+        kind:
+            isLibrary ? InSummarySourceKind.library : InSummarySourceKind.part,
+      );
     }
     return null;
   }

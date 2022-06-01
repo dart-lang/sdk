@@ -901,7 +901,11 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
 
   Source _inSummarySource(String uriStr) {
     var uri = Uri.parse(uriStr);
-    return InSummarySource(uri, '');
+    return InSummarySource(
+      uri: uri,
+      summaryPath: '',
+      kind: InSummarySourceKind.library,
+    );
   }
 
   void _setUpPackage() {
