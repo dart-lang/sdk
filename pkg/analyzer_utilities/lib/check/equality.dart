@@ -11,6 +11,12 @@ extension EqualityExtension<T> on CheckTarget<T> {
     }
   }
 
+  void isIdenticalTo(Object? other) {
+    if (!identical(value, other)) {
+      fail('is not identical to $other');
+    }
+  }
+
   void isNotEqualTo(Object? other) {
     if (value == other) {
       fail('is equal to $other');

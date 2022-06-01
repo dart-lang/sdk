@@ -334,7 +334,7 @@ class FieldInfo extends BasicInfo with CodeInfo {
   late final bool isConst;
 
   /// When [isConst] is true, the constant initializer expression.
-  late final ConstantInfo initializer;
+  ConstantInfo? initializer;
 
   FieldInfo(
       {required String name,

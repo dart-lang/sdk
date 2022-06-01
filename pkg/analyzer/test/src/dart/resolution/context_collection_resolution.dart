@@ -129,6 +129,12 @@ abstract class ContextResolutionTest
   /// to this path, instead of the given path.
   String? pathForContextSelection;
 
+  /// Optional Dart SDK summary file, to be used instead of [sdkRoot].
+  File? sdkSummaryFile;
+
+  /// Optional summaries to provide for the collection.
+  List<File>? librarySummaryFiles;
+
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
   List<String> get collectionIncludedPaths;
@@ -259,6 +265,8 @@ abstract class ContextResolutionTest
       resourceProvider: resourceProvider,
       retainDataForTesting: retainDataForTesting,
       sdkPath: sdkRoot.path,
+      sdkSummaryPath: sdkSummaryFile?.path,
+      librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
       updateAnalysisOptions: updateAnalysisOptions,
     );
 

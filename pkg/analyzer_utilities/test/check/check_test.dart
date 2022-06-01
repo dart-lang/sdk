@@ -29,6 +29,14 @@ void main() {
         _fails(() => check(false).isTrue);
       });
     });
+    group('equality', () {
+      test('isIdenticalTo', () {
+        final a = Object();
+        final b = Object();
+        check(a).isIdenticalTo(a);
+        _fails(() => check(a).isIdenticalTo(b));
+      });
+    });
     group('int', () {
       test('isEqualTo', () {
         check(0).isEqualTo(0);
@@ -332,6 +340,10 @@ void main() {
       });
     });
     group('type', () {
+      test('hasExactType', () {
+        check(42).hasExactType<int>();
+        _fails(() => check(42 as dynamic).hasExactType<num>());
+      });
       test('isA', () {
         check(0).isA<int>();
         _fails(() => check('abc' as dynamic).isA<int>());

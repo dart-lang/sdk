@@ -43,11 +43,10 @@ abstract class SimpleWorkspace extends Workspace {
     DartSdk? sdk,
     SummaryDataStore? summaryData,
   ) {
-    if (summaryData != null) {
-      throw UnsupportedError(
-          'Summary files are not supported in a Pub workspace.');
-    }
     List<UriResolver> resolvers = <UriResolver>[];
+    if (summaryData != null) {
+      resolvers.add(InSummaryUriResolver(summaryData));
+    }
     if (sdk != null) {
       resolvers.add(DartUriResolver(sdk));
     }

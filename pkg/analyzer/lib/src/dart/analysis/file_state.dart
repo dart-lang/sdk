@@ -85,6 +85,75 @@ class AugmentationUnknownFileStateKind extends AugmentationFileStateKind {
   });
 }
 
+/// Information about a single `import` directive.
+class ExportDirectiveState {
+  final UnlinkedNamespaceDirective directive;
+
+  ExportDirectiveState({
+    required this.directive,
+  });
+
+  /// If [exportedSource] corresponds to a library, returns it.
+  Source? get exportedLibrarySource => null;
+
+  /// Returns a [Source] that is referenced by this directive. If the are
+  /// configurations, selects the one which satisfies the conditions.
+  ///
+  /// Returns `null` if the selected URI is not valid, or cannot be resolved
+  /// into a [Source].
+  Source? get exportedSource => null;
+}
+
+/// [ExportDirectiveState] that has a valid URI that references a file.
+class ExportDirectiveWithFile extends ExportDirectiveState {
+  final FileState exportedFile;
+
+  ExportDirectiveWithFile({
+    required super.directive,
+    required this.exportedFile,
+  });
+
+  /// Returns [exportedFile] if it is a library.
+  LibraryFileStateKind? get exportedLibrary {
+    final kind = exportedFile.kind;
+    if (kind is LibraryFileStateKind) {
+      return kind;
+    }
+    return null;
+  }
+
+  @override
+  Source? get exportedLibrarySource {
+    if (exportedFile.kind is LibraryFileStateKind) {
+      return exportedSource;
+    }
+    return null;
+  }
+
+  @override
+  Source get exportedSource => exportedFile.source;
+}
+
+/// [ExportDirectiveState] with a URI that resolves to [InSummarySource].
+class ExportDirectiveWithInSummarySource extends ExportDirectiveState {
+  @override
+  final InSummarySource exportedSource;
+
+  ExportDirectiveWithInSummarySource({
+    required super.directive,
+    required this.exportedSource,
+  });
+
+  @override
+  Source? get exportedLibrarySource {
+    if (exportedSource.kind == InSummarySourceKind.library) {
+      return exportedSource;
+    } else {
+      return null;
+    }
+  }
+}
+
 /// A library from [SummaryDataStore].
 class ExternalLibrary {
   final InSummarySource source;
@@ -587,6 +656,7 @@ class FileState {
     return unit;
   }
 
+  /// TODO(scheglov) move to _fsState?
   String _selectRelativeUri(UnlinkedNamespaceDirective directive) {
     for (var configuration in directive.configurations) {
       var name = configuration.name;
@@ -805,6 +875,7 @@ class FileState {
       imports.add(
         UnlinkedNamespaceDirective(
           configurations: [],
+          isSyntheticDartCoreImport: true,
           uri: 'dart:core',
         ),
       );
@@ -1193,6 +1264,77 @@ class FileUriProperties {
   bool get isSrc => (_flags & _isSrc) != 0;
 }
 
+/// Information about a single `import` directive.
+class ImportDirectiveState {
+  final UnlinkedNamespaceDirective directive;
+
+  ImportDirectiveState({
+    required this.directive,
+  });
+
+  /// If [importedSource] corresponds to a library, returns it.
+  Source? get importedLibrarySource => null;
+
+  /// Returns a [Source] that is referenced by this directive. If the are
+  /// configurations, selects the one which satisfies the conditions.
+  ///
+  /// Returns `null` if the selected URI is not valid, or cannot be resolved
+  /// into a [Source].
+  Source? get importedSource => null;
+
+  bool get isSyntheticDartCoreImport => directive.isSyntheticDartCoreImport;
+}
+
+/// [ImportDirectiveState] that has a valid URI that references a file.
+class ImportDirectiveWithFile extends ImportDirectiveState {
+  final FileState importedFile;
+
+  ImportDirectiveWithFile({
+    required super.directive,
+    required this.importedFile,
+  });
+
+  /// Returns [importedFile] if it is a library.
+  LibraryFileStateKind? get importedLibrary {
+    final kind = importedFile.kind;
+    if (kind is LibraryFileStateKind) {
+      return kind;
+    }
+    return null;
+  }
+
+  @override
+  Source? get importedLibrarySource {
+    if (importedFile.kind is LibraryFileStateKind) {
+      return importedSource;
+    }
+    return null;
+  }
+
+  @override
+  Source get importedSource => importedFile.source;
+}
+
+/// [ImportDirectiveState] with a URI that resolves to [InSummarySource].
+class ImportDirectiveWithInSummarySource extends ImportDirectiveState {
+  @override
+  final InSummarySource importedSource;
+
+  ImportDirectiveWithInSummarySource({
+    required super.directive,
+    required this.importedSource,
+  });
+
+  @override
+  Source? get importedLibrarySource {
+    if (importedSource.kind == InSummarySourceKind.library) {
+      return importedSource;
+    } else {
+      return null;
+    }
+  }
+}
+
 class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
   /// The name of the library from the `library` directive.
   /// Or `null` if no `library` directive.
@@ -1209,9 +1351,66 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
 }
 
 abstract class LibraryOrAugmentationFileKind extends FileStateKind {
+  List<ExportDirectiveState>? _exports;
+  List<ImportDirectiveState>? _imports;
+
   LibraryOrAugmentationFileKind({
     required super.file,
   });
+
+  List<ExportDirectiveState> get exports {
+    return _exports ??= file.unlinked2.exports.map((directive) {
+      final uriStr = file._selectRelativeUri(directive);
+      return file._fileForRelativeUri(uriStr).map(
+        (refFile) {
+          if (refFile != null) {
+            refFile.referencingFiles.add(file);
+            return ExportDirectiveWithFile(
+              directive: directive,
+              exportedFile: refFile,
+            );
+          } else {
+            return ExportDirectiveState(
+              directive: directive,
+            );
+          }
+        },
+        (externalLibrary) {
+          return ExportDirectiveWithInSummarySource(
+            directive: directive,
+            exportedSource: externalLibrary.source,
+          );
+        },
+      );
+    }).toList();
+  }
+
+  List<ImportDirectiveState> get imports {
+    return _imports ??= file.unlinked2.imports.map((directive) {
+      final uriStr = file._selectRelativeUri(directive);
+      return file._fileForRelativeUri(uriStr).map(
+        (refFile) {
+          if (refFile != null) {
+            refFile.referencingFiles.add(file);
+            return ImportDirectiveWithFile(
+              directive: directive,
+              importedFile: refFile,
+            );
+          } else {
+            return ImportDirectiveState(
+              directive: directive,
+            );
+          }
+        },
+        (externalLibrary) {
+          return ImportDirectiveWithInSummarySource(
+            directive: directive,
+            importedSource: externalLibrary.source,
+          );
+        },
+      );
+    }).toList();
+  }
 
   bool hasAugmentation(AugmentationFileStateKind augmentation) {
     return file.augmentationFiles.contains(augmentation.file);
