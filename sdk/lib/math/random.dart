@@ -46,7 +46,7 @@ abstract class Random {
   /// from 0, inclusive, to [max], exclusive.
   ///
   /// Implementation note: The default implementation supports [max] values
-  /// between 1 and (1<<32) inclusive.
+  /// between 1 and (2<<32) inclusive.
   ///
   /// Example:
   /// ```dart
