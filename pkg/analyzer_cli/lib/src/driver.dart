@@ -165,8 +165,8 @@ class Driver implements CommandLineStarter {
 
     // These are used to do part file analysis across sources.
     var dartFiles = <String>{};
-    var libraryFiles = <FileState>{};
-    var danglingParts = <FileState>{};
+    final analyzedFiles = <FileState>{};
+    final partFiles = <FileState>{};
 
     // Note: This references analysisDriver via closure, so it will change over
     // time during the following analysis.
@@ -336,20 +336,13 @@ class Driver implements CommandLineStarter {
           dartFiles.add(path);
           var file = analysisDriver.fsState.getFileForPath(path);
 
-          if (file.isPart) {
-            if (!libraryFiles.contains(file.library)) {
-              danglingParts.add(file);
-            }
-            continue;
-          }
-          libraryFiles.add(file);
-
-          var status = await _runAnalyzer(file, options, formatter);
-          allResult = allResult.max(status);
-
-          // Mark previously dangling parts as no longer dangling.
-          for (var part in file.partedFiles) {
-            danglingParts.remove(part);
+          final kind = file.kind;
+          if (kind is LibraryFileStateKind) {
+            var status = await _runAnalyzer(file, options, formatter);
+            allResult = allResult.max(status);
+            analyzedFiles.addAll(file.libraryFiles);
+          } else if (kind is PartFileStateKind) {
+            partFiles.add(file);
           }
         }
       }
@@ -363,8 +356,10 @@ class Driver implements CommandLineStarter {
     }
 
     // Any dangling parts still in this list were definitely dangling.
-    for (var partFile in danglingParts) {
-      reportPartError(partFile.path);
+    for (var partFile in partFiles) {
+      if (!analyzedFiles.contains(partFile)) {
+        reportPartError(partFile.path);
+      }
     }
 
     formatter.flush();

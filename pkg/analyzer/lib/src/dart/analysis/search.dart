@@ -1046,13 +1046,17 @@ class _IndexRequest {
       return;
     }
 
-    var library = file.library ?? file;
+    var library = file.kind.library;
+    if (library == null) {
+      return;
+    }
+
     for (; index.supertypes[superIndex] == superId; superIndex++) {
       var subtype = index.subtypes[superIndex];
       var name = index.strings[subtype.name];
-      var subId = '${library.uriStr};${file.uriStr};$name';
+      var subId = '${library.file.uriStr};${file.uriStr};$name';
       results.add(SubtypeResult(
-        library.uriStr,
+        library.file.uriStr,
         subId,
         name,
         subtype.members.map((m) => index.strings[m]).toList(),

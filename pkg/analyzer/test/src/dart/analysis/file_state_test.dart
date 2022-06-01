@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -28,8 +27,6 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer_utilities/check/check.dart';
-import 'package:convert/convert.dart';
-import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -173,7 +170,7 @@ library augment 'b.dart';
     cState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
       expect(kind.uriFile.path, b.path);
-      expect(kind.augmented?.path, b.path);
+      expect(kind.augmented?.file.path, b.path);
     });
 
     final bState = fileStateFor(b);
@@ -182,22 +179,24 @@ library augment 'b.dart';
     bState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
       expect(kind.uriFile.path, a.path);
-      expect(kind.augmented?.path, a.path);
-    });
-    // Check `c.dart` again, now using the `b.dart` state.
-    cState.assertKind((kind) {
-      kind as AugmentationKnownFileStateKind;
-      expect(kind.uriFile, same(bState));
-      expect(kind.augmented, same(bState));
+      expect(kind.augmented?.file.path, a.path);
     });
 
     final aState = fileStateFor(a);
     _assertAugmentationFiles(aState, [b]);
+
+    // Check `c.dart` again, now using the `b.dart` state.
+    cState.assertKind((kind) {
+      kind as AugmentationKnownFileStateKind;
+      kind.assertAugmented(bState);
+      kind.assertLibrary(aState);
+    });
+
     // Check `b.dart` again, now using the `a.dart` state.
     bState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
-      expect(kind.uriFile, same(aState));
-      expect(kind.augmented, same(aState));
+      kind.assertAugmented(aState);
+      kind.assertLibrary(aState);
     });
   }
 
@@ -218,7 +217,7 @@ library augment 'b.dart';
     cState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
       expect(kind.uriFile.path, b.path);
-      expect(kind.augmented?.path, b.path);
+      expect(kind.augmented?.file.path, b.path);
     });
 
     final bState = fileStateFor(b);
@@ -229,12 +228,13 @@ library augment 'b.dart';
       expect(kind.uriFile.path, a.path);
       // The file `a.dart` does not exist, so no import, so `null`.
       expect(kind.augmented, isNull);
+      expect(kind.library, isNull);
     });
     // Check `c.dart` again, now using the `b.dart` state.
     cState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
-      expect(kind.uriFile, same(bState));
-      expect(kind.augmented, same(bState));
+      kind.assertAugmented(bState);
+      expect(kind.library, isNull);
     });
 
     // The file `a.dart` does not exist.
@@ -248,6 +248,7 @@ library augment 'b.dart';
       expect(kind.uriFile, same(aState));
       // The file `a.dart` does not exist, so no import, so `null`.
       expect(kind.augmented, isNull);
+      expect(kind.library, isNull);
     });
   }
 
@@ -271,6 +272,7 @@ library augment 'b.dart';
       expect(kind.uriFile.path, b.path);
       // `b.dart` does not import `c.dart` as an augmentation.
       expect(kind.augmented, isNull);
+      expect(kind.library, isNull);
     });
 
     // Reading `a.dart` does not change anything.
@@ -286,8 +288,8 @@ library augment 'b.dart';
     _assertAugmentationFiles(bState, []);
     bState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
-      expect(kind.uriFile, same(aState));
-      expect(kind.augmented, same(aState));
+      kind.assertAugmented(aState);
+      kind.assertLibrary(aState);
     });
 
     // Check `c.dart` again, now using the `b.dart` state.
@@ -295,6 +297,7 @@ library augment 'b.dart';
       kind as AugmentationKnownFileStateKind;
       expect(kind.uriFile, same(bState));
       expect(kind.augmented, isNull);
+      expect(kind.library, isNull);
     });
   }
 
@@ -316,8 +319,8 @@ import augment 'b.dart';
     _assertAugmentationFiles(bState, [b]);
     bState.assertKind((bKind) {
       bKind as AugmentationKnownFileStateKind;
-      expect(bKind.uriFile, same(bState));
-      expect(bKind.augmented, same(bState));
+      bKind.assertAugmented(bState);
+      expect(bKind.library, isNull);
     });
 
     // The cycle does not prevent building of the library cycle.
@@ -355,13 +358,13 @@ import augment 'b.dart';
     // We can construct a cycle using augmentations.
     bState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
-      expect(kind.uriFile, same(aState));
-      expect(kind.augmented, same(aState));
+      kind.assertAugmented(aState);
+      kind.assertLibrary(aState);
     });
     cState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
-      expect(kind.uriFile, same(bState));
-      expect(kind.augmented, same(bState));
+      kind.assertAugmented(bState);
+      kind.assertLibrary(aState);
     });
 
     // The cycle does not prevent building of the library cycle.
@@ -382,6 +385,7 @@ library augment 'da:';
     aState.assertKind((kind) {
       kind as AugmentationUnknownFileStateKind;
       expect(kind.directive.uri, 'da:');
+      expect(kind.library, isNull);
     });
   }
 
@@ -399,7 +403,7 @@ library augment 'a.dart';
     bState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
       expect(kind.uriFile.path, a.path);
-      expect(kind.augmented?.path, a.path);
+      expect(kind.augmented?.file.path, a.path);
     });
 
     final aState = fileStateFor(a);
@@ -407,8 +411,8 @@ library augment 'a.dart';
     // Check `b.dart` again, now using the `a.dart` state.
     bState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
-      expect(kind.uriFile, same(aState));
-      expect(kind.augmented, same(aState));
+      kind.assertAugmented(aState);
+      kind.assertLibrary(aState);
     });
   }
 
@@ -429,6 +433,7 @@ library augment 'a.dart';
       expect(kind.uriFile, same(aState));
       // But `a.dart` does not import `b.dart`.
       expect(kind.augmented, isNull);
+      expect(kind.library, isNull);
     });
 
     // Refreshing `a.dart` does not change anything.
@@ -438,6 +443,7 @@ library augment 'a.dart';
       kind as AugmentationKnownFileStateKind;
       expect(kind.uriFile, same(aState));
       expect(kind.augmented, isNull);
+      expect(kind.library, isNull);
     });
   }
 
@@ -455,6 +461,7 @@ library augment 'a.dart';
       expect(kind.uriFile.path, a.path);
       // The file `a.dart` does not exist, so no import.
       expect(kind.augmented, isNull);
+      expect(kind.library, isNull);
     });
 
     // We can get `a.dart`, but it does not exist.
@@ -466,6 +473,7 @@ library augment 'a.dart';
       expect(kind.uriFile, same(aState));
       // The file `a.dart` does not exist, so no import.
       expect(kind.augmented, isNull);
+      expect(kind.library, isNull);
     });
   }
 
@@ -489,8 +497,8 @@ library augment 'a.dart';
     final cState = fileStateFor(c);
     cState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
-      expect(kind.uriFile, same(aState));
-      expect(kind.augmented, same(aState));
+      kind.assertAugmented(aState);
+      kind.assertLibrary(aState);
     });
 
     // Reading `b.dart` does not update the augmentation.
@@ -498,24 +506,24 @@ library augment 'a.dart';
     _assertAugmentationFiles(bState, [c]);
     cState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
-      expect(kind.uriFile, same(aState));
-      expect(kind.augmented, same(aState));
+      kind.assertAugmented(aState);
+      kind.assertLibrary(aState);
     });
 
     // Refreshing `a.dart` does not update the augmentation.
     aState.refresh();
     cState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
-      expect(kind.uriFile, same(aState));
-      expect(kind.augmented, same(aState));
+      kind.assertAugmented(aState);
+      kind.assertLibrary(aState);
     });
 
     // Refreshing `b.dart` does not update the augmentation.
     bState.refresh();
     cState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
-      expect(kind.uriFile, same(aState));
-      expect(kind.augmented, same(aState));
+      kind.assertAugmented(aState);
+      kind.assertLibrary(aState);
     });
 
     // Exclude from `a.dart`, the URI still points at `a.dart`.
@@ -527,6 +535,7 @@ library augment 'a.dart';
       kind as AugmentationKnownFileStateKind;
       expect(kind.uriFile, same(aState));
       expect(kind.augmented, isNull);
+      expect(kind.library, isNull);
     });
 
     // Exclude from `b.dart`, still point at `a.dart`, still not valid.
@@ -537,6 +546,7 @@ library augment 'a.dart';
       kind as AugmentationKnownFileStateKind;
       expect(kind.uriFile, same(aState));
       expect(kind.augmented, isNull);
+      expect(kind.library, isNull);
     });
 
     // Include into `b.dart`, still point at `a.dart`, still not valid.
@@ -549,6 +559,7 @@ import augment 'c.dart';
       kind as AugmentationKnownFileStateKind;
       expect(kind.uriFile, same(aState));
       expect(kind.augmented, isNull);
+      expect(kind.library, isNull);
     });
 
     // Include into `a.dart`, restore to `a.dart` as the target.
@@ -559,9 +570,36 @@ import augment 'c.dart';
     _assertAugmentationFiles(aState, [c]);
     cState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
-      expect(kind.uriFile, same(aState));
-      expect(kind.augmented, same(aState));
+      kind.assertAugmented(aState);
+      kind.assertLibrary(aState);
     });
+  }
+
+  test_newFile_doesNotExist() {
+    final a = getFile('$testPackageLibPath/a.dart');
+
+    final file = fileStateFor(a);
+    expect(file.path, a.path);
+    expect(file.uri, Uri.parse('package:test/a.dart'));
+    expect(file.content, '');
+    expect(file.exists, isFalse);
+
+    file.assertKind((kind) {
+      kind as LibraryFileStateKind;
+      expect(kind.name, isNull);
+      kind.assertLibrary(file);
+      check(kind.imports).matches([
+        (import) => import
+          ..isLibrary(_dartCoreState)
+          ..isSyntheticDartCoreImport.isTrue,
+      ]);
+      check(kind.exports).isEmpty;
+    });
+
+    expect(file.exportedFiles, isEmpty);
+    expect(file.partedFiles, isEmpty);
+    expect(file.libraryFiles, [file]);
+    expect(file.isPart, isFalse);
   }
 
   test_newFile_library_exports_dart() async {
@@ -1088,6 +1126,7 @@ library my;
     aState.assertKind((kind) {
       kind as LibraryFileStateKind;
       expect(kind.name, 'my');
+      kind.assertLibrary(aState);
     });
   }
 
@@ -1134,7 +1173,7 @@ part of my.lib;
     bState.assertKind((kind) {
       kind as PartOfNameFileStateKind;
       kind.assertLibraries([aState]);
-      expect(kind.library, same(aState));
+      kind.assertLibrary(aState);
     });
   }
 
@@ -1202,7 +1241,7 @@ part of my.lib;
     cState.assertKind((kind) {
       kind as PartOfNameFileStateKind;
       kind.assertLibraries([aState]);
-      expect(kind.library, aState);
+      kind.assertLibrary(aState);
     });
 
     // Reading `b.dart` does not update the part.
@@ -1215,7 +1254,7 @@ part of my.lib;
     cState.assertKind((kind) {
       kind as PartOfNameFileStateKind;
       kind.assertLibraries([aState, bState]);
-      expect(kind.library, aState);
+      kind.assertLibrary(aState);
     });
 
     // Refreshing `b.dart` does not update the part.
@@ -1223,7 +1262,7 @@ part of my.lib;
     cState.assertKind((kind) {
       kind as PartOfNameFileStateKind;
       kind.assertLibraries([aState, bState]);
-      expect(kind.library, aState);
+      kind.assertLibrary(aState);
     });
 
     // Refreshing `a.dart` does not update the part.
@@ -1231,7 +1270,7 @@ part of my.lib;
     cState.assertKind((kind) {
       kind as PartOfNameFileStateKind;
       kind.assertLibraries([aState, bState]);
-      expect(kind.library, aState);
+      kind.assertLibrary(aState);
     });
 
     // Exclude the part from `a.dart`, switch to `b.dart` instead.
@@ -1240,7 +1279,7 @@ part of my.lib;
     cState.assertKind((kind) {
       kind as PartOfNameFileStateKind;
       kind.assertLibraries([bState]);
-      expect(kind.library, bState);
+      kind.assertLibrary(bState);
     });
 
     // Exclude the part from `b.dart`, no library.
@@ -1261,7 +1300,7 @@ part 'c.dart';
     cState.assertKind((kind) {
       kind as PartOfNameFileStateKind;
       kind.assertLibraries([bState]);
-      expect(kind.library, bState);
+      kind.assertLibrary(bState);
     });
 
     // Include into `a.dart`, switch to `a.dart`.
@@ -1273,7 +1312,7 @@ part 'c.dart';
     cState.assertKind((kind) {
       kind as PartOfNameFileStateKind;
       kind.assertLibraries([aState, bState]);
-      expect(kind.library, aState);
+      kind.assertLibrary(aState);
     });
   }
 
@@ -1321,7 +1360,7 @@ part 'b.dart';
     bState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
       expect(kind.uriFile, same(aState));
-      expect(kind.library, same(aState));
+      kind.assertLibrary(aState);
     });
 
     // Refreshing the part file does not break the kind.
@@ -1329,7 +1368,7 @@ part 'b.dart';
     bState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
       expect(kind.uriFile, same(aState));
-      expect(kind.library, same(aState));
+      kind.assertLibrary(aState);
     });
   }
 
@@ -1348,7 +1387,7 @@ part of 'a.dart';
     bState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
       expect(kind.uriFile.path, a.path);
-      expect(kind.library?.path, a.path);
+      expect(kind.library?.file.path, a.path);
     });
 
     final aState = fileStateFor(a);
@@ -1359,7 +1398,7 @@ part of 'a.dart';
     bState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
       expect(kind.uriFile, same(aState));
-      expect(kind.library, same(aState));
+      kind.assertLibrary(aState);
     });
 
     // Refreshing the part file does not break the kind.
@@ -1367,7 +1406,7 @@ part of 'a.dart';
     bState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
       expect(kind.uriFile, same(aState));
-      expect(kind.library, same(aState));
+      kind.assertLibrary(aState);
     });
   }
 
@@ -1441,7 +1480,7 @@ part of 'a.dart';
     final cState = fileStateFor(c);
     cState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
-      expect(kind.library, aState);
+      kind.assertLibrary(aState);
     });
 
     // Reading `b.dart` does not update the part.
@@ -1449,21 +1488,21 @@ part of 'a.dart';
     _assertPartedFiles(bState, [c]);
     cState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
-      expect(kind.library, aState);
+      kind.assertLibrary(aState);
     });
 
     // Refreshing `b.dart` does not update the part.
     bState.refresh();
     cState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
-      expect(kind.library, aState);
+      kind.assertLibrary(aState);
     });
 
     // Refreshing `a.dart` does not update the part.
     aState.refresh();
     cState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
-      expect(kind.library, aState);
+      kind.assertLibrary(aState);
     });
 
     // Exclude the part from `a.dart`, but the URI in `part of` still resolves
@@ -1504,7 +1543,7 @@ part 'c.dart';
     cState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
       expect(kind.uriFile, same(aState));
-      expect(kind.library, aState);
+      kind.assertLibrary(aState);
     });
   }
 
@@ -1523,8 +1562,8 @@ library augment 'a.dart';
     final bState = fileStateFor(b);
     bState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
-      expect(kind.uriFile, same(aState));
-      expect(kind.augmented, same(aState));
+      kind.assertAugmented(aState);
+      kind.assertLibrary(aState);
     });
 
     // Make it a library.
@@ -1561,8 +1600,8 @@ library augment 'a.dart';
     final bState = fileStateFor(b);
     bState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
-      expect(kind.uriFile, same(aState));
-      expect(kind.augmented, same(aState));
+      kind.assertAugmented(aState);
+      kind.assertLibrary(aState);
     });
 
     // Make it a part.
@@ -1602,7 +1641,7 @@ part 'b.dart';
     bState.assertKind((kind) {
       kind as PartOfNameFileStateKind;
       kind.assertLibraries([aState]);
-      expect(kind.library, same(aState));
+      kind.assertLibrary(aState);
     });
   }
 
@@ -1621,8 +1660,8 @@ library augment 'a.dart';
     final bState = fileStateFor(b);
     bState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
-      expect(kind.uriFile, same(aState));
-      expect(kind.augmented, same(aState));
+      kind.assertAugmented(aState);
+      kind.assertLibrary(aState);
     });
 
     // Make it a part.
@@ -1659,7 +1698,7 @@ part 'b.dart';
     bState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
       expect(kind.uriFile, same(aState));
-      expect(kind.library, same(aState));
+      kind.assertLibrary(aState);
     });
   }
 
@@ -1692,12 +1731,12 @@ part 'b.dart';
     aState.assertKind((kind) {
       kind as PartOfNameFileStateKind;
       kind.assertLibraries([cState]);
-      expect(kind.library, same(cState));
+      kind.assertLibrary(cState);
     });
     bState.assertKind((kind) {
       kind as PartOfNameFileStateKind;
       kind.assertLibraries([cState]);
-      expect(kind.library, same(cState));
+      kind.assertLibrary(cState);
     });
 
     newFile(c.path, r'''
@@ -1719,7 +1758,7 @@ part 'b.dart';
     bState.assertKind((kind) {
       kind as PartOfNameFileStateKind;
       kind.assertLibraries([cState]);
-      expect(kind.library, same(cState));
+      kind.assertLibrary(cState);
     });
   }
 
@@ -1752,12 +1791,12 @@ part 'b.dart';
     aState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
       expect(kind.uriFile, cState);
-      expect(kind.library, cState);
+      kind.assertLibrary(cState);
     });
     bState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
       expect(kind.uriFile, cState);
-      expect(kind.library, cState);
+      kind.assertLibrary(cState);
     });
 
     newFile(c.path, r'''
@@ -1779,7 +1818,7 @@ part 'b.dart';
     bState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
       expect(kind.uriFile, cState);
-      expect(kind.library, same(cState));
+      kind.assertLibrary(cState);
     });
   }
 
@@ -1812,8 +1851,8 @@ library augment 'a.dart';
     bState.refresh();
     bState.assertKind((kind) {
       kind as AugmentationKnownFileStateKind;
-      expect(kind.uriFile, aState);
-      expect(kind.augmented, same(aState));
+      kind.assertAugmented(aState);
+      kind.assertLibrary(aState);
     });
 
     // The file `b.dart` was something else, but now it is a known augmentation.
@@ -1855,7 +1894,7 @@ part of my.lib;
     bState.assertKind((kind) {
       kind as PartOfNameFileStateKind;
       kind.assertLibraries([aState]);
-      expect(kind.library, aState);
+      kind.assertLibrary(aState);
     });
 
     // The file `b.dart` was something else, but now it is a known part.
@@ -1919,7 +1958,7 @@ part of 'a.dart';
     bState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
       expect(kind.uriFile, same(aState));
-      expect(kind.library, same(aState));
+      kind.assertLibrary(aState);
     });
 
     // The file `b.dart` was something else, but now it is a known part.
@@ -1963,7 +2002,7 @@ part 'a.dart';
       kind as PartOfNameFileStateKind;
       expect(kind.directive.name, 'my.lib');
       kind.assertLibraries([bState, cState]);
-      expect(kind.library, same(bState));
+      kind.assertLibrary(bState);
     });
 
     final bCycle_1 = bState.libraryCycle;
@@ -1980,7 +2019,7 @@ class A2 {}
       kind as PartOfNameFileStateKind;
       expect(kind.directive.name, 'my.lib');
       kind.assertLibraries([bState, cState]);
-      expect(kind.library, same(bState));
+      kind.assertLibrary(bState);
     });
 
     // ...but the unlinked signature of `a.dart` is different.
@@ -2016,7 +2055,7 @@ part of 'a.dart';
     bState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
       expect(kind.uriFile, same(aState));
-      expect(kind.library, same(aState));
+      kind.assertLibrary(aState);
     });
 
     // There are no directives in `b.dart`, so it is a library.
@@ -2069,7 +2108,7 @@ part 'a.dart';
     aState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
       expect(kind.uriFile, same(bState));
-      expect(kind.library, same(bState));
+      kind.assertLibrary(bState);
     });
 
     final bCycle_1 = bState.libraryCycle;
@@ -2085,7 +2124,7 @@ class A2 {}
     aState.assertKind((kind) {
       kind as PartOfUriKnownFileStateKind;
       expect(kind.uriFile, same(bState));
-      expect(kind.library, same(bState));
+      kind.assertLibrary(bState);
     });
 
     // ...but the unlinked signature of `a.dart` is different.
@@ -2278,24 +2317,6 @@ var G, H;
         unorderedEquals(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']));
   }
 
-  test_getFileForPath_doesNotExist() {
-    String path = convertPath('/aaa/lib/a.dart');
-    FileState file = fileSystemState.getFileForPath(path);
-    expect(file.path, path);
-    expect(file.uri, Uri.parse('package:aaa/a.dart'));
-    expect(file.content, '');
-    expect(file.contentHash, _md5(''));
-    expect(_excludeSdk(file.importedFiles), isEmpty);
-    expect(file.exportedFiles, isEmpty);
-    expect(file.partedFiles, isEmpty);
-    expect(file.libraryFiles, [file]);
-    expect(_excludeSdk(file.directReferencedFiles), isEmpty);
-    expect(file.isPart, isFalse);
-    expect(file.library, isNull);
-    expect(file.unlinked2, isNotNull);
-    expect(file.unlinked2.exports, isEmpty);
-  }
-
   test_getFileForPath_emptyUri() {
     String path = convertPath('/test.dart');
     newFile(path, r'''
@@ -2358,58 +2379,6 @@ part ':[invalid uri]';
     _assertIsUnresolvedFile(file.partedFiles[1]);
   }
 
-  test_getFileForPath_library() {
-    String a1 = convertPath('/aaa/lib/a1.dart');
-    String a2 = convertPath('/aaa/lib/a2.dart');
-    String a3 = convertPath('/aaa/lib/a3.dart');
-    String a4 = convertPath('/aaa/lib/a4.dart');
-    String b1 = convertPath('/bbb/lib/b1.dart');
-    String b2 = convertPath('/bbb/lib/b2.dart');
-    String content_a1 = r'''
-import 'package:aaa/a2.dart';
-import 'package:bbb/b1.dart';
-export 'package:bbb/b2.dart';
-export 'package:aaa/a3.dart';
-part 'a4.dart';
-
-class A1 {}
-''';
-    newFile(a1, content_a1);
-
-    FileState file = fileSystemState.getFileForPath(a1);
-    expect(file.path, a1);
-    expect(file.content, content_a1);
-    expect(file.contentHash, _md5(content_a1));
-
-    expect(file.isPart, isFalse);
-    expect(file.library, isNull);
-    expect(file.unlinked2, isNotNull);
-
-    expect(_excludeSdk(file.importedFiles), hasLength(2));
-    expect(file.importedFiles[0]!.path, a2);
-    expect(file.importedFiles[0]!.uri, Uri.parse('package:aaa/a2.dart'));
-    expect(file.importedFiles[0]!.source, isNotNull);
-    expect(file.importedFiles[1]!.path, b1);
-    expect(file.importedFiles[1]!.uri, Uri.parse('package:bbb/b1.dart'));
-    expect(file.importedFiles[1]!.source, isNotNull);
-
-    expect(file.exportedFiles, hasLength(2));
-    expect(file.exportedFiles[0]!.path, b2);
-    expect(file.exportedFiles[0]!.uri, Uri.parse('package:bbb/b2.dart'));
-    expect(file.exportedFiles[0]!.source, isNotNull);
-    expect(file.exportedFiles[1]!.path, a3);
-    expect(file.exportedFiles[1]!.uri, Uri.parse('package:aaa/a3.dart'));
-    expect(file.exportedFiles[1]!.source, isNotNull);
-
-    expect(file.partedFiles, hasLength(1));
-    expect(file.partedFiles[0]!.path, a4);
-    expect(file.partedFiles[0]!.uri, Uri.parse('package:aaa/a4.dart'));
-
-    expect(file.libraryFiles, [file, file.partedFiles[0]]);
-
-    expect(_excludeSdk(file.directReferencedFiles), hasLength(5));
-  }
-
   test_getFileForPath_onlyDartFiles() {
     String not_dart = convertPath('/test/lib/not_dart.txt');
     String a = convertPath('/test/lib/a.dart');
@@ -2432,53 +2401,6 @@ part 'not_dart.txt';
     expect(file.partedFiles.map((f) => f!.path), [d, not_dart]);
     expect(_excludeSdk(fileSystemState.knownFilePaths),
         unorderedEquals([a, b, c, d, not_dart]));
-  }
-
-  test_getFileForPath_part() {
-    String a1 = convertPath('/aaa/lib/a1.dart');
-    String a2 = convertPath('/aaa/lib/a2.dart');
-    newFile(a1, r'''
-library a1;
-part 'a2.dart';
-''');
-    newFile(a2, r'''
-part of a1;
-class A2 {}
-''');
-
-    FileState file_a2 = fileSystemState.getFileForPath(a2);
-    expect(file_a2.path, a2);
-    expect(file_a2.uri, Uri.parse('package:aaa/a2.dart'));
-
-    expect(file_a2.unlinked2, isNotNull);
-
-    expect(_excludeSdk(file_a2.importedFiles), isEmpty);
-    expect(file_a2.exportedFiles, isEmpty);
-    expect(file_a2.partedFiles, isEmpty);
-    expect(_excludeSdk(file_a2.directReferencedFiles), isEmpty);
-
-    // The library is not known yet.
-    expect(file_a2.isPart, isTrue);
-    expect(file_a2.library, isNull);
-
-    // Ask for the library.
-    FileState file_a1 = fileSystemState.getFileForPath(a1);
-    expect(file_a1.partedFiles, hasLength(1));
-    expect(file_a1.partedFiles[0], same(file_a2));
-    expect(
-        _excludeSdk(file_a1.directReferencedFiles), unorderedEquals([file_a2]));
-
-    // Now the part knows its library.
-    expect(file_a2.library, same(file_a1));
-
-    // Now update the library, and refresh its file.
-    // The library does not include this part, so no library.
-    newFile(a1, r'''
-library a1;
-part 'not-a2.dart';
-''');
-    file_a1.refresh();
-    expect(file_a2.library, isNull);
   }
 
   test_getFileForPath_samePath() {
@@ -2921,10 +2843,6 @@ part of 'a.dart';
       }
     }).toList();
   }
-
-  static String _md5(String content) {
-    return hex.encode(md5.convert(utf8.encode(content)).bytes);
-  }
 }
 
 class _GeneratedUriResolverMock extends UriResolver {
@@ -2970,6 +2888,26 @@ extension on FileState {
   void assertKind(void Function(FileStateKind kind) f) {
     expect(kind.file, same(this));
     f(kind);
+  }
+}
+
+extension on FileStateKind {
+  void assertLibrary(FileState expectedLibraryFile) {
+    final expectedKind = expectedLibraryFile.kind as LibraryFileStateKind;
+    expect(library, same(expectedKind));
+  }
+}
+
+extension on AugmentationKnownFileStateKind {
+  void assertAugmented(FileState expectedFile) {
+    // The expected file must be a valid augmentation target.
+    final expectedKind = expectedFile.kind as LibraryOrAugmentationFileKind;
+
+    // Any valid augmentation target is always the URI target.
+    expect(uriFile, same(expectedFile));
+
+    // Check the augmentation target itself.
+    expect(augmented, same(expectedKind));
   }
 }
 

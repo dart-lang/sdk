@@ -67,7 +67,7 @@ class LibraryAnalyzer {
   final AnalysisOptionsImpl _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final SourceFactory _sourceFactory;
-  final FileState _library;
+  final LibraryFileStateKind _library;
   final InheritanceManager3 _inheritance;
 
   final LibraryElementImpl _libraryElement;
@@ -143,7 +143,7 @@ class LibraryAnalyzer {
           nameScope: _libraryElement.scope,
           elementWalker: ElementWalker.forCompilationUnit(
             unitElement,
-            libraryFilePath: _library.path,
+            libraryFilePath: _library.file.path,
             unitFilePath: file.path,
           ),
         ),
@@ -222,7 +222,7 @@ class LibraryAnalyzer {
             shouldReport = true;
           }
           if (shouldReport) {
-            _getErrorReporter(_library).reportErrorForNode(
+            _getErrorReporter(_library.file).reportErrorForNode(
               CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
               directive.uri,
             );
@@ -280,11 +280,11 @@ class LibraryAnalyzer {
     }
 
     if (_analysisOptions.lint) {
-      var allUnits = _library.libraryFiles
+      var allUnits = _library.file.libraryFiles
           .map((file) => LinterContextUnit(file.content, units[file]!))
           .toList();
       for (int i = 0; i < allUnits.length; i++) {
-        _computeLints(_library.libraryFiles[i], allUnits[i], allUnits,
+        _computeLints(_library.file.libraryFiles[i], allUnits[i], allUnits,
             analysisOptions: _analysisOptions);
       }
     }
@@ -295,7 +295,7 @@ class LibraryAnalyzer {
 
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
-    for (var file in _library.libraryFiles) {
+    for (var file in _library.file.libraryFiles) {
       IgnoreValidator(
         _getErrorReporter(file),
         _getErrorListener(file).errors,
@@ -339,7 +339,7 @@ class LibraryAnalyzer {
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
         analysisOptions: _analysisOptions,
-        workspacePackage: _library.workspacePackage,
+        workspacePackage: _library.file.workspacePackage,
       ),
     );
 
@@ -542,13 +542,13 @@ class LibraryAnalyzer {
     if (source is InSummarySource) {
       return true;
     }
-    for (var file in _library.directReferencedFiles) {
+    for (var file in _library.file.directReferencedFiles) {
       if (file.uri == source.uri) {
         return file.exists;
       }
     }
     // A library can refer to itself with an empty URI.
-    return source == _library.source;
+    return source == _library.file.source;
   }
 
   /// Return a new parsed unresolved [CompilationUnit].
@@ -568,12 +568,12 @@ class LibraryAnalyzer {
     var units = <FileState, CompilationUnitImpl>{};
 
     // Parse all files.
-    for (FileState file in _library.libraryFiles) {
+    for (FileState file in _library.file.libraryFiles) {
       units[file] = _parse(file);
     }
 
     // Resolve URIs in directives to corresponding sources.
-    FeatureSet featureSet = units[_library]!.featureSet;
+    FeatureSet featureSet = units[_library.file]!.featureSet;
     units.forEach((file, unit) {
       _validateFeatureSet(unit, featureSet);
       _resolveUriBasedDirectives(file, unit);
@@ -591,14 +591,14 @@ class LibraryAnalyzer {
   }
 
   void _resolveDirectives(Map<FileState, CompilationUnitImpl> units) {
-    var definingCompilationUnit = units[_library]!;
+    var definingCompilationUnit = units[_library.file]!;
     definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
 
     bool matchNodeElement(Directive node, Element element) {
       return node.keyword.offset == element.nameOffset;
     }
 
-    ErrorReporter libraryErrorReporter = _getErrorReporter(_library);
+    ErrorReporter libraryErrorReporter = _getErrorReporter(_library.file);
 
     LibraryIdentifier? libraryNameNode;
     var seenPartSources = <Source>{};
@@ -651,7 +651,7 @@ class LibraryAnalyzer {
       } else if (directive is PartDirectiveImpl) {
         StringLiteral partUri = directive.uri;
 
-        var partFile = _library.partedFiles[partDirectiveIndex++];
+        var partFile = _library.file.partedFiles[partDirectiveIndex++];
         if (partFile == null) {
           continue;
         }
@@ -702,11 +702,11 @@ class LibraryAnalyzer {
               }
             } else {
               Source source = nameOrSource.source!;
-              if (source != _library.source) {
+              if (source != _library.file.source) {
                 libraryErrorReporter.reportErrorForNode(
                     CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
                     partUri,
-                    [_library.uriStr, source.uri]);
+                    [_library.file.uriStr, source.uri]);
               }
             }
           }
@@ -739,7 +739,7 @@ class LibraryAnalyzer {
         nameScope: _libraryElement.scope,
         elementWalker: ElementWalker.forCompilationUnit(
           unitElement,
-          libraryFilePath: _library.path,
+          libraryFilePath: _library.file.path,
           unitFilePath: file.path,
         ),
       ),
@@ -771,7 +771,7 @@ class LibraryAnalyzer {
       return null;
     }
 
-    var absoluteUri = resolveRelativeUri(_library.uri, relativeUri);
+    var absoluteUri = resolveRelativeUri(_library.file.uri, relativeUri);
     return rewriteToCanonicalUri(_sourceFactory, absoluteUri);
   }
 
