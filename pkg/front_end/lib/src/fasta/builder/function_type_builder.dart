@@ -22,11 +22,12 @@ import 'formal_parameter_builder.dart';
 import 'library_builder.dart';
 import 'named_type_builder.dart';
 import 'nullability_builder.dart';
+import 'omitted_type_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
 
 class FunctionTypeBuilder extends TypeBuilder {
-  final TypeBuilder? returnType;
+  final TypeBuilder returnType;
   final List<TypeVariableBuilder>? typeVariables;
   final List<ParameterBuilder>? formals;
   @override
@@ -80,7 +81,7 @@ class FunctionTypeBuilder extends TypeBuilder {
     buffer.write(") ->");
     nullabilityBuilder.writeNullabilityOn(buffer);
     buffer.write(" ");
-    buffer.write(returnType?.fullNameForErrors);
+    buffer.write(returnType.fullNameForErrors);
     return buffer;
   }
 
@@ -97,17 +98,17 @@ class FunctionTypeBuilder extends TypeBuilder {
 
   @override
   DartType buildAliased(LibraryBuilder library, TypeUse typeUse) {
-    DartType builtReturnType =
-        returnType?.buildAliased(library, TypeUse.returnType) ??
-            const DynamicType();
+    DartType builtReturnType = returnType is OmittedTypeBuilder
+        ? const DynamicType()
+        : returnType.buildAliased(library, TypeUse.returnType);
     List<DartType> positionalParameters = <DartType>[];
     List<NamedType>? namedParameters;
     int requiredParameterCount = 0;
     if (formals != null) {
       for (ParameterBuilder formal in formals!) {
-        DartType type =
-            formal.type?.buildAliased(library, TypeUse.parameterType) ??
-                const DynamicType();
+        DartType type = formal.type is OmittedTypeBuilder
+            ? const DynamicType()
+            : formal.type.buildAliased(library, TypeUse.parameterType);
         if (formal.isPositional) {
           positionalParameters.add(type);
           if (formal.isRequiredPositional) requiredParameterCount++;
@@ -169,7 +170,7 @@ class FunctionTypeBuilder extends TypeBuilder {
       }, growable: false);
     }
     return new FunctionTypeBuilder(
-        returnType?.clone(newTypes, contextLibrary, contextDeclaration),
+        returnType.clone(newTypes, contextLibrary, contextDeclaration),
         clonedTypeVariables,
         clonedFormals,
         nullabilityBuilder,

@@ -48,6 +48,7 @@ import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
@@ -786,8 +787,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         new Token.eof(startToken.previous!.offset).setNext(startToken);
       }
       bool hasInitializer = info.initializerToken != null;
-      addField(metadata, modifiers, isTopLevel, type, info.name,
-          info.charOffset, info.charEndOffset, startToken, hasInitializer,
+      addField(
+          metadata,
+          modifiers,
+          isTopLevel,
+          type ?? const OmittedTypeBuilder(),
+          info.name,
+          info.charOffset,
+          info.charEndOffset,
+          startToken,
+          hasInitializer,
           constInitializerToken:
               potentiallyNeedInitializerInOutline ? startToken : null);
     }
@@ -2382,7 +2391,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<MetadataBuilder>? metadata,
       int modifiers,
       bool isTopLevel,
-      TypeBuilder? type,
+      TypeBuilder type,
       String name,
       int charOffset,
       int charEndOffset,
@@ -2496,7 +2505,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     addBuilder(name, fieldBuilder, charOffset,
         getterReference: fieldGetterReference,
         setterReference: fieldSetterReference);
-    if (type == null && fieldBuilder.next == null) {
+    if (type is OmittedTypeBuilder && fieldBuilder.next == null) {
       // Only the first one (the last one in the linked list of next pointers)
       // are added to the tree, had parent pointers and can infer correctly.
       if (initializerToken == null && fieldBuilder.isStatic) {
@@ -2542,7 +2551,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         new DeclaredSourceConstructorBuilder(
             metadata,
             modifiers & ~abstractMask,
-            returnType,
+            returnType ?? const OmittedTypeBuilder(),
             constructorName,
             typeVariables,
             formals,
@@ -2649,7 +2658,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
         metadata,
         modifiers,
-        returnType,
+        returnType ?? const OmittedTypeBuilder(),
         name,
         typeVariables,
         formals,
@@ -2898,7 +2907,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<MetadataBuilder>? metadata,
       String name,
       List<TypeVariableBuilder>? typeVariables,
-      TypeBuilder? type,
+      TypeBuilder type,
       int charOffset) {
     if (typeVariables != null) {
       for (TypeVariableBuilder typeVariable in typeVariables) {
@@ -2918,7 +2927,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   FunctionTypeBuilder addFunctionType(
-      TypeBuilder? returnType,
+      TypeBuilder returnType,
       List<TypeVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
@@ -2948,7 +2957,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<MetadataBuilder>? metadata,
       FormalParameterKind kind,
       int modifiers,
-      TypeBuilder? type,
+      TypeBuilder type,
       String name,
       bool hasThis,
       bool hasSuper,
@@ -3721,7 +3730,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     formal.type);
               }
             }
-            if (member.returnType != null) {
+            if (member.returnType is! OmittedTypeBuilder) {
               issues.addAll(getInboundReferenceIssuesInType(member.returnType));
               _recursivelyReportGenericFunctionTypesAsBoundsForType(
                   member.returnType);
@@ -3733,7 +3742,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             assert(member is SourceFieldBuilder,
                 "Unexpected class member $member (${member.runtimeType}).");
             TypeBuilder? fieldType = (member as SourceFieldBuilder).type;
-            if (fieldType != null) {
+            if (fieldType is! OmittedTypeBuilder) {
               List<NonSimplicityIssue> issues =
                   getInboundReferenceIssuesInType(fieldType);
               reportIssues(issues);
@@ -3759,7 +3768,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             _recursivelyReportGenericFunctionTypesAsBoundsForType(formal.type);
           }
         }
-        if (declaration.returnType != null) {
+        if (declaration.returnType is! OmittedTypeBuilder) {
           issues
               .addAll(getInboundReferenceIssuesInType(declaration.returnType));
           _recursivelyReportGenericFunctionTypesAsBoundsForType(
@@ -3788,7 +3797,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     formal.type);
               }
             }
-            if (member.returnType != null) {
+            if (member.returnType is! OmittedTypeBuilder) {
               issues.addAll(getInboundReferenceIssuesInType(member.returnType));
               _recursivelyReportGenericFunctionTypesAsBoundsForType(
                   member.returnType);
@@ -3797,7 +3806,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             count += computeDefaultTypesForVariables(member.typeVariables,
                 inErrorRecovery: issues.isNotEmpty);
           } else if (member is SourceFieldBuilder) {
-            if (member.type != null) {
+            if (member.type is! OmittedTypeBuilder) {
               _recursivelyReportGenericFunctionTypesAsBoundsForType(
                   member.type);
             }
@@ -3807,7 +3816,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           }
         });
       } else if (declaration is SourceFieldBuilder) {
-        if (declaration.type != null) {
+        if (declaration.type is! OmittedTypeBuilder) {
           List<NonSimplicityIssue> issues =
               getInboundReferenceIssuesInType(declaration.type);
           reportIssues(issues);
@@ -5321,7 +5330,7 @@ void _sortTypeVariablesTopologicallyFromRoot(TypeBuilder root,
           declaration.typeVariables!.isNotEmpty) {
         typeVariables = declaration.typeVariables;
       }
-      internalDependents = <TypeBuilder>[declaration.type!];
+      internalDependents = <TypeBuilder>[declaration.type];
     } else if (declaration is TypeVariableBuilder) {
       typeVariables = <TypeVariableBuilder>[declaration];
     }
@@ -5332,11 +5341,11 @@ void _sortTypeVariablesTopologicallyFromRoot(TypeBuilder root,
     if (root.formals != null && root.formals!.isNotEmpty) {
       internalDependents = <TypeBuilder>[];
       for (ParameterBuilder formal in root.formals!) {
-        internalDependents.add(formal.type!);
+        internalDependents.add(formal.type);
       }
     }
-    if (root.returnType != null) {
-      (internalDependents ??= <TypeBuilder>[]).add(root.returnType!);
+    if (root.returnType is! OmittedTypeBuilder) {
+      (internalDependents ??= <TypeBuilder>[]).add(root.returnType);
     }
   }
 

@@ -447,7 +447,7 @@ class NamedTypeBuilder extends TypeBuilder {
         // length is 0) references a ClassBuilder of the Null class.  Otherwise,
         // it won't produce the NullType on the output.
         while (unaliasedDeclaration is TypeAliasBuilder) {
-          unaliasedDeclaration = unaliasedDeclaration.type?.declaration;
+          unaliasedDeclaration = unaliasedDeclaration.type.declaration;
           assert(unaliasedDeclaration != null);
         }
         assert(unaliasedDeclaration is ClassBuilder &&
@@ -468,7 +468,7 @@ class NamedTypeBuilder extends TypeBuilder {
         // length is 0) references a ClassBuilder of the FutureOr class.
         // Otherwise, it won't produce the FutureOrType on the output.
         while (unaliasedDeclaration is TypeAliasBuilder) {
-          unaliasedDeclaration = unaliasedDeclaration.type?.declaration;
+          unaliasedDeclaration = unaliasedDeclaration.type.declaration;
           assert(unaliasedDeclaration != null);
         }
         assert(unaliasedDeclaration is ClassBuilder &&

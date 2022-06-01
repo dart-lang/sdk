@@ -15,6 +15,7 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -106,7 +107,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   DeclaredSourceConstructorBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
-      TypeBuilder? returnType,
+      TypeBuilder returnType,
       String name,
       List<TypeVariableBuilder>? typeVariables,
       this.formals,
@@ -219,7 +220,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     if (formals != null) {
       bool needsInference = false;
       for (FormalParameterBuilder formal in formals!) {
-        if (formal.type == null &&
+        if (formal.type is OmittedTypeBuilder &&
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
           formal.variable!.type = const UnknownType();
           needsInference = true;
@@ -241,7 +242,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     if (_hasFormalsInferred) return;
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
-        if (formal.type == null) {
+        if (formal.type is OmittedTypeBuilder) {
           if (formal.isInitializingFormal) {
             formal.finalizeInitializingFormal(classBuilder);
           }
@@ -421,7 +422,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           }
         }
 
-        if (formal.type == null) {
+        if (formal.type is OmittedTypeBuilder) {
           DartType? type = correspondingSuperFormalType;
           if (substitution.isNotEmpty && type != null) {
             type = substitute(type, substitution);

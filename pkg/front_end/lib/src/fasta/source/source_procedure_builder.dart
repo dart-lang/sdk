@@ -11,6 +11,7 @@ import '../builder/extension_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
@@ -60,7 +61,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   SourceProcedureBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
-      TypeBuilder? returnType,
+      TypeBuilder returnType,
       String name,
       List<TypeVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
@@ -132,10 +133,10 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   bool get isEligibleForTopLevelInference {
     if (isDeclarationInstanceMember) {
-      if (returnType == null) return true;
+      if (returnType is OmittedTypeBuilder) return true;
       if (formals != null) {
         for (FormalParameterBuilder formal in formals!) {
-          if (formal.type == null) return true;
+          if (formal.type is OmittedTypeBuilder) return true;
         }
       }
     }

@@ -26,13 +26,14 @@ import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
 import 'named_type_builder.dart';
+import 'omitted_type_builder.dart';
 import 'type_builder.dart';
 import 'variable_builder.dart';
 
 abstract class ParameterBuilder {
   /// List of metadata builders for the metadata declared on this parameter.
   List<MetadataBuilder>? get metadata;
-  TypeBuilder? get type;
+  TypeBuilder get type;
 
   /// The kind of this parameter, i.e. if it's required, positional optional,
   /// or named optional.
@@ -65,7 +66,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   final int modifiers;
 
   @override
-  final TypeBuilder? type;
+  final TypeBuilder type;
 
   @override
   final String name;
@@ -144,7 +145,11 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   VariableDeclaration build(SourceLibraryBuilder library) {
     if (variable == null) {
-      DartType? builtType = type?.build(library, TypeUse.parameterType);
+      DartType? builtType = type is OmittedTypeBuilder
+          // `null` is used in [VariableDeclarationImpl] to signal an omitted
+          // type.
+          ? null
+          : type.build(library, TypeUse.parameterType);
       variable = new VariableDeclarationImpl(
           name == noNameSentinel ? null : name,
           type: builtType,
@@ -168,7 +173,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     // TODO(cstefantsova):  It's not clear how [metadata] is used currently,
     // and how it should be cloned.  Consider cloning it instead of reusing it.
     return new FunctionTypeParameterBuilder(metadata, kind,
-        type?.clone(newTypes, contextLibrary, contextDeclaration), name);
+        type.clone(newTypes, contextLibrary, contextDeclaration), name);
   }
 
   FormalParameterBuilder forFormalParameterInitializerScope() {
@@ -271,7 +276,7 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
   final FormalParameterKind kind;
 
   @override
-  final TypeBuilder? type;
+  final TypeBuilder type;
 
   @override
   final String? name;
@@ -286,7 +291,7 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
     // TODO(cstefantsova):  It's not clear how [metadata] is used currently,
     // and how it should be cloned.  Consider cloning it instead of reusing it.
     return new FunctionTypeParameterBuilder(metadata, kind,
-        type?.clone(newTypes, contextLibrary, contextDeclaration), name);
+        type.clone(newTypes, contextLibrary, contextDeclaration), name);
   }
 
   @override

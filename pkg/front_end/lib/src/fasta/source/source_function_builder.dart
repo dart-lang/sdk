@@ -4,6 +4,7 @@
 
 library fasta.procedure_builder;
 
+import 'package:front_end/src/fasta/builder/omitted_type_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
@@ -40,7 +41,7 @@ abstract class SourceFunctionBuilder
     implements FunctionBuilder, SourceMemberBuilder {
   List<MetadataBuilder>? get metadata;
 
-  TypeBuilder? get returnType;
+  TypeBuilder get returnType;
 
   List<TypeVariableBuilder>? get typeVariables;
 
@@ -134,7 +135,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   final int modifiers;
 
   @override
-  final TypeBuilder? returnType;
+  final TypeBuilder returnType;
 
   @override
   final String name;
@@ -385,9 +386,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       function.namedParameters.clear();
       function.requiredParameterCount = 1;
     }
-    if (returnType != null) {
+    if (returnType is! OmittedTypeBuilder) {
       function.returnType =
-          returnType!.build(libraryBuilder, TypeUse.returnType);
+          returnType.build(libraryBuilder, TypeUse.returnType);
     }
     if (isExtensionInstanceMember) {
       ExtensionBuilder extensionBuilder = parent as ExtensionBuilder;

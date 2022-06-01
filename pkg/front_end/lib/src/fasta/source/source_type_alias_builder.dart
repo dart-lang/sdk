@@ -31,7 +31,7 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
-  final TypeBuilder? type;
+  final TypeBuilder type;
 
   final List<TypeVariableBuilder>? _typeVariables;
 
@@ -81,7 +81,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   @override
   bool get isNullAlias {
-    TypeDeclarationBuilder? typeDeclarationBuilder = type?.declaration;
+    TypeDeclarationBuilder? typeDeclarationBuilder = type.declaration;
     return typeDeclarationBuilder is ClassBuilder &&
         typeDeclarationBuilder.isNullClass;
   }
@@ -89,7 +89,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   Typedef build() {
     buildThisType();
 
-    TypeBuilder? type = this.type;
+    TypeBuilder type = this.type;
     if (type is FunctionTypeBuilder ||
         type is NamedTypeBuilder ||
         type is FixedTypeBuilder) {
@@ -120,7 +120,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     // instance of InvalidType that isn't identical to `const InvalidType()`.
     thisType = pendingTypeAliasMarker;
     DartType builtType = const InvalidType();
-    TypeBuilder? type = this.type;
+    TypeBuilder type = this.type;
     // ignore: unnecessary_null_comparison
     if (type != null) {
       builtType = type.build(libraryBuilder, TypeUse.typedefAlias);

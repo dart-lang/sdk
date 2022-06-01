@@ -16,6 +16,7 @@ import '../builder/class_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
@@ -51,7 +52,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   final List<MetadataBuilder>? metadata;
 
-  final TypeBuilder? type;
+  final TypeBuilder type;
 
   Token? _constInitializerToken;
 
@@ -326,7 +327,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   }
 
   bool get isEligibleForInference {
-    return type == null && (hasInitializer || isClassInstanceMember);
+    return type is OmittedTypeBuilder &&
+        (hasInitializer || isClassInstanceMember);
   }
 
   @override
@@ -366,8 +368,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   /// Builds the core AST structures for this field as needed for the outline.
   void build() {
-    if (type != null) {
-      fieldType = type!.build(libraryBuilder, TypeUse.fieldType);
+    if (type is! OmittedTypeBuilder) {
+      fieldType = type.build(libraryBuilder, TypeUse.fieldType);
     }
     _fieldEncoding.build(libraryBuilder, this);
   }

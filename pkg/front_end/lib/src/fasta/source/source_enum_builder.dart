@@ -21,6 +21,7 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -309,7 +310,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           new DeclaredSourceConstructorBuilder(
               /* metadata = */ null,
               constMask,
-              /* returnType = */ null,
+              /* returnType = */ const OmittedTypeBuilder(),
               "",
               /* typeParameters = */ null,
               <FormalParameterBuilder>[
@@ -466,7 +467,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         }
         SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
             metadata,
-            null,
+            const OmittedTypeBuilder(),
             name,
             constMask | staticMask | hasInitializerMask,
             /* isTopLevel = */ false,

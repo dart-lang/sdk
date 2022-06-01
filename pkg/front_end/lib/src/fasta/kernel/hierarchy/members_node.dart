@@ -18,6 +18,7 @@ import '../../builder/formal_parameter_builder.dart';
 import '../../builder/library_builder.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/named_type_builder.dart';
+import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_alias_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/type_declaration_builder.dart';
@@ -90,10 +91,10 @@ class ClassMembersNodeBuilder {
       Iterable<ClassMember> overriddenMembers) {
     assert(!declaredMember.isGetter && !declaredMember.isSetter);
     if (declaredMember.classBuilder == classBuilder &&
-        (declaredMember.returnType == null ||
+        (declaredMember.returnType is OmittedTypeBuilder ||
             declaredMember.formals != null &&
-                declaredMember.formals!
-                    .any((parameter) => parameter.type == null))) {
+                declaredMember.formals!.any(
+                    (parameter) => parameter.type is OmittedTypeBuilder))) {
       Procedure declaredProcedure = declaredMember.member as Procedure;
       FunctionNode declaredFunction = declaredProcedure.function;
       List<TypeParameter> declaredTypeParameters =
@@ -120,7 +121,7 @@ class ClassMembersNodeBuilder {
       bool cantInferReturnType = false;
       List<FormalParameterBuilder>? cantInferParameterTypes;
 
-      if (declaredMember.returnType == null) {
+      if (declaredMember.returnType is OmittedTypeBuilder) {
         if (combinedMemberSignatureType == null) {
           inferredReturnType = const InvalidType();
           cantInferReturnType = true;
@@ -131,7 +132,7 @@ class ClassMembersNodeBuilder {
       if (declaredMember.formals != null) {
         for (int i = 0; i < declaredPositional.length; i++) {
           FormalParameterBuilder declaredParameter = declaredMember.formals![i];
-          if (declaredParameter.type != null) {
+          if (declaredParameter.type is! OmittedTypeBuilder) {
             continue;
           }
 
@@ -153,7 +154,7 @@ class ClassMembersNodeBuilder {
             i < declaredMember.formals!.length;
             i++) {
           FormalParameterBuilder declaredParameter = declaredMember.formals![i];
-          if (declaredParameter.type != null) {
+          if (declaredParameter.type is! OmittedTypeBuilder) {
             continue;
           }
 
@@ -188,14 +189,14 @@ class ClassMembersNodeBuilder {
             classBuilder, cantInferParameterTypes.single, overriddenMembers);
       }
 
-      if (declaredMember.returnType == null) {
+      if (declaredMember.returnType is OmittedTypeBuilder) {
         inferredReturnType ??= const DynamicType();
         declaredFunction.returnType = inferredReturnType;
       }
       if (declaredMember.formals != null) {
         for (FormalParameterBuilder declaredParameter
             in declaredMember.formals!) {
-          if (declaredParameter.type == null) {
+          if (declaredParameter.type is OmittedTypeBuilder) {
             DartType inferredParameterType =
                 inferredParameterTypes[declaredParameter] ??
                     const DynamicType();
@@ -248,7 +249,7 @@ class ClassMembersNodeBuilder {
       Iterable<ClassMember> overriddenMembers) {
     assert(declaredMember.isGetter);
     if (declaredMember.classBuilder == classBuilder &&
-        declaredMember.returnType == null) {
+        declaredMember.returnType is OmittedTypeBuilder) {
       DartType? inferredType;
       overriddenMembers = toSet(classBuilder, overriddenMembers);
 
@@ -311,7 +312,8 @@ class ClassMembersNodeBuilder {
       Iterable<ClassMember> overriddenMembers) {
     assert(declaredMember.isSetter);
     FormalParameterBuilder parameter = declaredMember.formals!.first;
-    if (declaredMember.classBuilder == classBuilder && parameter.type == null) {
+    if (declaredMember.classBuilder == classBuilder &&
+        parameter.type is OmittedTypeBuilder) {
       DartType? inferredType;
 
       overriddenMembers = toSet(classBuilder, overriddenMembers);
@@ -412,7 +414,7 @@ class ClassMembersNodeBuilder {
       SourceFieldBuilder fieldBuilder,
       Iterable<ClassMember> overriddenMembers) {
     if (fieldBuilder.classBuilder == classBuilder &&
-        fieldBuilder.type == null) {
+        fieldBuilder.type is OmittedTypeBuilder) {
       DartType? inferredType;
 
       overriddenMembers = toSet(classBuilder, overriddenMembers);
