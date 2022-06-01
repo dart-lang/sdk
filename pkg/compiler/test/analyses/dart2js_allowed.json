@@ -104,7 +104,6 @@
     "Dynamic access of 'index'.": 1
   },
   "pkg/dart2js_info/lib/src/util.dart": {
-    "Dynamic access of 'name'.": 1,
     "Dynamic invocation of '-'.": 1
   },
   "pkg/js_ast/lib/src/template.dart": {

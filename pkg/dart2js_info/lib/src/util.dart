@@ -74,7 +74,7 @@ String longName(Info info, {bool useLibraryUri = false, bool forId = false}) {
   final infoPath = <Info>[];
   Info? localInfo = info;
   while (localInfo != null) {
-    infoPath.add(info);
+    infoPath.add(localInfo);
     localInfo = localInfo.parent;
   }
   var sb = StringBuffer();
