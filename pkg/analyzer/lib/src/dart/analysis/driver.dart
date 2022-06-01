@@ -1000,23 +1000,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return completer.future;
   }
 
-  /// Return `true` is the file with the given absolute [uri] is a library,
-  /// or `false` if it is a part. More specifically, return `true` if the file
-  /// is not known to be a part.
-  ///
-  /// Correspondingly, return `true` if the [uri] does not correspond to a file,
-  /// for any reason, e.g. the file does not exist, or the [uri] cannot be
-  /// resolved to a file path, or the [uri] is invalid, e.g. a `package:` URI
-  /// without a package name. In these cases we cannot prove that the file is
-  /// not a part, so it must be a library.
-  bool isLibraryByUri(Uri uri) {
-    var fileOr = _fsState.getFileForUri(uri);
-    return fileOr.map(
-      (file) => file == null || !file.isPart,
-      (uri) => false,
-    );
-  }
-
   /// Return a [Future] that completes with a [ParsedUnitResult] for the file
   /// with the given [path].
   ///

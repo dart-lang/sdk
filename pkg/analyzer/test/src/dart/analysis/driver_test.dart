@@ -2459,16 +2459,6 @@ class B<T extends A<B>> {}
     await waitForIdleWithoutExceptions();
   }
 
-  test_isLibraryByUri_doesNotExist() async {
-    var uri = Uri.parse('file:///test.dart');
-    expect(driver.isLibraryByUri(uri), isTrue);
-  }
-
-  test_isLibraryByUri_invalidUri() async {
-    var uri = Uri.parse('package:aaa');
-    expect(driver.isLibraryByUri(uri), isTrue);
-  }
-
   test_issue34619() async {
     var a = convertPath('/test/lib/a.dart');
     newFile(a, r'''
