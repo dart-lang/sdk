@@ -1,4 +1,5 @@
-# Analyzer for Dart
+[![pub package](https://img.shields.io/pub/v/analyzer.svg)](https://pub.dev/packages/analyzer)
+[![package publisher](https://img.shields.io/pub/publisher/analyzer.svg)](https://pub.dev/packages/analyzer/publisher)
 
 This package provides a library that performs static analysis
 of Dart code. It is useful for tool integration and embedding.

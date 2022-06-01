@@ -19,6 +19,7 @@ class FfiCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing all type parameters, removing all members, and adding "
         "one const constructor.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -28,6 +29,7 @@ class FfiCode extends AnalyzerErrorCode {
         "'AbiSpecificIntegerMapping' annotation specifying the mapping from "
         "ABI to a 'NativeType' integer with a fixed size.",
     correctionMessage: "Try removing the extra annotation.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -37,6 +39,7 @@ class FfiCode extends AnalyzerErrorCode {
         "'AbiSpecificIntegerMapping' annotation specifying the mapping from "
         "ABI to a 'NativeType' integer with a fixed size.",
     correctionMessage: "Try adding an annotation.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -47,6 +50,7 @@ class FfiCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try changing the value to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', "
         "'Uint16', 'UInt32', or 'Uint64'.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.

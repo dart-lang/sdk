@@ -192,6 +192,7 @@ The analyzer produces the following diagnostics for code that
 doesn't conform to the language specification or
 that might work in unexpected ways.
 
+[ffi]: https://dart.dev/guides/libraries/c-interop
 [meta-doNotStore]: https://pub.dev/documentation/meta/latest/meta/doNotStore-constant.html
 [meta-factory]: https://pub.dev/documentation/meta/latest/meta/factory-constant.html
 [meta-immutable]: https://pub.dev/documentation/meta/latest/meta/immutable-constant.html

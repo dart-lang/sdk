@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:telemetry/telemetry.dart';
 
 /// An implementation of [AnalyticsManager] that's appropriate to use when
@@ -18,6 +21,8 @@ class GoogleAnalyticsManager implements AnalyticsManager {
   /// been invoked.
   _SessionData? _sessionData;
 
+  final _PluginData _pluginData = _PluginData();
+
   /// A map from the id of a request to data about the request.
   final Map<String, _ActiveRequestData> _activeRequests = {};
 
@@ -28,6 +33,11 @@ class GoogleAnalyticsManager implements AnalyticsManager {
   /// Initialize a newly created analytics manager to report to the [analytics]
   /// service.
   GoogleAnalyticsManager(this.analytics);
+
+  @override
+  void changedPlugins(PluginManager pluginManager) {
+    _pluginData.recordPlugins(pluginManager);
+  }
 
   @override
   void sentResponse({required Response response}) {
@@ -59,10 +69,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
       'clientId': sessionData.clientId,
       'sdkVersion': sessionData.sdkVersion,
       'duration': duration.toString(),
-      // TODO(brianwilkerson) Report a list of the names of the plugins that
-      //  were loaded, or possibly a map from plugin names to the number of
-      //  analysis roots in which the plugins were loaded.
-      'plugins': '',
+      'plugins': _pluginData.usageCountData,
     });
     // Send response data.
     for (var data in _completedRequests.values) {
@@ -146,6 +153,48 @@ class _ActiveRequestData {
 
   /// Initialize a newly created data holder.
   _ActiveRequestData(this.requestName, this.clientRequestTime, this.startTime);
+}
+
+/// Data about the plugins associated with the context roots.
+class _PluginData {
+  /// The number of times that plugin information has been recorded.
+  int recordCount = 0;
+
+  /// A table mapping the ids of running plugins to the number of context roots
+  /// associated with each of the plugins.
+  Map<String, PercentileCalculator> usageCounts = {};
+
+  /// Initialize a newly created holder of plugin data.
+  _PluginData();
+
+  String get usageCountData {
+    return json.encode({
+      'recordCount': recordCount,
+      'rootCounts': _encodeUsageCounts(),
+    });
+  }
+
+  /// Use the [pluginManager] to record data about the plugins that are
+  /// currently running.
+  void recordPlugins(PluginManager pluginManager) {
+    recordCount++;
+    var plugins = pluginManager.plugins;
+    for (var i = 0; i < plugins.length; i++) {
+      var info = plugins[i];
+      usageCounts
+          .putIfAbsent(info.pluginId, () => PercentileCalculator())
+          .addValue(info.contextRoots.length);
+    }
+  }
+
+  /// Return an encoding of the [usageCounts].
+  Map<String, String> _encodeUsageCounts() {
+    var encoded = <String, String>{};
+    for (var entry in usageCounts.entries) {
+      encoded[entry.key] = entry.value.toAnalyticsString();
+    }
+    return encoded;
+  }
 }
 
 /// Data about the requests that have been responded to that have the same name.

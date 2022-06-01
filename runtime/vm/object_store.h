@@ -261,7 +261,6 @@ class ObjectPointerVisitor;
   RW(Array, dispatch_table_code_entries)                                       \
   RW(GrowableObjectArray, instructions_tables)                                 \
   RW(Array, obfuscation_map)                                                   \
-  RW(Array, loading_unit_uris)                                                 \
   RW(GrowableObjectArray, ffi_callback_functions)                              \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \

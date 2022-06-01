@@ -1,5 +1,3 @@
-// @dart = 2.11
-
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/util.dart';
 
@@ -22,7 +20,7 @@ class _InfoCommonElementFinder extends InfoVisitor<void> {
   final AllInfo _old;
   final AllInfo _new;
 
-  BasicInfo _other;
+  late BasicInfo _other;
 
   List<CommonElement> commonElements = <CommonElement>[];
 
@@ -110,7 +108,7 @@ class _InfoCommonElementFinder extends InfoVisitor<void> {
     for (var oldInfo in oldInfos) {
       var oldName = longName(oldInfo, useLibraryUri: true);
       if (newNames.containsKey(oldName)) {
-        _other = newNames[oldName];
+        _other = newNames[oldName]!;
         oldInfo.accept(this);
       }
     }

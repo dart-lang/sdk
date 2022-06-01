@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.11
-
 /// Defines [StringEditBuffer], a buffer that can be used to apply edits on a
 /// string.
 // TODO(sigmund): this should move to a separate package.
@@ -24,7 +22,7 @@ class StringEditBuffer {
 
   /// Edit the original text, replacing text on the range [begin] and
   /// exclusive [end] with the [replacement] string.
-  void replace(int begin, int end, String replacement, [int sortId]) {
+  void replace(int begin, int end, String replacement, [int? sortId]) {
     _edits.add(_StringEdit(begin, end, replacement, sortId));
   }
 
@@ -97,7 +95,7 @@ class _StringEdit implements Comparable<_StringEdit> {
   // String to insert
   final String string;
 
-  _StringEdit(this.begin, this.end, this.string, [int sortId])
+  _StringEdit(this.begin, this.end, this.string, [int? sortId])
       : sortId = sortId ?? begin;
 
   int get length => end - begin;

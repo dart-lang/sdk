@@ -12448,12 +12448,8 @@ void Library::set_name(const String& name) const {
   untag()->set_name(name.ptr());
 }
 
-void Library::set_url(const String& url) const {
-  untag()->set_url(url.ptr());
-}
-
-void Library::set_private_key(const String& key) const {
-  untag()->set_private_key(key.ptr());
+void Library::set_url(const String& name) const {
+  untag()->set_url(name.ptr());
 }
 
 void Library::set_kernel_data(const ExternalTypedData& data) const {

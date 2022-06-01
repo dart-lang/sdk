@@ -90,7 +90,7 @@ vars = {
   "cli_util_rev": "b0adbba89442b2ea6fef39c7a82fe79cb31e1168",
   "clock_rev": "f594d86da123015186d5680b0d0e8255c52fc162",
   "collection_rev": "e1407da23b9f17400b3a905aafe2b8fa10db3d86",
-  "convert_rev": "e063fdca4bebffecbb5e6aa5525995120982d9ce",
+  "convert_rev": "00b251529c074df394b3391c7e3eea3dd9e5778e",
   "crypto_rev": "4297d240b0e1e780ec0a9eab23eaf1ad491f3e68",
   "csslib_rev": "518761b166974537f334dbf264e7f56cb157a96a",
 

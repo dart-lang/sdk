@@ -187,6 +187,7 @@ class HintCode extends AnalyzerErrorCode {
     "The operator x ~/ y is more efficient than (x / y).toInt().",
     correctionMessage:
         "Try re-writing the expression to use the '~/' operator.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -543,6 +544,7 @@ class HintCode extends AnalyzerErrorCode {
     "The annotation '@nonVirtual' can only be applied to a concrete instance "
         "member.",
     correctionMessage: "Try removing '@nonVirtual'.",
+    hasPublishedDocs: true,
   );
 
   ///  This hint is generated anywhere where an instance member annotated with
@@ -555,6 +557,7 @@ class HintCode extends AnalyzerErrorCode {
     'INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER',
     "The member '{0}' is declared non-virtual in '{1}' and can't be overridden "
         "in subclasses.",
+    hasPublishedDocs: true,
   );
 
   ///  This hint is generated anywhere where `@required` annotates a named
@@ -601,6 +604,7 @@ class HintCode extends AnalyzerErrorCode {
     'INVALID_SEALED_ANNOTATION',
     "The annotation '@sealed' can only be applied to classes.",
     correctionMessage: "Try removing the '@sealed' annotation.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -651,6 +655,7 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER = HintCode(
     'INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
     "The member '{0}' can only be used within '{1}' or a test.",
+    hasPublishedDocs: true,
   );
 
   ///  This hint is generated anywhere where a private declaration is annotated
@@ -1177,6 +1182,7 @@ class HintCode extends AnalyzerErrorCode {
     "The keyword 'final' isn't necessary because the parameter is implicitly "
         "'final'.",
     correctionMessage: "Try removing the 'final'.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
