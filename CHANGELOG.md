@@ -1,14 +1,16 @@
-## 2.17.2 - 2022-06-01
+## 2.17.3 - 2022-06-01
 
 This is a patch release that fixes:
 
 - a Dart VM compiler crash (issue [#100375][]).
-- code completion when writing method overrides (issue [#49086][]).
-- `dart pub login` crashes due to `null` response (issue [pub#3424][])
+- code completion when writing method overrides (issue [#49027][]).
+- the `dart pub login` command (issue [#3424][]).
+- analysis of enhanced enums (issue [#49097][]).
 
 [#100375]: https://github.com/flutter/flutter/issues/100375
-[#49086]: https://github.com/dart-lang/sdk/issues/49086
-[pub#3424]: https://github.com/dart-lang/pub/issues/3424
+[#49027]: https://github.com/dart-lang/sdk/issues/49027
+[#3424]: https://github.com/dart-lang/pub/issues/3424
+[#49097]: https://github.com/dart-lang/sdk/issues/49097
 
 ## 2.17.1 - 2022-05-18
 
