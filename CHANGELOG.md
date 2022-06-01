@@ -139,15 +139,19 @@ Updated the Linter to `1.24.0`, which includes changes that
   It can still be created with the `--legacy-packages-file` flag.
 * `dart pub outdated` now shows which of your dependencies are discontinued.
 
-## 2.17.2 - 2022-06-01
+## 2.17.3 - 2022-06-01
 
 This is a patch release that fixes:
 
 - a Dart VM compiler crash (issue [#100375][]).
-- code completion when writing method overrides (issue [#49086][]).
+- code completion when writing method overrides (issue [#49027][]).
+- the `dart pub login` command (issue [#3424][]).
+- analysis of enhanced enums (issue [#49097][]).
 
 [#100375]: https://github.com/flutter/flutter/issues/100375
-[#49086]: https://github.com/dart-lang/sdk/issues/49086
+[#49027]: https://github.com/dart-lang/sdk/issues/49027
+[#3424]: https://github.com/dart-lang/pub/issues/3424
+[#49097]: https://github.com/dart-lang/sdk/issues/49097
 
 ## 2.17.1 - 2022-05-18
 
