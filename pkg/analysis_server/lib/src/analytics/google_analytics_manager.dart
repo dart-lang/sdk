@@ -61,27 +61,10 @@ class GoogleAnalyticsManager implements AnalyticsManager {
     if (sessionData == null) {
       return;
     }
-    // Send session data.
-    var endTime = DateTime.now().millisecondsSinceEpoch;
-    var duration = endTime - sessionData.startTime.millisecondsSinceEpoch;
-    analytics.sendEvent('language_server', 'session', parameters: {
-      'flags': sessionData.commandLineArguments,
-      'clientId': sessionData.clientId,
-      'sdkVersion': sessionData.sdkVersion,
-      'duration': duration.toString(),
-      'plugins': _pluginData.usageCountData,
-    });
-    // Send response data.
-    for (var data in _completedRequests.values) {
-      analytics.sendEvent('language_server', 'request', parameters: {
-        'latency': data.latencyTimes.toAnalyticsString(),
-        'name': data.method,
-        'duration': data.responseTimes.toAnalyticsString(),
-        // TODO(brianwilkerson) Report the latencies for each of the plugins,
-        //  probably as a map from plugin name to latency information.
-        'plugins': '',
-      });
-    }
+    _sendSessionData(sessionData);
+    _sendServerResponseTimes();
+    _sendPluginResponseTimes();
+
     analytics.waitForLastPing(timeout: Duration(milliseconds: 200)).then((_) {
       analytics.close();
     });
@@ -137,6 +120,44 @@ class GoogleAnalyticsManager implements AnalyticsManager {
 
     var responseTime = sendTime.millisecondsSinceEpoch - startTime;
     requestData.responseTimes.addValue(responseTime);
+  }
+
+  /// Send information about the response times of plugins.
+  void _sendPluginResponseTimes() {
+    var responseTimes = PluginManager.pluginResponseTimes;
+    for (var pluginEntry in responseTimes.entries) {
+      for (var responseEntry in pluginEntry.value.entries) {
+        analytics.sendEvent('language_server', 'pluginRequest', parameters: {
+          'pluginId': pluginEntry.key.pluginId,
+          'method': responseEntry.key,
+          'duration': responseEntry.value.toAnalyticsString(),
+        });
+      }
+    }
+  }
+
+  /// Send information about the response times of server.
+  void _sendServerResponseTimes() {
+    for (var data in _completedRequests.values) {
+      analytics.sendEvent('language_server', 'request', parameters: {
+        'latency': data.latencyTimes.toAnalyticsString(),
+        'method': data.method,
+        'duration': data.responseTimes.toAnalyticsString(),
+      });
+    }
+  }
+
+  /// Send information about the session.
+  void _sendSessionData(_SessionData sessionData) {
+    var endTime = DateTime.now().millisecondsSinceEpoch;
+    var duration = endTime - sessionData.startTime.millisecondsSinceEpoch;
+    analytics.sendEvent('language_server', 'session', parameters: {
+      'flags': sessionData.commandLineArguments,
+      'clientId': sessionData.clientId,
+      'sdkVersion': sessionData.sdkVersion,
+      'duration': duration.toString(),
+      'plugins': _pluginData.usageCountData,
+    });
   }
 }
 

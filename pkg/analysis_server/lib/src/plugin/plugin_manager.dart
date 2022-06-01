@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io' show Platform, Process;
 
+import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
@@ -259,8 +260,8 @@ class PluginManager {
   /// A table, keyed by both a plugin and a request method, to a list of the
   /// times that it took the plugin to return a response to requests with the
   /// method.
-  static Map<PluginInfo, Map<String, List<int>>> pluginResponseTimes =
-      <PluginInfo, Map<String, List<int>>>{};
+  static Map<PluginInfo, Map<String, PercentileCalculator>>
+      pluginResponseTimes = <PluginInfo, Map<String, PercentileCalculator>>{};
 
   /// The console environment key used by the pub tool.
   static const String _pubEnvironmentKey = 'PUB_ENVIRONMENT';
@@ -792,9 +793,9 @@ class PluginManager {
   /// given [method] in the given [time].
   static void recordResponseTime(PluginInfo plugin, String method, int time) {
     pluginResponseTimes
-        .putIfAbsent(plugin, () => <String, List<int>>{})
-        .putIfAbsent(method, () => <int>[])
-        .add(time);
+        .putIfAbsent(plugin, () => <String, PercentileCalculator>{})
+        .putIfAbsent(method, () => PercentileCalculator())
+        .addValue(time);
   }
 
   /// Returns the environment value that should be used when running pub.
