@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/abstract_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -48,7 +47,11 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
           final status = await refactoring.checkAllConditions();
 
           if (status.hasError) {
-            return error(ServerErrorCodes.RefactorFailed, status.message!);
+            // Show the error to the user but don't fail the request, as the
+            // LSP Client may show a failed request in a way that looks like a
+            // server error.
+            server.showErrorMessageToUser(status.message!);
+            return success(null);
           }
 
           if (cancellationToken.isCancellationRequested ||
