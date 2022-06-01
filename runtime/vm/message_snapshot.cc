@@ -2848,7 +2848,7 @@ class ArrayMessageDeserializationCluster
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       intptr_t length = d->ReadUnsigned();
-      d->AssignRef(Array::New(cid_, length));
+      d->AssignRef(Array::NewUninitialized(cid_, length));
     }
   }
 

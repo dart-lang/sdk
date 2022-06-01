@@ -10419,7 +10419,15 @@ class Array : public Instance {
   // to ImmutableArray.
   void MakeImmutable() const;
 
-  static ArrayPtr New(intptr_t len, Heap::Space space = Heap::kNew);
+  static ArrayPtr New(intptr_t len, Heap::Space space = Heap::kNew) {
+    return New(kArrayCid, len, space);
+  }
+  // The result's type arguments and elements are GC-safe but not initialized to
+  // null.
+  static ArrayPtr NewUninitialized(intptr_t len,
+                                   Heap::Space space = Heap::kNew) {
+    return NewUninitialized(kArrayCid, len, space);
+  }
   static ArrayPtr New(intptr_t len,
                       const AbstractType& element_type,
                       Heap::Space space = Heap::kNew);
@@ -10457,6 +10465,9 @@ class Array : public Instance {
   static ArrayPtr New(intptr_t class_id,
                       intptr_t len,
                       Heap::Space space = Heap::kNew);
+  static ArrayPtr NewUninitialized(intptr_t class_id,
+                                   intptr_t len,
+                                   Heap::Space space = Heap::kNew);
 
  private:
   CompressedObjectPtr const* ObjectAddr(intptr_t index) const {
@@ -10475,25 +10486,6 @@ class Array : public Instance {
             typename value_type>
   void StoreArrayPointer(type const* addr, value_type value) const {
     ptr()->untag()->StoreArrayPointer<type, order, value_type>(addr, value);
-  }
-
-  // Store a range of pointers [from, from + count) into [to, to + count).
-  // TODO(koda): Use this to fix Object::Clone's broken store buffer logic.
-  void StoreArrayPointers(CompressedObjectPtr const* to,
-                          CompressedObjectPtr const* from,
-                          intptr_t count) {
-    ASSERT(Contains(reinterpret_cast<uword>(to)));
-    if (ptr()->IsNewObject()) {
-      memmove(const_cast<CompressedObjectPtr*>(to), from,
-              count * kBytesPerElement);
-    } else {
-      Thread* thread = Thread::Current();
-      const uword heap_base = ptr()->heap_base();
-      for (intptr_t i = 0; i < count; ++i) {
-        untag()->StoreArrayPointer(&to[i], from[i].Decompress(heap_base),
-                                   thread);
-      }
-    }
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Array, Instance);
