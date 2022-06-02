@@ -829,52 +829,55 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
       return pass(result);
     }
 
-    FolderOptions folderOptions =
-        context.computeFolderOptions(result.description);
-    Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
-        .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
-    switch (folderOptions.target) {
-      case "vm":
-        if (context._platforms.isEmpty) {
-          throw "Executed `Run` step before initializing the context.";
-        }
-        File generated = new File.fromUri(result.outputUri!);
-        StdioProcess process;
-        try {
-          var args = <String>[];
+    File generated = new File.fromUri(result.outputUri!);
+    try {
+      FolderOptions folderOptions =
+          context.computeFolderOptions(result.description);
+      Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
+          .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
+      switch (folderOptions.target) {
+        case "vm":
+          if (context._platforms.isEmpty) {
+            throw "Executed `Run` step before initializing the context.";
+          }
+          List<String> args = <String>[];
           if (experimentalFlags[ExperimentalFlag.nonNullable] == true) {
             if (context.soundNullSafety) {
               args.add("--sound-null-safety");
             }
           }
           args.add(generated.path);
-          process = await StdioProcess.run(context.vm.toFilePath(), args);
+          StdioProcess process =
+              await StdioProcess.run(context.vm.toFilePath(), args);
           print(process.output);
-        } finally {
-          await generated.parent.delete(recursive: true);
-        }
-        Result<int> runResult = process.toResult();
-        if (result.component.mode == NonNullableByDefaultCompiledMode.Invalid) {
-          // In this case we expect and want a runtime error.
-          if (runResult.outcome == ExpectationSet.Default["RuntimeError"]) {
-            // We convert this to pass because that's exactly what we'd expect.
-            return pass(result);
-          } else {
-            // Different outcome - that's a failure!
-            return new Result<ComponentResult>(result,
-                ExpectationSet.Default["MissingRuntimeError"], runResult.error);
+          Result<int> runResult = process.toResult();
+          if (result.component.mode ==
+              NonNullableByDefaultCompiledMode.Invalid) {
+            // In this case we expect and want a runtime error.
+            if (runResult.outcome == ExpectationSet.Default["RuntimeError"]) {
+              // We convert this to pass because that's exactly what we'd expect.
+              return pass(result);
+            } else {
+              // Different outcome - that's a failure!
+              return new Result<ComponentResult>(
+                  result,
+                  ExpectationSet.Default["MissingRuntimeError"],
+                  runResult.error);
+            }
           }
-        }
-        return new Result<ComponentResult>(
-            result, runResult.outcome, runResult.error);
-      case "none":
-      case "dart2js":
-      case "dartdevc":
-        // TODO(johnniwinther): Support running dart2js and/or dartdevc.
-        return pass(result);
-      default:
-        throw new ArgumentError(
-            "Unsupported run target '${folderOptions.target}'.");
+          return new Result<ComponentResult>(
+              result, runResult.outcome, runResult.error);
+        case "none":
+        case "dart2js":
+        case "dartdevc":
+          // TODO(johnniwinther): Support running dart2js and/or dartdevc.
+          return pass(result);
+        default:
+          throw new ArgumentError(
+              "Unsupported run target '${folderOptions.target}'.");
+      }
+    } finally {
+      await generated.parent.delete(recursive: true);
     }
   }
 }

@@ -376,6 +376,7 @@ class JSONObject : public ValueObject {
       TokenPosition end_token_pos = TokenPosition::kNoSource) const;
 
   void AddLocation(const BreakpointLocation* bpt_loc) const;
+  void AddLocationLine(const Script& script, intptr_t line) const;
 
   void AddUnresolvedLocation(const BreakpointLocation* bpt_loc) const;
 

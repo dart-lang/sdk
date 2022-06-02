@@ -35,6 +35,11 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   Folder get sdkRoot => newFolder('/sdk');
 
+  File get testFile => getFile(testFilePath);
+
+  @override
+  String get testFilePath => _testFile;
+
   @override
   void addTestFile(String content) {
     newFile(_testFile, content);

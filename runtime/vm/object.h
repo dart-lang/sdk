@@ -3138,6 +3138,17 @@ class Function : public Object {
 #endif
   }
 
+#if !defined(PRODUCT) &&                                                       \
+    (defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME))
+  int32_t line() const {
+    return untag()->token_pos_.Serialize();
+  }
+
+  void set_line(int32_t line) const {
+    StoreNonPointer(&untag()->token_pos_, TokenPosition::Deserialize(line));
+  }
+#endif
+
   // Returns the size of the source for this function.
   intptr_t SourceSize() const;
 

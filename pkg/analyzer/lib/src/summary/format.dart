@@ -3217,7 +3217,6 @@ class CiderUnitErrorsBuilder extends Object
     with _CiderUnitErrorsMixin
     implements idl.CiderUnitErrors {
   List<AnalysisDriverUnitErrorBuilder>? _errors;
-  List<int>? _signature;
 
   @override
   List<AnalysisDriverUnitErrorBuilder> get errors =>
@@ -3227,19 +3226,8 @@ class CiderUnitErrorsBuilder extends Object
     this._errors = value;
   }
 
-  @override
-  List<int> get signature => _signature ??= <int>[];
-
-  /// The hash signature of this data.
-  set signature(List<int> value) {
-    assert(value.every((e) => e >= 0));
-    this._signature = value;
-  }
-
-  CiderUnitErrorsBuilder(
-      {List<AnalysisDriverUnitErrorBuilder>? errors, List<int>? signature})
-      : _errors = errors,
-        _signature = signature;
+  CiderUnitErrorsBuilder({List<AnalysisDriverUnitErrorBuilder>? errors})
+      : _errors = errors;
 
   /// Flush [informative] data recursively.
   void flushInformative() {
@@ -3248,15 +3236,6 @@ class CiderUnitErrorsBuilder extends Object
 
   /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signatureSink) {
-    var signature = this._signature;
-    if (signature == null) {
-      signatureSink.addInt(0);
-    } else {
-      signatureSink.addInt(signature.length);
-      for (var x in signature) {
-        signatureSink.addInt(x);
-      }
-    }
     var errors = this._errors;
     if (errors == null) {
       signatureSink.addInt(0);
@@ -3275,22 +3254,14 @@ class CiderUnitErrorsBuilder extends Object
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset? offset_errors;
-    fb.Offset? offset_signature;
     var errors = _errors;
     if (!(errors == null || errors.isEmpty)) {
       offset_errors =
           fbBuilder.writeList(errors.map((b) => b.finish(fbBuilder)).toList());
     }
-    var signature = _signature;
-    if (!(signature == null || signature.isEmpty)) {
-      offset_signature = fbBuilder.writeListUint32(signature);
-    }
     fbBuilder.startTable();
     if (offset_errors != null) {
-      fbBuilder.addOffset(1, offset_errors);
-    }
-    if (offset_signature != null) {
-      fbBuilder.addOffset(0, offset_signature);
+      fbBuilder.addOffset(0, offset_errors);
     }
     return fbBuilder.endTable();
   }
@@ -3318,19 +3289,12 @@ class _CiderUnitErrorsImpl extends Object
   _CiderUnitErrorsImpl(this._bc, this._bcOffset);
 
   List<idl.AnalysisDriverUnitError>? _errors;
-  List<int>? _signature;
 
   @override
   List<idl.AnalysisDriverUnitError> get errors {
     return _errors ??= const fb.ListReader<idl.AnalysisDriverUnitError>(
             _AnalysisDriverUnitErrorReader())
-        .vTableGet(_bc, _bcOffset, 1, const <idl.AnalysisDriverUnitError>[]);
-  }
-
-  @override
-  List<int> get signature {
-    return _signature ??=
-        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 0, const <int>[]);
+        .vTableGet(_bc, _bcOffset, 0, const <idl.AnalysisDriverUnitError>[]);
   }
 }
 
@@ -3342,17 +3306,12 @@ abstract class _CiderUnitErrorsMixin implements idl.CiderUnitErrors {
     if (local_errors.isNotEmpty) {
       result["errors"] = local_errors.map((value) => value.toJson()).toList();
     }
-    var local_signature = signature;
-    if (local_signature.isNotEmpty) {
-      result["signature"] = local_signature;
-    }
     return result;
   }
 
   @override
   Map<String, Object?> toMap() => {
         "errors": errors,
-        "signature": signature,
       };
 
   @override

@@ -9693,7 +9693,7 @@ ScriptPtr Function::script() const {
   }
   if (IsImplicitGetterOrSetter()) {
     const auto& field = Field::Handle(accessor_field());
-    return field.Script();
+    return field.IsNull() ? Script::null() : field.Script();
   }
   Object& data = Object::Handle(this->data());
   if (data.IsArray()) {
@@ -9716,9 +9716,7 @@ ScriptPtr Function::script() const {
   }
   if (IsClosureFunction()) {
     const Function& function = Function::Handle(parent_function());
-#if defined(DART_PRECOMPILED_RUNTIME)
     if (function.IsNull()) return Script::null();
-#endif
     return function.script();
   }
   ASSERT(obj.IsClass());

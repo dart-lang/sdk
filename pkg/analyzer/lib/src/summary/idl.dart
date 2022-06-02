@@ -427,12 +427,8 @@ abstract class CiderUnitErrors extends base.SummaryClass {
   factory CiderUnitErrors.fromBuffer(List<int> buffer) =>
       generated.readCiderUnitErrors(buffer);
 
-  @Id(1)
-  List<AnalysisDriverUnitError> get errors;
-
-  /// The hash signature of this data.
   @Id(0)
-  List<int> get signature;
+  List<AnalysisDriverUnitError> get errors;
 }
 
 abstract class DiagnosticMessage extends base.SummaryClass {

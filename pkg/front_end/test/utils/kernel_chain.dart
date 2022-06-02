@@ -455,8 +455,28 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
     ByteSink sink = new ByteSink();
     bool good = false;
     try {
-      // TODO(johnniwinther,jensj): Avoid serializing the sdk.
-      new BinaryPrinter(sink).writeComponentFile(component);
+      // Avoid serializing the sdk.
+      component.computeCanonicalNames();
+      Component userCode = new Component(
+          nameRoot: component.root,
+          uriToSource: new Map<Uri, Source>.from(component.uriToSource));
+      userCode.setMainMethodAndMode(
+          component.mainMethodName, true, component.mode);
+      for (Library library in component.libraries) {
+        if (library.importUri.isScheme("dart")) {
+          if (result.isUserLibrary(library)) {
+            // dart:test, test:extra etc as used will say yes to being a user
+            // library.
+          } else if (library.isSynthetic) {
+            // OK --- serialize that.
+          } else {
+            // Skip serialization of "real" platform libraries.
+            continue;
+          }
+        }
+        userCode.libraries.add(library);
+      }
+      new BinaryPrinter(sink).writeComponentFile(userCode);
       good = true;
     } catch (e, s) {
       return fail(result, e, s);
