@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'google_analytics_manager_test.dart' as google_analytics_manager;
 import 'percentile_calculator_test.dart' as percentile_calculator;
 
 void main() {
   defineReflectiveSuite(() {
+    google_analytics_manager.main();
     percentile_calculator.main();
   });
 }

@@ -154,6 +154,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
     analytics.sendEvent('language_server', 'session', parameters: {
       'flags': sessionData.commandLineArguments,
       'clientId': sessionData.clientId,
+      'clientVersion': sessionData.clientVersion,
       'sdkVersion': sessionData.sdkVersion,
       'duration': duration.toString(),
       'plugins': _pluginData.usageCountData,
