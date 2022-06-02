@@ -4082,16 +4082,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
             canThrow ? NativeThrowBehavior.MAY : NativeThrowBehavior.NEVER)
       ..sourceInformation = sourceInformation;
     push(foreign);
-    // TODO(redemption): Global type analysis tracing may have determined that
-    // the fixed-length property is never checked. If so, we can avoid marking
-    // the array.
-    {
-      js.Template code = js.js.parseForeignJS(r'#.fixed$length = Array');
-      // We set the instruction as [canThrow] to avoid it being dead code.
-      // We need a finer grained side effect.
-      add(HForeignCode(code, _abstractValueDomain.nullType, [stack.last],
-          throwBehavior: NativeThrowBehavior.MAY));
-    }
+    js.Template fixedLengthMarker =
+        js.js.parseForeignJS(r'#.fixed$length = Array');
+    // We set the instruction as [canThrow] to avoid it being dead code.
+    // We need a finer grained side effect.
+    add(HForeignCode(
+        fixedLengthMarker, _abstractValueDomain.nullType, [stack.last],
+        throwBehavior: NativeThrowBehavior.MAY));
 
     HInstruction newInstance = stack.last;
 

@@ -161,13 +161,8 @@ class TypeGraphInferrer implements TypesInferrer {
     });
 
     Map<ir.TreeNode, AbstractValue> allocatedLists = {};
-    Set<ir.TreeNode> checkedForGrowableLists = {};
     inferrer.types.allocatedLists
         .forEach((ir.TreeNode node, ListTypeInformation typeInformation) {
-      ListTypeInformation info = inferrer.types.allocatedLists[node];
-      if (info.checksGrowable) {
-        checkedForGrowableLists.add(node);
-      }
       allocatedLists[node] = typeInformation.type;
     });
 
@@ -177,7 +172,6 @@ class TypeGraphInferrer implements TypesInferrer {
         _inferredDataBuilder.close(closedWorld),
         memberResults,
         parameterResults,
-        checkedForGrowableLists,
         inferrer.returnsListElementTypeSet,
         allocatedLists);
 
