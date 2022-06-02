@@ -3127,14 +3127,16 @@ class TypeInferrerImpl implements TypeInferrer {
         implicitInvocationPropertyName: implicitInvocationPropertyName,
         extensionAccessCandidates:
             target.isAmbiguous ? target.candidates : null);
-    inferInvocation(typeContext, fileOffset, unknownFunction, arguments,
+    InvocationInferenceResult inferenceResult = inferInvocation(
+        typeContext, fileOffset, unknownFunction, arguments,
         hoistedExpressions: hoistedExpressions,
         receiverType: receiverType,
         isImplicitCall: isExpressionInvocation || isImplicitCall);
+    Expression replacementError = inferenceResult.applyResult(error);
     assert(name != equalsName);
     // TODO(johnniwinther): Use InvalidType instead.
     return createNullAwareExpressionInferenceResult(
-        const DynamicType(), error, nullAwareGuards);
+        const DynamicType(), replacementError, nullAwareGuards);
   }
 
   ExpressionInferenceResult _inferExtensionInvocation(
@@ -5325,7 +5327,8 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
     if (hoistedArguments == null || hoistedArguments.isEmpty) {
       return expression;
     } else {
-      assert(expression is InvocationExpression);
+      assert(expression is InvocationExpression ||
+          expression is InvalidExpression);
       if (expression is FactoryConstructorInvocation) {
         return InvocationInferenceResult._insertHoistedExpressions(
             expression, hoistedArguments);
@@ -5362,6 +5365,9 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
         return InvocationInferenceResult._insertHoistedExpressions(
             expression, hoistedArguments);
       } else if (expression is SuperMethodInvocation) {
+        return InvocationInferenceResult._insertHoistedExpressions(
+            expression, hoistedArguments);
+      } else if (expression is InvalidExpression) {
         return InvocationInferenceResult._insertHoistedExpressions(
             expression, hoistedArguments);
       } else {

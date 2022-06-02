@@ -29,7 +29,7 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///weekly_bot_91_failure.dart";
 
 static method bar(core::int i) → dynamic {
-  invalid-expression "pkg/front_end/testcases/general/error_recovery/weekly_bot_91_failure_lib.dart:4:5: Error: The method '_foo' isn't defined for the class 'int'.
+  let final core::int #t1 = 0 in invalid-expression "pkg/front_end/testcases/general/error_recovery/weekly_bot_91_failure_lib.dart:4:5: Error: The method '_foo' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named '_foo'.
   i._foo(a: 0, (x) {
     ^^^^" in i{<unresolved>}._foo((dynamic x) → Null {

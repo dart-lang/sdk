@@ -140,7 +140,6 @@ general/error_locations/error_location_02: RuntimeError
 general/error_locations/error_location_03: RuntimeError
 general/error_recovery/empty_await_for: RuntimeError
 general/error_recovery/empty_for: RuntimeError
-general/error_recovery/weekly_bot_91_failure: Crash
 general/expressions: RuntimeError
 general/getter_vs_setter_type: TypeCheckError
 general/implement_semi_stub: TypeCheckError
