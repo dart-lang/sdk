@@ -702,11 +702,11 @@ MethodInvocation
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          parameter: <null>
           staticInvokeType: C? Function()
           staticType: C?
           typeArgumentTypes
             C?
+        parameter: self::@function::foo::@parameter::c
       MethodInvocation
         methodName: SimpleIdentifier
           token: g2
@@ -735,11 +735,11 @@ MethodInvocation
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          parameter: <null>
           staticInvokeType: D? Function()
           staticType: D?
           typeArgumentTypes
             D?
+        parameter: self::@function::foo::@parameter::d
     rightParenthesis: )
   staticInvokeType: void Function(A, B, {C? c, D? d})
   staticType: void
@@ -7388,8 +7388,8 @@ MethodInvocation
           colon: :
         expression: BooleanLiteral
           literal: false
-          parameter: <null>
           staticType: bool
+        parameter: self::@function::foo::@parameter::b
       NamedExpression
         name: Label
           label: SimpleIdentifier
@@ -7399,8 +7399,8 @@ MethodInvocation
           colon: :
         expression: IntegerLiteral
           literal: 0
-          parameter: <null>
           staticType: int
+        parameter: self::@function::foo::@parameter::a
     rightParenthesis: )
   staticInvokeType: void Function({int? a, bool? b})
   staticType: void
@@ -7424,8 +7424,8 @@ MethodInvocation
           colon: :
         expression: BooleanLiteral
           literal: false
-          parameter: <null>
           staticType: bool*
+        parameter: self::@function::foo::@parameter::b
       NamedExpression
         name: Label
           label: SimpleIdentifier
@@ -7435,8 +7435,8 @@ MethodInvocation
           colon: :
         expression: IntegerLiteral
           literal: 0
-          parameter: <null>
           staticType: int*
+        parameter: self::@function::foo::@parameter::a
     rightParenthesis: )
   staticInvokeType: void Function({int* a, bool* b})*
   staticType: void
