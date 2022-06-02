@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -691,79 +692,56 @@ var foo = 0;
   }
 
   test_getErrors_reuse() async {
-    addTestFile('var a = b;');
-
-    var path = convertPath('/workspace/dart/test/lib/test.dart');
+    newFile(testFilePath, 'var a = b;');
 
     // No resolved files yet.
-    expect(fileResolver.testView!.resolvedLibraries, isEmpty);
+    _assertResolvedFiles([]);
 
     // No cached, will resolve once.
     expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, [path]);
+    _assertResolvedFiles([testFile]);
 
     // Has cached, will be not resolved again.
     expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, [path]);
+    _assertResolvedFiles([]);
 
-    // New resolver.
-    // Still has cached, will be not resolved.
-    createFileResolver();
+    // Change the file, will be resolved again.
+    newFile(testFilePath, 'var a = c;');
+    fileResolver.changeFile(testFile.path);
     expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, <Object>[]);
-
-    // Change the file, new resolver.
-    // With changed file the previously cached result cannot be used.
-    addTestFile('var a = c;');
-    createFileResolver();
-    expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, [path]);
-
-    // New resolver.
-    // Still has cached, will be not resolved.
-    createFileResolver();
-    expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, <Object>[]);
+    _assertResolvedFiles([testFile]);
   }
 
   test_getErrors_reuse_changeDependency() async {
-    newFile('/workspace/dart/test/lib/a.dart', r'''
+    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
 var a = 0;
 ''');
 
-    addTestFile(r'''
+    newFile(testFilePath, r'''
 import 'a.dart';
 var b = a.foo;
 ''');
 
-    var path = convertPath('/workspace/dart/test/lib/test.dart');
-
     // No resolved files yet.
-    expect(fileResolver.testView!.resolvedLibraries, isEmpty);
+    _assertResolvedFiles([]);
 
     // No cached, will resolve once.
     expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, [path]);
+    _assertResolvedFiles([testFile]);
 
     // Has cached, will be not resolved again.
     expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, [path]);
+    _assertResolvedFiles([]);
 
-    // Change the dependency, new resolver.
+    // Change the dependency.
     // The signature of the result is different.
     // The previously cached result cannot be used.
-    newFile('/workspace/dart/test/lib/a.dart', r'''
+    newFile(a.path, r'''
 var a = 4.2;
 ''');
-    createFileResolver();
+    fileResolver.changeFile(a.path);
     expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, [path]);
-
-    // New resolver.
-    // Still has cached, will be not resolved.
-    createFileResolver();
-    expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, <Object>[]);
+    _assertResolvedFiles([testFile]);
   }
 
   test_getFilesWithTopLevelDeclarations_cached() async {
@@ -1097,25 +1075,23 @@ void func() {
   }
 
   test_resolveFile_cache() async {
-    var path = convertPath('/workspace/dart/test/lib/test.dart');
-    newFile(path, 'var a = 0;');
+    newFile(testFilePath, 'var a = 0;');
 
     // No resolved files yet.
-    var testView = fileResolver.testView!;
-    expect(testView.resolvedLibraries, isEmpty);
+    _assertResolvedFiles([]);
 
-    await resolveFile2(path);
+    await resolveFile2(testFile.path);
     var result1 = result;
 
     // The file was resolved.
-    expect(testView.resolvedLibraries, [path]);
+    _assertResolvedFiles([testFile]);
 
     // The result is cached.
-    expect(fileResolver.cachedResults, contains(path));
+    expect(fileResolver.cachedResults, contains(testFile.path));
 
     // Ask again, no changes, not resolved.
-    await resolveFile2(path);
-    expect(testView.resolvedLibraries, [path]);
+    await resolveFile2(testFile.path);
+    _assertResolvedFiles([]);
 
     // The same result was returned.
     expect(result, same(result1));
@@ -1125,36 +1101,33 @@ void func() {
     fileResolver.changeFile(a_path);
 
     // The was a change to a file, no matter which, resolve again.
-    await resolveFile2(path);
-    expect(testView.resolvedLibraries, [path, path]);
+    await resolveFile2(testFile.path);
+    _assertResolvedFiles([testFile]);
 
     // Get should get a new result.
     expect(result, isNot(same(result1)));
   }
 
   test_resolveFile_dontCache_whenForCompletion() async {
-    var a_path = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile(a_path, r'''
+    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
 part 'b.dart';
 ''');
 
-    var b_path = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile(b_path, r'''
+    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
 part of 'a.dart';
 ''');
 
     // No resolved files yet.
-    var testView = fileResolver.testView!;
-    expect(testView.resolvedLibraries, isEmpty);
+    _assertResolvedFiles([]);
 
     await fileResolver.resolve2(
-      path: b_path,
+      path: b.path,
       completionLine: 0,
       completionColumn: 0,
     );
 
-    // The file was resolved.
-    expect(testView.resolvedLibraries, [a_path]);
+    // The library was resolved.
+    _assertResolvedFiles([a]);
 
     // The completion location was set, so not units are resolved.
     // So, the result should not be cached.
@@ -1279,6 +1252,17 @@ import 'foo:bar';
 
   void _assertRemovedPaths(Matcher matcher) {
     expect(fileResolver.fsState!.testView.removedPaths, matcher);
+  }
+
+  void _assertResolvedFiles(
+    List<File> expected, {
+    bool andClear = true,
+  }) {
+    final actual = fileResolver.testView!.resolvedLibraries;
+    expect(actual, expected.map((e) => e.path).toList());
+    if (andClear) {
+      actual.clear();
+    }
   }
 
   Future<Element> _findElement(int offset, String filePath) async {

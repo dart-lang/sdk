@@ -403,10 +403,7 @@ table AvailableFileExportCombinator {
 
 /// Errors for a single unit.
 table CiderUnitErrors {
-  errors:[AnalysisDriverUnitError] (id: 1);
-
-  /// The hash signature of this data.
-  signature:[uint] (id: 0);
+  errors:[AnalysisDriverUnitError] (id: 0);
 }
 
 table DiagnosticMessage {

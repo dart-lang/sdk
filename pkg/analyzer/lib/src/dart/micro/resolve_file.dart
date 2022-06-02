@@ -12,6 +12,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -125,6 +126,10 @@ class FileResolver {
   /// are more than one error on a line.
   @visibleForTesting
   final Map<String, ResolvedLibraryResult> cachedResults = {};
+
+  /// The cache of error results.
+  final Cache<String, Uint8List> _errorResultsCache =
+      Cache(128 * 1024, (bytes) => bytes.length);
 
   FileResolver({
     required this.logger,
@@ -250,30 +255,28 @@ class FileResolver {
       var errorsSignatureBuilder = ApiSignature();
       errorsSignatureBuilder.addBytes(file.libraryCycle.signature);
       errorsSignatureBuilder.addBytes(file.digest);
-      var errorsSignature = errorsSignatureBuilder.toByteList();
+      final errorsKey = '${errorsSignatureBuilder.toHex()}.errors';
 
-      var errorsKey = '${file.path}.errors';
-      var bytes = byteStore.get(errorsKey, errorsSignature)?.bytes;
-      List<AnalysisError>? errors;
+      final List<AnalysisError> errors;
+      final bytes = _errorResultsCache.get(errorsKey);
       if (bytes != null) {
         var data = CiderUnitErrors.fromBuffer(bytes);
         errors = data.errors.map((error) {
           return ErrorEncoding.decode(file.source, error)!;
         }).toList();
-      }
-
-      if (errors == null) {
+      } else {
         var unitResult = await resolve2(
           path: path,
           performance: performance,
         );
         errors = unitResult.errors;
 
-        bytes = CiderUnitErrorsBuilder(
-          signature: errorsSignature,
-          errors: errors.map(ErrorEncoding.encode).toList(),
-        ).toBuffer();
-        bytes = byteStore.putGet(errorsKey, errorsSignature, bytes).bytes;
+        _errorResultsCache.put(
+          errorsKey,
+          CiderUnitErrorsBuilder(
+            errors: errors.map(ErrorEncoding.encode).toList(),
+          ).toBuffer(),
+        );
       }
 
       return ErrorsResultImpl(
