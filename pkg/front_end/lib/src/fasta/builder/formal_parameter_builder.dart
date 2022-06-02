@@ -55,7 +55,7 @@ abstract class ParameterBuilder {
 /// A builder for a formal parameter, i.e. a parameter on a method or
 /// constructor.
 class FormalParameterBuilder extends ModifierBuilderImpl
-    implements VariableBuilder, ParameterBuilder {
+    implements VariableBuilder, ParameterBuilder, InferredTypeListener {
   static const String noNameSentinel = 'no name sentinel';
 
   /// List of metadata builders for the metadata declared on this parameter.
@@ -98,7 +98,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       this.name, LibraryBuilder? compilationUnit, int charOffset,
       {Uri? fileUri, this.isExtensionThis: false})
       : this.fileUri = fileUri ?? compilationUnit?.fileUri,
-        super(compilationUnit, charOffset);
+        super(compilationUnit, charOffset) {
+    type.registerInferredTypeListener(this);
+  }
 
   @override
   String get debugName => "FormalParameterBuilder";
@@ -166,6 +168,13 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   }
 
   @override
+  void onInferredType(DartType type) {
+    if (variable != null) {
+      variable!.type = type;
+    }
+  }
+
+  @override
   ParameterBuilder clone(
       List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
@@ -213,9 +222,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   void finalizeInitializingFormal(ClassBuilder classBuilder) {
     Builder? fieldBuilder = classBuilder.lookupLocalMember(name);
     if (fieldBuilder is SourceFieldBuilder) {
-      variable!.type = fieldBuilder.inferType();
+      type.registerInferredType(fieldBuilder.inferType());
     } else {
-      variable!.type = const DynamicType();
+      type.registerInferredType(const DynamicType());
     }
   }
 

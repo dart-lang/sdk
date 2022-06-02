@@ -21,7 +21,6 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
-import '../builder/omitted_type_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -46,7 +45,6 @@ import '../kernel/constness.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 
 import '../modifier.dart' show constMask, hasInitializerMask, staticMask;
@@ -310,7 +308,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           new DeclaredSourceConstructorBuilder(
               /* metadata = */ null,
               constMask,
-              /* returnType = */ const OmittedTypeBuilder(),
+              /* returnType = */ libraryBuilder.addInferableType(),
               "",
               /* typeParameters = */ null,
               <FormalParameterBuilder>[
@@ -467,7 +465,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         }
         SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
             metadata,
-            const OmittedTypeBuilder(),
+            libraryBuilder.addInferableType(),
             name,
             constMask | staticMask | hasInitializerMask,
             /* isTopLevel = */ false,
@@ -477,10 +475,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
             staticFieldNameScheme,
             fieldReference: fieldReference,
             fieldGetterReference: getterReference,
-            fieldSetterReference: setterReference);
-        fieldBuilder.fieldType = new ImplicitFieldType(
-            fieldBuilder, enumConstantInfo.argumentsBeginToken);
-        libraryBuilder.registerImplicitlyTypedField(fieldBuilder);
+            fieldSetterReference: setterReference,
+            initializerToken: enumConstantInfo.argumentsBeginToken);
         members[name] = fieldBuilder..next = existing;
         elementBuilders.add(fieldBuilder);
       }
@@ -795,8 +791,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
             typeArgument: rawType(libraryBuilder.nonNullable), isConst: true));
 
     for (SourceFieldBuilder elementBuilder in elementBuilders) {
-      elementBuilder.fieldType =
-          buildElement(elementBuilder, classHierarchy.coreTypes);
+      elementBuilder.type.registerInferredType(
+          buildElement(elementBuilder, classHierarchy.coreTypes));
     }
     delayedActionPerformers.addAll(_delayedActionPerformers);
     _delayedActionPerformers.clear();

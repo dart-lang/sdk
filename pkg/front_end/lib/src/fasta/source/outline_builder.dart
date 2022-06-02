@@ -32,7 +32,6 @@ import '../builder/metadata_builder.dart';
 import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
-import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../combinator.dart' show CombinatorBuilder;
@@ -1926,7 +1925,6 @@ class OutlineBuilder extends StackListenerImpl {
         libraryBuilder.addConstructor(
             metadata,
             modifiers,
-            returnType,
             name,
             constructorName,
             typeVariables,
@@ -2261,7 +2259,7 @@ class OutlineBuilder extends StackListenerImpl {
           metadata,
           kind,
           modifiers,
-          type ?? const OmittedTypeBuilder(),
+          type ?? libraryBuilder.addInferableType(),
           name == null ? FormalParameterBuilder.noNameSentinel : name as String,
           thisKeyword != null,
           superKeyword != null,
@@ -2584,7 +2582,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     push(libraryBuilder.addFunctionType(
-        returnType ?? const OmittedTypeBuilder(),
+        returnType ?? libraryBuilder.addInferableType(),
         typeVariables,
         formals,
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
@@ -2605,7 +2603,7 @@ class OutlineBuilder extends StackListenerImpl {
       reportErrorIfNullableType(question);
     }
     push(libraryBuilder.addFunctionType(
-        returnType ?? const OmittedTypeBuilder(),
+        returnType ?? libraryBuilder.addInferableType(),
         typeVariables,
         formals,
         libraryBuilder.nullableBuilderIfTrue(question != null),
@@ -2644,7 +2642,7 @@ class OutlineBuilder extends StackListenerImpl {
           hasMembers: false);
       // TODO(cstefantsova): Make sure that RHS of typedefs can't have '?'.
       aliasedType = libraryBuilder.addFunctionType(
-          returnType ?? const OmittedTypeBuilder(),
+          returnType ?? libraryBuilder.addInferableType(),
           null,
           formals,
           const NullabilityBuilder.omitted(),

@@ -67,6 +67,9 @@ abstract class SourceConstructorBuilder
 
 class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     implements SourceConstructorBuilder {
+  @override
+  final OmittedTypeBuilder returnType;
+
   final Constructor _constructor;
   final Procedure? _constructorTearOff;
 
@@ -107,7 +110,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   DeclaredSourceConstructorBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
-      TypeBuilder returnType,
+      this.returnType,
       String name,
       List<TypeVariableBuilder>? typeVariables,
       this.formals,
@@ -137,7 +140,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
             forAbstractClassOrEnum: forAbstractClassOrEnum),
         _hasSuperInitializingFormals =
             formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
-        super(metadata, modifiers, returnType, name, typeVariables, formals,
+        super(metadata, modifiers, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 
   @override
@@ -427,7 +430,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           if (substitution.isNotEmpty && type != null) {
             type = substitute(type, substitution);
           }
-          formal.variable!.type = type ?? const DynamicType();
+          formal.type.registerInferredType(type ?? const DynamicType());
         }
         formal.variable!.hasDeclaredInitializer = formal.hasDeclaredInitializer;
       }
@@ -521,8 +524,9 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           new TypeParameterType.withDefaultNullabilityForLibrary(
               typeParameter, libraryBuilder.library));
     }
-    function.returnType = new InterfaceType(
+    DartType type = new InterfaceType(
         enclosingClass, libraryBuilder.nonNullable, typeParameterTypes);
+    returnType.registerInferredType(type);
   }
 
   @override

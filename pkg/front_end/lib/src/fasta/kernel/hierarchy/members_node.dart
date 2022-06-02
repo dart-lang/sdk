@@ -191,7 +191,7 @@ class ClassMembersNodeBuilder {
 
       if (declaredMember.returnType is OmittedTypeBuilder) {
         inferredReturnType ??= const DynamicType();
-        declaredFunction.returnType = inferredReturnType;
+        declaredMember.returnType.registerInferredType(inferredReturnType);
       }
       if (declaredMember.formals != null) {
         for (FormalParameterBuilder declaredParameter
@@ -200,7 +200,7 @@ class ClassMembersNodeBuilder {
             DartType inferredParameterType =
                 inferredParameterTypes[declaredParameter] ??
                     const DynamicType();
-            declaredParameter.variable!.type = inferredParameterType;
+            declaredParameter.type.registerInferredType(inferredParameterType);
           }
         }
       }
@@ -299,8 +299,8 @@ class ClassMembersNodeBuilder {
         inferFrom(overriddenSetters, forSetter: true);
       }
 
-      declaredMember.procedure.function.returnType =
-          inferredType ?? const DynamicType();
+      declaredMember.returnType
+          .registerInferredType(inferredType ?? const DynamicType());
     }
   }
 
@@ -364,7 +364,7 @@ class ClassMembersNodeBuilder {
         inferFrom(overriddenGetters, forSetter: false);
       }
 
-      parameter.variable!.type = inferredType ?? const DynamicType();
+      parameter.type.registerInferredType(inferredType ?? const DynamicType());
     }
   }
 
@@ -483,7 +483,7 @@ class ClassMembersNodeBuilder {
         inferredType = combinedMemberSignatureType;
       }
 
-      fieldBuilder.fieldType = inferredType;
+      fieldBuilder.type.registerInferredType(inferredType);
     }
   }
 

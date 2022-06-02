@@ -234,7 +234,7 @@ final TypeBuilder dummyTypeBuilder =
     new FixedTypeBuilder(dummyDartType, dummyUri, -1);
 final FormalParameterBuilder dummyFormalParameterBuilder =
     new FormalParameterBuilder(null, FormalParameterKind.requiredPositional, 0,
-        const OmittedTypeBuilder(), '', null, -1,
+        new OmittedTypeBuilder(), '', null, -1,
         fileUri: dummyUri);
 final TypeVariableBuilder dummyTypeVariableBuilder = new TypeVariableBuilder(
     TypeVariableBuilder.noNameSentinel, null, -1, null,
