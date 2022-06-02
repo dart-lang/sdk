@@ -775,6 +775,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT: [
       AddSuperConstructorInvocation.new,
     ],
+    CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [
+      DataDriven.new,
+    ],
     CompileTimeErrorCode.UNDEFINED_FUNCTION: [
       DataDriven.new,
       ImportLibrary.forExtension,
