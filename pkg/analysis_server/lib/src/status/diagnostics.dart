@@ -1134,7 +1134,7 @@ class PluginsPage extends DiagnosticPageWithNav {
             var buffer = StringBuffer();
             buffer.write(requestName);
             buffer.write(' ');
-            buffer.write(data);
+            buffer.write(data.toAnalyticsString());
             p(buffer.toString());
           }
         }

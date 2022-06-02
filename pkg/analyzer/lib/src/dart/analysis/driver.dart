@@ -166,7 +166,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The mapping from the files for which analysis was requested using
   /// [getResolvedLibrary] to the [Completer]s to report the result.
   final _requestedLibraries =
-      <String, List<Completer<ResolvedLibraryResult>>>{};
+      <LibraryFileStateKind, List<Completer<ResolvedLibraryResult>>>{};
 
   /// The queue of requests for completion.
   final List<_ResolveForCompletionRequest> _resolveForCompletionRequests = [];
@@ -861,6 +861,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     final file = _fsState.getFileForPath(path);
     final kind = file.kind;
     if (kind is LibraryFileStateKind) {
+      final completer = Completer<ResolvedLibraryResult>();
+      _requestedLibraries
+          .putIfAbsent(kind, () => <Completer<ResolvedLibraryResult>>[])
+          .add(completer);
+      _scheduler.notify(this);
+      return completer.future;
     } else if (kind is AugmentationFileStateKind) {
       return NotLibraryButAugmentationResult();
     } else if (kind is PartFileStateKind) {
@@ -868,14 +874,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     } else {
       throw UnimplementedError('(${kind.runtimeType}) $kind');
     }
-
-    // Schedule analysis.
-    var completer = Completer<ResolvedLibraryResult>();
-    _requestedLibraries
-        .putIfAbsent(path, () => <Completer<ResolvedLibraryResult>>[])
-        .add(completer);
-    _scheduler.notify(this);
-    return completer.future;
   }
 
   /// Return a [Future] that completes with a [ResolvedLibraryResult] for the
@@ -1092,14 +1090,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     // Analyze a requested library.
     if (_requestedLibraries.isNotEmpty) {
-      String path = _requestedLibraries.keys.first;
+      final library = _requestedLibraries.keys.first;
       try {
-        var result = await _computeResolvedLibrary(path);
-        for (var completer in _requestedLibraries.remove(path)!) {
+        var result = await _computeResolvedLibrary(library);
+        for (var completer in _requestedLibraries.remove(library)!) {
           completer.complete(result);
         }
       } catch (exception, stackTrace) {
-        for (var completer in _requestedLibraries.remove(path)!) {
+        for (var completer in _requestedLibraries.remove(library)!) {
           completer.completeError(exception, stackTrace);
         }
         _clearLibraryContextAfterException();
@@ -1314,18 +1312,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
-    final FileState library;
     final kind = file.kind;
-    if (kind is LibraryFileStateKind) {
-      library = kind.file;
-    } else if (kind is PartFileStateKind) {
-      library = kind.library ?? kind.asLibrary.file;
-    } else {
-      throw UnimplementedError('${kind.runtimeType}');
-    }
+    final library = kind.library ?? kind.asLibrary;
 
     // Prepare the signature and key.
-    String signature = _getResolvedUnitSignature(library, file);
+    String signature = _getResolvedUnitSignature(library.file, file);
     String key = _getResolvedUnitKey(signature);
 
     // Skip reading if the signature, so errors, are the same as the last time.
@@ -1364,7 +1355,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           analysisOptions as AnalysisOptionsImpl,
           declaredVariables,
           sourceFactory,
-          libraryContext.elementFactory.libraryOfUri2(library.uriStr),
+          libraryContext.elementFactory.libraryOfUri2(library.file.uriStr),
           libraryContext.elementFactory.analysisSession.inheritanceManager,
           library,
           testingData: testingData,
@@ -1376,7 +1367,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           var unitBytes =
               _serializeResolvedUnit(unitResult.unit, unitResult.errors);
           String unitSignature =
-              _getResolvedUnitSignature(library, unitResult.file);
+              _getResolvedUnitSignature(library.file, unitResult.file);
           String unitKey = _getResolvedUnitKey(unitSignature);
           _byteStore.put(unitKey, unitBytes);
           if (unitResult.file == file) {
@@ -1396,7 +1387,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         return result;
       } catch (exception, stackTrace) {
         String? contextKey =
-            _storeExceptionContext(path, library, exception, stackTrace);
+            _storeExceptionContext(path, library.file, exception, stackTrace);
         throw _ExceptionState(exception, stackTrace, contextKey);
       }
     });
@@ -1416,9 +1407,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// Return the newly computed resolution result of the library with the
   /// given [path].
-  Future<ResolvedLibraryResultImpl> _computeResolvedLibrary(String path) async {
-    FileState library = _fsState.getFileForPath(path);
-
+  Future<ResolvedLibraryResultImpl> _computeResolvedLibrary(
+    LibraryFileStateKind library,
+  ) async {
+    final path = library.file.path;
     return _logger.runAsync('Compute resolved library $path', () async {
       _testView.numOfAnalyzedLibraries++;
       await libraryContext.load(library);
@@ -1427,7 +1419,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               analysisOptions as AnalysisOptionsImpl,
               declaredVariables,
               sourceFactory,
-              libraryContext.elementFactory.libraryOfUri2(library.uriStr),
+              libraryContext.elementFactory.libraryOfUri2(library.file.uriStr),
               libraryContext.elementFactory.analysisSession.inheritanceManager,
               library,
               testingData: testingData)
@@ -1463,15 +1455,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
-    final FileState library;
     final kind = file.kind;
-    if (kind is LibraryFileStateKind) {
-      library = kind.file;
-    } else if (kind is PartFileStateKind) {
-      library = kind.library ?? kind.asLibrary.file;
-    } else {
-      throw UnimplementedError('${kind.runtimeType}');
-    }
+    final library = kind.library ?? kind.asLibrary;
 
     return _logger.runAsync('Compute unit element for $path', () async {
       _logger.writeln('Work in $name');
@@ -1774,20 +1759,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     var file = _fsState.getFileForPath(path);
 
-    var library = file.isPart ? file.library : file;
-    if (library == null) {
-      return null;
-    }
+    // Prepare the library - the file itself, or the known library.
+    final kind = file.kind;
+    final library = kind.library ?? kind.asLibrary;
 
     await libraryContext.load(library);
-    var unitElement = libraryContext.computeUnitElement(library, file)
-        as CompilationUnitElementImpl;
+    var unitElement = libraryContext.computeUnitElement(library, file);
 
     var analysisResult = LibraryAnalyzer(
       analysisOptions as AnalysisOptionsImpl,
       declaredVariables,
       sourceFactory,
-      libraryContext.elementFactory.libraryOfUri2(library.uriStr),
+      libraryContext.elementFactory.libraryOfUri2(library.file.uriStr),
       libraryContext.elementFactory.analysisSession.inheritanceManager,
       library,
       testingData: testingData,

@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
@@ -81,13 +82,16 @@ class LibraryContext {
   }
 
   /// Computes a [CompilationUnitElement] for the given library/unit pair.
-  CompilationUnitElement computeUnitElement(FileState library, FileState unit) {
+  CompilationUnitElementImpl computeUnitElement(
+    LibraryFileStateKind library,
+    FileState unit,
+  ) {
     var reference = elementFactory.rootReference
-        .getChild(library.uriStr)
+        .getChild(library.file.uriStr)
         .getChild('@unit')
         .getChild(unit.uriStr);
     var element = elementFactory.elementOfReference(reference);
-    return element as CompilationUnitElement;
+    return element as CompilationUnitElementImpl;
   }
 
   void dispose() {
@@ -106,7 +110,7 @@ class LibraryContext {
   }
 
   /// Load data required to access elements of the given [targetLibrary].
-  Future<void> load(FileState targetLibrary) async {
+  Future<void> load(LibraryFileStateKind targetLibrary) async {
     var librariesTotal = 0;
     var librariesLoaded = 0;
     var librariesLinked = 0;
@@ -265,7 +269,7 @@ class LibraryContext {
     }
 
     await logger.runAsync('Prepare linked bundles', () async {
-      var libraryCycle = targetLibrary.libraryCycle;
+      var libraryCycle = targetLibrary.file.libraryCycle;
       await loadBundle(libraryCycle);
       logger.writeln(
         '[librariesTotal: $librariesTotal]'

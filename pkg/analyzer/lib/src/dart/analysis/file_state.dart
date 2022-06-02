@@ -43,7 +43,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as package_path;
 import 'package:pub_semver/pub_semver.dart';
 
-/// The file has a `library augmentation` directive.
+/// The file has a `library augment` directive.
 abstract class AugmentationFileStateKind extends LibraryOrAugmentationFileKind {
   final UnlinkedLibraryAugmentationDirective directive;
 
@@ -51,6 +51,12 @@ abstract class AugmentationFileStateKind extends LibraryOrAugmentationFileKind {
     required super.file,
     required this.directive,
   });
+
+  @override
+  LibraryFileStateKind get asLibrary {
+    // TODO(scheglov): implement asLibrary
+    throw UnimplementedError();
+  }
 }
 
 /// The URI of the [directive] can be resolved.
@@ -66,11 +72,27 @@ class AugmentationKnownFileStateKind extends AugmentationFileStateKind {
 
   /// If the [uriFile] has `import augment` of this file, returns [uriFile].
   /// Otherwise, this file is not a valid augmentation, returns `null`.
-  FileState? get augmented {
+  LibraryOrAugmentationFileKind? get augmented {
     final uriKind = uriFile.kind;
     if (uriKind is LibraryOrAugmentationFileKind) {
       if (uriKind.hasAugmentation(this)) {
-        return uriFile;
+        return uriKind;
+      }
+    }
+    return null;
+  }
+
+  @override
+  LibraryFileStateKind? get library {
+    final visited = Set<LibraryOrAugmentationFileKind>.identity();
+    var current = augmented;
+    while (current != null && visited.add(current)) {
+      if (current is LibraryFileStateKind) {
+        return current;
+      } else if (current is AugmentationKnownFileStateKind) {
+        current = current.augmented;
+      } else {
+        return null;
       }
     }
     return null;
@@ -83,6 +105,9 @@ class AugmentationUnknownFileStateKind extends AugmentationFileStateKind {
     required super.file,
     required super.directive,
   });
+
+  @override
+  LibraryFileStateKind? get library => null;
 }
 
 /// Information about a single `import` directive.
@@ -362,18 +387,6 @@ class FileState {
   }
 
   FileStateKind get kind => _kind!;
-
-  /// If the file [isPart], return a currently know library the file is a part
-  /// of. Return `null` if a library is not known, for example because we have
-  /// not processed a library file yet.
-  FileState? get library {
-    final kind = _kind;
-    if (kind is PartFileStateKind) {
-      return kind.library;
-    } else {
-      return null;
-    }
-  }
 
   /// Return the [LibraryCycle] this file belongs to, even if it consists of
   /// just this file.  If the library cycle is not known yet, compute it.
@@ -937,6 +950,18 @@ abstract class FileStateKind {
   FileStateKind({
     required this.file,
   });
+
+  /// When [library] returns `null`, this getter is used to look at this
+  /// file itself as a library.
+  LibraryFileStateKind get asLibrary {
+    return LibraryFileStateKind(
+      file: file,
+      name: null,
+    );
+  }
+
+  /// Returns the library in which this file should be analyzed.
+  LibraryFileStateKind? get library;
 }
 
 enum FileStateRefreshResult {
@@ -1345,6 +1370,9 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
     required this.name,
   });
 
+  @override
+  LibraryFileStateKind? get library => this;
+
   bool hasPart(PartFileStateKind part) {
     return file.partedFiles.contains(part.file);
   }
@@ -1422,18 +1450,6 @@ abstract class PartFileStateKind extends FileStateKind {
   PartFileStateKind({
     required super.file,
   });
-
-  /// When [library] returns `null`, this getter is used to look at this
-  /// file itself as a library.
-  LibraryFileStateKind get asLibrary {
-    return LibraryFileStateKind(
-      file: file,
-      name: null,
-    );
-  }
-
-  /// Returns the library in which this part should be analyzed.
-  FileState? get library;
 }
 
 /// The file has `part of name` directive.
@@ -1454,7 +1470,7 @@ class PartOfNameFileStateKind extends PartFileStateKind {
   /// If there are libraries that include this file as a part, return the
   /// first one as if sorted by path.
   @override
-  FileState? get library {
+  LibraryFileStateKind? get library {
     LibraryFileStateKind? result;
     for (final library in libraries) {
       if (library.hasPart(this)) {
@@ -1465,7 +1481,7 @@ class PartOfNameFileStateKind extends PartFileStateKind {
         }
       }
     }
-    return result?.file;
+    return result;
   }
 }
 
@@ -1490,11 +1506,11 @@ class PartOfUriKnownFileStateKind extends PartOfUriFileStateKind {
   });
 
   @override
-  FileState? get library {
+  LibraryFileStateKind? get library {
     final uriKind = uriFile.kind;
     if (uriKind is LibraryFileStateKind) {
       if (uriKind.hasPart(this)) {
-        return uriFile;
+        return uriKind;
       }
     }
     return null;
@@ -1509,7 +1525,7 @@ class PartOfUriUnknownFileStateKind extends PartOfUriFileStateKind {
   });
 
   @override
-  FileState? get library => null;
+  LibraryFileStateKind? get library => null;
 }
 
 class _LibraryNameToFiles {
