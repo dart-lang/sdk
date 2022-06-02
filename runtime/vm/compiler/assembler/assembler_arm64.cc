@@ -1540,7 +1540,7 @@ void Assembler::CheckCodePointer() {
   const intptr_t entry_offset =
       CodeSize() + target::Instructions::HeaderSize() - kHeapObjectTag;
   adr(R0, Immediate(-entry_offset));
-  ldr(TMP, FieldAddress(CODE_REG, target::Code::saved_instructions_offset()));
+  ldr(TMP, FieldAddress(CODE_REG, target::Code::instructions_offset()));
   cmp(R0, Operand(TMP));
   b(&instructions_ok, EQ);
   brk(1);
@@ -1581,6 +1581,10 @@ void Assembler::SetupCSPFromThread(Register thr) {
 
 void Assembler::RestoreCSP() {
   mov(CSP, SP);
+}
+
+void Assembler::SetReturnAddress(Register value) {
+  RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(MoveRegister(LR, value));
 }
 
 void Assembler::EnterFrame(intptr_t frame_size) {

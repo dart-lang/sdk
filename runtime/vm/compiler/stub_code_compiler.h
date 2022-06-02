@@ -199,13 +199,19 @@ class StubCodeCompiler : public AllStatic {
 
   static void GenerateRangeError(Assembler* assembler, bool with_fpu_regs);
 
-  static void GenerateSuspendStub(Assembler* assembler,
-                                  intptr_t suspend_entry_point_offset);
+  static void GenerateSuspendStub(
+      Assembler* assembler,
+      intptr_t suspend_entry_point_offset_in_thread,
+      intptr_t suspend_function_offset_in_object_store);
   static void GenerateInitSuspendableFunctionStub(
       Assembler* assembler,
-      intptr_t init_entry_point_offset);
-  static void GenerateReturnStub(Assembler* assembler,
-                                 intptr_t return_entry_point_offset);
+      intptr_t init_entry_point_offset_in_thread,
+      intptr_t init_function_offset_in_object_store);
+  static void GenerateReturnStub(
+      Assembler* assembler,
+      intptr_t return_entry_point_offset_in_thread,
+      intptr_t return_function_offset_in_object_store,
+      intptr_t return_stub_offset_in_thread);
 };
 
 }  // namespace compiler

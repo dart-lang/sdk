@@ -1882,11 +1882,13 @@ class InvalidationCollector : public ObjectVisitor {
                         GrowableArray<const Function*>* functions,
                         GrowableArray<const KernelProgramInfo*>* kernel_infos,
                         GrowableArray<const Field*>* fields,
+                        GrowableArray<const SuspendState*>* suspend_states,
                         GrowableArray<const Instance*>* instances)
       : zone_(zone),
         functions_(functions),
         kernel_infos_(kernel_infos),
         fields_(fields),
+        suspend_states_(suspend_states),
         instances_(instances) {}
   virtual ~InvalidationCollector() {}
 
@@ -1904,6 +1906,12 @@ class InvalidationCollector : public ObjectVisitor {
           zone_, static_cast<KernelProgramInfoPtr>(obj)));
     } else if (cid == kFieldCid) {
       fields_->Add(&Field::Handle(zone_, static_cast<FieldPtr>(obj)));
+    } else if (cid == kSuspendStateCid) {
+      const auto& suspend_state =
+          SuspendState::Handle(zone_, static_cast<SuspendStatePtr>(obj));
+      if (suspend_state.pc() != 0) {
+        suspend_states_->Add(&suspend_state);
+      }
     } else if (cid > kNumPredefinedCids) {
       instances_->Add(&Instance::Handle(zone_, static_cast<InstancePtr>(obj)));
     }
@@ -1914,6 +1922,7 @@ class InvalidationCollector : public ObjectVisitor {
   GrowableArray<const Function*>* const functions_;
   GrowableArray<const KernelProgramInfo*>* const kernel_infos_;
   GrowableArray<const Field*>* const fields_;
+  GrowableArray<const SuspendState*>* const suspend_states_;
   GrowableArray<const Instance*>* const instances_;
 };
 
@@ -1928,16 +1937,18 @@ void ProgramReloadContext::RunInvalidationVisitors() {
   GrowableArray<const Function*> functions(4 * KB);
   GrowableArray<const KernelProgramInfo*> kernel_infos(KB);
   GrowableArray<const Field*> fields(4 * KB);
+  GrowableArray<const SuspendState*> suspend_states(4 * KB);
   GrowableArray<const Instance*> instances(4 * KB);
 
   {
     HeapIterationScope iteration(thread);
     InvalidationCollector visitor(zone, &functions, &kernel_infos, &fields,
-                                  &instances);
+                                  &suspend_states, &instances);
     iteration.IterateObjects(&visitor);
   }
 
   InvalidateKernelInfos(zone, kernel_infos);
+  InvalidateSuspendStates(zone, suspend_states);
   InvalidateFunctions(zone, functions);
   InvalidateFields(zone, fields, instances);
 }
@@ -2025,6 +2036,55 @@ void ProgramReloadContext::InvalidateFunctions(
     func.set_deoptimization_counter(0);
     func.set_optimized_instruction_count(0);
     func.set_optimized_call_site_count(0);
+  }
+}
+
+void ProgramReloadContext::InvalidateSuspendStates(
+    Zone* zone,
+    const GrowableArray<const SuspendState*>& suspend_states) {
+  TIMELINE_SCOPE(InvalidateSuspendStates);
+  auto thread = Thread::Current();
+  HANDLESCOPE(thread);
+
+  CallSiteResetter resetter(zone);
+  Code& code = Code::Handle(zone);
+  Function& function = Function::Handle(zone);
+
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  for (intptr_t i = 0, n = suspend_states.length(); i < n; ++i) {
+    const SuspendState& suspend_state = *suspend_states[i];
+    ASSERT(suspend_state.pc() != 0);
+    code = suspend_state.GetCodeObject();
+    ASSERT(!code.IsNull());
+    if (code.is_optimized() && !code.is_force_optimized()) {
+      function = code.function();
+      // Before disabling [code], function needs to
+      // switch to unoptimized code first.
+      function.SwitchToLazyCompiledUnoptimizedCode();
+      // Disable [code] in order to trigger lazy deoptimization.
+      // Unless [code] is compiled for OSR, it may be already
+      // disabled in SwitchToLazyCompiledUnoptimizedCode.
+      if (!code.IsDisabled()) {
+        code.DisableDartCode();
+      }
+      // Reset switchable calls and caches for unoptimized
+      // code (if any), as it is going to be used to continue
+      // execution of the suspended function.
+      code = function.unoptimized_code();
+      if (!code.IsNull()) {
+        resetter.ResetSwitchableCalls(code);
+        resetter.ResetCaches(code);
+      }
+    } else {
+      function = code.function();
+      // ResetSwitchableCalls uses ICData array, which
+      // can be cleared along with the code in InvalidateFunctions
+      // during previous hot reloads.
+      // Rebuild an unoptimized code in order to recreate ICData array.
+      function.EnsureHasCompiledUnoptimizedCode();
+      resetter.ResetSwitchableCalls(code);
+      resetter.ResetCaches(code);
+    }
   }
 }
 

@@ -326,7 +326,8 @@ class ActivationFrame : public ZoneAllocated {
 
   explicit ActivationFrame(Kind kind);
 
-  explicit ActivationFrame(const Closure& async_activation);
+  ActivationFrame(const Closure& async_activation,
+                  CallerClosureFinder* caller_closure_finder);
 
   uword pc() const { return pc_; }
   uword fp() const { return fp_; }
@@ -388,6 +389,8 @@ class ActivationFrame : public ZoneAllocated {
 
   const Context& GetSavedCurrentContext();
   ObjectPtr GetAsyncOperation();
+  ObjectPtr GetSuspendStateVar();
+  ObjectPtr GetSuspendableFunctionData();
 
   TypeArgumentsPtr BuildParameters(
       const GrowableObjectArray& param_names,
@@ -816,6 +819,13 @@ class Debugger {
   // Callback to the debugger to continue frame rewind, post-deoptimization.
   void RewindPostDeopt();
 
+  // Sets breakpoint at resumption of a suspendable function
+  // with given function data (such as _Future or _AsyncStarStreamController).
+  void SetBreakpointAtResumption(const Object& function_data);
+
+  // Check breakpoints at frame resumption. Called from generated code.
+  void ResumptionBreakpoint();
+
  private:
   ErrorPtr PauseRequest(ServiceEvent::EventKind kind);
 
@@ -967,6 +977,10 @@ class Debugger {
   Breakpoint* synthetic_async_breakpoint_;
 
   Dart_ExceptionPauseInfo exc_pause_info_;
+
+  // Holds function data corresponding to suspendable
+  // function which should be stopped when resumed.
+  MallocGrowableArray<ObjectPtr> breakpoints_at_resumption_;
 
   friend class Isolate;
   friend class BreakpointLocation;

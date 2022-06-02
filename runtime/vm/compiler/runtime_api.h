@@ -993,6 +993,7 @@ class StackTrace : public AllStatic {
 
 class SuspendState : public AllStatic {
  public:
+  static word frame_capacity_offset();
   static word frame_size_offset();
   static word pc_offset();
   static word function_data_offset();
@@ -1003,6 +1004,8 @@ class SuspendState : public AllStatic {
   static word HeaderSize();
   static word InstanceSize();
   static word InstanceSize(word payload_size);
+  static word FrameSizeGrowthGap();
+
   FINAL_CLASS();
 };
 
@@ -1203,6 +1206,10 @@ class Thread : public AllStatic {
   static word null_cast_error_shared_with_fpu_regs_stub_offset();
   static word range_error_shared_without_fpu_regs_stub_offset();
   static word range_error_shared_with_fpu_regs_stub_offset();
+  static word resume_stub_offset();
+  static word return_async_not_future_stub_offset();
+  static word return_async_star_stub_offset();
+  static word return_async_stub_offset();
   static word stack_overflow_shared_without_fpu_regs_entry_point_offset();
   static word stack_overflow_shared_without_fpu_regs_stub_offset();
   static word stack_overflow_shared_with_fpu_regs_entry_point_offset();
@@ -1214,6 +1221,7 @@ class Thread : public AllStatic {
   static word allocate_object_stub_offset();
   static word allocate_object_parameterized_stub_offset();
   static word allocate_object_slow_stub_offset();
+  static word async_exception_handler_stub_offset();
   static word optimize_stub_offset();
   static word deoptimize_stub_offset();
   static word enter_safepoint_stub_offset();
@@ -1276,6 +1284,15 @@ class ObjectStore : public AllStatic {
   static word int_type_offset();
   static word string_type_offset();
   static word type_type_offset();
+
+  static word suspend_state_await_offset();
+  static word suspend_state_handle_exception_offset();
+  static word suspend_state_init_async_offset();
+  static word suspend_state_init_async_star_offset();
+  static word suspend_state_return_async_offset();
+  static word suspend_state_return_async_not_future_offset();
+  static word suspend_state_return_async_star_offset();
+  static word suspend_state_yield_async_star_offset();
 };
 
 class Isolate : public AllStatic {
@@ -1287,6 +1304,7 @@ class Isolate : public AllStatic {
   static word finalizers_offset();
 #if !defined(PRODUCT)
   static word single_step_offset();
+  static word has_resumption_breakpoints_offset();
 #endif  // !defined(PRODUCT)
 };
 
@@ -1355,7 +1373,8 @@ class Code : public AllStatic {
 
   static word object_pool_offset();
   static word entry_point_offset(CodeEntryKind kind = CodeEntryKind::kNormal);
-  static word saved_instructions_offset();
+  static word active_instructions_offset();
+  static word instructions_offset();
   static word owner_offset();
   static word HeaderSize();
   static word InstanceSize();

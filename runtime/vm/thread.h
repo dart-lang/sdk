@@ -129,6 +129,14 @@ class Thread;
     StubCode::AllocateObjectParameterized().ptr(), nullptr)                    \
   V(CodePtr, allocate_object_slow_stub_, StubCode::AllocateObjectSlow().ptr(), \
     nullptr)                                                                   \
+  V(CodePtr, async_exception_handler_stub_,                                    \
+    StubCode::AsyncExceptionHandler().ptr(), nullptr)                          \
+  V(CodePtr, resume_stub_, StubCode::Resume().ptr(), nullptr)                  \
+  V(CodePtr, return_async_stub_, StubCode::ReturnAsync().ptr(), nullptr)       \
+  V(CodePtr, return_async_not_future_stub_,                                    \
+    StubCode::ReturnAsyncNotFuture().ptr(), nullptr)                           \
+  V(CodePtr, return_async_star_stub_, StubCode::ReturnAsyncStar().ptr(),       \
+    nullptr)                                                                   \
   V(CodePtr, stack_overflow_shared_without_fpu_regs_stub_,                     \
     StubCode::StackOverflowSharedWithoutFPURegs().ptr(), nullptr)              \
   V(CodePtr, stack_overflow_shared_with_fpu_regs_stub_,                        \

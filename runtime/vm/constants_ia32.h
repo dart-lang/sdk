@@ -276,7 +276,7 @@ struct SuspendStubABI {
   // Number of bytes to skip after
   // suspend stub return address in order to resume.
   // IA32: mov esp, ebp; pop ebp; ret
-  static const intptr_t kResumePcDistance = 5;
+  static const intptr_t kResumePcDistance = 4;
 };
 
 // ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub).
@@ -290,13 +290,16 @@ struct ResumeStubABI {
   static const Register kTempReg = EDX;
   // Registers for the frame copying (the 1st part).
   static const Register kFrameSizeReg = ECX;
+  // Can reuse THR.
   static const Register kSrcFrameReg = ESI;
+  // Can reuse CODE_REG.
   static const Register kDstFrameReg = EDI;
   // Registers for control transfer.
   // (the 2nd part, can reuse registers from the 1st part)
   static const Register kResumePcReg = ECX;
-  static const Register kExceptionReg = ESI;
-  static const Register kStackTraceReg = EDI;
+  // Can also reuse kSuspendStateReg but should not conflict with CODE_REG.
+  static const Register kExceptionReg = EAX;
+  static const Register kStackTraceReg = EBX;
 };
 
 // ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,

@@ -250,6 +250,7 @@ void ObjectStore::InitKnownObjects() {
 
   String& function_name = String::Handle(zone);
   Function& function = Function::Handle(zone);
+  Field& field = Field::Handle(zone);
 
   function_name = async_lib.PrivateName(Symbols::AsyncStarMoveNextHelper());
   ASSERT(!function_name.IsNull());
@@ -296,6 +297,10 @@ void ObjectStore::InitKnownObjects() {
   function = cls.LookupFunctionAllowPrivate(Symbols::addStream());
   ASSERT(!function.IsNull());
   set_async_star_stream_controller_add_stream(function);
+
+  field = cls.LookupFieldAllowPrivate(Symbols::asyncStarBody());
+  ASSERT(!field.IsNull());
+  set_async_star_stream_controller_async_star_body(field);
 
   if (FLAG_async_debugger) {
     // Disable debugging and inlining of all functions on the

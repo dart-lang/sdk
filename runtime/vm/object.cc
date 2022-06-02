@@ -26055,18 +26055,35 @@ SuspendStatePtr SuspendState::New(intptr_t frame_size,
                                   const Instance& function_data,
                                   Heap::Space space) {
   SuspendState& result = SuspendState::Handle();
+  const intptr_t instance_size = SuspendState::InstanceSize(
+      frame_size + SuspendState::FrameSizeGrowthGap());
   {
-    ObjectPtr raw = Object::Allocate(
-        SuspendState::kClassId, SuspendState::InstanceSize(frame_size), space,
-        SuspendState::ContainsCompressedPointers());
+    ObjectPtr raw =
+        Object::Allocate(SuspendState::kClassId, instance_size, space,
+                         SuspendState::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // Include heap object alignment overhead into the frame capacity.
+    const intptr_t frame_capacity =
+        instance_size - SuspendState::payload_offset();
+    ASSERT(SuspendState::InstanceSize(frame_capacity) == instance_size);
+    ASSERT(frame_size <= frame_capacity);
+    result.set_frame_capacity(frame_capacity);
+#endif
     result.set_frame_size(frame_size);
     result.set_pc(0);
     result.set_function_data(function_data);
   }
   return result.ptr();
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+void SuspendState::set_frame_capacity(intptr_t frame_capcity) const {
+  ASSERT(frame_capcity >= 0);
+  StoreNonPointer(&untag()->frame_capacity_, frame_capcity);
+}
+#endif
 
 void SuspendState::set_frame_size(intptr_t frame_size) const {
   ASSERT(frame_size >= 0);
@@ -26094,8 +26111,10 @@ CodePtr SuspendState::GetCodeObject() const {
   ASSERT(code != Code::null());
   return code;
 #else
-  UNIMPLEMENTED();
-  return Code::null();
+  ObjectPtr code = *(reinterpret_cast<ObjectPtr*>(
+      untag()->payload() + untag()->frame_size_ +
+      runtime_frame_layout.code_from_fp * kWordSize));
+  return Code::RawCast(code);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 

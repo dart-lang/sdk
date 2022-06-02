@@ -529,7 +529,8 @@ struct InstrAttrs {
   M(Call1ArgStub, _)                                                           \
   M(LoadThread, kNoGC)                                                         \
   M(Deoptimize, kNoGC)                                                         \
-  M(SimdOp, kNoGC)
+  M(SimdOp, kNoGC)                                                             \
+  M(Suspend, _)
 
 #define FOR_EACH_ABSTRACT_INSTRUCTION(M)                                       \
   M(Allocation, _)                                                             \
@@ -9582,10 +9583,8 @@ class SimdOpInstr : public Definition {
 class Call1ArgStubInstr : public TemplateDefinition<1, Throws> {
  public:
   enum class StubId {
-    kAwait,
     kInitAsync,
     kInitAsyncStar,
-    kYieldAsyncStar,
   };
 
   Call1ArgStubInstr(const InstructionSource& source,
@@ -9605,6 +9604,9 @@ class Call1ArgStubInstr : public TemplateDefinition<1, Throws> {
   virtual bool CanCallDart() const { return true; }
   virtual bool ComputeCanDeoptimize() const { return true; }
   virtual bool HasUnknownSideEffects() const { return true; }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
+  }
 
   DECLARE_INSTRUCTION(Call1ArgStub);
   PRINT_OPERANDS_TO_SUPPORT
@@ -9614,6 +9616,49 @@ class Call1ArgStubInstr : public TemplateDefinition<1, Throws> {
   const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(Call1ArgStubInstr);
+};
+
+// Suspends execution using the suspend stub specified using [StubId].
+class SuspendInstr : public TemplateDefinition<1, Throws> {
+ public:
+  enum class StubId {
+    kAwait,
+    kYieldAsyncStar,
+  };
+
+  SuspendInstr(const InstructionSource& source,
+               StubId stub_id,
+               Value* operand,
+               intptr_t deopt_id,
+               intptr_t resume_deopt_id)
+      : TemplateDefinition(source, deopt_id),
+        stub_id_(stub_id),
+        resume_deopt_id_(resume_deopt_id),
+        token_pos_(source.token_pos) {
+    SetInputAt(0, operand);
+  }
+
+  Value* operand() const { return inputs_[0]; }
+  StubId stub_id() const { return stub_id_; }
+  intptr_t resume_deopt_id() const { return resume_deopt_id_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
+
+  virtual bool CanCallDart() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool HasUnknownSideEffects() const { return true; }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
+  }
+
+  DECLARE_INSTRUCTION(Suspend);
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  const StubId stub_id_;
+  const intptr_t resume_deopt_id_;
+  const TokenPosition token_pos_;
+
+  DISALLOW_COPY_AND_ASSIGN(SuspendInstr);
 };
 
 #undef DECLARE_INSTRUCTION

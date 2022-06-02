@@ -281,7 +281,6 @@ class IsolateGroupReloadContext {
   friend class Class;  // AddStaticFieldMapping, AddEnumBecomeMapping.
   friend class Library;
   friend class ObjectLocator;
-  friend class MarkFunctionsForRecompilation;  // IsDirty.
   friend class ReasonForCancelling;
   friend class ProgramReloadContext;
   friend class IsolateGroup;  // GetClassSizeForHeapWalkAt
@@ -356,6 +355,9 @@ class ProgramReloadContext {
       const GrowableArray<const KernelProgramInfo*>& kernel_infos);
   void InvalidateFunctions(Zone* zone,
                            const GrowableArray<const Function*>& functions);
+  void InvalidateSuspendStates(
+      Zone* zone,
+      const GrowableArray<const SuspendState*>& suspend_states);
   void InvalidateFields(Zone* zone,
                         const GrowableArray<const Field*>& fields,
                         const GrowableArray<const Instance*>& instances);
@@ -411,7 +413,6 @@ class ProgramReloadContext {
   friend class Class;  // AddStaticFieldMapping, AddEnumBecomeMapping.
   friend class Library;
   friend class ObjectLocator;
-  friend class MarkFunctionsForRecompilation;  // IsDirty.
   friend class ReasonForCancelling;
   friend class IsolateGroupReloadContext;
 };

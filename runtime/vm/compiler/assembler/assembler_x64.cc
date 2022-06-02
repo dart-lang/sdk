@@ -2069,7 +2069,7 @@ void Assembler::CheckCodePointer() {
     leaq(RAX, Address::AddressRIPRelative(-header_to_rip_offset));
     ASSERT(CodeSize() == (header_to_rip_offset - header_to_entry_offset));
   }
-  cmpq(RAX, FieldAddress(CODE_REG, target::Code::saved_instructions_offset()));
+  cmpq(RAX, FieldAddress(CODE_REG, target::Code::instructions_offset()));
   j(EQUAL, &instructions_ok);
   int3();
   Bind(&instructions_ok);

@@ -363,7 +363,8 @@ void FlowGraphCompiler::EmitPrologue() {
           slot_index == args_desc_slot ? ARGS_DESC_REG : NULL_REG;
       __ StoreToOffset(value_reg, FP, slot_index * kWordSize);
     }
-  } else if (parsed_function().suspend_state_var() != nullptr) {
+  } else if (parsed_function().suspend_state_var() != nullptr &&
+             !flow_graph().IsCompiledForOsr()) {
     // Initialize synthetic :suspend_state variable early
     // as it may be accessed by GC and exception handling before
     // InitSuspendableFunction stub is called.

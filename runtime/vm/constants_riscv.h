@@ -404,6 +404,7 @@ struct ResumeStubABI {
   // Registers for control transfer.
   // (the 2nd part, can reuse registers from the 1st part)
   static const Register kResumePcReg = T2;
+  // Can also reuse kSuspendStateReg but should not conflict with CODE_REG/PP.
   static const Register kExceptionReg = T3;
   static const Register kStackTraceReg = T4;
 };

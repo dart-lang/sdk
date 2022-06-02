@@ -62,6 +62,7 @@ namespace dart {
   V(LateFieldAssignedDuringInitializationError)                                \
   V(LateFieldNotInitializedError)                                              \
   V(CompileFunction)                                                           \
+  V(ResumeFrame)                                                               \
   V(SwitchableCallMiss)                                                        \
   V(NotLoaded)
 

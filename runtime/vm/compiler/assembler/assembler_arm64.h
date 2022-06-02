@@ -2121,6 +2121,10 @@ class Assembler : public AssemblerBase {
   void LeaveFrame();
   void Ret() { ret(); }
 
+  // Sets the return address to [value] as if there was a call.
+  // On ARM64 sets LR.
+  void SetReturnAddress(Register value);
+
   // Emit code to transition between generated mode and native mode.
   //
   // These require and ensure that CSP and SP are equal and aligned and require

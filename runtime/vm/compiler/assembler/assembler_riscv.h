@@ -1231,6 +1231,12 @@ class Assembler : public MicroAssembler {
   void LeaveFrame();
   void Ret() { ret(); }
 
+  // Sets the return address to [value] as if there was a call.
+  // On RISC-V sets RA.
+  void SetReturnAddress(Register value) {
+    mv(RA, value);
+  }
+
   // Emit code to transition between generated mode and native mode.
   //
   // These require and ensure that CSP and SP are equal and aligned and require

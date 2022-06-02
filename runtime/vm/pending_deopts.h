@@ -40,7 +40,9 @@ class PendingDeopts {
   uword FindPendingDeopt(uword fp);
   void ClearPendingDeoptsBelow(uword fp, ClearReason reason);
   void ClearPendingDeoptsAtOrBelow(uword fp, ClearReason reason);
-  uword RemapExceptionPCForDeopt(uword program_counter, uword frame_pointer);
+  uword RemapExceptionPCForDeopt(uword program_counter,
+                                 uword frame_pointer,
+                                 bool* clear_deopt);
 
  private:
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts_;

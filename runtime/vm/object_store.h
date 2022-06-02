@@ -180,6 +180,7 @@ class ObjectPointerVisitor;
   RW(Function, suspend_state_handle_exception)                                 \
   RW(Class, async_star_stream_controller)                                      \
   RW(Class, stream_class)                                                      \
+  RW(Field, async_star_stream_controller_async_star_body)                      \
   ARW_RELAXED(Smi, future_timeout_future_index)                                \
   ARW_RELAXED(Smi, future_wait_future_index)                                   \
   RW(CompressedStackMaps, canonicalized_stack_map_entries)                     \
