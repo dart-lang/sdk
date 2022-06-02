@@ -346,7 +346,13 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
   const Script& script = Script::Handle(this->script());
   if (!script.IsNull()) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    // Token position information is stripped in AOT snapshots, but the line
+    // number is still included.
+    jsobj.AddLocationLine(script, line());
+#else
     jsobj.AddLocation(script, token_pos(), end_token_pos());
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
   }
 
   if (ref) {

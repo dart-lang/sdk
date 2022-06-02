@@ -542,6 +542,16 @@ void JSONObject::AddLocation(const BreakpointLocation* bpt_loc) const {
   AddLocation(script, token_pos);
 }
 
+void JSONObject::AddLocationLine(const Script& script, intptr_t line) const {
+  JSONObject location(this, "location");
+  location.AddProperty("type", "SourceLocation");
+  location.AddProperty("script", script);
+  location.AddProperty("tokenPos", TokenPosition::kNoSource);
+  if (line > 0) {
+    location.AddProperty("line", line);
+  }
+}
+
 void JSONObject::AddUnresolvedLocation(
     const BreakpointLocation* bpt_loc) const {
   ASSERT(!bpt_loc->IsResolved());

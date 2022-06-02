@@ -1325,7 +1325,14 @@ class UntaggedFunction : public UntaggedObject {
   VISIT_TO(unoptimized_code);
 
   UnboxedParameterBitmap unboxed_parameters_info_;
+#endif
+
+#if !defined(DART_PRECOMPILED_RUNTIME) ||                                      \
+    (defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT))
   TokenPosition token_pos_;
+#endif
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   TokenPosition end_token_pos_;
 #endif
 
