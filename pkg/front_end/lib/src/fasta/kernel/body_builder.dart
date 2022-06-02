@@ -1197,9 +1197,42 @@ class BodyBuilder extends StackListenerImpl
     }
   }
 
+  List<Object>? createSuperParametersAsArguments(
+      List<FormalParameterBuilder> formals) {
+    List<Object>? superParametersAsArguments;
+    for (FormalParameterBuilder formal in formals) {
+      if (formal.isSuperInitializingFormal) {
+        if (formal.isNamed) {
+          (superParametersAsArguments ??= <Object>[]).add(new NamedExpression(
+              formal.name,
+              createVariableGet(formal.variable!, formal.charOffset,
+                  forNullGuardedAccess: false))
+            ..fileOffset = formal.charOffset);
+        } else {
+          (superParametersAsArguments ??= <Object>[]).add(createVariableGet(
+              formal.variable!, formal.charOffset,
+              forNullGuardedAccess: false));
+        }
+      }
+    }
+    return superParametersAsArguments;
+  }
+
   void finishFunction(
       FormalParameters? formals, AsyncMarker asyncModifier, Statement? body) {
     debugEvent("finishFunction");
+
+    // Create variable get expressions for super parameters before finishing
+    // the analysis of the assigned variables. Creating the expressions later
+    // that point results in a flow analysis error.
+    List<Object>? superParametersAsArguments;
+    if (formals != null) {
+      List<FormalParameterBuilder>? formalParameters = formals.parameters;
+      if (formalParameters != null) {
+        superParametersAsArguments =
+            createSuperParametersAsArguments(formalParameters);
+      }
+    }
     typeInferrer.assignedVariables.finish();
 
     final SourceFunctionBuilder builder = member as SourceFunctionBuilder;
@@ -1255,7 +1288,8 @@ class BodyBuilder extends StackListenerImpl
       }
     }
     if (builder is DeclaredSourceConstructorBuilder) {
-      finishConstructor(builder, asyncModifier, body);
+      finishConstructor(builder, asyncModifier, body,
+          superParametersAsArguments: superParametersAsArguments);
     } else if (builder is SourceProcedureBuilder) {
       builder.asyncModifier = asyncModifier;
     } else if (builder is SourceFactoryBuilder) {
@@ -1782,8 +1816,13 @@ class BodyBuilder extends StackListenerImpl
       handleNoInitializers();
     }
     if (doFinishConstructor) {
-      finishConstructor(
-          member as DeclaredSourceConstructorBuilder, AsyncMarker.Sync, null);
+      DeclaredSourceConstructorBuilder constructorBuilder =
+          member as DeclaredSourceConstructorBuilder;
+      List<FormalParameterBuilder>? formals = constructorBuilder.formals;
+      finishConstructor(constructorBuilder, AsyncMarker.Sync, null,
+          superParametersAsArguments: formals != null
+              ? createSuperParametersAsArguments(formals)
+              : null);
     }
     return _initializers;
   }
@@ -1825,11 +1864,51 @@ class BodyBuilder extends StackListenerImpl
   }
 
   void finishConstructor(DeclaredSourceConstructorBuilder builder,
-      AsyncMarker asyncModifier, Statement? body) {
+      AsyncMarker asyncModifier, Statement? body,
+      {required List<Object /* Expression | NamedExpression */ >?
+          superParametersAsArguments}) {
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](
     /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf).
     assert(builder == member);
+    assert(() {
+      if (superParametersAsArguments == null) {
+        return true;
+      }
+      for (Object superParameterAsArgument in superParametersAsArguments) {
+        if (superParameterAsArgument is! Expression &&
+            superParameterAsArgument is! NamedExpression) {
+          return false;
+        }
+      }
+      return true;
+    }(),
+        "Expected 'superParametersAsArguments' "
+        "to contain nothing but Expressions and NamedExpressions.");
+    assert(() {
+      if (superParametersAsArguments == null) {
+        return true;
+      }
+      int previousOffset = -1;
+      for (Object superParameterAsArgument in superParametersAsArguments) {
+        int offset;
+        if (superParameterAsArgument is Expression) {
+          offset = superParameterAsArgument.fileOffset;
+        } else if (superParameterAsArgument is NamedExpression) {
+          offset = superParameterAsArgument.value.fileOffset;
+        } else {
+          return false;
+        }
+        if (previousOffset > offset) {
+          return false;
+        }
+        previousOffset = offset;
+      }
+      return true;
+    }(),
+        "Expected 'superParametersAsArguments' "
+        "to be sorted by occurrence in file.");
+
     Constructor constructor = builder.actualConstructor;
     List<FormalParameterBuilder>? formals = builder.formals;
     if (formals != null) {
@@ -1839,26 +1918,45 @@ class BodyBuilder extends StackListenerImpl
       }
     }
 
+    Set<String>? namedSuperParameterNames;
     List<Expression>? positionalSuperParametersAsArguments;
     List<NamedExpression>? namedSuperParametersAsArguments;
-    Set<String>? namedSuperParameterNames;
-    if (formals != null) {
+    if (superParametersAsArguments != null) {
+      for (Object superParameterAsArgument in superParametersAsArguments) {
+        if (superParameterAsArgument is Expression) {
+          (positionalSuperParametersAsArguments ??= <Expression>[])
+              .add(superParameterAsArgument);
+        } else {
+          NamedExpression namedSuperParameterAsArgument =
+              superParameterAsArgument as NamedExpression;
+          (namedSuperParametersAsArguments ??= <NamedExpression>[])
+              .add(namedSuperParameterAsArgument);
+          (namedSuperParameterNames ??= <String>{})
+              .add(namedSuperParameterAsArgument.name);
+        }
+      }
+    } else if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
         if (formal.isSuperInitializingFormal) {
           if (formal.isNamed) {
-            (namedSuperParametersAsArguments ??= <NamedExpression>[]).add(
-                new NamedExpression(
-                    formal.name,
-                    new VariableGetImpl(formal.variable!,
-                        forNullGuardedAccess: false)
-                      ..fileOffset = formal.charOffset)
-                  ..fileOffset = formal.charOffset);
+            NamedExpression superParameterAsArgument = new NamedExpression(
+                formal.name,
+                createVariableGet(formal.variable!, formal.charOffset,
+                    forNullGuardedAccess: false))
+              ..fileOffset = formal.charOffset;
+            (namedSuperParametersAsArguments ??= <NamedExpression>[])
+                .add(superParameterAsArgument);
             (namedSuperParameterNames ??= <String>{}).add(formal.name);
+            (superParametersAsArguments ??= <Object>[])
+                .add(superParameterAsArgument);
           } else {
-            (positionalSuperParametersAsArguments ??= <Expression>[]).add(
-                new VariableGetImpl(formal.variable!,
-                    forNullGuardedAccess: false)
-                  ..fileOffset = formal.charOffset);
+            Expression superParameterAsArgument = createVariableGet(
+                formal.variable!, formal.charOffset,
+                forNullGuardedAccess: false);
+            (positionalSuperParametersAsArguments ??= <Expression>[])
+                .add(superParameterAsArgument);
+            (superParametersAsArguments ??= <Object>[])
+                .add(superParameterAsArgument);
           }
         }
       }
@@ -1901,6 +1999,10 @@ class BodyBuilder extends StackListenerImpl
             arguments.named.addAll(namedSuperParametersAsArguments);
             setParents(namedSuperParametersAsArguments, arguments);
             arguments.namedSuperParameterNames = namedSuperParameterNames;
+          }
+          if (superParametersAsArguments != null) {
+            arguments.argumentsOriginalOrder
+                ?.insertAll(0, superParametersAsArguments);
           }
         }
       } else if (initializers.last is RedirectingInitializer) {

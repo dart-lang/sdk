@@ -71,6 +71,7 @@ general/micro: RuntimeError
 general/mixin_application_override: TypeCheckError
 general/mixin_constructors_with_default_values: RuntimeError
 general/mixin_covariant2: RuntimeError
+general/named_parameters_super_and_not: TextSerializationFailure # Issue 47524.
 general/operator_method_not_found: RuntimeError
 general/optional: RuntimeError
 general/override_check_accessor_after_inference: TypeCheckError # Issue #31620
