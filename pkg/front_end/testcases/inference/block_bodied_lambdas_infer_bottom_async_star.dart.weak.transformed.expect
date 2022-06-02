@@ -2,70 +2,14 @@ library test;
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 import "dart:async";
 
-static method main() → dynamic /* futureValueType= dynamic */ /* originally async */ {
-  final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
-  core::bool* :is_sync = false;
-  dynamic :return_value;
-  (dynamic) →* dynamic :async_op_then;
-  (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
-  core::int* :await_jump_var = 0;
-  dynamic :await_ctx_var;
-  dynamic :saved_try_context_var0;
-  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
-    try {
-      #L1:
-      {
-        () →* asy::Stream<Null>* f = () → asy::Stream<Null>* /* originally async* */ {
-          asy::_AsyncStarStreamController<Null>* :controller;
-          dynamic :controller_stream;
-          (dynamic) →* dynamic :async_op_then;
-          (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
-          core::int* :await_jump_var = 0;
-          dynamic :await_ctx_var;
-          dynamic :saved_try_context_var0;
-          dynamic :saved_try_context_var1;
-          function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
-            try
-              try {
-                #L2:
-                {
-                  if(:controller.{asy::_AsyncStarStreamController::add}(null){(Null) → core::bool})
-                    return null;
-                  else
-                    [yield] null;
-                }
-                return;
-              }
-              on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
-                :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace){(core::Object, core::StackTrace) → void};
-              }
-            finally {
-              :controller.{asy::_AsyncStarStreamController::close}(){() → dynamic};
-            }
-          :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
-          :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-          :controller = new asy::_AsyncStarStreamController::•<Null>(:async_op);
-          :controller_stream = :controller.{asy::_AsyncStarStreamController::stream}{asy::Stream<Null>};
-          return :controller_stream;
-        };
-        asy::Stream<dynamic>* y = f(){() →* asy::Stream<Null>*};
-        asy::Stream<core::String*>* z = f(){() →* asy::Stream<Null>*};
-        [yield] let dynamic #t1 = asy::_awaitHelper(f(){() →* asy::Stream<Null>*}.{asy::Stream::first}{asy::Future<Null>*}, :async_op_then, :async_op_error) in null;
-        core::String* s = _in::unsafeCast<Null>(:result_or_exception);
-      }
-      asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
-      return;
-    }
-    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
-      asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
-    }
-  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
-  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_op(null, null){() →* dynamic};
-  :is_sync = true;
-  return :async_future;
+static method main() → dynamic async /* futureValueType= dynamic */ {
+  () →* asy::Stream<Null>* f = () → asy::Stream<Null>* async* {
+    yield null;
+  };
+  asy::Stream<dynamic>* y = f(){() →* asy::Stream<Null>*};
+  asy::Stream<core::String*>* z = f(){() →* asy::Stream<Null>*};
+  core::String* s = await f(){() →* asy::Stream<Null>*}.{asy::Stream::first}{asy::Future<Null>*};
 }

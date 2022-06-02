@@ -786,9 +786,7 @@ class TestTargetFlags extends TargetFlags {
       this.unsupportedDartLibraries: const {}})
       : super(
             trackWidgetCreation: trackWidgetCreation,
-            enableNullSafety: enableNullSafety,
-            // TODO(dartbug.com/48378): Enable compact async in CFE tests
-            compactAsync: false);
+            enableNullSafety: enableNullSafety);
 }
 
 mixin TestTargetMixin on Target {

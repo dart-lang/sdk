@@ -425,7 +425,6 @@ import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
 import "dart:async" as asy;
-import "dart:_internal" as _in;
 
 class A extends core::Object {
   synthetic constructor •() → self::A
@@ -1933,589 +1932,510 @@ static method testForElement(dynamic dynVar, core::List<core::int> listInt, core
       #t235.{core::Map::[]=}{Invariant}(i, i){(core::int, core::int) → void};
   } =>#t235;
 }
-static method testForElementErrors(core::Map<core::int, core::int> map, core::List<core::int> list) → dynamic /* futureValueType= dynamic */ /* originally async */ {
-  final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
-  core::bool* :is_sync = false;
-  dynamic :return_value;
-  (dynamic) → dynamic :async_op_then;
-  (core::Object, core::StackTrace) → dynamic :async_op_error;
-  core::int :await_jump_var = 0;
-  dynamic :await_ctx_var;
-  dynamic :saved_try_context_var0;
-  dynamic :saved_try_context_var1;
-  dynamic :exception0;
-  dynamic :stack_trace0;
-  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
-    try {
-      #L1:
-      {
-        block {
-          final core::List<core::int> #t236 = core::_GrowableList::•<core::int>(0);
-          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
-            #t236.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:210:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+static method testForElementErrors(core::Map<core::int, core::int> map, core::List<core::int> list) → dynamic async /* futureValueType= dynamic */ {
+  block {
+    final core::List<core::int> #t236 = core::_GrowableList::•<core::int>(0);
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
+      #t236.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:210:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>[for (int i = 0; oracle(\"foo\"); i++) \"bar\"];
                                             ^" in "bar" as{TypeError,ForNonNullableByDefault} core::int){(core::int) → void};
-        } =>#t236;
-        block {
-          final core::Set<core::int?> #t237 = new col::_CompactLinkedHashSet::•<core::int?>();
-          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
-            #t237.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:211:46: Error: A value of type 'String' can't be assigned to a variable of type 'int?'.
+  } =>#t236;
+  block {
+    final core::Set<core::int?> #t237 = new col::_CompactLinkedHashSet::•<core::int?>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
+      #t237.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:211:46: Error: A value of type 'String' can't be assigned to a variable of type 'int?'.
   <int?>{for (int i = 0; oracle(\"foo\"); i++) \"bar\", null};
                                              ^" in "bar" as{TypeError,ForNonNullableByDefault} core::int?){(core::int?) → core::bool};
-          #t237.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
-        } =>#t237;
-        block {
-          final core::Map<core::int, core::int?> #t238 = <core::int, core::int?>{};
-          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
-            #t238.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:212:51: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    #t237.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
+  } =>#t237;
+  block {
+    final core::Map<core::int, core::int?> #t238 = <core::int, core::int?>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
+      #t238.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:212:51: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int, int?>{for (int i = 0; oracle(\"foo\"); i++) \"bar\": \"bar\", \"baz\": null};
                                                   ^" in "bar" as{TypeError,ForNonNullableByDefault} core::int, invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:212:58: Error: A value of type 'String' can't be assigned to a variable of type 'int?'.
   <int, int?>{for (int i = 0; oracle(\"foo\"); i++) \"bar\": \"bar\", \"baz\": null};
                                                          ^" in "bar" as{TypeError,ForNonNullableByDefault} core::int?){(core::int, core::int?) → void};
-          #t238.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:212:65: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    #t238.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:212:65: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int, int?>{for (int i = 0; oracle(\"foo\"); i++) \"bar\": \"bar\", \"baz\": null};
                                                                 ^" in "baz" as{TypeError,ForNonNullableByDefault} core::int, null){(core::int, core::int?) → void};
-        } =>#t238;
-        block {
-          final core::List<core::int> #t239 = core::_GrowableList::•<core::int>(0);
-          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
-            #t239.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::int>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:213:49: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  } =>#t238;
+  block {
+    final core::List<core::int> #t239 = core::_GrowableList::•<core::int>(0);
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
+      #t239.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::int>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:213:49: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>[for (int i = 0; oracle(\"foo\"); i++) ...[\"bar\"]];
                                                 ^" in "bar" as{TypeError,ForNonNullableByDefault} core::int)){(core::Iterable<core::int>) → void};
-        } =>#t239;
-        block {
-          final core::Set<core::int?> #t240 = new col::_CompactLinkedHashSet::•<core::int?>();
-          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
-            #t240.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::int?>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:214:50: Error: A value of type 'String' can't be assigned to a variable of type 'int?'.
+  } =>#t239;
+  block {
+    final core::Set<core::int?> #t240 = new col::_CompactLinkedHashSet::•<core::int?>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
+      #t240.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::int?>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:214:50: Error: A value of type 'String' can't be assigned to a variable of type 'int?'.
   <int?>{for (int i = 0; oracle(\"foo\"); i++) ...[\"bar\"], null};
                                                  ^" in "bar" as{TypeError,ForNonNullableByDefault} core::int?)){(core::Iterable<core::int?>) → void};
-          #t240.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
-        } =>#t240;
-        block {
-          final core::Map<core::int, core::int?> #t241 = <core::int, core::int?>{};
-          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int}) {
-            core::Iterator<core::MapEntry<core::int, core::int?>> :sync-for-iterator = <core::int, core::int?>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:215:55: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    #t240.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
+  } =>#t240;
+  block {
+    final core::Map<core::int, core::int?> #t241 = <core::int, core::int?>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int}) {
+      core::Iterator<core::MapEntry<core::int, core::int?>> :sync-for-iterator = <core::int, core::int?>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:215:55: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int, int?>{for (int i = 0; oracle(\"foo\"); i++) ...{\"bar\": \"bar\"}, \"baz\": null};
                                                       ^" in "bar" as{TypeError,ForNonNullableByDefault} core::int: invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:215:62: Error: A value of type 'String' can't be assigned to a variable of type 'int?'.
   <int, int?>{for (int i = 0; oracle(\"foo\"); i++) ...{\"bar\": \"bar\"}, \"baz\": null};
                                                              ^" in "bar" as{TypeError,ForNonNullableByDefault} core::int?}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int?>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int, core::int?>>};
-            for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-              final core::MapEntry<core::int, core::int?> #t242 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int, core::int?>};
-              #t241.{core::Map::[]=}{Invariant}(#t242.{core::MapEntry::key}{core::int}, #t242.{core::MapEntry::value}{core::int?}){(core::int, core::int?) → void};
-            }
-          }
-          #t241.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:215:70: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::MapEntry<core::int, core::int?> #t242 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int, core::int?>};
+        #t241.{core::Map::[]=}{Invariant}(#t242.{core::MapEntry::key}{core::int}, #t242.{core::MapEntry::value}{core::int?}){(core::int, core::int?) → void};
+      }
+    }
+    #t241.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:215:70: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int, int?>{for (int i = 0; oracle(\"foo\"); i++) ...{\"bar\": \"bar\"}, \"baz\": null};
                                                                      ^" in "baz" as{TypeError,ForNonNullableByDefault} core::int, null){(core::int, core::int?) → void};
-        } =>#t241;
-        block {
-          final core::List<core::int> #t243 = core::_GrowableList::•<core::int>(0);
-          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
-            #t243.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:216:48: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+  } =>#t241;
+  block {
+    final core::List<core::int> #t243 = core::_GrowableList::•<core::int>(0);
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
+      #t243.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:216:48: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
  - 'Map' is from 'dart:core'.
   <int>[for (int i = 0; oracle(\"foo\"); i++) ...map];
                                                ^"){(core::int) → void};
-        } =>#t243;
-        block {
-          final core::Set<core::int?> #t244 = new col::_CompactLinkedHashSet::•<core::int?>();
-          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
-            #t244.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:217:49: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+  } =>#t243;
+  block {
+    final core::Set<core::int?> #t244 = new col::_CompactLinkedHashSet::•<core::int?>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
+      #t244.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:217:49: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
  - 'Map' is from 'dart:core'.
   <int?>{for (int i = 0; oracle(\"foo\"); i++) ...map, null};
                                                 ^"){(core::int?) → core::bool};
-          #t244.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
-        } =>#t244;
-        <core::int, core::int?>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:218:54: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+    #t244.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
+  } =>#t244;
+  <core::int, core::int?>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:218:54: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
  - 'List' is from 'dart:core'.
   <int, int?>{for (int i = 0; oracle(\"foo\"); i++) ...list, 42: null};
                                                      ^": null, invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:218:54: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
  - 'List' is from 'dart:core'.
   <int, int?>{for (int i = 0; oracle(\"foo\"); i++) ...list, 42: null};
                                                      ^": null};
-        block {
-          final core::List<core::String> #t245 = core::_GrowableList::•<core::String>(0);
-          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
-            if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
-              #t245.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:219:62: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  block {
+    final core::List<core::String> #t245 = core::_GrowableList::•<core::String>(0);
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
+      if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
+        #t245.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:219:62: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   <String>[for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else 3.14];
                                                              ^" in 42 as{TypeError,ForNonNullableByDefault} core::String){(core::String) → void};
-            else
-              #t245.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:219:70: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+      else
+        #t245.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:219:70: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
   <String>[for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else 3.14];
                                                                      ^" in 3.14 as{TypeError,ForNonNullableByDefault} core::String){(core::String) → void};
-        } =>#t245;
-        block {
-          final core::Set<core::String?> #t246 = new col::_CompactLinkedHashSet::•<core::String?>();
-          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
-            if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
-              #t246.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:220:63: Error: A value of type 'int' can't be assigned to a variable of type 'String?'.
+  } =>#t245;
+  block {
+    final core::Set<core::String?> #t246 = new col::_CompactLinkedHashSet::•<core::String?>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
+      if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
+        #t246.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:220:63: Error: A value of type 'int' can't be assigned to a variable of type 'String?'.
   <String?>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else 3.14, null};
                                                               ^" in 42 as{TypeError,ForNonNullableByDefault} core::String?){(core::String?) → core::bool};
-            else
-              #t246.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:220:71: Error: A value of type 'double' can't be assigned to a variable of type 'String?'.
+      else
+        #t246.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:220:71: Error: A value of type 'double' can't be assigned to a variable of type 'String?'.
   <String?>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else 3.14, null};
                                                                       ^" in 3.14 as{TypeError,ForNonNullableByDefault} core::String?){(core::String?) → core::bool};
-          #t246.{core::Set::add}{Invariant}(null){(core::String?) → core::bool};
-        } =>#t246;
-        block {
-          final core::Map<core::String, core::String?> #t247 = <core::String, core::String?>{};
-          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
-            if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
-              #t247.{core::Map::[]=}{Invariant}("bar", invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:221:78: Error: A value of type 'int' can't be assigned to a variable of type 'String?'.
+    #t246.{core::Set::add}{Invariant}(null){(core::String?) → core::bool};
+  } =>#t246;
+  block {
+    final core::Map<core::String, core::String?> #t247 = <core::String, core::String?>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
+      if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
+        #t247.{core::Map::[]=}{Invariant}("bar", invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:221:78: Error: A value of type 'int' can't be assigned to a variable of type 'String?'.
   <String, String?>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) \"bar\": 42 else \"bar\": 3.14, \"baz\": null};
                                                                              ^" in 42 as{TypeError,ForNonNullableByDefault} core::String?){(core::String, core::String?) → void};
-            else
-              #t247.{core::Map::[]=}{Invariant}("bar", invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:221:93: Error: A value of type 'double' can't be assigned to a variable of type 'String?'.
+      else
+        #t247.{core::Map::[]=}{Invariant}("bar", invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:221:93: Error: A value of type 'double' can't be assigned to a variable of type 'String?'.
   <String, String?>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) \"bar\": 42 else \"bar\": 3.14, \"baz\": null};
                                                                                             ^" in 3.14 as{TypeError,ForNonNullableByDefault} core::String?){(core::String, core::String?) → void};
-          #t247.{core::Map::[]=}{Invariant}("baz", null){(core::String, core::String?) → void};
-        } =>#t247;
-        block {
-          final core::List<core::int> #t248 = core::_GrowableList::•<core::int>(0);
-          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
-            if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
-              #t248.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:222:62: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+    #t247.{core::Map::[]=}{Invariant}("baz", null){(core::String, core::String?) → void};
+  } =>#t247;
+  block {
+    final core::List<core::int> #t248 = core::_GrowableList::•<core::int>(0);
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
+      if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
+        #t248.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:222:62: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
  - 'Map' is from 'dart:core'.
   <int>[for (int i = 0; oracle(\"foo\"); i++) if (oracle()) ...map else 42];
                                                              ^"){(core::int) → void};
-            else
-              #t248.{core::List::add}{Invariant}(42){(core::int) → void};
-        } =>#t248;
-        block {
-          final core::Set<core::int?> #t249 = new col::_CompactLinkedHashSet::•<core::int?>();
-          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
-            if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
-              #t249.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:223:63: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+      else
+        #t248.{core::List::add}{Invariant}(42){(core::int) → void};
+  } =>#t248;
+  block {
+    final core::Set<core::int?> #t249 = new col::_CompactLinkedHashSet::•<core::int?>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
+      if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
+        #t249.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:223:63: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
  - 'Map' is from 'dart:core'.
   <int?>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) ...map else 42, null};
                                                               ^"){(core::int?) → core::bool};
-            else
-              #t249.{core::Set::add}{Invariant}(42){(core::int?) → core::bool};
-          #t249.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
-        } =>#t249;
-        <core::String, core::int?>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:224:71: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+      else
+        #t249.{core::Set::add}{Invariant}(42){(core::int?) → core::bool};
+    #t249.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
+  } =>#t249;
+  <core::String, core::int?>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:224:71: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
  - 'List' is from 'dart:core'.
   <String, int?>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) ...list else \"bar\": 42, \"baz\": null};
                                                                       ^": null, invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:224:71: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
  - 'List' is from 'dart:core'.
   <String, int?>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) ...list else \"bar\": 42, \"baz\": null};
                                                                       ^": null};
-        block {
-          final core::List<core::int> #t250 = core::_GrowableList::•<core::int>(0);
-          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
-            if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
-              #t250.{core::List::add}{Invariant}(42){(core::int) → void};
-            else
-              #t250.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:225:70: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+  block {
+    final core::List<core::int> #t250 = core::_GrowableList::•<core::int>(0);
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
+      if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
+        #t250.{core::List::add}{Invariant}(42){(core::int) → void};
+      else
+        #t250.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:225:70: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
  - 'Map' is from 'dart:core'.
   <int>[for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else ...map];
                                                                      ^"){(core::int) → void};
-        } =>#t250;
-        block {
-          final core::Set<core::int?> #t251 = new col::_CompactLinkedHashSet::•<core::int?>();
-          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
-            if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
-              #t251.{core::Set::add}{Invariant}(42){(core::int?) → core::bool};
-            else
-              #t251.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:226:71: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+  } =>#t250;
+  block {
+    final core::Set<core::int?> #t251 = new col::_CompactLinkedHashSet::•<core::int?>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool; i = i.{core::num::+}(1){(core::num) → core::int})
+      if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool)
+        #t251.{core::Set::add}{Invariant}(42){(core::int?) → core::bool};
+      else
+        #t251.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:226:71: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
  - 'Map' is from 'dart:core'.
   <int?>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else ...map, null};
                                                                       ^"){(core::int?) → core::bool};
-          #t251.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
-        } =>#t251;
-        <core::String, core::int?>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:227:86: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+    #t251.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
+  } =>#t251;
+  <core::String, core::int?>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:227:86: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
  - 'List' is from 'dart:core'.
   <String, int?>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) \"bar\": 42 else ...list, \"baz\": null};
                                                                                      ^": null, invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:227:86: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
  - 'List' is from 'dart:core'.
   <String, int?>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) \"bar\": 42 else ...list, \"baz\": null};
                                                                                      ^": null};
-        final core::int i = 0;
-        block {
-          final core::List<core::int> #t252 = core::_GrowableList::•<core::int>(0);
-          {
-            core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-            for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-              final core::int #t253 = :sync-for-iterator.{core::Iterator::current}{core::int};
-              {
-                invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:230:14: Error: Can't assign to the final variable 'i'.
+  final core::int i = 0;
+  block {
+    final core::List<core::int> #t252 = core::_GrowableList::•<core::int>(0);
+    {
+      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t253 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:230:14: Error: Can't assign to the final variable 'i'.
   <int>[for (i in <int>[1]) i];
              ^";
-                #t252.{core::List::add}{Invariant}(i){(core::int) → void};
-              }
-            }
-          }
-        } =>#t252;
-        block {
-          final core::Set<core::int?> #t254 = new col::_CompactLinkedHashSet::•<core::int?>();
-          {
-            core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-            for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-              final core::int #t255 = :sync-for-iterator.{core::Iterator::current}{core::int};
-              {
-                invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:231:15: Error: Can't assign to the final variable 'i'.
+          #t252.{core::List::add}{Invariant}(i){(core::int) → void};
+        }
+      }
+    }
+  } =>#t252;
+  block {
+    final core::Set<core::int?> #t254 = new col::_CompactLinkedHashSet::•<core::int?>();
+    {
+      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t255 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:231:15: Error: Can't assign to the final variable 'i'.
   <int?>{for (i in <int>[1]) i, null};
               ^";
-                #t254.{core::Set::add}{Invariant}(i){(core::int?) → core::bool};
-              }
-            }
-          }
-          #t254.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
-        } =>#t254;
-        block {
-          final core::Map<core::String, core::int?> #t256 = <core::String, core::int?>{};
-          {
-            core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-            for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-              final core::int #t257 = :sync-for-iterator.{core::Iterator::current}{core::int};
-              {
-                invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:232:23: Error: Can't assign to the final variable 'i'.
+          #t254.{core::Set::add}{Invariant}(i){(core::int?) → core::bool};
+        }
+      }
+    }
+    #t254.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
+  } =>#t254;
+  block {
+    final core::Map<core::String, core::int?> #t256 = <core::String, core::int?>{};
+    {
+      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t257 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:232:23: Error: Can't assign to the final variable 'i'.
   <String, int?>{for (i in <int>[1]) \"bar\": i, \"baz\": null};
                       ^";
-                #t256.{core::Map::[]=}{Invariant}("bar", i){(core::String, core::int?) → void};
-              }
-            }
-          }
-          #t256.{core::Map::[]=}{Invariant}("baz", null){(core::String, core::int?) → void};
-        } =>#t256;
-        core::List<dynamic> list10 = block {
-          final core::List<dynamic> #t258 = core::_GrowableList::•<dynamic>(0);
-          {
-            core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:234:31: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+          #t256.{core::Map::[]=}{Invariant}("bar", i){(core::String, core::int?) → void};
+        }
+      }
+    }
+    #t256.{core::Map::[]=}{Invariant}("baz", null){(core::String, core::int?) → void};
+  } =>#t256;
+  core::List<dynamic> list10 = block {
+    final core::List<dynamic> #t258 = core::_GrowableList::•<dynamic>(0);
+    {
+      core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:234:31: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   var list10 = [for (var i in \"not iterable\") i];
                               ^" in "not iterable" as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
-            for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-              dynamic i = :sync-for-iterator.{core::Iterator::current}{Never};
-              #t258.{core::List::add}{Invariant}(i){(dynamic) → void};
-            }
-          }
-        } =>#t258;
-        core::Set<dynamic> set10 = block {
-          final core::Set<dynamic> #t259 = new col::_CompactLinkedHashSet::•<dynamic>();
-          {
-            core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:235:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic i = :sync-for-iterator.{core::Iterator::current}{Never};
+        #t258.{core::List::add}{Invariant}(i){(dynamic) → void};
+      }
+    }
+  } =>#t258;
+  core::Set<dynamic> set10 = block {
+    final core::Set<dynamic> #t259 = new col::_CompactLinkedHashSet::•<dynamic>();
+    {
+      core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:235:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   var set10 = {for (var i in \"not iterable\") i, null};
                              ^" in "not iterable" as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
-            for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-              dynamic i = :sync-for-iterator.{core::Iterator::current}{Never};
-              #t259.{core::Set::add}{Invariant}(i){(dynamic) → core::bool};
-            }
-          }
-          #t259.{core::Set::add}{Invariant}(null){(dynamic) → core::bool};
-        } =>#t259;
-        core::Map<core::String, dynamic> map10 = block {
-          final core::Map<core::String, dynamic> #t260 = <core::String, dynamic>{};
-          {
-            core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:236:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic i = :sync-for-iterator.{core::Iterator::current}{Never};
+        #t259.{core::Set::add}{Invariant}(i){(dynamic) → core::bool};
+      }
+    }
+    #t259.{core::Set::add}{Invariant}(null){(dynamic) → core::bool};
+  } =>#t259;
+  core::Map<core::String, dynamic> map10 = block {
+    final core::Map<core::String, dynamic> #t260 = <core::String, dynamic>{};
+    {
+      core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:236:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   var map10 = {for (var i in \"not iterable\") \"bar\": i, \"baz\": null};
                              ^" in "not iterable" as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
-            for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-              dynamic i = :sync-for-iterator.{core::Iterator::current}{Never};
-              #t260.{core::Map::[]=}{Invariant}("bar", i){(core::String, dynamic) → void};
-            }
-          }
-          #t260.{core::Map::[]=}{Invariant}("baz", null){(core::String, dynamic) → void};
-        } =>#t260;
-        core::List<core::int> list20 = block {
-          final core::List<core::int> #t261 = core::_GrowableList::•<core::int>(0);
-          {
-            core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal2<core::int>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:237:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic i = :sync-for-iterator.{core::Iterator::current}{Never};
+        #t260.{core::Map::[]=}{Invariant}("bar", i){(core::String, dynamic) → void};
+      }
+    }
+    #t260.{core::Map::[]=}{Invariant}("baz", null){(core::String, dynamic) → void};
+  } =>#t260;
+  core::List<core::int> list20 = block {
+    final core::List<core::int> #t261 = core::_GrowableList::•<core::int>(0);
+    {
+      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal2<core::int>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:237:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var list20 = [for (int i in [\"not\", \"int\"]) i];
                                ^" in "not" as{TypeError,ForNonNullableByDefault} core::int, invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:237:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var list20 = [for (int i in [\"not\", \"int\"]) i];
                                       ^" in "int" as{TypeError,ForNonNullableByDefault} core::int).{core::Iterable::iterator}{core::Iterator<core::int>};
-            for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-              core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
-              #t261.{core::List::add}{Invariant}(i){(core::int) → void};
-            }
-          }
-        } =>#t261;
-        core::Set<core::int?> set20 = block {
-          final core::Set<core::int?> #t262 = new col::_CompactLinkedHashSet::•<core::int?>();
-          {
-            core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal2<core::int>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:238:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
+        #t261.{core::List::add}{Invariant}(i){(core::int) → void};
+      }
+    }
+  } =>#t261;
+  core::Set<core::int?> set20 = block {
+    final core::Set<core::int?> #t262 = new col::_CompactLinkedHashSet::•<core::int?>();
+    {
+      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal2<core::int>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:238:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var set20 = {for (int i in [\"not\", \"int\"]) i, null};
                               ^" in "not" as{TypeError,ForNonNullableByDefault} core::int, invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:238:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var set20 = {for (int i in [\"not\", \"int\"]) i, null};
                                      ^" in "int" as{TypeError,ForNonNullableByDefault} core::int).{core::Iterable::iterator}{core::Iterator<core::int>};
-            for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-              core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
-              #t262.{core::Set::add}{Invariant}(i){(core::int?) → core::bool};
-            }
-          }
-          #t262.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
-        } =>#t262;
-        core::Map<core::String, core::int?> map20 = block {
-          final core::Map<core::String, core::int?> #t263 = <core::String, core::int?>{};
-          {
-            core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal2<core::int>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:239:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
+        #t262.{core::Set::add}{Invariant}(i){(core::int?) → core::bool};
+      }
+    }
+    #t262.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
+  } =>#t262;
+  core::Map<core::String, core::int?> map20 = block {
+    final core::Map<core::String, core::int?> #t263 = <core::String, core::int?>{};
+    {
+      core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal2<core::int>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:239:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var map20 = {for (int i in [\"not\", \"int\"]) \"bar\": i, \"baz\": null};
                               ^" in "not" as{TypeError,ForNonNullableByDefault} core::int, invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:239:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var map20 = {for (int i in [\"not\", \"int\"]) \"bar\": i, \"baz\": null};
                                      ^" in "int" as{TypeError,ForNonNullableByDefault} core::int).{core::Iterable::iterator}{core::Iterator<core::int>};
-            for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-              core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
-              #t263.{core::Map::[]=}{Invariant}("bar", i){(core::String, core::int?) → void};
-            }
-          }
-          #t263.{core::Map::[]=}{Invariant}("baz", null){(core::String, core::int?) → void};
-        } =>#t263;
-        final core::List<dynamic> #t264 = core::_GrowableList::•<dynamic>(0);
-        {
-          Never :stream = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:240:37: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
+        #t263.{core::Map::[]=}{Invariant}("bar", i){(core::String, core::int?) → void};
+      }
+    }
+    #t263.{core::Map::[]=}{Invariant}("baz", null){(core::String, core::int?) → void};
+  } =>#t263;
+  core::List<dynamic> list30 = block {
+    final core::List<dynamic> #t264 = core::_GrowableList::•<dynamic>(0);
+    {
+      Never :stream = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:240:37: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   var list30 = [await for (var i in \"not stream\") i];
                                     ^" in "not stream" as{TypeError,ForNonNullableByDefault} asy::Stream<dynamic>;
-          asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
-          try
-            #L2:
-            while (true) {
-              dynamic #t265 = asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t266 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error) in null;
-              if(_in::unsafeCast<core::bool>(:result_or_exception)) {
-                dynamic i = :for-iterator.{asy::_StreamIterator::current}{dynamic};
-                #t264.{core::List::add}{Invariant}(i){(dynamic) → void};
-              }
-              else
-                break #L2;
-            }
-          finally
-            if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<dynamic>?} == null)) {
-              [yield] let dynamic #t267 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error) in null;
-              :result_or_exception;
-            }
+      asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+      try
+        while (let dynamic #t265 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
+          dynamic i = :for-iterator.{asy::_StreamIterator::current}{dynamic};
+          #t264.{core::List::add}{Invariant}(i){(dynamic) → void};
         }
-        core::List<dynamic> list30 = block {} =>#t264;
-        final core::Set<dynamic> #t268 = new col::_CompactLinkedHashSet::•<dynamic>();
-        {
-          Never :stream = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:241:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+      finally
+        if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<dynamic>?} == null))
+          await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
+    }
+  } =>#t264;
+  core::Set<dynamic> set30 = block {
+    final core::Set<dynamic> #t266 = new col::_CompactLinkedHashSet::•<dynamic>();
+    {
+      Never :stream = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:241:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   var set30 = {await for (var i in \"not stream\") i, null};
                                    ^" in "not stream" as{TypeError,ForNonNullableByDefault} asy::Stream<dynamic>;
-          asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
-          try
-            #L3:
-            while (true) {
-              dynamic #t269 = asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t270 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error) in null;
-              if(_in::unsafeCast<core::bool>(:result_or_exception)) {
-                dynamic i = :for-iterator.{asy::_StreamIterator::current}{dynamic};
-                #t268.{core::Set::add}{Invariant}(i){(dynamic) → core::bool};
-              }
-              else
-                break #L3;
-            }
-          finally
-            if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<dynamic>?} == null)) {
-              [yield] let dynamic #t271 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error) in null;
-              :result_or_exception;
-            }
+      asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+      try
+        while (let dynamic #t267 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
+          dynamic i = :for-iterator.{asy::_StreamIterator::current}{dynamic};
+          #t266.{core::Set::add}{Invariant}(i){(dynamic) → core::bool};
         }
-        core::Set<dynamic> set30 = block {
-          #t268.{core::Set::add}{Invariant}(null){(dynamic) → core::bool};
-        } =>#t268;
-        final core::Map<core::String, dynamic> #t272 = <core::String, dynamic>{};
-        {
-          Never :stream = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:242:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+      finally
+        if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<dynamic>?} == null))
+          await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
+    }
+    #t266.{core::Set::add}{Invariant}(null){(dynamic) → core::bool};
+  } =>#t266;
+  core::Map<core::String, dynamic> map30 = block {
+    final core::Map<core::String, dynamic> #t268 = <core::String, dynamic>{};
+    {
+      Never :stream = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:242:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   var map30 = {await for (var i in \"not stream\") \"bar\": i, \"baz\": null};
                                    ^" in "not stream" as{TypeError,ForNonNullableByDefault} asy::Stream<dynamic>;
-          asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
-          try
-            #L4:
-            while (true) {
-              dynamic #t273 = asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t274 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error) in null;
-              if(_in::unsafeCast<core::bool>(:result_or_exception)) {
-                dynamic i = :for-iterator.{asy::_StreamIterator::current}{dynamic};
-                #t272.{core::Map::[]=}{Invariant}("bar", i){(core::String, dynamic) → void};
-              }
-              else
-                break #L4;
-            }
-          finally
-            if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<dynamic>?} == null)) {
-              [yield] let dynamic #t275 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error) in null;
-              :result_or_exception;
-            }
+      asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+      try
+        while (let dynamic #t269 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
+          dynamic i = :for-iterator.{asy::_StreamIterator::current}{dynamic};
+          #t268.{core::Map::[]=}{Invariant}("bar", i){(core::String, dynamic) → void};
         }
-        core::Map<core::String, dynamic> map30 = block {
-          #t272.{core::Map::[]=}{Invariant}("baz", null){(core::String, dynamic) → void};
-        } =>#t272;
-        final core::List<core::int> #t276 = core::_GrowableList::•<core::int>(0);
-        {
-          asy::Stream<core::int> :stream = asy::Stream::fromIterable<core::int>(core::_GrowableList::_literal2<core::int>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:243:58: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      finally
+        if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<dynamic>?} == null))
+          await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
+    }
+    #t268.{core::Map::[]=}{Invariant}("baz", null){(core::String, dynamic) → void};
+  } =>#t268;
+  core::List<core::int> list40 = block {
+    final core::List<core::int> #t270 = core::_GrowableList::•<core::int>(0);
+    {
+      asy::Stream<core::int> :stream = asy::Stream::fromIterable<core::int>(core::_GrowableList::_literal2<core::int>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:243:58: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var list40 = [await for (int i in Stream.fromIterable([\"not\", \"int\"])) i];
                                                          ^" in "not" as{TypeError,ForNonNullableByDefault} core::int, invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:243:65: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var list40 = [await for (int i in Stream.fromIterable([\"not\", \"int\"])) i];
                                                                 ^" in "int" as{TypeError,ForNonNullableByDefault} core::int));
-          asy::_StreamIterator<core::int>? :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
-          try
-            #L5:
-            while (true) {
-              dynamic #t277 = asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t278 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error) in null;
-              if(_in::unsafeCast<core::bool>(:result_or_exception)) {
-                core::int i = :for-iterator.{asy::_StreamIterator::current}{core::int};
-                #t276.{core::List::add}{Invariant}(i){(core::int) → void};
-              }
-              else
-                break #L5;
-            }
-          finally
-            if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<core::int>?} == null)) {
-              [yield] let dynamic #t279 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error) in null;
-              :result_or_exception;
-            }
+      asy::_StreamIterator<core::int>? :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
+      try
+        while (let dynamic #t271 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
+          core::int i = :for-iterator.{asy::_StreamIterator::current}{core::int};
+          #t270.{core::List::add}{Invariant}(i){(core::int) → void};
         }
-        core::List<core::int> list40 = block {} =>#t276;
-        final core::Set<core::int?> #t280 = new col::_CompactLinkedHashSet::•<core::int?>();
-        {
-          asy::Stream<core::int> :stream = asy::Stream::fromIterable<core::int>(core::_GrowableList::_literal2<core::int>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:244:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      finally
+        if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<core::int>?} == null))
+          await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
+    }
+  } =>#t270;
+  core::Set<core::int?> set40 = block {
+    final core::Set<core::int?> #t272 = new col::_CompactLinkedHashSet::•<core::int?>();
+    {
+      asy::Stream<core::int> :stream = asy::Stream::fromIterable<core::int>(core::_GrowableList::_literal2<core::int>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:244:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var set40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) i, null};
                                                         ^" in "not" as{TypeError,ForNonNullableByDefault} core::int, invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:244:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var set40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) i, null};
                                                                ^" in "int" as{TypeError,ForNonNullableByDefault} core::int));
-          asy::_StreamIterator<core::int>? :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
-          try
-            #L6:
-            while (true) {
-              dynamic #t281 = asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t282 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error) in null;
-              if(_in::unsafeCast<core::bool>(:result_or_exception)) {
-                core::int i = :for-iterator.{asy::_StreamIterator::current}{core::int};
-                #t280.{core::Set::add}{Invariant}(i){(core::int?) → core::bool};
-              }
-              else
-                break #L6;
-            }
-          finally
-            if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<core::int>?} == null)) {
-              [yield] let dynamic #t283 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error) in null;
-              :result_or_exception;
-            }
+      asy::_StreamIterator<core::int>? :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
+      try
+        while (let dynamic #t273 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
+          core::int i = :for-iterator.{asy::_StreamIterator::current}{core::int};
+          #t272.{core::Set::add}{Invariant}(i){(core::int?) → core::bool};
         }
-        core::Set<core::int?> set40 = block {
-          #t280.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
-        } =>#t280;
-        final core::Map<core::String, core::int?> #t284 = <core::String, core::int?>{};
-        {
-          asy::Stream<core::int> :stream = asy::Stream::fromIterable<core::int>(core::_GrowableList::_literal2<core::int>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:245:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      finally
+        if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<core::int>?} == null))
+          await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
+    }
+    #t272.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
+  } =>#t272;
+  core::Map<core::String, core::int?> map40 = block {
+    final core::Map<core::String, core::int?> #t274 = <core::String, core::int?>{};
+    {
+      asy::Stream<core::int> :stream = asy::Stream::fromIterable<core::int>(core::_GrowableList::_literal2<core::int>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:245:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var map40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) \"bar\": i, \"baz\": null};
                                                         ^" in "not" as{TypeError,ForNonNullableByDefault} core::int, invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:245:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var map40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) \"bar\": i, \"baz\": null};
                                                                ^" in "int" as{TypeError,ForNonNullableByDefault} core::int));
-          asy::_StreamIterator<core::int>? :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
-          try
-            #L7:
-            while (true) {
-              dynamic #t285 = asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t286 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error) in null;
-              if(_in::unsafeCast<core::bool>(:result_or_exception)) {
-                core::int i = :for-iterator.{asy::_StreamIterator::current}{core::int};
-                #t284.{core::Map::[]=}{Invariant}("bar", i){(core::String, core::int?) → void};
-              }
-              else
-                break #L7;
-            }
-          finally
-            if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<core::int>?} == null)) {
-              [yield] let dynamic #t287 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error) in null;
-              :result_or_exception;
-            }
+      asy::_StreamIterator<core::int>? :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
+      try
+        while (let dynamic #t275 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
+          core::int i = :for-iterator.{asy::_StreamIterator::current}{core::int};
+          #t274.{core::Map::[]=}{Invariant}("bar", i){(core::String, core::int?) → void};
         }
-        core::Map<core::String, core::int?> map40 = block {
-          #t284.{core::Map::[]=}{Invariant}("baz", null){(core::String, core::int?) → void};
-        } =>#t284;
-        core::List<core::int> list50 = block {
-          final core::List<core::int> #t288 = core::_GrowableList::•<core::int>(0);
-          for (; ; )
-            #t288.{core::List::add}{Invariant}(42){(core::int) → void};
-        } =>#t288;
-        core::Set<core::int?> set50 = block {
-          final core::Set<core::int?> #t289 = new col::_CompactLinkedHashSet::•<core::int?>();
-          for (; ; )
-            #t289.{core::Set::add}{Invariant}(42){(core::int?) → core::bool};
-          #t289.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
-        } =>#t289;
-        core::Map<core::String, core::int?> map50 = block {
-          final core::Map<core::String, core::int?> #t290 = <core::String, core::int?>{};
-          for (; ; )
-            #t290.{core::Map::[]=}{Invariant}("bar", 42){(core::String, core::int?) → void};
-          #t290.{core::Map::[]=}{Invariant}("baz", null){(core::String, core::int?) → void};
-        } =>#t290;
-        core::List<core::int> list60 = block {
-          final core::List<core::int> #t291 = core::_GrowableList::•<core::int>(0);
-          for (; invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:249:24: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
+      finally
+        if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<core::int>?} == null))
+          await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
+    }
+    #t274.{core::Map::[]=}{Invariant}("baz", null){(core::String, core::int?) → void};
+  } =>#t274;
+  core::List<core::int> list50 = block {
+    final core::List<core::int> #t276 = core::_GrowableList::•<core::int>(0);
+    for (; ; )
+      #t276.{core::List::add}{Invariant}(42){(core::int) → void};
+  } =>#t276;
+  core::Set<core::int?> set50 = block {
+    final core::Set<core::int?> #t277 = new col::_CompactLinkedHashSet::•<core::int?>();
+    for (; ; )
+      #t277.{core::Set::add}{Invariant}(42){(core::int?) → core::bool};
+    #t277.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
+  } =>#t277;
+  core::Map<core::String, core::int?> map50 = block {
+    final core::Map<core::String, core::int?> #t278 = <core::String, core::int?>{};
+    for (; ; )
+      #t278.{core::Map::[]=}{Invariant}("bar", 42){(core::String, core::int?) → void};
+    #t278.{core::Map::[]=}{Invariant}("baz", null){(core::String, core::int?) → void};
+  } =>#t278;
+  core::List<core::int> list60 = block {
+    final core::List<core::int> #t279 = core::_GrowableList::•<core::int>(0);
+    for (; invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:249:24: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
   var list60 = [for (; \"not bool\";) 42];
                        ^" in "not bool" as{TypeError,ForNonNullableByDefault} core::bool; )
-            #t291.{core::List::add}{Invariant}(42){(core::int) → void};
-        } =>#t291;
-        core::Set<core::int?> set60 = block {
-          final core::Set<core::int?> #t292 = new col::_CompactLinkedHashSet::•<core::int?>();
-          for (; invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:250:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
+      #t279.{core::List::add}{Invariant}(42){(core::int) → void};
+  } =>#t279;
+  core::Set<core::int?> set60 = block {
+    final core::Set<core::int?> #t280 = new col::_CompactLinkedHashSet::•<core::int?>();
+    for (; invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:250:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
   var set60 = {for (; \"not bool\";) 42, null};
                       ^" in "not bool" as{TypeError,ForNonNullableByDefault} core::bool; )
-            #t292.{core::Set::add}{Invariant}(42){(core::int?) → core::bool};
-          #t292.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
-        } =>#t292;
-        core::Map<core::String, core::int?> map60 = block {
-          final core::Map<core::String, core::int?> #t293 = <core::String, core::int?>{};
-          for (; invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:251:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
+      #t280.{core::Set::add}{Invariant}(42){(core::int?) → core::bool};
+    #t280.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
+  } =>#t280;
+  core::Map<core::String, core::int?> map60 = block {
+    final core::Map<core::String, core::int?> #t281 = <core::String, core::int?>{};
+    for (; invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference2.dart:251:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
   var map60 = {for (; \"not bool\";) \"bar\": 42, \"baz\": null};
                       ^" in "not bool" as{TypeError,ForNonNullableByDefault} core::bool; )
-            #t293.{core::Map::[]=}{Invariant}("bar", 42){(core::String, core::int?) → void};
-          #t293.{core::Map::[]=}{Invariant}("baz", null){(core::String, core::int?) → void};
-        } =>#t293;
-      }
-      asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
-      return;
-    }
-    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
-      asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
-    }
-  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
-  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_op(null, null){() → dynamic};
-  :is_sync = true;
-  return :async_future;
+      #t281.{core::Map::[]=}{Invariant}("bar", 42){(core::String, core::int?) → void};
+    #t281.{core::Map::[]=}{Invariant}("baz", null){(core::String, core::int?) → void};
+  } =>#t281;
 }
 static method testForElementErrorsNotAsync(asy::Stream<core::int> stream) → dynamic {
   block {
-    final core::List<core::int> #t294 = core::_GrowableList::•<core::int>(0);
+    final core::List<core::int> #t282 = core::_GrowableList::•<core::int>(0);
     await for (core::int i in stream)
-      #t294.{core::List::add}{Invariant}(i){(core::int) → void};
-  } =>#t294;
+      #t282.{core::List::add}{Invariant}(i){(core::int) → void};
+  } =>#t282;
   block {
-    final core::Set<core::int> #t295 = new col::_CompactLinkedHashSet::•<core::int>();
+    final core::Set<core::int> #t283 = new col::_CompactLinkedHashSet::•<core::int>();
     await for (core::int i in stream)
-      #t295.{core::Set::add}{Invariant}(i){(core::int) → core::bool};
-  } =>#t295;
+      #t283.{core::Set::add}{Invariant}(i){(core::int) → core::bool};
+  } =>#t283;
   block {
-    final core::Map<core::String, core::int> #t296 = <core::String, core::int>{};
+    final core::Map<core::String, core::int> #t284 = <core::String, core::int>{};
     await for (core::int i in stream)
-      #t296.{core::Map::[]=}{Invariant}("bar", i){(core::String, core::int) → void};
-  } =>#t296;
+      #t284.{core::Map::[]=}{Invariant}("bar", i){(core::String, core::int) → void};
+  } =>#t284;
 }
 static method testPromotion(self::A a) → dynamic {
   core::List<core::int> list10 = block {
-    final core::List<core::int> #t297 = core::_GrowableList::•<core::int>(0);
+    final core::List<core::int> #t285 = core::_GrowableList::•<core::int>(0);
     if(a is{ForNonNullableByDefault} self::B)
-      #t297.{core::List::add}{Invariant}(a{self::B}.{self::B::foo}{core::int}){(core::int) → void};
-  } =>#t297;
+      #t285.{core::List::add}{Invariant}(a{self::B}.{self::B::foo}{core::int}){(core::int) → void};
+  } =>#t285;
   core::Set<core::int> set10 = block {
-    final core::Set<core::int> #t298 = new col::_CompactLinkedHashSet::•<core::int>();
+    final core::Set<core::int> #t286 = new col::_CompactLinkedHashSet::•<core::int>();
     if(a is{ForNonNullableByDefault} self::B)
-      #t298.{core::Set::add}{Invariant}(a{self::B}.{self::B::foo}{core::int}){(core::int) → core::bool};
-  } =>#t298;
+      #t286.{core::Set::add}{Invariant}(a{self::B}.{self::B::foo}{core::int}){(core::int) → core::bool};
+  } =>#t286;
   core::Map<core::int, core::int> map10 = block {
-    final core::Map<core::int, core::int> #t299 = <core::int, core::int>{};
+    final core::Map<core::int, core::int> #t287 = <core::int, core::int>{};
     if(a is{ForNonNullableByDefault} self::B)
-      #t299.{core::Map::[]=}{Invariant}(a{self::B}.{self::B::foo}{core::int}, a{self::B}.{self::B::foo}{core::int}){(core::int, core::int) → void};
-  } =>#t299;
+      #t287.{core::Map::[]=}{Invariant}(a{self::B}.{self::B::foo}{core::int}, a{self::B}.{self::B::foo}{core::int}){(core::int, core::int) → void};
+  } =>#t287;
 }
 static method main() → dynamic {}
 

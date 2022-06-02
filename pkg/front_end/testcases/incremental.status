@@ -10,7 +10,6 @@
 changing_modules_16: Crash
 late_lowering: EquivalenceError
 constant_fileoffset_and_typedef: EquivalenceError
-no_change_but_changed_type: EquivalenceError
 no_such_method_forwarder: EquivalenceError
 no_change_but_changed_type_02: EquivalenceError
 changing_nullability_on_recompile: EquivalenceError
