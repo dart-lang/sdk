@@ -67,6 +67,7 @@ import 'rules/depend_on_referenced_packages.dart';
 import 'rules/deprecated_consistency.dart';
 import 'rules/diagnostic_describe_all_properties.dart';
 import 'rules/directives_ordering.dart';
+import 'rules/discarded_futures.dart';
 import 'rules/do_not_use_environment.dart';
 import 'rules/empty_catches.dart';
 import 'rules/empty_constructor_bodies.dart';
@@ -279,6 +280,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(DeprecatedConsistency())
     ..register(DiagnosticsDescribeAllProperties())
     ..register(DirectivesOrdering())
+    ..register(DiscardedFutures())
     ..register(DoNotUseEnvironment())
     ..register(EmptyCatches())
     ..register(EmptyConstructorBodies())
