@@ -150,7 +150,7 @@ abstract class num implements Comparable<num> {
   /// print(5 % -3); // 2
   /// print(-5 % -3); // 1
   /// ```
- num operator %(num other);
+  num operator %(num other);
 
   /// Divides this number by [other].
   double operator /(num other);

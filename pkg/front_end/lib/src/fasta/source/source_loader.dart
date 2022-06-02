@@ -52,7 +52,6 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/modifier_builder.dart';
 import '../builder/named_type_builder.dart';
-import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
@@ -1208,7 +1207,7 @@ severity: $severity
     ProcedureBuilder builder = new SourceProcedureBuilder(
         /* metadata = */ null,
         /* modifier flags = */ 0,
-        const OmittedTypeBuilder(),
+        libraryBuilder.addInferableType(),
         "debugExpr",
         /* type variables = */ null,
         /* formals = */ null,

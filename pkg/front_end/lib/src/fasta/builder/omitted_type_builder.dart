@@ -11,8 +11,6 @@ import 'nullability_builder.dart';
 import 'type_builder.dart';
 
 class OmittedTypeBuilder extends TypeBuilder {
-  const OmittedTypeBuilder();
-
   @override
   DartType build(LibraryBuilder library, TypeUse typeUse) {
     throw new UnsupportedError('$runtimeType.build');
@@ -67,4 +65,46 @@ class OmittedTypeBuilder extends TypeBuilder {
   TypeBuilder withNullabilityBuilder(NullabilityBuilder nullabilityBuilder) {
     return this;
   }
+
+  bool get hasType => _type != null;
+
+  DartType? _type;
+
+  DartType get type => _type!;
+
+  List<InferredTypeListener>? _listeners;
+
+  @override
+  void registerInferredTypeListener(InferredTypeListener onType) {
+    if (hasType) {
+      onType.onInferredType(type);
+    } else {
+      (_listeners ??= []).add(onType);
+    }
+  }
+
+  void _registerType(DartType type) {
+    // TODO(johnniwinther): Avoid multiple registration from enums and
+    //  duplicated fields.
+    if (_type == null) {
+      _type = type;
+      List<InferredTypeListener>? listeners = _listeners;
+      if (listeners != null) {
+        _listeners = null;
+        for (InferredTypeListener listener in listeners) {
+          listener.onInferredType(type);
+        }
+      }
+    }
+  }
+
+  @override
+  void registerInferredType(DartType type) {
+    _registerType(type);
+  }
+}
+
+/// Listener for the late computation of an inferred type.
+abstract class InferredTypeListener {
+  void onInferredType(DartType type);
 }

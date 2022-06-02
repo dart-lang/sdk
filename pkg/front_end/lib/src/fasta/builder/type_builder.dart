@@ -10,6 +10,7 @@ import '../source/source_library_builder.dart';
 import 'library_builder.dart';
 import 'named_type_builder.dart';
 import 'nullability_builder.dart';
+import 'omitted_type_builder.dart';
 import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
 
@@ -325,4 +326,10 @@ abstract class TypeBuilder {
   TypeBuilder withNullabilityBuilder(NullabilityBuilder nullabilityBuilder);
 
   bool get isVoidType;
+
+  void registerInferredType(DartType type) {
+    throw new UnsupportedError("${runtimeType}.registerInferredType");
+  }
+
+  void registerInferredTypeListener(InferredTypeListener listener) {}
 }

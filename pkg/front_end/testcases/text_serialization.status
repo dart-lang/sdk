@@ -50,7 +50,6 @@ general/error_locations/error_location_02: RuntimeError
 general/error_locations/error_location_03: RuntimeError
 general/error_recovery/empty_await_for: RuntimeError
 general/error_recovery/empty_for: RuntimeError
-general/error_recovery/weekly_bot_91_failure: Crash
 general/expressions: RuntimeError
 general/getter_vs_setter_type: TypeCheckError
 general/implement_semi_stub: TypeCheckError
@@ -71,6 +70,7 @@ general/micro: RuntimeError
 general/mixin_application_override: TypeCheckError
 general/mixin_constructors_with_default_values: RuntimeError
 general/mixin_covariant2: RuntimeError
+general/named_parameters_super_and_not: TextSerializationFailure # Issue 47524.
 general/operator_method_not_found: RuntimeError
 general/optional: RuntimeError
 general/override_check_accessor_after_inference: TypeCheckError # Issue #31620

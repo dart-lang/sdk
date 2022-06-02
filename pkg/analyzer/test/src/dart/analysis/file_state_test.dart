@@ -642,8 +642,7 @@ export 'dart:math';
         ],
       );
 
-      final bundleFile =
-          resourceProvider.getFile('/home/summaries/packages.sum');
+      final bundleFile = getFile('/home/summaries/packages.sum');
       bundleFile.writeAsBytesSync(bundleBytes);
 
       librarySummaryFiles.add(bundleFile);
@@ -716,8 +715,7 @@ part of 'foo.dart';
         ],
       );
 
-      final bundleFile =
-          resourceProvider.getFile('/home/summaries/packages.sum');
+      final bundleFile = getFile('/home/summaries/packages.sum');
       bundleFile.writeAsBytesSync(bundleBytes);
 
       librarySummaryFiles.add(bundleFile);
@@ -895,8 +893,7 @@ import 'dart:math';
         ],
       );
 
-      final bundleFile =
-          resourceProvider.getFile('/home/summaries/packages.sum');
+      final bundleFile = getFile('/home/summaries/packages.sum');
       bundleFile.writeAsBytesSync(bundleBytes);
 
       librarySummaryFiles.add(bundleFile);
@@ -975,8 +972,7 @@ part of 'foo.dart';
         ],
       );
 
-      final bundleFile =
-          resourceProvider.getFile('/home/summaries/packages.sum');
+      final bundleFile = getFile('/home/summaries/packages.sum');
       bundleFile.writeAsBytesSync(bundleBytes);
 
       librarySummaryFiles.add(bundleFile);
@@ -2156,7 +2152,7 @@ class A2 {}
   }
 
   Future<File> _writeSdkSummary() async {
-    final file = resourceProvider.getFile('/home/summaries/sdk.sum');
+    final file = getFile('/home/summaries/sdk.sum');
     final bytes = await buildSdkSummary2(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,

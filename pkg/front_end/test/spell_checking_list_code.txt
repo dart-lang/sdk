@@ -634,6 +634,7 @@ inequality
 inequivalence
 inequivalences
 inequivalent
+inferable
 influence
 informative
 infos

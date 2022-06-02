@@ -107,7 +107,7 @@ vars = {
   "dart_style_rev": "d7b73536a8079331c888b7da539b80e6825270ea",
 
   "dartdoc_rev": "8549817bb1b59808108e83ef0e513157cb572d2a",
-  "devtools_rev": "3c16b8d73120e46958982d94215d499793b972eb",
+  "devtools_rev": "51ac983d2db7eb19b3ce5956cb70b769d74fe784",
   "ffi_rev": "0c8364a728cfe4e4ba859c53b99d56b3dbe3add4",
   "file_rev": "0132eeedea2933513bf230513a766a8baeab0c4f",
   "fixnum_rev": "3bfc2ed1eea7e7acb79ad4f17392f92c816fc5ce",
@@ -116,7 +116,7 @@ vars = {
   "http_io_rev": "405fc79233b4a3d4bb079ebf438bb2caf2f49355",
   "http_multi_server_rev": "35a3b947256768426090e3b1f5132e4fc23c175d",
   "http_parser_rev": "9126ee04e77fd8e4e2e6435b503ee4dd708d7ddc",
-  "http_rev": "2c9b418f5086f999c150d18172d2eec1f963de7b",
+  "http_rev": "2993ea5dff5ffb066b4a35c707e7a2b8dcfa17c2",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "intl_rev": "9145f308f1458f37630a1ffce3b7d3b471ebbc56",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",

@@ -50,7 +50,18 @@ class MemoryCachingByteStore implements ByteStore {
 
   @override
   Uint8List? get(String key) {
-    return _cache.get(key, () => _store.get(key));
+    final cached = _cache.get(key);
+    if (cached != null) {
+      return cached;
+    }
+
+    final fromStore = _store.get(key);
+    if (fromStore != null) {
+      _cache.put(key, fromStore);
+      return fromStore;
+    }
+
+    return null;
   }
 
   @override

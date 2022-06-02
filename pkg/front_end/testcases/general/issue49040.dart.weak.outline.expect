@@ -1,0 +1,8 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method bar(core::int i) → dynamic
+  ;
+static method main() → dynamic
+  ;

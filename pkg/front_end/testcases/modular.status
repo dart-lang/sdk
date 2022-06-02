@@ -29,7 +29,6 @@ general/covariant_field: TypeCheckError
 general/crashes/crash_02/main: Crash
 general/crashes/crash_06/main: Crash
 general/duplicated_declarations: TypeCheckError
-general/error_recovery/weekly_bot_91_failure: Crash
 general/getter_vs_setter_type: TypeCheckError
 general/implement_semi_stub: TypeCheckError
 general/implicit_super_call: TypeCheckError

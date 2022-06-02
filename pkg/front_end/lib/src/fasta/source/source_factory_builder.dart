@@ -43,6 +43,9 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   final bool isExtensionInstanceMember = false;
 
+  @override
+  final TypeBuilder returnType;
+
   final Procedure _procedureInternal;
   final Procedure? _factoryTearOff;
 
@@ -53,7 +56,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   SourceFactoryBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
-      TypeBuilder returnType,
+      this.returnType,
       String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder>? formals,
@@ -79,8 +82,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
           ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault,
         _factoryTearOff = createFactoryTearOffProcedure(name, libraryBuilder,
             libraryBuilder.fileUri, charOffset, tearOffReference),
-        super(metadata, modifiers, returnType, name, typeVariables, formals,
-            libraryBuilder, charOffset, nativeMethodName) {
+        super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
+            charOffset, nativeMethodName) {
     this.asyncModifier = asyncModifier;
   }
 

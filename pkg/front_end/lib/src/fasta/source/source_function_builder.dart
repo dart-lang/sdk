@@ -127,15 +127,12 @@ abstract class SourceFunctionBuilder
 
 /// Common base class for constructor and procedure builders.
 abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
-    implements SourceFunctionBuilder {
+    implements SourceFunctionBuilder, InferredTypeListener {
   @override
   final List<MetadataBuilder>? metadata;
 
   @override
   final int modifiers;
-
-  @override
-  final TypeBuilder returnType;
 
   @override
   final String name;
@@ -158,7 +155,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   SourceFunctionBuilderImpl(
       this.metadata,
       this.modifiers,
-      this.returnType,
       this.name,
       this.typeVariables,
       this.formals,
@@ -166,6 +162,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       int charOffset,
       this.nativeMethodName)
       : super(compilationUnit, charOffset) {
+    returnType.registerInferredTypeListener(this);
     if (formals != null) {
       for (int i = 0; i < formals!.length; i++) {
         formals![i].parent = this;
@@ -428,6 +425,11 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     assert(_extensionThis != null || !isExtensionInstanceMember,
         "ProcedureBuilder.extensionTypeParameters has not been set.");
     return _extensionTypeParameters;
+  }
+
+  @override
+  void onInferredType(DartType type) {
+    function.returnType = type;
   }
 
   bool _hasBuiltOutlineExpressions = false;

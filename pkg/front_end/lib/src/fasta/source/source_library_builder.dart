@@ -65,7 +65,6 @@ import '../identifiers.dart' show QualifiedName, flattenName;
 import '../import.dart' show Import;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/members_builder.dart';
-import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/load_library_builder.dart';
@@ -791,7 +790,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           metadata,
           modifiers,
           isTopLevel,
-          type ?? const OmittedTypeBuilder(),
+          type ?? addInferableType(),
           info.name,
           info.charOffset,
           info.charEndOffset,
@@ -1583,6 +1582,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // TODO(cstefantsova): Uncomment the following when the Null class is
     // removed from the SDK.
     //addBuilder("Null", new NullTypeBuilder(const NullType(), this, -1), -1);
+  }
+
+  OmittedTypeBuilder addInferableType() {
+    // TODO(johnniwinther): Register inferable types in a backlog.
+    return new OmittedTypeBuilder();
   }
 
   NamedTypeBuilder addNamedType(
@@ -2501,31 +2505,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         lateIsSetSetterReference: lateIsSetSetterReference,
         lateGetterReference: lateGetterReference,
         lateSetterReference: lateSetterReference,
+        initializerToken: initializerToken,
         constInitializerToken: constInitializerToken);
     addBuilder(name, fieldBuilder, charOffset,
         getterReference: fieldGetterReference,
         setterReference: fieldSetterReference);
-    if (type is OmittedTypeBuilder && fieldBuilder.next == null) {
-      // Only the first one (the last one in the linked list of next pointers)
-      // are added to the tree, had parent pointers and can infer correctly.
-      if (initializerToken == null && fieldBuilder.isStatic) {
-        // A static field without type and initializer will always be inferred
-        // to have type `dynamic`.
-        fieldBuilder.fieldType = const DynamicType();
-      } else {
-        // A field with no type and initializer or an instance field without
-        // type and initializer need to have the type inferred.
-        fieldBuilder.fieldType =
-            new ImplicitFieldType(fieldBuilder, initializerToken);
-        registerImplicitlyTypedField(fieldBuilder);
-      }
-    }
   }
 
   void addConstructor(
       List<MetadataBuilder>? metadata,
       int modifiers,
-      TypeBuilder? returnType,
       final Object? name,
       String constructorName,
       List<TypeVariableBuilder>? typeVariables,
@@ -2551,7 +2540,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         new DeclaredSourceConstructorBuilder(
             metadata,
             modifiers & ~abstractMask,
-            returnType ?? const OmittedTypeBuilder(),
+            addInferableType(),
             constructorName,
             typeVariables,
             formals,
@@ -2658,7 +2647,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
         metadata,
         modifiers,
-        returnType ?? const OmittedTypeBuilder(),
+        returnType ?? addInferableType(),
         name,
         typeVariables,
         formals,

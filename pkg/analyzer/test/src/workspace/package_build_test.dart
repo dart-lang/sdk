@@ -268,7 +268,8 @@ class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
       convertPath(myPackageRootPath),
     )!;
 
-    myPackage = myWorkspace.findPackageFor('$myPackageLibPath/fake.dart')!;
+    final fakeFile = getFile('$myPackageLibPath/fake.dart');
+    myPackage = myWorkspace.findPackageFor(fakeFile.path)!;
   }
 
   test_contains_fileUri() {

@@ -11,7 +11,6 @@ import '../builder/extension_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/omitted_type_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
@@ -34,6 +33,9 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   @override
   final bool isExtensionInstanceMember;
+
+  @override
+  final TypeBuilder returnType;
 
   late Procedure _procedure;
 
@@ -61,7 +63,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   SourceProcedureBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
-      TypeBuilder returnType,
+      this.returnType,
       String name,
       List<TypeVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
@@ -85,8 +87,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         assert(isInstanceMember != null),
         assert(kind != ProcedureKind.Factory),
         this.isExtensionInstanceMember = isInstanceMember && isExtensionMember,
-        super(metadata, modifiers, returnType, name, typeVariables, formals,
-            libraryBuilder, charOffset, nativeMethodName) {
+        super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
+            charOffset, nativeMethodName) {
     _procedure = new Procedure(
         nameScheme.getProcedureName(kind, name),
         isExtensionInstanceMember ? ProcedureKind.Method : kind,
@@ -129,18 +131,6 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     actualAsyncModifier = newModifier;
     function.asyncMarker = actualAsyncModifier;
     function.dartAsyncMarker = actualAsyncModifier;
-  }
-
-  bool get isEligibleForTopLevelInference {
-    if (isDeclarationInstanceMember) {
-      if (returnType is OmittedTypeBuilder) return true;
-      if (formals != null) {
-        for (FormalParameterBuilder formal in formals!) {
-          if (formal.type is OmittedTypeBuilder) return true;
-        }
-      }
-    }
-    return false;
   }
 
   bool get isExtensionMethod {
