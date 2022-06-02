@@ -58,9 +58,9 @@ var tests = <IsolateTest>[
     expect(awaiterFrames.length, greaterThan(frames.length));
     expect(stack['truncated'], false);
     verifyStack(frames, [
-      'bar.async_op', 'foo.async_op', 'bar.async_op', 'foo.async_op',
-      'bar.async_op', 'foo.async_op', 'bar.async_op', 'foo.async_op',
-      'bar.async_op', 'foo.async_op', 'bar.async_op', 'foo.async_op',
+      'bar', 'foo', 'bar', 'foo',
+      'bar', 'foo', 'bar', 'foo',
+      'bar', 'foo', 'bar', 'foo',
       '_RootZone.runUnary', // Internal async. mech. ..
     ]);
 
@@ -78,9 +78,9 @@ var tests = <IsolateTest>[
     expect(awaiterFrames.length, fullStackLength + 1);
     expect(stack['truncated'], true);
     verifyStack(frames, [
-      'bar.async_op', 'foo.async_op', 'bar.async_op', 'foo.async_op',
-      'bar.async_op', 'foo.async_op', 'bar.async_op', 'foo.async_op',
-      'bar.async_op', 'foo.async_op', 'bar.async_op', 'foo.async_op',
+      'bar', 'foo', 'bar', 'foo',
+      'bar', 'foo', 'bar', 'foo',
+      'bar', 'foo', 'bar', 'foo',
       '_RootZone.runUnary', // Internal async. mech. ..
     ]);
 
@@ -96,16 +96,16 @@ var tests = <IsolateTest>[
     expect(awaiterFrames.length, 10);
     expect(stack['truncated'], true);
     verifyStack(frames, [
-      'bar.async_op',
-      'foo.async_op',
-      'bar.async_op',
-      'foo.async_op',
-      'bar.async_op',
-      'foo.async_op',
-      'bar.async_op',
-      'foo.async_op',
-      'bar.async_op',
-      'foo.async_op',
+      'bar',
+      'foo',
+      'bar',
+      'foo',
+      'bar',
+      'foo',
+      'bar',
+      'foo',
+      'bar',
+      'foo',
     ]);
   },
 // Invalid limit

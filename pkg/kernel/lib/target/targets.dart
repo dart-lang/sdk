@@ -22,7 +22,7 @@ class TargetFlags {
       {this.trackWidgetCreation = false,
       this.enableNullSafety = false,
       this.supportMirrors = true,
-      this.compactAsync = false});
+      this.compactAsync = true});
 
   @override
   bool operator ==(other) {
@@ -786,7 +786,9 @@ class TestTargetFlags extends TargetFlags {
       this.unsupportedDartLibraries: const {}})
       : super(
             trackWidgetCreation: trackWidgetCreation,
-            enableNullSafety: enableNullSafety);
+            enableNullSafety: enableNullSafety,
+            // TODO(dartbug.com/48378): Enable compact async in CFE tests
+            compactAsync: false);
 }
 
 mixin TestTargetMixin on Target {
