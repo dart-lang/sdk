@@ -428,7 +428,7 @@ library augment 'a.dart';
 ''');
 
     final session = contextFor(testFilePath).currentSession;
-    final result = session.getParsedLibrary(testFilePath);
+    final result = session.getParsedLibrary(testFile.path);
     expect(result, isA<NotLibraryButAugmentationResult>());
   }
 
@@ -697,7 +697,7 @@ library augment of 'a.dart';
 ''');
 
     final session = contextFor(testFilePath).currentSession;
-    final result = await session.getResolvedLibrary(testFilePath);
+    final result = await session.getResolvedLibrary(testFile.path);
     expect(result, isA<NotLibraryButAugmentationResult>());
   }
 
