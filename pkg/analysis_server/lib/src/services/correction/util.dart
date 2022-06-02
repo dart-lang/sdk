@@ -573,6 +573,25 @@ class CorrectionUtils {
     return conflicts;
   }
 
+  /// Returns the [ExpressionStatement] associated with [node] if [node] points
+  /// to the identifier for a simple `print`.  Returns `null`,
+  /// otherwise.
+  ExpressionStatement? findSimplePrintInvocation(AstNode node) {
+    var parent = node.parent;
+    var grandparent = parent?.parent;
+    if (node is SimpleIdentifier) {
+      var element = node.staticElement;
+      if (element is FunctionElement &&
+          element.name == 'print' &&
+          element.library.isDartCore &&
+          parent is MethodInvocation &&
+          grandparent is ExpressionStatement) {
+        return grandparent;
+      }
+    }
+    return null;
+  }
+
   /// Returns the indentation with the given level.
   String getIndent(int level) => repeat('  ', level);
 
