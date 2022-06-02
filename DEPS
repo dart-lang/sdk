@@ -113,7 +113,6 @@ vars = {
   "fixnum_rev": "3bfc2ed1eea7e7acb79ad4f17392f92c816fc5ce",
   "glob_rev": "e10eb2407c58427144004458ef85c9bbf7286e56",
   "html_rev": "f108bce59d136c584969fd24a5006914796cf213",
-  "http_io_rev": "405fc79233b4a3d4bb079ebf438bb2caf2f49355",
   "http_multi_server_rev": "35a3b947256768426090e3b1f5132e4fc23c175d",
   "http_parser_rev": "9126ee04e77fd8e4e2e6435b503ee4dd708d7ddc",
   "http_rev": "2993ea5dff5ffb066b4a35c707e7a2b8dcfa17c2",
@@ -340,8 +339,6 @@ deps = {
       Var("dart_git") + "html.git" + "@" + Var("html_rev"),
   Var("dart_root") + "/third_party/pkg/http":
       Var("dart_git") + "http.git" + "@" + Var("http_rev"),
-  Var("dart_root") + "/third_party/pkg_tested/http_io":
-    Var("dart_git") + "http_io.git" + "@" + Var("http_io_rev"),
   Var("dart_root") + "/third_party/pkg/http_multi_server":
       Var("dart_git") + "http_multi_server.git" +
       "@" + Var("http_multi_server_rev"),
