@@ -66,7 +66,7 @@ abstract class SourceConstructorBuilder
 }
 
 class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
-    implements SourceConstructorBuilder {
+    implements SourceConstructorBuilder, Inferable {
   @override
   final OmittedTypeBuilder returnType;
 
@@ -141,7 +141,15 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
         _hasSuperInitializingFormals =
             formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
         super(metadata, modifiers, name, typeVariables, formals,
-            compilationUnit, charOffset, nativeMethodName);
+            compilationUnit, charOffset, nativeMethodName) {
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals!) {
+        if (formal.isInitializingFormal || formal.isSuperInitializingFormal) {
+          formal.type.registerInferable(this);
+        }
+      }
+    }
+  }
 
   @override
   SourceClassBuilder get classBuilder =>
@@ -223,7 +231,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     if (formals != null) {
       bool needsInference = false;
       for (FormalParameterBuilder formal in formals!) {
-        if (formal.type is OmittedTypeBuilder &&
+        if (formal.type is InferableTypeBuilder &&
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
           formal.variable!.type = const UnknownType();
           needsInference = true;
@@ -241,11 +249,16 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
+  void inferTypes(TypeEnvironment typeEnvironment) {
+    inferFormalTypes(typeEnvironment);
+  }
+
+  @override
   void inferFormalTypes(TypeEnvironment typeEnvironment) {
     if (_hasFormalsInferred) return;
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
-        if (formal.type is OmittedTypeBuilder) {
+        if (formal.type is InferableTypeBuilder) {
           if (formal.isInitializingFormal) {
             formal.finalizeInitializingFormal(classBuilder);
           }
@@ -425,7 +438,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           }
         }
 
-        if (formal.type is OmittedTypeBuilder) {
+        if (formal.type is InferableTypeBuilder) {
           DartType? type = correspondingSuperFormalType;
           if (substitution.isNotEmpty && type != null) {
             type = substitute(type, substitution);

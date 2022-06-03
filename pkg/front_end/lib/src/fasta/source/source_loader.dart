@@ -52,6 +52,7 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/modifier_builder.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
@@ -1207,7 +1208,7 @@ severity: $severity
     ProcedureBuilder builder = new SourceProcedureBuilder(
         /* metadata = */ null,
         /* modifier flags = */ 0,
-        libraryBuilder.addInferableType(),
+        const ImplicitTypeBuilder(),
         "debugExpr",
         /* type variables = */ null,
         /* formals = */ null,
@@ -2287,16 +2288,13 @@ severity: $severity
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
     membersBuilder.computeTypes();
 
-    List<SourceFieldBuilder> allImplicitlyTypedFields = [];
-    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      library.collectImplicitlyTypedFields(allImplicitlyTypedFields);
+    List<InferableTypeBuilder> inferableTypes = [];
+    for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
+      libraryBuilder.collectInferableTypes(inferableTypes);
     }
 
-    for (int i = 0; i < allImplicitlyTypedFields.length; i++) {
-      // TODO(ahe): This can cause a crash for parts that failed to get
-      // included, see for example,
-      // tests/standalone_2/io/http_cookie_date_test.dart.
-      allImplicitlyTypedFields[i].inferType();
+    for (InferableTypeBuilder typeBuilder in inferableTypes) {
+      typeBuilder.inferType(typeInferenceEngine.typeSchemaEnvironment);
     }
 
     typeInferenceEngine.isTypeInferencePrepared = true;

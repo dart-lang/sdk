@@ -41,7 +41,7 @@ import 'source_class_builder.dart';
 import 'source_member_builder.dart';
 
 class SourceFieldBuilder extends SourceMemberBuilderImpl
-    implements FieldBuilder, InferredTypeListener {
+    implements FieldBuilder, InferredTypeListener, Inferable {
   @override
   final String name;
 
@@ -263,7 +263,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
           setterReference: fieldSetterReference);
     }
 
-    if (type is OmittedTypeBuilder) {
+    if (type is InferableTypeBuilder) {
       if (!hasInitializer && isStatic) {
         // A static field without type and initializer will always be inferred
         // to have type `dynamic`.
@@ -272,7 +272,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
         // A field with no type and initializer or an instance field without
         // type and initializer need to have the type inferred.
         fieldType = new ImplicitFieldType(this, initializerToken);
-        libraryBuilder.registerImplicitlyTypedField(this);
+        type.registerInferable(this);
       }
     }
   }
@@ -379,7 +379,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   /// Builds the core AST structures for this field as needed for the outline.
   void build() {
-    if (type is! OmittedTypeBuilder) {
+    if (type is! InferableTypeBuilder) {
       fieldType = type.build(libraryBuilder, TypeUse.fieldType);
     }
     _fieldEncoding.build(libraryBuilder, this);
@@ -457,6 +457,11 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
         }
       }
     }
+  }
+
+  @override
+  void inferTypes(TypeEnvironment typeEnvironment) {
+    inferType();
   }
 
   DartType inferType() {
