@@ -1063,6 +1063,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Remove parentheses in getter invocation',
   );
+  static const REMOVE_PRINT = FixKind(
+    'dart.fix.remove.removePrint',
+    DartFixKindPriority.DEFAULT,
+    'Remove print statement',
+  );
+  static const REMOVE_PRINT_MULTI = FixKind(
+    'dart.fix.remove.removePrint.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove print statements in file',
+  );
   static const REMOVE_QUESTION_MARK = FixKind(
     'dart.fix.remove.questionMark',
     DartFixKindPriority.DEFAULT,

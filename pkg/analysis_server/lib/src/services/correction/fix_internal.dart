@@ -132,6 +132,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_non_null_ass
 import 'package:analysis_server/src/services/correction/dart/remove_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_parameters_in_getter_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_parentheses_in_getter_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_print.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_returned_value.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
@@ -388,6 +389,7 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.avoid_print: [
       MakeConditionalOnDebugMode.new,
+      RemovePrint.new,
     ],
     LintNames.avoid_private_typedef_functions: [
       InlineTypedef.new,
