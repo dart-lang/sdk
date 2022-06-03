@@ -89,7 +89,7 @@ vars = {
   "chrome_rev": "19997",
   "cli_util_rev": "b0adbba89442b2ea6fef39c7a82fe79cb31e1168",
   "clock_rev": "f594d86da123015186d5680b0d0e8255c52fc162",
-  "collection_rev": "69766daafbaa8535d1343fb7cd87e713f57c107f",
+  "collection_rev": "f9b433dfc7dba5c8a987b1a8e6a9050292f5582e",
   "convert_rev": "00b251529c074df394b3391c7e3eea3dd9e5778e",
   "crypto_rev": "4297d240b0e1e780ec0a9eab23eaf1ad491f3e68",
   "csslib_rev": "518761b166974537f334dbf264e7f56cb157a96a",
