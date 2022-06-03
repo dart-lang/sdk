@@ -145,7 +145,7 @@ vars = {
   "sse_rev": "9a54f1cdd91c8d79a6bf5ef8e849a12756607453",
   "stack_trace_rev": "17f09c2c6845bb31c7c385acecce5befb8527a13",
   "stream_channel_rev": "3fa3e40c75c210d617b8b943b9b8f580e9866a89",
-  "string_scanner_rev": "6579871b528036767b3200b390a3ecef28e4900d",
+  "string_scanner_rev": "c637deb8d998b72a5807afbd06aba8370db725c0",
   "sync_http_rev": "b6bd47965694dddffb6e62fb8a6c12d17c4ae4cd",
   "term_glyph_rev": "d0f205c67ea70eea47b9f41c8440129a72a9c86e",
   "test_descriptor_rev": "5ed5d7f6bf1191592995dcb8eedbbc17df69d386",
