@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 /// An object used to calculate percentile-based analytics.
 ///
 /// See https://en.wikipedia.org/wiki/Percentile.
@@ -52,18 +54,19 @@ class PercentileCalculator {
   }
 
   /// Return a string that is suitable for sending to the analytics service.
-  String toAnalyticsString() {
-    var buffer = StringBuffer();
-    buffer.write(_valueCount);
-    buffer.write('[');
+  String toAnalyticsString() => json.encode(toJson());
+
+  /// Return a map that can be encoded as JSON that represents the state of this
+  /// calculator.
+  Map<String, Object> toJson() {
+    var percentiles = <int>[];
     for (var p = 5; p <= 100; p += 5) {
-      if (p > 5) {
-        buffer.write(', ');
-      }
-      buffer.write(percentile(p));
+      percentiles.add(percentile(p));
     }
-    buffer.write(']');
-    return buffer.toString();
+    return {
+      'count': _valueCount,
+      'percentiles': percentiles,
+    };
   }
 
   @override

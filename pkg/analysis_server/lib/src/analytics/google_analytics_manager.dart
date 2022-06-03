@@ -210,10 +210,10 @@ class _PluginData {
   }
 
   /// Return an encoding of the [usageCounts].
-  Map<String, String> _encodeUsageCounts() {
-    var encoded = <String, String>{};
+  Map<String, Object> _encodeUsageCounts() {
+    var encoded = <String, Object>{};
     for (var entry in usageCounts.entries) {
-      encoded[entry.key] = entry.value.toAnalyticsString();
+      encoded[entry.key] = entry.value.toJson();
     }
     return encoded;
   }
