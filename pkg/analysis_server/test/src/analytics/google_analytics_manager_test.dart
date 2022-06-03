@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/analytics/google_analytics_manager.dart';
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
@@ -89,11 +91,11 @@ class GoogleAnalyticsManagerTest {
       _MockPluginInfo('b'),
     ]));
     manager.shutdown();
+    var counts =
+        '{"count":1,"percentiles":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}';
     analytics.assertEvents([
       _ExpectedEvent.session(parameters: {
-        'plugins': '{"recordCount":1,"rootCounts":{"a":"1[0, 0, 0, 0, 0, 0, '
-            '0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]","b":"1[0, 0, 0, 0, 0, '
-            '0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]"}}'
+        'plugins': '{"recordCount":1,"rootCounts":{"a":$counts,"b":$counts}}'
       }),
     ]);
   }
@@ -203,33 +205,21 @@ class _IsPercentiles extends Matcher {
 
   @override
   bool matches(Object? item, Map matchState) {
-    if (item is! String || !item.endsWith(']')) {
+    if (item is! String) {
       return false;
     }
-    var index = item.indexOf('[');
-    var count = item.substring(0, index);
-    if (!_isStringEncodedPositiveInt(count)) {
+    var map = json.decode(item);
+    if (map is! Map || map.length != 2) {
       return false;
     }
-    var percentiles = item.substring(index + 1, item.length - 1).split(', ');
-    if (percentiles.length != 20) {
+    if (map['count'] is! int) {
       return false;
     }
-    for (var percentile in percentiles) {
-      if (!_isStringEncodedPositiveInt(percentile)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool _isStringEncodedPositiveInt(String item) {
-    try {
-      var value = int.parse(item);
-      return value >= 0;
-    } catch (exception) {
+    var percentiles = map['percentiles'];
+    if (percentiles is! List || percentiles.length != 20) {
       return false;
     }
+    return !percentiles.any((element) => element is! int);
   }
 }
 
