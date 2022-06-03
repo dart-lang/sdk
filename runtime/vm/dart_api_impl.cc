@@ -6728,24 +6728,12 @@ DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id) {
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
 
-  const GrowableObjectArray& result =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      Z, T->isolate_group()->object_store()->libraries());
-  Library& lib = Library::Handle(Z);
-  LoadingUnit& unit = LoadingUnit::Handle(Z);
-  String& uri = String::Handle(Z);
-  for (intptr_t i = 0; i < libs.Length(); i++) {
-    lib ^= libs.At(i);
-    unit = lib.loading_unit();
-    if (unit.IsNull() || (unit.id() != loading_unit_id)) {
-      continue;
-    }
-    uri = lib.url();
-    result.Add(uri);
+  const Array& loading_units =
+      Array::Handle(Z, T->isolate_group()->object_store()->loading_unit_uris());
+  if (loading_unit_id >= 0 && loading_unit_id < loading_units.Length()) {
+    return Api::NewHandle(T, loading_units.At(loading_unit_id));
   }
-
-  return Api::NewHandle(T, Array::MakeFixedLength(result));
+  return Api::NewError("Invalid loading_unit_id");
 #endif
 }
 

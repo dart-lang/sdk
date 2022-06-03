@@ -5120,6 +5120,7 @@ class Library : public Object {
   // the name and url.
   void set_name(const String& name) const;
   void set_url(const String& url) const;
+  void set_private_key(const String& key) const;
 
   void set_num_imports(intptr_t value) const;
   void set_flags(uint8_t flags) const;
