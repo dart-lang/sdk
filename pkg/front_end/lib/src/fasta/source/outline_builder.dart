@@ -32,6 +32,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../combinator.dart' show CombinatorBuilder;
@@ -2259,6 +2260,9 @@ class OutlineBuilder extends StackListenerImpl {
           metadata,
           kind,
           modifiers,
+          // TODO(johnniwinther): Avoid creating inferable types for omitted
+          // types in uninferable context, like omitted parameter types of
+          // function types.
           type ?? libraryBuilder.addInferableType(),
           name == null ? FormalParameterBuilder.noNameSentinel : name as String,
           thisKeyword != null,
@@ -2582,7 +2586,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     push(libraryBuilder.addFunctionType(
-        returnType ?? libraryBuilder.addInferableType(),
+        returnType ?? const ImplicitTypeBuilder(),
         typeVariables,
         formals,
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
@@ -2603,7 +2607,7 @@ class OutlineBuilder extends StackListenerImpl {
       reportErrorIfNullableType(question);
     }
     push(libraryBuilder.addFunctionType(
-        returnType ?? libraryBuilder.addInferableType(),
+        returnType ?? const ImplicitTypeBuilder(),
         typeVariables,
         formals,
         libraryBuilder.nullableBuilderIfTrue(question != null),
@@ -2642,7 +2646,7 @@ class OutlineBuilder extends StackListenerImpl {
           hasMembers: false);
       // TODO(cstefantsova): Make sure that RHS of typedefs can't have '?'.
       aliasedType = libraryBuilder.addFunctionType(
-          returnType ?? libraryBuilder.addInferableType(),
+          returnType ?? const ImplicitTypeBuilder(),
           null,
           formals,
           const NullabilityBuilder.omitted(),

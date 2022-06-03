@@ -327,9 +327,21 @@ abstract class TypeBuilder {
 
   bool get isVoidType;
 
+  /// Register [type] as the inferred type of this type builder.
+  ///
+  /// If this is not an [InferableTypeBuilder] this method will throw.
   void registerInferredType(DartType type) {
     throw new UnsupportedError("${runtimeType}.registerInferredType");
   }
 
+  /// Registers a [listener] that is called when this type has been inferred.
+  // TODO(johnniwinther): Should we handle this for all types or just those
+  // that are inferred or aliases of inferred types?
   void registerInferredTypeListener(InferredTypeListener listener) {}
+
+  /// Registers the [Inferable] object to be called when this type needs to be
+  /// inferred.
+  ///
+  /// If this type is not an [InferableTypeBuilder], this call is a no-op.
+  void registerInferable(Inferable inferable) {}
 }

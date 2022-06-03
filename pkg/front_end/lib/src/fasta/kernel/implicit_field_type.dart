@@ -34,8 +34,9 @@ abstract class ImplicitFieldType extends DartType {
       "declaredNullability", fieldBuilder.charOffset, fieldBuilder.fileUri);
 
   @override
-  Nullability get nullability =>
-      unsupported("nullability", fieldBuilder.charOffset, fieldBuilder.fileUri);
+  Nullability get nullability {
+    unsupported("nullability", fieldBuilder.charOffset, fieldBuilder.fileUri);
+  }
 
   @override
   R accept<R>(DartTypeVisitor<R> v) {

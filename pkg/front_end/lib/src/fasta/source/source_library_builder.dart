@@ -219,8 +219,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// the error message is the corresponding value in the map.
   Map<String, String?>? unserializableExports;
 
-  List<SourceFieldBuilder>? _implicitlyTypedFields;
-
   /// The language version of this library as defined by the language version
   /// of the package it belongs to, if present, or the current language version
   /// otherwise.
@@ -1276,15 +1274,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         (library.problemsAsJson ??= <String>[])
             .addAll(part.library.problemsAsJson!);
       }
-      List<SourceFieldBuilder> partImplicitlyTypedFields = [];
-      part.collectImplicitlyTypedFields(partImplicitlyTypedFields);
-      if (partImplicitlyTypedFields.isNotEmpty) {
-        if (_implicitlyTypedFields == null) {
-          _implicitlyTypedFields = partImplicitlyTypedFields;
-        } else {
-          _implicitlyTypedFields!.addAll(partImplicitlyTypedFields);
-        }
-      }
+      part.collectInferableTypes(_inferableTypes!);
       if (library != part.library) {
         // Mark the part library as synthetic as it's not an actual library
         // (anymore).
@@ -1584,9 +1574,26 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     //addBuilder("Null", new NullTypeBuilder(const NullType(), this, -1), -1);
   }
 
-  OmittedTypeBuilder addInferableType() {
-    // TODO(johnniwinther): Register inferable types in a backlog.
-    return new OmittedTypeBuilder();
+  List<InferableTypeBuilder>? _inferableTypes = [];
+
+  InferableTypeBuilder addInferableType() {
+    assert(_inferableTypes != null, "Late creation of inferable type.");
+    InferableTypeBuilder typeBuilder = new InferableTypeBuilder();
+    _inferableTypes?.add(typeBuilder);
+    return typeBuilder;
+  }
+
+  void collectInferableTypes(List<InferableTypeBuilder> inferableTypes) {
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        patchLibrary.collectInferableTypes(inferableTypes);
+      }
+    }
+    if (_inferableTypes != null) {
+      inferableTypes.addAll(_inferableTypes!);
+    }
+    _inferableTypes = null;
   }
 
   NamedTypeBuilder addNamedType(
@@ -4636,25 +4643,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
         extensionBuilder.extension.showHideClause ??= showHideClause;
       }
-    }
-  }
-
-  void registerImplicitlyTypedField(SourceFieldBuilder fieldBuilder) {
-    (_implicitlyTypedFields ??= <SourceFieldBuilder>[]).add(fieldBuilder);
-  }
-
-  void collectImplicitlyTypedFields(
-      List<FieldBuilder> implicitlyTypedFieldBuilders) {
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.collectImplicitlyTypedFields(implicitlyTypedFieldBuilders);
-      }
-    }
-
-    if (_implicitlyTypedFields != null) {
-      implicitlyTypedFieldBuilders.addAll(_implicitlyTypedFields!);
-      _implicitlyTypedFields = null;
     }
   }
 

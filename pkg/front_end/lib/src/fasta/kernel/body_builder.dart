@@ -1754,7 +1754,7 @@ class BodyBuilder extends StackListenerImpl
                     /* metadata = */ null,
                     FormalParameterKind.requiredPositional,
                     /* modifiers = */ 0,
-                    libraryBuilder.addInferableType(),
+                    const ImplicitTypeBuilder(),
                     formal.name!,
                     libraryBuilder,
                     formal.fileOffset,
@@ -4279,7 +4279,7 @@ class BodyBuilder extends StackListenerImpl
       }
     }
     TypeBuilder type = formals.toFunctionType(
-        returnType ?? libraryBuilder.addInferableType(),
+        returnType ?? const ImplicitTypeBuilder(),
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
         typeVariables);
     exitLocalScope();
@@ -4486,7 +4486,7 @@ class BodyBuilder extends StackListenerImpl
           null,
           kind,
           modifiers,
-          type ?? libraryBuilder.addInferableType(),
+          type ?? const ImplicitTypeBuilder(),
           name?.name ?? '',
           libraryBuilder,
           offsetForToken(nameToken),
@@ -4563,7 +4563,7 @@ class BodyBuilder extends StackListenerImpl
       reportErrorIfNullableType(question);
     }
     TypeBuilder type = formals.toFunctionType(
-        returnType ?? libraryBuilder.addInferableType(),
+        returnType ?? const ImplicitTypeBuilder(),
         libraryBuilder.nullableBuilderIfTrue(question != null),
         typeVariables);
     exitLocalScope();

@@ -47,7 +47,12 @@ dart_2/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers
 
 [ $arch == ia32 ]
 dart/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
+dart/regress32597_2_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
+dart/regress38467_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
+dart/type_casts_with_null_safety_autodetection_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
 dart_2/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
+dart_2/regress32597_2_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
+dart_2/regress38467_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
 
 [ $builder_tag == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
@@ -187,9 +192,6 @@ dart_2/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 [ $arch == ia32 && $mode == debug && $system == windows ]
 dart/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
 dart_2/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
-
-[ $arch == ia32 && ($nnbd == strong || $nnbd == weak) ]
-dart/type_casts_with_null_safety_autodetection_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
 
 [ $arch != simarm && $arch != simarm64 && $arch != simarm64c && $arch != simriscv32 && $arch != simriscv64 && $compiler == dartk && $hot_reload ]
 dart/data_uri_import_test/base64: Crash
