@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/analytics/google_analytics_manager.dart';
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
@@ -39,6 +40,26 @@ class GoogleAnalyticsManagerTest {
       }),
     ]);
     PluginManager.pluginResponseTimes.clear();
+  }
+
+  void test_server_notification() {
+    _defaultStartup();
+    manager.handledNotificationMessage(
+        notification: NotificationMessage(
+            clientRequestTime: 2,
+            jsonrpc: '',
+            method: Method.workspace_didCreateFiles),
+        startTime: _now(),
+        endTime: _now());
+    manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.notification(parameters: {
+        'latency': _IsPercentiles(),
+        'method': Method.workspace_didCreateFiles.toString(),
+        'duration': _IsPercentiles(),
+      }),
+    ]);
   }
 
   void test_server_request() {
@@ -159,6 +180,9 @@ class _ExpectedEvent {
       {this.label, // ignore: unused_element
       this.value, // ignore: unused_element
       this.parameters});
+
+  _ExpectedEvent.notification({Map<String, Object>? parameters})
+      : this('language_server', 'notification', parameters: parameters);
 
   _ExpectedEvent.pluginRequest({Map<String, Object>? parameters})
       : this('language_server', 'pluginRequest', parameters: parameters);

@@ -23,6 +23,12 @@ abstract class AnalyticsManager {
   /// Record that the set of plugins known to the [pluginManager] has changed.
   void changedPlugins(PluginManager pluginManager);
 
+  /// Record that the given [notification] was received and has been handled.
+  void handledNotificationMessage(
+      {required NotificationMessage notification,
+      required DateTime startTime,
+      required DateTime endTime}) {}
+
   /// Record that the given [response] was sent to the client.
   void sentResponse({required Response response});
 
