@@ -12,10 +12,13 @@ void testHttpUri() {
   }
 
   check(new Uri.http("", ""), "http:");
+  check(new Uri.http(""), "http:");
   check(new Uri.http("@:", ""), "http://");
+  check(new Uri.http("@:"), "http://");
   check(new Uri.http("@:8080", ""), "http://:8080");
+  check(new Uri.http("@:8080"), "http://:8080");
   check(new Uri.http("@host:", ""), "http://host");
-  check(new Uri.http("@host:", ""), "http://host");
+  check(new Uri.http("@host:"), "http://host");
   check(new Uri.http("xxx:yyy@host:8080", ""), "http://xxx:yyy@host:8080");
   check(new Uri.http("host", "a"), "http://host/a");
   check(new Uri.http("host", "/a"), "http://host/a");

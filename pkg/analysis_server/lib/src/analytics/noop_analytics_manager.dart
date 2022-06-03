@@ -14,6 +14,12 @@ class NoopAnalyticsManager implements AnalyticsManager {
   void changedPlugins(PluginManager pluginManager) {}
 
   @override
+  void handledNotificationMessage(
+      {required NotificationMessage notification,
+      required DateTime startTime,
+      required DateTime endTime}) {}
+
+  @override
   void sentResponse({required Response response}) {}
 
   @override

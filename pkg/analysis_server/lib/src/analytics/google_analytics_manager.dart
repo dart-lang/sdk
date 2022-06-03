@@ -30,6 +30,10 @@ class GoogleAnalyticsManager implements AnalyticsManager {
   /// been responded to.
   final Map<String, _RequestData> _completedRequests = {};
 
+  /// A map from the name of a notification to data about all such notifications
+  /// that have been handled.
+  final Map<String, _NotificationData> _completedNotifications = {};
+
   /// Initialize a newly created analytics manager to report to the [analytics]
   /// service.
   GoogleAnalyticsManager(this.analytics);
@@ -37,6 +41,23 @@ class GoogleAnalyticsManager implements AnalyticsManager {
   @override
   void changedPlugins(PluginManager pluginManager) {
     _pluginData.recordPlugins(pluginManager);
+  }
+
+  @override
+  void handledNotificationMessage(
+      {required NotificationMessage notification,
+      required DateTime startTime,
+      required DateTime endTime}) {
+    var method = notification.method.toString();
+    var requestTime = notification.clientRequestTime;
+    var start = startTime.millisecondsSinceEpoch;
+    var end = endTime.millisecondsSinceEpoch;
+    var data = _completedNotifications.putIfAbsent(
+        method, () => _NotificationData(method));
+    if (requestTime != null) {
+      data.latencyTimes.addValue(start - requestTime);
+    }
+    data.handlingTimes.addValue(end - start);
   }
 
   @override
@@ -64,6 +85,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
     _sendSessionData(sessionData);
     _sendServerResponseTimes();
     _sendPluginResponseTimes();
+    _sendNotificationHandlingTimes();
 
     analytics.waitForLastPing(timeout: Duration(milliseconds: 200)).then((_) {
       analytics.close();
@@ -122,6 +144,17 @@ class GoogleAnalyticsManager implements AnalyticsManager {
     requestData.responseTimes.addValue(responseTime);
   }
 
+  /// Send information about the notifications handled by the server.
+  void _sendNotificationHandlingTimes() {
+    for (var data in _completedNotifications.values) {
+      analytics.sendEvent('language_server', 'notification', parameters: {
+        'latency': data.latencyTimes.toAnalyticsString(),
+        'method': data.method,
+        'duration': data.handlingTimes.toAnalyticsString(),
+      });
+    }
+  }
+
   /// Send information about the response times of plugins.
   void _sendPluginResponseTimes() {
     var responseTimes = PluginManager.pluginResponseTimes;
@@ -177,6 +210,27 @@ class _ActiveRequestData {
   _ActiveRequestData(this.requestName, this.clientRequestTime, this.startTime);
 }
 
+/// Data about the notifications that have been handled that have the same
+/// method.
+class _NotificationData {
+  /// The name of the notifications.
+  final String method;
+
+  /// The percentile calculator for latency times. The _latency time_ is the
+  /// time from when the client sent the request until the time the server
+  /// started processing the request.
+  final PercentileCalculator latencyTimes = PercentileCalculator();
+
+  /// The percentile calculator for handling times. The _handling time_ is the
+  /// time from when the server started processing the notification until the
+  /// handling was complete.
+  final PercentileCalculator handlingTimes = PercentileCalculator();
+
+  /// Initialize a newly create data holder for notifications with the given
+  /// [method].
+  _NotificationData(this.method);
+}
+
 /// Data about the plugins associated with the context roots.
 class _PluginData {
   /// The number of times that plugin information has been recorded.
@@ -219,7 +273,8 @@ class _PluginData {
   }
 }
 
-/// Data about the requests that have been responded to that have the same name.
+/// Data about the requests that have been responded to that have the same
+/// method.
 class _RequestData {
   /// The name of the requests.
   final String method;

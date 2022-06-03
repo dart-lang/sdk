@@ -374,6 +374,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
               await _handleRequestMessage(message, messageInfo);
             } else if (message is NotificationMessage) {
               await _handleNotificationMessage(message, messageInfo);
+              analyticsManager.handledNotificationMessage(
+                  notification: message,
+                  startTime: startTime,
+                  endTime: DateTime.now());
             } else {
               showErrorMessageToUser('Unknown incoming message type');
             }

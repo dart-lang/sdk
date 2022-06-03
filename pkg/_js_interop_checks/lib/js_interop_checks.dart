@@ -14,6 +14,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropEnclosingClassJSAnnotationContext,
         messageJsInteropExternalExtensionMemberOnTypeInvalid,
         messageJsInteropExternalMemberNotJSAnnotated,
+        messageJsInteropInvalidStaticClassMemberName,
         messageJsInteropNamedParameters,
         messageJsInteropNonExternalConstructor,
         messageJsInteropNonExternalMember,
@@ -273,6 +274,18 @@ class JsInteropChecks extends RecursiveVisitor {
         // Only factory constructors for anonymous classes are allowed to have
         // named parameters.
         _checkNoNamedParameters(procedure.function);
+      }
+
+      // JS static methods cannot use a JS name with dots.
+      if (procedure.isStatic && procedure.enclosingClass != null) {
+        String name = getJSName(procedure);
+        if (name.contains('.')) {
+          _diagnosticsReporter.report(
+              messageJsInteropInvalidStaticClassMemberName,
+              procedure.fileOffset,
+              procedure.name.text.length,
+              procedure.fileUri);
+        }
       }
     }
 

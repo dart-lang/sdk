@@ -6940,6 +6940,16 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated = const MessageCo
         r"""Try removing the 'external' keyword or adding a JS interop annotation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropInvalidStaticClassMemberName =
+    messageJsInteropInvalidStaticClassMemberName;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropInvalidStaticClassMemberName = const MessageCode(
+    "JsInteropInvalidStaticClassMemberName",
+    problemMessage:
+        r"""JS interop static class members cannot have '.' in their JS name.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,

@@ -104,6 +104,11 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 - Added `dartify` and a number of minor helper functions.
 
+#### `dart:core`
+
+- Allow omitting the `unencodedPath` positional argument to `Uri.http` and
+  `Uri.https` to default to an empty path.
+
 ### Tools
 
 #### Linter

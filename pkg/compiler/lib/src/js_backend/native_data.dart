@@ -650,11 +650,16 @@ class NativeData implements NativeBasicData {
   String getFixedBackendName(MemberEntity element) {
     String name = _nativeMemberName[element];
     if (name == null && isJsInteropMember(element)) {
-      // If an element isJsInterop but _isJsInterop is false that means it is
-      // considered interop as the parent class is interop.
-      name = element.isConstructor
-          ? _jsClassNameHelper(element.enclosingClass)
-          : _jsMemberNameHelper(element);
+      if (element.isConstructor) {
+        name = _jsClassNameHelper(element.enclosingClass);
+      } else {
+        name = _jsMemberNameHelper(element);
+        // Top-level static JS interop members can be associated with a dotted
+        // name, if so, fixedBackendName is the last segment.
+        if (element.isTopLevel && name.contains('.')) {
+          name = name.substring(name.lastIndexOf('.') + 1);
+        }
+      }
       _nativeMemberName[element] = name;
     }
     return name;
@@ -704,6 +709,15 @@ class NativeData implements NativeBasicData {
       sb
         ..write('.')
         ..write(_jsClassNameHelper(element.enclosingClass));
+    }
+
+    // Top-level static JS interop members can be associated with a dotted
+    // name, if so, fixedBackendPath includes all but the last segment.
+    final name = _jsMemberNameHelper(element);
+    if (element.isTopLevel && name.contains('.')) {
+      sb
+        ..write('.')
+        ..write(name.substring(0, name.lastIndexOf('.')));
     }
     return sb.toString();
   }
