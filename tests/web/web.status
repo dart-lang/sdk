@@ -41,6 +41,7 @@ consistent_index_error_string_test: Slow, Pass # Issue 25940
 deferred_custom_loader_test: SkipByDesign # Issue 25683
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
 internal/object_members_test: SkipByDesign # Uses eval for interop
+regress/issue/49129_test: SkipByDesign # Uses eval for interop
 
 [ $compiler == dart2js && !$host_checked ]
 dummy_compiler_test: Slow, Pass # Issue 32439. self-hosting doesn't work with CFE yet.
