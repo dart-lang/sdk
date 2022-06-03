@@ -110,6 +110,7 @@ void _asyncStarMoveNextHelper(var stream) {
 class _AsyncStarStreamController<T> {
   @pragma("vm:entry-point")
   StreamController<T> controller;
+  @pragma("vm:entry-point")
   Function? asyncStarBody;
   bool isAdding = false;
   bool onListenReceived = false;

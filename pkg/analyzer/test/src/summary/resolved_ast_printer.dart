@@ -830,6 +830,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('NamedExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
     });
   }
 
@@ -1461,8 +1462,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       if (parent is ArgumentList ||
           parent is AssignmentExpression && parent.rightHandSide == node ||
           parent is BinaryExpression && parent.rightOperand == node ||
-          parent is IndexExpression && parent.index == node ||
-          parent is NamedExpression && parent.expression == node) {
+          parent is IndexExpression && parent.index == node) {
         _writeElement('parameter', node.staticParameterElement);
       }
     }

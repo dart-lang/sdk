@@ -457,6 +457,7 @@ class ObjectPointerVisitor;
   V(_yieldAsyncStar, "_yieldAsyncStar")                                        \
   V(add, "add")                                                                \
   V(addStream, "addStream")                                                    \
+  V(asyncStarBody, "asyncStarBody")                                            \
   V(callback, "callback")                                                      \
   V(capture_length, ":capture_length")                                         \
   V(capture_start_index, ":capture_start_index")                               \

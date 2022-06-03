@@ -305,8 +305,7 @@ IsolateTest stoppedAtLine(int line) {
   };
 }
 
-IsolateTest stoppedInFunction(String functionName,
-    {bool contains: false, bool includeOwner: false}) {
+IsolateTest stoppedInFunction(String functionName) {
   return (Isolate isolate) async {
     print("Checking we are in function: $functionName");
 
@@ -320,13 +319,7 @@ IsolateTest stoppedInFunction(String functionName,
     ServiceFunction function =
         await topFrame.function!.load() as ServiceFunction;
     String name = function.name!;
-    if (includeOwner) {
-      ServiceFunction owner =
-          await (function.dartOwner as ServiceObject).load() as ServiceFunction;
-      name = '${owner.name}.$name';
-    }
-    final bool matches =
-        contains ? name.contains(functionName) : name == functionName;
+    final bool matches = name == functionName;
     if (!matches) {
       StringBuffer sb = new StringBuffer();
       sb.write("Expected to be in function $functionName but "

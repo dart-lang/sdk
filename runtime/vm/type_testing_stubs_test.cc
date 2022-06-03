@@ -1140,6 +1140,8 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
           (() => 3) as int Function()?;
 )";
 
+  SetupCoreLibrariesForUnitTest();
+
   const auto& class_future =
       Class::Handle(IsolateGroup::Current()->object_store()->future_class());
 

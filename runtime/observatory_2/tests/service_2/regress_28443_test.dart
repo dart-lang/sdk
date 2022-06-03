@@ -8,7 +8,7 @@ import 'service_test_common.dart';
 import 'package:observatory_2/service_io.dart';
 import 'package:test/test.dart';
 
-const int LINE_A = 28, LINE_B = 33;
+const int LINE_A = 28, LINE_B = 33, LINE_C = 37;
 
 class VMServiceClient {
   VMServiceClient(this.x);
@@ -30,11 +30,11 @@ collect() async {
   });
 }
 
-test_code() async {
+test_code() async /* LINE_B */ {
   try {
     await collect();
   } on TimeoutException {
-    print("ok");
+    print("ok"); // LINE_C
   }
 }
 
@@ -44,12 +44,15 @@ var tests = <IsolateTest>[
   setBreakpointAtLine(LINE_B),
   resumeIsolate,
   hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_B),
   setBreakpointAtLine(LINE_A),
   resumeIsolate,
   hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_A),
+  setBreakpointAtLine(LINE_C),
   stepOut,
-  stoppedAtLine(LINE_B),
-  resumeIsolate
+  resumeIsolate,
+  stoppedAtLine(LINE_C),
 ];
 
 main(args) => runIsolateTestsSynchronous(args, tests,

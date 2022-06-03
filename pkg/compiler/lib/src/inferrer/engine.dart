@@ -261,10 +261,6 @@ class InferrerEngine {
 
     info.bailedOut = false;
     info.elementType.inferred = true;
-    if (abstractValueDomain.isSpecializationOf(
-        info.originalType, abstractValueDomain.fixedListType)) {
-      info.checksGrowable = tracer.callsGrowableMethod;
-    }
     tracer.inputs.forEach(info.elementType.addInput);
     // Enqueue the list for later refinement
     _workQueue.add(info);

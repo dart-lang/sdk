@@ -29,7 +29,6 @@ library test;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
-import "dart:_internal" as _in;
 
 import "dart:async";
 
@@ -84,58 +83,19 @@ abstract class MyStream<T extends core::Object* = dynamic> extends asy::Stream<s
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   abstract member-signature method listen((self::MyStream::T*) →* void onData, {core::Function* onError = #C1, () →* void onDone = #C1, core::bool* cancelOnError = #C1}) → asy::StreamSubscription<self::MyStream::T*>*; -> asy::Stream::listen
 }
-static method foo() → asy::Stream<core::List<core::int*>*>* /* originally async* */ {
-  asy::_AsyncStarStreamController<core::List<core::int*>*>* :controller;
-  dynamic :controller_stream;
-  (dynamic) →* dynamic :async_op_then;
-  (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
-  core::int* :await_jump_var = 0;
-  dynamic :await_ctx_var;
-  dynamic :saved_try_context_var0;
-  dynamic :saved_try_context_var1;
-  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
-    try
-      try {
-        #L1:
-        {
-          if(:controller.{asy::_AsyncStarStreamController::add}(core::_GrowableList::•<core::int*>(0)){(core::List<core::int*>*) → core::bool})
-            return null;
-          else
-            [yield] null;
-          if(:controller.{asy::_AsyncStarStreamController::add}(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:16:69: Error: A value of type 'MyStream<dynamic>' can't be assigned to a variable of type 'List<int>'.
+static method foo() → asy::Stream<core::List<core::int*>*>* async* {
+  yield core::_GrowableList::•<core::int*>(0);
+  yield invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:16:69: Error: A value of type 'MyStream<dynamic>' can't be assigned to a variable of type 'List<int>'.
  - 'MyStream' is from 'pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart'.
  - 'List' is from 'dart:core'.
   yield /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic */ MyStream();
-                                                                    ^" in self::MyStream::•<dynamic>() as{TypeError} core::List<core::int*>*){(core::List<core::int*>*) → core::bool})
-            return null;
-          else
-            [yield] null;
-          :controller.{asy::_AsyncStarStreamController::addStream}(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:17:64: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'Stream<List<int>>'.
+                                                                    ^" in self::MyStream::•<dynamic>() as{TypeError} core::List<core::int*>*;
+  yield* invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:17:64: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'Stream<List<int>>'.
  - 'List' is from 'dart:core'.
  - 'Stream' is from 'dart:async'.
   yield* /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic*/ [];
-                                                               ^" in core::_GrowableList::•<dynamic>(0) as{TypeError} asy::Stream<core::List<core::int*>*>*){(asy::Stream<core::List<core::int*>*>) → void};
-          [yield] null;
-          if(_in::unsafeCast<core::bool>(:result_or_exception))
-            return null;
-          :controller.{asy::_AsyncStarStreamController::addStream}(self::MyStream::•<core::List<core::int*>*>()){(asy::Stream<core::List<core::int*>*>) → void};
-          [yield] null;
-          if(_in::unsafeCast<core::bool>(:result_or_exception))
-            return null;
-        }
-        return;
-      }
-      on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
-        :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace){(core::Object, core::StackTrace) → void};
-      }
-    finally {
-      :controller.{asy::_AsyncStarStreamController::close}(){() → dynamic};
-    }
-  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
-  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :controller = new asy::_AsyncStarStreamController::•<core::List<core::int*>*>(:async_op);
-  :controller_stream = :controller.{asy::_AsyncStarStreamController::stream}{asy::Stream<core::List<core::int*>*>};
-  return :controller_stream;
+                                                               ^" in core::_GrowableList::•<dynamic>(0) as{TypeError} asy::Stream<core::List<core::int*>*>*;
+  yield* self::MyStream::•<core::List<core::int*>*>();
 }
 static method bar() → core::Iterable<core::Map<core::int*, core::int*>*>* /* originally sync* */ {
   function :sync_op_gen() → (core::_SyncIterator<dynamic>*, dynamic, dynamic) →* core::bool* {

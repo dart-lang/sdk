@@ -1274,9 +1274,34 @@ static intptr_t SuspendStateFpOffset() {
          compiler::target::kWordSize;
 }
 
+static void CallDartCoreLibraryFunction(
+    Assembler* assembler,
+    intptr_t entry_point_offset_in_thread,
+    intptr_t function_offset_in_object_store,
+    bool uses_args_desc = false) {
+  if (FLAG_precompiled_mode) {
+    __ Call(Address(THR, entry_point_offset_in_thread));
+  } else {
+    __ LoadIsolateGroup(FUNCTION_REG);
+    __ LoadFromOffset(
+        FUNCTION_REG,
+        Address(FUNCTION_REG, target::IsolateGroup::object_store_offset()));
+    __ LoadFromOffset(FUNCTION_REG,
+                      Address(FUNCTION_REG, function_offset_in_object_store));
+    __ LoadCompressedFieldFromOffset(CODE_REG, FUNCTION_REG,
+                                     target::Function::code_offset());
+    if (!uses_args_desc) {
+      // Load a GC-safe value for the arguments descriptor (unused but tagged).
+      __ LoadImmediate(ARGS_DESC_REG, 0);
+    }
+    __ Call(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
+  }
+}
+
 void StubCodeCompiler::GenerateSuspendStub(
     Assembler* assembler,
-    intptr_t suspend_entry_point_offset) {
+    intptr_t suspend_entry_point_offset_in_thread,
+    intptr_t suspend_function_offset_in_object_store) {
   const Register kArgument = SuspendStubABI::kArgumentReg;
   const Register kTemp = SuspendStubABI::kTempReg;
   const Register kFrameSize = SuspendStubABI::kFrameSizeReg;
@@ -1284,7 +1309,8 @@ void StubCodeCompiler::GenerateSuspendStub(
   const Register kFunctionData = SuspendStubABI::kFunctionDataReg;
   const Register kSrcFrame = SuspendStubABI::kSrcFrameReg;
   const Register kDstFrame = SuspendStubABI::kDstFrameReg;
-  Label alloc_slow_case, alloc_done, init_done, old_gen_object, call_await;
+  Label alloc_slow_case, alloc_done, init_done, resize_suspend_state,
+      old_gen_object, call_dart;
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
   SPILLS_LR_TO_FRAME({});  // Simulate entering the caller (Dart) frame.
@@ -1300,10 +1326,29 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ EnterStubFrame();
 
   __ CompareClassId(kSuspendState, kSuspendStateCid, kTemp);
-  __ BranchIf(EQUAL, &init_done);
 
-  __ MoveRegister(kFunctionData, kSuspendState);
+  if (FLAG_precompiled_mode) {
+    __ BranchIf(EQUAL, &init_done);
+  } else {
+    Label alloc_suspend_state;
+    __ BranchIf(NOT_EQUAL, &alloc_suspend_state);
+
+    __ CompareWithMemoryValue(
+        kFrameSize,
+        FieldAddress(kSuspendState,
+                     target::SuspendState::frame_capacity_offset()));
+    __ BranchIf(UNSIGNED_GREATER, &resize_suspend_state);
+
+    __ StoreToOffset(
+        kFrameSize,
+        FieldAddress(kSuspendState, target::SuspendState::frame_size_offset()));
+    __ Jump(&init_done);
+
+    __ Bind(&alloc_suspend_state);
+  }
+
   __ Comment("Allocate SuspendState");
+  __ MoveRegister(kFunctionData, kSuspendState);
 
   // Check for allocation tracing.
   NOT_IN_PRODUCT(
@@ -1312,6 +1357,7 @@ void StubCodeCompiler::GenerateSuspendStub(
   // Compute the rounded instance size.
   const intptr_t fixed_size_plus_alignment_padding =
       (target::SuspendState::HeaderSize() +
+       target::SuspendState::FrameSizeGrowthGap() * target::kWordSize +
        target::ObjectAlignment::kObjectAlignment - 1);
   __ AddImmediate(kTemp, kFrameSize, fixed_size_plus_alignment_padding);
   __ AndImmediate(kTemp, -target::ObjectAlignment::kObjectAlignment);
@@ -1328,6 +1374,16 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ StoreToOffset(kTemp, Address(THR, target::Thread::top_offset()));
   __ SubRegisters(kTemp, kSuspendState);
   __ AddImmediate(kSuspendState, kHeapObjectTag);
+
+  if (!FLAG_precompiled_mode) {
+    // Use rounded object size to calculate and save frame capacity.
+    __ AddImmediate(kTemp, kTemp, -target::SuspendState::payload_offset());
+    __ StoreToOffset(
+        kTemp, FieldAddress(kSuspendState,
+                            target::SuspendState::frame_capacity_offset()));
+    // Restore rounded object size.
+    __ AddImmediate(kTemp, kTemp, target::SuspendState::payload_offset());
+  }
 
   // Calculate the size tag.
   {
@@ -1381,8 +1437,8 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ Bind(&alloc_done);
 
   __ Comment("Save SuspendState to frame");
-  __ LoadFromOffset(kTemp, Address(FPREG, kSavedCallerFpSlotFromFp *
-                                              compiler::target::kWordSize));
+  __ LoadFromOffset(
+      kTemp, Address(FPREG, kSavedCallerFpSlotFromFp * target::kWordSize));
   __ StoreToOffset(kSuspendState, Address(kTemp, SuspendStateFpOffset()));
 
   __ Bind(&init_done);
@@ -1437,22 +1493,32 @@ void StubCodeCompiler::GenerateSuspendStub(
   }
 #endif
 
-  // Push arguments for _SuspendState._await* method.
+  // Push arguments for suspend Dart function.
   __ PushRegistersInOrder({kSuspendState, kArgument});
 
   // Write barrier.
   __ BranchIfBit(kSuspendState, target::ObjectAlignment::kNewObjectBitPosition,
                  ZERO, &old_gen_object);
 
-  __ Bind(&call_await);
-  __ Comment("Call _SuspendState._await method");
-  __ Call(Address(THR, suspend_entry_point_offset));
+  __ Bind(&call_dart);
+  __ Comment("Call suspend Dart function");
+  CallDartCoreLibraryFunction(assembler, suspend_entry_point_offset_in_thread,
+                              suspend_function_offset_in_object_store);
 
   __ LeaveStubFrame();
+
 #if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_IA32)
-  // Drop caller frame on all architectures except x86 which needs to maintain
-  // call/return balance to avoid performance regressions.
+  // Drop caller frame on all architectures except x86 (X64/IA32) which
+  // needs to maintain call/return balance to avoid performance regressions.
   __ LeaveDartFrame();
+#elif defined(TARGET_ARCH_X64)
+  // Restore PP in JIT mode on x64 as epilogue following SuspendStub call
+  // will only unwind frame and return.
+  if (!FLAG_precompiled_mode) {
+    __ LoadFromOffset(
+        PP, Address(FPREG, target::frame_layout.saved_caller_pp_from_fp *
+                               target::kWordSize));
+  }
 #endif
   __ Ret();
 
@@ -1476,6 +1542,24 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ PopRegister(kArgument);      // Restore argument.
   __ Jump(&alloc_done);
 
+  __ Bind(&resize_suspend_state);
+  __ Comment("Resize SuspendState");
+  // Save argument and frame size.
+  __ PushRegistersInOrder({kArgument, kFrameSize});
+  __ PushObject(NullObject());  // Make space on stack for the return value.
+  __ SmiTag(kFrameSize);
+  // Pass frame size and old suspend state to runtime entry.
+  __ PushRegistersInOrder({kFrameSize, kSuspendState});
+  // It's okay to call runtime for resizing SuspendState objects
+  // as it can only happen in the unoptimized code if expression
+  // stack grows between suspends, or once after OSR transition.
+  __ CallRuntime(kAllocateSuspendStateRuntimeEntry, 2);
+  __ Drop(2);                     // Drop arguments
+  __ PopRegister(kSuspendState);  // Get result.
+  __ PopRegister(kFrameSize);     // Restore frame size.
+  __ PopRegister(kArgument);      // Restore argument.
+  __ Jump(&alloc_done);
+
   __ Bind(&old_gen_object);
   __ Comment("Old gen SuspendState slow case");
   {
@@ -1492,30 +1576,35 @@ void StubCodeCompiler::GenerateSuspendStub(
 #endif
     rt.Call(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
   }
-  __ Jump(&call_await);
+  __ Jump(&call_dart);
 }
 
 void StubCodeCompiler::GenerateAwaitStub(Assembler* assembler) {
   GenerateSuspendStub(assembler,
-                      target::Thread::suspend_state_await_entry_point_offset());
+                      target::Thread::suspend_state_await_entry_point_offset(),
+                      target::ObjectStore::suspend_state_await_offset());
 }
 
 void StubCodeCompiler::GenerateYieldAsyncStarStub(Assembler* assembler) {
   GenerateSuspendStub(
       assembler,
-      target::Thread::suspend_state_yield_async_star_entry_point_offset());
+      target::Thread::suspend_state_yield_async_star_entry_point_offset(),
+      target::ObjectStore::suspend_state_yield_async_star_offset());
 }
 
 void StubCodeCompiler::GenerateInitSuspendableFunctionStub(
     Assembler* assembler,
-    intptr_t init_entry_point_offset) {
+    intptr_t init_entry_point_offset_in_thread,
+    intptr_t init_function_offset_in_object_store) {
   const Register kTypeArgs = InitSuspendableFunctionStubABI::kTypeArgsReg;
 
   __ EnterStubFrame();
   __ LoadObject(ARGS_DESC_REG, ArgumentsDescriptorBoxed(/*type_args_len=*/1,
                                                         /*num_arguments=*/0));
   __ PushRegister(kTypeArgs);
-  __ Call(Address(THR, init_entry_point_offset));
+  CallDartCoreLibraryFunction(assembler, init_entry_point_offset_in_thread,
+                              init_function_offset_in_object_store,
+                              /*uses_args_desc=*/true);
   __ LeaveStubFrame();
 
   // Set :suspend_state in the caller frame.
@@ -1526,13 +1615,15 @@ void StubCodeCompiler::GenerateInitSuspendableFunctionStub(
 
 void StubCodeCompiler::GenerateInitAsyncStub(Assembler* assembler) {
   GenerateInitSuspendableFunctionStub(
-      assembler, target::Thread::suspend_state_init_async_entry_point_offset());
+      assembler, target::Thread::suspend_state_init_async_entry_point_offset(),
+      target::ObjectStore::suspend_state_init_async_offset());
 }
 
 void StubCodeCompiler::GenerateInitAsyncStarStub(Assembler* assembler) {
   GenerateInitSuspendableFunctionStub(
       assembler,
-      target::Thread::suspend_state_init_async_star_entry_point_offset());
+      target::Thread::suspend_state_init_async_star_entry_point_offset(),
+      target::ObjectStore::suspend_state_init_async_star_offset());
 }
 
 void StubCodeCompiler::GenerateResumeStub(Assembler* assembler) {
@@ -1544,7 +1635,7 @@ void StubCodeCompiler::GenerateResumeStub(Assembler* assembler) {
   const Register kResumePc = ResumeStubABI::kResumePcReg;
   const Register kException = ResumeStubABI::kExceptionReg;
   const Register kStackTrace = ResumeStubABI::kStackTraceReg;
-  Label rethrow_exception;
+  Label call_runtime;
 
   // Top of the stack on entry:
   // ... [SuspendState] [value] [exception] [stackTrace] [ReturnAddress]
@@ -1560,6 +1651,15 @@ void StubCodeCompiler::GenerateResumeStub(Assembler* assembler) {
     Label okay;
     __ CompareClassId(kSuspendState, kSuspendStateCid, kTemp);
     __ BranchIf(EQUAL, &okay);
+    __ Breakpoint();
+    __ Bind(&okay);
+  }
+  {
+    Label okay;
+    __ LoadFromOffset(
+        kTemp, FieldAddress(kSuspendState, target::SuspendState::pc_offset()));
+    __ CompareImmediate(kTemp, 0);
+    __ BranchIf(NOT_EQUAL, &okay);
     __ Breakpoint();
     __ Bind(&okay);
   }
@@ -1582,16 +1682,48 @@ void StubCodeCompiler::GenerateResumeStub(Assembler* assembler) {
     __ Bind(&okay);
   }
 #endif
+  if (!FLAG_precompiled_mode) {
+    // Copy Code object (part of the fixed frame which is not copied below)
+    // and restore pool pointer.
+    __ MoveRegister(kTemp, kSuspendState);
+    __ AddRegisters(kTemp, kFrameSize);
+    __ LoadFromOffset(
+        CODE_REG,
+        Address(kTemp,
+                target::SuspendState::payload_offset() - kHeapObjectTag +
+                    target::frame_layout.code_from_fp * target::kWordSize));
+    __ StoreToOffset(
+        CODE_REG,
+        Address(FPREG, target::frame_layout.code_from_fp * target::kWordSize));
+#if !defined(TARGET_ARCH_IA32)
+    __ LoadPoolPointer(PP);
+#endif
+  }
   // Do not copy fixed frame between the first local and FP.
   __ AddImmediate(kFrameSize, (target::frame_layout.first_local_from_fp + 1) *
                                   target::kWordSize);
   __ SubRegisters(SPREG, kFrameSize);
 
   __ Comment("Copy frame from SuspendState");
+  intptr_t num_saved_regs = 0;
+  if (kSrcFrame == THR) {
+    __ PushRegister(THR);
+    ++num_saved_regs;
+  }
+  if (kDstFrame == CODE_REG) {
+    __ PushRegister(CODE_REG);
+    ++num_saved_regs;
+  }
   __ AddImmediate(kSrcFrame, kSuspendState,
                   target::SuspendState::payload_offset() - kHeapObjectTag);
-  __ MoveRegister(kDstFrame, SPREG);
+  __ AddImmediate(kDstFrame, SPREG, num_saved_regs * target::kWordSize);
   __ CopyMemoryWords(kSrcFrame, kDstFrame, kFrameSize, kTemp);
+  if (kDstFrame == CODE_REG) {
+    __ PopRegister(CODE_REG);
+  }
+  if (kSrcFrame == THR) {
+    __ PopRegister(THR);
+  }
 
   __ Comment("Transfer control");
 
@@ -1600,11 +1732,6 @@ void StubCodeCompiler::GenerateResumeStub(Assembler* assembler) {
   __ StoreZero(FieldAddress(kSuspendState, target::SuspendState::pc_offset()),
                kTemp);
 
-  __ LoadFromOffset(kException,
-                    Address(FPREG, param_offset + 2 * target::kWordSize));
-  __ CompareObject(kException, NullObject());
-  __ BranchIf(NOT_EQUAL, &rethrow_exception);
-
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
   // Adjust resume PC to skip extra epilogue generated on x86
   // right after the call to suspend stub in order to maintain
@@ -1612,41 +1739,78 @@ void StubCodeCompiler::GenerateResumeStub(Assembler* assembler) {
   __ AddImmediate(kResumePc, SuspendStubABI::kResumePcDistance);
 #endif
 
+  static_assert((kException != CODE_REG) && (kException != PP),
+                "should not interfere");
+  __ LoadFromOffset(kException,
+                    Address(FPREG, param_offset + 2 * target::kWordSize));
+  __ CompareObject(kException, NullObject());
+  __ BranchIf(NOT_EQUAL, &call_runtime);
+
+  if (!FLAG_precompiled_mode) {
+    // Check if Code is disabled.
+    __ LoadFromOffset(
+        kTemp, FieldAddress(CODE_REG, target::Code::instructions_offset()));
+    __ CompareWithMemoryValue(
+        kTemp,
+        FieldAddress(CODE_REG, target::Code::active_instructions_offset()));
+    __ BranchIf(NOT_EQUAL, &call_runtime);
+
+#if !defined(PRODUCT)
+    // Check if there is a breakpoint at resumption.
+    __ LoadIsolate(kTemp);
+    __ LoadFromOffset(
+        kTemp,
+        Address(kTemp, target::Isolate::has_resumption_breakpoints_offset()),
+        kUnsignedByte);
+    __ CompareImmediate(kTemp, 0);
+    __ BranchIf(NOT_EQUAL, &call_runtime);
+#endif
+  }
+
   __ LoadFromOffset(CallingConventions::kReturnReg,
                     Address(FPREG, param_offset + 3 * target::kWordSize));
 
   __ Jump(kResumePc);
 
-  __ Comment("Rethrow exception");
-  __ Bind(&rethrow_exception);
+  __ Comment("Call runtime to throw exception or deopt");
+  __ Bind(&call_runtime);
 
   __ LoadFromOffset(kStackTrace,
                     Address(FPREG, param_offset + 1 * target::kWordSize));
+  static_assert((kStackTrace != CODE_REG) && (kStackTrace != PP),
+                "should not interfere");
 
-  // Adjust stack/LR/RA as if suspended Dart function called
+  // Set return address as if suspended Dart function called
   // stub with kResumePc as a return address.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
-  __ PushRegister(kResumePc);
-#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
-  RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(__ MoveRegister(LR, kResumePc));
-#elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
-  __ MoveRegister(RA, kResumePc);
-#else
-#error Unknown target
-#endif
+  __ SetReturnAddress(kResumePc);
 
+  if (!FLAG_precompiled_mode) {
+    __ LoadFromOffset(CODE_REG, THR, target::Thread::resume_stub_offset());
+  }
 #if !defined(TARGET_ARCH_IA32)
   __ set_constant_pool_allowed(false);
 #endif
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for (unused) result.
   __ PushRegistersInOrder({kException, kStackTrace});
-  __ CallRuntime(kReThrowRuntimeEntry, /*argument_count=*/2);
-  __ Breakpoint();
+  __ CallRuntime(kResumeFrameRuntimeEntry, /*argument_count=*/2);
+
+  if (FLAG_precompiled_mode) {
+    __ Breakpoint();
+  } else {
+    __ LeaveStubFrame();
+    __ LoadFromOffset(CallingConventions::kReturnReg,
+                      Address(FPREG, param_offset + 3 * target::kWordSize));
+    // Lazy deoptimize.
+    __ Ret();
+  }
 }
 
-void StubCodeCompiler::GenerateReturnStub(Assembler* assembler,
-                                          intptr_t return_entry_point_offset) {
+void StubCodeCompiler::GenerateReturnStub(
+    Assembler* assembler,
+    intptr_t return_entry_point_offset_in_thread,
+    intptr_t return_function_offset_in_object_store,
+    intptr_t return_stub_offset_in_thread) {
   const Register kSuspendState = ReturnStubABI::kSuspendStateReg;
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
@@ -1654,11 +1818,23 @@ void StubCodeCompiler::GenerateReturnStub(Assembler* assembler,
 #endif
 
   __ LoadFromOffset(kSuspendState, Address(FPREG, SuspendStateFpOffset()));
+#ifdef DEBUG
+  {
+    Label okay;
+    __ CompareObject(kSuspendState, NullObject());
+    __ BranchIf(NOT_EQUAL, &okay);
+    __ Breakpoint();
+    __ Bind(&okay);
+  }
+#endif
   __ LeaveDartFrame();
-
+  if (!FLAG_precompiled_mode) {
+    __ LoadFromOffset(CODE_REG, THR, return_stub_offset_in_thread);
+  }
   __ EnterStubFrame();
   __ PushRegistersInOrder({kSuspendState, CallingConventions::kReturnReg});
-  __ Call(Address(THR, return_entry_point_offset));
+  CallDartCoreLibraryFunction(assembler, return_entry_point_offset_in_thread,
+                              return_function_offset_in_object_store);
   __ LeaveStubFrame();
   __ Ret();
 }
@@ -1666,20 +1842,26 @@ void StubCodeCompiler::GenerateReturnStub(Assembler* assembler,
 void StubCodeCompiler::GenerateReturnAsyncStub(Assembler* assembler) {
   GenerateReturnStub(
       assembler,
-      target::Thread::suspend_state_return_async_entry_point_offset());
+      target::Thread::suspend_state_return_async_entry_point_offset(),
+      target::ObjectStore::suspend_state_return_async_offset(),
+      target::Thread::return_async_stub_offset());
 }
 
 void StubCodeCompiler::GenerateReturnAsyncNotFutureStub(Assembler* assembler) {
   GenerateReturnStub(
       assembler,
       target::Thread::
-          suspend_state_return_async_not_future_entry_point_offset());
+          suspend_state_return_async_not_future_entry_point_offset(),
+      target::ObjectStore::suspend_state_return_async_not_future_offset(),
+      target::Thread::return_async_not_future_stub_offset());
 }
 
 void StubCodeCompiler::GenerateReturnAsyncStarStub(Assembler* assembler) {
   GenerateReturnStub(
       assembler,
-      target::Thread::suspend_state_return_async_star_entry_point_offset());
+      target::Thread::suspend_state_return_async_star_entry_point_offset(),
+      target::ObjectStore::suspend_state_return_async_star_offset(),
+      target::Thread::return_async_star_stub_offset());
 }
 
 void StubCodeCompiler::GenerateAsyncExceptionHandlerStub(Assembler* assembler) {
@@ -1701,12 +1883,17 @@ void StubCodeCompiler::GenerateAsyncExceptionHandlerStub(Assembler* assembler) {
   __ BranchIf(EQUAL, &rethrow_exception);
 
   __ LeaveDartFrame();
+  if (!FLAG_precompiled_mode) {
+    __ LoadFromOffset(CODE_REG, THR,
+                      target::Thread::async_exception_handler_stub_offset());
+  }
   __ EnterStubFrame();
   __ PushRegistersInOrder(
       {kSuspendState, kExceptionObjectReg, kStackTraceObjectReg});
-  __ Call(Address(
-      THR,
-      target::Thread::suspend_state_handle_exception_entry_point_offset()));
+  CallDartCoreLibraryFunction(
+      assembler,
+      target::Thread::suspend_state_handle_exception_entry_point_offset(),
+      target::ObjectStore::suspend_state_handle_exception_offset());
   __ LeaveStubFrame();
   __ Ret();
 
@@ -1717,6 +1904,10 @@ void StubCodeCompiler::GenerateAsyncExceptionHandlerStub(Assembler* assembler) {
   __ Comment("Rethrow exception");
   __ Bind(&rethrow_exception);
   __ LeaveDartFrame();
+  if (!FLAG_precompiled_mode) {
+    __ LoadFromOffset(CODE_REG, THR,
+                      target::Thread::async_exception_handler_stub_offset());
+  }
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for (unused) result.
   __ PushRegistersInOrder({kExceptionObjectReg, kStackTraceObjectReg});

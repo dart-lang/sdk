@@ -24,6 +24,8 @@ const String kPauseSocketProfilingRPC = 'ext.dart.io.pauseSocketProfiling';
 const String kStartSocketProfilingRPC = 'ext.dart.io.startSocketProfiling';
 const String localhost = '127.0.0.1';
 
+List<Object> sockets = [];
+
 Future<void> setup() async {}
 
 Future<void> socketTest() async {
@@ -54,6 +56,11 @@ Future<void> socketTest() async {
   await doneCompleter.future;
   // Post finish event
   postEvent('socketTest', {'socket': 'test'});
+  // Workaround for dartbug.com/49111: make sure socket IDs are not reused.
+  sockets.add(serverSocket);
+  sockets.add(socket);
+  sockets.add(server);
+  sockets.add(client);
 }
 
 bool checkFinishEvent(ServiceEvent event) {

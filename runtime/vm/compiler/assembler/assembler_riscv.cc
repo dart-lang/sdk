@@ -2727,6 +2727,9 @@ void Assembler::AddImmediate(Register rd,
                              Register rs1,
                              intx_t imm,
                              OperandSize sz) {
+  if ((imm == 0) && (rd == rs1)) {
+    return;
+  }
   if (IsITypeImm(imm)) {
     addi(rd, rs1, imm);
   } else {
@@ -3646,7 +3649,7 @@ void Assembler::CheckCodePointer() {
   intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
   auipc(TMP, hi);
   addi(TMP, TMP, lo);
-  lx(TMP2, FieldAddress(CODE_REG, target::Code::saved_instructions_offset()));
+  lx(TMP2, FieldAddress(CODE_REG, target::Code::instructions_offset()));
   beq(TMP, TMP2, &instructions_ok, kNearJump);
   ebreak();
   Bind(&instructions_ok);

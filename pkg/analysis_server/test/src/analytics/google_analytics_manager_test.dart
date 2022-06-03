@@ -20,11 +20,7 @@ void main() {
 @reflectiveTest
 class GoogleAnalyticsManagerTest {
   final analytics = _MockAnalytics();
-  late final GoogleAnalyticsManager manager;
-
-  void setUp() {
-    manager = GoogleAnalyticsManager(analytics);
-  }
+  late final manager = GoogleAnalyticsManager(analytics);
 
   void test_plugin_request() {
     _defaultStartup();

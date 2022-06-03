@@ -146,7 +146,8 @@ void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
     descriptors_ = code.pc_descriptors();
     PcDescriptors::Iterator iter(descriptors_, UntaggedPcDescriptors::kIcCall);
     while (iter.MoveNext()) {
-      FATAL1("%s has IC calls but no ic_data_array\n", object_.ToCString());
+      FATAL1("%s has IC calls but no ic_data_array\n",
+             function.ToFullyQualifiedCString());
     }
 #endif
     return;

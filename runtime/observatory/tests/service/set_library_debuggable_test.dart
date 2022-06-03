@@ -31,12 +31,12 @@ var tests = <IsolateTest>[
     await dartCore.reload();
     expect(dartCore.debuggable, equals(true));
   },
-  stoppedInFunction('testMain', contains: true, includeOwner: true),
+  stoppedInFunction('testMain'),
   stoppedAtLine(LINE_A),
   stepInto,
   stoppedInFunction('print'),
   stepOut,
-  stoppedInFunction('testMain', contains: true, includeOwner: true),
+  stoppedInFunction('testMain'),
   stoppedAtLine(LINE_B),
   (Isolate isolate) async {
     // Mark 'dart:core' as not debuggable.
@@ -55,10 +55,10 @@ var tests = <IsolateTest>[
     await dartCore.reload();
     expect(dartCore.debuggable, equals(false));
   },
-  stoppedInFunction('testMain', contains: true, includeOwner: true),
+  stoppedInFunction('testMain'),
   stoppedAtLine(LINE_B),
   stepInto,
-  stoppedInFunction('testMain', contains: true, includeOwner: true),
+  stoppedInFunction('testMain'),
   stoppedAtLine(LINE_C),
 ];
 

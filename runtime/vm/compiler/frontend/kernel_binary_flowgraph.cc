@@ -699,8 +699,8 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
                             Call1ArgStubInstr::StubId::kInitAsyncStar);
     body += Drop();
     body += NullConstant();
-    body += B->Call1ArgStub(TokenPosition::kNoSource,
-                            Call1ArgStubInstr::StubId::kYieldAsyncStar);
+    body += B->Suspend(TokenPosition::kNoSource,
+                       SuspendInstr::StubId::kYieldAsyncStar);
     body += Drop();
   }
   return body;
@@ -4373,7 +4373,10 @@ Fragment StreamingFlowGraphBuilder::BuildAwaitExpression(
 
   instructions += BuildExpression();  // read operand.
 
-  instructions += B->Call1ArgStub(pos, Call1ArgStubInstr::StubId::kAwait);
+  if (NeedsDebugStepCheck(parsed_function()->function(), pos)) {
+    instructions += DebugStepCheck(pos);
+  }
+  instructions += B->Suspend(pos, SuspendInstr::StubId::kAwait);
   return instructions;
 }
 
@@ -5305,6 +5308,9 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
     instructions += LoadNativeField(Slot::SuspendState_function_data());
 
     instructions += BuildExpression();  // read expression.
+    if (NeedsDebugStepCheck(parsed_function()->function(), pos)) {
+      instructions += DebugStepCheck(pos);
+    }
 
     auto& add_method = Function::ZoneHandle(Z);
     const bool is_yield_star = (flags & kYieldStatementFlagYieldStar) != 0;
@@ -5314,15 +5320,15 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
     } else {
       add_method = IG->object_store()->async_star_stream_controller_add();
     }
-    instructions += StaticCall(pos, add_method, 2, ICData::kNoRebind);
+    instructions +=
+        StaticCall(TokenPosition::kNoSource, add_method, 2, ICData::kNoRebind);
 
     if (is_yield_star) {
       // Discard result of _AsyncStarStreamController.addStream().
       instructions += Drop();
       // Suspend and test value passed to the resumed async* body.
       instructions += NullConstant();
-      instructions +=
-          B->Call1ArgStub(pos, Call1ArgStubInstr::StubId::kYieldAsyncStar);
+      instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
     } else {
       // Test value returned by _AsyncStarStreamController.add().
     }
@@ -5339,8 +5345,7 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
     instructions = Fragment(instructions.entry, continue_execution);
     if (!is_yield_star) {
       instructions += NullConstant();
-      instructions +=
-          B->Call1ArgStub(pos, Call1ArgStubInstr::StubId::kYieldAsyncStar);
+      instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
       instructions += Drop();
     }
 
@@ -5586,9 +5591,6 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         }
 
         if (function_node_helper.async_marker_ == FunctionNodeHelper::kAsync) {
-          if (!FLAG_precompiled_mode) {
-            FATAL("Compact async functions are only supported in AOT mode.");
-          }
           function.set_modifier(UntaggedFunction::kAsync);
           function.set_is_debuggable(true);
           function.set_is_inlinable(false);
@@ -5596,9 +5598,6 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           ASSERT(function.IsCompactAsyncFunction());
         } else if (function_node_helper.async_marker_ ==
                    FunctionNodeHelper::kAsyncStar) {
-          if (!FLAG_precompiled_mode) {
-            FATAL("Compact async* functions are only supported in AOT mode.");
-          }
           function.set_modifier(UntaggedFunction::kAsyncGen);
           function.set_is_debuggable(true);
           function.set_is_inlinable(false);

@@ -22,7 +22,7 @@ class TargetFlags {
       {this.trackWidgetCreation = false,
       this.enableNullSafety = false,
       this.supportMirrors = true,
-      this.compactAsync = false});
+      this.compactAsync = true});
 
   @override
   bool operator ==(other) {

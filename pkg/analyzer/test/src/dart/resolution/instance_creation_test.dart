@@ -656,11 +656,11 @@ InstanceCreationExpression
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          parameter: <null>
           staticInvokeType: C? Function()
           staticType: C?
           typeArgumentTypes
             C?
+        parameter: self::@class::X::@constructor::•::@parameter::c
       MethodInvocation
         methodName: SimpleIdentifier
           token: g2
@@ -689,11 +689,11 @@ InstanceCreationExpression
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          parameter: <null>
           staticInvokeType: D? Function()
           staticType: D?
           typeArgumentTypes
             D?
+        parameter: self::@class::X::@constructor::•::@parameter::d
     rightParenthesis: )
   staticType: X
 ''');

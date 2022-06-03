@@ -1300,6 +1300,11 @@ class Assembler : public AssemblerBase {
   void EnterFrame(RegList regs, intptr_t frame_space);
   void LeaveFrame(RegList regs, bool allow_pop_pc = false);
   void Ret(Condition cond = AL);
+
+  // Sets the return address to [value] as if there was a call.
+  // On ARM sets LR.
+  void SetReturnAddress(Register value);
+
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
   // In debug mode, this generates code to check that:

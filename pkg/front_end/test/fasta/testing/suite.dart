@@ -66,7 +66,6 @@ import 'package:front_end/src/fasta/util/parser_ast.dart'
 import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
 import 'package:kernel/ast.dart'
     show
-        AwaitExpression,
         BasicLiteral,
         Class,
         Component,
@@ -87,9 +86,7 @@ import 'package:kernel/ast.dart'
         TreeNode,
         UnevaluatedConstant,
         VariableDeclaration,
-        Version,
-        Visitor,
-        VisitorVoidMixin;
+        Version;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -2421,13 +2418,6 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
           backendTarget.performModularTransformations = false;
         }
       }
-      List<String> errors = VerifyTransformed.verify(component, backendTarget);
-      if (errors.isNotEmpty) {
-        return new Result<ComponentResult>(
-            result,
-            context.expectationSet["TransformVerificationError"],
-            errors.join('\n'));
-      }
       if (backendTarget is TestTarget &&
           backendTarget.hasGlobalTransformation) {
         component =
@@ -2489,34 +2479,6 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
     }, errorOnMissingInput: false);
     result.options.rawOptionsForTesting.onDiagnostic = previousOnDiagnostics;
     return verifyResult;
-  }
-}
-
-/// Visitor that checks that the component has been transformed properly.
-// TODO(johnniwinther): Add checks for all nodes that are unsupported after
-// transformation.
-class VerifyTransformed extends Visitor<void> with VisitorVoidMixin {
-  final Target target;
-  List<String> errors = [];
-
-  VerifyTransformed(this.target);
-
-  @override
-  void defaultNode(Node node) {
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitAwaitExpression(AwaitExpression node) {
-    if (target is VmTarget) {
-      errors.add("ERROR: Untransformed await expression: $node");
-    }
-  }
-
-  static List<String> verify(Component component, Target target) {
-    VerifyTransformed visitor = new VerifyTransformed(target);
-    component.accept(visitor);
-    return visitor.errors;
   }
 }
 

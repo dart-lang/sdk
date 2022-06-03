@@ -29,7 +29,7 @@ var tests = <IsolateTest>[
     // We used to return a negative token position for this frame.
     // See issue #27128.
     var frame = stack['frames'][0];
-    expect(frame.function.qualifiedName, equals('helper.async_op'));
+    expect(frame.function.qualifiedName, equals('helper'));
     expect(await frame.location.getLine(), equals(14));
     expect(await frame.location.getColumn(), equals(1));
 

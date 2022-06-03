@@ -4254,6 +4254,15 @@ Fragment FlowGraphBuilder::Call1ArgStub(TokenPosition position,
   return Fragment(instr);
 }
 
+Fragment FlowGraphBuilder::Suspend(TokenPosition position,
+                                   SuspendInstr::StubId stub_id) {
+  SuspendInstr* instr =
+      new (Z) SuspendInstr(InstructionSource(position), stub_id, Pop(),
+                           GetNextDeoptId(), GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
 Fragment FlowGraphBuilder::WrapTypedDataBaseInCompound(
     const AbstractType& compound_type) {
   const auto& compound_sub_class =

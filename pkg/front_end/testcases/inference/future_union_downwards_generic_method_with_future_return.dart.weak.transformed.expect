@@ -2,7 +2,6 @@ library test;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
-import "dart:_internal" as _in;
 
 import "dart:async";
 
@@ -21,34 +20,9 @@ class A extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static method foo() → dynamic /* futureValueType= dynamic */ /* originally async */ {
-  final asy::_Future<dynamic>* :async_future = new asy::_Future::•<dynamic>();
-  core::bool* :is_sync = false;
-  dynamic :return_value;
-  (dynamic) →* dynamic :async_op_then;
-  (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
-  core::int* :await_jump_var = 0;
-  dynamic :await_ctx_var;
-  dynamic :saved_try_context_var0;
-  function :async_op(dynamic :result_or_exception, dynamic :stack_trace) → dynamic yielding 
-    try {
-      #L1:
-      {
-        has-declared-initializer asy::Future<core::List<self::A*>*>* f1 = null;
-        has-declared-initializer asy::Future<core::List<self::A*>*>* f2 = null;
-        [yield] let dynamic #t1 = asy::_awaitHelper(asy::Future::wait<core::List<self::A*>*>(core::_GrowableList::_literal2<asy::Future<core::List<self::A*>*>*>(f1, f2)), :async_op_then, :async_op_error) in null;
-        core::List<core::List<self::A*>*>* merged = _in::unsafeCast<core::List<core::List<self::A*>*>>(:result_or_exception);
-      }
-      asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
-      return;
-    }
-    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
-      asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
-    }
-  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
-  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_op(null, null){() →* dynamic};
-  :is_sync = true;
-  return :async_future;
+static method foo() → dynamic async /* futureValueType= dynamic */ {
+  has-declared-initializer asy::Future<core::List<self::A*>*>* f1 = null;
+  has-declared-initializer asy::Future<core::List<self::A*>*>* f2 = null;
+  core::List<core::List<self::A*>*>* merged = await asy::Future::wait<core::List<self::A*>*>(core::_GrowableList::_literal2<asy::Future<core::List<self::A*>*>*>(f1, f2));
 }
 static method main() → dynamic {}

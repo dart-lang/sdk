@@ -36,8 +36,7 @@ var tests = <IsolateTest>[
     // Make sure we are in the right place.
     expect(stack.type, 'Stack');
     expect(stack['frames'].length, greaterThanOrEqualTo(1));
-    // Async closure of testFunction
-    expect(stack['frames'][0].function.name, 'async_op');
+    expect(stack['frames'][0].function.name, 'testFunction');
 
     var root = isolate.rootLibrary;
     await root.load();

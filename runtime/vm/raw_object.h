@@ -3307,6 +3307,7 @@ class UntaggedStackTrace : public UntaggedInstance {
 class UntaggedSuspendState : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SuspendState);
 
+  NOT_IN_PRECOMPILED(intptr_t frame_capacity_);
   intptr_t frame_size_;
   uword pc_;
 
@@ -3323,6 +3324,14 @@ class UntaggedSuspendState : public UntaggedInstance {
 
  public:
   uword pc() const { return pc_; }
+
+  intptr_t frame_capacity() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return frame_size_;
+#else
+    return frame_capacity_;
+#endif
+  }
 
   static intptr_t payload_offset() {
     return OFFSET_OF_RETURNED_VALUE(UntaggedSuspendState, payload);

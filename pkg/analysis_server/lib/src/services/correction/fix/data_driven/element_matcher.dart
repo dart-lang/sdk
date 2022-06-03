@@ -406,6 +406,18 @@ class _MatcherBuilder {
           ElementKind.setterKind
         ],
       );
+    } else if (container is ExtensionElement) {
+      _addMatcher(
+        components: [node.identifier.name, container.displayName],
+        kinds: const [
+          ElementKind.constantKind,
+          ElementKind.fieldKind,
+          ElementKind.functionKind, // tear-off
+          ElementKind.getterKind,
+          ElementKind.methodKind, // tear-off
+          ElementKind.setterKind
+        ],
+      );
     }
   }
 

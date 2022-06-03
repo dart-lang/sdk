@@ -1587,7 +1587,7 @@ void Assembler::CheckCodePointer() {
                           target::Instructions::HeaderSize() - kHeapObjectTag;
   mov(R0, Operand(PC));
   AddImmediate(R0, -offset);
-  ldr(IP, FieldAddress(CODE_REG, target::Code::saved_instructions_offset()));
+  ldr(IP, FieldAddress(CODE_REG, target::Code::instructions_offset()));
   cmp(R0, Operand(IP));
   b(&instructions_ok, EQ);
   bkpt(1);
@@ -3306,6 +3306,10 @@ void Assembler::LeaveFrame(RegList regs, bool allow_pop_pc) {
 
 void Assembler::Ret(Condition cond /* = AL */) {
   READS_RETURN_ADDRESS_FROM_LR(bx(LR, cond));
+}
+
+void Assembler::SetReturnAddress(Register value) {
+  RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(MoveRegister(LR, value));
 }
 
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {

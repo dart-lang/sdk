@@ -81,7 +81,7 @@ void declareCompilerOptions(ArgParser args) {
           'supported when --aot and --minimal-kernel are not used.',
       defaultsTo: null);
   args.addFlag('compact-async',
-      help: 'Enable new compact async/await implementation.', defaultsTo: null);
+      help: 'Enable new compact async/await implementation.', defaultsTo: true);
   args.addOption('depfile', help: 'Path to output Ninja depfile');
   args.addOption('from-dill',
       help: 'Read existing dill file instead of compiling from sources',
@@ -202,7 +202,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final String? manifestFilename = options['manifest'];
   final String? dataDir = options['component-name'] ?? options['data-dir'];
   final bool? supportMirrors = options['support-mirrors'];
-  final bool compactAsync = options['compact-async'] ?? aot;
+  final bool compactAsync = options['compact-async'];
 
   final bool minimalKernel = options['minimal-kernel'];
   final bool treeShakeWriteOnlyFields = options['tree-shake-write-only-fields'];
@@ -617,7 +617,7 @@ Target? createFrontEndTarget(String targetName,
     {bool trackWidgetCreation = false,
     bool nullSafety = false,
     bool supportMirrors = true,
-    bool compactAsync = false}) {
+    bool compactAsync = true}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 

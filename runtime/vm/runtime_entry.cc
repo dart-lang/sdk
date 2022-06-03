@@ -711,15 +711,36 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
 
 // Allocate a SuspendState object.
 // Arg0: frame size.
-// Arg1: function data.
+// Arg1: existing SuspendState object or function data.
 // Return value: newly allocated object.
 DEFINE_RUNTIME_ENTRY(AllocateSuspendState, 2) {
-  const Smi& frame_size = Smi::CheckedHandle(zone, arguments.ArgAt(0));
-  const Instance& function_data =
-      Instance::CheckedHandle(zone, arguments.ArgAt(1));
-  const SuspendState& result = SuspendState::Handle(
-      zone, SuspendState::New(frame_size.Value(), function_data,
-                              SpaceForRuntimeAllocation()));
+  const intptr_t frame_size =
+      Smi::CheckedHandle(zone, arguments.ArgAt(0)).Value();
+  const Object& previous_state = Object::Handle(zone, arguments.ArgAt(1));
+  SuspendState& result = SuspendState::Handle(zone);
+  if (previous_state.IsSuspendState()) {
+    const auto& suspend_state = SuspendState::Cast(previous_state);
+    const auto& function_data =
+        Instance::Handle(zone, suspend_state.function_data());
+    ObjectStore* object_store = thread->isolate_group()->object_store();
+    if (function_data.GetClassId() ==
+        Class::Handle(zone, object_store->async_star_stream_controller())
+            .id()) {
+      // Reset _AsyncStarStreamController.asyncStarBody to null in order
+      // to create a new callback closure during next yield.
+      // The new callback closure will capture the reallocated SuspendState.
+      function_data.SetField(
+          Field::Handle(
+              zone,
+              object_store->async_star_stream_controller_async_star_body()),
+          Object::null_object());
+    }
+    result = SuspendState::New(frame_size, function_data,
+                               SpaceForRuntimeAllocation());
+  } else {
+    result = SuspendState::New(frame_size, Instance::Cast(previous_state),
+                               SpaceForRuntimeAllocation());
+  }
   arguments.SetReturn(result);
 }
 
@@ -3111,6 +3132,20 @@ const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason) {
   }
 }
 
+static bool IsSuspendedFrame(Zone* zone,
+                             const Function& function,
+                             StackFrame* frame) {
+  if (!function.IsSuspendableFunction()) {
+    return false;
+  }
+  auto& suspend_state = Object::Handle(
+      zone, *reinterpret_cast<ObjectPtr*>(LocalVarAddress(
+                frame->fp(), runtime_frame_layout.FrameSlotForVariableIndex(
+                                 SuspendState::kSuspendStateVarIndex))));
+  return suspend_state.IsSuspendState() &&
+         (SuspendState::Cast(suspend_state).pc() != 0);
+}
+
 void DeoptimizeAt(Thread* mutator_thread,
                   const Code& optimized_code,
                   StackFrame* frame) {
@@ -3136,7 +3171,12 @@ void DeoptimizeAt(Thread* mutator_thread,
     function.SwitchToUnoptimizedCode();
   }
 
-  if (frame->IsMarkedForLazyDeopt()) {
+  if (IsSuspendedFrame(zone, function, frame)) {
+    // Frame is suspended and going to be removed from the stack.
+    if (FLAG_trace_deoptimization) {
+      THR_Print("Not deoptimizing suspended frame, fp=%" Pp "\n", frame->fp());
+    }
+  } else if (frame->IsMarkedForLazyDeopt()) {
     // Deopt already scheduled.
     if (FLAG_trace_deoptimization) {
       THR_Print("Lazy deopt already scheduled for fp=%" Pp "\n", frame->fp());
@@ -3406,6 +3446,52 @@ DEFINE_RUNTIME_ENTRY(RewindPostDeopt, 0) {
 #endif  // !PRODUCT
 #endif  // !DART_PRECOMPILED_RUNTIME
   UNREACHABLE();
+}
+
+// Handle slow path actions for the resumed frame after it was
+// copied back to the stack:
+// 1) deoptimization;
+// 2) breakpoint at resumption;
+// 3) throwing an exception.
+//
+// Arg0: exception
+// Arg1: stack trace
+DEFINE_RUNTIME_ENTRY(ResumeFrame, 2) {
+  const Instance& exception = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Instance& stacktrace =
+      Instance::CheckedHandle(zone, arguments.ArgAt(1));
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(PRODUCT)
+  if (isolate->has_resumption_breakpoints()) {
+    isolate->debugger()->ResumptionBreakpoint();
+  }
+#endif
+
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* frame = iterator.NextFrame();
+  ASSERT(frame->IsDartFrame());
+  ASSERT(Function::Handle(zone, frame->LookupDartFunction())
+             .IsSuspendableFunction());
+  const Code& caller_code = Code::Handle(zone, frame->LookupDartCode());
+  if (caller_code.IsDisabled() && caller_code.is_optimized() &&
+      !caller_code.is_force_optimized()) {
+    const uword deopt_pc = frame->pc();
+    thread->pending_deopts().AddPendingDeopt(frame->fp(), deopt_pc);
+    frame->MarkForLazyDeopt();
+
+    if (FLAG_trace_deoptimization) {
+      THR_Print("Lazy deopt scheduled for resumed frame fp=%" Pp ", pc=%" Pp
+                "\n",
+                frame->fp(), deopt_pc);
+    }
+  }
+#endif
+
+  if (!exception.IsNull()) {
+    Exceptions::ReThrow(thread, exception, stacktrace);
+  }
 }
 
 void OnEveryRuntimeEntryCall(Thread* thread,
