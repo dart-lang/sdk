@@ -114,10 +114,10 @@ class FileResolver {
 
   _LibraryContext? libraryContext;
 
-  /// List of keys for cache elements that are invalidated. Track elements that
+  /// List of ids for cache elements that are invalidated. Track elements that
   /// are invalidated during [changeFile]. Used in [releaseAndClearRemovedIds]
   /// to release the cache items and is then cleared.
-  final Set<String> removedCacheKeys = {};
+  final Set<int> removedCacheIds = {};
 
   /// The cache of file results, cleared on [changeFile].
   ///
@@ -173,21 +173,21 @@ class FileResolver {
 
     // Schedule disposing references to cached unlinked data.
     for (var removedFile in removedFiles) {
-      removedCacheKeys.add(removedFile.unlinkedKey);
+      removedCacheIds.add(removedFile.unlinkedId);
     }
 
     // Remove libraries represented by removed files.
     // If we need these libraries later, we will relink and reattach them.
     if (libraryContext != null) {
-      libraryContext!.remove(removedFiles, removedCacheKeys);
+      libraryContext!.remove(removedFiles, removedCacheIds);
     }
   }
 
   /// Collects all the cached artifacts and add all the cache id's for the
-  /// removed artifacts to [removedCacheKeys].
+  /// removed artifacts to [removedCacheIds].
   void collectSharedDataIdentifiers() {
-    removedCacheKeys.addAll(fsState!.collectSharedDataKeys());
-    removedCacheKeys.addAll(libraryContext!.collectSharedDataKeys());
+    removedCacheIds.addAll(fsState!.collectSharedDataIdentifiers());
+    removedCacheIds.addAll(libraryContext!.collectSharedDataIdentifiers());
   }
 
   /// Looks for references to the given Element. All the files currently
@@ -252,7 +252,7 @@ class FileResolver {
       );
       var file = fileContext.file;
 
-      final errorsSignatureBuilder = ApiSignature();
+      var errorsSignatureBuilder = ApiSignature();
       errorsSignatureBuilder.addBytes(file.libraryCycle.signature);
       errorsSignatureBuilder.addBytes(file.digest);
       final errorsKey = '${errorsSignatureBuilder.toHex()}.errors';
@@ -414,10 +414,10 @@ class FileResolver {
     _resetContextObjects();
   }
 
-  /// Releases from the cache and clear [removedCacheKeys].
+  /// Update the cache with list of invalidated ids and clears [removedCacheIds].
   void releaseAndClearRemovedIds() {
-    byteStore.release2(removedCacheKeys);
-    removedCacheKeys.clear();
+    byteStore.release(removedCacheIds);
+    removedCacheIds.clear();
   }
 
   /// Remove cached [FileState]'s that were not used in the current analysis
@@ -427,7 +427,7 @@ class FileResolver {
   void removeFilesNotNecessaryForAnalysisOf(List<String> files) {
     var removedFiles = fsState!.removeUnusedFiles(files);
     for (var removedFile in removedFiles) {
-      removedCacheKeys.add(removedFile.unlinkedKey);
+      removedCacheIds.add(removedFile.unlinkedId);
     }
   }
 
@@ -829,20 +829,20 @@ class _LibraryContext {
 
   /// Clears all the loaded libraries. Returns the cache ids for the removed
   /// artifacts.
-  Set<String> collectSharedDataKeys() {
-    var keySet = <String>{};
+  Set<int> collectSharedDataIdentifiers() {
+    var idSet = <int>{};
 
-    void addIfNotNull(String? key) {
-      if (key != null) {
-        keySet.add(key);
+    void addIfNotNull(int? id) {
+      if (id != null) {
+        idSet.add(id);
       }
     }
 
     for (var cycle in loadedBundles) {
-      addIfNotNull(cycle.resolutionKey);
+      addIfNotNull(cycle.resolutionId);
     }
     loadedBundles.clear();
-    return keySet;
+    return idSet;
   }
 
   /// Load data required to access elements of the given [targetLibrary].
@@ -864,8 +864,9 @@ class _LibraryContext {
         await loadBundle(directDependency);
       }
 
-      var resolutionKey = '${cycle.signatureStr}.resolution';
-      var resolutionBytes = byteStore.get2(resolutionKey);
+      var resolutionKey = '${cycle.cyclePathsHash}.resolution';
+      var resolutionData = byteStore.get(resolutionKey, cycle.signature);
+      var resolutionBytes = resolutionData?.bytes;
 
       var unitsInformativeBytes = <Uri, Uint8List>{};
       for (var library in cycle.libraries) {
@@ -938,7 +939,9 @@ class _LibraryContext {
         librariesLinked += cycle.libraries.length;
 
         resolutionBytes = linkResult.resolutionBytes;
-        resolutionBytes = byteStore.putGet2(resolutionKey, resolutionBytes);
+        resolutionData =
+            byteStore.putGet(resolutionKey, cycle.signature, resolutionBytes);
+        resolutionBytes = resolutionData.bytes;
         performance.getDataInt('bytesPut').add(resolutionBytes.length);
 
         librariesLinkedTimer.stop();
@@ -953,7 +956,7 @@ class _LibraryContext {
           ),
         );
       }
-      cycle.resolutionKey = resolutionKey;
+      cycle.resolutionId = resolutionData!.id;
 
       // We might have just linked dart:core, ensure the type provider.
       _createElementFactoryTypeProvider();
@@ -972,22 +975,22 @@ class _LibraryContext {
 
   /// Remove libraries represented by the [removed] files.
   /// If we need these libraries later, we will relink and reattach them.
-  void remove(List<FileState> removed, Set<String> removedKeys) {
+  void remove(List<FileState> removed, Set<int> removedIds) {
     elementFactory.removeLibraries(
       removed.map((e) => e.uriStr).toSet(),
     );
 
     var removedSet = removed.toSet();
 
-    void addIfNotNull(String? key) {
-      if (key != null) {
-        removedKeys.add(key);
+    void addIfNotNull(int? id) {
+      if (id != null) {
+        removedIds.add(id);
       }
     }
 
     loadedBundles.removeWhere((cycle) {
       if (cycle.libraries.any(removedSet.contains)) {
-        addIfNotNull(cycle.resolutionKey);
+        addIfNotNull(cycle.resolutionId);
         return true;
       }
       return false;

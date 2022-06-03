@@ -139,7 +139,7 @@ class FileState {
 
   Source get source => _location.source;
 
-  String get unlinkedKey => _unlinked.unlinkedKey;
+  int get unlinkedId => _unlinked.unlinkedId;
 
   UnlinkedUnit get unlinkedUnit => _unlinked.unlinked.unit;
 
@@ -330,12 +330,12 @@ class FileSystemState {
     }
   }
 
-  /// Clears all the cached files. Returns the list of keys of all the removed
+  /// Clears all the cached files. Returns the list of ids of all the removed
   /// files.
-  Set<String> collectSharedDataKeys() {
-    var result = <String>{};
+  Set<int> collectSharedDataIdentifiers() {
+    var result = <int>{};
     for (var file in _pathToFile.values) {
-      result.add(file._unlinked.unlinkedKey);
+      result.add(file._unlinked.unlinkedId);
     }
     return result;
   }
@@ -560,9 +560,9 @@ class LibraryCycle {
   /// The hash of all the paths of the files in this cycle.
   late String cyclePathsHash;
 
-  /// The key of the resolution cache entry.
+  /// The ID of the resolution cache entry.
   /// It is `null` if we failed to load libraries of the cycle.
-  String? resolutionKey;
+  int? resolutionId;
 
   LibraryCycle();
 
@@ -713,8 +713,8 @@ class _FileStateUnlinked {
   final bool exists;
   final CiderUnlinkedUnit unlinked;
 
-  /// Key of the cache entry with unlinked data.
-  final String unlinkedKey;
+  /// id of the cache entry with unlinked data.
+  final int unlinkedId;
 
   factory _FileStateUnlinked({
     required _FileStateLocation location,
@@ -723,6 +723,7 @@ class _FileStateUnlinked {
   }) {
     location._fsState.testView.refreshedFiles.add(location.path);
 
+    int unlinkedId;
     CiderUnlinkedUnit unlinked;
 
     var digest = performance.run('digest', (performance) {
@@ -733,14 +734,15 @@ class _FileStateUnlinked {
 
     var exists = digest.isNotEmpty;
 
-    final unlinkedKey = '${hex.encode(digest)}.unlinked';
+    var unlinkedKey = '${location.path}.unlinked';
     var isUnlinkedFromCache = true;
 
     // Prepare bytes of the unlinked bundle - existing or new.
     // TODO(migration): should not be nullable
     Uint8List? unlinkedBytes;
     {
-      unlinkedBytes = location._fsState._byteStore.get2(unlinkedKey);
+      var unlinkedData = location._fsState._byteStore.get(unlinkedKey, digest);
+      unlinkedBytes = unlinkedData?.bytes;
 
       if (unlinkedBytes == null || unlinkedBytes.isEmpty) {
         isUnlinkedFromCache = false;
@@ -761,12 +763,14 @@ class _FileStateUnlinked {
           var unlinkedUnit = serializeAstCiderUnlinked(unit);
           unlinkedBytes = unlinkedUnit.toBytes();
           performance.getDataInt('length').add(unlinkedBytes!.length);
-          unlinkedBytes =
-              location._fsState._byteStore.putGet2(unlinkedKey, unlinkedBytes!);
+          unlinkedData = location._fsState._byteStore
+              .putGet(unlinkedKey, digest, unlinkedBytes!);
+          unlinkedBytes = unlinkedData!.bytes;
         });
 
         unlinked = CiderUnlinkedUnit.fromBytes(unlinkedBytes!);
       }
+      unlinkedId = unlinkedData!.id;
     }
 
     // Read the unlinked bundle.
@@ -778,7 +782,7 @@ class _FileStateUnlinked {
       digest: digest,
       exists: exists,
       unlinked: unlinked,
-      unlinkedKey: unlinkedKey,
+      unlinkedId: unlinkedId,
     );
     if (isUnlinkedFromCache) {
       performance.run('prefetch', (_) {
@@ -794,7 +798,7 @@ class _FileStateUnlinked {
     required this.digest,
     required this.exists,
     required this.unlinked,
-    required this.unlinkedKey,
+    required this.unlinkedId,
   }) : _partOfLibrary = partOfLibrary;
 
   FileState? get partOfLibrary {
