@@ -2645,16 +2645,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.LiteralString _emitJSInteropStaticMemberName(NamedNode n) {
     if (!usesJSInterop(n)) return null;
-    var name = _annotationName(n, isPublicJSAnnotation);
-    if (name != null) {
-      if (name.contains('.')) {
-        throw UnsupportedError(
-            'static members do not support "." in their names. '
-            'See https://github.com/dart-lang/sdk/issues/27926');
-      }
-    } else {
-      name = getTopLevelName(n);
-    }
+    var name = _annotationName(n, isPublicJSAnnotation) ?? getTopLevelName(n);
+    assert(name != null && !name.contains('.'),
+        'JS interop checker rejects dotted names on static class members');
     return js.escapedString(name, "'");
   }
 

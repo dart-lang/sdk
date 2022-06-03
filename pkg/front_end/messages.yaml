@@ -5173,6 +5173,9 @@ JsInteropOperatorsNotSupported:
   problemMessage: "JS interop classes do not support operator methods."
   correctionMessage: "Try replacing this with a normal method."
 
+JsInteropInvalidStaticClassMemberName:
+  problemMessage: "JS interop static class members cannot have '.' in their JS name."
+
 JsInteropStaticInteropWithInstanceMembers:
   problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
   correctionMessage: "Try moving the instance member to a static extension."
