@@ -484,14 +484,11 @@ class KernelInfoCollector {
       _globalInferenceResults.resultOfParameter(e);
 
   FieldInfo visitField(ir.Field field, {FieldEntity fieldEntity}) {
-    FieldInfo info = FieldInfo(
-        name: field.name.text,
-        type: field.type.toStringInternal(),
-        inferredType: null,
-        code: null,
-        outputUnit: null,
-        isConst: field.isConst,
-        size: null);
+    FieldInfo info = FieldInfo.fromKernel(
+      name: field.name.text,
+      type: field.type.toStringInternal(),
+      isConst: field.isConst,
+    );
     state.entityToInfo[fieldEntity] = info;
 
     if (compiler.options.experimentCallInstrumentation) {
@@ -623,18 +620,13 @@ class KernelInfoCollector {
         : ir.Nullability.nonNullable;
     final functionType = function.computeFunctionType(nullability);
 
-    FunctionInfo info = FunctionInfo(
+    FunctionInfo info = FunctionInfo.fromKernel(
         name: name,
         functionKind: kind,
         modifiers: modifiers,
         returnType: function.returnType.toStringInternal(),
-        inferredReturnType: null,
         parameters: parameters,
-        sideEffects: null,
-        inlinedCount: null,
-        code: null,
-        type: functionType.toStringInternal(),
-        outputUnit: null);
+        type: functionType.toStringInternal());
     state.entityToInfo[functionEntity] = info;
 
     if (function.parent is ir.Member)
@@ -672,8 +664,7 @@ class KernelInfoCollector {
         }
       });
       final closureClassEntity = closureEntity.enclosingClass;
-      final closureInfo = ClosureInfo(
-          name: value.disambiguatedName, outputUnit: null, size: null);
+      final closureInfo = ClosureInfo.fromKernel(name: value.disambiguatedName);
       state.entityToInfo[closureClassEntity] = closureInfo;
 
       FunctionEntity callMethod = closedWorld.elementEnvironment
@@ -1282,23 +1273,23 @@ class DumpInfoTask extends CompilerTask
         ..run();
 
       dumpInfoState = buildDumpInfoDataNew(closedWorld, kernelInfoCollector);
+      TreeShakingInfoVisitor().filter(dumpInfoState.info);
+
       if (useBinaryFormat) {
         dumpInfoBinary(dumpInfoState.info);
       } else {
-        dumpInfoJson(dumpInfoState.info, filterTreeshaken: true);
+        dumpInfoJson(dumpInfoState.info);
       }
     });
     return dumpInfoState;
   }
 
-  void dumpInfoJson(AllInfo data, {bool filterTreeshaken = false}) {
+  void dumpInfoJson(AllInfo data) {
     StringBuffer jsonBuffer = StringBuffer();
     JsonEncoder encoder = const JsonEncoder.withIndent('  ');
     ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(
         StringConversionSink.fromStringSink(jsonBuffer));
-    sink.add(AllInfoJsonCodec(
-            isBackwardCompatible: true, filterTreeshaken: filterTreeshaken)
-        .encode(data));
+    sink.add(AllInfoJsonCodec(isBackwardCompatible: true).encode(data));
     final name = (compiler.options.outputUri?.pathSegments?.last ?? 'out');
     compiler.outputProvider
         .createOutputSink(name, 'info.json', api.OutputType.dumpInfo)
@@ -1311,11 +1302,9 @@ class DumpInfoTask extends CompilerTask
     });
   }
 
-  void dumpInfoBinary(AllInfo data, {bool filterTreeshaken = false}) {
+  void dumpInfoBinary(AllInfo data) {
     final name = (compiler.options.outputUri?.pathSegments?.last ?? 'out') +
         ".info.data";
-    // TODO(markzipan): Plumb [filterTreeshaken] through
-    // [BinaryOutputSinkAdapter].
     Sink<List<int>> sink = BinaryOutputSinkAdapter(compiler.outputProvider
         .createBinarySink(compiler.options.outputUri.resolve(name)));
     dump_info.encode(data, sink);
@@ -1495,8 +1484,6 @@ class _CodeData extends CodeSpan {
   @override
   String get text => '$_text';
   int get length => end - start;
-
-  _CodeData() : super.empty();
 }
 
 /// Holds dump-info's mutable state.
@@ -1604,4 +1591,98 @@ String _computeClosureName(ir.TreeNode treeNode) {
     current = current.parent;
   }
   return parts.reversed.join('_');
+}
+
+/// Filters dead code from Dart2JS [Info] trees.
+class TreeShakingInfoVisitor extends InfoVisitor<void> {
+  List<T> filterDeadInfo<T extends Info>(List<T> infos) {
+    return infos
+        .where((info) => info.treeShakenStatus == TreeShakenStatus.Live)
+        .toList();
+  }
+
+  void filter(AllInfo info) {
+    info.program = info.program;
+    info.libraries = filterDeadInfo<LibraryInfo>(info.libraries);
+    info.functions = filterDeadInfo<FunctionInfo>(info.functions);
+    info.typedefs = filterDeadInfo<TypedefInfo>(info.typedefs);
+    info.typedefs = filterDeadInfo<TypedefInfo>(info.typedefs);
+    info.classes = filterDeadInfo<ClassInfo>(info.classes);
+    info.classTypes = filterDeadInfo<ClassTypeInfo>(info.classTypes);
+    info.fields = filterDeadInfo<FieldInfo>(info.fields);
+    info.constants = filterDeadInfo<ConstantInfo>(info.constants);
+    info.closures = filterDeadInfo<ClosureInfo>(info.closures);
+    info.outputUnits = filterDeadInfo<OutputUnitInfo>(info.outputUnits);
+    info.deferredFiles = info.deferredFiles;
+    // TODO(markzipan): 'dependencies' is always empty. Revisit this if/when
+    // this holds meaningful information.
+    info.dependencies = info.dependencies;
+    info.accept(this);
+  }
+
+  @override
+  visitAll(AllInfo info) {
+    info.libraries = filterDeadInfo<LibraryInfo>(info.libraries);
+    info.constants = filterDeadInfo<ConstantInfo>(info.constants);
+
+    info.libraries.forEach(visitLibrary);
+    info.constants.forEach(visitConstant);
+  }
+
+  @override
+  visitProgram(ProgramInfo info) {}
+
+  @override
+  visitLibrary(LibraryInfo info) {
+    info.topLevelFunctions =
+        filterDeadInfo<FunctionInfo>(info.topLevelFunctions);
+    info.topLevelVariables = filterDeadInfo<FieldInfo>(info.topLevelVariables);
+    info.classes = filterDeadInfo<ClassInfo>(info.classes);
+    info.classTypes = filterDeadInfo<ClassTypeInfo>(info.classTypes);
+    info.typedefs = filterDeadInfo<TypedefInfo>(info.typedefs);
+
+    info.topLevelFunctions.forEach(visitFunction);
+    info.topLevelVariables.forEach(visitField);
+    info.classes.forEach(visitClass);
+    info.classTypes.forEach(visitClassType);
+    info.typedefs.forEach(visitTypedef);
+  }
+
+  @override
+  visitClass(ClassInfo info) {
+    info.functions = filterDeadInfo<FunctionInfo>(info.functions);
+    info.fields = filterDeadInfo<FieldInfo>(info.fields);
+
+    info.functions.forEach(visitFunction);
+    info.fields.forEach(visitField);
+  }
+
+  @override
+  visitClassType(ClassTypeInfo info) {}
+
+  @override
+  visitField(FieldInfo info) {
+    info.closures = filterDeadInfo<ClosureInfo>(info.closures);
+
+    info.closures.forEach(visitClosure);
+  }
+
+  @override
+  visitConstant(ConstantInfo info) {}
+
+  @override
+  visitFunction(FunctionInfo info) {
+    info.closures = filterDeadInfo<ClosureInfo>(info.closures);
+
+    info.closures.forEach(visitClosure);
+  }
+
+  @override
+  visitTypedef(TypedefInfo info) {}
+  @override
+  visitOutput(OutputUnitInfo info) {}
+  @override
+  visitClosure(ClosureInfo info) {
+    visitFunction(info.function);
+  }
 }

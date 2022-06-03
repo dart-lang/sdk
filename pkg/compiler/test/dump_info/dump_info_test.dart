@@ -73,8 +73,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
   void computeLibraryData(Compiler compiler, LibraryEntity library,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
-    final converter = info.AllInfoToJsonConverter(
-        isBackwardCompatible: true, filterTreeshaken: false);
+    final converter = info.AllInfoToJsonConverter(isBackwardCompatible: true);
     DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
 
     final features = Features();
@@ -115,8 +114,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
   void computeClassData(Compiler compiler, ClassEntity cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
-    final converter = info.AllInfoToJsonConverter(
-        isBackwardCompatible: true, filterTreeshaken: false);
+    final converter = info.AllInfoToJsonConverter(isBackwardCompatible: true);
     DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
 
     final features = Features();
@@ -148,8 +146,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
-    final converter = info.AllInfoToJsonConverter(
-        isBackwardCompatible: true, filterTreeshaken: false);
+    final converter = info.AllInfoToJsonConverter(isBackwardCompatible: true);
     DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
 
     final features = Features();

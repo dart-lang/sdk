@@ -343,13 +343,10 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   /// Whether to generate json compatible with format 5.1
   final bool isBackwardCompatible;
 
-  /// Whether to filter all treeshaken elements.
-  final bool filterTreeshaken;
   final Map<Info, Id> ids = HashMap<Info, Id>();
   final Set<String> usedIds = <String>{};
 
-  AllInfoToJsonConverter(
-      {this.isBackwardCompatible = false, this.filterTreeshaken = false});
+  AllInfoToJsonConverter({this.isBackwardCompatible = false});
 
   Id idFor(Info info) {
     var serializedId = ids[info];
@@ -392,12 +389,6 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     // Using SplayTree to maintain a consistent order of keys
     var map = SplayTreeMap<String, Map>(compareNatural);
     for (var info in infos) {
-      if (info is BasicInfo) {
-        if (filterTreeshaken &&
-            info.treeShakenStatus != TreeShakenStatus.Live) {
-          continue;
-        }
-      }
       map[idFor(info).id] = info.accept(this);
     }
     return map;
@@ -622,12 +613,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
 
   List<String> _toSortedSerializedIds(
           Iterable<Info> infos, Id Function(Info) getId) =>
-      infos
-          .where((i) =>
-              !filterTreeshaken || i.treeShakenStatus == TreeShakenStatus.Live)
-          .map((i) => getId(i).serializedId)
-          .toList()
-        ..sort(compareNatural);
+      infos.map((i) => getId(i).serializedId).toList()..sort(compareNatural);
 }
 
 class AllInfoJsonCodec extends Codec<AllInfo, Map> {
@@ -636,11 +622,9 @@ class AllInfoJsonCodec extends Codec<AllInfo, Map> {
   @override
   final Converter<Map, AllInfo> decoder = JsonToAllInfoConverter();
 
-  AllInfoJsonCodec(
-      {bool isBackwardCompatible = false, bool filterTreeshaken = false})
-      : encoder = AllInfoToJsonConverter(
-            isBackwardCompatible: isBackwardCompatible,
-            filterTreeshaken: filterTreeshaken);
+  AllInfoJsonCodec({bool isBackwardCompatible = false})
+      : encoder =
+            AllInfoToJsonConverter(isBackwardCompatible: isBackwardCompatible);
 }
 
 class Id {
