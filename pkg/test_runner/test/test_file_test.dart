@@ -549,10 +549,10 @@ int j = "s";
 /\/ [cfe] Message.
 /\/ [web] Web message.
 """, [
-    makeError(line: 1, column: 9, length: null, cfeError: "Message."),
+    makeError(line: 1, column: 9, length: 0, cfeError: "Message."),
     makeError(line: 5, column: 9, length: 1, analyzerError: "Error.BAD"),
-    makeError(line: 5, column: 9, length: null, cfeError: "Message."),
-    makeError(line: 10, column: 9, length: null, cfeError: "Message."),
+    makeError(line: 5, column: 9, length: 0, cfeError: "Message."),
+    makeError(line: 10, column: 9, length: 0, cfeError: "Message."),
     makeError(line: 10, column: 9, length: 1, webError: "Web message."),
   ]);
 }

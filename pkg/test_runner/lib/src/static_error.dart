@@ -22,7 +22,7 @@ class ErrorSource {
 
   /// Gets the source whose lowercase name is [name] or `null` if no source
   /// with that name could be found.
-  static ErrorSource find(String name) {
+  static ErrorSource find(String /*!*/ name) {
     for (var source in all) {
       if (source.marker == name) return source;
     }
@@ -121,8 +121,9 @@ class StaticError implements Comparable<StaticError> {
   ///
   /// Also describes any mismatches between the context messages in the expected
   /// and actual errors.
-  static String validateExpectations(Iterable<StaticError> expectedErrors,
-      Iterable<StaticError> actualErrors) {
+  static String validateExpectations(
+      Iterable<StaticError /*!*/ > expectedErrors,
+      Iterable<StaticError /*!*/ > actualErrors) {
     var expected = expectedErrors.toList();
     var actual = actualErrors.toList();
 
@@ -242,13 +243,14 @@ class StaticError implements Comparable<StaticError> {
 
   /// The number of characters in the error location.
   ///
-  /// This is optional. The CFE only reports error location, but not length.
-  final int length;
+  /// `0` means no length was reported. The CFE only reports error location,
+  /// but not length.
+  final int /*!*/ length;
 
   /// The front end this error is for.
   final ErrorSource source;
 
-  final String message;
+  final String /*!*/ message;
 
   /// Additional context messages associated with this error.
   final List<StaticError> contextMessages = [];
@@ -271,17 +273,18 @@ class StaticError implements Comparable<StaticError> {
   /// error is tested, a front end is expected to report *some* error on that
   /// error's line, but it can be any location, error code, or message.
   StaticError(this.source, this.message,
-      {this.line, this.column, this.length, Set<int> sourceLines})
+      {this.line, this.column, this.length = 0, Set<int> sourceLines})
       : sourceLines = {...?sourceLines} {
     // Must have a location.
     assert(line != null);
     assert(column != null);
+    assert(length != null);
   }
 
   /// A textual description of this error's location.
   String get location {
     var result = "line $line, column $column";
-    if (length != null) result += ", length $length";
+    if (length > 0) result += ", length $length";
     return result;
   }
 
@@ -317,7 +320,7 @@ class StaticError implements Comparable<StaticError> {
   String toString() {
     var buffer = StringBuffer("StaticError(");
     buffer.write("line: $line, column: $column");
-    if (length != null) buffer.write(", length: $length");
+    if (length > 0) buffer.write(", length: $length");
     buffer.write(", message: '$message'");
 
     if (contextMessages.isNotEmpty) {
@@ -337,8 +340,8 @@ class StaticError implements Comparable<StaticError> {
     if (column != other.column) return column.compareTo(other.column);
 
     // Sort no length after all other lengths.
-    if (length == null && other.length != null) return 1;
-    if (length != null && other.length == null) return -1;
+    if (length == 0 && other.length > 0) return 1;
+    if (length > 0 && other.length == 0) return -1;
     if (length != other.length) return length.compareTo(other.length);
 
     if (source != other.source) {
@@ -368,7 +371,7 @@ class StaticError implements Comparable<StaticError> {
   int get hashCode =>
       3 * line.hashCode +
       5 * column.hashCode +
-      7 * (length ?? 0).hashCode +
+      7 * length.hashCode +
       11 * source.hashCode +
       13 * message.hashCode;
 
@@ -388,7 +391,7 @@ class StaticError implements Comparable<StaticError> {
     // Ignore column and length for unspecified errors.
     if (isSpecified) {
       if (column != actual.column) return false;
-      if (actual.length != null && length != actual.length) return false;
+      if (actual.length > 0 && length != actual.length) return false;
     }
 
     return true;
@@ -412,7 +415,7 @@ class StaticError implements Comparable<StaticError> {
         actualMismatches.add("column ${actual.column}");
       }
 
-      if (actual.length != null && length != actual.length) {
+      if (actual.length > 0 && length != actual.length) {
         expectedMismatches.add("length $length");
         actualMismatches.add("length ${actual.length}");
       }
@@ -561,7 +564,8 @@ class _ErrorExpectationParser {
   }
 
   /// Finishes parsing a series of error expectations after parsing a location.
-  void _parseErrors({int line, int column, int length}) {
+  void _parseErrors(
+      {/*required*/ int line, /*required*/ int column, int length = 0}) {
     var locationLine = _currentLine;
     var parsedError = false;
 
@@ -573,13 +577,13 @@ class _ErrorExpectationParser {
       var number = match[2] != null ? int.parse(match[2]) : null;
 
       var sourceName = match[1];
-      var source = ErrorSource.find(sourceName);
-      if (source == null) _fail("Unknown front end '[$sourceName]'.");
+      var source = ErrorSource.find(sourceName) ??
+          _fail("Unknown front end '[$sourceName]'.");
       if (source == ErrorSource.context && number == null) {
         _fail("Context messages must have an error number.");
       }
 
-      var message = match[3];
+      var message = match[3] /*!*/;
       _advance();
       var sourceLines = {locationLine, _currentLine};
 
@@ -616,7 +620,7 @@ class _ErrorExpectationParser {
       // TODO(rnystrom): Stop doing this when the CFE reports error lengths.
       var errorLength = length;
       if (errorLength == 1 && source == ErrorSource.cfe) {
-        errorLength = null;
+        errorLength = 0;
       }
 
       var error = StaticError(source, message,
@@ -703,7 +707,9 @@ class _ErrorExpectationParser {
     return line;
   }
 
-  void _fail(String message) {
+  // TODO(athom): remove when migrated to null safety.
+  // ignore: sdk_version_never
+  Never _fail(String message) {
     throw FormatException("Test error on line ${_currentLine + 1}: $message");
   }
 }
