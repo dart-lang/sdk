@@ -34,6 +34,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
@@ -295,6 +296,8 @@ class FileSystemState {
 
   final FileSystemStateTestView testView = FileSystemStateTestView();
 
+  FileSystemTestData? testData;
+
   FileSystemState(
     this._resourceProvider,
     this._byteStore,
@@ -366,6 +369,11 @@ class FileSystemState {
     }
 
     return featureSetProvider.getLanguageVersion(path, uri);
+  }
+
+  @visibleForTesting
+  FileState? getExistingFileForPath(String path) {
+    return _pathToFile[path];
   }
 
   FileState getFileForPath({
@@ -498,7 +506,6 @@ class FileSystemState {
 }
 
 class FileSystemStateTestView {
-  final List<String> refreshedFiles = [];
   final List<String> partsDiscoveredLibraries = [];
   Set<String> removedPaths = {};
 }
@@ -541,6 +548,26 @@ class FileSystemStateTimers {
   }
 }
 
+class FileSystemTestData {
+  final Map<File, FileTestData> files = {};
+
+  FileTestData forFile(File file) {
+    return files[file] ??= FileTestData._(file);
+  }
+}
+
+class FileTestData {
+  final File file;
+
+  /// We add the key every time we get unlinked data from the byte store.
+  final List<String> unlinkedKeyGet = [];
+
+  /// We add the key every time we put unlinked data into the byte store.
+  final List<String> unlinkedKeyPut = [];
+
+  FileTestData._(this.file);
+}
+
 /// Information about libraries that reference each other, so form a cycle.
 class LibraryCycle {
   /// The libraries that belong to this cycle.
@@ -565,6 +592,12 @@ class LibraryCycle {
   String? resolutionKey;
 
   LibraryCycle();
+
+  String get keyFromPathList {
+    final pathList = libraries.map((e) => e.path).toList();
+    pathList.sort();
+    return pathList.join(' ');
+  }
 
   String get signatureStr {
     return hex.encode(signature);
@@ -721,7 +754,7 @@ class _FileStateUnlinked {
     required FileState? partOfLibrary,
     required OperationPerformanceImpl performance,
   }) {
-    location._fsState.testView.refreshedFiles.add(location.path);
+    final testData = location._fsState.testData?.forFile(location.resource);
 
     CiderUnlinkedUnit unlinked;
 
@@ -763,9 +796,12 @@ class _FileStateUnlinked {
           performance.getDataInt('length').add(unlinkedBytes!.length);
           unlinkedBytes =
               location._fsState._byteStore.putGet2(unlinkedKey, unlinkedBytes!);
+          testData?.unlinkedKeyPut.add(unlinkedKey);
         });
 
         unlinked = CiderUnlinkedUnit.fromBytes(unlinkedBytes!);
+      } else {
+        testData?.unlinkedKeyGet.add(unlinkedKey);
       }
     }
 

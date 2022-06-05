@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:meta/meta.dart';
 
 class LinkedElementFactory {
   final AnalysisContextImpl analysisContext;
@@ -30,6 +31,21 @@ class LinkedElementFactory {
 
   Reference get dynamicRef {
     return rootReference.getChild('dart:core').getChild('dynamic');
+  }
+
+  /// Returns URIs for which [LibraryElementImpl] is ready.
+  @visibleForTesting
+  List<String> get uriListWithLibraryElements {
+    return rootReference.children
+        .where((reference) => reference.element is LibraryElementImpl)
+        .map((e) => e.name)
+        .toList();
+  }
+
+  /// Returns URIs for which we have readers, but not elements.
+  @visibleForTesting
+  List<String> get uriListWithLibraryReaders {
+    return _libraryReaders.keys.toList();
   }
 
   void addBundle(BundleReader bundle) {

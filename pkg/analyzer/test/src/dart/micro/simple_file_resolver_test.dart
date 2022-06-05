@@ -26,83 +26,269 @@ main() {
 
 @reflectiveTest
 class FileResolver_changeFile_Test extends FileResolutionTest {
-  late final String aPath;
-  late final String bPath;
-  late final String cPath;
-
-  @override
-  void setUp() {
-    super.setUp();
-    aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    cPath = convertPath('/workspace/dart/test/lib/c.dart');
-  }
-
   test_changeFile_refreshedFiles() async {
-    newFile(aPath, r'''
+    final a = newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    newFile(bPath, r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 class B {}
 ''');
 
-    newFile(cPath, r'''
+    final c = newFile('$testPackageLibPath/c.dart', r'''
 import 'a.dart';
 import 'b.dart';
 ''');
 
     // First time we refresh everything.
-    await resolveFile(cPath);
-    _assertRefreshedFiles([aPath, bPath, cPath], withSdk: true);
+    await resolveFile(c.path);
+
+    const state_1 = r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/a.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+  /workspace/dart/test/lib/b.dart
+    current
+      unlinkedKey: k06
+    unlinkedGet: []
+    unlinkedPut: [k06]
+  /workspace/dart/test/lib/c.dart
+    current
+      unlinkedKey: k07
+    unlinkedGet: []
+    unlinkedPut: [k07]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    get: []
+    put: [k08]
+  /workspace/dart/test/lib/a.dart
+    get: []
+    put: [k09]
+  /workspace/dart/test/lib/b.dart
+    get: []
+    put: [k10]
+  /workspace/dart/test/lib/c.dart
+    get: []
+    put: [k11]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.test/a.dart
+    package:dart.test/b.dart
+    package:dart.test/c.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
+''';
+    assertStateString(state_1);
 
     // Without changes we refresh nothing.
-    await resolveFile(cPath);
-    _assertRefreshedFiles([]);
+    await resolveFile(c.path);
+    assertStateString(state_1);
 
     // We already know a.dart, refresh nothing.
-    await resolveFile(aPath);
-    _assertRefreshedFiles([]);
+    await resolveFile(a.path);
+    assertStateString(state_1);
 
-    // Change a.dart, refresh a.dart and c.dart, but not b.dart
-    fileResolver.changeFile(aPath);
-    await resolveFile(cPath);
-    _assertRefreshedFiles([aPath, cPath]);
+    // Change a.dart, discard data for a.dart and c.dart, but not b.dart
+    fileResolver.changeFile(a.path);
+    fileResolver.releaseAndClearRemovedIds();
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/a.dart
+    unlinkedGet: []
+    unlinkedPut: [k05]
+  /workspace/dart/test/lib/b.dart
+    current
+      unlinkedKey: k06
+    unlinkedGet: []
+    unlinkedPut: [k06]
+  /workspace/dart/test/lib/c.dart
+    unlinkedGet: []
+    unlinkedPut: [k07]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    get: []
+    put: [k08]
+  /workspace/dart/test/lib/a.dart
+    get: []
+    put: [k09]
+  /workspace/dart/test/lib/b.dart
+    get: []
+    put: [k10]
+  /workspace/dart/test/lib/c.dart
+    get: []
+    put: [k11]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.test/b.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k06, k08, k10]
+''');
+
+    // Resolve, read again a.dart and c.dart
+    await resolveFile(c.path);
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/a.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05, k05]
+  /workspace/dart/test/lib/b.dart
+    current
+      unlinkedKey: k06
+    unlinkedGet: []
+    unlinkedPut: [k06]
+  /workspace/dart/test/lib/c.dart
+    current
+      unlinkedKey: k07
+    unlinkedGet: []
+    unlinkedPut: [k07, k07]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    get: []
+    put: [k08]
+  /workspace/dart/test/lib/a.dart
+    get: []
+    put: [k09, k09]
+  /workspace/dart/test/lib/b.dart
+    get: []
+    put: [k10]
+  /workspace/dart/test/lib/c.dart
+    get: []
+    put: [k11, k11]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.test/a.dart
+    package:dart.test/b.dart
+    package:dart.test/c.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
+''');
   }
 
   test_changeFile_resolution() async {
-    newFile(aPath, r'''
+    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
 class A {}
 ''');
 
-    newFile(bPath, r'''
+    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
 import 'a.dart';
 void f(A a, B b) {}
 ''');
 
-    result = await resolveFile(bPath);
+    result = await resolveFile(b.path);
     assertErrorsInResolvedUnit(result, [
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 29, 1),
     ]);
 
-    newFile(aPath, r'''
+    newFile(a.path, r'''
 class A {}
 class B {}
 ''');
-    fileResolver.changeFile(aPath);
+    fileResolver.changeFile(a.path);
 
-    result = await resolveFile(bPath);
+    result = await resolveFile(b.path);
     assertErrorsInResolvedUnit(result, []);
   }
 
   test_changeFile_resolution_flushInheritanceManager() async {
-    newFile(aPath, r'''
+    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
 class A {
   final int foo = 0;
 }
 ''');
 
-    newFile(bPath, r'''
+    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
 import 'a.dart';
 
 void f(A a) {
@@ -110,30 +296,30 @@ void f(A a) {
 }
 ''');
 
-    result = await resolveFile(bPath);
+    result = await resolveFile(b.path);
     assertErrorsInResolvedUnit(result, [
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 36, 3),
     ]);
 
-    newFile(aPath, r'''
+    newFile(a.path, r'''
 class A {
   int foo = 0;
 }
 ''');
-    fileResolver.changeFile(aPath);
+    fileResolver.changeFile(a.path);
 
-    result = await resolveFile(bPath);
+    result = await resolveFile(b.path);
     assertErrorsInResolvedUnit(result, []);
   }
 
   test_changeFile_resolution_missingChangeFileForPart() async {
-    newFile(aPath, r'''
+    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
 part 'b.dart';
 
 var b = B(0);
 ''');
 
-    result = await resolveFile(aPath);
+    result = await resolveFile(a.path);
     assertErrorsInResolvedUnit(result, [
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
       error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 24, 1),
@@ -141,16 +327,16 @@ var b = B(0);
 
     // Update a.dart, and notify the resolver. We need this to have at least
     // one change, so that we decided to rebuild the library summary.
-    newFile(aPath, r'''
+    newFile(a.path, r'''
 part 'b.dart';
 
 var b = B(1);
 ''');
-    fileResolver.changeFile(aPath);
+    fileResolver.changeFile(a.path);
 
     // Update b.dart, but do not notify the resolver.
     // If we try to read it now, it will throw.
-    newFile(bPath, r'''
+    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
 part of 'a.dart';
 
 class B {
@@ -159,63 +345,402 @@ class B {
 ''');
 
     expect(() async {
-      await resolveFile(aPath);
+      await resolveFile(a.path);
     }, throwsStateError);
 
     // Notify the resolver about b.dart, it is OK now.
-    fileResolver.changeFile(bPath);
-    result = await resolveFile(aPath);
+    fileResolver.changeFile(b.path);
+    result = await resolveFile(a.path);
     assertErrorsInResolvedUnit(result, []);
   }
 
   test_changePartFile_refreshedFiles() async {
-    newFile(aPath, r'''
+    newFile('/workspace/dart/test/lib/a.dart', r'''
 part 'b.dart';
 
 class A {}
 ''');
 
-    newFile(bPath, r'''
+    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
 part of 'a.dart';
 
 class B extends A {}
 ''');
 
-    newFile(cPath, r'''
+    // First time we refresh everything.
+    await resolveFile(b.path);
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/a.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+  /workspace/dart/test/lib/b.dart
+    current
+      unlinkedKey: k06
+    unlinkedGet: []
+    unlinkedPut: [k06]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    get: []
+    put: [k07]
+  /workspace/dart/test/lib/a.dart
+    get: []
+    put: [k08]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.test/a.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08]
+''');
+
+    // Change b.dart, discard both b.dart and a.dart
+    fileResolver.changeFile(b.path);
+    fileResolver.releaseAndClearRemovedIds();
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/a.dart
+    unlinkedGet: []
+    unlinkedPut: [k05]
+  /workspace/dart/test/lib/b.dart
+    unlinkedGet: []
+    unlinkedPut: [k06]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    get: []
+    put: [k07]
+  /workspace/dart/test/lib/a.dart
+    get: []
+    put: [k08]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+byteStore
+  1: [k00, k01, k02, k03, k04, k07]
+''');
+
+    // Resolve, read a.dart and b.dart
+    await resolveFile(b.path);
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/a.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05, k05]
+  /workspace/dart/test/lib/b.dart
+    current
+      unlinkedKey: k06
+    unlinkedGet: []
+    unlinkedPut: [k06, k06]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    get: []
+    put: [k07]
+  /workspace/dart/test/lib/a.dart
+    get: []
+    put: [k08, k08]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.test/a.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08]
+''');
+  }
+
+  test_changePartFile_refreshedFiles_transitive() async {
+    newFile('/workspace/dart/test/lib/a.dart', r'''
+part 'b.dart';
+
+class A {}
+''');
+
+    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
+part of 'a.dart';
+
+class B extends A {}
+''');
+
+    final c = newFile('/workspace/dart/test/lib/c.dart', r'''
 import 'a.dart';
 ''');
 
-    // First time we refresh everything.
-    await resolveFile(bPath);
-    _assertRefreshedFiles([aPath, bPath], withSdk: true);
-    // Change b.dart, refresh a.dart
-    fileResolver.changeFile(bPath);
-    await resolveFile(bPath);
-    _assertRefreshedFiles([aPath, bPath]);
-    // now with c.dart
-    await resolveFile(cPath);
-    _assertRefreshedFiles([cPath]);
-    fileResolver.changeFile(bPath);
-    await resolveFile(cPath);
-    _assertRefreshedFiles([aPath, bPath, cPath]);
-  }
+    await resolveFile(c.path);
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/a.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+  /workspace/dart/test/lib/b.dart
+    current
+      unlinkedKey: k06
+    unlinkedGet: []
+    unlinkedPut: [k06]
+  /workspace/dart/test/lib/c.dart
+    current
+      unlinkedKey: k07
+    unlinkedGet: []
+    unlinkedPut: [k07]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    get: []
+    put: [k08]
+  /workspace/dart/test/lib/a.dart
+    get: []
+    put: [k09]
+  /workspace/dart/test/lib/c.dart
+    get: []
+    put: [k10]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.test/a.dart
+    package:dart.test/c.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10]
+''');
 
-  void _assertRefreshedFiles(List<String> expected, {bool withSdk = false}) {
-    var expectedPlusSdk = expected.toSet();
+    // Should invalidate a.dart, b.dart, c.dart
+    fileResolver.changeFile(b.path);
+    fileResolver.releaseAndClearRemovedIds();
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/a.dart
+    unlinkedGet: []
+    unlinkedPut: [k05]
+  /workspace/dart/test/lib/b.dart
+    unlinkedGet: []
+    unlinkedPut: [k06]
+  /workspace/dart/test/lib/c.dart
+    unlinkedGet: []
+    unlinkedPut: [k07]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    get: []
+    put: [k08]
+  /workspace/dart/test/lib/a.dart
+    get: []
+    put: [k09]
+  /workspace/dart/test/lib/c.dart
+    get: []
+    put: [k10]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+byteStore
+  1: [k00, k01, k02, k03, k04, k08]
+''');
 
-    if (withSdk) {
-      expectedPlusSdk
-        ..add(convertPath('/sdk/lib/_internal/internal.dart'))
-        ..add(convertPath('/sdk/lib/async/async.dart'))
-        ..add(convertPath('/sdk/lib/async/stream.dart'))
-        ..add(convertPath('/sdk/lib/core/core.dart'))
-        ..add(convertPath('/sdk/lib/math/math.dart'));
-    }
-
-    var refreshedFiles = fileResolver.fsState!.testView.refreshedFiles;
-    expect(refreshedFiles, unorderedEquals(expectedPlusSdk));
-
-    refreshedFiles.clear();
+    // Read again a.dart, b.dart, c.dart
+    await resolveFile(c.path);
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/a.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05, k05]
+  /workspace/dart/test/lib/b.dart
+    current
+      unlinkedKey: k06
+    unlinkedGet: []
+    unlinkedPut: [k06, k06]
+  /workspace/dart/test/lib/c.dart
+    current
+      unlinkedKey: k07
+    unlinkedGet: []
+    unlinkedPut: [k07, k07]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    get: []
+    put: [k08]
+  /workspace/dart/test/lib/a.dart
+    get: []
+    put: [k09, k09]
+  /workspace/dart/test/lib/c.dart
+    get: []
+    put: [k10, k10]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.test/a.dart
+    package:dart.test/c.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10]
+''');
   }
 }
 
@@ -338,7 +863,7 @@ class A {}
     await resolveFile(aPath);
     fileResolver.collectSharedDataIdentifiers();
     expect(fileResolver.removedCacheKeys.length,
-        (fileResolver.byteStore as CiderCachedByteStore).testView!.length);
+        (fileResolver.byteStore as MemoryCiderByteStore).testView!.length);
   }
 
   test_elements_export_dartCoreDynamic() async {

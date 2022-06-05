@@ -112,7 +112,7 @@ class FileResolver {
 
   MicroContextObjects? contextObjects;
 
-  _LibraryContext? libraryContext;
+  LibraryContext? libraryContext;
 
   /// List of keys for cache elements that are invalidated. Track elements that
   /// are invalidated during [changeFile]. Used in [releaseAndClearRemovedIds]
@@ -627,7 +627,7 @@ class FileResolver {
         getFileDigest,
         prefetchFiles,
         isGenerated,
-      );
+      )..testData = testView?.fileSystemTestData;
     }
 
     if (contextObjects == null) {
@@ -643,7 +643,8 @@ class FileResolver {
         resourceProvider: resourceProvider,
       );
 
-      libraryContext = _LibraryContext(
+      libraryContext = LibraryContext(
+        testView,
         logger,
         resourceProvider,
         byteStore,
@@ -794,6 +795,11 @@ class FileResolver {
 }
 
 class FileResolverTestView {
+  final FileSystemTestData fileSystemTestData = FileSystemTestData();
+
+  /// Keys: the sorted list of library paths.
+  final Map<String, LibraryCycleTestData> libraryCycles = {};
+
   /// The paths of libraries which were resolved.
   ///
   /// The library path is added every time when it is resolved.
@@ -802,9 +808,14 @@ class FileResolverTestView {
   void addResolvedLibrary(String path) {
     resolvedLibraries.add(path);
   }
+
+  LibraryCycleTestData forCycle(LibraryCycle cycle) {
+    return libraryCycles[cycle.keyFromPathList] ??= LibraryCycleTestData();
+  }
 }
 
-class _LibraryContext {
+class LibraryContext {
+  final FileResolverTestView? testData;
   final PerformanceLog logger;
   final ResourceProvider resourceProvider;
   final CiderByteStore byteStore;
@@ -814,7 +825,8 @@ class _LibraryContext {
 
   Set<LibraryCycle> loadedBundles = Set.identity();
 
-  _LibraryContext(
+  LibraryContext(
+    this.testData,
     this.logger,
     this.resourceProvider,
     this.byteStore,
@@ -940,9 +952,11 @@ class _LibraryContext {
         resolutionBytes = linkResult.resolutionBytes;
         resolutionBytes = byteStore.putGet2(resolutionKey, resolutionBytes);
         performance.getDataInt('bytesPut').add(resolutionBytes.length);
+        testData?.forCycle(cycle).putKeys.add(resolutionKey);
 
         librariesLinkedTimer.stop();
       } else {
+        testData?.forCycle(cycle).getKeys.add(resolutionKey);
         performance.getDataInt('bytesGet').add(resolutionBytes.length);
         performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
         elementFactory.addBundle(
@@ -1003,4 +1017,9 @@ class _LibraryContext {
       elementFactory.createTypeProviders(dartCore, dartAsync);
     }
   }
+}
+
+class LibraryCycleTestData {
+  final List<String> getKeys = [];
+  final List<String> putKeys = [];
 }

@@ -43,7 +43,7 @@ class CiderServiceTest with ResourceProviderMixin {
       getFileDigest: (String path) => _getDigest(path),
       prefetchFiles: null,
       workspace: workspace,
-      byteStore: CiderCachedByteStore(20 * 1024 * 1024 /* 20 MB */),
+      byteStore: MemoryCiderByteStore(),
     );
     fileResolver.testView = FileResolverTestView();
   }

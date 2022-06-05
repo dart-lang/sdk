@@ -4,14 +4,7 @@
 
 import 'dart:typed_data';
 
-import 'package:analyzer/src/dart/analysis/cache.dart';
-
-class CacheData {
-  final int id;
-  final Uint8List bytes;
-
-  CacheData(this.id, this.bytes);
-}
+import 'package:meta/meta.dart';
 
 /// Store of bytes associated with string keys and a hash.
 ///
@@ -36,9 +29,6 @@ abstract class CiderByteStore {
   /// or first [release2] it.
   Uint8List putGet2(String key, Uint8List bytes);
 
-  ///  Used to decrement reference count for the given ids, if implemented.
-  void release(Iterable<int> ids);
-
   ///  Decrement the reference count for every key in [keys].
   void release2(Iterable<String> keys);
 }
@@ -47,34 +37,59 @@ class CiderByteStoreTestView {
   int length = 0;
 }
 
-class CiderCachedByteStore implements CiderByteStore {
-  final Cache<String, Uint8List> _cache;
+/// [CiderByteStore] that keeps all data in local memory.
+class MemoryCiderByteStore implements CiderByteStore {
+  @visibleForTesting
+  final Map<String, MemoryCiderByteStoreEntry> map = {};
 
   /// This field gets value only during testing.
   CiderByteStoreTestView? testView;
 
-  CiderCachedByteStore(int maxCacheSize)
-      : _cache = Cache<String, Uint8List>(maxCacheSize, (v) => v.length);
-
   @override
   Uint8List? get2(String key) {
-    return _cache.get(key);
+    final entry = map[key];
+    if (entry == null) {
+      return null;
+    }
+
+    entry.refCount++;
+    return entry.bytes;
   }
 
   @override
   Uint8List putGet2(String key, Uint8List bytes) {
-    _cache.put(key, bytes);
+    if (map.containsKey(key)) {
+      throw StateError('Overwriting is not allowed: $key');
+    }
+
     testView?.length++;
+    map[key] = MemoryCiderByteStoreEntry._(bytes);
     return bytes;
   }
 
   @override
-  void release(Iterable<int> ids) {
-    // do nothing
+  void release2(Iterable<String> keys) {
+    for (final key in keys) {
+      final entry = map[key];
+      if (entry != null) {
+        entry.refCount--;
+        if (entry.refCount == 0) {
+          map.remove(key);
+        }
+      }
+    }
   }
+}
+
+@visibleForTesting
+class MemoryCiderByteStoreEntry {
+  final Uint8List bytes;
+  int refCount = 1;
+
+  MemoryCiderByteStoreEntry._(this.bytes);
 
   @override
-  void release2(Iterable<String> keys) {
-    // TODO(scheglov) implement
+  String toString() {
+    return '(length: ${bytes.length}, refCount: $refCount)';
   }
 }
