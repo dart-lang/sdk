@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/results.dart';
@@ -797,8 +798,11 @@ class FileResolver {
 class FileResolverTestView {
   final FileSystemTestData fileSystemTestData = FileSystemTestData();
 
-  /// Keys: the sorted list of library paths.
-  final Map<String, LibraryCycleTestData> libraryCycles = {};
+  /// Keys: the sorted list of library files.
+  final Map<List<File>, LibraryCycleTestData> libraryCycles = LinkedHashMap(
+    hashCode: Object.hashAll,
+    equals: const ListEquality<File>().equals,
+  );
 
   /// The paths of libraries which were resolved.
   ///
@@ -810,7 +814,10 @@ class FileResolverTestView {
   }
 
   LibraryCycleTestData forCycle(LibraryCycle cycle) {
-    return libraryCycles[cycle.keyFromPathList] ??= LibraryCycleTestData();
+    final files = cycle.libraries.map((e) => e.resource).toList();
+    files.sortBy((file) => file.path);
+
+    return libraryCycles[files] ??= LibraryCycleTestData();
   }
 }
 

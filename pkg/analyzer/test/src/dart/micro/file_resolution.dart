@@ -21,6 +21,7 @@ import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
+import 'package:path/path.dart';
 import 'package:test/test.dart';
 
 import '../resolution/resolution.dart';
@@ -66,7 +67,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   void assertStateString(String expected) {
     final buffer = StringBuffer();
-    ResolverStatePrinter(buffer, _keyShorter).write(byteStore,
+    ResolverStatePrinter(resourceProvider, buffer, _keyShorter).write(byteStore,
         fileResolver.fsState!, libraryContext.elementFactory, testData);
     final actual = buffer.toString();
 
@@ -157,6 +158,8 @@ dart_package(
 }
 
 class ResolverStatePrinter {
+  final ResourceProvider _resourceProvider;
+
   /// The target sink to print.
   final StringSink _sink;
 
@@ -164,7 +167,7 @@ class ResolverStatePrinter {
 
   String _indent = '';
 
-  ResolverStatePrinter(this._sink, this._keyShorter);
+  ResolverStatePrinter(this._resourceProvider, this._sink, this._keyShorter);
 
   void write(MemoryCiderByteStore byteStore, FileSystemState fileSystemState,
       LinkedElementFactory elementFactory, FileResolverTestView testData) {
@@ -175,10 +178,10 @@ class ResolverStatePrinter {
       fileDataList.sortBy((fileData) => fileData.file.path);
 
       for (final fileData in fileDataList) {
-        final path = fileData.file.path;
-        _writelnWithIndent(path);
+        final file = fileData.file;
+        _writelnWithIndent(_posixPath(file));
         _withIndent(() {
-          final current = fileSystemState.getExistingFileForPath(path);
+          final current = fileSystemState.getExistingFileForResource(file);
           if (current != null) {
             _writelnWithIndent('current');
             _withIndent(() {
@@ -197,7 +200,9 @@ class ResolverStatePrinter {
 
     _writelnWithIndent('libraryCycles');
     _withIndent(() {
-      final entries = testData.libraryCycles.entries.toList();
+      final entries = testData.libraryCycles.entries
+          .mapKey((key) => key.map(_posixPath).join(' '))
+          .toList();
       entries.sortBy((e) => e.key);
 
       for (final entry in entries) {
@@ -235,6 +240,18 @@ class ResolverStatePrinter {
         _writelnWithIndent('${groupEntry.key}: $shortKeys');
       }
     });
+  }
+
+  /// If the path style is `Windows`, returns the corresponding Posix path.
+  /// Otherwise the path is already a Posix path, and it is returned as is.
+  String _posixPath(File file) {
+    final pathContext = _resourceProvider.pathContext;
+    if (pathContext.style == Style.windows) {
+      final components = pathContext.split(file.path);
+      return '/${components.skip(1).join('/')}';
+    } else {
+      return file.path;
+    }
   }
 
   void _withIndent(void Function() f) {
@@ -281,5 +298,14 @@ class _KeyShorter {
 
   List<String> shortKeys(List<String> keys) {
     return keys.map(shortKey).toList();
+  }
+}
+
+extension<K, V> on Iterable<MapEntry<K, V>> {
+  Iterable<MapEntry<K2, V>> mapKey<K2>(K2 Function(K key) convertKey) {
+    return map((e) {
+      final newKey = convertKey(e.key);
+      return MapEntry(newKey, e.value);
+    });
   }
 }

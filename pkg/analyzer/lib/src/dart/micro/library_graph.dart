@@ -138,6 +138,8 @@ class FileState {
     return signatureBuilder.toHex();
   }
 
+  File get resource => _location.resource;
+
   Source get source => _location.source;
 
   String get unlinkedKey => _unlinked.unlinkedKey;
@@ -372,8 +374,8 @@ class FileSystemState {
   }
 
   @visibleForTesting
-  FileState? getExistingFileForPath(String path) {
-    return _pathToFile[path];
+  FileState? getExistingFileForResource(File file) {
+    return _pathToFile[file.path];
   }
 
   FileState getFileForPath({
@@ -592,12 +594,6 @@ class LibraryCycle {
   String? resolutionKey;
 
   LibraryCycle();
-
-  String get keyFromPathList {
-    final pathList = libraries.map((e) => e.path).toList();
-    pathList.sort();
-    return pathList.join(' ');
-  }
 
   String get signatureStr {
     return hex.encode(signature);
