@@ -337,7 +337,7 @@ class A {}
 
     await resolveFile(aPath);
     fileResolver.collectSharedDataIdentifiers();
-    expect(fileResolver.removedCacheIds.length,
+    expect(fileResolver.removedCacheKeys.length,
         (fileResolver.byteStore as CiderCachedByteStore).testView!.length);
   }
 
