@@ -2036,7 +2036,7 @@ FunctionReference
 ''');
   }
 
-  test_instanceGetter_nonGeneric() async {
+  test_instanceGetter_nonFunctionType() async {
     await assertErrorsInCode('''
 abstract class A {
   List<int> get f;
@@ -2078,43 +2078,35 @@ FunctionReference
 ''');
   }
 
-  test_instanceGetter_nonGeneric_propertyAccess() async {
+  test_instanceGetter_nonFunctionType_propertyAccess() async {
     await assertErrorsInCode('''
 abstract class A {
-  B get b;
-}
-
-abstract class B {
   List<int> get f;
 }
 
 void foo(A a) {
-  a.b.f<String>;
+  (a).f<String>;
 }
 ''', [
       error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 96, 1),
+          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 63, 1),
     ]);
 
     assertResolvedNodeText(findNode.functionReference('f<String>'), r'''
 FunctionReference
   function: PropertyAccess
-    target: PrefixedIdentifier
-      prefix: SimpleIdentifier
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
         token: a
         staticElement: self::@function::foo::@parameter::a
         staticType: A
-      period: .
-      identifier: SimpleIdentifier
-        token: b
-        staticElement: self::@class::A::@getter::b
-        staticType: B
-      staticElement: self::@class::A::@getter::b
-      staticType: B
+      rightParenthesis: )
+      staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: f
-      staticElement: self::@class::B::@getter::f
+      staticElement: self::@class::A::@getter::f
       staticType: List<int>
     staticType: List<int>
   typeArguments: TypeArgumentList
