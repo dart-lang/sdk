@@ -185,28 +185,28 @@ class Linker {
       library.buildInitialExportScope();
     }
 
-    var exporters = <LibraryBuilder>{};
-    var exportees = <LibraryBuilder>{};
+    var exportingBuilders = <LibraryBuilder>{};
+    var exportedBuilders = <LibraryBuilder>{};
 
     for (var library in builders.values) {
       library.addExporters();
     }
 
     for (var library in builders.values) {
-      if (library.exporters.isNotEmpty) {
-        exportees.add(library);
-        for (var exporter in library.exporters) {
-          exporters.add(exporter.exporter);
+      if (library.exports.isNotEmpty) {
+        exportedBuilders.add(library);
+        for (var export in library.exports) {
+          exportingBuilders.add(export.exporter);
         }
       }
     }
 
     var both = <LibraryBuilder>{};
-    for (var exported in exportees) {
-      if (exporters.contains(exported)) {
+    for (var exported in exportedBuilders) {
+      if (exportingBuilders.contains(exported)) {
         both.add(exported);
       }
-      for (var export in exported.exporters) {
+      for (var export in exported.exports) {
         exported.exportScope.forEach(export.addToExportScope);
       }
     }
@@ -214,9 +214,9 @@ class Linker {
     while (true) {
       var hasChanges = false;
       for (var exported in both) {
-        for (var export in exported.exporters) {
-          exported.exportScope.forEach((name, member) {
-            if (export.addToExportScope(name, member)) {
+        for (var export in exported.exports) {
+          exported.exportScope.forEach((name, reference) {
+            if (export.addToExportScope(name, reference)) {
               hasChanges = true;
             }
           });
