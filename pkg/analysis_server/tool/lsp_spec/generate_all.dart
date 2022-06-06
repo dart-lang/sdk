@@ -131,11 +131,9 @@ List<AstNode> getCustomClasses() {
   }) {
     final fieldType =
         array ? ArrayType(Type.identifier(type)) : Type.identifier(type);
-    final commentNode =
-        comment != null ? Comment(Token(TokenType.COMMENT, comment)) : null;
 
     return Field(
-      commentNode,
+      comment,
       Token.identifier(name),
       fieldType,
       allowsNull: false,

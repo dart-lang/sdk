@@ -34,13 +34,13 @@ void main() {
       expect(output[0], const TypeMatcher<Interface>());
       final interface = output[0] as Interface;
       expect(interface.name, equals('SomeOptions'));
-      expect(interface.commentText, equals('Some options.'));
+      expect(interface.comment, equals('Some options.'));
       expect(interface.baseTypes, hasLength(0));
       expect(interface.members, hasLength(1));
       expect(interface.members[0], const TypeMatcher<Field>());
       final field = interface.members[0] as Field;
       expect(field.name, equals('options'));
-      expect(field.commentText, equals('''Options used by something.'''));
+      expect(field.comment, equals('''Options used by something.'''));
       expect(field.allowsNull, isFalse);
       expect(field.allowsUndefined, isTrue);
       expect(field.type, isArrayOf(isSimpleType('string')));
@@ -130,7 +130,7 @@ void main() {
         expect(interface.members[i], const TypeMatcher<Field>());
         final field = interface.members[i] as Field;
         expect(field.name, equals('options$i'));
-        expect(field.commentText, equals('''Options$i used by something.'''));
+        expect(field.comment, equals('''Options$i used by something.'''));
       }
     });
 
@@ -251,7 +251,7 @@ Sometimes after a blank line we'll have a note.
       };
       final output = readModel(input);
       final interface = output[0] as Interface;
-      expect(interface.commentText, equals('''
+      expect(interface.comment, equals('''
 Describes the what this class in lots of words that wrap onto multiple lines that will need re-wrapping to format nicely when converted into Dart.
 
 Blank lines should remain in-tact, as should:
@@ -392,15 +392,15 @@ Sometimes after a blank line we'll have a note.
           rename = namespace.members[2] as Const;
       expect(create.name, equals('Create'));
       expect(create.type, isSimpleType('ResourceOperationKind'));
-      expect(create.commentText,
-          equals('Supports creating new files and folders.'));
+      expect(
+          create.comment, equals('Supports creating new files and folders.'));
       expect(rename.name, equals('Rename'));
       expect(rename.type, isSimpleType('ResourceOperationKind'));
-      expect(rename.commentText,
+      expect(rename.comment,
           equals('Supports renaming existing files and folders.'));
       expect(delete.name, equals('Delete'));
       expect(delete.type, isSimpleType('ResourceOperationKind'));
-      expect(delete.commentText,
+      expect(delete.comment,
           equals('Supports deleting existing files and folders.'));
     });
 

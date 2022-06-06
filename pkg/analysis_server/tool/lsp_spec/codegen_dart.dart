@@ -430,7 +430,7 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
 
 void _writeDocCommentsAndAnnotations(
     IndentableStringBuffer buffer, AstNode node) {
-  var comment = node.commentText?.trim();
+  var comment = node.comment?.trim();
   if (comment != null && comment.isNotEmpty) {
     comment = _rewriteCommentReference(comment);
     var originalLines = comment.split('\n');

@@ -49,25 +49,12 @@ class ArrayType extends TypeBase {
 }
 
 abstract class AstNode {
-  final Comment? commentNode;
+  final String? comment;
   final bool isDeprecated;
-  AstNode(this.commentNode)
-      : isDeprecated = commentNode?.text.contains('@deprecated') ?? false;
-  String? get commentText => commentNode?.text;
+  AstNode(this.comment)
+      : isDeprecated = comment?.contains('@deprecated') ?? false;
 
   String get name;
-}
-
-class Comment extends AstNode {
-  final Token token;
-  final String text;
-
-  Comment(this.token)
-      : text = token.lexeme,
-        super(null);
-
-  @override
-  String get name => throw UnsupportedError('Comments do not have a name.');
 }
 
 class Const extends Member with LiteralValueMixin {
@@ -102,7 +89,7 @@ class Field extends Member {
 class FixedValueField extends Field {
   final Token valueToken;
   FixedValueField(
-    Comment? comment,
+    String? comment,
     Token nameToken,
     this.valueToken,
     TypeBase type,
@@ -227,8 +214,6 @@ class Namespace extends AstNode {
 }
 
 class Token {
-  static final Token EOF = Token(TokenType.EOF, '');
-
   final TokenType type;
   final String lexeme;
 
@@ -242,38 +227,8 @@ class Token {
 }
 
 enum TokenType {
-  AMPERSAND,
-  CLASS_KEYWORD,
-  COLON,
-  COMMA,
-  COMMENT,
-  CONST_KEYWORD,
-  DOT,
-  ENUM_KEYWORD,
-  EOF,
-  EQUAL,
-  EXPORT_KEYWORD,
-  EXTENDS_KEYWORD,
-  GREATER_EQUAL,
-  GREATER,
   IDENTIFIER,
-  INTERFACE_KEYWORD,
-  LEFT_BRACE,
-  LEFT_BRACKET,
-  LEFT_PAREN,
-  LESS_EQUAL,
-  LESS,
-  NAMESPACE_KEYWORD,
   NUMBER,
-  PIPE,
-  QUESTION,
-  READONLY_KEYWORD,
-  RIGHT_BRACE,
-  RIGHT_BRACKET,
-  RIGHT_PAREN,
-  SEMI_COLON,
-  SLASH,
-  STAR,
   STRING,
 }
 

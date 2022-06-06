@@ -26,10 +26,6 @@ class LspMetaModelReader {
   /// Gets all types that have been read from the model JSON.
   List<AstNode> get types => _types.toList();
 
-  /// Creates a [Comment] from [text] if it is a valid string.
-  Comment? comment(dynamic text) =>
-      text is String ? Comment(Token(TokenType.COMMENT, text)) : null;
-
   /// Reads all spec types from [file].
   LspMetaModel readFile(File file) {
     final modelJson = file.readAsStringSync();
@@ -71,8 +67,7 @@ class LspMetaModelReader {
   /// Creates an enum for all LSP method names.
   Namespace? _createMethodNamesEnum(List items) {
     Const toConstant(String value) {
-      final comment = Comment(
-          Token(TokenType.COMMENT, '''Constant for the '$value' method.'''));
+      final comment = '''Constant for the '$value' method.''';
       return Const(
         comment,
         Token.identifier(_generateMemberName(value, camelCase: true)),
@@ -88,9 +83,9 @@ class LspMetaModelReader {
       return null;
     }
 
-    final doc = comment('All standard LSP Methods read from the JSON spec.');
+    final comment = 'All standard LSP Methods read from the JSON spec.';
     return Namespace(
-      doc,
+      comment,
       Token.identifier('Method'),
       Type.identifier('string'),
       methodConstants,
@@ -100,7 +95,7 @@ class LspMetaModelReader {
   Const _extractEnumValue(TypeBase parent, dynamic model) {
     final name = model['name'] as String;
     return Const(
-      comment(model['documentation']),
+      model['documentation'] as String?,
       Token.identifier(_generateMemberName(name)),
       parent,
       Token(
@@ -131,7 +126,7 @@ class LspMetaModelReader {
     }
 
     return Field(
-      comment(model['documentation']),
+      model['documentation'] as String?,
       Token.identifier(_generateMemberName(name)),
       type,
       allowsNull: allowsNull,
@@ -258,7 +253,7 @@ class LspMetaModelReader {
     final baseType = _extractType(name, null, model['type']);
 
     return Namespace(
-      comment(model['documentation']),
+      model['documentation'] as String?,
       nameToken,
       baseType,
       [
@@ -270,7 +265,7 @@ class LspMetaModelReader {
   AstNode _readStructure(dynamic model) {
     final name = model['name'] as String;
     return Interface(
-      comment(model['documentation']),
+      model['documentation'] as String?,
       Token.identifier(name),
       [],
       [
@@ -288,7 +283,7 @@ class LspMetaModelReader {
   TypeAlias _readTypeAlias(dynamic model) {
     final name = model['name'] as String;
     return TypeAlias(
-      comment(model['documentation']),
+      model['documentation'] as String?,
       Token.identifier(name),
       _extractType(name, null, model['type']),
     );

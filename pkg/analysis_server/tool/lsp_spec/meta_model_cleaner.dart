@@ -70,12 +70,10 @@ class LspMetaModelCleaner {
     }
   }
 
-  Comment? _cleanComment(Comment? comment) {
-    if (comment == null) {
-      return comment;
+  String? _cleanComment(String? text) {
+    if (text == null) {
+      return text;
     }
-
-    var text = comment.text;
 
     // Unwrap any wrapping in the source by replacing any matching newlines with
     // spaces.
@@ -91,12 +89,12 @@ class LspMetaModelCleaner {
       (match) => match.group(1)!,
     );
 
-    return Comment(Token(TokenType.COMMENT, text));
+    return text;
   }
 
   Const _cleanConst(Const const_) {
     return Const(
-      _cleanComment(const_.commentNode),
+      _cleanComment(const_.comment),
       const_.nameToken,
       _cleanType(const_.type),
       const_.valueToken,
@@ -108,7 +106,7 @@ class LspMetaModelCleaner {
     final type = improvedType ?? field.type;
 
     return Field(
-      _cleanComment(field.commentNode),
+      _cleanComment(field.comment),
       field.nameToken,
       _cleanType(type),
       allowsNull: field.allowsNull,
@@ -118,7 +116,7 @@ class LspMetaModelCleaner {
 
   Interface _cleanInterface(Interface interface) {
     return Interface(
-      _cleanComment(interface.commentNode),
+      _cleanComment(interface.comment),
       interface.nameToken,
       interface.typeArgs,
       interface.baseTypes
@@ -142,7 +140,7 @@ class LspMetaModelCleaner {
 
   Namespace _cleanNamespace(Namespace namespace) {
     return Namespace(
-      _cleanComment(namespace.commentNode),
+      _cleanComment(namespace.comment),
       namespace.nameToken,
       namespace.typeOfValues,
       namespace.members
@@ -163,7 +161,7 @@ class LspMetaModelCleaner {
 
   TypeAlias _cleanTypeAlias(TypeAlias typeAlias) {
     return TypeAlias(
-      _cleanComment(typeAlias.commentNode),
+      _cleanComment(typeAlias.comment),
       typeAlias.nameToken,
       typeAlias.baseType,
     );
@@ -307,14 +305,14 @@ class LspMetaModelCleaner {
     }
     if (source is Namespace && dest is Namespace) {
       return Namespace(
-        dest.commentNode ?? source.commentNode,
+        dest.comment ?? source.comment,
         dest.nameToken,
         dest.typeOfValues,
         [...dest.members, ...source.members],
       );
     } else if (source is Interface && dest is Interface) {
       return Interface(
-        dest.commentNode ?? source.commentNode,
+        dest.comment ?? source.comment,
         dest.nameToken,
         dest.typeArgs,
         [...dest.baseTypes, ...source.baseTypes],
@@ -366,7 +364,7 @@ class LspMetaModelCleaner {
         if (newName != null) {
           // Replace with renamed interface.
           yield Interface(
-            type.commentNode,
+            type.comment,
             Token.identifier(newName),
             type.typeArgs,
             type.baseTypes,
@@ -374,7 +372,7 @@ class LspMetaModelCleaner {
           );
           // Plus a TypeAlias for the old name.
           yield TypeAlias(
-            type.commentNode,
+            type.comment,
             Token.identifier(type.name),
             Type.identifier(newName),
           );
