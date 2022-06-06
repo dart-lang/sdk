@@ -357,7 +357,7 @@ class FileResolver {
       );
     });
 
-    return libraryContext!.elementFactory.libraryOfUri2(uriStr);
+    return libraryContext!.elementFactory.libraryOfUri2(uri);
   }
 
   String getLibraryLinkedSignature({
@@ -995,7 +995,7 @@ class LibraryContext {
   /// If we need these libraries later, we will relink and reattach them.
   void remove(List<FileState> removed, Set<String> removedKeys) {
     elementFactory.removeLibraries(
-      removed.map((e) => e.uriStr).toSet(),
+      removed.map((e) => e.uri).toSet(),
     );
 
     var removedSet = removed.toSet();
@@ -1019,9 +1019,10 @@ class LibraryContext {
   void _createElementFactoryTypeProvider() {
     var analysisContext = contextObjects.analysisContext;
     if (!analysisContext.hasTypeProvider) {
-      var dartCore = elementFactory.libraryOfUri2('dart:core');
-      var dartAsync = elementFactory.libraryOfUri2('dart:async');
-      elementFactory.createTypeProviders(dartCore, dartAsync);
+      elementFactory.createTypeProviders(
+        elementFactory.dartCoreElement,
+        elementFactory.dartAsyncElement,
+      );
     }
   }
 }

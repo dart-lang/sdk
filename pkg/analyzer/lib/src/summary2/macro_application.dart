@@ -525,7 +525,7 @@ class _IdentifierResolver extends macro.IdentifierResolver {
 
   @override
   Future<macro.Identifier> resolveIdentifier(Uri library, String name) async {
-    final libraryElement = elementFactory.libraryOfUri2(library.toString());
+    final libraryElement = elementFactory.libraryOfUri2(library);
     final element = libraryElement.scope.lookup(name).getter!;
     return declarationBuilder.fromElement.identifier(element);
   }

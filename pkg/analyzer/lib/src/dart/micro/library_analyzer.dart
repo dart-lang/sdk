@@ -127,7 +127,7 @@ class LibraryAnalyzer {
     });
 
     performance.run('libraryElement', (performance) {
-      _libraryElement = _elementFactory.libraryOfUri2(_library.uriStr);
+      _libraryElement = _elementFactory.libraryOfUri2(_library.uri);
     });
 
     performance.run('resolveDirectives', (performance) {

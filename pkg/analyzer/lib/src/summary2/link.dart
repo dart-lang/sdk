@@ -231,9 +231,10 @@ class Linker {
   }
 
   void _createTypeSystem() {
-    var coreLib = elementFactory.libraryOfUri2('dart:core');
-    var asyncLib = elementFactory.libraryOfUri2('dart:async');
-    elementFactory.createTypeProviders(coreLib, asyncLib);
+    elementFactory.createTypeProviders(
+      elementFactory.dartCoreElement,
+      elementFactory.dartAsyncElement,
+    );
 
     inheritance = InheritanceManager3();
   }

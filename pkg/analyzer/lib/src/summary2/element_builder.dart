@@ -67,7 +67,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _libraryElement.exports = _exports;
 
     if (!_hasCoreImport) {
-      var dartCore = _linker.elementFactory.libraryOfUri2('dart:core');
+      final dartCore = _linker.elementFactory.dartCoreElement;
       _imports.add(
         ImportElementImpl(-1)
           ..importedLibrary = dartCore
@@ -1234,7 +1234,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     if (uri == null) {
       return null;
     } else {
-      return _linker.elementFactory.libraryOfUri('$uri');
+      return _linker.elementFactory.libraryOfUri(uri);
     }
   }
 

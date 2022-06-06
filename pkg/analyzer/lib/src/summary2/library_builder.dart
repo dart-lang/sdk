@@ -108,7 +108,7 @@ class LibraryBuilder {
       if (exportedBuilder != null) {
         exportedBuilder.exporters.add(export);
       } else {
-        var exported = linker.elementFactory.libraryOfUri('$exportedUri');
+        var exported = linker.elementFactory.libraryOfUri(exportedUri);
         if (exported != null) {
           var exportedReferences = exported.exportedReferences;
           for (var reference in exportedReferences) {

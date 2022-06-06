@@ -304,10 +304,9 @@ class InheritanceManager3 {
   }
 
   /// Remove interfaces for classes defined in specified libraries.
-  void removeOfLibraries(Set<String> uriStrSet) {
+  void removeOfLibraries(Set<Uri> uriSet) {
     _interfaces.removeWhere((element, _) {
-      var uriStr = '${element.librarySource.uri}';
-      return uriStrSet.contains(uriStr);
+      return uriSet.contains(element.librarySource.uri);
     });
   }
 

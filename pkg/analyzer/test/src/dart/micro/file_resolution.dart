@@ -218,11 +218,11 @@ class ResolverStatePrinter {
 
     _writelnWithIndent('elementFactory');
     _withIndent(() {
-      _writeUriStrList(
+      _writeUriList(
         'hasElement',
         elementFactory.uriListWithLibraryElements,
       );
-      _writeUriStrList(
+      _writeUriList(
         'hasReader',
         elementFactory.uriListWithLibraryReaders,
       );
@@ -266,9 +266,9 @@ class ResolverStatePrinter {
     _sink.writeln(line);
   }
 
-  void _writeUriStrList(String name, Iterable<String> uriStrIterable) {
-    final uriStrList = uriStrIterable.toList();
-    if (uriStrIterable.isNotEmpty) {
+  void _writeUriList(String name, Iterable<Uri> uriIterable) {
+    final uriStrList = uriIterable.map((uri) => '$uri').toList();
+    if (uriStrList.isNotEmpty) {
       uriStrList.sort();
       _writelnWithIndent(name);
       _withIndent(() {
