@@ -74,8 +74,6 @@ abstract class CodeInfo implements Info {
 }
 
 /// The entire information produced while compiling a program.
-// TODO(markzipan): Make more of these fields final. These are mutated by the
-// Kernel Dump Info tests, but there may be a better pattern here.
 class AllInfo {
   /// Summary information about the program.
   ProgramInfo? program;

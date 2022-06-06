@@ -572,7 +572,7 @@ class KernelInfoCollector {
     bool isGetter = parent is ir.Procedure && parent.isGetter;
     bool isSetter = parent is ir.Procedure && parent.isSetter;
     int kind;
-    if (isTopLevel) {
+    if (isStaticMember || isTopLevel) {
       kind = FunctionInfo.TOP_LEVEL_FUNCTION_KIND;
     } else if (isMethod) {
       kind = FunctionInfo.METHOD_FUNCTION_KIND;
