@@ -48,10 +48,10 @@ class LibraryBuilder {
   final List<ImplicitEnumNodes> implicitEnumNodes = [];
 
   /// Local declarations.
-  final Scope localScope = Scope.top();
+  final Scope localScope = Scope();
 
   /// The export scope of the library.
-  final Scope exportScope = Scope.top();
+  final Scope exportScope = Scope();
 
   final List<Export> exporters = [];
 
