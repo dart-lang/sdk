@@ -416,12 +416,24 @@ class FileResolver {
     var file = fileContext.file;
     var libraryFile = file.partOfLibrary ?? file;
 
+    // Load the library, link if necessary.
     await libraryContext!.load(
       targetLibrary: libraryFile,
       performance: performance,
     );
 
-    _resetContextObjects();
+    // Unload linked libraries, but don't release the linked data.
+    // If we are the only consumer of it, we will lose it.
+    final linkedKeysToRelease = libraryContext!.unloadLinked();
+
+    // Load the library again, the reference count is `>= 2`.
+    await libraryContext!.load(
+      targetLibrary: libraryFile,
+      performance: performance,
+    );
+
+    // Release the linked data, the reference count is `>= 1`.
+    byteStore.release2(linkedKeysToRelease);
   }
 
   /// Releases from the cache and clear [removedCacheKeys].
@@ -761,13 +773,6 @@ class FileResolver {
     }
   }
 
-  void _resetContextObjects() {
-    if (libraryContext != null) {
-      contextObjects = null;
-      libraryContext = null;
-    }
-  }
-
   Future<List<CiderSearchMatch>> _searchReferences_Import(
       ImportElement element) async {
     var results = <CiderSearchMatch>[];
@@ -840,6 +845,7 @@ class LibraryContext {
   late final LinkedElementFactory elementFactory;
 
   Set<LibraryCycle> loadedBundles = Set.identity();
+  Set<LibraryCycle> linkedBundles = Set.identity();
 
   LibraryContext(
     this.testData,
@@ -859,22 +865,10 @@ class LibraryContext {
   ///
   /// Returns the keys of the artifacts that are no longer used.
   Set<String> dispose() {
-    final keySet = <String>{};
-    final uriSet = <Uri>{};
+    final keySet = _unload(loadedBundles);
 
-    void addIfNotNull(String? key) {
-      if (key != null) {
-        keySet.add(key);
-      }
-    }
-
-    for (var cycle in loadedBundles) {
-      addIfNotNull(cycle.resolutionKey);
-      uriSet.addAll(cycle.libraries.map((e) => e.uri));
-    }
-
-    elementFactory.removeLibraries(uriSet);
     loadedBundles.clear();
+    linkedBundles.clear();
 
     return keySet;
   }
@@ -976,6 +970,7 @@ class LibraryContext {
         performance.getDataInt('bytesPut').add(resolutionBytes.length);
         testData?.forCycle(cycle).putKeys.add(resolutionKey);
 
+        linkedBundles.add(cycle);
         librariesLinkedTimer.stop();
       } else {
         testData?.forCycle(cycle).getKeys.add(resolutionKey);
@@ -1030,6 +1025,18 @@ class LibraryContext {
     });
   }
 
+  /// Discards libraries that were linked since the last invocation.
+  ///
+  /// Returns the keys of the artifacts for these libraries.
+  Set<String> unloadLinked() {
+    final keySet = _unload(linkedBundles);
+
+    loadedBundles.removeAll(linkedBundles);
+    linkedBundles.clear();
+
+    return keySet;
+  }
+
   /// Ensure that type provider is created.
   void _createElementFactoryTypeProvider() {
     var analysisContext = contextObjects.analysisContext;
@@ -1039,6 +1046,26 @@ class LibraryContext {
         elementFactory.dartAsyncElement,
       );
     }
+  }
+
+  Set<String> _unload(Iterable<LibraryCycle> bundles) {
+    final keySet = <String>{};
+    final uriSet = <Uri>{};
+
+    void addIfNotNull(String? key) {
+      if (key != null) {
+        keySet.add(key);
+      }
+    }
+
+    for (var cycle in loadedBundles) {
+      addIfNotNull(cycle.resolutionKey);
+      uriSet.addAll(cycle.libraries.map((e) => e.uri));
+    }
+
+    elementFactory.removeLibraries(uriSet);
+
+    return keySet;
   }
 }
 

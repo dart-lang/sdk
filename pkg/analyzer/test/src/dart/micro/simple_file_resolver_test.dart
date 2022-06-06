@@ -1483,16 +1483,136 @@ var a = b;
 var foo = 0;
 ''');
 
-    var path = convertPath('/workspace/dart/test/lib/test.dart');
-    await fileResolver.linkLibraries2(path: path);
+    await fileResolver.linkLibraries2(path: testFile.path);
+
+    // We discarded all linked libraries, so each one is `get` and `put`.
+    // We did not discard files, so only `unlinkedPut`.
+    // The library for the test file has reader, but not the element yet.
+    // `dart:core` and `dart` have element because of `TypeProvider`.
+    // The reference count for each data is exactly `1`.
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/test.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k06
+    get: [k06]
+    put: [k06]
+  /workspace/dart/test/lib/test.dart
+    current
+      key: k07
+    get: [k07]
+    put: [k07]
+elementFactory
+  hasElement
+    dart:async
+    dart:core
+  hasReader
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.test/test.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+''');
 
     var result = await getTestErrors();
-    expect(result.path, path);
+    expect(result.path, testFile.path);
     expect(result.uri.toString(), 'package:dart.test/test.dart');
     assertErrorsInList(result.errors, [
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 8, 1),
     ]);
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
+
+    // We created the library element for the test file, using the reader.
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/test.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k06
+    get: [k06]
+    put: [k06]
+  /workspace/dart/test/lib/test.dart
+    current
+      key: k07
+    get: [k07]
+    put: [k07]
+elementFactory
+  hasElement
+    dart:async
+    dart:core
+    package:dart.test/test.dart
+  hasReader
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.test/test.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+''');
   }
 
   test_nameOffset_class_method_fromBytes() async {
