@@ -100,7 +100,7 @@ class SimpleTypeMatcher extends Matcher {
   @override
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
-    if (item is Type) {
+    if (item is TypeReference) {
       return mismatchDescription
           .add('has the name ')
           .addDescriptionOf(item.name);
@@ -111,6 +111,6 @@ class SimpleTypeMatcher extends Matcher {
 
   @override
   bool matches(item, Map matchState) {
-    return item is Type && item.name == _expectedName;
+    return item is TypeReference && item.name == _expectedName;
   }
 }

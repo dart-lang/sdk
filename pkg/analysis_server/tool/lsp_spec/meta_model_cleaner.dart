@@ -31,7 +31,7 @@ class LspMetaModelCleaner {
   }
 
   /// Cleans a List of types.
-  List<AstNode> cleanTypes(List<AstNode> types) {
+  List<LspEntity> cleanTypes(List<LspEntity> types) {
     types = _mergeTypes(types);
     types = types
         .where((type) => _includeTypeInOutput(type.name))
@@ -50,18 +50,18 @@ class LspMetaModelCleaner {
     if (type is ArrayType) {
       // TODO(dantup): Consider removing this, it's not adding much.
       final elementType = type.elementType;
-      if (elementType is Type && elementType.name == 'MarkedString') {
+      if (elementType is TypeReference && elementType.name == 'MarkedString') {
         return false;
       }
     }
     return true;
   }
 
-  /// Cleans a single [AstNode].
-  AstNode _clean(AstNode type) {
+  /// Cleans a single [LspEntity].
+  LspEntity _clean(LspEntity type) {
     if (type is Interface) {
       return _cleanInterface(type);
-    } else if (type is Namespace) {
+    } else if (type is LspEnum) {
       return _cleanNamespace(type);
     } else if (type is TypeAlias) {
       return _cleanTypeAlias(type);
@@ -92,8 +92,8 @@ class LspMetaModelCleaner {
     return text;
   }
 
-  Const _cleanConst(Const const_) {
-    return Const(
+  Constant _cleanConst(Constant const_) {
+    return Constant(
       name: const_.name,
       comment: _cleanComment(const_.comment),
       type: _cleanType(const_.type),
@@ -131,15 +131,15 @@ class LspMetaModelCleaner {
   Member _cleanMember(String parentName, Member member) {
     if (member is Field) {
       return _cleanField(parentName, member);
-    } else if (member is Const) {
+    } else if (member is Constant) {
       return _cleanConst(member);
     } else {
       throw 'Cleaning $member is not implemented.';
     }
   }
 
-  Namespace _cleanNamespace(Namespace namespace) {
-    return Namespace(
+  LspEnum _cleanNamespace(LspEnum namespace) {
+    return LspEnum(
       name: namespace.name,
       comment: _cleanComment(namespace.comment),
       typeOfValues: namespace.typeOfValues,
@@ -192,8 +192,7 @@ class LspMetaModelCleaner {
     // Finally, sort the types by name so that we always generate the same type
     // for the same combination to improve reuse of helper methods used in
     // multiple handlers.
-    uniqueTypes.sort(
-        (t1, t2) => t1.dartTypeWithTypeArgs.compareTo(t2.dartTypeWithTypeArgs));
+    uniqueTypes.sort((t1, t2) => t1.dartType.compareTo(t2.dartType));
 
     // Recursively clean the inner types.
     uniqueTypes = uniqueTypes.map(_cleanType).toList();
@@ -234,12 +233,12 @@ class LspMetaModelCleaner {
 
     return improvedTypeName != null
         ? improvedTypeName.endsWith('[]')
-            ? ArrayType(Type.identifier(
+            ? ArrayType(TypeReference(
                 improvedTypeName.substring(0, improvedTypeName.length - 2)))
             : improvedTypeName.endsWith('?')
-                ? UnionType.nullable(Type.identifier(
+                ? UnionType.nullable(TypeReference(
                     improvedTypeName.substring(0, improvedTypeName.length - 1)))
-                : Type.identifier(improvedTypeName)
+                : TypeReference(improvedTypeName)
         : null;
   }
 
@@ -299,12 +298,12 @@ class LspMetaModelCleaner {
     return !shouldIgnore;
   }
 
-  AstNode _merge(AstNode source, AstNode dest) {
+  LspEntity _merge(LspEntity source, LspEntity dest) {
     if (source.runtimeType != dest.runtimeType) {
       throw 'Cannot merge ${source.runtimeType} into ${dest.runtimeType}';
     }
-    if (source is Namespace && dest is Namespace) {
-      return Namespace(
+    if (source is LspEnum && dest is LspEnum) {
+      return LspEnum(
         name: dest.name,
         comment: dest.comment ?? source.comment,
         typeOfValues: dest.typeOfValues,
@@ -322,7 +321,7 @@ class LspMetaModelCleaner {
     throw 'Merging ${source.runtimeType}s is not yet supported';
   }
 
-  List<AstNode> _mergeTypes(List<AstNode> types) {
+  List<LspEntity> _mergeTypes(List<LspEntity> types) {
     final typesByName = {
       for (final type in types) type.name: type,
     };
@@ -341,7 +340,7 @@ class LspMetaModelCleaner {
   }
 
   /// Renames types that may have been generated with bad (or long) names.
-  Iterable<AstNode> _renameTypes(List<AstNode> types) sync* {
+  Iterable<LspEntity> _renameTypes(List<LspEntity> types) sync* {
     const renames = <String, String>{
       'CodeActionClientCapabilitiesCodeActionLiteralSupportCodeActionKind':
           'CodeActionLiteralSupportCodeActionKind',
@@ -374,7 +373,7 @@ class LspMetaModelCleaner {
           yield TypeAlias(
             name: type.name,
             comment: type.comment,
-            baseType: Type.identifier(newName),
+            baseType: TypeReference(newName),
           );
           continue;
         }

@@ -11,7 +11,7 @@ export 'meta_model_reader.dart';
 
 /// Whether this type allows any value (including null).
 bool isAnyType(TypeBase t) =>
-    t is Type &&
+    t is TypeReference &&
     (t.name == 'any' ||
         t.name == 'LSPAny' ||
         t.name == 'object' ||
@@ -19,9 +19,9 @@ bool isAnyType(TypeBase t) =>
 
 bool isLiteralType(TypeBase t) => t is LiteralType;
 
-bool isNullType(TypeBase t) => t is Type && t.name == 'null';
+bool isNullType(TypeBase t) => t is TypeReference && t.name == 'null';
 
-bool isUndefinedType(TypeBase t) => t is Type && t.name == 'undefined';
+bool isUndefinedType(TypeBase t) => t is TypeReference && t.name == 'undefined';
 
 class ArrayType extends TypeBase {
   final TypeBase elementType;
@@ -34,20 +34,14 @@ class ArrayType extends TypeBase {
   String get typeArgsString => '<${elementType.dartTypeWithTypeArgs}>';
 }
 
-abstract class AstNode {
-  final String name;
-  final String? comment;
-  final bool isDeprecated;
-  AstNode({
-    required this.name,
-    required this.comment,
-  }) : isDeprecated = comment?.contains('@deprecated') ?? false;
-}
-
-class Const extends Member with LiteralValueMixin {
+/// A constant value parsed from the LSP JSON model.
+///
+/// Used for well-known values in the spec, such as request Method names and
+/// error codes.
+class Constant extends Member with LiteralValueMixin {
   TypeBase type;
   String value;
-  Const({
+  Constant({
     required super.name,
     super.comment,
     required this.type,
@@ -57,6 +51,7 @@ class Const extends Member with LiteralValueMixin {
   String get valueAsLiteral => _asLiteral(value);
 }
 
+/// A field parsed from the LSP JSON model.
 class Field extends Member {
   final TypeBase type;
   final bool allowsNull;
@@ -82,9 +77,10 @@ class FixedValueField extends Field {
   });
 }
 
-class Interface extends AstNode {
+/// An interface/class parsed from the LSP JSON model.
+class Interface extends LspEntity {
   final List<String> typeArgs;
-  final List<Type> baseTypes;
+  final List<TypeReference> baseTypes;
   final List<Member> members;
 
   Interface({
@@ -107,6 +103,7 @@ class Interface extends AstNode {
       typeArgs.isNotEmpty ? '<${typeArgs.join(', ')}>' : '';
 }
 
+/// A type parsed from the LSP JSON model that has a singe literal value.
 class LiteralType extends TypeBase with LiteralValueMixin {
   final TypeBase type;
   final String _literal;
@@ -126,7 +123,10 @@ class LiteralType extends TypeBase with LiteralValueMixin {
 }
 
 /// A special class of Union types where the values are all literals of the same
-/// type so the Dart field can be the base type rather than an EitherX<>.
+/// type.
+///
+/// This allows the Dart field for this type to be the the common base type
+/// rather than an EitherX<>.
 class LiteralUnionType extends UnionType {
   final List<LiteralType> literalTypes;
 
@@ -152,12 +152,39 @@ mixin LiteralValueMixin {
   }
 }
 
+/// Base class for named entities (both classes/interfaces and members) parsed
+/// from the LSP JSON model.
+abstract class LspEntity {
+  final String name;
+  final String? comment;
+  final bool isDeprecated;
+  LspEntity({
+    required this.name,
+    required this.comment,
+  }) : isDeprecated = comment?.contains('@deprecated') ?? false;
+}
+
+/// An enum parsed from the LSP JSON model.
+class LspEnum extends LspEntity {
+  final TypeBase typeOfValues;
+  final List<Member> members;
+  LspEnum({
+    required super.name,
+    super.comment,
+    required this.typeOfValues,
+    required this.members,
+  }) {
+    members.sortBy((member) => member.name.toLowerCase());
+  }
+}
+
 class LspMetaModel {
-  final List<AstNode> types;
+  final List<LspEntity> types;
 
   LspMetaModel(this.types);
 }
 
+/// A [Map] type parsed from the LSP JSON model.
 class MapType extends TypeBase {
   final TypeBase indexType;
   final TypeBase valueType;
@@ -172,40 +199,48 @@ class MapType extends TypeBase {
       '<${indexType.dartTypeWithTypeArgs}, ${valueType.dartTypeWithTypeArgs}>';
 }
 
-abstract class Member extends AstNode {
+/// Base class for members ([Constant] and [Fields]s) parsed from the LSP JSON
+/// model.
+abstract class Member extends LspEntity {
   Member({
     required super.name,
     super.comment,
   });
 }
 
-class Namespace extends AstNode {
-  final TypeBase typeOfValues;
-  final List<Member> members;
-  Namespace({
+class TypeAlias extends LspEntity {
+  final TypeBase baseType;
+  TypeAlias({
     required super.name,
     super.comment,
-    required this.typeOfValues,
-    required this.members,
-  }) {
-    members.sortBy((member) => member.name.toLowerCase());
-  }
+    required this.baseType,
+  });
 }
 
-class Type extends TypeBase {
-  static final TypeBase Undefined = Type.identifier('undefined');
-  static final TypeBase Null_ = Type.identifier('null');
-  static final TypeBase Any = Type.identifier('any');
+/// Base class for a Type parsed from the LSP JSON model.
+abstract class TypeBase {
+  String get dartType;
+  String get dartTypeWithTypeArgs => '$dartType$typeArgsString';
+  String get typeArgsString;
+
+  /// A unique identifier for this type. Used for folding types together
+  /// (for example two types that resolve to "Object?" in Dart).
+  String get uniqueTypeIdentifier => dartTypeWithTypeArgs;
+}
+
+/// A reference to a Type by name.
+class TypeReference extends TypeBase {
+  static final TypeBase Undefined = TypeReference('undefined');
+  static final TypeBase Null_ = TypeReference('null');
+  static final TypeBase Any = TypeReference('any');
   final String name;
   final List<TypeBase> typeArgs;
 
-  Type(this.name, this.typeArgs) {
+  TypeReference(this.name, {this.typeArgs = const []}) {
     if (name == 'Array' || name.endsWith('[]')) {
       throw 'Type should not be used for arrays, use ArrayType instead';
     }
   }
-
-  Type.identifier(String identifier) : this(identifier, []);
 
   @override
   String get dartType {
@@ -252,25 +287,10 @@ class Type extends TypeBase {
   }
 }
 
-class TypeAlias extends AstNode {
-  final TypeBase baseType;
-  TypeAlias({
-    required super.name,
-    super.comment,
-    required this.baseType,
-  });
-}
-
-abstract class TypeBase {
-  String get dartType;
-  String get dartTypeWithTypeArgs => '$dartType$typeArgsString';
-  String get typeArgsString;
-
-  /// A unique identifier for this type. Used for folding types together
-  /// (for example two types that resolve to "Object?" in Dart).
-  String get uniqueTypeIdentifier => dartTypeWithTypeArgs;
-}
-
+/// A union type parsed from the LSP JSON model.
+///
+/// Union types will be represented in Dart using a custom `EitherX<A, B, ...>`
+/// class.
 class UnionType extends TypeBase {
   final List<TypeBase> types;
 
@@ -280,7 +300,7 @@ class UnionType extends TypeBase {
     types.sortBy((type) => type.dartTypeWithTypeArgs.toLowerCase());
   }
 
-  UnionType.nullable(TypeBase type) : this([type, Type.Null_]);
+  UnionType.nullable(TypeBase type) : this([type, TypeReference.Null_]);
 
   @override
   String get dartType {

@@ -10,8 +10,7 @@ import 'meta_model.dart';
 final formatter = DartFormatter();
 Map<String, Interface> _interfaces = {};
 
-/// TODO(dantup): Rename namespaces -> enums since they're always that now.
-Map<String, Namespace> _namespaces = {};
+Map<String, LspEnum> _namespaces = {};
 Map<String, List<String>> _subtypes = {};
 Map<String, TypeAlias> _typeAliases = {};
 
@@ -35,7 +34,7 @@ bool enumClassAllowsAnyValue(String name) {
       name != 'ResourceOperationKind';
 }
 
-String generateDartForTypes(List<AstNode> types) {
+String generateDartForTypes(List<LspEntity> types) {
   final buffer = IndentableStringBuffer();
   _getSortedUnique(types).forEach((t) => _writeType(buffer, t));
   final stopwatch = Stopwatch()..start();
@@ -47,7 +46,7 @@ String generateDartForTypes(List<AstNode> types) {
   return '${formattedCode.trim()}\n'; // Ensure a single trailing newline.
 }
 
-void recordTypes(List<AstNode> types) {
+void recordTypes(List<LspEntity> types) {
   types
       .whereType<TypeAlias>()
       .forEach((alias) => _typeAliases[alias.name] = alias);
@@ -61,13 +60,13 @@ void recordTypes(List<AstNode> types) {
     }
   });
   types
-      .whereType<Namespace>()
+      .whereType<LspEnum>()
       .forEach((namespace) => _namespaces[namespace.name] = namespace);
   _sortSubtypes();
 }
 
 TypeBase resolveTypeAlias(TypeBase type, {bool resolveEnumClasses = false}) {
-  if (type is Type) {
+  if (type is TypeReference) {
     if (resolveEnumClasses) {
       // Enums are no longer recorded with TypeAliases (as they were in the
       // Markdown/TS spec) so must be resolved explicitly to their base types.
@@ -143,7 +142,7 @@ Map<String, Field> _getAllFieldsMap(Interface? interface) {
 }
 
 /// Returns a copy of the list sorted by name with duplicates (by name+type) removed.
-List<N> _getSortedUnique<N extends AstNode>(List<N> items) {
+List<N> _getSortedUnique<N extends LspEntity>(List<N> items) {
   final uniqueByName = <String, N>{};
   for (var item in items) {
     // It's fine to have the same name used for different types (eg. namespace +
@@ -196,12 +195,12 @@ bool _isOverride(Interface interface, Field field) {
 
 bool _isSimpleType(TypeBase type) {
   const literals = ['num', 'String', 'bool', 'int'];
-  return type is Type && literals.contains(type.dartType);
+  return type is TypeReference && literals.contains(type.dartType);
 }
 
 bool _isSpecType(TypeBase type) {
   type = resolveTypeAlias(type);
-  return type is Type &&
+  return type is TypeReference &&
       !isAnyType(type) &&
       (_interfaces.containsKey(type.name) ||
           (_namespaces.containsKey(type.name)));
@@ -271,7 +270,7 @@ void _sortSubtypes() {
 /// This is `Map<String, Object?>` for complex types but can be a simple type
 /// for enums.
 String _specJsonType(TypeBase type) {
-  if (type is Type && _namespaces.containsKey(type.name)) {
+  if (type is TypeReference && _namespaces.containsKey(type.name)) {
     final valueType = _namespaces[type.name]!.typeOfValues;
     return resolveTypeAlias(valueType, resolveEnumClasses: true)
         .dartTypeWithTypeArgs;
@@ -378,7 +377,7 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('}');
 }
 
-void _writeConst(IndentableStringBuffer buffer, Const cons) {
+void _writeConst(IndentableStringBuffer buffer, Constant cons) {
   _writeDocCommentsAndAnnotations(buffer, cons);
   buffer.writeIndentedln('static const ${cons.name} = ${cons.valueAsLiteral};');
 }
@@ -429,7 +428,7 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
 }
 
 void _writeDocCommentsAndAnnotations(
-    IndentableStringBuffer buffer, AstNode node) {
+    IndentableStringBuffer buffer, LspEntity node) {
   var comment = node.comment?.trim();
   if (comment != null && comment.isNotEmpty) {
     comment = _rewriteCommentReference(comment);
@@ -451,9 +450,9 @@ void _writeDocCommentsAndAnnotations(
   // }
 }
 
-void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
+void _writeEnumClass(IndentableStringBuffer buffer, LspEnum namespace) {
   _writeDocCommentsAndAnnotations(buffer, namespace);
-  final consts = namespace.members.cast<Const>().toList();
+  final consts = namespace.members.cast<Constant>().toList();
   final namespaceName = namespace.name;
   final typeOfValues = namespace.typeOfValues;
   final allowsAnyValue = enumClassAllowsAnyValue(namespaceName);
@@ -492,7 +491,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
   buffer
     ..outdent()
     ..writeIndentedln('}');
-  namespace.members.whereType<Const>().forEach((cons) {
+  namespace.members.whereType<Constant>().forEach((cons) {
     // We don't use any deprecated enum values, so omit them entirely.
     if (cons.isDeprecated) {
       return;
@@ -802,7 +801,7 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   _writeFromJsonConstructor(buffer, interface);
   // Handle Consts and Fields separately, since we need to include superclass
   // Fields.
-  final consts = interface.members.whereType<Const>().toList();
+  final consts = interface.members.whereType<Constant>().toList();
   final fields = _getAllFields(interface);
   buffer.writeln();
   _writeMembers(buffer, interface, consts);
@@ -854,7 +853,7 @@ void _writeMember(
     IndentableStringBuffer buffer, Interface interface, Member member) {
   if (member is Field) {
     _writeField(buffer, interface, member);
-  } else if (member is Const) {
+  } else if (member is Constant) {
     _writeConst(buffer, member);
   } else {
     throw 'Unknown type';
@@ -947,10 +946,10 @@ void _writeToString(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('String toString() => jsonEncoder.convert(toJson());');
 }
 
-void _writeType(IndentableStringBuffer buffer, AstNode type) {
+void _writeType(IndentableStringBuffer buffer, LspEntity type) {
   if (type is Interface) {
     _writeInterface(buffer, type);
-  } else if (type is Namespace) {
+  } else if (type is LspEnum) {
     _writeEnumClass(buffer, type);
   } else if (type is TypeAlias) {
     // For now type aliases are not supported, so are collected at the start
@@ -989,8 +988,6 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
     }
     buffer.write('$valueCode is$operator List<Object?>');
     if (fullDartType != 'Object?') {
-      // TODO(dantup): If we're happy to assume we never have two lists in a union
-      // we could skip this bit.
       buffer.write(' $and $valueCode.$every((item) => ');
       _writeTypeCheckCondition(
           buffer, interface, 'item', type.elementType, reporter,

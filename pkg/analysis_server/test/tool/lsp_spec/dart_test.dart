@@ -30,7 +30,7 @@ void main() {
 
 ast.ArrayType _array(String name) => ast.ArrayType(_simple(name));
 
-ast.Type _simple(String name) => ast.Type(name, []);
+ast.TypeReference _simple(String name) => ast.TypeReference(name);
 
 ast.UnionType _union(List<String> names) =>
     ast.UnionType(names.map(_simple).toList());

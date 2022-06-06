@@ -109,12 +109,12 @@ const jsonEncoder = JsonEncoder.withIndent('    ');
 
 ''';
 
-List<AstNode> getCustomClasses() {
+List<LspEntity> getCustomClasses() {
   /// Helper to create an interface type.
   Interface interface(String name, List<Member> fields, {String? baseType}) {
     return Interface(
       name: name,
-      baseTypes: [if (baseType != null) Type.identifier(baseType)],
+      baseTypes: [if (baseType != null) TypeReference(baseType)],
       members: fields,
     );
   }
@@ -128,7 +128,7 @@ List<AstNode> getCustomClasses() {
     bool canBeUndefined = false,
   }) {
     final fieldType =
-        array ? ArrayType(Type.identifier(type)) : Type.identifier(type);
+        array ? ArrayType(TypeReference(type)) : TypeReference(type);
 
     return Field(
       name: name,
@@ -139,14 +139,14 @@ List<AstNode> getCustomClasses() {
     );
   }
 
-  final customTypes = <AstNode>[
+  final customTypes = <LspEntity>[
     TypeAlias(
       name: 'LSPAny',
-      baseType: Type.Any,
+      baseType: TypeReference.Any,
     ),
     TypeAlias(
       name: 'LSPObject',
-      baseType: Type.Any,
+      baseType: TypeReference.Any,
     ),
     // The DocumentFilter more complex in v3.17's meta_model (to allow
     // TextDocumentFilters to be guaranteed to have at least one of language,
@@ -155,7 +155,7 @@ List<AstNode> getCustomClasses() {
     // TODO(dantup): Improve this after the TS->JSON Spec migration.
     TypeAlias(
       name: 'DocumentFilter',
-      baseType: Type.identifier('TextDocumentFilter2'),
+      baseType: TypeReference('TextDocumentFilter2'),
     ),
     // Similarly, the meta_model includes String as an option for
     // DocumentSelector which is deprecated and we never previously supported
@@ -164,7 +164,7 @@ List<AstNode> getCustomClasses() {
     // TODO(dantup): Improve this after the TS->JSON Spec migration.
     TypeAlias(
       name: 'DocumentSelector',
-      baseType: ArrayType(Type.identifier('TextDocumentFilterWithScheme')),
+      baseType: ArrayType(TypeReference('TextDocumentFilterWithScheme')),
     ),
     interface('Message', [
       field('jsonrpc', type: 'string'),
@@ -183,7 +183,7 @@ List<AstNode> getCustomClasses() {
       [
         Field(
           name: 'id',
-          type: UnionType([Type.identifier('int'), Type.identifier('string')]),
+          type: UnionType([TypeReference('int'), TypeReference('string')]),
           allowsNull: false,
           allowsUndefined: false,
         )
@@ -200,7 +200,7 @@ List<AstNode> getCustomClasses() {
       [
         Field(
           name: 'id',
-          type: UnionType([Type.identifier('int'), Type.identifier('string')]),
+          type: UnionType([TypeReference('int'), TypeReference('string')]),
           allowsNull: true,
           allowsUndefined: false,
         ),
@@ -230,7 +230,7 @@ List<AstNode> getCustomClasses() {
     ),
     TypeAlias(
       name: 'DocumentUri',
-      baseType: Type.identifier('string'),
+      baseType: TypeReference('string'),
     ),
 
     interface('DartDiagnosticServer', [field('port', type: 'int')]),
@@ -330,9 +330,9 @@ List<AstNode> getCustomClasses() {
       name: 'TextDocumentEditEdits',
       baseType: ArrayType(
         UnionType([
-          Type.identifier('SnippetTextEdit'),
-          Type.identifier('AnnotatedTextEdit'),
-          Type.identifier('TextEdit'),
+          TypeReference('SnippetTextEdit'),
+          TypeReference('AnnotatedTextEdit'),
+          TypeReference('TextEdit'),
         ]),
       ),
     )
@@ -340,7 +340,7 @@ List<AstNode> getCustomClasses() {
   return customTypes;
 }
 
-Future<List<AstNode>> getSpecClasses(ArgResults args) async {
+Future<List<LspEntity>> getSpecClasses(ArgResults args) async {
   var download = args[argDownload] as bool;
   if (download) {
     await downloadSpec();

@@ -381,15 +381,15 @@ Sometimes after a blank line we'll have a note.
       final output = readModel(input);
       expect(output, hasLength(1));
 
-      expect(output[0], const TypeMatcher<Namespace>());
-      final namespace = output[0] as Namespace;
+      expect(output[0], const TypeMatcher<LspEnum>());
+      final namespace = output[0] as LspEnum;
       expect(namespace.members, hasLength(3));
       for (var m in namespace.members) {
-        expect(m, const TypeMatcher<Const>());
+        expect(m, const TypeMatcher<Constant>());
       }
-      final create = namespace.members[0] as Const,
-          delete = namespace.members[1] as Const,
-          rename = namespace.members[2] as Const;
+      final create = namespace.members[0] as Constant,
+          delete = namespace.members[1] as Constant,
+          rename = namespace.members[2] as Constant;
       expect(create.name, equals('Create'));
       expect(create.type, isSimpleType('ResourceOperationKind'));
       expect(
@@ -544,5 +544,5 @@ Sometimes after a blank line we'll have a note.
   });
 }
 
-List<AstNode> readModel(Map<String, dynamic> model) =>
+List<LspEntity> readModel(Map<String, dynamic> model) =>
     LspMetaModelCleaner().cleanTypes(LspMetaModelReader().readMap(model).types);

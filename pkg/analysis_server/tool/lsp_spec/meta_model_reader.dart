@@ -12,7 +12,7 @@ import 'meta_model.dart';
 
 /// Reads the LSP 'meta_model.json' file and returns its types.
 class LspMetaModelReader {
-  final _types = <AstNode>[];
+  final _types = <LspEntity>[];
 
   /// A set of names already used (or reserved) by types that have been read.
   final Set<String> _typeNames = {};
@@ -24,7 +24,7 @@ class LspMetaModelReader {
   final _memberNameSeparatorPattern = RegExp(r'/');
 
   /// Gets all types that have been read from the model JSON.
-  List<AstNode> get types => _types.toList();
+  List<LspEntity> get types => _types.toList();
 
   /// Reads all spec types from [file].
   LspMetaModel readFile(File file) {
@@ -56,7 +56,7 @@ class LspMetaModelReader {
 
   /// Adds [type] to the current list and prevents its name from being used
   /// by generated interfaces.
-  void _addType(AstNode type) {
+  void _addType(LspEntity type) {
     _typeNames.add(type.name);
     _types.add(type);
   }
@@ -65,13 +65,13 @@ class LspMetaModelReader {
       str.substring(0, 1).toLowerCase() + str.substring(1);
 
   /// Creates an enum for all LSP method names.
-  Namespace? _createMethodNamesEnum(List items) {
-    Const toConstant(String value) {
+  LspEnum? _createMethodNamesEnum(List items) {
+    Constant toConstant(String value) {
       final comment = '''Constant for the '$value' method.''';
-      return Const(
+      return Constant(
         name: _generateMemberName(value, camelCase: true),
         comment: comment,
-        type: Type.identifier('string'),
+        type: TypeReference('string'),
         value: value,
       );
     }
@@ -84,17 +84,17 @@ class LspMetaModelReader {
     }
 
     final comment = 'All standard LSP Methods read from the JSON spec.';
-    return Namespace(
+    return LspEnum(
       name: 'Method',
       comment: comment,
-      typeOfValues: Type.identifier('string'),
+      typeOfValues: TypeReference('string'),
       members: methodConstants,
     );
   }
 
-  Const _extractEnumValue(TypeBase parentType, dynamic model) {
+  Constant _extractEnumValue(TypeBase parentType, dynamic model) {
     final name = model['name'] as String;
-    return Const(
+    return Constant(
       name: _generateMemberName(name),
       comment: model['documentation'] as String?,
       type: parentType,
@@ -132,7 +132,7 @@ class LspMetaModelReader {
     if (model['kind'] == 'reference' || model['kind'] == 'base') {
       // Reference kinds are other named interfaces defined in the spec, base are
       // other named types defined elsewhere.
-      return Type.identifier(model['name'] as String);
+      return TypeReference(model['name'] as String);
     } else if (model['kind'] == 'array') {
       return ArrayType(
         _extractType(parentName, fieldName, model['element']!),
@@ -157,10 +157,10 @@ class LspMetaModelReader {
       _addType(Interface.inline(inlineTypeName, members));
 
       // Then return its name.
-      return Type.identifier(inlineTypeName);
+      return TypeReference(inlineTypeName);
     } else if (model['kind'] == 'stringLiteral') {
       return LiteralType(
-        Type.identifier('string'),
+        TypeReference('string'),
         model['value'] as String,
       );
     } else if (model['kind'] == 'or') {
@@ -239,12 +239,12 @@ class LspMetaModelReader {
     return '${capitalize(parent)}${capitalize(child)}';
   }
 
-  Namespace _readEnum(dynamic model) {
+  LspEnum _readEnum(dynamic model) {
     final name = model['name'] as String;
-    final type = Type.identifier(name);
+    final type = TypeReference(name);
     final baseType = _extractType(name, null, model['type']);
 
-    return Namespace(
+    return LspEnum(
       name: name,
       comment: model['documentation'] as String?,
       typeOfValues: baseType,
@@ -254,16 +254,16 @@ class LspMetaModelReader {
     );
   }
 
-  AstNode _readStructure(dynamic model) {
+  LspEntity _readStructure(dynamic model) {
     final name = model['name'] as String;
     return Interface(
       name: name,
       comment: model['documentation'] as String?,
       baseTypes: [
         ...?(model['extends'] as List?)
-            ?.map((e) => Type.identifier(e['name'] as String)),
+            ?.map((e) => TypeReference(e['name'] as String)),
         ...?(model['mixins'] as List?)
-            ?.map((e) => Type.identifier(e['name'] as String)),
+            ?.map((e) => TypeReference(e['name'] as String)),
       ],
       members: [
         ...?(model['properties'] as List?)?.map((p) => _extractMember(name, p)),
