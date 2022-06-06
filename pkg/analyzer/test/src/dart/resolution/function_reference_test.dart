@@ -2036,6 +2036,101 @@ FunctionReference
 ''');
   }
 
+  test_instanceGetter_nonGeneric() async {
+    await assertErrorsInCode('''
+abstract class A {
+  List<int> get f;
+}
+
+void foo(A a) {
+  a.f<String>;
+}
+''', [
+      error(
+          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 61, 1),
+    ]);
+
+    assertResolvedNodeText(findNode.functionReference('f<String>'), r'''
+FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@function::foo::@parameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: f
+      staticElement: self::@class::A::@getter::f
+      staticType: List<int>
+    staticElement: self::@class::A::@getter::f
+    staticType: List<int>
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: String
+          staticElement: dart:core::@class::String
+          staticType: null
+        type: String
+    rightBracket: >
+  staticType: dynamic
+''');
+  }
+
+  test_instanceGetter_nonGeneric_propertyAccess() async {
+    await assertErrorsInCode('''
+abstract class A {
+  B get b;
+}
+
+abstract class B {
+  List<int> get f;
+}
+
+void foo(A a) {
+  a.b.f<String>;
+}
+''', [
+      error(
+          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 96, 1),
+    ]);
+
+    assertResolvedNodeText(findNode.functionReference('f<String>'), r'''
+FunctionReference
+  function: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: a
+        staticElement: self::@function::foo::@parameter::a
+        staticType: A
+      period: .
+      identifier: SimpleIdentifier
+        token: b
+        staticElement: self::@class::A::@getter::b
+        staticType: B
+      staticElement: self::@class::A::@getter::b
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: f
+      staticElement: self::@class::B::@getter::f
+      staticType: List<int>
+    staticType: List<int>
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: String
+          staticElement: dart:core::@class::String
+          staticType: null
+        type: String
+    rightBracket: >
+  staticType: dynamic
+''');
+  }
+
   test_instanceMethod() async {
     await assertNoErrorsInCode('''
 class A {
@@ -2214,7 +2309,7 @@ FunctionReference
   }
 
   test_instanceMethod_explicitReceiver_getter_wrongNumberOfTypeArguments() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
 }
@@ -2223,7 +2318,10 @@ void f(A a) {
   // Extra `()` to force reading the type.
   ((a).foo<double>);
 }
-''');
+''', [
+      error(
+          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 97, 3),
+    ]);
 
     var reference = findNode.functionReference('foo<double>');
     assertResolvedNodeText(reference, r'''
