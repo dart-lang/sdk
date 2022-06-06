@@ -7,7 +7,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -87,15 +86,23 @@ files
     unlinkedPut: [k07]
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k08
     get: []
     put: [k08]
   /workspace/dart/test/lib/a.dart
+    current
+      key: k09
     get: []
     put: [k09]
   /workspace/dart/test/lib/b.dart
+    current
+      key: k10
     get: []
     put: [k10]
   /workspace/dart/test/lib/c.dart
+    current
+      key: k11
     get: []
     put: [k11]
 elementFactory
@@ -163,12 +170,16 @@ files
     unlinkedPut: [k07]
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k08
     get: []
     put: [k08]
   /workspace/dart/test/lib/a.dart
     get: []
     put: [k09]
   /workspace/dart/test/lib/b.dart
+    current
+      key: k10
     get: []
     put: [k10]
   /workspace/dart/test/lib/c.dart
@@ -231,15 +242,23 @@ files
     unlinkedPut: [k07, k07]
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k08
     get: []
     put: [k08]
   /workspace/dart/test/lib/a.dart
+    current
+      key: k09
     get: []
     put: [k09, k09]
   /workspace/dart/test/lib/b.dart
+    current
+      key: k10
     get: []
     put: [k10]
   /workspace/dart/test/lib/c.dart
+    current
+      key: k11
     get: []
     put: [k11, k11]
 elementFactory
@@ -408,9 +427,13 @@ files
     unlinkedPut: [k06]
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k07
     get: []
     put: [k07]
   /workspace/dart/test/lib/a.dart
+    current
+      key: k08
     get: []
     put: [k08]
 elementFactory
@@ -462,6 +485,8 @@ files
     unlinkedPut: [k06]
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k07
     get: []
     put: [k07]
   /workspace/dart/test/lib/a.dart
@@ -518,9 +543,13 @@ files
     unlinkedPut: [k06, k06]
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k07
     get: []
     put: [k07]
   /workspace/dart/test/lib/a.dart
+    current
+      key: k08
     get: []
     put: [k08, k08]
 elementFactory
@@ -597,12 +626,18 @@ files
     unlinkedPut: [k07]
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k08
     get: []
     put: [k08]
   /workspace/dart/test/lib/a.dart
+    current
+      key: k09
     get: []
     put: [k09]
   /workspace/dart/test/lib/c.dart
+    current
+      key: k10
     get: []
     put: [k10]
 elementFactory
@@ -658,6 +693,8 @@ files
     unlinkedPut: [k07]
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k08
     get: []
     put: [k08]
   /workspace/dart/test/lib/a.dart
@@ -722,12 +759,18 @@ files
     unlinkedPut: [k07, k07]
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k08
     get: []
     put: [k08]
   /workspace/dart/test/lib/a.dart
+    current
+      key: k09
     get: []
     put: [k09, k09]
   /workspace/dart/test/lib/c.dart
+    current
+      key: k10
     get: []
     put: [k10, k10]
 elementFactory
@@ -853,17 +896,102 @@ var b = 1 + 2;
     assertType(findElement.topVar('b').type, 'int');
   }
 
-  test_collectSharedDataIdentifiers() async {
-    var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
-
-    newFile(aPath, r'''
+  test_dispose() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    await resolveFile(aPath);
-    fileResolver.collectSharedDataIdentifiers();
-    expect(fileResolver.removedCacheKeys.length,
-        (fileResolver.byteStore as MemoryCiderByteStore).testView!.length);
+    // After resolution the byte store contains unlinked data for files,
+    // and linked data for loaded bundles.
+    await resolveFile(a.path);
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/a.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k06
+    get: []
+    put: [k06]
+  /workspace/dart/test/lib/a.dart
+    current
+      key: k07
+    get: []
+    put: [k07]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.test/a.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+''');
+
+    fileResolver.dispose();
+
+    // After dispose() we don't have any loaded libraries or files.
+    // The byte store is empty - no unlinked or linked data.
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/a.dart
+    unlinkedGet: []
+    unlinkedPut: [k05]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    get: []
+    put: [k06]
+  /workspace/dart/test/lib/a.dart
+    get: []
+    put: [k07]
+elementFactory
+byteStore
+''');
   }
 
   test_elements_export_dartCoreDynamic() async {

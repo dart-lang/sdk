@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -67,8 +66,8 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   void assertStateString(String expected) {
     final buffer = StringBuffer();
-    ResolverStatePrinter(resourceProvider, buffer, _keyShorter).write(byteStore,
-        fileResolver.fsState!, libraryContext.elementFactory, testData);
+    ResolverStatePrinter(resourceProvider, buffer, _keyShorter)
+        .write(byteStore, fileResolver.fsState!, libraryContext, testData);
     final actual = buffer.toString();
 
     if (actual != expected) {
@@ -170,7 +169,7 @@ class ResolverStatePrinter {
   ResolverStatePrinter(this._resourceProvider, this._sink, this._keyShorter);
 
   void write(MemoryCiderByteStore byteStore, FileSystemState fileSystemState,
-      LinkedElementFactory elementFactory, FileResolverTestView testData) {
+      LibraryContext libraryContext, FileResolverTestView testData) {
     _writelnWithIndent('files');
     _withIndent(() {
       final fileMap = testData.fileSystemTestData.files;
@@ -205,9 +204,28 @@ class ResolverStatePrinter {
           .toList();
       entries.sortBy((e) => e.key);
 
+      final loadedBundlesMap = Map.fromEntries(
+        libraryContext.loadedBundles.map((cycle) {
+          final key = cycle.libraries
+              .map((fileState) => fileState.resource)
+              .map(_posixPath)
+              .join(' ');
+          return MapEntry(key, cycle);
+        }),
+      );
+
       for (final entry in entries) {
         _writelnWithIndent(entry.key);
         _withIndent(() {
+          final current = loadedBundlesMap[entry.key];
+          if (current != null) {
+            _writelnWithIndent('current');
+            _withIndent(() {
+              final short = _keyShorter.shortKey(current.resolutionKey!);
+              _writelnWithIndent('key: $short');
+            });
+          }
+
           final shortGets = _keyShorter.shortKeys(entry.value.getKeys);
           final shortPuts = _keyShorter.shortKeys(entry.value.putKeys);
           _writelnWithIndent('get: $shortGets');
@@ -218,6 +236,7 @@ class ResolverStatePrinter {
 
     _writelnWithIndent('elementFactory');
     _withIndent(() {
+      final elementFactory = libraryContext.elementFactory;
       _writeUriList(
         'hasElement',
         elementFactory.uriListWithLibraryElements,

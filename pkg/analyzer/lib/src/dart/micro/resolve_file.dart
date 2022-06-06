@@ -186,9 +186,18 @@ class FileResolver {
 
   /// Collects all the cached artifacts and add all the cache id's for the
   /// removed artifacts to [removedCacheKeys].
+  @Deprecated('Use dispose() instead')
   void collectSharedDataIdentifiers() {
-    removedCacheKeys.addAll(fsState!.collectSharedDataKeys());
-    removedCacheKeys.addAll(libraryContext!.collectSharedDataKeys());
+    removedCacheKeys.addAll(fsState!.dispose());
+    removedCacheKeys.addAll(libraryContext!.dispose());
+  }
+
+  /// Notifies this object that it is about to be discarded, so it should
+  /// release any shared data.
+  void dispose() {
+    removedCacheKeys.addAll(fsState!.dispose());
+    removedCacheKeys.addAll(libraryContext!.dispose());
+    releaseAndClearRemovedIds();
   }
 
   /// Looks for references to the given Element. All the files currently
@@ -846,10 +855,12 @@ class LibraryContext {
     );
   }
 
-  /// Clears all the loaded libraries. Returns the cache ids for the removed
-  /// artifacts.
-  Set<String> collectSharedDataKeys() {
-    var keySet = <String>{};
+  /// Notifies this object that it is about to be discarded.
+  ///
+  /// Returns the keys of the artifacts that are no longer used.
+  Set<String> dispose() {
+    final keySet = <String>{};
+    final uriSet = <Uri>{};
 
     void addIfNotNull(String? key) {
       if (key != null) {
@@ -859,8 +870,12 @@ class LibraryContext {
 
     for (var cycle in loadedBundles) {
       addIfNotNull(cycle.resolutionKey);
+      uriSet.addAll(cycle.libraries.map((e) => e.uri));
     }
+
+    elementFactory.removeLibraries(uriSet);
     loadedBundles.clear();
+
     return keySet;
   }
 

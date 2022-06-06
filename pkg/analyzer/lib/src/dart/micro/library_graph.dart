@@ -335,16 +335,6 @@ class FileSystemState {
     }
   }
 
-  /// Clears all the cached files. Returns the list of keys of all the removed
-  /// files.
-  Set<String> collectSharedDataKeys() {
-    var result = <String>{};
-    for (var file in _pathToFile.values) {
-      result.add(file._unlinked.unlinkedKey);
-    }
-    return result;
-  }
-
   FeatureSet contextFeatureSet(
     String path,
     Uri uri,
@@ -371,6 +361,19 @@ class FileSystemState {
     }
 
     return featureSetProvider.getLanguageVersion(path, uri);
+  }
+
+  /// Notifies this object that it is about to be discarded.
+  ///
+  /// Returns the keys of the artifacts that are no longer used.
+  Set<String> dispose() {
+    final result = <String>{};
+    for (final file in _pathToFile.values) {
+      result.add(file._unlinked.unlinkedKey);
+    }
+    _pathToFile.clear();
+    _uriToFile.clear();
+    return result;
   }
 
   @visibleForTesting
