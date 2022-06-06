@@ -66,7 +66,7 @@ class LiteralTypeMatcher extends Matcher {
   bool matches(item, Map matchState) {
     return item is LiteralType &&
         _typeMatcher.matches(item.type, matchState) &&
-        item.literal == _value;
+        item.valueAsLiteral == _value;
   }
 }
 

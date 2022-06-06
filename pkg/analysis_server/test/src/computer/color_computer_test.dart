@@ -38,6 +38,7 @@ class ColorComputerTest extends AbstractContextTest {
     'Color(0xFF0000FF)': 0xFF0000FF,
     'Color.fromARGB(255, 0, 0, 255)': 0xFF0000FF,
     'Color.fromRGBO(0, 0, 255, 1)': 0xFF0000FF,
+    'Color.fromRGBO(0, 0, 255, 1.0)': 0xFF0000FF,
     // Flutter Painting
     'ColorSwatch(0xFF89ABCD, {})': 0xFF89ABCD,
     // Flutter Material

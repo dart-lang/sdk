@@ -66,62 +66,16 @@ void recordTypes(List<AstNode> types) {
   _sortSubtypes();
 }
 
-/// Renames types that may have been generated with bad names.
-Iterable<AstNode> renameTypes(List<AstNode> types) sync* {
-  const renames = {
-    // TODO(dantup): These entries can be removed after the
-    //   the migration to JSON meta_model.
-    'ClientCapabilitiesWindow': 'WindowClientCapabilities',
-    'ClientCapabilitiesWorkspace': 'WorkspaceClientCapabilities',
-    'ClientCapabilitiesWorkspaceFileOperations':
-        'FileOperationClientCapabilities',
-    'ServerCapabilitiesWorkspaceFileOperations': 'FileOperationOptions',
-    'ClientCapabilitiesGeneral': 'GeneralClientCapabilities',
-    'CompletionClientCapabilitiesCompletionItemInsertTextModeSupport':
-        'CompletionItemInsertTextModeSupport',
-    'CompletionClientCapabilitiesCompletionItemResolveSupport':
-        'CompletionItemResolveSupport',
-    'CompletionClientCapabilitiesCompletionItemTagSupport':
-        'CompletionItemTagSupport',
-    'CodeActionClientCapabilitiesCodeActionLiteralSupportCodeActionKind':
-        'CodeActionLiteralSupportCodeActionKind',
-    // In JSON model this becomes a union of literals which we assign improved
-    // names to (to avoid numeric suffixes).
-    'DocumentFilter': 'TextDocumentFilterWithScheme',
-    'ClientCapabilitiesGeneralStaleRequestSupport':
-        'GeneralClientCapabilitiesStaleRequestSupport',
-    'SignatureHelpClientCapabilitiesSignatureInformationParameterInformation':
-        'SignatureInformationParameterInformation',
-    'CompletionListItemDefaultsEditRange': 'CompletionItemEditRange',
-  };
-
-  for (final type in types) {
-    if (type is Interface) {
-      final newName = renames[type.name];
-      if (newName != null) {
-        // Replace with renamed interface.
-        yield Interface(
-          type.commentNode,
-          Token.identifier(newName),
-          type.typeArgs,
-          type.baseTypes,
-          type.members,
-        );
-        // Plus a TypeAlias for the old name.
-        yield TypeAlias(
-          type.commentNode,
-          Token.identifier(type.name),
-          Type.identifier(newName),
-        );
-        continue;
-      }
-    }
-    yield type;
-  }
-}
-
 TypeBase resolveTypeAlias(TypeBase type, {bool resolveEnumClasses = false}) {
   if (type is Type) {
+    if (resolveEnumClasses) {
+      // Enums are no longer recorded with TypeAliases (as they were in the
+      // Markdown/TS spec) so must be resolved explicitly to their base types.
+      final enum_ = _namespaces[type.name];
+      if (enum_ != null) {
+        return enum_.typeOfValues;
+      }
+    }
     // The LSP spec contains type aliases for `integer` and `uinteger` that map
     // into the `number` type, with comments stating they must be integers. To
     // preserve the improved typing, do _not_ resolve them to the `number`
@@ -165,23 +119,27 @@ String _formatCode(String code) {
   return code;
 }
 
-/// Recursively gets all members from superclasses.
-List<Field> _getAllFields(Interface? interface) {
+/// Recursively gets all members from superclasses and returns them sorted
+/// alphabetically.
+List<Field> _getAllFields(Interface? interface) =>
+    _getSortedUnique(_getAllFieldsMap(interface).values.toList());
+
+/// Recursively gets all members from superclasses keyed by field name.
+Map<String, Field> _getAllFieldsMap(Interface? interface) {
   // Handle missing interfaces (such as special cased interfaces that won't
   // be included in this model).
   if (interface == null) {
-    return [];
+    return {};
   }
 
-  final allFields = interface.members
-      .whereType<Field>()
-      .followedBy(interface.baseTypes
-          // This cast is safe because base types are always real types.
-          .map((type) => _getAllFields(_interfaces[(type as Type).name]))
-          .expand((ts) => ts))
-      .toList();
-
-  return _getSortedUnique(allFields);
+  // It's possible our interface redefines something in a base type (for example
+  // where the base has `String` but this type overrides it with a literal such
+  // as `ResourceOperation`) so use a map to keep the most-specific by name.
+  return {
+    for (final baseType in interface.baseTypes)
+      ..._getAllFieldsMap(_interfaces[baseType.name]),
+    for (final field in interface.members.whereType<Field>()) field.name: field,
+  };
 }
 
 /// Returns a copy of the list sorted by name with duplicates (by name+type) removed.
@@ -213,9 +171,9 @@ String _getTypeCheckFailureMessage(TypeBase type) {
   type = resolveTypeAlias(type);
 
   if (type is LiteralType) {
-    return 'must be the literal ${type.literal}';
+    return 'must be the literal ${type.valueAsLiteral}';
   } else if (type is LiteralUnionType) {
-    return 'must be one of the literals ${type.literalTypes.map((t) => t.literal).join(', ')}';
+    return 'must be one of the literals ${type.literalTypes.map((t) => t.valueAsLiteral).join(', ')}';
   } else {
     return 'must be of type ${type.dartTypeWithTypeArgs}';
   }
@@ -223,7 +181,7 @@ String _getTypeCheckFailureMessage(TypeBase type) {
 
 bool _isOverride(Interface interface, Field field) {
   for (var parentType in interface.baseTypes) {
-    var parent = _interfaces[(parentType as Type).name];
+    var parent = _interfaces[parentType.name];
     if (parent != null) {
       if (parent.members.any((m) => m.name == field.name)) {
         return true;
@@ -244,6 +202,7 @@ bool _isSimpleType(TypeBase type) {
 bool _isSpecType(TypeBase type) {
   type = resolveTypeAlias(type);
   return type is Type &&
+      !isAnyType(type) &&
       (_interfaces.containsKey(type.name) ||
           (_namespaces.containsKey(type.name)));
 }
@@ -257,6 +216,7 @@ String _makeValidIdentifier(String identifier) {
     'String': 'Str',
     'class': 'class_',
     'enum': 'enum_',
+    'null': 'null_',
   };
   return map[identifier] ?? identifier;
 }
@@ -312,7 +272,7 @@ void _sortSubtypes() {
 /// for enums.
 String _specJsonType(TypeBase type) {
   if (type is Type && _namespaces.containsKey(type.name)) {
-    final valueType = _namespaces[type.name]!.members.cast<Const>().first.type;
+    final valueType = _namespaces[type.name]!.typeOfValues;
     return resolveTypeAlias(valueType, resolveEnumClasses: true)
         .dartTypeWithTypeArgs;
   }
@@ -432,11 +392,13 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndented('${interface.name}({')
     ..write(allFields.map((field) {
       final isLiteral = field.type is LiteralType;
-      final isRequired =
-          !isLiteral && !field.allowsNull && !field.allowsUndefined;
+      final isRequired = !isLiteral &&
+          !field.allowsNull &&
+          !field.allowsUndefined &&
+          !isAnyType(field.type);
       final requiredKeyword = isRequired ? 'required' : '';
       final valueCode =
-          isLiteral ? ' = ${(field.type as LiteralType).literal}' : '';
+          isLiteral ? ' = ${(field.type as LiteralType).valueAsLiteral}' : '';
       return '$requiredKeyword this.${field.name}$valueCode, ';
     }).join())
     ..write('})');
@@ -450,10 +412,10 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
       final type = field.type;
       if (type is LiteralType) {
         buffer
-          ..writeIndentedln('if (${field.name} != ${type.literal}) {')
+          ..writeIndentedln('if (${field.name} != ${type.valueAsLiteral}) {')
           ..indent()
           ..writeIndentedln(
-              "throw '${field.name} may only be the literal ${type.literal.replaceAll("'", "\\'")}';")
+              "throw '${field.name} may only be the literal ${type.valueAsLiteral.replaceAll("'", "\\'")}';")
           ..outdent()
           ..writeIndentedln('}');
       }
@@ -492,16 +454,10 @@ void _writeDocCommentsAndAnnotations(
 void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
   _writeDocCommentsAndAnnotations(buffer, namespace);
   final consts = namespace.members.cast<Const>().toList();
-  final allowsAnyValue = enumClassAllowsAnyValue(namespace.name);
-  final constructorName = allowsAnyValue ? '' : '._';
-  final firstValueType = consts.first.type;
-  // Enums can have constant values in their fields so if a field is a literal
-  // use its underlying type for type checking.
-  final requiredValueType =
-      firstValueType is LiteralType ? firstValueType.type : firstValueType;
-  final typeOfValues =
-      resolveTypeAlias(requiredValueType, resolveEnumClasses: true);
   final namespaceName = namespace.name;
+  final typeOfValues = namespace.typeOfValues;
+  final allowsAnyValue = enumClassAllowsAnyValue(namespaceName);
+  final constructorName = allowsAnyValue ? '' : '._';
 
   buffer
     ..writeln('class $namespaceName implements ToJsonable {')
@@ -542,8 +498,10 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
       return;
     }
     _writeDocCommentsAndAnnotations(buffer, cons);
+    final memberName = _makeValidIdentifier(cons.name);
+    final value = cons.valueAsLiteral;
     buffer.writeIndentedln(
-        'static const ${_makeValidIdentifier(cons.name)} = $namespaceName$constructorName(${cons.valueAsLiteral});');
+        'static const $memberName = $namespaceName$constructorName($value);');
   });
   buffer
     ..writeln()
@@ -683,7 +641,7 @@ void _writeFromJsonCodeForLiteralUnion(
     {required bool allowsNull}) {
   final allowedValues = [
     if (allowsNull) null,
-    ...union.literalTypes.map((t) => t.literal)
+    ...union.literalTypes.map((t) => t.valueAsLiteral)
   ];
   final valueType = union.literalTypes.first.dartTypeWithTypeArgs;
   final cast = ' as $valueType${allowsNull ? '?' : ''}';
@@ -769,7 +727,7 @@ void _writeFromJsonConstructor(
     // Add a local variable to allow type promotion (and avoid multiple lookups).
     final localName = _makeValidIdentifier(field.name);
     final localNameJson = '${localName}Json';
-    buffer.writeIndented("final $localNameJson = json['${field.name}'];");
+    buffer.writeIndentedln("final $localNameJson = json['${field.name}'];");
     buffer.writeIndented('final $localName = ');
     _writeFromJsonCode(buffer, field.type, localNameJson,
         allowsNull: field.allowsNull || field.allowsUndefined);
@@ -824,6 +782,7 @@ void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
 }
 
 void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
+  final isPrivate = interface.name.startsWith('_');
   _writeDocCommentsAndAnnotations(buffer, interface);
 
   buffer.writeIndented('class ${interface.nameWithTypeArgs} ');
@@ -836,7 +795,9 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeln('{')
     ..indent();
-  _writeJsonHandler(buffer, interface);
+  if (!isPrivate) {
+    _writeJsonHandler(buffer, interface);
+  }
   _writeConstructor(buffer, interface);
   _writeFromJsonConstructor(buffer, interface);
   // Handle Consts and Fields separately, since we need to include superclass
@@ -1019,7 +980,7 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
     buffer.write('$valueCode is$operator $fullDartType');
   } else if (type is LiteralType) {
     final equals = negation ? '!=' : '==';
-    buffer.write('$valueCode $equals ${type.literal}');
+    buffer.write('$valueCode $equals ${type.valueAsLiteral}');
   } else if (_isSpecType(type)) {
     buffer.write('$operator$dartType.canParse($valueCode, $reporter)');
   } else if (type is ArrayType) {
