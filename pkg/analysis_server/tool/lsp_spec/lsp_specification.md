@@ -1005,7 +1005,7 @@ interface LocationLink {
 
 	/**
 	 * The range that should be selected and revealed when this link is being
-	 * followed, e.g the name of a function. Must be contained by the the
+	 * followed, e.g the name of a function. Must be contained by the
 	 * `targetRange`. See also `DocumentSymbol#range`
 	 */
 	targetSelectionRange: Range;
@@ -1295,6 +1295,7 @@ Parser          | Version | Documentation
 --------------- | ------- | -------------
 marked          | 1.1.0   | [Marked Documentation](https://marked.js.org/)
 Python-Markdown | 3.2.2   | [Python-Markdown Documentation](https://python-markdown.github.io)
+
 ### <a href="#resourceChanges" name="resourceChanges" class="anchor"> File Resource changes </a>
 
 > New in version 3.13. Since version 3.16 file resource changes can carry an additional property `changeAnnotation` to describe the actual change in more detail. Whether a client has support for change annotations is guarded by the client capability `workspace.workspaceEdit.changeAnnotationSupport`.
@@ -7389,7 +7390,7 @@ export interface CompletionClientCapabilities {
 	 */
 	completionList?: {
 		/**
-		 * The client supports the the following itemDefaults on
+		 * The client supports the following itemDefaults on
 		 * a completion list.
 		 *
 		 * The value lists the supported property names of the
@@ -10244,6 +10245,14 @@ export interface WorkspaceSymbol {
 	tags?: SymbolTag[];
 
 	/**
+	 * The name of the symbol containing this symbol. This information is for
+	 * user interface purposes (e.g. to render a qualifier in the user interface
+	 * if necessary). It can't be used to re-infer a hierarchy for the document
+	 * symbols.
+	 */
+	containerName?: string;
+
+	/**
 	 * The location of this symbol. Whether a server is allowed to
 	 * return a location without a range depends on the client
 	 * capability `workspace.symbol.resolveSupport`.
@@ -10253,12 +10262,10 @@ export interface WorkspaceSymbol {
 	location: Location | { uri: DocumentUri };
 
 	/**
-	 * The name of the symbol containing this symbol. This information is for
-	 * user interface purposes (e.g. to render a qualifier in the user interface
-	 * if necessary). It can't be used to re-infer a hierarchy for the document
-	 * symbols.
+	 * A data entry field that is preserved on a workspace symbol between a
+	 * workspace symbol request and a workspace symbol resolve request.
 	 */
-	containerName?: string;
+	data?: LSPAny;
 }
 ```
 * partial result: `SymbolInformation[]` \| `WorkspaceSymbol[]` as defined above.

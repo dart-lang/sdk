@@ -5407,7 +5407,7 @@ class CompletionClientCapabilitiesCompletionList implements ToJsonable {
     );
   }
 
-  /// The client supports the the following itemDefaults on a completion list.
+  /// The client supports the following itemDefaults on a completion list.
   ///
   /// The value lists the supported property names of the
   /// `CompletionList.itemDefaults` object. If omitted no properties are
@@ -23698,7 +23698,7 @@ class LocationLink implements ToJsonable {
   final Range targetRange;
 
   /// The range that should be selected and revealed when this link is being
-  /// followed, e.g the name of a function. Must be contained by the the
+  /// followed, e.g the name of a function. Must be contained by the
   /// `targetRange`. See also `DocumentSymbol#range`
   final Range targetSelectionRange;
 
@@ -45496,6 +45496,7 @@ class WorkspaceSymbol implements ToJsonable {
 
   WorkspaceSymbol({
     this.containerName,
+    this.data,
     required this.kind,
     required this.location,
     required this.name,
@@ -45504,6 +45505,8 @@ class WorkspaceSymbol implements ToJsonable {
   static WorkspaceSymbol fromJson(Map<String, Object?> json) {
     final containerNameJson = json['containerName'];
     final containerName = containerNameJson as String?;
+    final dataJson = json['data'];
+    final data = dataJson;
     final kindJson = json['kind'];
     final kind = SymbolKind.fromJson(kindJson as int);
     final locationJson = json['location'];
@@ -45523,6 +45526,7 @@ class WorkspaceSymbol implements ToJsonable {
         .toList();
     return WorkspaceSymbol(
       containerName: containerName,
+      data: data,
       kind: kind,
       location: location,
       name: name,
@@ -45535,6 +45539,10 @@ class WorkspaceSymbol implements ToJsonable {
   /// if necessary). It can't be used to re-infer a hierarchy for the document
   /// symbols.
   final String? containerName;
+
+  /// A data entry field that is preserved on a workspace symbol between a
+  /// workspace symbol request and a workspace symbol resolve request.
+  final Object? data;
 
   /// The kind of this symbol.
   final SymbolKind kind;
@@ -45557,6 +45565,9 @@ class WorkspaceSymbol implements ToJsonable {
     var result = <String, Object?>{};
     if (containerName != null) {
       result['containerName'] = containerName;
+    }
+    if (data != null) {
+      result['data'] = data;
     }
     result['kind'] = kind.toJson();
     result['location'] = location;
@@ -45658,6 +45669,7 @@ class WorkspaceSymbol implements ToJsonable {
   bool operator ==(Object other) {
     if (other is WorkspaceSymbol && other.runtimeType == WorkspaceSymbol) {
       return containerName == other.containerName &&
+          data == other.data &&
           kind == other.kind &&
           location == other.location &&
           name == other.name &&
@@ -45670,6 +45682,7 @@ class WorkspaceSymbol implements ToJsonable {
   @override
   int get hashCode => Object.hash(
         containerName,
+        data,
         kind,
         location,
         name,
