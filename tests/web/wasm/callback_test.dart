@@ -2,24 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:js_util';
 import 'dart:js_util_wasm';
 import 'dart:js_wasm';
 import 'dart:wasm';
 
 import 'package:expect/expect.dart';
 
+@JS()
+external void eval(String code);
+
 typedef SumStringCallback = String Function(String a, String b);
 
 @JS()
 @staticInterop
 class DartFromJSCallbackHelper {
-  external factory DartFromJSCallbackHelper.factory(SumStringCallback summer);
+  // TODO(joshualitt): Update [allowInterop] to return a function.
+  external factory DartFromJSCallbackHelper.factory(Object summer);
 }
 
 extension DartFromJSCallbackHelperMethods on DartFromJSCallbackHelper {
   external String doSum1();
   external String doSum2(String a, String b);
-  external String doSum3(SumStringCallback summer);
+  external String doSum3(Object summer);
 }
 
 String sumString(String a, String b) {
@@ -45,11 +50,14 @@ void staticInteropCallbackTest() {
     }
   ''');
 
-  final dartFromJSCallbackHelper = DartFromJSCallbackHelper.factory(sumString);
+  final dartFromJSCallbackHelper = DartFromJSCallbackHelper.factory(
+      allowInterop<SumStringCallback>(sumString));
   Expect.equals('hello world!', dartFromJSCallbackHelper.doSum1());
   Expect.equals('foobar', dartFromJSCallbackHelper.doSum2('foo', 'bar'));
   Expect.equals(
-      'hello world!', dartFromJSCallbackHelper.doSum3((a, b) => a + b));
+      'hello world!',
+      dartFromJSCallbackHelper
+          .doSum3(allowInterop<SumStringCallback>((a, b) => a + b)));
 }
 
 void allowInteropCallbackTest() {
@@ -63,14 +71,12 @@ void allowInteropCallbackTest() {
   ''');
 
   final interopCallback = allowInterop<SumStringCallback>((a, b) => a + b);
-  Expect.equals('foobar',
-      callMethodVarArgs(globalThis(), 'doSum1', [interopCallback]).toString());
-  setProperty(globalThis(), 'summer', interopCallback);
   Expect.equals(
-      'foobar',
-      callMethodVarArgs(globalThis(), 'doSum2', ['foo'.toJS(), 'bar'.toJS()])
-          .toString());
-  final roundTripCallback = getProperty(globalThis(), 'summer');
+      'foobar', callMethod(globalThis, 'doSum1', [interopCallback]).toString());
+  setProperty(globalThis, 'summer', interopCallback);
+  Expect.equals(
+      'foobar', callMethod(globalThis, 'doSum2', ['foo', 'bar']).toString());
+  final roundTripCallback = getProperty(globalThis, 'summer');
   Expect.equals('foobar',
       (dartify(roundTripCallback) as SumStringCallback)('foo', 'bar'));
 }

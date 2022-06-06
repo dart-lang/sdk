@@ -47,8 +47,10 @@ class WasmTarget extends Target {
         'dart:async',
         'dart:ffi',
         'dart:_internal',
+        'dart:_js_helper',
         'dart:typed_data',
         'dart:nativewrappers',
+        'dart:js_util',
         'dart:js_util_wasm',
         'dart:js_wasm',
         'dart:wasm',
@@ -57,8 +59,10 @@ class WasmTarget extends Target {
 
   @override
   List<String> get extraIndexedLibraries => const <String>[
+        'dart:_js_helper',
         'dart:collection',
         'dart:typed_data',
+        'dart:js_util',
         'dart:js_util_wasm',
         'dart:js_wasm',
         'dart:wasm',
@@ -245,7 +249,7 @@ void performJSInteropTransformations(CoreTypes coreTypes,
     ClassHierarchy hierarchy, List<Library> interopDependentLibraries) {
   final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
   final staticInteropClassEraser = StaticInteropClassEraser(coreTypes,
-      libraryForJavaScriptObject: 'dart:js_util_wasm',
+      libraryForJavaScriptObject: 'dart:_js_helper',
       classNameOfJavaScriptObject: 'JSValue');
   for (Library library in interopDependentLibraries) {
     jsUtilOptimizer.visitLibrary(library);

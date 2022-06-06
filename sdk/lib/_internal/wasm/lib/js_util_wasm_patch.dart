@@ -5,33 +5,17 @@
 library dart.js_util_wasm;
 
 import "dart:_internal";
-import "dart:js_util_wasm";
+import "dart:_js_helper";
 import "dart:wasm";
 
-/// js_util_wasm methods used by the wasm runtime.
-@pragma("wasm:export", "\$listLength")
-double _listLength(List list) => list.length.toDouble();
-
-@pragma("wasm:export", "\$listRead")
-WasmAnyRef? _listRead(List<Object?> list, double index) =>
-    jsifyRaw(list[index.toInt()]);
-
-@pragma("wasm:export", "\$listAllocate")
-List<Object?> _listAllocate() => [];
-
-@pragma("wasm:export", "\$listAdd")
-void _listAdd(List<Object?> list, WasmAnyRef? item) =>
-    list.add(dartifyRaw(item));
-
-@pragma("wasm:export", "\$boxJSValue")
-JSValue _boxJSValue(WasmAnyRef ref) => JSValue(ref);
-
 @patch
-Object _jsObjectToDartObject(WasmAnyRef ref) => unsafeCastOpaque<Object>(ref);
+Object allowInterop<F extends Function>(F f) => throw 'unreachable';
 
-@patch
-WasmAnyRef _jsObjectFromDartObject(Object object) =>
-    unsafeCastOpaque<WasmAnyRef>(object);
+@pragma("wasm:import", "dart2wasm.wrapDartCallback")
+external WasmAnyRef _wrapDartCallbackRaw(
+    WasmAnyRef callback, WasmAnyRef trampolineName);
 
-@patch
-JSValue allowInterop<F extends Function>(F f) => throw 'unreachable';
+JSValue? _wrapDartCallback(Object callback, String trampolineName) {
+  return JSValue(_wrapDartCallbackRaw(
+      callback.toJS().toAnyRef(), trampolineName.toJS().toAnyRef()));
+}
