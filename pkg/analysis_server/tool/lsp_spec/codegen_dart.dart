@@ -1039,7 +1039,7 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
       buffer.write(')');
     }
   } else if (interface != null &&
-      interface.typeArgs.any((typeArg) => typeArg.lexeme == fullDartType)) {
+      interface.typeArgs.any((typeArg) => typeArg == fullDartType)) {
     final comment = '/* $operator$fullDartType.canParse($valueCode) */';
     print(
         'WARN: Unable to write a type check for $valueCode with generic type $fullDartType. '

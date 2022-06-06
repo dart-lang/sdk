@@ -94,10 +94,10 @@ class LspMetaModelCleaner {
 
   Const _cleanConst(Const const_) {
     return Const(
-      _cleanComment(const_.comment),
-      const_.nameToken,
-      _cleanType(const_.type),
-      const_.valueToken,
+      name: const_.name,
+      comment: _cleanComment(const_.comment),
+      type: _cleanType(const_.type),
+      value: const_.value,
     );
   }
 
@@ -106,9 +106,9 @@ class LspMetaModelCleaner {
     final type = improvedType ?? field.type;
 
     return Field(
-      _cleanComment(field.comment),
-      field.nameToken,
-      _cleanType(type),
+      name: field.name,
+      comment: _cleanComment(field.comment),
+      type: _cleanType(type),
       allowsNull: field.allowsNull,
       allowsUndefined: field.allowsUndefined,
     );
@@ -116,13 +116,13 @@ class LspMetaModelCleaner {
 
   Interface _cleanInterface(Interface interface) {
     return Interface(
-      _cleanComment(interface.comment),
-      interface.nameToken,
-      interface.typeArgs,
-      interface.baseTypes
+      name: interface.name,
+      comment: _cleanComment(interface.comment),
+      typeArgs: interface.typeArgs,
+      baseTypes: interface.baseTypes
           .where((type) => _includeTypeInOutput(type.name))
           .toList(),
-      interface.members
+      members: interface.members
           .map((member) => _cleanMember(interface.name, member))
           .toList(),
     );
@@ -140,10 +140,10 @@ class LspMetaModelCleaner {
 
   Namespace _cleanNamespace(Namespace namespace) {
     return Namespace(
-      _cleanComment(namespace.comment),
-      namespace.nameToken,
-      namespace.typeOfValues,
-      namespace.members
+      name: namespace.name,
+      comment: _cleanComment(namespace.comment),
+      typeOfValues: namespace.typeOfValues,
+      members: namespace.members
           .map((member) => _cleanMember(namespace.name, member))
           .toList(),
     );
@@ -161,9 +161,9 @@ class LspMetaModelCleaner {
 
   TypeAlias _cleanTypeAlias(TypeAlias typeAlias) {
     return TypeAlias(
-      _cleanComment(typeAlias.comment),
-      typeAlias.nameToken,
-      typeAlias.baseType,
+      name: typeAlias.name,
+      comment: _cleanComment(typeAlias.comment),
+      baseType: typeAlias.baseType,
     );
   }
 
@@ -305,18 +305,18 @@ class LspMetaModelCleaner {
     }
     if (source is Namespace && dest is Namespace) {
       return Namespace(
-        dest.comment ?? source.comment,
-        dest.nameToken,
-        dest.typeOfValues,
-        [...dest.members, ...source.members],
+        name: dest.name,
+        comment: dest.comment ?? source.comment,
+        typeOfValues: dest.typeOfValues,
+        members: [...dest.members, ...source.members],
       );
     } else if (source is Interface && dest is Interface) {
       return Interface(
-        dest.comment ?? source.comment,
-        dest.nameToken,
-        dest.typeArgs,
-        [...dest.baseTypes, ...source.baseTypes],
-        [...dest.members, ...source.members],
+        name: dest.name,
+        comment: dest.comment ?? source.comment,
+        typeArgs: dest.typeArgs,
+        baseTypes: [...dest.baseTypes, ...source.baseTypes],
+        members: [...dest.members, ...source.members],
       );
     }
     throw 'Merging ${source.runtimeType}s is not yet supported';
@@ -364,17 +364,17 @@ class LspMetaModelCleaner {
         if (newName != null) {
           // Replace with renamed interface.
           yield Interface(
-            type.comment,
-            Token.identifier(newName),
-            type.typeArgs,
-            type.baseTypes,
-            type.members,
+            name: newName,
+            comment: type.comment,
+            typeArgs: type.typeArgs,
+            baseTypes: type.baseTypes,
+            members: type.members,
           );
           // Plus a TypeAlias for the old name.
           yield TypeAlias(
-            type.comment,
-            Token.identifier(type.name),
-            Type.identifier(newName),
+            name: type.name,
+            comment: type.comment,
+            baseType: Type.identifier(newName),
           );
           continue;
         }

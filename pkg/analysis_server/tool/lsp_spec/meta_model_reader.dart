@@ -69,10 +69,10 @@ class LspMetaModelReader {
     Const toConstant(String value) {
       final comment = '''Constant for the '$value' method.''';
       return Const(
-        comment,
-        Token.identifier(_generateMemberName(value, camelCase: true)),
-        Type.identifier('string'),
-        Token(TokenType.STRING, value),
+        name: _generateMemberName(value, camelCase: true),
+        comment: comment,
+        type: Type.identifier('string'),
+        value: value,
       );
     }
 
@@ -85,27 +85,20 @@ class LspMetaModelReader {
 
     final comment = 'All standard LSP Methods read from the JSON spec.';
     return Namespace(
-      comment,
-      Token.identifier('Method'),
-      Type.identifier('string'),
-      methodConstants,
+      name: 'Method',
+      comment: comment,
+      typeOfValues: Type.identifier('string'),
+      members: methodConstants,
     );
   }
 
-  Const _extractEnumValue(TypeBase parent, dynamic model) {
+  Const _extractEnumValue(TypeBase parentType, dynamic model) {
     final name = model['name'] as String;
     return Const(
-      model['documentation'] as String?,
-      Token.identifier(_generateMemberName(name)),
-      parent,
-      Token(
-        model['value'] is int
-            ? TokenType.NUMBER
-            : model['value'] is String
-                ? TokenType.STRING
-                : throw 'Unknown enum value type $model',
-        model['value'].toString(),
-      ),
+      name: _generateMemberName(name),
+      comment: model['documentation'] as String?,
+      type: parentType,
+      value: model['value'].toString(),
     );
   }
 
@@ -126,9 +119,9 @@ class LspMetaModelReader {
     }
 
     return Field(
-      model['documentation'] as String?,
-      Token.identifier(_generateMemberName(name)),
-      type,
+      name: _generateMemberName(name),
+      comment: model['documentation'] as String?,
+      type: type,
       allowsNull: allowsNull,
       allowsUndefined: model['optional'] == true,
     );
@@ -248,15 +241,14 @@ class LspMetaModelReader {
 
   Namespace _readEnum(dynamic model) {
     final name = model['name'] as String;
-    final nameToken = Token.identifier(name);
     final type = Type.identifier(name);
     final baseType = _extractType(name, null, model['type']);
 
     return Namespace(
-      model['documentation'] as String?,
-      nameToken,
-      baseType,
-      [
+      name: name,
+      comment: model['documentation'] as String?,
+      typeOfValues: baseType,
+      members: [
         ...?(model['values'] as List?)?.map((p) => _extractEnumValue(type, p)),
       ],
     );
@@ -265,16 +257,15 @@ class LspMetaModelReader {
   AstNode _readStructure(dynamic model) {
     final name = model['name'] as String;
     return Interface(
-      model['documentation'] as String?,
-      Token.identifier(name),
-      [],
-      [
+      name: name,
+      comment: model['documentation'] as String?,
+      baseTypes: [
         ...?(model['extends'] as List?)
             ?.map((e) => Type.identifier(e['name'] as String)),
         ...?(model['mixins'] as List?)
             ?.map((e) => Type.identifier(e['name'] as String)),
       ],
-      [
+      members: [
         ...?(model['properties'] as List?)?.map((p) => _extractMember(name, p)),
       ],
     );
@@ -283,9 +274,9 @@ class LspMetaModelReader {
   TypeAlias _readTypeAlias(dynamic model) {
     final name = model['name'] as String;
     return TypeAlias(
-      model['documentation'] as String?,
-      Token.identifier(name),
-      _extractType(name, null, model['type']),
+      name: name,
+      comment: model['documentation'] as String?,
+      baseType: _extractType(name, null, model['type']),
     );
   }
 }

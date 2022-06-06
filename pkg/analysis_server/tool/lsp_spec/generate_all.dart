@@ -113,11 +113,9 @@ List<AstNode> getCustomClasses() {
   /// Helper to create an interface type.
   Interface interface(String name, List<Member> fields, {String? baseType}) {
     return Interface(
-      null,
-      Token.identifier(name),
-      [],
-      [if (baseType != null) Type.identifier(baseType)],
-      fields,
+      name: name,
+      baseTypes: [if (baseType != null) Type.identifier(baseType)],
+      members: fields,
     );
   }
 
@@ -133,9 +131,9 @@ List<AstNode> getCustomClasses() {
         array ? ArrayType(Type.identifier(type)) : Type.identifier(type);
 
     return Field(
-      comment,
-      Token.identifier(name),
-      fieldType,
+      name: name,
+      comment: comment,
+      type: fieldType,
       allowsNull: false,
       allowsUndefined: canBeUndefined,
     );
@@ -143,14 +141,12 @@ List<AstNode> getCustomClasses() {
 
   final customTypes = <AstNode>[
     TypeAlias(
-      null,
-      Token.identifier('LSPAny'),
-      Type.Any,
+      name: 'LSPAny',
+      baseType: Type.Any,
     ),
     TypeAlias(
-      null,
-      Token.identifier('LSPObject'),
-      Type.Any,
+      name: 'LSPObject',
+      baseType: Type.Any,
     ),
     // The DocumentFilter more complex in v3.17's meta_model (to allow
     // TextDocumentFilters to be guaranteed to have at least one of language,
@@ -158,9 +154,8 @@ List<AstNode> getCustomClasses() {
     // for compatibility, alias that type to the original TS-spec name.
     // TODO(dantup): Improve this after the TS->JSON Spec migration.
     TypeAlias(
-      null,
-      Token.identifier('DocumentFilter'),
-      Type.identifier('TextDocumentFilter2'),
+      name: 'DocumentFilter',
+      baseType: Type.identifier('TextDocumentFilter2'),
     ),
     // Similarly, the meta_model includes String as an option for
     // DocumentSelector which is deprecated and we never previously supported
@@ -168,9 +163,8 @@ List<AstNode> getCustomClasses() {
     // that.
     // TODO(dantup): Improve this after the TS->JSON Spec migration.
     TypeAlias(
-      null,
-      Token.identifier('DocumentSelector'),
-      ArrayType(Type.identifier('TextDocumentFilterWithScheme')),
+      name: 'DocumentSelector',
+      baseType: ArrayType(Type.identifier('TextDocumentFilterWithScheme')),
     ),
     interface('Message', [
       field('jsonrpc', type: 'string'),
@@ -188,9 +182,8 @@ List<AstNode> getCustomClasses() {
       'RequestMessage',
       [
         Field(
-          null,
-          Token.identifier('id'),
-          UnionType([Type.identifier('int'), Type.identifier('string')]),
+          name: 'id',
+          type: UnionType([Type.identifier('int'), Type.identifier('string')]),
           allowsNull: false,
           allowsUndefined: false,
         )
@@ -206,9 +199,8 @@ List<AstNode> getCustomClasses() {
       'ResponseMessage',
       [
         Field(
-          null,
-          Token.identifier('id'),
-          UnionType([Type.identifier('int'), Type.identifier('string')]),
+          name: 'id',
+          type: UnionType([Type.identifier('int'), Type.identifier('string')]),
           allowsNull: true,
           allowsUndefined: false,
         ),
@@ -236,7 +228,10 @@ List<AstNode> getCustomClasses() {
         ),
       ],
     ),
-    TypeAlias(null, Token.identifier('DocumentUri'), Type.identifier('string')),
+    TypeAlias(
+      name: 'DocumentUri',
+      baseType: Type.identifier('string'),
+    ),
 
     interface('DartDiagnosticServer', [field('port', type: 'int')]),
     interface('AnalyzerStatusParams', [field('isAnalyzing', type: 'boolean')]),
@@ -332,9 +327,8 @@ List<AstNode> getCustomClasses() {
       ],
     ),
     TypeAlias(
-      null,
-      Token.identifier('TextDocumentEditEdits'),
-      ArrayType(
+      name: 'TextDocumentEditEdits',
+      baseType: ArrayType(
         UnionType([
           Type.identifier('SnippetTextEdit'),
           Type.identifier('AnnotatedTextEdit'),

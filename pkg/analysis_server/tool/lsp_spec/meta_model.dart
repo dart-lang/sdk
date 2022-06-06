@@ -9,10 +9,6 @@ import 'codegen_dart.dart';
 export 'meta_model_cleaner.dart';
 export 'meta_model_reader.dart';
 
-/// A fabricated field name for indexers in case they result in generation
-/// of type names for inline types.
-const fieldNameForIndexer = 'indexer';
-
 /// Whether this type allows any value (including null).
 bool isAnyType(TypeBase t) =>
     t is Type &&
@@ -27,16 +23,6 @@ bool isNullType(TypeBase t) => t is Type && t.name == 'null';
 
 bool isUndefinedType(TypeBase t) => t is Type && t.name == 'undefined';
 
-TypeBase typeOfLiteral(Token token) {
-  final tokenType = token.type;
-  final typeName = tokenType == TokenType.STRING
-      ? 'string'
-      : tokenType == TokenType.NUMBER
-          ? 'int' // all literal numeric values in LSP spec are ints
-          : throw 'Unknown literal type $tokenType';
-  return Type.identifier(typeName);
-}
-
 class ArrayType extends TypeBase {
   final TypeBase elementType;
 
@@ -49,83 +35,76 @@ class ArrayType extends TypeBase {
 }
 
 abstract class AstNode {
+  final String name;
   final String? comment;
   final bool isDeprecated;
-  AstNode(this.comment)
-      : isDeprecated = comment?.contains('@deprecated') ?? false;
-
-  String get name;
+  AstNode({
+    required this.name,
+    required this.comment,
+  }) : isDeprecated = comment?.contains('@deprecated') ?? false;
 }
 
 class Const extends Member with LiteralValueMixin {
-  Token nameToken;
   TypeBase type;
-  Token valueToken;
-  Const(super.comment, this.nameToken, this.type, this.valueToken);
+  String value;
+  Const({
+    required super.name,
+    super.comment,
+    required this.type,
+    required this.value,
+  });
 
-  @override
-  String get name => nameToken.lexeme;
-
-  String get valueAsLiteral => _asLiteral(valueToken.lexeme);
+  String get valueAsLiteral => _asLiteral(value);
 }
 
 class Field extends Member {
-  final Token nameToken;
   final TypeBase type;
   final bool allowsNull;
   final bool allowsUndefined;
-  Field(
+  Field({
+    required super.name,
     super.comment,
-    this.nameToken,
-    this.type, {
+    required this.type,
     required this.allowsNull,
     required this.allowsUndefined,
   });
-
-  @override
-  String get name => nameToken.lexeme;
 }
 
 class FixedValueField extends Field {
-  final Token valueToken;
-  FixedValueField(
-    String? comment,
-    Token nameToken,
-    this.valueToken,
-    TypeBase type,
-    bool allowsNull,
-    bool allowsUndefined,
-  ) : super(comment, nameToken, type,
-            allowsNull: allowsNull, allowsUndefined: allowsUndefined);
+  final String value;
+  FixedValueField({
+    required super.name,
+    super.comment,
+    required this.value,
+    required super.type,
+    required super.allowsNull,
+    required super.allowsUndefined,
+  });
 }
 
 class Interface extends AstNode {
-  final Token nameToken;
-  final List<Token> typeArgs;
+  final List<String> typeArgs;
   final List<Type> baseTypes;
   final List<Member> members;
 
-  Interface(
+  Interface({
+    required super.name,
     super.comment,
-    this.nameToken,
-    this.typeArgs,
-    this.baseTypes,
-    this.members,
-  ) {
+    this.typeArgs = const [],
+    this.baseTypes = const [],
+    required this.members,
+  }) {
     baseTypes.sortBy((type) => type.dartTypeWithTypeArgs.toLowerCase());
     members.sortBy((member) => member.name.toLowerCase());
   }
 
   Interface.inline(String name, List<Member> members)
-      : this(null, Token.identifier(name), [], [], members);
+      : this(name: name, members: members);
 
-  @override
-  String get name => nameToken.lexeme;
   String get nameWithTypeArgs => '$name$typeArgsString';
 
-  String get typeArgsString => typeArgs.isNotEmpty
-      ? '<${typeArgs.map((t) => t.lexeme).join(', ')}>'
-      : '';
+  String get typeArgsString =>
+      typeArgs.isNotEmpty ? '<${typeArgs.join(', ')}>' : '';
 }
 
 class LiteralType extends TypeBase with LiteralValueMixin {
@@ -161,6 +140,7 @@ class LiteralUnionType extends UnionType {
 }
 
 mixin LiteralValueMixin {
+  /// Returns [value] as the literal Dart code required to represent this value.
   String _asLiteral(String value) {
     if (num.tryParse(value) == null) {
       // Add quotes around strings.
@@ -193,59 +173,39 @@ class MapType extends TypeBase {
 }
 
 abstract class Member extends AstNode {
-  Member(super.comment);
+  Member({
+    required super.name,
+    super.comment,
+  });
 }
 
 class Namespace extends AstNode {
-  final Token nameToken;
   final TypeBase typeOfValues;
   final List<Member> members;
-  Namespace(
+  Namespace({
+    required super.name,
     super.comment,
-    this.nameToken,
-    this.typeOfValues,
-    this.members,
-  ) {
+    required this.typeOfValues,
+    required this.members,
+  }) {
     members.sortBy((member) => member.name.toLowerCase());
   }
-
-  @override
-  String get name => nameToken.lexeme;
-}
-
-class Token {
-  final TokenType type;
-  final String lexeme;
-
-  Token(this.type, this.lexeme);
-
-  Token.identifier(String identifier) : this(TokenType.IDENTIFIER, identifier);
-
-  @override
-  String toString() => '${type.toString().padRight(25)} '
-      '${lexeme.padRight(10)}\n';
-}
-
-enum TokenType {
-  IDENTIFIER,
-  NUMBER,
-  STRING,
 }
 
 class Type extends TypeBase {
   static final TypeBase Undefined = Type.identifier('undefined');
   static final TypeBase Null_ = Type.identifier('null');
   static final TypeBase Any = Type.identifier('any');
-  final Token nameToken;
+  final String name;
   final List<TypeBase> typeArgs;
 
-  Type(this.nameToken, this.typeArgs) {
+  Type(this.name, this.typeArgs) {
     if (name == 'Array' || name.endsWith('[]')) {
       throw 'Type should not be used for arrays, use ArrayType instead';
     }
   }
 
-  Type.identifier(String identifier) : this(Token.identifier(identifier), []);
+  Type.identifier(String identifier) : this(identifier, []);
 
   @override
   String get dartType {
@@ -278,8 +238,6 @@ class Type extends TypeBase {
     return typeName;
   }
 
-  String get name => nameToken.lexeme;
-
   @override
   String get typeArgsString {
     // Always resolve type aliases when asked for our Dart type.
@@ -295,16 +253,12 @@ class Type extends TypeBase {
 }
 
 class TypeAlias extends AstNode {
-  final Token nameToken;
   final TypeBase baseType;
-  TypeAlias(
+  TypeAlias({
+    required super.name,
     super.comment,
-    this.nameToken,
-    this.baseType,
-  );
-
-  @override
-  String get name => nameToken.lexeme;
+    required this.baseType,
+  });
 }
 
 abstract class TypeBase {
