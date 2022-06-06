@@ -27,6 +27,11 @@ class ReplacedBy extends Change<_Data> {
   void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
     var referenceRange = data.referenceRange;
     builder.addSimpleReplacement(referenceRange, _referenceTo(newElement));
+    var libraryUris = newElement.libraryUris;
+    if (libraryUris.isEmpty) return;
+    if (!libraryUris.any((uri) => builder.importsLibrary(uri))) {
+      builder.importLibraryElement(libraryUris.first);
+    }
   }
 
   @override
