@@ -5,7 +5,7 @@
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 
-import 'typescript_parser.dart';
+import 'meta_model.dart';
 
 final formatter = DartFormatter();
 Map<String, Interface> _interfaces = {};

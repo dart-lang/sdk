@@ -4,7 +4,7 @@
 
 import 'package:test/test.dart';
 
-import '../../../tool/lsp_spec/typescript_parser.dart' as ast;
+import '../../../tool/lsp_spec/meta_model.dart' as ast;
 
 void main() {
   group('dartType mapping', () {

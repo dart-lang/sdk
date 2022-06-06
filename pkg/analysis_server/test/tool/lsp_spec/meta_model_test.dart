@@ -4,12 +4,10 @@
 
 import 'package:test/test.dart';
 
-import '../../../tool/lsp_spec/typescript_parser.dart';
+import '../../../tool/lsp_spec/meta_model.dart';
 import 'matchers.dart';
 
 void main() {
-  // TODO(dantup): Rename this file in a seperate CL so it doesn't lose its
-  //   history because the number of the large number of changes.
   group('meta model reader', () {
     test('reads an interface', () {
       final input = {

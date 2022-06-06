@@ -5,7 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:matcher/matcher.dart';
 
-import '../../../tool/lsp_spec/typescript_parser.dart';
+import '../../../tool/lsp_spec/meta_model.dart';
 
 Matcher isArrayOf(Matcher matcher) => ArrayTypeMatcher(wrapMatcher(matcher));
 

@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
 import 'codegen_dart.dart';
-import 'typescript_parser.dart';
+import 'meta_model.dart';
 
 Future<void> main(List<String> arguments) async {
   final args = argParser.parse(arguments);

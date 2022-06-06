@@ -8,8 +8,7 @@ import 'dart:io';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:collection/collection.dart';
 
-import 'typescript.dart';
-import 'typescript_parser.dart';
+import 'meta_model.dart';
 
 /// Reads the LSP 'meta_model.json' file and returns its types.
 class LspMetaModelReader {
@@ -142,11 +141,6 @@ class LspMetaModelReader {
 
   /// Reads the type of [model].
   TypeBase _extractType(String parentName, String? fieldName, dynamic model) {
-    final improvedType = getImprovedType(parentName, fieldName);
-    if (improvedType != null) {
-      return improvedType;
-    }
-
     if (model['kind'] == 'reference' || model['kind'] == 'base') {
       // Reference kinds are other named interfaces defined in the spec, base are
       // other named types defined elsewhere.
