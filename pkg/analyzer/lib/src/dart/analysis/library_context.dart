@@ -104,11 +104,6 @@ class LibraryContext {
     return elementFactory.libraryOfUri2(uri);
   }
 
-  /// Return [LibraryElement] if it is ready.
-  LibraryElement? getLibraryElementIfReady(Uri uri) {
-    return elementFactory.libraryOfUriIfReady(uri);
-  }
-
   /// Load data required to access elements of the given [targetLibrary].
   Future<void> load(LibraryFileStateKind targetLibrary) async {
     var librariesTotal = 0;

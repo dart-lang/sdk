@@ -201,12 +201,6 @@ class LinkedElementFactory {
     return element;
   }
 
-  /// Return the [LibraryElementImpl] if it is ready.
-  LibraryElementImpl? libraryOfUriIfReady(Uri uri) {
-    final element = rootReference.getChild('$uri').element;
-    return element is LibraryElementImpl ? element : null;
-  }
-
   /// We have linked the bundle, and need to disconnect its libraries, so
   /// that the client can re-add the bundle, this time read from bytes.
   void removeBundle(Set<Uri> uriSet) {
