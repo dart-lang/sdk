@@ -74,30 +74,28 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       return 0;
     }
 
-    var arguments = args.rest;
-    var argumentCount = arguments.length;
-    if (argumentCount > 1) {
-      usageException('Only one file or directory is expected.');
+    var target = _getTarget(args.rest);
+    if (!target.existsSync()) {
+      var entity = target.isDirectory ? 'Directory' : 'File';
+      usageException("$entity doesn't exist: ${target.path}");
     }
 
-    var dir =
-        argumentCount == 0 ? io.Directory.current : io.Directory(arguments[0]);
-    if (!dir.existsSync()) {
-      usageException("Directory doesn't exist: ${dir.path}");
+    if (inTestMode && !target.isDirectory) {
+      usageException('Golden comparison requires a directory argument.');
     }
-    dir = io.Directory(path.canonicalize(path.normalize(dir.absolute.path)));
-    var dirPath = dir.path;
+
+    var fixPath = target.path;
 
     var modeText = dryRun ? ' (dry run)' : '';
 
-    final projectName = path.basename(dirPath);
+    final targetName = path.basename(fixPath);
     Progress? computeFixesProgress = log.progress(
-        'Computing fixes in ${log.ansi.emphasized(projectName)}$modeText');
+        'Computing fixes in ${log.ansi.emphasized(targetName)}$modeText');
 
     var server = AnalysisServer(
       null,
       io.Directory(sdk.sdkPath),
-      [dir],
+      [target],
       commandName: 'fix',
       argResults: argResults,
     );
@@ -123,7 +121,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       List<SourceFileEdit> edits;
       var pass = 0;
       do {
-        var fixes = await server.requestBulkFixes(dirPath, inTestMode);
+        var fixes = await server.requestBulkFixes(fixPath, inTestMode);
         _mergeDetails(detailsMap, fixes.details);
         edits = fixes.edits;
         _applyEdits(server, edits);
@@ -142,6 +140,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       computeFixesProgress = null;
     }
 
+    var dir = target.isDirectory ? target as io.Directory : target.parent;
     if (inTestMode) {
       var result = _compareFixesInDirectory(dir);
       log.stdout('Passed: ${result.passCount}, Failed: ${result.failCount}');
@@ -267,6 +266,18 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   String _compressWhitespace(String code) =>
       code.replaceAll(RegExp(r'\s+'), ' ');
 
+  io.FileSystemEntity _getTarget(List<String> arguments) {
+    var argumentCount = arguments.length;
+    if (argumentCount == 0) return io.Directory.current.absolute;
+    if (argumentCount > 1) {
+      usageException('Only one file or directory is expected.');
+    }
+    var normalizedPath = path.canonicalize(path.normalize(arguments[0]));
+    return io.FileSystemEntity.isDirectorySync(normalizedPath)
+        ? io.Directory(normalizedPath)
+        : io.File(normalizedPath);
+  }
+
   /// Merge the fixes from the current round's [details] into the [detailsMap].
   void _mergeDetails(Map<String, BulkFix> detailsMap, List<BulkFix> details) {
     for (var detail in details) {
@@ -360,4 +371,8 @@ class _TestResult {
 
   /// Initialize a newly created result object.
   _TestResult();
+}
+
+extension on io.FileSystemEntity {
+  bool get isDirectory => this is io.Directory;
 }
