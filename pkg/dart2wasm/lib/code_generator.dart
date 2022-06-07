@@ -990,9 +990,15 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         }
       }
     }
-    w.Label defaultLabel =
-        defaultCase != null ? switchLabels[defaultCase]! : doneLabel;
-    b.br(defaultLabel);
+
+    // No explicit cases matched
+    if (node.isExplicitlyExhaustive) {
+      b.unreachable();
+    } else {
+      w.Label defaultLabel =
+          defaultCase != null ? switchLabels[defaultCase]! : doneLabel;
+      b.br(defaultLabel);
+    }
 
     // Emit case bodies
     for (SwitchCase c in node.cases) {
