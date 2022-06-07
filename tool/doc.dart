@@ -21,7 +21,13 @@ import 'since.dart';
 void main(List<String> args) async {
   var parser = ArgParser()
     ..addOption('out', abbr: 'o', help: 'Specifies output directory.')
-    ..addOption('token', abbr: 't', help: 'Specifies a github auth token.');
+    ..addOption('token', abbr: 't', help: 'Specifies a github auth token.')
+    ..addFlag('create-dirs',
+        abbr: 'd', help: 'Enables creation of necessary directories.')
+    ..addFlag('markdown',
+        abbr: 'm',
+        help: 'Enables generation of the markdown docs.',
+        defaultsTo: true);
 
   ArgResults options;
   try {
@@ -36,7 +42,14 @@ void main(List<String> args) async {
   var token = options['token'];
   var auth = token is String ? Authentication.withToken(token) : null;
 
-  await generateDocs(outDir, auth: auth);
+  var createDirectories = options['create-dirs'] == true;
+
+  var enableMarkdown = options['markdown'] == true;
+
+  await generateDocs(outDir,
+      auth: auth,
+      createDirectories: createDirectories,
+      enableMarkdown: enableMarkdown);
 }
 
 const ruleFootMatter = '''
@@ -155,19 +168,32 @@ Future<void> fetchSinceInfo(Authentication? auth) async {
   sinceInfo = await getSinceMap(auth);
 }
 
-Future<void> generateDocs(String? dir, {Authentication? auth}) async {
+Future<void> generateDocs(String? dir,
+    {Authentication? auth,
+    bool createDirectories = false,
+    bool enableMarkdown = true}) async {
   var outDir = dir;
   if (outDir != null) {
     var d = Directory(outDir);
+    if (createDirectories) {
+      d.createSync();
+    }
+
     if (!d.existsSync()) {
       print("Directory '${d.path}' does not exist");
       return;
     }
+
     if (!File('$outDir/options').existsSync()) {
       var lintsChildDir = Directory('$outDir/lints');
       if (lintsChildDir.existsSync()) {
         outDir = lintsChildDir.path;
       }
+    }
+
+    if (createDirectories) {
+      Directory('$outDir/options').createSync();
+      Directory('$outDir/machine').createSync();
     }
   }
 
@@ -185,12 +211,17 @@ Future<void> generateDocs(String? dir, {Authentication? auth}) async {
   // Generate rule files.
   for (var l in rules) {
     RuleHtmlGenerator(l).generate(outDir);
-    RuleMarkdownGenerator(l).generate(filePath: outDir);
+    if (enableMarkdown) {
+      RuleMarkdownGenerator(l).generate(filePath: outDir);
+    }
   }
 
   // Generate index.
   HtmlIndexer(Registry.ruleRegistry).generate(outDir);
-  MarkdownIndexer(Registry.ruleRegistry).generate(filePath: outDir);
+
+  if (enableMarkdown) {
+    MarkdownIndexer(Registry.ruleRegistry).generate(filePath: outDir);
+  }
 
   // Generate options samples.
   OptionsSample(rules).generate(outDir);
@@ -562,13 +593,14 @@ class RuleHtmlGenerator {
   String get name => rule.name;
 
   String get since {
-    var info = sinceInfo[name]!;
     // See: https://github.com/dart-lang/linter/issues/2824
+    // var info = sinceInfo[name]!;
     // var version = info.sinceDartSdk != null
     //     ? '>= ${info.sinceDartSdk}'
     //     : '<strong>unreleased</strong>';
     //return 'Dart SDK: $version • <small>(Linter v${info.sinceLinter})</small>';
-    return 'Linter v${info.sinceLinter}';
+    var sinceLinter = sinceInfo[name]!.sinceLinter;
+    return sinceLinter != null ? 'Linter v$sinceLinter' : 'Unreleased';
   }
 
   void generate([String? filePath]) {
@@ -641,13 +673,14 @@ class RuleMarkdownGenerator {
   String get name => rule.name;
 
   String get since {
-    var info = sinceInfo[name]!;
     // See: https://github.com/dart-lang/linter/issues/2824
+    // var info = sinceInfo[name]!;
     // var version = info.sinceDartSdk != null
     //     ? '>= ${info.sinceDartSdk}'
-    //     : '**unreleased**';
-    // return 'Dart SDK: $version • (Linter v${info.sinceLinter})';
-    return 'Linter v${info.sinceLinter}';
+    //     : '<strong>unreleased</strong>';
+    //return 'Dart SDK: $version • <small>(Linter v${info.sinceLinter})</small>';
+    var sinceLinter = sinceInfo[name]!.sinceLinter;
+    return sinceLinter != null ? 'Linter v$sinceLinter' : 'Unreleased';
   }
 
   void generate({String? filePath}) {

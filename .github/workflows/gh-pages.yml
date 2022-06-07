@@ -1,0 +1,35 @@
+name: Deploy to GitHub Pages
+
+# Declare default permissions as read only.
+permissions: read-all
+
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build-and-deploy-docs:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    if: github.repository == 'dart-lang/linter'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d171c3b028d844f2bf14e9fdec0c58114451e4bf
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
+        with:
+          sdk: stable
+      - name: Get dependencies
+        run: dart pub get
+      - name: Generate docs
+        run: dart run tool/doc.dart --create-dirs --no-markdown --out lints --token ${{ secrets.GITHUB_TOKEN }}
+      - name: Deploy docs
+        uses: peaceiris/actions-gh-pages@068dc23d9710f1ba62e86896f84735d869951305
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: lints
+          destination_dir: lints
+          keep_files: true
