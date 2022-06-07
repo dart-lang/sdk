@@ -108,7 +108,7 @@ static method returnAsync7() → asy::Future<core::int?> async /* futureValueTyp
 static method yieldSync() → core::Iterable<dynamic> sync* {}
 static method yieldAsync() → asy::Stream<dynamic> async* {}
 static method caseReturn1(self::Enum e) → self::Enum {
-  switch(e) {
+  switch(e) /*isExplicitlyExhaustive*/ {
     #L1:
     case #C3:
       {
@@ -180,7 +180,7 @@ static method localFunctions() → dynamic {
   function yieldSync() → core::Iterable<dynamic> sync* {}
   function yieldAsync() → asy::Stream<dynamic> async* {}
   function caseReturn1(self::Enum e) → self::Enum {
-    switch(e) {
+    switch(e) /*isExplicitlyExhaustive*/ {
       #L6:
       case #C3:
         {

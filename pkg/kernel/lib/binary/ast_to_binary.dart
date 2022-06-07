@@ -2190,6 +2190,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     switchCaseIndexer.enter(node);
     writeByte(Tag.SwitchStatement);
     writeOffset(node.fileOffset);
+    writeByte(node.isExplicitlyExhaustive ? 1 : 0);
     writeNode(node.expression);
     writeSwitchCaseNodeList(node.cases);
     switchCaseIndexer.exit(node);

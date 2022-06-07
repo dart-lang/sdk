@@ -2836,6 +2836,7 @@ class BinaryBuilder {
 
   Statement _readSwitchStatement() {
     int offset = readOffset();
+    bool isExplicitlyExhaustive = readByte() == 1;
     Expression expression = readExpression();
     int count = readUInt30();
     List<SwitchCase> cases;
@@ -2855,7 +2856,9 @@ class BinaryBuilder {
       _readSwitchCaseInto(cases[i]);
     }
     switchCaseStack.length -= count;
-    return new SwitchStatement(expression, cases)..fileOffset = offset;
+    return new SwitchStatement(expression, cases,
+        isExplicitlyExhaustive: isExplicitlyExhaustive)
+      ..fileOffset = offset;
   }
 
   Statement _readContinueSwitchStatement() {

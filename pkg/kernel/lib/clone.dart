@@ -492,7 +492,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
           isDefault: switchCase.isDefault);
     }
     return new SwitchStatement(
-        clone(node.expression), node.cases.map(clone).toList());
+        clone(node.expression), node.cases.map(clone).toList(),
+        isExplicitlyExhaustive: node.isExplicitlyExhaustive);
   }
 
   @override

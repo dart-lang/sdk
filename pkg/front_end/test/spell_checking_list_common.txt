@@ -2973,6 +2973,7 @@ survives
 suspect
 swap
 switch
+switches
 symbol
 symbols
 symmetric
