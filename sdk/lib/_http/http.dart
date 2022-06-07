@@ -384,109 +384,9 @@ abstract class HttpHeaders {
   static const warningHeader = "warning";
   static const wwwAuthenticateHeader = "www-authenticate";
 
-  @Deprecated("Use acceptHeader instead")
-  static const ACCEPT = acceptHeader;
-  @Deprecated("Use acceptCharsetHeader instead")
-  static const ACCEPT_CHARSET = acceptCharsetHeader;
-  @Deprecated("Use acceptEncodingHeader instead")
-  static const ACCEPT_ENCODING = acceptEncodingHeader;
-  @Deprecated("Use acceptLanguageHeader instead")
-  static const ACCEPT_LANGUAGE = acceptLanguageHeader;
-  @Deprecated("Use acceptRangesHeader instead")
-  static const ACCEPT_RANGES = acceptRangesHeader;
-  @Deprecated("Use ageHeader instead")
-  static const AGE = ageHeader;
-  @Deprecated("Use allowHeader instead")
-  static const ALLOW = allowHeader;
-  @Deprecated("Use authorizationHeader instead")
-  static const AUTHORIZATION = authorizationHeader;
-  @Deprecated("Use cacheControlHeader instead")
-  static const CACHE_CONTROL = cacheControlHeader;
-  @Deprecated("Use connectionHeader instead")
-  static const CONNECTION = connectionHeader;
-  @Deprecated("Use contentEncodingHeader instead")
-  static const CONTENT_ENCODING = contentEncodingHeader;
-  @Deprecated("Use contentLanguageHeader instead")
-  static const CONTENT_LANGUAGE = contentLanguageHeader;
-  @Deprecated("Use contentLengthHeader instead")
-  static const CONTENT_LENGTH = contentLengthHeader;
-  @Deprecated("Use contentLocationHeader instead")
-  static const CONTENT_LOCATION = contentLocationHeader;
-  @Deprecated("Use contentMD5Header instead")
-  static const CONTENT_MD5 = contentMD5Header;
-  @Deprecated("Use contentRangeHeader instead")
-  static const CONTENT_RANGE = contentRangeHeader;
-  @Deprecated("Use contentTypeHeader instead")
-  static const CONTENT_TYPE = contentTypeHeader;
-  @Deprecated("Use dateHeader instead")
-  static const DATE = dateHeader;
-  @Deprecated("Use etagHeader instead")
-  static const ETAG = etagHeader;
-  @Deprecated("Use expectHeader instead")
-  static const EXPECT = expectHeader;
-  @Deprecated("Use expiresHeader instead")
-  static const EXPIRES = expiresHeader;
-  @Deprecated("Use fromHeader instead")
-  static const FROM = fromHeader;
-  @Deprecated("Use hostHeader instead")
-  static const HOST = hostHeader;
-  @Deprecated("Use ifMatchHeader instead")
-  static const IF_MATCH = ifMatchHeader;
-  @Deprecated("Use ifModifiedSinceHeader instead")
-  static const IF_MODIFIED_SINCE = ifModifiedSinceHeader;
-  @Deprecated("Use ifNoneMatchHeader instead")
-  static const IF_NONE_MATCH = ifNoneMatchHeader;
-  @Deprecated("Use ifRangeHeader instead")
-  static const IF_RANGE = ifRangeHeader;
-  @Deprecated("Use ifUnmodifiedSinceHeader instead")
-  static const IF_UNMODIFIED_SINCE = ifUnmodifiedSinceHeader;
-  @Deprecated("Use lastModifiedHeader instead")
-  static const LAST_MODIFIED = lastModifiedHeader;
-  @Deprecated("Use locationHeader instead")
-  static const LOCATION = locationHeader;
-  @Deprecated("Use maxForwardsHeader instead")
-  static const MAX_FORWARDS = maxForwardsHeader;
-  @Deprecated("Use pragmaHeader instead")
-  static const PRAGMA = pragmaHeader;
-  @Deprecated("Use proxyAuthenticateHeader instead")
-  static const PROXY_AUTHENTICATE = proxyAuthenticateHeader;
-  @Deprecated("Use proxyAuthorizationHeader instead")
-  static const PROXY_AUTHORIZATION = proxyAuthorizationHeader;
-  @Deprecated("Use rangeHeader instead")
-  static const RANGE = rangeHeader;
-  @Deprecated("Use refererHeader instead")
-  static const REFERER = refererHeader;
-  @Deprecated("Use retryAfterHeader instead")
-  static const RETRY_AFTER = retryAfterHeader;
-  @Deprecated("Use serverHeader instead")
-  static const SERVER = serverHeader;
-  @Deprecated("Use teHeader instead")
-  static const TE = teHeader;
-  @Deprecated("Use trailerHeader instead")
-  static const TRAILER = trailerHeader;
-  @Deprecated("Use transferEncodingHeader instead")
-  static const TRANSFER_ENCODING = transferEncodingHeader;
-  @Deprecated("Use upgradeHeader instead")
-  static const UPGRADE = upgradeHeader;
-  @Deprecated("Use userAgentHeader instead")
-  static const USER_AGENT = userAgentHeader;
-  @Deprecated("Use varyHeader instead")
-  static const VARY = varyHeader;
-  @Deprecated("Use viaHeader instead")
-  static const VIA = viaHeader;
-  @Deprecated("Use warningHeader instead")
-  static const WARNING = warningHeader;
-  @Deprecated("Use wwwAuthenticateHeader instead")
-  static const WWW_AUTHENTICATE = wwwAuthenticateHeader;
-
   // Cookie headers from RFC 6265.
   static const cookieHeader = "cookie";
   static const setCookieHeader = "set-cookie";
-
-  @Deprecated("Use cookieHeader instead")
-  static const COOKIE = cookieHeader;
-  @Deprecated("Use setCookieHeader instead")
-  static const SET_COOKIE = setCookieHeader;
 
   // TODO(39783): Document this.
   static const generalHeaders = [
@@ -501,9 +401,6 @@ abstract class HttpHeaders {
     warningHeader
   ];
 
-  @Deprecated("Use generalHeaders instead")
-  static const GENERAL_HEADERS = generalHeaders;
-
   static const entityHeaders = [
     allowHeader,
     contentEncodingHeader,
@@ -517,9 +414,6 @@ abstract class HttpHeaders {
     lastModifiedHeader
   ];
 
-  @Deprecated("Use entityHeaders instead")
-  static const ENTITY_HEADERS = entityHeaders;
-
   static const responseHeaders = [
     acceptRangesHeader,
     ageHeader,
@@ -531,9 +425,6 @@ abstract class HttpHeaders {
     varyHeader,
     wwwAuthenticateHeader
   ];
-
-  @Deprecated("Use responseHeaders instead")
-  static const RESPONSE_HEADERS = responseHeaders;
 
   static const requestHeaders = [
     acceptHeader,
@@ -556,9 +447,6 @@ abstract class HttpHeaders {
     teHeader,
     userAgentHeader
   ];
-
-  @Deprecated("Use requestHeaders instead")
-  static const REQUEST_HEADERS = requestHeaders;
 
   /// The date specified by the [dateHeader] header, if any.
   DateTime? date;
@@ -773,29 +661,21 @@ abstract class ContentType implements HeaderValue {
   ///
   ///     text/plain; charset=utf-8
   static final text = ContentType("text", "plain", charset: "utf-8");
-  @Deprecated("Use text instead")
-  static final TEXT = text;
 
   /// Content type for HTML using UTF-8 encoding.
   ///
   ///    text/html; charset=utf-8
   static final html = ContentType("text", "html", charset: "utf-8");
-  @Deprecated("Use html instead")
-  static final HTML = html;
 
   /// Content type for JSON using UTF-8 encoding.
   ///
   ///    application/json; charset=utf-8
   static final json = ContentType("application", "json", charset: "utf-8");
-  @Deprecated("Use json instead")
-  static final JSON = json;
 
   /// Content type for binary data.
   ///
   ///    application/octet-stream
   static final binary = ContentType("application", "octet-stream");
-  @Deprecated("Use binary instead")
-  static final BINARY = binary;
 
   /// Creates a new content type object setting the primary type and
   /// sub type. The charset and additional parameters can also be set
@@ -1262,12 +1142,8 @@ abstract class HttpResponse implements IOSink {
 ///     client.findProxy = null;
 abstract class HttpClient {
   static const int defaultHttpPort = 80;
-  @Deprecated("Use defaultHttpPort instead")
-  static const int DEFAULT_HTTP_PORT = defaultHttpPort;
 
   static const int defaultHttpsPort = 443;
-  @Deprecated("Use defaultHttpsPort instead")
-  static const int DEFAULT_HTTPS_PORT = defaultHttpsPort;
 
   /// Enable logging of HTTP requests from all [HttpClient]s to the developer
   /// timeline.
