@@ -3824,6 +3824,8 @@ class _SwitchExhaustiveness {
       return expression.staticElement;
     } else if (expression is PropertyAccess) {
       return expression.propertyName.staticElement;
+    } else if (expression is SimpleIdentifier) {
+      return expression.staticElement;
     }
     return null;
   }
