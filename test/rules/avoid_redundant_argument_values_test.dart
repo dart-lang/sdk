@@ -39,6 +39,21 @@ class AvoidRedundantArgumentValuesTest extends LintRuleTest {
   @override
   String get lintRule => 'avoid_redundant_argument_values';
 
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3447')
+  test_fromEnvironment() async {
+    await assertNoDiagnostics(r'''
+const bool someDefine = bool.fromEnvironment('someDefine');
+
+void f({bool test = true}) {}
+
+void g() {
+  f(
+    test: !someDefine,
+  );
+} 
+''');
+  }
+
   test_requiredNullable() async {
     await assertNoDiagnostics(r'''
 void f({required int? x}) { }
