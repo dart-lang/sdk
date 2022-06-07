@@ -25,7 +25,7 @@ class RemoveDuplicateCase extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = coveredNode;
+    var node = coveredNode?.parent;
     if (node is! SwitchCase) {
       return;
     }
