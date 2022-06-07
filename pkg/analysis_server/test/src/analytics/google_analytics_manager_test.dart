@@ -5,10 +5,11 @@
 import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analytics/google_analytics_manager.dart';
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:telemetry/telemetry.dart';
 import 'package:test/test.dart';
@@ -62,17 +63,81 @@ class GoogleAnalyticsManagerTest {
     ]);
   }
 
-  void test_server_request() {
+  void test_server_request_analysisSetAnalysisRoots() {
     _defaultStartup();
-    manager.startedRequest(
-        request: Request('1', 'server.shutdown'), startTime: _now());
+    var params = AnalysisSetAnalysisRootsParams(['a', 'b', 'c'], ['d', 'e']);
+    var request =
+        Request('1', ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS, params.toJson());
+    manager.startedRequest(request: request, startTime: _now());
+    manager.startedSetAnalysisRoots(params);
     manager.sentResponse(response: Response('1'));
     manager.shutdown();
     analytics.assertEvents([
       _ExpectedEvent.session(),
       _ExpectedEvent.request(parameters: {
         'latency': _IsPercentiles(),
-        'method': 'server.shutdown',
+        'method': ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
+        'duration': _IsPercentiles(),
+        ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED:
+            '{"count":1,"percentiles":[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]}',
+        ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_EXCLUDED:
+            '{"count":1,"percentiles":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]}',
+      }),
+    ]);
+  }
+
+  void test_server_request_analysisSetPriorityFiles() {
+    _defaultStartup();
+    var params = AnalysisSetPriorityFilesParams(['a']);
+    var request =
+        Request('1', ANALYSIS_REQUEST_SET_PRIORITY_FILES, params.toJson());
+    manager.startedRequest(request: request, startTime: _now());
+    manager.startedSetPriorityFiles(params);
+    manager.sentResponse(response: Response('1'));
+    manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.request(parameters: {
+        'latency': _IsPercentiles(),
+        'method': ANALYSIS_REQUEST_SET_PRIORITY_FILES,
+        'duration': _IsPercentiles(),
+        ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES:
+            '{"count":1,"percentiles":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]}',
+      }),
+    ]);
+  }
+
+  void test_server_request_editGetRefactoring() {
+    _defaultStartup();
+    var params =
+        EditGetRefactoringParams(RefactoringKind.RENAME, '', 0, 0, true);
+    var request = Request('1', EDIT_REQUEST_GET_REFACTORING, params.toJson());
+    manager.startedRequest(request: request, startTime: _now());
+    manager.startedGetRefactoring(params);
+    manager.sentResponse(response: Response('1'));
+    manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.request(parameters: {
+        'latency': _IsPercentiles(),
+        'method': EDIT_REQUEST_GET_REFACTORING,
+        'duration': _IsPercentiles(),
+        EDIT_REQUEST_GET_REFACTORING_KIND: '{"RENAME":1}',
+      }),
+    ]);
+  }
+
+  void test_server_request_noAdditional() {
+    _defaultStartup();
+    manager.startedRequest(
+        request: Request('1', SERVER_REQUEST_SHUTDOWN), startTime: _now());
+    manager.sentResponse(response: Response('1'));
+    manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.request(parameters: {
+        'latency': _IsPercentiles(),
+        'method': SERVER_REQUEST_SHUTDOWN,
         'duration': _IsPercentiles(),
       }),
     ]);
