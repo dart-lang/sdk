@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
@@ -49,7 +48,7 @@ class Output {
   /// The [Uri] of the root library containing main.
   /// Note: rootLibraryUri will be null for some modules, for example in the
   /// case of dependent libraries processed modularly.
-  final Uri rootLibraryUri;
+  final Uri? rootLibraryUri;
 
   /// Returns the [Uri]s of all libraries that have been loaded that are
   /// reachable from the [rootLibraryUri].
@@ -75,8 +74,8 @@ class Output {
 }
 
 Library _findEntryLibrary(Component component, Uri entryUri) {
-  var entryLibrary = component.libraries
-      .firstWhere((l) => l.fileUri == entryUri, orElse: () => null);
+  final entryLibrary =
+      component.libraries.firstWhereOrNull((l) => l.fileUri == entryUri);
   if (entryLibrary == null) {
     throw ArgumentError('Entry uri $entryUri not found in dill.');
   }
@@ -84,16 +83,16 @@ Library _findEntryLibrary(Component component, Uri entryUri) {
 }
 
 ir.Reference _findMainMethod(Library entryLibrary) {
-  var mainMethod = entryLibrary.procedures
-      .firstWhere((p) => p.name.text == 'main', orElse: () => null);
+  var mainMethod =
+      entryLibrary.procedures.firstWhereOrNull((p) => p.name.text == 'main');
 
   // In some cases, a main method is defined in another file, and then
   // exported. In these cases, we search for the main method in
   // [additionalExports].
-  ir.Reference mainMethodReference;
+  ir.Reference? mainMethodReference;
   if (mainMethod == null) {
     mainMethodReference = entryLibrary.additionalExports
-        .firstWhere((p) => p.canonicalName.name == 'main', orElse: () => null);
+        .firstWhereOrNull((p) => p.canonicalName?.name == 'main');
   } else {
     mainMethodReference = mainMethod.reference;
   }
@@ -121,8 +120,8 @@ void _validateNullSafetyMode(CompilerOptions options) {
 }
 
 class _LoadFromKernelResult {
-  final ir.Component component;
-  final Library entryLibrary;
+  final ir.Component? component;
+  final Library? entryLibrary;
   final List<Uri> moduleLibraries;
 
   _LoadFromKernelResult(
@@ -135,8 +134,8 @@ void _doGlobalTransforms(Component component) {
 
 Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
     api.CompilerInput compilerInput, String targetName) async {
-  Library entryLibrary;
-  var resolvedUri = options.compilationTarget;
+  Library? entryLibrary;
+  var resolvedUri = options.compilationTarget!;
   ir.Component component = ir.Component();
   List<Uri> moduleLibraries = [];
 
@@ -171,24 +170,24 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
       options.modularMode || options.hasModularAnalysisInputs;
   if (options.platformBinaries != null && !platformBinariesIncluded) {
     var platformUri = options.platformBinaries
-        .resolve(_getPlatformFilename(options, targetName));
+        ?.resolve(_getPlatformFilename(options, targetName));
     // Modular analysis can be run on the sdk by providing directly the
     // path to the platform.dill file. In that case, we do not load the
     // platform file implicitly.
     // TODO(joshualitt): Change how we detect this case so it is less
     // brittle.
-    if (platformUri != resolvedUri) await read(platformUri);
+    if (platformUri != resolvedUri) await read(platformUri!);
   }
 
   // Concatenate dills.
   if (options.dillDependencies != null) {
-    for (Uri dependency in options.dillDependencies) {
+    for (Uri dependency in options.dillDependencies!) {
       await read(dependency);
     }
   }
 
   if (options.entryUri != null) {
-    entryLibrary = _findEntryLibrary(component, options.entryUri);
+    entryLibrary = _findEntryLibrary(component, options.entryUri!);
     var mainMethod = _findMainMethod(entryLibrary);
     component.setMainMethodAndMode(mainMethod, true, component.mode);
   }
@@ -201,7 +200,7 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
 }
 
 class _LoadFromSourceResult {
-  final ir.Component component;
+  final ir.Component? component;
   final fe.InitializedCompilerState initializedCompilerState;
   final List<Uri> moduleLibraries;
 
@@ -217,7 +216,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
     String targetName) async {
   bool verbose = false;
   bool cfeConstants = options.features.cfeConstants.isEnabled;
-  Map<String, String> environment = cfeConstants ? options.environment : null;
+  Map<String, String>? environment = cfeConstants ? options.environment : null;
   Target target = Dart2jsTarget(targetName, TargetFlags(),
       options: options,
       canPerformGlobalTransforms: true,
@@ -237,7 +236,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
   List<Uri> sources = [];
   if (options.sources != null) {
     isModularCompile = true;
-    sources.addAll(options.sources);
+    sources.addAll(options.sources!);
   } else {
     fe.CompilerOptions feOptions = fe.CompilerOptions()
       ..target = target
@@ -249,22 +248,22 @@ Future<_LoadFromSourceResult> _loadFromSource(
       ..fileSystem = fileSystem
       ..onDiagnostic = onDiagnostic
       ..verbosity = verbosity;
-    Uri resolvedUri = options.compilationTarget;
+    Uri resolvedUri = options.compilationTarget!;
     bool isLegacy =
         await fe.uriUsesLegacyLanguageVersion(resolvedUri, feOptions);
     _inferNullSafetyMode(options, !isLegacy);
-    sources.add(options.compilationTarget);
+    sources.add(options.compilationTarget!);
   }
 
   // If we are performing a modular compile, we expect the platform binary to be
   // supplied along with other dill dependencies.
   List<Uri> dependencies = [];
   if (options.platformBinaries != null && !isModularCompile) {
-    dependencies.add(options.platformBinaries
+    dependencies.add(options.platformBinaries!
         .resolve(_getPlatformFilename(options, targetName)));
   }
   if (options.dillDependencies != null) {
-    dependencies.addAll(options.dillDependencies);
+    dependencies.addAll(options.dillDependencies!);
   }
 
   initializedCompilerState = fe.initializeCompiler(
@@ -279,14 +278,14 @@ Future<_LoadFromSourceResult> _loadFromSource(
           options.useLegacySubtyping ? fe.NnbdMode.Weak : fe.NnbdMode.Strong,
       invocationModes: options.cfeInvocationModes,
       verbosity: verbosity);
-  ir.Component component = await fe.compile(initializedCompilerState, verbose,
+  ir.Component? component = await fe.compile(initializedCompilerState, verbose,
       fileSystem, onDiagnostic, sources, isModularCompile);
   _validateNullSafetyMode(options);
 
   // We have to compute canonical names on the component here to avoid missing
   // canonical names downstream.
   if (isModularCompile) {
-    component.computeCanonicalNames();
+    component?.computeCanonicalNames();
   }
   return _LoadFromSourceResult(
       component, initializedCompilerState, isModularCompile ? sources : []);
@@ -295,11 +294,11 @@ Future<_LoadFromSourceResult> _loadFromSource(
 Output _createOutput(
     CompilerOptions options,
     DiagnosticReporter reporter,
-    Library entryLibrary,
+    Library? entryLibrary,
     ir.Component component,
     List<Uri> moduleLibraries,
     fe.InitializedCompilerState initializedCompilerState) {
-  Uri rootLibraryUri = null;
+  Uri? rootLibraryUri = null;
   Iterable<ir.Library> libraries = component.libraries;
   if (!options.modularMode) {
     // For non-modular builds we should always have a [mainMethod] at this
@@ -317,7 +316,7 @@ Output _createOutput(
     // NOTE: Under some circumstances, the [entryLibrary] exports the
     // [mainMethod] from another library, and thus the [enclosingLibrary] of
     // the [mainMethod] may not be the same as the [entryLibrary].
-    var root = entryLibrary ?? component.mainMethod.enclosingLibrary;
+    var root = entryLibrary ?? component.mainMethod!.enclosingLibrary;
     rootLibraryUri = root.importUri;
 
     // Filter unreachable libraries: [Component] was built by linking in the
@@ -360,15 +359,15 @@ Output _createOutput(
 }
 
 /// Loads an entire Kernel [Component] from a file on disk.
-Future<Output> run(Input input) async {
+Future<Output?> run(Input input) async {
   CompilerOptions options = input.options;
   api.CompilerInput compilerInput = input.compilerInput;
   DiagnosticReporter reporter = input.reporter;
 
   String targetName = options.compileForServer ? "dart2js_server" : "dart2js";
 
-  Library entryLibrary;
-  ir.Component component;
+  Library? entryLibrary;
+  ir.Component? component;
   List<Uri> moduleLibraries = const [];
   fe.InitializedCompilerState initializedCompilerState =
       input.initializedCompilerState;

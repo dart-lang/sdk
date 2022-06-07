@@ -125,9 +125,9 @@ export 'compiler_state.dart' show InitializedCompilerState;
 InitializedCompilerState initializeCompiler(
     InitializedCompilerState? oldState,
     Target target,
-    Uri librariesSpecificationUri,
+    Uri? librariesSpecificationUri,
     List<Uri> additionalDills,
-    Uri packagesFileUri,
+    Uri? packagesFileUri,
     {required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     Map<String, String>? environmentDefines,
     bool verify: false,
