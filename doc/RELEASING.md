@@ -19,8 +19,7 @@ All clear?  Then:
 
   1. Update `pubspec.yaml` with a version bump and `CHANGELOG.md` accordingly.
   2. Tag a release [branch](https://github.com/dart-lang/linter/releases).
-  3. Publish to `pub.dartlang` (`pub --publish`); heed all warnings!
-  4. On the `io` branch, regenerate linter docs (`dart tool/doc.dart --out path/to/io_linter/lints`).
-  5. Update SDK `DEPS`.
+  3. Publish to `pub.dev` (`dart pub lish`); heed all warnings that are not test data related!
+  4. Update SDK `DEPS`.
 
 You're done!
