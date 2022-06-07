@@ -805,6 +805,42 @@ abstract class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_at_required_to_required_in_redirecting_factory() async {
+    // Redirecting factory constructors have special logic to suppress some of
+    // the usual heuristics for adding `required`, since it's allowed for a
+    // redirecting factory constructor to have a non-required non-nullable
+    // argument with no default.  But we need to make sure that we still convert
+    // `@required` to `required`.
+    addMetaPackage();
+    var content = r'''
+import 'package:meta/meta.dart';
+abstract class A {
+  int get v;
+  A._();
+  factory A({@required int v}) = B._;
+}
+class B extends A {
+  @override
+  final int v;
+  B._({this.v}) : super._();
+}
+''';
+    var expected = r'''
+import 'package:meta/meta.dart';
+abstract class A {
+  int? get v;
+  A._();
+  factory A({required int v}) = B._;
+}
+class B extends A {
+  @override
+  final int? v;
+  B._({this.v}) : super._();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_avoid_redundant_future_or() async {
     // FutureOr<int?> and FutureOr<int?>? are equivalent types; we never insert
     // the redundant second `?`.
