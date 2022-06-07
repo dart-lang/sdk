@@ -345,6 +345,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     int length,
     ResolvedUnitResult unit,
   ) async {
+    final docIdentifier = server.getVersionedDocumentIdentifier(path);
+
     final results = await Future.wait([
       if (shouldIncludeAnyOfKind(CodeActionKind.Source))
         performance.runAsync(
@@ -362,8 +364,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       if (shouldIncludeAnyOfKind(CodeActionKind.Refactor))
         performance.runAsync(
           '_getRefactorActions',
-          (_) => _getRefactorActions(
-              shouldIncludeKind, supportsLiterals, path, offset, length, unit),
+          (_) => _getRefactorActions(shouldIncludeKind, supportsLiterals, path,
+              docIdentifier, offset, length, unit),
         ),
       if (shouldIncludeAnyOfKind(CodeActionKind.QuickFix))
         performance.runAsync(
@@ -520,6 +522,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     bool Function(CodeActionKind) shouldIncludeKind,
     bool supportsLiteralCodeActions,
     String path,
+    OptionalVersionedTextDocumentIdentifier docIdentifier,
     int offset,
     int length,
     ResolvedUnitResult unit,
@@ -545,6 +548,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
             title: name,
             command: Commands.performRefactor,
             arguments: [
+              // TODO(dantup): Change this to a Map once Dart-Code is updated
+              //   to handle both Maps and Lists (and some reasonable time has
+              //   passed to not worry about old versions).
               refactorKind.toJson(),
               path,
               server.getVersionedDocumentIdentifier(path).version,
@@ -659,7 +665,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           Command(
               title: 'Sort Members',
               command: Commands.sortMembers,
-              arguments: [path]),
+              arguments: [
+                {'path': path}
+              ]),
         ),
       if (shouldIncludeKind(CodeActionKind.SourceOrganizeImports))
         _commandOrCodeAction(
@@ -668,14 +676,21 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           Command(
               title: 'Organize Imports',
               command: Commands.organizeImports,
-              arguments: [path]),
+              arguments: [
+                {'path': path}
+              ]),
         ),
       if (shouldIncludeKind(DartCodeActionKind.FixAll))
         _commandOrCodeAction(
           supportsLiteralCodeActions,
           DartCodeActionKind.FixAll,
           Command(
-              title: 'Fix All', command: Commands.fixAll, arguments: [path]),
+            title: 'Fix All',
+            command: Commands.fixAll,
+            arguments: [
+              {'path': path}
+            ],
+          ),
         ),
     ];
   }

@@ -22,20 +22,18 @@ class SendWorkspaceEditCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Send Workspace Edit';
 
   @override
-  Future<ErrorOr<void>> handle(List<Object?>? arguments,
+  Future<ErrorOr<void>> handle(Map<String, Object?> parameters,
       ProgressReporter progress, CancellationToken cancellationToken) async {
-    if (arguments == null ||
-        arguments.length != 1 ||
-        arguments[0] is! Map<String, Object?>) {
+    if (parameters['edit'] is! Map<String, Object?>) {
       return ErrorOr.error(ResponseError(
         code: ServerErrorCodes.InvalidCommandArguments,
         message:
-            '$commandName requires a single List argument of WorkspaceEdit',
+            '$commandName requires a Map argument containing "edit" (WorkspaceEdit)',
       ));
     }
 
     final workspaceEdit =
-        WorkspaceEdit.fromJson(arguments[0] as Map<String, Object?>);
+        WorkspaceEdit.fromJson(parameters['edit'] as Map<String, Object?>);
 
     return await sendWorkspaceEditToClient(workspaceEdit);
   }

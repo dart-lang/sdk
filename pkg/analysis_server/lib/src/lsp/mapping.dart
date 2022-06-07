@@ -973,7 +973,9 @@ lsp.CompletionItem snippetToCompletionItem(
     command = Command(
         title: 'Add import',
         command: Commands.sendWorkspaceEdit,
-        arguments: [workspaceEdit]);
+        arguments: [
+          {'edit': workspaceEdit}
+        ]);
   }
 
   /// Convert the changes to TextEdits using snippet tokens for linked edit
