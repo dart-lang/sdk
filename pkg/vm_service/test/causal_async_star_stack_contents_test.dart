@@ -45,7 +45,7 @@ final tests = <IsolateTest>[
     expect(stack.asyncCausalFrames, isNotNull);
     final asyncStack = stack.asyncCausalFrames!;
     expect(asyncStack.length, greaterThanOrEqualTo(1));
-    expect(asyncStack[0].function!.name, contains('helper'));
+    expect(asyncStack[0].function!.owner.name, contains('helper'));
     // helper isn't awaited.
   },
   resumeIsolate,
@@ -57,9 +57,9 @@ final tests = <IsolateTest>[
     expect(stack.asyncCausalFrames, isNotNull);
     final asyncStack = stack.asyncCausalFrames!;
     expect(asyncStack.length, greaterThanOrEqualTo(3));
-    expect(asyncStack[0].function!.name, contains('foobar'));
+    expect(asyncStack[0].function!.owner.name, contains('foobar'));
     expect(asyncStack[1].kind, equals(FrameKind.kAsyncSuspensionMarker));
-    expect(asyncStack[2].function!.name, contains('helper'));
+    expect(asyncStack[2].function!.owner.name, contains('helper'));
     expect(asyncStack[3].kind, equals(FrameKind.kAsyncSuspensionMarker));
   },
   resumeIsolate,
@@ -73,13 +73,13 @@ final tests = <IsolateTest>[
     expect(asyncStack.length, greaterThanOrEqualTo(4));
     final script = await service.getObject(
         isolateRef.id!, asyncStack[0].location!.script!.id!) as Script;
-    expect(asyncStack[0].function!.name, contains('foobar'));
+    expect(asyncStack[0].function!.owner.name, contains('foobar'));
     expect(
       script.getLineNumberFromTokenPos(asyncStack[0].location!.tokenPos!),
       LINE_C,
     );
     expect(asyncStack[1].kind, equals(FrameKind.kAsyncSuspensionMarker));
-    expect(asyncStack[2].function!.name, contains('helper'));
+    expect(asyncStack[2].function!.owner.name, contains('helper'));
     expect(
       script.getLineNumberFromTokenPos(asyncStack[2].location!.tokenPos!),
       30,

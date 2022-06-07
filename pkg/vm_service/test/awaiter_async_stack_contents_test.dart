@@ -56,9 +56,9 @@ var tests = <IsolateTest>[
 
     expect(awaiterFrames.length, greaterThanOrEqualTo(2));
     // Awaiter frame.
-    expect(await awaiterFrames[0].function!.name, 'foobar');
+    expect(await awaiterFrames[0].function!.owner.name, 'foobar');
     // Awaiter frame.
-    expect(await awaiterFrames[1].function!.name, 'helper');
+    expect(await awaiterFrames[1].function!.owner.name, 'helper');
     // "helper" is not await'ed.
   },
 ];
