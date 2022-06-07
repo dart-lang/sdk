@@ -55,6 +55,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   final Map<LabeledStatement, w.Label> labels = {};
   final Map<SwitchCase, w.Label> switchLabels = {};
 
+  /// Maps a switch statement to the information used when doing a backward
+  /// jump to one of the cases in the switch statement
+  final Map<SwitchStatement, SwitchBackwardJumpInfo> switchBackwardJumpInfos =
+      {};
+
   /// Create a code generator for a member or one of its lambdas.
   ///
   /// The [paramLocals] and [returnLabel] parameters can be used to generate
@@ -883,46 +888,71 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
             e is ConstantExpression &&
                 (e.constant is C || e.constant is NullConstant));
 
-    // Identify kind of switch
-    w.ValueType valueType;
+    // Identify kind of switch. One of `nullableType` or `nonNullableType` will
+    // be the type for Wasm local that holds the switch value.
     w.ValueType nullableType;
+    w.ValueType nonNullableType;
     void Function() compare;
     if (check<BoolLiteral, BoolConstant>()) {
       // bool switch
-      valueType = w.NumType.i32;
+      nonNullableType = w.NumType.i32;
       nullableType =
           translator.classInfo[translator.boxedBoolClass]!.nullableType;
       compare = () => b.i32_eq();
     } else if (check<IntLiteral, IntConstant>()) {
       // int switch
-      valueType = w.NumType.i64;
+      nonNullableType = w.NumType.i64;
       nullableType =
           translator.classInfo[translator.boxedIntClass]!.nullableType;
       compare = () => b.i64_eq();
     } else if (check<StringLiteral, StringConstant>()) {
       // String switch
-      valueType =
+      nonNullableType =
           translator.classInfo[translator.stringBaseClass]!.nonNullableType;
-      nullableType = valueType.withNullability(true);
+      nullableType = nonNullableType.withNullability(true);
       compare = () => _call(translator.stringEquals.reference);
     } else {
       // Object switch
       assert(check<InvalidExpression, InstanceConstant>());
-      valueType = w.RefType.eq(nullable: false);
+      nonNullableType = w.RefType.eq(nullable: false);
       nullableType = w.RefType.eq(nullable: true);
       compare = () => b.ref_eq();
     }
-    w.Local valueLocal = addLocal(valueType);
+
+    bool isNullable = dartTypeOf(node.expression).isPotentiallyNullable;
+
+    // When the type is nullable we use two variables: one for the nullable
+    // value, one after the null check, with non-nullable type.
+    w.Local switchValueNonNullableLocal = addLocal(nonNullableType);
+    w.Local? switchValueNullableLocal =
+        isNullable ? addLocal(nullableType) : null;
+
+    // Initialize switch value local
+    wrap(node.expression, isNullable ? nullableType : nonNullableType);
+    b.local_set(
+        isNullable ? switchValueNullableLocal! : switchValueNonNullableLocal);
 
     // Special cases
     SwitchCase? defaultCase = node.cases
         .cast<SwitchCase?>()
         .firstWhere((c) => c!.isDefault, orElse: () => null);
+
     SwitchCase? nullCase = node.cases.cast<SwitchCase?>().firstWhere(
         (c) => c!.expressions.any((e) =>
             e is NullLiteral ||
             e is ConstantExpression && e.constant is NullConstant),
         orElse: () => null);
+
+    // Create `loop` for backward jumps
+    w.Label loopLabel = b.loop();
+
+    // Set `switchValueLocal` for backward jumps
+    w.Local switchValueLocal =
+        isNullable ? switchValueNullableLocal! : switchValueNonNullableLocal;
+
+    // Add backward jump info
+    switchBackwardJumpInfos[node] =
+        SwitchBackwardJumpInfo(switchValueLocal, loopLabel);
 
     // Set up blocks, in reverse order of cases so they end in forward order
     w.Label doneLabel = b.block();
@@ -931,22 +961,18 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
 
     // Compute value and handle null
-    bool isNullable = dartTypeOf(node.expression).isPotentiallyNullable;
     if (isNullable) {
       w.Label nullLabel = nullCase != null
           ? switchLabels[nullCase]!
           : defaultCase != null
               ? switchLabels[defaultCase]!
               : doneLabel;
-      wrap(node.expression, nullableType);
+      b.local_get(switchValueNullableLocal!);
       b.br_on_null(nullLabel);
       translator.convertType(
-          function, nullableType.withNullability(false), valueType);
-    } else {
-      assert(nullCase == null);
-      wrap(node.expression, valueType);
+          function, nullableType.withNullability(false), nonNullableType);
+      b.local_set(switchValueNonNullableLocal);
     }
-    b.local_set(valueLocal);
 
     // Compare against all case values
     for (SwitchCase c in node.cases) {
@@ -955,9 +981,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
             exp is ConstantExpression && exp.constant is NullConstant) {
           // Null already checked, skip
         } else {
-          wrap(exp, valueType);
-          b.local_get(valueLocal);
-          translator.convertType(function, valueLocal.type, valueType);
+          wrap(exp, nonNullableType);
+          b.local_get(switchValueNonNullableLocal);
+          translator.convertType(
+              function, switchValueNonNullableLocal.type, nonNullableType);
           compare();
           b.br_if(switchLabels[c]!);
         }
@@ -969,12 +996,29 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     // Emit case bodies
     for (SwitchCase c in node.cases) {
-      switchLabels.remove(c);
       b.end();
+      // Remove backward jump target from forward jump labels
+      switchLabels.remove(c);
+
+      // Create a `loop` in default case to allow backward jumps to it
+      if (c.isDefault) {
+        switchBackwardJumpInfos[node]!.defaultLoopLabel = b.loop();
+      }
+
       c.body.accept(this);
+
+      if (c.isDefault) {
+        b.end(); // defaultLoopLabel
+      }
+
       b.br(doneLabel);
     }
-    b.end();
+    b.end(); // doneLabel
+    b.end(); // loopLabel
+
+    // Remove backward jump info
+    final removed = switchBackwardJumpInfos.remove(node);
+    assert(removed != null);
   }
 
   @override
@@ -983,7 +1027,24 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (label != null) {
       b.br(label);
     } else {
-      throw "Not supported: Backward jump to switch case at ${node.location}";
+      // Backward jump. Find the case literal in jump target, set the switched
+      // values to the jump target's value, and loop.
+      final SwitchCase targetSwitchCase = node.target;
+      final SwitchStatement targetSwitch =
+          targetSwitchCase.parent! as SwitchStatement;
+      final SwitchBackwardJumpInfo targetInfo =
+          switchBackwardJumpInfos[targetSwitch]!;
+      if (targetSwitchCase.expressions.isEmpty) {
+        // Default case
+        assert(targetSwitchCase.isDefault);
+        b.br(targetInfo.defaultLoopLabel!);
+        return;
+      }
+      final Expression targetValue =
+          targetSwitchCase.expressions[0]; // pick any of the values
+      wrap(targetValue, targetInfo.switchValueLocal.type);
+      b.local_set(targetInfo.switchValueLocal);
+      b.br(targetInfo.loopLabel);
     }
   }
 
@@ -2078,4 +2139,32 @@ class TryBlockFinalizer {
   bool mustHandleReturn = false;
 
   TryBlockFinalizer(this.label);
+}
+
+/// Holds information of a switch statement, to be used when doing a backward
+/// jump to it
+class SwitchBackwardJumpInfo {
+  /// Wasm local for the value of the switched expression. For example, in a
+  /// `switch` like:
+  ///
+  /// ```
+  /// switch (expr) {
+  ///   ...
+  /// }
+  /// ```
+  ///
+  /// This local holds the value of `expr`.
+  ///
+  /// This local is updated with a new value when doing backward jumps.
+  final w.Local switchValueLocal;
+
+  /// Label of the `loop` to use when doing backward jumps
+  final w.Label loopLabel;
+
+  /// When compiling a `default` case, label of the `loop` in the case body, to
+  /// use when doing backward jumps to the same case.
+  w.Label? defaultLoopLabel;
+
+  SwitchBackwardJumpInfo(this.switchValueLocal, this.loopLabel)
+      : defaultLoopLabel = null;
 }
