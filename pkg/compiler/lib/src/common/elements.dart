@@ -1399,6 +1399,14 @@ abstract class KElementEnvironment extends ElementEnvironment {
   /// Returns the metadata constants declared on [member].
   Iterable<ConstantValue> getMemberMetadata(MemberEntity member,
       {bool includeParameterMetadata = false});
+
+  /// `true` if field is the backing field for a `late` or `late final` instance
+  /// field.
+  bool isLateBackingField(FieldEntity field);
+
+  /// `true` if field is the backing field for a `late final` instance field. If
+  /// this is true, so is [isLateBackingField].
+  bool isLateFinalBackingField(FieldEntity field);
 }
 
 abstract class JElementEnvironment extends ElementEnvironment {
