@@ -1477,6 +1477,290 @@ import 'dart:math';
     assertNoErrorsInResult();
   }
 
+  test_linkLibraries() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+final b = a;
+''');
+
+    await fileResolver.linkLibraries2(path: a.path);
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/a.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k06
+    get: [k06]
+    put: [k06]
+  /workspace/dart/test/lib/a.dart
+    current
+      key: k07
+    get: [k07]
+    put: [k07]
+elementFactory
+  hasElement
+    dart:async
+    dart:core
+  hasReader
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.test/a.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+''');
+
+    await fileResolver.getLibraryByUri2(
+      uriStr: 'package:dart.test/a.dart',
+    );
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/a.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k06
+    get: [k06]
+    put: [k06]
+  /workspace/dart/test/lib/a.dart
+    current
+      key: k07
+    get: [k07]
+    put: [k07]
+elementFactory
+  hasElement
+    dart:async
+    dart:core
+    package:dart.test/a.dart
+  hasReader
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.test/a.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+''');
+
+    await fileResolver.linkLibraries2(path: b.path);
+
+    // We discarded all libraries, so each one has `get` and `put`.
+    // We did not discard files, so only `unlinkedPut`.
+    // The reference count for each data is exactly `1`.
+    assertStateString('''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/a.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+  /workspace/dart/test/lib/b.dart
+    current
+      unlinkedKey: k08
+    unlinkedGet: []
+    unlinkedPut: [k08]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k06
+    get: [k06, k06]
+    put: [k06]
+  /workspace/dart/test/lib/a.dart
+    current
+      key: k07
+    get: [k07, k07]
+    put: [k07]
+  /workspace/dart/test/lib/b.dart
+    current
+      key: k09
+    get: [k09]
+    put: [k09]
+elementFactory
+  hasElement
+    dart:async
+    dart:core
+  hasReader
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.test/a.dart
+    package:dart.test/b.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09]
+''');
+
+    final b_library = await fileResolver.getLibraryByUri2(
+      uriStr: 'package:dart.test/b.dart',
+    );
+
+    // Ask types for top-level variables.
+    final b_unit = b_library.definingCompilationUnit;
+    for (final topLevelVariable in b_unit.topLevelVariables) {
+      topLevelVariable.type;
+    }
+
+    // All types are stored in the bundle for b.dart itself, we don't need to
+    // read a.dart to access them, so we keep it as a reader.
+    assertStateString('''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/test/lib/a.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+  /workspace/dart/test/lib/b.dart
+    current
+      unlinkedKey: k08
+    unlinkedGet: []
+    unlinkedPut: [k08]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k06
+    get: [k06, k06]
+    put: [k06]
+  /workspace/dart/test/lib/a.dart
+    current
+      key: k07
+    get: [k07, k07]
+    put: [k07]
+  /workspace/dart/test/lib/b.dart
+    current
+      key: k09
+    get: [k09]
+    put: [k09]
+elementFactory
+  hasElement
+    dart:async
+    dart:core
+    package:dart.test/b.dart
+  hasReader
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.test/a.dart
+    package:dart.test/b.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09]
+''');
+  }
+
   test_linkLibraries_getErrors() async {
     addTestFile(r'''
 var a = b;
@@ -1485,7 +1769,7 @@ var foo = 0;
 
     await fileResolver.linkLibraries2(path: testFile.path);
 
-    // We discarded all linked libraries, so each one is `get` and `put`.
+    // We discarded all libraries, so each one has `get` and `put`.
     // We did not discard files, so only `unlinkedPut`.
     // The library for the test file has reader, but not the element yet.
     // `dart:core` and `dart` have element because of `TypeProvider`.

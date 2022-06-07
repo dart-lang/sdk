@@ -422,9 +422,9 @@ class FileResolver {
       performance: performance,
     );
 
-    // Unload linked libraries, but don't release the linked data.
+    // Unload libraries, but don't release the linked data.
     // If we are the only consumer of it, we will lose it.
-    final linkedKeysToRelease = libraryContext!.unloadLinked();
+    final linkedKeysToRelease = libraryContext!.unloadAll();
 
     // Load the library again, the reference count is `>= 2`.
     await libraryContext!.load(
@@ -845,7 +845,6 @@ class LibraryContext {
   late final LinkedElementFactory elementFactory;
 
   Set<LibraryCycle> loadedBundles = Set.identity();
-  Set<LibraryCycle> linkedBundles = Set.identity();
 
   LibraryContext(
     this.testData,
@@ -865,12 +864,7 @@ class LibraryContext {
   ///
   /// Returns the keys of the artifacts that are no longer used.
   Set<String> dispose() {
-    final keySet = _unload(loadedBundles);
-
-    loadedBundles.clear();
-    linkedBundles.clear();
-
-    return keySet;
+    return unloadAll();
   }
 
   /// Load data required to access elements of the given [targetLibrary].
@@ -970,7 +964,6 @@ class LibraryContext {
         performance.getDataInt('bytesPut').add(resolutionBytes.length);
         testData?.forCycle(cycle).putKeys.add(resolutionKey);
 
-        linkedBundles.add(cycle);
         librariesLinkedTimer.stop();
       } else {
         testData?.forCycle(cycle).getKeys.add(resolutionKey);
@@ -1025,30 +1018,10 @@ class LibraryContext {
     });
   }
 
-  /// Discards libraries that were linked since the last invocation.
+  /// Unloads all loaded bundles.
   ///
-  /// Returns the keys of the artifacts for these libraries.
-  Set<String> unloadLinked() {
-    final keySet = _unload(linkedBundles);
-
-    loadedBundles.removeAll(linkedBundles);
-    linkedBundles.clear();
-
-    return keySet;
-  }
-
-  /// Ensure that type provider is created.
-  void _createElementFactoryTypeProvider() {
-    var analysisContext = contextObjects.analysisContext;
-    if (!analysisContext.hasTypeProvider) {
-      elementFactory.createTypeProviders(
-        elementFactory.dartCoreElement,
-        elementFactory.dartAsyncElement,
-      );
-    }
-  }
-
-  Set<String> _unload(Iterable<LibraryCycle> bundles) {
+  /// Returns the keys of the artifacts that are no longer used.
+  Set<String> unloadAll() {
     final keySet = <String>{};
     final uriSet = <Uri>{};
 
@@ -1064,8 +1037,20 @@ class LibraryContext {
     }
 
     elementFactory.removeLibraries(uriSet);
+    loadedBundles.clear();
 
     return keySet;
+  }
+
+  /// Ensure that type provider is created.
+  void _createElementFactoryTypeProvider() {
+    var analysisContext = contextObjects.analysisContext;
+    if (!analysisContext.hasTypeProvider) {
+      elementFactory.createTypeProviders(
+        elementFactory.dartCoreElement,
+        elementFactory.dartAsyncElement,
+      );
+    }
   }
 }
 
