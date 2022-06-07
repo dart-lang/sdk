@@ -1,3 +1,12 @@
+# 1.25.0
+
+- new lint: `discarded_futures`
+- improved message and highlight range for
+  `no_duplicate_case_values`
+- performance improvements for `lines_longer_than_80_chars`,
+  `prefer_const_constructors_in_immutables`, and
+  `prefer_initializing_formals`
+
 # 1.24.0
 
 - fix `prefer_final_parameters` to support super parameters
