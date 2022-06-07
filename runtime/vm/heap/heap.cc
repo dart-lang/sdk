@@ -193,7 +193,7 @@ void Heap::CheckExternalGC(Thread* thread) {
     }
     CollectGarbage(thread, GCType::kMarkSweep, GCReason::kExternal);
   } else {
-    CheckStartConcurrentMarking(thread, GCReason::kExternal);
+    CheckConcurrentMarking(thread, GCReason::kExternal);
   }
 }
 
@@ -457,7 +457,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
         CollectOldSpaceGarbage(thread, GCType::kMarkSweep,
                                GCReason::kPromotion);
       } else {
-        CheckStartConcurrentMarking(thread, GCReason::kPromotion);
+        CheckConcurrentMarking(thread, GCReason::kPromotion);
       }
     }
   }
@@ -554,29 +554,42 @@ void Heap::CollectAllGarbage(GCReason reason, bool compact) {
   WaitForSweeperTasks(thread);
 }
 
-void Heap::CheckStartConcurrentMarking(Thread* thread, GCReason reason) {
+void Heap::CheckConcurrentMarking(Thread* thread, GCReason reason) {
+  PageSpace::Phase phase;
   {
     MonitorLocker ml(old_space_.tasks_lock());
-    if (old_space_.phase() != PageSpace::kDone) {
-      return;  // Busy.
-    }
+    phase = old_space_.phase();
   }
 
-  if (old_space_.ReachedSoftThreshold()) {
-    // New-space objects are roots during old-space GC. This means that even
-    // unreachable new-space objects prevent old-space objects they reference
-    // from being collected during an old-space GC. Normally this is not an
-    // issue because new-space GCs run much more frequently than old-space GCs.
-    // If new-space allocation is low and direct old-space allocation is high,
-    // which can happen in a program that allocates large objects and little
-    // else, old-space can fill up with unreachable objects until the next
-    // new-space GC. This check is the concurrent-marking equivalent to the
-    // new-space GC before synchronous-marking in CollectMostGarbage.
-    if (last_gc_was_old_space_) {
-      CollectNewSpaceGarbage(thread, GCType::kScavenge, GCReason::kFull);
-    }
-
-    StartConcurrentMarking(thread, reason);
+  switch (phase) {
+    case PageSpace::kMarking:
+      // TODO(rmacnak): Have this thread help with marking.
+    case PageSpace::kSweepingLarge:
+    case PageSpace::kSweepingRegular:
+      return;  // Busy.
+    case PageSpace::kAwaitingFinalization:
+      CollectOldSpaceGarbage(thread, GCType::kMarkSweep, GCReason::kFinalize);
+      return;
+    case PageSpace::kDone:
+      if (old_space_.ReachedSoftThreshold()) {
+        // New-space objects are roots during old-space GC. This means that even
+        // unreachable new-space objects prevent old-space objects they
+        // reference from being collected during an old-space GC. Normally this
+        // is not an issue because new-space GCs run much more frequently than
+        // old-space GCs. If new-space allocation is low and direct old-space
+        // allocation is high, which can happen in a program that allocates
+        // large objects and little else, old-space can fill up with unreachable
+        // objects until the next new-space GC. This check is the
+        // concurrent-marking equivalent to the new-space GC before
+        // synchronous-marking in CollectMostGarbage.
+        if (last_gc_was_old_space_) {
+          CollectNewSpaceGarbage(thread, GCType::kScavenge, GCReason::kFull);
+        }
+        StartConcurrentMarking(thread, reason);
+      }
+      return;
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -593,17 +606,6 @@ void Heap::StartConcurrentMarking(Thread* thread, GCReason reason) {
 #if defined(SUPPORT_TIMELINE)
   PrintStatsToTimeline(&tbes, reason);
 #endif
-}
-
-void Heap::CheckFinishConcurrentMarking(Thread* thread) {
-  bool ready;
-  {
-    MonitorLocker ml(old_space_.tasks_lock());
-    ready = old_space_.phase() == PageSpace::kAwaitingFinalization;
-  }
-  if (ready) {
-    CollectOldSpaceGarbage(thread, GCType::kMarkSweep, GCReason::kFinalize);
-  }
 }
 
 void Heap::WaitForMarkerTasks(Thread* thread) {

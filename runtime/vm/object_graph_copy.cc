@@ -788,7 +788,7 @@ class FastObjectCopyBase : public ObjectCopyBase {
     const uword size =
         header_size != 0 ? header_size : from.untag()->HeapSize();
     if (Heap::IsAllocatableInNewSpace(size)) {
-      const uword alloc = new_space_->TryAllocate(thread_, size);
+      const uword alloc = new_space_->TryAllocateNoSafepoint(thread_, size);
       if (alloc != 0) {
         ObjectPtr to(reinterpret_cast<UntaggedObject*>(alloc));
         fast_forward_map_.Insert(from, to, size);
@@ -1353,7 +1353,7 @@ class ObjectCopy : public Base {
     auto raw_from = from.ptr().untag();
     auto raw_to = to.ptr().untag();
     const intptr_t cid = Types::GetTypedDataPtr(from)->GetClassId();
-    raw_to->length_ = raw_from->length_;
+    ASSERT(raw_to->length_ == raw_from->length_);
     raw_to->RecomputeDataField();
     const intptr_t length =
         TypedData::ElementSizeInBytes(cid) * Smi::Value(raw_from->length_);
@@ -1605,7 +1605,7 @@ class FastObjectCopy : public ObjectCopy<FastObjectCopyBase> {
     if (length == 0) return Object::null();
 
     const intptr_t size = Array::InstanceSize(length);
-    const uword array_addr = new_space_->TryAllocate(thread_, size);
+    const uword array_addr = new_space_->TryAllocateNoSafepoint(thread_, size);
     if (array_addr == 0) {
       exception_msg_ = kFastAllocationFailed;
       return Marker();

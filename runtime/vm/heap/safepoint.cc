@@ -65,7 +65,7 @@ ForceGrowthSafepointOperationScope::~ForceGrowthSafepointOperationScope() {
     if (heap->old_space()->ReachedHardThreshold()) {
       heap->CollectGarbage(T, GCType::kMarkSweep, GCReason::kOldSpace);
     } else {
-      heap->CheckStartConcurrentMarking(T, GCReason::kOldSpace);
+      heap->CheckConcurrentMarking(T, GCReason::kOldSpace);
     }
   }
 }

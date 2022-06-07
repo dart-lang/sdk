@@ -465,19 +465,6 @@ void PageSpace::FreePages(OldPage* pages) {
   }
 }
 
-void PageSpace::EvaluateConcurrentMarking(GrowthPolicy growth_policy) {
-  if (growth_policy != kForceGrowth) {
-    ASSERT(GrowthControlState());
-    if (heap_ != NULL) {  // Some unit tests.
-      Thread* thread = Thread::Current();
-      if (thread->CanCollectGarbage()) {
-        heap_->CheckFinishConcurrentMarking(thread);
-        heap_->CheckStartConcurrentMarking(thread, GCReason::kOldSpace);
-      }
-    }
-  }
-}
-
 uword PageSpace::TryAllocateInFreshPage(intptr_t size,
                                         FreeList* freelist,
                                         OldPage::PageType type,
@@ -485,7 +472,12 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
                                         bool is_locked) {
   ASSERT(Heap::IsAllocatableViaFreeLists(size));
 
-  EvaluateConcurrentMarking(growth_policy);
+  if (growth_policy != kForceGrowth) {
+    ASSERT(GrowthControlState());
+    if (heap_ != nullptr) {  // Some unit tests.
+      heap_->CheckConcurrentMarking(Thread::Current(), GCReason::kOldSpace);
+    }
+  }
 
   uword result = 0;
   SpaceUsage after_allocation = GetCurrentUsage();
@@ -521,7 +513,12 @@ uword PageSpace::TryAllocateInFreshLargePage(intptr_t size,
                                              GrowthPolicy growth_policy) {
   ASSERT(!Heap::IsAllocatableViaFreeLists(size));
 
-  EvaluateConcurrentMarking(growth_policy);
+  if (growth_policy != kForceGrowth) {
+    ASSERT(GrowthControlState());
+    if (heap_ != nullptr) {  // Some unit tests.
+      heap_->CheckConcurrentMarking(Thread::Current(), GCReason::kOldSpace);
+    }
+  }
 
   intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
   if ((page_size_in_words << kWordSizeLog2) < size) {

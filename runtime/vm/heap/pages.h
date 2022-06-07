@@ -553,8 +553,6 @@ class PageSpace {
                                     OldPage::PageType type,
                                     GrowthPolicy growth_policy);
 
-  void EvaluateConcurrentMarking(GrowthPolicy growth_policy);
-
   // Makes bump block walkable; do not call concurrently with mutator.
   void MakeIterable() const;
 
