@@ -782,7 +782,7 @@ class KernelToElementMap implements IrToElementMap {
   InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
     assert(checkFamily(cls));
     OrderedTypeSet orderedTypeSet = getOrderedTypeSet(type.element);
-    InterfaceType supertype =
+    InterfaceType /*?*/ supertype =
         orderedTypeSet.asInstanceOf(cls, getHierarchyDepth(cls));
     if (supertype != null) {
       supertype = substByContext(supertype, type);
@@ -1345,13 +1345,13 @@ class KernelToElementMap implements IrToElementMap {
         constructor, KConstructorDataImpl(node, functionNode));
   }
 
-  FunctionEntity getMethodInternal(ir.Procedure node) {
+  FunctionEntity getMethodInternal(ir.Procedure /*!*/ node) {
     // [_getMethodCreate] inserts the created function in [methodMap] so we
     // don't need to use ??= here.
     return methodMap[node] ?? _getMethodCreate(node);
   }
 
-  FunctionEntity _getMethodCreate(ir.Procedure node) {
+  FunctionEntity /*!*/ _getMethodCreate(ir.Procedure node) {
     assert(
         !envIsClosed,
         "Environment of $this is closed. Trying to create "
