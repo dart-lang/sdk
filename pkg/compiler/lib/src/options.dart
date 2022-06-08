@@ -94,6 +94,10 @@ class FeatureOptions {
   /// (e.g. DartType).
   FeatureOption internValues = FeatureOption('intern-composite-values');
 
+  /// Whether to use deferred serialization strategy. This changes serialized
+  /// data structure to allow map value deserialization to be deferred.
+  FeatureOption deferredSerialization = FeatureOption('deferred-serialization');
+
   /// [FeatureOption]s which are shipped and cannot be toggled.
   late final List<FeatureOption> shipped = [newHolders, legacyJavaScript];
 
@@ -109,6 +113,7 @@ class FeatureOptions {
     simpleAsyncToFuture,
     cfeConstants,
     internValues,
+    deferredSerialization,
   ];
 
   /// Forces canary feature on. This must run after [Option].parse.

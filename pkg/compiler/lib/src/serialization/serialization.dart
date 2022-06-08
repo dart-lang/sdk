@@ -23,6 +23,7 @@ import '../js_model/closure.dart';
 import '../js_model/locals.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
 
+import '../options.dart';
 import 'data_sink.dart';
 import 'data_source.dart';
 import 'member_data.dart';
