@@ -170,8 +170,8 @@ Evaluated: MapLiteral @ org-dartlang-testcase:///mock_http_headers.dart:13:7 -> 
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///mock_http_headers.dart:13:7 -> SymbolConstant(#noFolding)
 Evaluated: ListLiteral @ org-dartlang-testcase:///mock_http_headers.dart:13:7 -> ListConstant(const <Type*>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///mock_http_headers.dart:13:7 -> MapConstant(const <Symbol*, dynamic>{})
-Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/_http/http.dart:676:8 -> SymbolConstant(#clear)
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/_http/http.dart:676:8 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/_http/http.dart:676:8 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/_http/http.dart:676:8 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/_http/http.dart:564:8 -> SymbolConstant(#clear)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/_http/http.dart:564:8 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/_http/http.dart:564:8 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/_http/http.dart:564:8 -> MapConstant(const <Symbol*, dynamic>{})
 Extra constant evaluation: evaluated: 268, effectively constant: 91
