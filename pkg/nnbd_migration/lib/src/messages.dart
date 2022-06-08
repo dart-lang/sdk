@@ -7,8 +7,9 @@ import 'package:nnbd_migration/migration_cli.dart';
 const String migratedAlready =
     'All sources appear to be already migrated.  Nothing to do.';
 const String nnbdExperimentOff =
-    'Analyzer seems to need the nnbd experiment on in the SDK.';
-const String sdkNnbdOff = 'Analysis seems to have an SDK without NNBD enabled.';
+    'Analyzer seems to need the null safety experiment on in the SDK.';
+const String sdkNnbdOff =
+    'Analysis seems to have an SDK without null safety enabled.';
 const String sdkPathEnvironmentVariableSet =
     r'Note: $SDK_PATH environment variable is set and may point to outdated '
     'dart:core sources';

@@ -151,8 +151,8 @@ class NullabilityFixDescription {
 
   /// An unnecessary downcast has been discarded.
   static const removeLanguageVersionComment = NullabilityFixDescription._(
-    appliedMessage: 'Removed language version comment so that NNBD features '
-        'will be allowed in this file',
+    appliedMessage: 'Removed language version comment so that null safety '
+        'features will be allowed in this file',
     kind: NullabilityFixKind.removeLanguageVersionComment,
   );
 
