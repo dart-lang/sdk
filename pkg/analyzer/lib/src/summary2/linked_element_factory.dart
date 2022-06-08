@@ -10,12 +10,16 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:meta/meta.dart';
 
 class LinkedElementFactory {
+  static final _dartCoreUri = Uri.parse('dart:core');
+  static final _dartAsyncUri = Uri.parse('dart:async');
+
   final AnalysisContextImpl analysisContext;
   AnalysisSessionImpl analysisSession;
   final Reference rootReference;
-  final Map<String, LibraryReader> _libraryReaders = {};
+  final Map<Uri, LibraryReader> _libraryReaders = {};
 
   bool isApplyingInformativeData = false;
 
@@ -28,15 +32,39 @@ class LinkedElementFactory {
     ArgumentError.checkNotNull(analysisSession, 'analysisSession');
   }
 
+  LibraryElementImpl get dartAsyncElement {
+    return libraryOfUri2(_dartAsyncUri);
+  }
+
+  LibraryElementImpl get dartCoreElement {
+    return libraryOfUri2(_dartCoreUri);
+  }
+
   Reference get dynamicRef {
     return rootReference.getChild('dart:core').getChild('dynamic');
+  }
+
+  /// Returns URIs for which [LibraryElementImpl] is ready.
+  @visibleForTesting
+  List<Uri> get uriListWithLibraryElements {
+    return rootReference.children
+        .map((reference) => reference.element)
+        .whereType<LibraryElementImpl>()
+        .map((e) => e.source.uri)
+        .toList();
+  }
+
+  /// Returns URIs for which we have readers, but not elements.
+  @visibleForTesting
+  List<Uri> get uriListWithLibraryReaders {
+    return _libraryReaders.keys.toList();
   }
 
   void addBundle(BundleReader bundle) {
     addLibraries(bundle.libraryMap);
   }
 
-  void addLibraries(Map<String, LibraryReader> libraries) {
+  void addLibraries(Map<Uri, LibraryReader> libraries) {
     _libraryReaders.addAll(libraries);
   }
 
@@ -60,18 +88,18 @@ class LinkedElementFactory {
     return Namespace(exportedNames);
   }
 
-  LibraryElementImpl? createLibraryElementForReading(String uriStr) {
+  LibraryElementImpl? createLibraryElementForReading(Uri uri) {
     var sourceFactory = analysisContext.sourceFactory;
-    var librarySource = sourceFactory.forUri(uriStr);
+    var librarySource = sourceFactory.forUri2(uri);
 
     // The URI cannot be resolved, we don't know the library.
     if (librarySource == null) return null;
 
-    var reader = _libraryReaders[uriStr];
+    var reader = _libraryReaders[uri];
     if (reader == null) {
       var libraryUriList = rootReference.children.map((e) => e.name).toList();
       throw ArgumentError(
-        'Missing library: $uriStr\n'
+        'Missing library: $uri\n'
         'Available libraries: $libraryUriList',
       );
     }
@@ -129,8 +157,8 @@ class LinkedElementFactory {
     }
 
     if (reference.isLibrary) {
-      var uriStr = reference.name;
-      return createLibraryElementForReading(uriStr);
+      final uri = Uri.parse(reference.name);
+      return createLibraryElementForReading(uri);
     }
 
     var parent = reference.parent!.parent!;
@@ -150,60 +178,54 @@ class LinkedElementFactory {
     return element;
   }
 
-  bool hasLibrary(String uriStr) {
+  bool hasLibrary(Uri uri) {
     // We already have the element, linked or read.
-    if (rootReference[uriStr]?.element is LibraryElementImpl) {
+    if (rootReference['$uri']?.element is LibraryElementImpl) {
       return true;
     }
     // No element yet, but we know how to read it.
-    return _libraryReaders[uriStr] != null;
+    return _libraryReaders[uri] != null;
   }
 
-  LibraryElementImpl? libraryOfUri(String uriStr) {
-    var reference = rootReference.getChild(uriStr);
+  LibraryElementImpl? libraryOfUri(Uri uri) {
+    var reference = rootReference.getChild('$uri');
     return elementOfReference(reference) as LibraryElementImpl?;
   }
 
-  LibraryElementImpl libraryOfUri2(String uriStr) {
-    var element = libraryOfUri(uriStr);
+  LibraryElementImpl libraryOfUri2(Uri uri) {
+    var element = libraryOfUri(uri);
     if (element == null) {
-      libraryOfUri(uriStr);
-      throw StateError('No library: $uriStr');
+      libraryOfUri(uri);
+      throw StateError('No library: $uri');
     }
     return element;
   }
 
-  /// Return the [LibraryElementImpl] if it is ready.
-  LibraryElementImpl? libraryOfUriIfReady(String uriStr) {
-    var element = rootReference.getChild(uriStr).element;
-    return element is LibraryElementImpl ? element : null;
-  }
-
   /// We have linked the bundle, and need to disconnect its libraries, so
   /// that the client can re-add the bundle, this time read from bytes.
-  void removeBundle(Set<String> uriStrSet) {
-    removeLibraries(uriStrSet);
+  void removeBundle(Set<Uri> uriSet) {
+    removeLibraries(uriSet);
   }
 
   /// Remove libraries with the specified URIs from the reference tree, and
   /// any session level caches.
-  void removeLibraries(Set<String> uriStrSet) {
-    for (var uriStr in uriStrSet) {
-      _libraryReaders.remove(uriStr);
-      var libraryReference = rootReference.removeChild(uriStr);
+  void removeLibraries(Set<Uri> uriSet) {
+    for (final uri in uriSet) {
+      _libraryReaders.remove(uri);
+      final libraryReference = rootReference.removeChild('$uri');
       _disposeLibrary(libraryReference?.element);
     }
 
-    analysisSession.classHierarchy.removeOfLibraries(uriStrSet);
-    analysisSession.inheritanceManager.removeOfLibraries(uriStrSet);
+    analysisSession.classHierarchy.removeOfLibraries(uriSet);
+    analysisSession.inheritanceManager.removeOfLibraries(uriSet);
 
     // If we discard `dart:core` and `dart:async`, we should also discard
     // the type provider.
-    if (uriStrSet.contains('dart:core')) {
-      if (!uriStrSet.contains('dart:async')) {
+    if (uriSet.contains(_dartCoreUri)) {
+      if (!uriSet.contains(_dartAsyncUri)) {
         throw StateError(
           'Expected to link dart:core and dart:async together: '
-          '${uriStrSet.toList()}',
+          '${uriSet.toList()}',
         );
       }
       if (_libraryReaders.isNotEmpty) {

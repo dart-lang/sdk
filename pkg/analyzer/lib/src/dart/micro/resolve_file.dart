@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/results.dart';
@@ -112,12 +113,12 @@ class FileResolver {
 
   MicroContextObjects? contextObjects;
 
-  _LibraryContext? libraryContext;
+  LibraryContext? libraryContext;
 
-  /// List of ids for cache elements that are invalidated. Track elements that
+  /// List of keys for cache elements that are invalidated. Track elements that
   /// are invalidated during [changeFile]. Used in [releaseAndClearRemovedIds]
   /// to release the cache items and is then cleared.
-  final Set<int> removedCacheIds = {};
+  final Set<String> removedCacheKeys = {};
 
   /// The cache of file results, cleared on [changeFile].
   ///
@@ -173,21 +174,30 @@ class FileResolver {
 
     // Schedule disposing references to cached unlinked data.
     for (var removedFile in removedFiles) {
-      removedCacheIds.add(removedFile.unlinkedId);
+      removedCacheKeys.add(removedFile.unlinkedKey);
     }
 
     // Remove libraries represented by removed files.
     // If we need these libraries later, we will relink and reattach them.
     if (libraryContext != null) {
-      libraryContext!.remove(removedFiles, removedCacheIds);
+      libraryContext!.remove(removedFiles, removedCacheKeys);
     }
   }
 
   /// Collects all the cached artifacts and add all the cache id's for the
-  /// removed artifacts to [removedCacheIds].
+  /// removed artifacts to [removedCacheKeys].
+  @Deprecated('Use dispose() instead')
   void collectSharedDataIdentifiers() {
-    removedCacheIds.addAll(fsState!.collectSharedDataIdentifiers());
-    removedCacheIds.addAll(libraryContext!.collectSharedDataIdentifiers());
+    removedCacheKeys.addAll(fsState!.dispose());
+    removedCacheKeys.addAll(libraryContext!.dispose());
+  }
+
+  /// Notifies this object that it is about to be discarded, so it should
+  /// release any shared data.
+  void dispose() {
+    removedCacheKeys.addAll(fsState!.dispose());
+    removedCacheKeys.addAll(libraryContext!.dispose());
+    releaseAndClearRemovedIds();
   }
 
   /// Looks for references to the given Element. All the files currently
@@ -252,7 +262,7 @@ class FileResolver {
       );
       var file = fileContext.file;
 
-      var errorsSignatureBuilder = ApiSignature();
+      final errorsSignatureBuilder = ApiSignature();
       errorsSignatureBuilder.addBytes(file.libraryCycle.signature);
       errorsSignatureBuilder.addBytes(file.digest);
       final errorsKey = '${errorsSignatureBuilder.toHex()}.errors';
@@ -356,7 +366,7 @@ class FileResolver {
       );
     });
 
-    return libraryContext!.elementFactory.libraryOfUri2(uriStr);
+    return libraryContext!.elementFactory.libraryOfUri2(uri);
   }
 
   String getLibraryLinkedSignature({
@@ -406,18 +416,30 @@ class FileResolver {
     var file = fileContext.file;
     var libraryFile = file.partOfLibrary ?? file;
 
+    // Load the library, link if necessary.
     await libraryContext!.load(
       targetLibrary: libraryFile,
       performance: performance,
     );
 
-    _resetContextObjects();
+    // Unload libraries, but don't release the linked data.
+    // If we are the only consumer of it, we will lose it.
+    final linkedKeysToRelease = libraryContext!.unloadAll();
+
+    // Load the library again, the reference count is `>= 2`.
+    await libraryContext!.load(
+      targetLibrary: libraryFile,
+      performance: performance,
+    );
+
+    // Release the linked data, the reference count is `>= 1`.
+    byteStore.release2(linkedKeysToRelease);
   }
 
-  /// Update the cache with list of invalidated ids and clears [removedCacheIds].
+  /// Releases from the cache and clear [removedCacheKeys].
   void releaseAndClearRemovedIds() {
-    byteStore.release(removedCacheIds);
-    removedCacheIds.clear();
+    byteStore.release2(removedCacheKeys);
+    removedCacheKeys.clear();
   }
 
   /// Remove cached [FileState]'s that were not used in the current analysis
@@ -427,7 +449,7 @@ class FileResolver {
   void removeFilesNotNecessaryForAnalysisOf(List<String> files) {
     var removedFiles = fsState!.removeUnusedFiles(files);
     for (var removedFile in removedFiles) {
-      removedCacheIds.add(removedFile.unlinkedId);
+      removedCacheKeys.add(removedFile.unlinkedKey);
     }
   }
 
@@ -627,7 +649,7 @@ class FileResolver {
         getFileDigest,
         prefetchFiles,
         isGenerated,
-      );
+      )..testData = testView?.fileSystemTestData;
     }
 
     if (contextObjects == null) {
@@ -643,7 +665,8 @@ class FileResolver {
         resourceProvider: resourceProvider,
       );
 
-      libraryContext = _LibraryContext(
+      libraryContext = LibraryContext(
+        testView,
         logger,
         resourceProvider,
         byteStore,
@@ -750,13 +773,6 @@ class FileResolver {
     }
   }
 
-  void _resetContextObjects() {
-    if (libraryContext != null) {
-      contextObjects = null;
-      libraryContext = null;
-    }
-  }
-
   Future<List<CiderSearchMatch>> _searchReferences_Import(
       ImportElement element) async {
     var results = <CiderSearchMatch>[];
@@ -794,6 +810,14 @@ class FileResolver {
 }
 
 class FileResolverTestView {
+  final FileSystemTestData fileSystemTestData = FileSystemTestData();
+
+  /// Keys: the sorted list of library files.
+  final Map<List<File>, LibraryCycleTestData> libraryCycles = LinkedHashMap(
+    hashCode: Object.hashAll,
+    equals: const ListEquality<File>().equals,
+  );
+
   /// The paths of libraries which were resolved.
   ///
   /// The library path is added every time when it is resolved.
@@ -802,9 +826,17 @@ class FileResolverTestView {
   void addResolvedLibrary(String path) {
     resolvedLibraries.add(path);
   }
+
+  LibraryCycleTestData forCycle(LibraryCycle cycle) {
+    final files = cycle.libraries.map((e) => e.resource).toList();
+    files.sortBy((file) => file.path);
+
+    return libraryCycles[files] ??= LibraryCycleTestData();
+  }
 }
 
-class _LibraryContext {
+class LibraryContext {
+  final FileResolverTestView? testData;
   final PerformanceLog logger;
   final ResourceProvider resourceProvider;
   final CiderByteStore byteStore;
@@ -814,7 +846,8 @@ class _LibraryContext {
 
   Set<LibraryCycle> loadedBundles = Set.identity();
 
-  _LibraryContext(
+  LibraryContext(
+    this.testData,
     this.logger,
     this.resourceProvider,
     this.byteStore,
@@ -827,22 +860,11 @@ class _LibraryContext {
     );
   }
 
-  /// Clears all the loaded libraries. Returns the cache ids for the removed
-  /// artifacts.
-  Set<int> collectSharedDataIdentifiers() {
-    var idSet = <int>{};
-
-    void addIfNotNull(int? id) {
-      if (id != null) {
-        idSet.add(id);
-      }
-    }
-
-    for (var cycle in loadedBundles) {
-      addIfNotNull(cycle.resolutionId);
-    }
-    loadedBundles.clear();
-    return idSet;
+  /// Notifies this object that it is about to be discarded.
+  ///
+  /// Returns the keys of the artifacts that are no longer used.
+  Set<String> dispose() {
+    return unloadAll();
   }
 
   /// Load data required to access elements of the given [targetLibrary].
@@ -864,9 +886,8 @@ class _LibraryContext {
         await loadBundle(directDependency);
       }
 
-      var resolutionKey = '${cycle.cyclePathsHash}.resolution';
-      var resolutionData = byteStore.get(resolutionKey, cycle.signature);
-      var resolutionBytes = resolutionData?.bytes;
+      var resolutionKey = '${cycle.signatureStr}.resolution';
+      var resolutionBytes = byteStore.get2(resolutionKey);
 
       var unitsInformativeBytes = <Uri, Uint8List>{};
       for (var library in cycle.libraries) {
@@ -939,13 +960,13 @@ class _LibraryContext {
         librariesLinked += cycle.libraries.length;
 
         resolutionBytes = linkResult.resolutionBytes;
-        resolutionData =
-            byteStore.putGet(resolutionKey, cycle.signature, resolutionBytes);
-        resolutionBytes = resolutionData.bytes;
+        resolutionBytes = byteStore.putGet2(resolutionKey, resolutionBytes);
         performance.getDataInt('bytesPut').add(resolutionBytes.length);
+        testData?.forCycle(cycle).putKeys.add(resolutionKey);
 
         librariesLinkedTimer.stop();
       } else {
+        testData?.forCycle(cycle).getKeys.add(resolutionKey);
         performance.getDataInt('bytesGet').add(resolutionBytes.length);
         performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
         elementFactory.addBundle(
@@ -956,7 +977,7 @@ class _LibraryContext {
           ),
         );
       }
-      cycle.resolutionId = resolutionData!.id;
+      cycle.resolutionKey = resolutionKey;
 
       // We might have just linked dart:core, ensure the type provider.
       _createElementFactoryTypeProvider();
@@ -975,35 +996,65 @@ class _LibraryContext {
 
   /// Remove libraries represented by the [removed] files.
   /// If we need these libraries later, we will relink and reattach them.
-  void remove(List<FileState> removed, Set<int> removedIds) {
+  void remove(List<FileState> removed, Set<String> removedKeys) {
     elementFactory.removeLibraries(
-      removed.map((e) => e.uriStr).toSet(),
+      removed.map((e) => e.uri).toSet(),
     );
 
     var removedSet = removed.toSet();
 
-    void addIfNotNull(int? id) {
-      if (id != null) {
-        removedIds.add(id);
+    void addIfNotNull(String? key) {
+      if (key != null) {
+        removedKeys.add(key);
       }
     }
 
     loadedBundles.removeWhere((cycle) {
       if (cycle.libraries.any(removedSet.contains)) {
-        addIfNotNull(cycle.resolutionId);
+        addIfNotNull(cycle.resolutionKey);
         return true;
       }
       return false;
     });
   }
 
+  /// Unloads all loaded bundles.
+  ///
+  /// Returns the keys of the artifacts that are no longer used.
+  Set<String> unloadAll() {
+    final keySet = <String>{};
+    final uriSet = <Uri>{};
+
+    void addIfNotNull(String? key) {
+      if (key != null) {
+        keySet.add(key);
+      }
+    }
+
+    for (var cycle in loadedBundles) {
+      addIfNotNull(cycle.resolutionKey);
+      uriSet.addAll(cycle.libraries.map((e) => e.uri));
+    }
+
+    elementFactory.removeLibraries(uriSet);
+    loadedBundles.clear();
+
+    return keySet;
+  }
+
   /// Ensure that type provider is created.
   void _createElementFactoryTypeProvider() {
     var analysisContext = contextObjects.analysisContext;
     if (!analysisContext.hasTypeProvider) {
-      var dartCore = elementFactory.libraryOfUri2('dart:core');
-      var dartAsync = elementFactory.libraryOfUri2('dart:async');
-      elementFactory.createTypeProviders(dartCore, dartAsync);
+      elementFactory.createTypeProviders(
+        elementFactory.dartCoreElement,
+        elementFactory.dartAsyncElement,
+      );
     }
   }
+}
+
+class LibraryCycleTestData {
+  final List<String> getKeys = [];
+  final List<String> putKeys = [];
 }

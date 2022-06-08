@@ -3280,7 +3280,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var enumElement = expressionType.element;
       if (enumElement.isEnum) {
         var constantNames = enumElement.fields
-            .where((field) => field.isStatic && !field.isSynthetic)
+            .where((field) => field.isEnumConstant)
             .map((field) => field.name)
             .toSet();
 

@@ -91,7 +91,7 @@ var tests = <IsolateTest>[
     final numRanges = coverage['ranges'].length;
     expect(coverage['type'], equals('SourceReport'));
 
-    expect(numRanges, greaterThanOrEqualTo(10));
+    expect(numRanges, equals(11));
     expect(coverage['ranges'][0], equals(expectedRange));
     expect(coverage['scripts'].length, 1);
     expect(
@@ -106,7 +106,7 @@ var tests = <IsolateTest>[
     };
     coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
     expect(coverage['type'], equals('SourceReport'));
-    expect(coverage['ranges'].length, greaterThanOrEqualTo(10));
+    expect(coverage['ranges'].length, 12);
     expect(allRangesCompiled(coverage), isTrue);
 
     // One function

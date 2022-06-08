@@ -58,7 +58,7 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
           'supported when --aot and --minimal-kernel are not used.',
       defaultsTo: null)
   ..addFlag('compact-async',
-      help: 'Enable new compact async/await implementation.', defaultsTo: true)
+      help: 'Enable new compact async/await implementation.', defaultsTo: null)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
@@ -541,7 +541,7 @@ class FrontendCompiler implements CompilerInterface {
       nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
       supportMirrors: options['support-mirrors'] ??
           !(options['aot'] || options['minimal-kernel']),
-      compactAsync: options['compact-async'],
+      compactAsync: options['compact-async'] ?? options['aot'],
     );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');

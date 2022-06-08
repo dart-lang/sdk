@@ -49,10 +49,10 @@ class DataSinkWriter implements migrated.DataSinkWriter {
 
   IndexedSink<T> _createSink<T>() {
     if (importedIndices == null || !importedIndices.caches.containsKey(T)) {
-      return IndexedSink<T>(this._sinkWriter);
+      return OrderedIndexedSink<T>(this._sinkWriter);
     } else {
       Map<T, int> cacheCopy = Map.from(importedIndices.caches[T].cache);
-      return IndexedSink<T>(this._sinkWriter, cache: cacheCopy);
+      return OrderedIndexedSink<T>(this._sinkWriter, cache: cacheCopy);
     }
   }
 

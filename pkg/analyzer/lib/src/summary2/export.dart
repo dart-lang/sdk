@@ -8,10 +8,9 @@ import 'package:analyzer/src/summary2/reference.dart';
 
 class Export {
   final LibraryBuilder exporter;
-  final LibraryBuilder? exported;
   final List<Combinator> combinators;
 
-  Export(this.exporter, this.exported, this.combinators);
+  Export(this.exporter, this.combinators);
 
   bool addToExportScope(String name, Reference reference) {
     for (Combinator combinator in combinators) {

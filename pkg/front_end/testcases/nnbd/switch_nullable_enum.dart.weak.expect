@@ -34,7 +34,7 @@ int method1(Enum? e) {
     ^" in null;
 }
 static method method2(self::Enum? e) → core::int {
-  switch(e) {
+  switch(e) /*isExplicitlyExhaustive*/ {
     #L2:
     case #C3:
     case #C6:
@@ -67,7 +67,7 @@ static method method3(self::Enum? e) → core::int {
   }
 }
 static method method4(self::Enum? e) → core::int {
-  switch(e) {
+  switch(e) /*isExplicitlyExhaustive*/ {
     #L7:
     case #C3:
     case #C6:

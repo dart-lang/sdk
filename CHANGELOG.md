@@ -56,6 +56,11 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 #### `dart:io`
 
+- **Breaking Change** [#34218](https://github.com/dart-lang/sdk/issues/34218):
+  Constants in `dart:io`'s networking APIs following the `SCREAMING_CAPS`
+  convention have been removed (they were previously deprecated). Please use
+  the corresponding `lowerCamelCase` constants instead.
+
 - **Breaking Change** [#45630][]: The Dart VM no longer automatically restores
     the initial terminal settings upon exit. Programs that change the `Stdin`
     settings `lineMode` and `echoMode` are now responsible for restoring the
@@ -113,28 +118,33 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 #### Linter
 
-Updated the Linter to `1.24.0`, which includes changes that
+Updated the Linter to `1.25.0`, which includes changes that
 
-- fixes `prefer_final_parameters` to support super parameters.
-- adds new lint: `unnecessary_to_list_in_spreads`.
-- fixes `unawaited_futures` to handle string interpolated
+- add new lint: `discarded_futures`.
+- improve message and highlight range for `no_duplicate_case_values`
+- improve performance for `lines_longer_than_80_chars`,
+  `prefer_const_constructors_in_immutables`, and
+  `prefer_initializing_formals`.
+- fix `prefer_final_parameters` to support super parameters.
+- add new lint: `unnecessary_to_list_in_spreads`.
+- fix `unawaited_futures` to handle string interpolated
   futures.
-- updates `use_colored_box` to not flag nullable colors,
-- adds new lint: 
+- update `use_colored_box` to not flag nullable colors,
+- add new lint: 
   `unnecessary_null_aware_operator_on_extension_on_nullable`.
-- fixes `no_leading_underscores_for_local_identifiers`
+- fix `no_leading_underscores_for_local_identifiers`
   to lint local function declarations.
-- fixes `avoid_init_to_null` to correctly handle super
+- fix `avoid_init_to_null` to correctly handle super
   initializing defaults that are non-null.
-- updates `no_leading_underscores_for_local_identifiers`
+- update `no_leading_underscores_for_local_identifiers`
   to allow identifiers with just underscores.
-- fixes `flutter_style_todos` to support usernames that
+- fix `flutter_style_todos` to support usernames that
   start with a digit.
-- updates `require_trailing_commas` to handle functions
+- update `require_trailing_commas` to handle functions
   in asserts and multi-line strings.
-- updates `unsafe_html` to allow assignments to
+- update `unsafe_html` to allow assignments to
   `img.src`.
-- fixes `unnecessary_null_checks` to properly handle map
+- fix `unnecessary_null_checks` to properly handle map
   literal entries.
 
 #### Pub

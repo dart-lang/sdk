@@ -33,7 +33,7 @@ class BundleReader {
   final SummaryDataReader _reader;
   final Map<Uri, Uint8List> _unitsInformativeBytes;
 
-  final Map<String, LibraryReader> libraryMap = {};
+  final Map<Uri, LibraryReader> libraryMap = {};
 
   BundleReader({
     required LinkedElementFactory elementFactory,
@@ -57,16 +57,16 @@ class BundleReader {
     _reader.offset = librariesOffset;
     var libraryHeaderList = _reader.readTypedList(() {
       return _LibraryHeader(
-        uriStr: _reader.readStringReference(),
+        uri: Uri.parse(_reader.readStringReference()),
         offset: _reader.readUInt30(),
         classMembersLengths: _reader.readUInt30List(),
       );
     });
 
     for (var libraryHeader in libraryHeaderList) {
-      var uriStr = libraryHeader.uriStr;
-      var reference = elementFactory.rootReference.getChild(uriStr);
-      libraryMap[uriStr] = LibraryReader._(
+      var uri = libraryHeader.uri;
+      var reference = elementFactory.rootReference.getChild('$uri');
+      libraryMap[uri] = LibraryReader._(
         elementFactory: elementFactory,
         reader: _reader,
         unitsInformativeBytes: _unitsInformativeBytes,
@@ -1800,7 +1800,7 @@ class TypeAliasElementLinkedData
 /// so that when we need to read this library, we know where it starts without
 /// reading previous libraries.
 class _LibraryHeader {
-  final String uriStr;
+  final Uri uri;
   final int offset;
 
   /// We don't read class members when reading libraries, by performance
@@ -1809,7 +1809,7 @@ class _LibraryHeader {
   final Uint32List classMembersLengths;
 
   _LibraryHeader({
-    required this.uriStr,
+    required this.uri,
     required this.offset,
     required this.classMembersLengths,
   });

@@ -33,7 +33,7 @@ StandardTestSuite makeTestSuite(TestConfiguration configuration,
 StaticError makeError(
     {int line = 1,
     int column = 2,
-    int length,
+    int length = 0,
     String analyzerError,
     String cfeError,
     String webError,

@@ -34,6 +34,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
@@ -137,9 +138,11 @@ class FileState {
     return signatureBuilder.toHex();
   }
 
+  File get resource => _location.resource;
+
   Source get source => _location.source;
 
-  int get unlinkedId => _unlinked.unlinkedId;
+  String get unlinkedKey => _unlinked.unlinkedKey;
 
   UnlinkedUnit get unlinkedUnit => _unlinked.unlinked.unit;
 
@@ -295,6 +298,8 @@ class FileSystemState {
 
   final FileSystemStateTestView testView = FileSystemStateTestView();
 
+  FileSystemTestData? testData;
+
   FileSystemState(
     this._resourceProvider,
     this._byteStore,
@@ -330,16 +335,6 @@ class FileSystemState {
     }
   }
 
-  /// Clears all the cached files. Returns the list of ids of all the removed
-  /// files.
-  Set<int> collectSharedDataIdentifiers() {
-    var result = <int>{};
-    for (var file in _pathToFile.values) {
-      result.add(file._unlinked.unlinkedId);
-    }
-    return result;
-  }
-
   FeatureSet contextFeatureSet(
     String path,
     Uri uri,
@@ -366,6 +361,24 @@ class FileSystemState {
     }
 
     return featureSetProvider.getLanguageVersion(path, uri);
+  }
+
+  /// Notifies this object that it is about to be discarded.
+  ///
+  /// Returns the keys of the artifacts that are no longer used.
+  Set<String> dispose() {
+    final result = <String>{};
+    for (final file in _pathToFile.values) {
+      result.add(file._unlinked.unlinkedKey);
+    }
+    _pathToFile.clear();
+    _uriToFile.clear();
+    return result;
+  }
+
+  @visibleForTesting
+  FileState? getExistingFileForResource(File file) {
+    return _pathToFile[file.path];
   }
 
   FileState getFileForPath({
@@ -498,7 +511,6 @@ class FileSystemState {
 }
 
 class FileSystemStateTestView {
-  final List<String> refreshedFiles = [];
   final List<String> partsDiscoveredLibraries = [];
   Set<String> removedPaths = {};
 }
@@ -541,6 +553,26 @@ class FileSystemStateTimers {
   }
 }
 
+class FileSystemTestData {
+  final Map<File, FileTestData> files = {};
+
+  FileTestData forFile(File file) {
+    return files[file] ??= FileTestData._(file);
+  }
+}
+
+class FileTestData {
+  final File file;
+
+  /// We add the key every time we get unlinked data from the byte store.
+  final List<String> unlinkedKeyGet = [];
+
+  /// We add the key every time we put unlinked data into the byte store.
+  final List<String> unlinkedKeyPut = [];
+
+  FileTestData._(this.file);
+}
+
 /// Information about libraries that reference each other, so form a cycle.
 class LibraryCycle {
   /// The libraries that belong to this cycle.
@@ -560,9 +592,9 @@ class LibraryCycle {
   /// The hash of all the paths of the files in this cycle.
   late String cyclePathsHash;
 
-  /// The ID of the resolution cache entry.
+  /// The key of the resolution cache entry.
   /// It is `null` if we failed to load libraries of the cycle.
-  int? resolutionId;
+  String? resolutionKey;
 
   LibraryCycle();
 
@@ -713,17 +745,16 @@ class _FileStateUnlinked {
   final bool exists;
   final CiderUnlinkedUnit unlinked;
 
-  /// id of the cache entry with unlinked data.
-  final int unlinkedId;
+  /// Key of the cache entry with unlinked data.
+  final String unlinkedKey;
 
   factory _FileStateUnlinked({
     required _FileStateLocation location,
     required FileState? partOfLibrary,
     required OperationPerformanceImpl performance,
   }) {
-    location._fsState.testView.refreshedFiles.add(location.path);
+    final testData = location._fsState.testData?.forFile(location.resource);
 
-    int unlinkedId;
     CiderUnlinkedUnit unlinked;
 
     var digest = performance.run('digest', (performance) {
@@ -734,15 +765,14 @@ class _FileStateUnlinked {
 
     var exists = digest.isNotEmpty;
 
-    var unlinkedKey = '${location.path}.unlinked';
+    final unlinkedKey = '${hex.encode(digest)}.unlinked';
     var isUnlinkedFromCache = true;
 
     // Prepare bytes of the unlinked bundle - existing or new.
     // TODO(migration): should not be nullable
     Uint8List? unlinkedBytes;
     {
-      var unlinkedData = location._fsState._byteStore.get(unlinkedKey, digest);
-      unlinkedBytes = unlinkedData?.bytes;
+      unlinkedBytes = location._fsState._byteStore.get2(unlinkedKey);
 
       if (unlinkedBytes == null || unlinkedBytes.isEmpty) {
         isUnlinkedFromCache = false;
@@ -763,14 +793,15 @@ class _FileStateUnlinked {
           var unlinkedUnit = serializeAstCiderUnlinked(unit);
           unlinkedBytes = unlinkedUnit.toBytes();
           performance.getDataInt('length').add(unlinkedBytes!.length);
-          unlinkedData = location._fsState._byteStore
-              .putGet(unlinkedKey, digest, unlinkedBytes!);
-          unlinkedBytes = unlinkedData!.bytes;
+          unlinkedBytes =
+              location._fsState._byteStore.putGet2(unlinkedKey, unlinkedBytes!);
+          testData?.unlinkedKeyPut.add(unlinkedKey);
         });
 
         unlinked = CiderUnlinkedUnit.fromBytes(unlinkedBytes!);
+      } else {
+        testData?.unlinkedKeyGet.add(unlinkedKey);
       }
-      unlinkedId = unlinkedData!.id;
     }
 
     // Read the unlinked bundle.
@@ -782,7 +813,7 @@ class _FileStateUnlinked {
       digest: digest,
       exists: exists,
       unlinked: unlinked,
-      unlinkedId: unlinkedId,
+      unlinkedKey: unlinkedKey,
     );
     if (isUnlinkedFromCache) {
       performance.run('prefetch', (_) {
@@ -798,7 +829,7 @@ class _FileStateUnlinked {
     required this.digest,
     required this.exists,
     required this.unlinked,
-    required this.unlinkedId,
+    required this.unlinkedKey,
   }) : _partOfLibrary = partOfLibrary;
 
   FileState? get partOfLibrary {

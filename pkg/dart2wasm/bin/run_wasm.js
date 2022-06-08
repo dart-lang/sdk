@@ -143,18 +143,13 @@ var dart2wasm = {
     callMethodVarArgs: function(object, name, args) {
         return object[name].apply(object, args);
     },
-    callConstructorVarArgs: function(object, name, args) {
-        // Gets a constructor property at object[name], and apply bind to the
-        // constructor. We pass `null` as the first argument to `bind.apply`
-        // because this is `bind`'s unused context argument(`new` will
-        // explicitly create a new context).
-        var constructor = object[name];
+    callConstructorVarArgs: function(constructor, args) {
+        // Apply bind to the constructor. We pass `null` as the first argument
+        // to `bind.apply` because this is `bind`'s unused context
+        // argument(`new` will explicitly create a new context).
         var factoryFunction = constructor.bind.apply(constructor, [null, ...args]);
         return new factoryFunction();
     },
-    eval: function(string) {
-        eval(string);
-    }
 };
 
 function instantiate(filename, imports) {

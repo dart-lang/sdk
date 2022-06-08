@@ -25,7 +25,12 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
           throw 'Got Command but expected CodeAction literal';
         }
         expect(command.title, equals(title));
-        expect(command.arguments, equals([uri.toFilePath()]));
+        expect(
+          command.arguments,
+          equals([
+            {'path': uri.toFilePath()}
+          ]),
+        );
       },
       (codeAction) {
         if (!asCodeActionLiteral) {
@@ -33,7 +38,12 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
         }
         expect(codeAction.title, equals(title));
         expect(codeAction.command!.title, equals(title));
-        expect(codeAction.command!.arguments, equals([uri.toFilePath()]));
+        expect(
+          codeAction.command!.arguments,
+          equals([
+            {'path': uri.toFilePath()}
+          ]),
+        );
       },
     );
   }

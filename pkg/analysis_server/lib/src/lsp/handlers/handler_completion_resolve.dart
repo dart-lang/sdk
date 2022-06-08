@@ -113,7 +113,9 @@ class CompletionResolveHandler
           command = Command(
               title: 'Add import',
               command: Commands.sendWorkspaceEdit,
-              arguments: [workspaceEdit]);
+              arguments: [
+                {'edit': workspaceEdit}
+              ]);
         }
 
         final formats = clientCapabilities.completionDocumentationFormats;

@@ -267,6 +267,29 @@ class OptimizationTestLog {
     entries.add(OptimizationLogEntry('PrimitiveCheck', features));
   }
 
+  /// Generates optimization log entries that form a histogram. [summarize]
+  /// projects the instruction to a string that is used as a key for counting
+  /// instructions. [summarize] returns `null` to omit the instruction.
+  void instructionHistogram(
+      String tag, HGraph graph, String /*?*/ Function(HInstruction) summarize) {
+    Map<String, int> histogram = {};
+    for (final block in graph.blocks) {
+      for (HInstruction node = block.first; node != null; node = node.next) {
+        String /*?*/ description = summarize(node);
+        if (description != null) {
+          int count = histogram[description] ?? 0;
+          histogram[description] = count + 1;
+        }
+      }
+    }
+
+    for (final entry in histogram.entries) {
+      Features features = Features();
+      features[entry.key] = '${entry.value}';
+      entries.add(OptimizationLogEntry(tag, features));
+    }
+  }
+
   String getText() {
     return entries.join(',\n');
   }

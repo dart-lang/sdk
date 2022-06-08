@@ -38,10 +38,11 @@ class DataSourceReader implements migrated.DataSourceReader {
 
   IndexedSource<T> _createSource<T>() {
     if (importedIndices == null || !importedIndices.caches.containsKey(T)) {
-      return IndexedSource<T>(this._sourceReader);
+      return OrderedIndexedSource<T>(this._sourceReader);
     } else {
-      List<T> cacheCopy = importedIndices.caches[T].cacheAsList.toList();
-      return IndexedSource<T>(this._sourceReader, cache: cacheCopy);
+      final source = importedIndices.caches[T].source as OrderedIndexedSource;
+      List<T> cacheCopy = source.cache.toList();
+      return OrderedIndexedSource<T>(this._sourceReader, cache: cacheCopy);
     }
   }
 
@@ -58,17 +59,17 @@ class DataSourceReader implements migrated.DataSourceReader {
   /// [DataSinkWriter]s.
   DataSourceIndices exportIndices() {
     var indices = DataSourceIndices();
-    indices.caches[String] = DataSourceTypeIndices(_stringIndex.cache);
-    indices.caches[Uri] = DataSourceTypeIndices(_uriIndex.cache);
-    indices.caches[ImportEntity] = DataSourceTypeIndices(_importIndex.cache);
+    indices.caches[String] = DataSourceTypeIndices(_stringIndex);
+    indices.caches[Uri] = DataSourceTypeIndices(_uriIndex);
+    indices.caches[ImportEntity] = DataSourceTypeIndices(_importIndex);
     // _memberNodeIndex needs two entries depending on if the indices will be
     // consumed by a [DataSource] or [DataSink].
-    indices.caches[MemberData] = DataSourceTypeIndices(_memberNodeIndex.cache);
+    indices.caches[MemberData] = DataSourceTypeIndices(_memberNodeIndex);
     indices.caches[ir.Member] = DataSourceTypeIndices<ir.Member, MemberData>(
-        _memberNodeIndex.cache, (MemberData data) => data?.node);
-    indices.caches[ConstantValue] = DataSourceTypeIndices(_constantIndex.cache);
+        _memberNodeIndex, (MemberData data) => data?.node);
+    indices.caches[ConstantValue] = DataSourceTypeIndices(_constantIndex);
     _generalCaches.forEach((type, indexedSource) {
-      indices.caches[type] = DataSourceTypeIndices(indexedSource.cache);
+      indices.caches[type] = DataSourceTypeIndices(indexedSource);
     });
     return indices;
   }
@@ -182,7 +183,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   /// not yet been deserialized, [f] is called to deserialize the value itself.
   @override
   E /*?*/ readCachedOrNull<E>(E f()) {
-    IndexedSource source = _generalCaches[E] ??= _createSource<E>();
+    IndexedSource<E> source = _generalCaches[E] ??= _createSource<E>();
     return source.read(f);
   }
 

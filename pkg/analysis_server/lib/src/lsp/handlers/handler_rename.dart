@@ -11,8 +11,13 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analyzer/dart/element/element.dart';
 
+// TODO(dantup): Generate typedefs in protocol_generated for all named types
+//   that map onto unions like this after the switch to JSON spec.
+typedef PrepareRenameResult
+    = Either3<Range, PlaceholderAndRange, PrepareRenameResult2>;
+
 class PrepareRenameHandler
-    extends MessageHandler<TextDocumentPositionParams, PlaceholderAndRange?> {
+    extends MessageHandler<TextDocumentPositionParams, PrepareRenameResult?> {
   PrepareRenameHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_prepareRename;
@@ -22,7 +27,7 @@ class PrepareRenameHandler
       TextDocumentPositionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<PlaceholderAndRange?>> handle(
+  Future<ErrorOr<PrepareRenameResult?>> handle(
       TextDocumentPositionParams params,
       MessageInfo message,
       CancellationToken token) async {
@@ -61,7 +66,7 @@ class PrepareRenameHandler
             ServerErrorCodes.RenameNotValid, initStatus.problem!.message, null);
       }
 
-      return success(PlaceholderAndRange(
+      return success(PrepareRenameResult.t2(PlaceholderAndRange(
         range: toRange(
           unit.result.lineInfo,
           // If the offset is set to -1 it means there is no location for the
@@ -72,7 +77,7 @@ class PrepareRenameHandler
           refactorDetails.length,
         ),
         placeholder: refactoring.oldName,
-      ));
+      )));
     });
   }
 }

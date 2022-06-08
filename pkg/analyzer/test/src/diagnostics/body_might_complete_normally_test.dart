@@ -15,6 +15,42 @@ main() {
 
 @reflectiveTest
 class BodyMayCompleteNormallyTest extends PubPackageResolutionTest {
+  test_enum_method_nonNullable_blockBody_switchStatement_notNullable_exhaustive() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  a;
+
+  static const b = 0;
+  static final c = 0;
+
+  int get value {
+    switch (this) {
+      case a:
+        return 0;
+    }
+  }
+}
+''');
+  }
+
+  test_enum_method_nonNullable_blockBody_switchStatement_notNullable_notExhaustive() async {
+    await assertErrorsInCode(r'''
+enum E {
+  a, b;
+
+  int get value {
+    switch (this) {
+      case a:
+        return 0;
+    }
+  }
+}
+''', [
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 28, 5),
+      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 40, 13),
+    ]);
+  }
+
   test_factoryConstructor_named_blockBody() async {
     await assertErrorsInCode(r'''
 class A {
@@ -92,6 +128,24 @@ int f(Foo foo) {
 ''');
   }
 
+  test_function_nonNullable_blockBody_switchStatement_notNullable_exhaustive_enhanced() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  a;
+
+  static const b = 0;
+  static final c = 0;
+}
+
+int f(E e) {
+  switch (e) {
+    case E.a:
+      return 0;
+  }
+}
+''');
+  }
+
   test_function_nonNullable_blockBody_switchStatement_notNullable_exhaustive_parenthesis() async {
     await assertNoErrorsInCode(r'''
 enum Foo { a, b }
@@ -120,6 +174,26 @@ int f(Foo foo) {
 ''', [
       error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
       error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 12),
+    ]);
+  }
+
+  test_function_nonNullable_blockBody_switchStatement_notNullable_notExhaustive_enhanced() async {
+    await assertErrorsInCode(r'''
+enum E {
+  a, b;
+
+  static const c = 0;
+}
+
+int f(E e) {
+  switch (e) {
+    case E.a:
+      return 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 47, 1),
+      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 58, 10),
     ]);
   }
 

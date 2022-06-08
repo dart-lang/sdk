@@ -12,10 +12,11 @@
 
 namespace dart {
 
-using YieldPoints = ZoneGrowableArray<TokenPosition>;
+using Pair = std::pair<intptr_t, TokenPosition>;
+using YieldPoints = ZoneGrowableArray<Pair>;
 
-int LowestFirst(const TokenPosition* a, const TokenPosition* b) {
-  return a->Pos() - b->Pos();
+int LowestFirst(const Pair* a, const Pair* b) {
+  return a->first - b->first;
 }
 
 static YieldPoints* GetYieldPointsFromGraph(FlowGraph* flow_graph) {
@@ -24,8 +25,13 @@ static YieldPoints* GetYieldPointsFromGraph(FlowGraph* flow_graph) {
   for (auto block : blocks) {
     ForwardInstructionIterator it(block);
     while (!it.Done()) {
-      if (auto suspend_instr = it.Current()->AsSuspend()) {
-        array->Add(suspend_instr->token_pos());
+      if (auto return_instr = it.Current()->AsReturn()) {
+        if (return_instr->yield_index() !=
+            UntaggedPcDescriptors::kInvalidYieldIndex) {
+          ASSERT(return_instr->yield_index() > 0);
+          array->Add(
+              Pair(return_instr->yield_index(), return_instr->token_pos()));
+        }
       }
       it.Advance();
     }
@@ -40,7 +46,7 @@ static YieldPoints* GetYieldPointsFromCode(const Code& code) {
   PcDescriptors::Iterator it(pc_descriptor, UntaggedPcDescriptors::kOther);
   while (it.MoveNext()) {
     if (it.YieldIndex() != UntaggedPcDescriptors::kInvalidYieldIndex) {
-      array->Add(it.TokenPos());
+      array->Add(Pair(it.YieldIndex(), it.TokenPos()));
     }
   }
   array->Sort(LowestFirst);
@@ -69,7 +75,13 @@ void RunTestInMode(CompilerPass::PipelineMode mode) {
   // function for the inner closure.
   Invoke(root_library, "foo");
 
-  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  const auto& outer_function =
+      Function::Handle(GetFunction(root_library, "foo"));
+
+  // Grab the inner, lazily created, closure from the object store.
+  const auto& function = Function::Handle(
+      ClosureFunctionsCache::GetUniqueInnerClosure(outer_function));
+  RELEASE_ASSERT(function.IsFunction());
 
   // Ensure we have 3 different return instructions with yield indices attached
   // to them.
@@ -81,9 +93,12 @@ void RunTestInMode(CompilerPass::PipelineMode mode) {
   auto validate_indices = [](const YieldPoints& yield_points) {
     EXPECT_EQ(3, yield_points.length());
 
-    EXPECT_EQ(88, yield_points[0].Pos());
-    EXPECT_EQ(129, yield_points[1].Pos());
-    EXPECT_EQ(170, yield_points[2].Pos());
+    EXPECT_EQ(1, yield_points[0].first);
+    EXPECT_EQ(88, yield_points[0].second.Pos());
+    EXPECT_EQ(2, yield_points[1].first);
+    EXPECT_EQ(129, yield_points[1].second.Pos());
+    EXPECT_EQ(3, yield_points[2].first);
+    EXPECT_EQ(170, yield_points[2].second.Pos());
   };
 
   validate_indices(*GetYieldPointsFromGraph(flow_graph));

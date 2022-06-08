@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 
@@ -29,12 +30,21 @@ class NoopAnalyticsManager implements AnalyticsManager {
   void shutdown() {}
 
   @override
+  void startedGetRefactoring(EditGetRefactoringParams params) {}
+
+  @override
   void startedRequest(
       {required Request request, required DateTime startTime}) {}
 
   @override
   void startedRequestMessage(
       {required RequestMessage request, required DateTime startTime}) {}
+
+  @override
+  void startedSetAnalysisRoots(AnalysisSetAnalysisRootsParams params) {}
+
+  @override
+  void startedSetPriorityFiles(AnalysisSetPriorityFilesParams params) {}
 
   @override
   void startUp(

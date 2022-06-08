@@ -20,6 +20,36 @@ class _Reader {
   }
 }
 
+const _lateInstanceFieldPrefix = '_#';
+const _lateFinalUninitializedSuffix = '#F';
+const _lateAssignableUninitializedSuffix = '#A';
+const _lateFinalInitializedSuffix = '#FI';
+const _lateAssignableInitializedSuffix = '#AI';
+
+bool _hasFinalSuffix(String name) {
+  return name.endsWith(_lateFinalUninitializedSuffix) ||
+      name.endsWith(_lateFinalInitializedSuffix);
+}
+
+bool _hasAssignableSuffix(String name) {
+  return name.endsWith(_lateAssignableUninitializedSuffix) ||
+      name.endsWith(_lateAssignableInitializedSuffix);
+}
+
+bool isBackingFieldForLateInstanceField(Field field) {
+  assert(!field.isStatic);
+  if (!field.isInternalImplementation) return false;
+  final name = field.name.text;
+  return name.startsWith(_lateInstanceFieldPrefix) &&
+      (_hasFinalSuffix(name) || _hasAssignableSuffix(name));
+}
+
+bool isBackingFieldForLateFinalInstanceField(Field field) {
+  if (!field.isInternalImplementation) return false;
+  final name = field.name.text;
+  return name.startsWith(_lateInstanceFieldPrefix) && _hasFinalSuffix(name);
+}
+
 class LateLowering {
   final CoreTypes _coreTypes;
 
@@ -74,8 +104,18 @@ class LateLowering {
 
   Name _mangleFieldName(Field field) {
     assert(_shouldLowerInstanceField(field));
+    final prefix = _lateInstanceFieldPrefix;
+    final suffix = field.initializer == null
+        ? field.isFinal
+            ? _lateFinalUninitializedSuffix
+            : _lateAssignableUninitializedSuffix
+        : field.isFinal
+            ? _lateFinalInitializedSuffix
+            : _lateAssignableInitializedSuffix;
+
     Class cls = field.enclosingClass!;
-    return Name('_#${cls.name}#${field.name.text}', field.enclosingLibrary);
+    return Name(
+        '$prefix${cls.name}#${field.name.text}$suffix', field.enclosingLibrary);
   }
 
   ConstructorInvocation _callCellConstructor(Expression name, int fileOffset) =>

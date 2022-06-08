@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.10
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -15,8 +13,8 @@ import 'common/test_helper.dart';
 // Regression test for https://github.com/dart-lang/sdk/issues/45933.
 
 void main() {
-  Process process;
-  DartDevelopmentService dds;
+  Process? process;
+  DartDevelopmentService? dds;
 
   setUp(() async {
     // We don't care what's actually running in the target process for this
@@ -35,7 +33,7 @@ void main() {
     process = null;
   });
 
-  defineTest({bool authCodesEnabled}) {
+  defineTest({required bool authCodesEnabled}) {
     test(
         'Ensure Observatory and DevTools assets are available with '
         '${authCodesEnabled ? '' : 'no'} auth codes', () async {
@@ -46,12 +44,12 @@ void main() {
           customBuildDirectoryPath: devtoolsAppUri(prefix: '../../../'),
         ),
       );
-      expect(dds.isRunning, true);
+      expect(dds!.isRunning, true);
 
       final client = HttpClient();
 
       // Check that Observatory assets are accessible.
-      final observatoryRequest = await client.getUrl(dds.uri);
+      final observatoryRequest = await client.getUrl(dds!.uri!);
       final observatoryResponse = await observatoryRequest.close();
       expect(observatoryResponse.statusCode, 200);
       final observatoryContent =
@@ -59,7 +57,7 @@ void main() {
       expect(observatoryContent, startsWith('<!DOCTYPE html>'));
 
       // Check that DevTools assets are accessible.
-      final devtoolsRequest = await client.getUrl(dds.devToolsUri);
+      final devtoolsRequest = await client.getUrl(dds!.devToolsUri!);
       final devtoolsResponse = await devtoolsRequest.close();
       expect(devtoolsResponse.statusCode, 200);
       final devtoolsContent =

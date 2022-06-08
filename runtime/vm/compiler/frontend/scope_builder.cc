@@ -1186,6 +1186,7 @@ void ScopeBuilder::VisitStatement() {
     case kSwitchStatement: {
       AddSwitchVariable();
       helper_.ReadPosition();                     // read position.
+      helper_.ReadBool();                         // read exhaustive flag.
       VisitExpression();                          // read condition.
       int case_count = helper_.ReadListLength();  // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {

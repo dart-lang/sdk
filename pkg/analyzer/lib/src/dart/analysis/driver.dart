@@ -1355,7 +1355,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           analysisOptions as AnalysisOptionsImpl,
           declaredVariables,
           sourceFactory,
-          libraryContext.elementFactory.libraryOfUri2(library.file.uriStr),
+          libraryContext.elementFactory.libraryOfUri2(library.file.uri),
           libraryContext.elementFactory.analysisSession.inheritanceManager,
           library,
           testingData: testingData,
@@ -1419,7 +1419,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               analysisOptions as AnalysisOptionsImpl,
               declaredVariables,
               sourceFactory,
-              libraryContext.elementFactory.libraryOfUri2(library.file.uriStr),
+              libraryContext.elementFactory.libraryOfUri2(library.file.uri),
               libraryContext.elementFactory.analysisSession.inheritanceManager,
               library,
               testingData: testingData)
@@ -1697,7 +1697,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     _libraryContext?.elementFactory.removeLibraries(
-      affected.map((e) => e.uriStr).toSet(),
+      affected.map((e) => e.uri).toSet(),
     );
 
     _libraryContext?.elementFactory.replaceAnalysisSession(
@@ -1770,7 +1770,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       analysisOptions as AnalysisOptionsImpl,
       declaredVariables,
       sourceFactory,
-      libraryContext.elementFactory.libraryOfUri2(library.file.uriStr),
+      libraryContext.elementFactory.libraryOfUri2(library.file.uri),
       libraryContext.elementFactory.analysisSession.inheritanceManager,
       library,
       testingData: testingData,

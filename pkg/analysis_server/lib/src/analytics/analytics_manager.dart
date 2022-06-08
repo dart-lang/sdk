@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analytics/google_analytics_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:telemetry/telemetry.dart';
@@ -38,6 +39,9 @@ abstract class AnalyticsManager {
   /// The server is shutting down. Report any accumulated analytics data.
   void shutdown();
 
+  /// Record data from the given [params].
+  void startedGetRefactoring(EditGetRefactoringParams params);
+
   /// Record that the server started working on the give [request] at the given
   /// [startTime].
   void startedRequest({required Request request, required DateTime startTime});
@@ -46,6 +50,12 @@ abstract class AnalyticsManager {
   /// [startTime].
   void startedRequestMessage(
       {required RequestMessage request, required DateTime startTime});
+
+  /// Record data from the given [params].
+  void startedSetAnalysisRoots(AnalysisSetAnalysisRootsParams params);
+
+  /// Record data from the given [params].
+  void startedSetPriorityFiles(AnalysisSetPriorityFilesParams params);
 
   /// Record that the server was started at the given [time], that it was passed
   /// the given command-line [arguments], that it was started by the client with

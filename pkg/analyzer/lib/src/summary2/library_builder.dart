@@ -48,12 +48,13 @@ class LibraryBuilder {
   final List<ImplicitEnumNodes> implicitEnumNodes = [];
 
   /// Local declarations.
-  final Scope localScope = Scope.top();
+  final Scope localScope = Scope();
 
   /// The export scope of the library.
-  final Scope exportScope = Scope.top();
+  final Scope exportScope = Scope();
 
-  final List<Export> exporters = [];
+  /// The `export` directives that export this library.
+  final List<Export> exports = [];
 
   late final LibraryMacroApplier? _macroApplier = () {
     if (!element.featureSet.isEnabled(Feature.macros)) {
@@ -87,7 +88,7 @@ class LibraryBuilder {
   void addExporters() {
     for (var element in element.exports) {
       var exportedLibrary = element.exportedLibrary;
-      if (exportedLibrary == null) {
+      if (exportedLibrary is! LibraryElementImpl) {
         continue;
       }
 
@@ -104,20 +105,17 @@ class LibraryBuilder {
       var exportedUri = exportedLibrary.source.uri;
       var exportedBuilder = linker.builders[exportedUri];
 
-      var export = Export(this, exportedBuilder, combinators);
+      var export = Export(this, combinators);
       if (exportedBuilder != null) {
-        exportedBuilder.exporters.add(export);
+        exportedBuilder.exports.add(export);
       } else {
-        var exported = linker.elementFactory.libraryOfUri('$exportedUri');
-        if (exported != null) {
-          var exportedReferences = exported.exportedReferences;
-          for (var reference in exportedReferences) {
-            var name = reference.name;
-            if (reference.isSetter) {
-              export.addToExportScope('$name=', reference);
-            } else {
-              export.addToExportScope(name, reference);
-            }
+        final exportedReferences = exportedLibrary.exportedReferences;
+        for (final reference in exportedReferences) {
+          final name = reference.name;
+          if (reference.isSetter) {
+            export.addToExportScope('$name=', reference);
+          } else {
+            export.addToExportScope(name, reference);
           }
         }
       }

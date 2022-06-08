@@ -31,7 +31,7 @@ void testProperties() {
   Expect.equals(cfe.message, "Error.");
   Expect.equals(cfe.line, 4);
   Expect.equals(cfe.column, 5);
-  Expect.isNull(cfe.length);
+  Expect.equals(cfe.length, 0);
   Expect.isTrue(cfe.isSpecified);
   Expect.isTrue(cfe.sourceLines.isEmpty);
 
@@ -222,6 +222,69 @@ void testValidate() {
     makeError(line: 1, column: 2, length: 3, webError: "Web 2."),
     makeError(line: 1, column: 3, length: 3, webError: "Web 3."),
   ], null);
+
+  // Same message.
+  expectValidate([
+    makeError(line: 1, column: 2, length: 1, cfeError: "message"),
+    makeError(line: 2, column: 3, length: 2, cfeError: "message"),
+  ], [
+    makeError(line: 1, column: 2, length: 1, cfeError: "message"),
+    makeError(line: 2, column: 3, length: 2, cfeError: "message"),
+    makeError(line: 3, column: 3, length: 3, cfeError: "message"),
+  ], '- Unexpected error at line 3, column 3, length 3: message');
+
+  // Same location.
+  expectValidate([
+    makeError(line: 1, column: 2, length: 1, cfeError: "message 1"),
+    makeError(line: 1, column: 2, length: 1, cfeError: "message 2"),
+  ], [
+    makeError(line: 1, column: 2, length: 1, cfeError: "wrong 1"),
+    makeError(line: 1, column: 2, length: 1, cfeError: "wrong 2"),
+    makeError(line: 1, column: 2, length: 1, cfeError: "wrong 3"),
+  ], '''
+- Wrong message at line 1, column 2, length 1: wrong 1
+  Expected: message 1
+
+- Wrong message at line 1, column 2, length 1: wrong 2
+  Expected: message 2
+
+- Unexpected error at line 1, column 2, length 1: wrong 3''');
+
+  // Prefer match over wrong message.
+  expectValidate([
+    makeError(line: 10, column: 1, length: 1, cfeError: "match"),
+    makeError(line: 10, column: 1, length: 1, cfeError: "a wrong message"),
+  ], [
+    makeError(line: 1, column: 1, length: 1, cfeError: /* not a */ "match"),
+    makeError(line: 10, column: 1, length: 1, cfeError: "match"),
+  ], '''
+- Missing expected error at line 10, column 1, length 1: a wrong message
+
+- Unexpected error at line 1, column 1, length 1: match''');
+
+  // Combined.
+  expectValidate([
+    makeError(line: 10, column: 1, length: 1, cfeError: "match"),
+    makeError(line: 20, column: 2, length: 2, cfeError: "missing"),
+    makeError(line: 20, column: 2, length: 2, cfeError: "message"),
+    makeError(line: 30, column: 3, length: 3, cfeError: "wrong location"),
+    makeError(line: 40, column: 4, length: 4, cfeError: "match"),
+  ], [
+    makeError(line: 1, column: 2, length: 1, cfeError: "unexpected"),
+    makeError(line: 10, column: 3, length: 3, cfeError: "wrong location"),
+    makeError(line: 20, column: 2, length: 2, cfeError: "wrong message"),
+    makeError(line: 10, column: 1, length: 1, cfeError: "match"),
+    makeError(line: 40, column: 4, length: 4, cfeError: "match"),
+  ], '''
+- Wrong error location line 30, column 3, length 3: wrong location
+  Expected line 30 but was line 10.
+
+- Wrong message at line 20, column 2, length 2: wrong message
+  Expected: message
+
+- Missing expected error at line 20, column 2, length 2: missing
+
+- Unexpected error at line 1, column 2, length 1: unexpected''');
 
   // If expectation has context, actual must match it.
   expectValidate([

@@ -25,7 +25,14 @@ enum E {
 }
 ''');
 
-    assertType(findNode.listLiteral('[]'), 'List<int>');
+    final node = findNode.listLiteral('[]');
+    assertResolvedNodeText(node, r'''
+ListLiteral
+  leftBracket: [
+  rightBracket: ]
+  parameter: self::@enum::E::@constructor::•::@parameter::a
+  staticType: List<int>
+''');
   }
 
   test_constructor_argumentList_namedType() async {
@@ -36,16 +43,37 @@ enum E {
 }
 ''');
 
-    assertNamedType(
-      findNode.namedType('double'),
-      doubleElement,
-      'double',
-    );
-
-    assertType(
-      findNode.genericFunctionType('void Function'),
-      'void Function(double)',
-    );
+    final node = findNode.genericFunctionType('Function');
+    assertResolvedNodeText(node, r'''
+GenericFunctionType
+  returnType: NamedType
+    name: SimpleIdentifier
+      token: void
+      staticElement: <null>
+      staticType: null
+    type: void
+  functionKeyword: Function
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: SimpleIdentifier
+          token: double
+          staticElement: dart:core::@class::double
+          staticType: null
+        type: double
+      declaredElement: @-1
+      declaredElementType: double
+    rightParenthesis: )
+  declaredElement: GenericFunctionTypeElement
+    parameters
+      <empty>
+        kind: required positional
+        type: double
+    returnType: void
+    type: void Function(double)
+  type: void Function(double)
+''');
   }
 
   test_constructor_generic_noTypeArguments_named() async {
@@ -56,22 +84,35 @@ enum E<T> {
 }
 ''');
 
-    assertEnumConstant(
-      findNode.enumConstantDeclaration('v'),
-      element: findElement.field('v'),
-      constructorElement: elementMatcher(
-        findElement.constructor('named'),
-        substitution: {'T': 'int'},
-      ),
-    );
-
-    assertParameterElement(
-      findNode.integerLiteral('42'),
-      elementMatcher(
-        findElement.parameter('a'),
-        substitution: {'T': 'int'},
-      ),
-    );
+    final node = findNode.enumConstantDeclaration('v.');
+    assertResolvedNodeText(node, r'''
+EnumConstantDeclaration
+  name: SimpleIdentifier
+    token: v
+    staticElement: self::@enum::E::@field::v
+    staticType: null
+  arguments: EnumConstantArguments
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
+        token: named
+        staticElement: <null>
+        staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 42
+          parameter: ParameterMember
+            base: self::@enum::E::@constructor::named::@parameter::a
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+  constructorElement: ConstructorMember
+    base: self::@enum::E::@constructor::named
+    substitution: {T: int}
+  declaredElement: self::@enum::E::@field::v
+''');
   }
 
   test_constructor_generic_noTypeArguments_unnamed() async {
@@ -82,22 +123,29 @@ enum E<T> {
 }
 ''');
 
-    assertEnumConstant(
-      findNode.enumConstantDeclaration('v'),
-      element: findElement.field('v'),
-      constructorElement: elementMatcher(
-        findElement.enum_('E').unnamedConstructor,
-        substitution: {'T': 'int'},
-      ),
-    );
-
-    assertParameterElement(
-      findNode.integerLiteral('42'),
-      elementMatcher(
-        findElement.parameter('a'),
-        substitution: {'T': 'int'},
-      ),
-    );
+    final node = findNode.enumConstantDeclaration('v(');
+    assertResolvedNodeText(node, r'''
+EnumConstantDeclaration
+  name: SimpleIdentifier
+    token: v
+    staticElement: self::@enum::E::@field::v
+    staticType: null
+  arguments: EnumConstantArguments
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 42
+          parameter: ParameterMember
+            base: self::@enum::E::@constructor::•::@parameter::a
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+  constructorElement: ConstructorMember
+    base: self::@enum::E::@constructor::•
+    substitution: {T: int}
+  declaredElement: self::@enum::E::@field::v
+''');
   }
 
   test_constructor_generic_typeArguments_named() async {
@@ -108,28 +156,45 @@ enum E<T> {
 }
 ''');
 
-    assertEnumConstant(
-      findNode.enumConstantDeclaration('v'),
-      element: findElement.field('v'),
-      constructorElement: elementMatcher(
-        findElement.constructor('named'),
-        substitution: {'T': 'double'},
-      ),
-    );
-
-    assertNamedType(
-      findNode.namedType('double'),
-      doubleElement,
-      'double',
-    );
-
-    assertParameterElement(
-      findNode.integerLiteral('42'),
-      elementMatcher(
-        findElement.parameter('a'),
-        substitution: {'T': 'double'},
-      ),
-    );
+    final node = findNode.enumConstantDeclaration('v<');
+    assertResolvedNodeText(node, r'''
+EnumConstantDeclaration
+  name: SimpleIdentifier
+    token: v
+    staticElement: self::@enum::E::@field::v
+    staticType: null
+  arguments: EnumConstantArguments
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: double
+            staticElement: dart:core::@class::double
+            staticType: null
+          type: double
+      rightBracket: >
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
+        token: named
+        staticElement: <null>
+        staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 42
+          parameter: ParameterMember
+            base: self::@enum::E::@constructor::named::@parameter::a
+            substitution: {T: double}
+          staticType: double
+      rightParenthesis: )
+  constructorElement: ConstructorMember
+    base: self::@enum::E::@constructor::named
+    substitution: {T: double}
+  declaredElement: self::@enum::E::@field::v
+''');
   }
 
   test_constructor_notGeneric_named() async {
@@ -140,16 +205,31 @@ enum E {
 }
 ''');
 
-    assertEnumConstant(
-      findNode.enumConstantDeclaration('v'),
-      element: findElement.field('v'),
-      constructorElement: findElement.constructor('named'),
-    );
-
-    assertParameterElement(
-      findNode.integerLiteral('42'),
-      findElement.parameter('a'),
-    );
+    final node = findNode.enumConstantDeclaration('v.');
+    assertResolvedNodeText(node, r'''
+EnumConstantDeclaration
+  name: SimpleIdentifier
+    token: v
+    staticElement: self::@enum::E::@field::v
+    staticType: null
+  arguments: EnumConstantArguments
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
+        token: named
+        staticElement: <null>
+        staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 42
+          parameter: self::@enum::E::@constructor::named::@parameter::a
+          staticType: int
+      rightParenthesis: )
+  constructorElement: self::@enum::E::@constructor::named
+  declaredElement: self::@enum::E::@field::v
+''');
   }
 
   test_constructor_notGeneric_unnamed() async {
@@ -160,16 +240,25 @@ enum E {
 }
 ''');
 
-    assertEnumConstant(
-      findNode.enumConstantDeclaration('v'),
-      element: findElement.field('v'),
-      constructorElement: findElement.enum_('E').unnamedConstructor,
-    );
-
-    assertParameterElement(
-      findNode.integerLiteral('42'),
-      findElement.parameter('a'),
-    );
+    final node = findNode.enumConstantDeclaration('v(');
+    assertResolvedNodeText(node, r'''
+EnumConstantDeclaration
+  name: SimpleIdentifier
+    token: v
+    staticElement: self::@enum::E::@field::v
+    staticType: null
+  arguments: EnumConstantArguments
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 42
+          parameter: self::@enum::E::@constructor::•::@parameter::a
+          staticType: int
+      rightParenthesis: )
+  constructorElement: self::@enum::E::@constructor::•
+  declaredElement: self::@enum::E::@field::v
+''');
   }
 
   test_constructor_notGeneric_unnamed_implicit() async {
@@ -179,11 +268,16 @@ enum E {
 }
 ''');
 
-    assertEnumConstant(
-      findNode.enumConstantDeclaration('v'),
-      element: findElement.field('v'),
-      constructorElement: findElement.enum_('E').unnamedConstructor,
-    );
+    final node = findNode.enumConstantDeclaration('v\n');
+    assertResolvedNodeText(node, r'''
+EnumConstantDeclaration
+  name: SimpleIdentifier
+    token: v
+    staticElement: self::@enum::E::@field::v
+    staticType: null
+  constructorElement: self::@enum::E::@constructor::•
+  declaredElement: self::@enum::E::@field::v
+''');
   }
 
   test_constructor_unresolved_named() async {
@@ -196,13 +290,31 @@ enum E {
       error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED, 13, 5),
     ]);
 
-    assertEnumConstant(
-      findNode.enumConstantDeclaration('v'),
-      element: findElement.field('v'),
-      constructorElement: null,
-    );
-
-    assertParameterElement(findNode.integerLiteral('42'), null);
+    final node = findNode.enumConstantDeclaration('v.');
+    assertResolvedNodeText(node, r'''
+EnumConstantDeclaration
+  name: SimpleIdentifier
+    token: v
+    staticElement: self::@enum::E::@field::v
+    staticType: null
+  arguments: EnumConstantArguments
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
+        token: named
+        staticElement: <null>
+        staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 42
+          parameter: <null>
+          staticType: null
+      rightParenthesis: )
+  constructorElement: <null>
+  declaredElement: self::@enum::E::@field::v
+''');
   }
 
   test_constructor_unresolved_unnamed() async {
@@ -215,13 +327,25 @@ enum E {
       error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED, 11, 1),
     ]);
 
-    assertEnumConstant(
-      findNode.enumConstantDeclaration('v'),
-      element: findElement.field('v'),
-      constructorElement: null,
-    );
-
-    assertParameterElement(findNode.integerLiteral('42'), null);
+    final node = findNode.enumConstantDeclaration('v(');
+    assertResolvedNodeText(node, r'''
+EnumConstantDeclaration
+  name: SimpleIdentifier
+    token: v
+    staticElement: self::@enum::E::@field::v
+    staticType: null
+  arguments: EnumConstantArguments
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 42
+          parameter: <null>
+          staticType: null
+      rightParenthesis: )
+  constructorElement: <null>
+  declaredElement: self::@enum::E::@field::v
+''');
   }
 
   test_field() async {

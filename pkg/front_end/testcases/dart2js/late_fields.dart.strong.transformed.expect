@@ -5,39 +5,39 @@ import "dart:_late_helper" as _la;
 import "dart:_internal" as _in;
 
 class C extends core::Object {
-  field core::int _#C#a = _in::createSentinel<core::int>();
-  field core::int _#C#b = _in::createSentinel<core::int>();
-  field core::int _#C#c = _in::createSentinel<core::int>();
-  field core::int _#C#d = _in::createSentinel<core::int>();
+  field core::int _#C#a#A = _in::createSentinel<core::int>();
+  field core::int _#C#b#F = _in::createSentinel<core::int>();
+  field core::int _#C#c#AI = _in::createSentinel<core::int>();
+  field core::int _#C#d#FI = _in::createSentinel<core::int>();
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   static method _#new#tearOff() → self::C
     return new self::C::•();
   get a() → core::int
-    return _la::_lateReadCheck<core::int>(this.{self::C::_#C#a}{core::int}, "a");
+    return _la::_lateReadCheck<core::int>(this.{self::C::_#C#a#A}{core::int}, "a");
   set a(core::int value) → void
-    this.{self::C::_#C#a} = value;
+    this.{self::C::_#C#a#A} = value;
   get b() → core::int
-    return _la::_lateReadCheck<core::int>(this.{self::C::_#C#b}{core::int}, "b");
+    return _la::_lateReadCheck<core::int>(this.{self::C::_#C#b#F}{core::int}, "b");
   set b(core::int value) → void {
-    _la::_lateWriteOnceCheck(this.{self::C::_#C#b}{core::int}, "b");
-    this.{self::C::_#C#b} = value;
+    _la::_lateWriteOnceCheck(this.{self::C::_#C#b#F}{core::int}, "b");
+    this.{self::C::_#C#b#F} = value;
   }
   get c() → core::int {
-    core::int value = this.{self::C::_#C#c}{core::int};
+    core::int value = this.{self::C::_#C#c#AI}{core::int};
     if(_in::isSentinel(value))
-      value = this.{self::C::_#C#c} = 1.{core::int::unary-}(){() → core::int};
+      value = this.{self::C::_#C#c#AI} = 1.{core::int::unary-}(){() → core::int};
     return value;
   }
   set c(core::int value) → void
-    this.{self::C::_#C#c} = value;
+    this.{self::C::_#C#c#AI} = value;
   get d() → core::int {
-    core::int value = this.{self::C::_#C#d}{core::int};
+    core::int value = this.{self::C::_#C#d#FI}{core::int};
     if(_in::isSentinel(value)) {
       final core::int result = 1.{core::int::unary-}(){() → core::int};
-      _la::_lateInitializeOnceCheck(this.{self::C::_#C#d}{core::int}, "d");
-      value = this.{self::C::_#C#d} = result;
+      _la::_lateInitializeOnceCheck(this.{self::C::_#C#d#FI}{core::int}, "d");
+      value = this.{self::C::_#C#d#FI} = result;
     }
     return value;
   }

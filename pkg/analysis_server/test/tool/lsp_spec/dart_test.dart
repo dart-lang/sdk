@@ -4,7 +4,7 @@
 
 import 'package:test/test.dart';
 
-import '../../../tool/lsp_spec/typescript_parser.dart' as ast;
+import '../../../tool/lsp_spec/meta_model.dart' as ast;
 
 void main() {
   group('dartType mapping', () {
@@ -30,8 +30,7 @@ void main() {
 
 ast.ArrayType _array(String name) => ast.ArrayType(_simple(name));
 
-ast.Type _simple(String name) =>
-    ast.Type(ast.Token(ast.TokenType.IDENTIFIER, name), []);
+ast.TypeReference _simple(String name) => ast.TypeReference(name);
 
 ast.UnionType _union(List<String> names) =>
     ast.UnionType(names.map(_simple).toList());

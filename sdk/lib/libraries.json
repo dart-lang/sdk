@@ -168,6 +168,9 @@
           "_internal/vm/lib/symbol_patch.dart"
         ]
       },
+      "_js_helper": {
+        "uri": "_internal/wasm/lib/js_helper.dart"
+      },
       "async": {
         "uri": "async/async.dart",
         "patches": "_internal/wasm/lib/timer_patch.dart"
@@ -231,6 +234,10 @@
       },
       "isolate": {
         "uri": "isolate/isolate.dart"
+      },
+      "js_util": {
+        "uri": "js_util/js_util.dart",
+        "patches": "_internal/wasm/lib/js_util_patch.dart"
       },
       "js_util_wasm": {
         "uri": "js_util/js_util_wasm.dart",

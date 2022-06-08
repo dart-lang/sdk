@@ -58,32 +58,20 @@ class ValueInterner {
 /// Data class representing cache information for a given [T] which can be
 /// passed from a [DataSourceReader] to other [DataSourceReader]s and [DataSinkWriter]s.
 class DataSourceTypeIndices<E, T> {
-  /// Reshapes a [List<T>] to a [Map<E, int>] using [_getValue].
-  Map<E, int> _reshape() {
-    var cache = <E, int>{};
-    for (int i = 0; i < cacheAsList.length; i++) {
-      cache[_getValue(cacheAsList[i])] = i;
-    }
-    return cache;
-  }
+  Map<E, int> get cache => _cache ??= source.reshape(_getValue);
 
-  Map<E, int> get cache {
-    return _cache ??= _reshape();
-  }
-
-  final List<T> cacheAsList;
-  E Function(T value) _getValue;
+  final E Function(T value) _getValue;
   Map<E, int> _cache;
+  final IndexedSource<T> source;
 
   /// Though [DataSourceTypeIndices] supports two types of caches. If the
-  /// exported indices are imported into a [DataSourceReader] then the [cacheAsList]
+  /// exported indices are imported into a [DataSourceReader] then the [cacheAsMap]
   /// will be used as is. If, however, the exported indices are imported into a
   /// [DataSinkWriter] then we need to reshape the [List<T>] into a [Map<E, int>]
   /// where [E] is either [T] or some value which can be derived from [T] by
   /// [_getValue].
-  DataSourceTypeIndices(this.cacheAsList, [this._getValue]) {
+  DataSourceTypeIndices(this.source, [this._getValue]) {
     assert(_getValue != null || T == E);
-    _getValue ??= (T t) => t as E;
   }
 }
 

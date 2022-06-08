@@ -9891,10 +9891,25 @@ class SwitchStatement extends Statement {
   Expression expression;
   final List<SwitchCase> cases;
 
-  SwitchStatement(this.expression, this.cases) {
+  /// For enum switches, whether all enum values are covered by a switch case.
+  /// Initialized during type inference.
+  bool isExplicitlyExhaustive;
+
+  SwitchStatement(this.expression, this.cases,
+      {this.isExplicitlyExhaustive = false}) {
     expression.parent = this;
     setParents(cases, this);
   }
+
+  /// Whether the switch has a `default` case.
+  bool get hasDefault {
+    assert(cases.every((c) => c == cases.last || !c.isDefault));
+    return cases.isNotEmpty && cases.last.isDefault;
+  }
+
+  /// Whether the switch is guaranteed to hit one of the cases (including the
+  /// default case, if present).
+  bool get isExhaustive => isExplicitlyExhaustive || hasDefault;
 
   @override
   R accept<R>(StatementVisitor<R> v) => v.visitSwitchStatement(this);

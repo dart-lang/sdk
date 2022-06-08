@@ -1672,11 +1672,18 @@ ObjectPtr Scavenger::FindObject(FindObjectVisitor* visitor) {
   return Object::null();
 }
 
-void Scavenger::TryAllocateNewTLAB(Thread* thread, intptr_t min_size) {
+void Scavenger::TryAllocateNewTLAB(Thread* thread,
+                                   intptr_t min_size,
+                                   bool can_safepoint) {
   ASSERT(heap_ != Dart::vm_isolate_group()->heap());
   ASSERT(!scavenging_);
 
   AbandonRemainingTLAB(thread);
+
+  if (can_safepoint) {
+    ASSERT(thread->no_safepoint_scope_depth() == 0);
+    heap_->CheckConcurrentMarking(thread, GCReason::kNewSpace);
+  }
 
   MutexLocker ml(&space_lock_);
   for (NewPage* page = to_->head(); page != nullptr; page = page->next()) {

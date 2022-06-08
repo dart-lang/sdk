@@ -283,7 +283,15 @@ class Scavenger {
     if (LIKELY(addr != 0)) {
       return addr;
     }
-    TryAllocateNewTLAB(thread, size);
+    TryAllocateNewTLAB(thread, size, true);
+    return TryAllocateFromTLAB(thread, size);
+  }
+  uword TryAllocateNoSafepoint(Thread* thread, intptr_t size) {
+    uword addr = TryAllocateFromTLAB(thread, size);
+    if (LIKELY(addr != 0)) {
+      return addr;
+    }
+    TryAllocateNewTLAB(thread, size, false);
     return TryAllocateFromTLAB(thread, size);
   }
   void AbandonRemainingTLAB(Thread* thread);
@@ -393,7 +401,7 @@ class Scavenger {
     thread->set_top(result + size);
     return result;
   }
-  void TryAllocateNewTLAB(Thread* thread, intptr_t size);
+  void TryAllocateNewTLAB(Thread* thread, intptr_t size, bool can_safepoint);
 
   SemiSpace* Prologue(GCReason reason);
   intptr_t ParallelScavenge(SemiSpace* from);

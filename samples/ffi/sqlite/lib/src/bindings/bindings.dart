@@ -34,6 +34,10 @@ class _SQLiteBindings {
       Pointer<Utf8> vfs) sqlite3_open_v2;
 
   late int Function(Pointer<Database> database) sqlite3_close_v2;
+  late Pointer<NativeFunction<sqlite3_close_v2_native_t>>
+      sqlite3_close_v2_native;
+  late Pointer<NativeFunction<Void Function(Pointer<Database> database)>>
+      sqlite3_close_v2_native_return_void;
 
   /// Compiling An SQL Statement
   ///
@@ -214,6 +218,10 @@ class _SQLiteBindings {
   /// statement after it has been finalized can result in undefined and
   /// undesirable behavior such as segfaults and heap corruption.
   late int Function(Pointer<Statement> statement) sqlite3_finalize;
+  late Pointer<NativeFunction<sqlite3_finalize_native_t>>
+      sqlite3_finalize_native;
+  late Pointer<NativeFunction<Void Function(Pointer<Statement> statement)>>
+      sqlite3_finalize_native_return_void;
 
   /// Number Of Columns In A Result Set
   ///
@@ -336,9 +344,10 @@ class _SQLiteBindings {
     sqlite3_open_v2 = sqlite
         .lookup<NativeFunction<sqlite3_open_v2_native_t>>("sqlite3_open_v2")
         .asFunction();
-    sqlite3_close_v2 = sqlite
-        .lookup<NativeFunction<sqlite3_close_v2_native_t>>("sqlite3_close_v2")
-        .asFunction();
+    sqlite3_close_v2_native = sqlite
+        .lookup<NativeFunction<sqlite3_close_v2_native_t>>("sqlite3_close_v2");
+    sqlite3_close_v2_native_return_void = sqlite3_close_v2_native.cast();
+    sqlite3_close_v2 = sqlite3_close_v2_native.asFunction();
     sqlite3_prepare_v2 = sqlite
         .lookup<NativeFunction<sqlite3_prepare_v2_native_t>>(
             "sqlite3_prepare_v2")
@@ -349,9 +358,10 @@ class _SQLiteBindings {
     sqlite3_reset = sqlite
         .lookup<NativeFunction<sqlite3_reset_native_t>>("sqlite3_reset")
         .asFunction();
-    sqlite3_finalize = sqlite
-        .lookup<NativeFunction<sqlite3_finalize_native_t>>("sqlite3_finalize")
-        .asFunction();
+    sqlite3_finalize_native = sqlite
+        .lookup<NativeFunction<sqlite3_finalize_native_t>>("sqlite3_finalize");
+    sqlite3_finalize_native_return_void = sqlite3_finalize_native.cast();
+    sqlite3_finalize = sqlite3_finalize_native.asFunction();
     sqlite3_errstr = sqlite
         .lookup<NativeFunction<sqlite3_errstr_native_t>>("sqlite3_errstr")
         .asFunction();

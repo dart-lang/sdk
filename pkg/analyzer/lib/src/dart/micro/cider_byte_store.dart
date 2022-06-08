@@ -4,8 +4,7 @@
 
 import 'dart:typed_data';
 
-import 'package:analyzer/src/dart/analysis/cache.dart';
-import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 class CacheData {
   final int id;
@@ -23,64 +22,81 @@ class CacheData {
 /// Note that associations are not guaranteed to be persistent. The value
 /// associated with a key can change or become `null` at any point in time.
 abstract class CiderByteStore {
-  /// Return the bytes associated with the errors for given [key] and
-  /// [signature].
+  /// Return the bytes associated with the [key], and increment the reference
+  /// count.
   ///
   /// Return `null` if the association does not exist.
-  CacheData? get(String key, Uint8List signature);
+  Uint8List? get2(String key);
 
-  /// Associate the given [bytes] with the [key] and [signature]. Return the
-  /// [CacheData].
-  CacheData putGet(String key, Uint8List signature, Uint8List bytes);
+  /// Associate [bytes] with [key].
+  /// Return an internalized version of [bytes], the reference count is `1`.
+  ///
+  /// This method will throw an exception if there is already an association
+  /// for the [key]. The client should either use [get2] to access data,
+  /// or first [release2] it.
+  Uint8List putGet2(String key, Uint8List bytes);
 
-  ///  Used to decrement reference count for the given ids, if implemented.
-  void release(Iterable<int> ids);
+  ///  Decrement the reference count for every key in [keys].
+  void release2(Iterable<String> keys);
 }
 
 class CiderByteStoreTestView {
   int length = 0;
 }
 
-class CiderCachedByteStore implements CiderByteStore {
-  final Cache<String, CiderCacheEntry> _cache;
-  int idCounter = 0;
+/// [CiderByteStore] that keeps all data in local memory.
+class MemoryCiderByteStore implements CiderByteStore {
+  @visibleForTesting
+  final Map<String, MemoryCiderByteStoreEntry> map = {};
 
   /// This field gets value only during testing.
   CiderByteStoreTestView? testView;
 
-  CiderCachedByteStore(int maxCacheSize)
-      : _cache = Cache<String, CiderCacheEntry>(
-            maxCacheSize, (v) => v.data.bytes.length);
-
   @override
-  CacheData? get(String key, Uint8List signature) {
-    final entry = _cache.get(key);
-
-    if (entry != null &&
-        const ListEquality<int>().equals(entry.signature, signature)) {
-      return entry.data;
+  Uint8List? get2(String key) {
+    final entry = map[key];
+    if (entry == null) {
+      return null;
     }
-    return null;
+
+    entry.refCount++;
+    return entry.bytes;
   }
 
   @override
-  CacheData putGet(String key, Uint8List signature, Uint8List bytes) {
-    idCounter++;
-    var entry = CiderCacheEntry(signature, CacheData(idCounter, bytes));
-    _cache.put(key, entry);
+  Uint8List putGet2(String key, Uint8List bytes) {
+    if (map.containsKey(key)) {
+      throw StateError('Overwriting is not allowed: $key');
+    }
+
     testView?.length++;
-    return entry.data;
+    map[key] = MemoryCiderByteStoreEntry._(bytes);
+    return bytes;
   }
 
   @override
-  void release(Iterable<int> ids) {
-    // do nothing
+  void release2(Iterable<String> keys) {
+    for (final key in keys) {
+      final entry = map[key];
+      if (entry != null) {
+        entry.refCount--;
+        if (entry.refCount == 0) {
+          map.remove(key);
+        }
+      }
+    }
   }
 }
 
-class CiderCacheEntry {
-  final CacheData data;
-  final Uint8List signature;
+@visibleForTesting
+class MemoryCiderByteStoreEntry {
+  final Uint8List bytes;
+  int refCount = 1;
 
-  CiderCacheEntry(this.signature, this.data);
+  MemoryCiderByteStoreEntry._(this.bytes);
+
+  @override
+  String toString() {
+    return '(length: ${bytes.length}, refCount: $refCount)';
+  }
 }

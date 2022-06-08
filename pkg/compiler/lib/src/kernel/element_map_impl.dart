@@ -43,6 +43,10 @@ import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../js_model/locals.dart';
 import '../kernel/dart2js_target.dart';
+import '../kernel/transformations/late_lowering.dart' as late_lowering
+    show
+        isBackingFieldForLateInstanceField,
+        isBackingFieldForLateFinalInstanceField;
 import '../native/behavior.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
@@ -778,7 +782,7 @@ class KernelToElementMap implements IrToElementMap {
   InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
     assert(checkFamily(cls));
     OrderedTypeSet orderedTypeSet = getOrderedTypeSet(type.element);
-    InterfaceType supertype =
+    InterfaceType /*?*/ supertype =
         orderedTypeSet.asInstanceOf(cls, getHierarchyDepth(cls));
     if (supertype != null) {
       supertype = substByContext(supertype, type);
@@ -1341,13 +1345,13 @@ class KernelToElementMap implements IrToElementMap {
         constructor, KConstructorDataImpl(node, functionNode));
   }
 
-  FunctionEntity getMethodInternal(ir.Procedure node) {
+  FunctionEntity getMethodInternal(ir.Procedure /*!*/ node) {
     // [_getMethodCreate] inserts the created function in [methodMap] so we
     // don't need to use ??= here.
     return methodMap[node] ?? _getMethodCreate(node);
   }
 
-  FunctionEntity _getMethodCreate(ir.Procedure node) {
+  FunctionEntity /*!*/ _getMethodCreate(ir.Procedure node) {
     assert(
         !envIsClosed,
         "Environment of $this is closed. Trying to create "
@@ -1415,12 +1419,23 @@ class KernelToElementMap implements IrToElementMap {
     }
     Name name = getName(node.name);
     bool isStatic = node.isStatic;
+    bool isLateBackingField = false;
+    bool isLateFinalBackingField = false;
+    if (enclosingClass != null && !isStatic) {
+      isLateBackingField =
+          late_lowering.isBackingFieldForLateInstanceField(node);
+      isLateFinalBackingField =
+          late_lowering.isBackingFieldForLateFinalInstanceField(node);
+    }
     IndexedField field = createField(library, enclosingClass, name,
         isStatic: isStatic,
         isAssignable: node.hasSetter,
         isConst: node.isConst);
     return members.register<IndexedField, KFieldData>(
-        field, KFieldDataImpl(node));
+        field,
+        KFieldDataImpl(node,
+            isLateBackingField: isLateBackingField,
+            isLateFinalBackingField: isLateFinalBackingField));
   }
 
   bool checkFamily(Entity entity) {
@@ -1964,6 +1979,20 @@ class KernelElementEnvironment extends ElementEnvironment
       cls = elementMap.getAppliedMixin(cls);
     } while (isMixinApplication(cls));
     return cls;
+  }
+
+  @override
+  bool isLateBackingField(covariant IndexedField field) {
+    assert(elementMap.checkFamily(field));
+    KFieldData fieldData = elementMap.members.getData(field);
+    return fieldData.isLateBackingField;
+  }
+
+  @override
+  bool isLateFinalBackingField(covariant IndexedField field) {
+    assert(elementMap.checkFamily(field));
+    KFieldData fieldData = elementMap.members.getData(field);
+    return fieldData.isLateFinalBackingField;
   }
 }
 

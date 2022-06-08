@@ -5,10 +5,11 @@
 import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:telemetry/telemetry.dart';
 
 /// An implementation of [AnalyticsManager] that's appropriate to use when
@@ -93,9 +94,19 @@ class GoogleAnalyticsManager implements AnalyticsManager {
   }
 
   @override
+  void startedGetRefactoring(EditGetRefactoringParams params) {
+    var requestData = _completedRequests.putIfAbsent(
+        EDIT_REQUEST_GET_REFACTORING,
+        () => _RequestData(EDIT_REQUEST_GET_REFACTORING));
+    requestData.addEnumValue(
+        EDIT_REQUEST_GET_REFACTORING_KIND, params.kind.name);
+  }
+
+  @override
   void startedRequest({required Request request, required DateTime startTime}) {
-    _activeRequests[request.id] = _ActiveRequestData(
-        request.method, request.clientRequestTime, startTime);
+    var method = request.method;
+    _activeRequests[request.id] =
+        _ActiveRequestData(method, request.clientRequestTime, startTime);
   }
 
   @override
@@ -103,6 +114,26 @@ class GoogleAnalyticsManager implements AnalyticsManager {
       {required RequestMessage request, required DateTime startTime}) {
     _activeRequests[request.id.asString] = _ActiveRequestData(
         request.method.toString(), request.clientRequestTime, startTime);
+  }
+
+  @override
+  void startedSetAnalysisRoots(AnalysisSetAnalysisRootsParams params) {
+    var requestData = _completedRequests.putIfAbsent(
+        ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
+        () => _RequestData(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS));
+    requestData.addValue(
+        ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED, params.included.length);
+    requestData.addValue(
+        ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_EXCLUDED, params.excluded.length);
+  }
+
+  @override
+  void startedSetPriorityFiles(AnalysisSetPriorityFilesParams params) {
+    var requestData = _completedRequests.putIfAbsent(
+        ANALYSIS_REQUEST_SET_PRIORITY_FILES,
+        () => _RequestData(ANALYSIS_REQUEST_SET_PRIORITY_FILES));
+    requestData.addValue(
+        ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES, params.files.length);
   }
 
   @override
@@ -128,12 +159,12 @@ class GoogleAnalyticsManager implements AnalyticsManager {
       return;
     }
 
-    var requestName = data.requestName;
+    var method = data.method;
     var clientRequestTime = data.clientRequestTime;
     var startTime = data.startTime.millisecondsSinceEpoch;
 
-    var requestData = _completedRequests.putIfAbsent(
-        requestName, () => _RequestData(requestName));
+    var requestData =
+        _completedRequests.putIfAbsent(method, () => _RequestData(method));
 
     if (clientRequestTime != null) {
       var latencyTime = startTime - clientRequestTime;
@@ -176,6 +207,10 @@ class GoogleAnalyticsManager implements AnalyticsManager {
         'latency': data.latencyTimes.toAnalyticsString(),
         'method': data.method,
         'duration': data.responseTimes.toAnalyticsString(),
+        for (var field in data.additionalPercentiles.entries)
+          field.key: field.value.toAnalyticsString(),
+        for (var field in data.additionalEnumCounts.entries)
+          field.key: json.encode(field.value),
       });
     }
   }
@@ -198,7 +233,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
 /// Data about a request that was received and is being handled.
 class _ActiveRequestData {
   /// The name of the request that was received.
-  final String requestName;
+  final String method;
 
   /// The time at which the client sent the request.
   final int? clientRequestTime;
@@ -207,7 +242,7 @@ class _ActiveRequestData {
   final DateTime startTime;
 
   /// Initialize a newly created data holder.
-  _ActiveRequestData(this.requestName, this.clientRequestTime, this.startTime);
+  _ActiveRequestData(this.method, this.clientRequestTime, this.startTime);
 }
 
 /// Data about the notifications that have been handled that have the same
@@ -289,9 +324,33 @@ class _RequestData {
   /// the response was sent.
   final PercentileCalculator responseTimes = PercentileCalculator();
 
+  /// A table mapping the names of fields in a request's parameters to the
+  /// percentile calculators related to the value of the parameter (such as the
+  /// length of a list).
+  final Map<String, PercentileCalculator> additionalPercentiles = {};
+
+  /// A table mapping the name of a field in a request's parameters and the name
+  /// of an enum constant to the number of times that the given constant was
+  /// used as the value of the field.
+  final Map<String, Map<String, int>> additionalEnumCounts = {};
+
   /// Initialize a newly create data holder for requests with the given
   /// [method].
   _RequestData(this.method);
+
+  /// Record the occurrence of the enum constant with the given [enumName] for
+  /// the field with the given [name].
+  void addEnumValue<E>(String name, String enumName) {
+    var counts = additionalEnumCounts.putIfAbsent(name, () => {});
+    counts[enumName] = (counts[enumName] ?? 0) + 1;
+  }
+
+  /// Record a [value] for the field with the given [name].
+  void addValue(String name, int value) {
+    additionalPercentiles
+        .putIfAbsent(name, PercentileCalculator.new)
+        .addValue(value);
+  }
 }
 
 /// Data about the current session.

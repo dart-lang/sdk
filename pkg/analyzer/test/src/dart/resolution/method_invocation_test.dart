@@ -744,18 +744,6 @@ MethodInvocation
   staticInvokeType: void Function(A, B, {C? c, D? d})
   staticType: void
 ''');
-
-    var g1 = findNode.methodInvocation('g1()');
-    assertParameterElement(g1, findElement.parameter('a'));
-
-    var g2 = findNode.methodInvocation('g2()');
-    assertParameterElement(g2, findElement.parameter('b'));
-
-    var named_g3 = findNode.namedExpression('c: g3()');
-    assertParameterElement(named_g3, findElement.parameter('c'));
-
-    var named_g4 = findNode.namedExpression('d: g4()');
-    assertParameterElement(named_g4, findElement.parameter('d'));
   }
 
   test_nullShorting_cascade_firstMethodInvocation() async {

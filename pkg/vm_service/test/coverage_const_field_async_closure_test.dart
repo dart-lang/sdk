@@ -41,7 +41,7 @@ var tests = <IsolateTest>[
     // Make sure we are in the right place.
     expect(stack.frames!.length, greaterThanOrEqualTo(1));
     // Async closure of testFunction
-    expect(stack.frames![0].function!.name, 'testFunction');
+    expect(stack.frames![0].function!.name, 'async_op');
 
     final rootLib =
         await service.getObject(isolateId, isolate.rootLib!.id!) as Library;

@@ -2724,6 +2724,7 @@ void KernelReaderHelper::SkipStatement() {
       return;
     case kSwitchStatement: {
       ReadPosition();                     // read position.
+      ReadBool();                         // read exhaustive flag.
       SkipExpression();                   // read condition.
       int case_count = ReadListLength();  // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {

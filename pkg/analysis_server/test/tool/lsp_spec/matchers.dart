@@ -5,7 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:matcher/matcher.dart';
 
-import '../../../tool/lsp_spec/typescript_parser.dart';
+import '../../../tool/lsp_spec/meta_model.dart';
 
 Matcher isArrayOf(Matcher matcher) => ArrayTypeMatcher(wrapMatcher(matcher));
 
@@ -66,7 +66,7 @@ class LiteralTypeMatcher extends Matcher {
   bool matches(item, Map matchState) {
     return item is LiteralType &&
         _typeMatcher.matches(item.type, matchState) &&
-        item.literal == _value;
+        item.valueAsLiteral == _value;
   }
 }
 
@@ -100,7 +100,7 @@ class SimpleTypeMatcher extends Matcher {
   @override
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
-    if (item is Type) {
+    if (item is TypeReference) {
       return mismatchDescription
           .add('has the name ')
           .addDescriptionOf(item.name);
@@ -111,6 +111,6 @@ class SimpleTypeMatcher extends Matcher {
 
   @override
   bool matches(item, Map matchState) {
-    return item is Type && item.name == _expectedName;
+    return item is TypeReference && item.name == _expectedName;
   }
 }

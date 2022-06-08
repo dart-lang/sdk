@@ -4760,6 +4760,7 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement(
     TokenPosition* position) {
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
+  ReadBool();  // read exhaustive flag.
 
   // We need the number of cases. So start by getting that, then go back.
   intptr_t offset = ReaderOffset();

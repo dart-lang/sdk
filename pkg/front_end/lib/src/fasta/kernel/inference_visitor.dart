@@ -6363,8 +6363,8 @@ class InferenceVisitor
         }
       }
     }
-    bool isExhaustive =
-        hasDefault || (enumFields != null && enumFields.isEmpty);
+    node.isExplicitlyExhaustive = enumFields != null && enumFields.isEmpty;
+    bool isExhaustive = node.isExplicitlyExhaustive || hasDefault;
     inferrer.flowAnalysis.switchStatement_end(isExhaustive);
     Statement? replacement;
     if (isExhaustive &&

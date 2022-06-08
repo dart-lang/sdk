@@ -376,6 +376,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
+        _writeElement('constructorElement', node.constructorElement);
         _writeElement('declaredElement', node.declaredElement);
       }
     });

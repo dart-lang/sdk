@@ -37,6 +37,7 @@ import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
 import 'interceptor_simplifier.dart';
 import 'interceptor_finalizer.dart';
+import 'late_field_optimizer.dart';
 import 'logging.dart';
 import 'nodes.dart';
 import 'types.dart';
@@ -122,6 +123,7 @@ class SsaOptimizerTask extends CompilerTask {
         loadElimination = SsaLoadElimination(closedWorld),
         SsaRedundantPhiEliminator(),
         SsaDeadPhiEliminator(),
+        SsaLateFieldOptimizer(closedWorld, log),
         // After GVN and load elimination the same value may be used in code
         // controlled by a test on the value, so redo 'conversion insertion' to
         // learn from the refined type.
@@ -1416,7 +1418,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitTypeKnown(HTypeKnown node) {
-    return node.isRedundant(_closedWorld) ? node.checkedInput : node;
+    if (node.isRedundant(_closedWorld)) return node.checkedInput;
+    return node;
   }
 
   @override

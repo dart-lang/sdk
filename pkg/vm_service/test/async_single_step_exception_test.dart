@@ -54,6 +54,10 @@ var tests = <IsolateTest>[
   smartNext,
 
   hasStoppedAtBreakpoint,
+  stoppedAtLine(22), // } (weird dispatching)
+  smartNext,
+
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_D), // await helper (weird dispatching)
   smartNext,
 

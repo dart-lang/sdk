@@ -17,7 +17,8 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart';
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
 /// A special text edit with an additional change annotation.
-///  @since 3.16.0.
+///
+/// @since 3.16.0.
 class AnnotatedTextEdit implements TextEdit, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     AnnotatedTextEdit.canParse,
@@ -43,7 +44,7 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
     );
   }
 
-  /// The actual annotation identifier.
+  /// The actual identifier of the change annotation
   final String annotationId;
 
   /// The string to be inserted. For delete operations use an empty string.
@@ -149,6 +150,7 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameters passed via a apply workspace edit request.
 class ApplyWorkspaceEditParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ApplyWorkspaceEditParams.canParse,
@@ -243,6 +245,9 @@ class ApplyWorkspaceEditParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The result returned from the apply workspace edit request.
+///
+/// @since 3.17 renamed from ApplyWorkspaceEditResponse
 class ApplyWorkspaceEditResult implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ApplyWorkspaceEditResult.canParse,
@@ -273,7 +278,7 @@ class ApplyWorkspaceEditResult implements ToJsonable {
 
   /// Depending on the client's failure handling strategy `failedChange` might
   /// contain the index of the change that failed. This property is only
-  /// available if the client signals a `failureHandling` strategy in its client
+  /// available if the client signals a `failureHandlingStrategy` in its client
   /// capabilities.
   final int? failedChange;
 
@@ -365,6 +370,168 @@ class ApplyWorkspaceEditResult implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// A base for all symbol information.
+class BaseSymbolInformation implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    BaseSymbolInformation.canParse,
+    BaseSymbolInformation.fromJson,
+  );
+
+  BaseSymbolInformation({
+    this.containerName,
+    required this.kind,
+    required this.name,
+    this.tags,
+  });
+  static BaseSymbolInformation fromJson(Map<String, Object?> json) {
+    if (SymbolInformation.canParse(json, nullLspJsonReporter)) {
+      return SymbolInformation.fromJson(json);
+    }
+    if (WorkspaceSymbol.canParse(json, nullLspJsonReporter)) {
+      return WorkspaceSymbol.fromJson(json);
+    }
+    final containerNameJson = json['containerName'];
+    final containerName = containerNameJson as String?;
+    final kindJson = json['kind'];
+    final kind = SymbolKind.fromJson(kindJson as int);
+    final nameJson = json['name'];
+    final name = nameJson as String;
+    final tagsJson = json['tags'];
+    final tags = (tagsJson as List<Object?>?)
+        ?.map((item) => SymbolTag.fromJson(item as int))
+        .toList();
+    return BaseSymbolInformation(
+      containerName: containerName,
+      kind: kind,
+      name: name,
+      tags: tags,
+    );
+  }
+
+  /// The name of the symbol containing this symbol. This information is for
+  /// user interface purposes (e.g. to render a qualifier in the user interface
+  /// if necessary). It can't be used to re-infer a hierarchy for the document
+  /// symbols.
+  final String? containerName;
+
+  /// The kind of this symbol.
+  final SymbolKind kind;
+
+  /// The name of this symbol.
+  final String name;
+
+  /// Tags for this symbol.
+  ///
+  /// @since 3.16.0
+  final List<SymbolTag>? tags;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (containerName != null) {
+      result['containerName'] = containerName;
+    }
+    result['kind'] = kind.toJson();
+    result['name'] = name;
+    if (tags != null) {
+      result['tags'] = tags?.map((item) => item.toJson()).toList();
+    }
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('containerName');
+      try {
+        final containerName = obj['containerName'];
+        if (containerName != null && containerName is! String) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('kind');
+      try {
+        if (!obj.containsKey('kind')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final kind = obj['kind'];
+        if (kind == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!SymbolKind.canParse(kind, reporter)) {
+          reporter.reportError('must be of type SymbolKind');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('name');
+      try {
+        if (!obj.containsKey('name')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final name = obj['name'];
+        if (name == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (name is! String) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('tags');
+      try {
+        final tags = obj['tags'];
+        if (tags != null &&
+            (tags is! List<Object?> ||
+                tags.any((item) => !SymbolTag.canParse(item, reporter)))) {
+          reporter.reportError('must be of type List<SymbolTag>');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type BaseSymbolInformation');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is BaseSymbolInformation &&
+        other.runtimeType == BaseSymbolInformation) {
+      return containerName == other.containerName &&
+          kind == other.kind &&
+          name == other.name &&
+          listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        containerName,
+        kind,
+        name,
+        lspHashCode(tags),
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+/// @since 3.16.0
 class CallHierarchyClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CallHierarchyClientCapabilities.canParse,
@@ -432,6 +599,9 @@ class CallHierarchyClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Represents an incoming call, e.g. a caller of a method or constructor.
+///
+/// @since 3.16.0
 class CallHierarchyIncomingCall implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CallHierarchyIncomingCall.canParse,
@@ -459,7 +629,7 @@ class CallHierarchyIncomingCall implements ToJsonable {
   final CallHierarchyItem from;
 
   /// The ranges at which the calls appear. This is relative to the caller
-  /// denoted by [`this.from`](#CallHierarchyIncomingCall.from).
+  /// denoted by `this.from`.
   final List<Range> fromRanges;
 
   @override
@@ -538,6 +708,9 @@ class CallHierarchyIncomingCall implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameter of a `callHierarchy/incomingCalls` request.
+///
+/// @since 3.16.0
 class CallHierarchyIncomingCallsParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -674,6 +847,10 @@ class CallHierarchyIncomingCallsParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Represents programming constructs like functions or constructors in the
+/// context of call hierarchy.
+///
+/// @since 3.16.0
 class CallHierarchyItem implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CallHierarchyItem.canParse,
@@ -740,8 +917,7 @@ class CallHierarchyItem implements ToJsonable {
   final Range range;
 
   /// The range that should be selected and revealed when this symbol is being
-  /// picked, e.g. the name of a function. Must be contained by the
-  /// [`range`](#CallHierarchyItem.range).
+  /// picked, e.g. the name of a function. Must be contained by the `range`.
   final Range selectionRange;
 
   /// Tags for this item.
@@ -923,6 +1099,9 @@ class CallHierarchyItem implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Call hierarchy options used during static registration.
+///
+/// @since 3.16.0
 class CallHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CallHierarchyOptions.canParse,
@@ -990,6 +1169,10 @@ class CallHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Represents an outgoing call, e.g. calling a getter from a method or a method
+/// from a constructor etc.
+///
+/// @since 3.16.0
 class CallHierarchyOutgoingCall implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CallHierarchyOutgoingCall.canParse,
@@ -1014,7 +1197,8 @@ class CallHierarchyOutgoingCall implements ToJsonable {
   }
 
   /// The range at which this item is called. This is the range relative to the
-  /// caller, e.g the item passed to `callHierarchy/outgoingCalls` request.
+  /// caller, e.g the item passed to `provideCallHierarchyOutgoingCalls` and not
+  /// `this.to`.
   final List<Range> fromRanges;
 
   /// The item that is called.
@@ -1096,6 +1280,9 @@ class CallHierarchyOutgoingCall implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameter of a `callHierarchy/outgoingCalls` request.
+///
+/// @since 3.16.0
 class CallHierarchyOutgoingCallsParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -1232,6 +1419,9 @@ class CallHierarchyOutgoingCallsParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameter of a `textDocument/prepareCallHierarchy` request.
+///
+/// @since 3.16.0
 class CallHierarchyPrepareParams
     implements TextDocumentPositionParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -1368,6 +1558,9 @@ class CallHierarchyPrepareParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Call hierarchy options used during static or dynamic registration.
+///
+/// @since 3.16.0
 class CallHierarchyRegistrationOptions
     implements
         CallHierarchyOptions,
@@ -1575,7 +1768,8 @@ class CancelParams implements ToJsonable {
 }
 
 /// Additional information that describes document changes.
-///  @since 3.16.0
+///
+/// @since 3.16.0
 class ChangeAnnotation implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ChangeAnnotation.canParse,
@@ -1695,6 +1889,7 @@ class ChangeAnnotation implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Defines the capabilities provided by the client.
 class ClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ClientCapabilities.canParse,
@@ -1750,11 +1945,13 @@ class ClientCapabilities implements ToJsonable {
   final Object? experimental;
 
   /// General client capabilities.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final GeneralClientCapabilities? general;
 
   /// Capabilities specific to the notebook document support.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final NotebookDocumentClientCapabilities? notebookDocument;
 
   /// Text document specific client capabilities.
@@ -1951,7 +2148,8 @@ class CodeAction implements ToJsonable {
 
   /// A data entry field that is preserved on a code action between a
   /// `textDocument/codeAction` and a `codeAction/resolve` request.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final Object? data;
 
   /// The diagnostics that this code action resolves.
@@ -1962,17 +2160,21 @@ class CodeAction implements ToJsonable {
   /// Clients should follow the following guidelines regarding disabled code
   /// actions:
   ///
-  /// - Disabled code actions are not shown in automatic lightbulbs code
-  ///   action menus.
+  ///   - Disabled code actions are not shown in automatic
+  /// [lightbulbs](https://code.visualstudio.com/docs/editor/editingevolved#_code-action)
+  ///     code action menus.
   ///
-  /// - Disabled actions are shown as faded out in the code action menu when
-  ///   the user request a more specific type of code action, such as
-  ///   refactorings.
+  ///   - Disabled actions are shown as faded out in the code action menu when
+  /// the user requests a more specific type
+  ///     of code action, such as refactorings.
   ///
-  /// - If the user has a keybinding that auto applies a code action and only
-  ///   a disabled code actions are returned, the client should show the user
-  ///   an error message with `reason` in the editor.
-  ///  @since 3.16.0
+  ///   - If the user has a
+  /// [keybinding](https://code.visualstudio.com/docs/editor/refactoring#_keybindings-for-code-actions)
+  ///     that auto applies a code action and only disabled code actions are
+  /// returned, the client should show the user an
+  ///     error message with `reason` in the editor.
+  ///
+  /// @since 3.16.0
   final CodeActionDisabled? disabled;
 
   /// The workspace edit this code action performs.
@@ -1984,7 +2186,8 @@ class CodeAction implements ToJsonable {
   /// A quick fix should be marked preferred if it properly addresses the
   /// underlying error. A refactoring should be marked preferred if it is the
   /// most reasonable choice of actions to take.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final bool? isPreferred;
 
   /// The kind of the code action.
@@ -2148,6 +2351,7 @@ class CodeAction implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The Client Capabilities of a CodeActionRequest.
 class CodeActionClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CodeActionClientCapabilities.canParse,
@@ -2195,19 +2399,23 @@ class CodeActionClientCapabilities implements ToJsonable {
     );
   }
 
-  /// The client supports code action literals as a valid response of the
-  /// `textDocument/codeAction` request.
-  ///  @since 3.8.0
+  /// The client support code action literals of type `CodeAction` as a valid
+  /// response of the `textDocument/codeAction` request. If the property is not
+  /// set the request can only return `Command` literals.
+  ///
+  /// @since 3.8.0
   final CodeActionClientCapabilitiesCodeActionLiteralSupport?
       codeActionLiteralSupport;
 
   /// Whether code action supports the `data` property which is preserved
   /// between a `textDocument/codeAction` and a `codeAction/resolve` request.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final bool? dataSupport;
 
   /// Whether code action supports the `disabled` property.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final bool? disabledSupport;
 
   /// Whether code action supports dynamic registration.
@@ -2217,16 +2425,19 @@ class CodeActionClientCapabilities implements ToJsonable {
   /// resource operations returned via the `CodeAction#edit` property by for
   /// example presenting the workspace edit in the user interface and asking for
   /// confirmation.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final bool? honorsChangeAnnotations;
 
   /// Whether code action supports the `isPreferred` property.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final bool? isPreferredSupport;
 
   /// Whether the client supports resolving additional code action properties
   /// via a separate `codeAction/resolve` request.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final CodeActionClientCapabilitiesResolveSupport? resolveSupport;
 
   @override
@@ -2393,7 +2604,7 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
     );
   }
 
-  /// The code action kind is supported with the following value set.
+  /// The code action kind is support with the following value set.
   final CodeActionLiteralSupportCodeActionKind codeActionKind;
 
   @override
@@ -2575,7 +2786,8 @@ class CodeActionContext implements ToJsonable {
   final List<CodeActionKind>? only;
 
   /// The reason why code actions were requested.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final CodeActionTriggerKind? triggerKind;
 
   @override
@@ -2738,7 +2950,7 @@ class CodeActionDisabled implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// A set of predefined code action kinds.
+/// A set of predefined code action kinds
 class CodeActionKind implements ToJsonable {
   const CodeActionKind(this._value);
   const CodeActionKind.fromJson(this._value);
@@ -2752,13 +2964,13 @@ class CodeActionKind implements ToJsonable {
   /// Empty kind.
   static const Empty = CodeActionKind('');
 
-  /// Base kind for quickfix actions: 'quickfix'.
+  /// Base kind for quickfix actions: 'quickfix'
   static const QuickFix = CodeActionKind('quickfix');
 
-  /// Base kind for refactoring actions: 'refactor'.
+  /// Base kind for refactoring actions: 'refactor'
   static const Refactor = CodeActionKind('refactor');
 
-  /// Base kind for refactoring extraction actions: 'refactor.extract'.
+  /// Base kind for refactoring extraction actions: 'refactor.extract'
   ///
   /// Example extract actions:
   ///
@@ -2769,7 +2981,7 @@ class CodeActionKind implements ToJsonable {
   /// - ...
   static const RefactorExtract = CodeActionKind('refactor.extract');
 
-  /// Base kind for refactoring inline actions: 'refactor.inline'.
+  /// Base kind for refactoring inline actions: 'refactor.inline'
   ///
   /// Example inline actions:
   ///
@@ -2779,7 +2991,7 @@ class CodeActionKind implements ToJsonable {
   /// - ...
   static const RefactorInline = CodeActionKind('refactor.inline');
 
-  /// Base kind for refactoring rewrite actions: 'refactor.rewrite'.
+  /// Base kind for refactoring rewrite actions: 'refactor.rewrite'
   ///
   /// Example rewrite actions:
   ///
@@ -2791,19 +3003,21 @@ class CodeActionKind implements ToJsonable {
   /// - ...
   static const RefactorRewrite = CodeActionKind('refactor.rewrite');
 
-  /// Base kind for source actions: `source`.
+  /// Base kind for source actions: `source`
   ///
   /// Source code actions apply to the entire file.
   static const Source = CodeActionKind('source');
 
-  /// Base kind for a 'fix all' source action: `source.fixAll`.
-  ///  'Fix all' actions automatically fix errors that have a clear fix that do
-  /// not require user input. They should not suppress errors or perform unsafe
+  /// Base kind for auto-fix source actions: `source.fixAll`.
+  ///
+  /// Fix all actions automatically fix errors that have a clear fix that do not
+  /// require user input. They should not suppress errors or perform unsafe
   /// fixes such as generating new types or classes.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.15.0
   static const SourceFixAll = CodeActionKind('source.fixAll');
 
-  /// Base kind for an organize imports source action: `source.organizeImports`.
+  /// Base kind for an organize imports source action: `source.organizeImports`
   static const SourceOrganizeImports = CodeActionKind('source.organizeImports');
 
   @override
@@ -2899,6 +3113,7 @@ class CodeActionLiteralSupportCodeActionKind implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Provider options for a CodeActionRequest.
 class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CodeActionOptions.canParse,
@@ -2937,7 +3152,8 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// The server provides support to resolve additional information for a code
   /// action.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final bool? resolveProvider;
   @override
   final bool? workDoneProgress;
@@ -3023,7 +3239,7 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// Params for the CodeActionRequest
+/// The parameters of a CodeActionRequest.
 class CodeActionParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -3218,6 +3434,7 @@ class CodeActionParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Registration options for a CodeActionRequest.
 class CodeActionRegistrationOptions
     implements CodeActionOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -3267,7 +3484,8 @@ class CodeActionRegistrationOptions
 
   /// The server provides support to resolve additional information for a code
   /// action.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   @override
   final bool? resolveProvider;
   @override
@@ -3382,7 +3600,8 @@ class CodeActionRegistrationOptions
 }
 
 /// The reason why code actions were requested.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class CodeActionTriggerKind implements ToJsonable {
   const CodeActionTriggerKind(this._value);
   const CodeActionTriggerKind.fromJson(this._value);
@@ -3417,7 +3636,8 @@ class CodeActionTriggerKind implements ToJsonable {
 }
 
 /// Structure to capture a description for an error code.
-///  @since 3.16.0
+///
+/// @since 3.16.0
 class CodeDescription implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CodeDescription.canParse,
@@ -3523,8 +3743,8 @@ class CodeLens implements ToJsonable {
   /// The command this code lens represents.
   final Command? command;
 
-  /// A data entry field that is preserved on a code lens item between a code
-  /// lens and a code lens resolve request.
+  /// A data entry field that is preserved on a code lens item between a
+  /// CodeLensRequest and a CodeLensResolveRequest
   final Object? data;
 
   /// The range in which this code lens is valid. Should only span a single
@@ -3603,6 +3823,7 @@ class CodeLens implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The client capabilities  of a CodeLensRequest.
 class CodeLensClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CodeLensClientCapabilities.canParse,
@@ -3667,6 +3888,7 @@ class CodeLensClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Code Lens provider options of a CodeLensRequest.
 class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CodeLensOptions.canParse,
@@ -3757,6 +3979,7 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameters of a CodeLensRequest.
 class CodeLensParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -3894,6 +4117,7 @@ class CodeLensParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Registration options for a CodeLensRequest.
 class CodeLensRegistrationOptions
     implements CodeLensOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -4022,6 +4246,7 @@ class CodeLensRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.16.0
 class CodeLensWorkspaceClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CodeLensWorkspaceClientCapabilities.canParse,
@@ -4251,6 +4476,7 @@ class Color implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Represents a color range from a document.
 class ColorInformation implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ColorInformation.canParse,
@@ -4378,9 +4604,9 @@ class ColorPresentation implements ToJsonable {
     );
   }
 
-  /// An optional array of additional text edits ([TextEdit]) that are applied
-  /// when selecting this color presentation. Edits must not overlap with the
-  /// main [edit](#ColorPresentation.textEdit) nor with themselves.
+  /// An optional array of additional text edits that are applied when selecting
+  /// this color presentation. Edits must not overlap with the main edit nor
+  /// with themselves.
   final List<TextEdit>? additionalTextEdits;
 
   /// The label of this color presentation. It will be shown on the color picker
@@ -4388,9 +4614,8 @@ class ColorPresentation implements ToJsonable {
   /// this color presentation.
   final String label;
 
-  /// An edit ([TextEdit]) which is applied to a document when selecting this
-  /// presentation for the color. When `falsy` the
-  /// [label](#ColorPresentation.label) is used.
+  /// An edit which is applied to a document when selecting this presentation
+  /// for the color.  When `falsy` the label is used.
   final TextEdit? textEdit;
 
   @override
@@ -4480,6 +4705,7 @@ class ColorPresentation implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Parameters for a ColorPresentationRequest.
 class ColorPresentationParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -4527,7 +4753,7 @@ class ColorPresentationParams
     );
   }
 
-  /// The color information to request presentations for.
+  /// The color to request presentations for.
   final Color color;
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -4674,6 +4900,10 @@ class ColorPresentationParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Represents a reference to a command. Provides a title which will be used to
+/// represent a command in the UI and, optionally,
+/// an array of arguments which will be passed to the command handler function
+/// when invoked.
 class Command implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     Command.canParse,
@@ -4799,6 +5029,7 @@ class Command implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Completion client capabilities
 class CompletionClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CompletionClientCapabilities.canParse,
@@ -4852,7 +5083,8 @@ class CompletionClientCapabilities implements ToJsonable {
   final CompletionClientCapabilitiesCompletionItemKind? completionItemKind;
 
   /// The client supports the following `CompletionList` specific capabilities.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final CompletionClientCapabilitiesCompletionList? completionList;
 
   /// The client supports to send additional context information for a
@@ -4862,9 +5094,11 @@ class CompletionClientCapabilities implements ToJsonable {
   /// Whether completion supports dynamic registration.
   final bool? dynamicRegistration;
 
-  /// The client's default when the completion item doesn't provide a
-  /// `insertTextMode` property.
-  ///  @since 3.17.0
+  /// Defines how the client handles whitespace and indentation when accepting a
+  /// completion item that uses multi line text in either `insertText` or
+  /// `textEdit`.
+  ///
+  /// @since 3.17.0
   final InsertTextMode? insertTextMode;
 
   @override
@@ -5070,24 +5304,27 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
   /// Client supports the deprecated property on a completion item.
   final bool? deprecatedSupport;
 
-  /// Client supports the follow content formats for the documentation property.
-  /// The order describes the preferred format of the client.
+  /// Client supports the following content formats for the documentation
+  /// property. The order describes the preferred format of the client.
   final List<MarkupKind>? documentationFormat;
 
-  /// Client supports insert replace edit to control different behavior if a
+  /// Client support insert replace edit to control different behavior if a
   /// completion item is inserted in the text or should replace text.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final bool? insertReplaceSupport;
 
   /// The client supports the `insertTextMode` property on a completion item to
   /// override the whitespace handling mode as defined by the client (see
   /// `insertTextMode`).
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final CompletionItemInsertTextModeSupport? insertTextModeSupport;
 
   /// The client has support for completion item label details (see also
   /// `CompletionItemLabelDetails`).
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final bool? labelDetailsSupport;
 
   /// Client supports the preselect property on a completion item.
@@ -5095,23 +5332,25 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
 
   /// Indicates which properties a client can resolve lazily on a completion
   /// item. Before version 3.16.0 only the predefined properties `documentation`
-  /// and `detail` could be resolved lazily.
-  ///  @since 3.16.0
+  /// and `details` could be resolved lazily.
+  ///
+  /// @since 3.16.0
   final CompletionItemResolveSupport? resolveSupport;
 
   /// Client supports snippets as insert text.
   ///
   /// A snippet can define tab stops and placeholders with `$1`, `$2` and
   /// `${3:foo}`. `$0` defines the final tab stop, it defaults to the end of the
-  /// snippet. Placeholders with equal identifiers are linked, that is typing in
-  /// one will update others too.
+  /// snippet. Placeholders with equal identifiers are linked,
+  /// that is typing in one will update others too.
   final bool? snippetSupport;
 
   /// Client supports the tag property on a completion item. Clients supporting
   /// tags have to handle unknown tags gracefully. Clients especially need to
   /// preserve unknown tags when sending a completion item back to the server in
   /// a resolve call.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final CompletionItemTagSupport? tagSupport;
 
   @override
@@ -5407,12 +5646,13 @@ class CompletionClientCapabilitiesCompletionList implements ToJsonable {
     );
   }
 
-  /// The client supports the the following itemDefaults on a completion list.
+  /// The client supports the following itemDefaults on a completion list.
   ///
   /// The value lists the supported property names of the
   /// `CompletionList.itemDefaults` object. If omitted no properties are
   /// supported.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final List<String>? itemDefaults;
 
   @override
@@ -5561,6 +5801,8 @@ class CompletionContext implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// A completion item represents a text snippet that is proposed to complete
+/// text that is being typed.
 class CompletionItem implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CompletionItem.canParse,
@@ -5706,11 +5948,11 @@ class CompletionItem implements ToJsonable {
   final List<String>? commitCharacters;
 
   /// A data entry field that is preserved on a completion item between a
-  /// completion and a completion resolve request.
+  /// CompletionRequest and a CompletionResolveRequest.
   final CompletionItemResolutionInfo? data;
 
   /// Indicates if this item is deprecated.
-  ///  @deprecated Use `tags` instead if supported.
+  /// @deprecated Use `tags` instead.
   final bool? deprecated;
 
   /// A human-readable string with additional information about this item, like
@@ -5721,12 +5963,11 @@ class CompletionItem implements ToJsonable {
   final Either2<MarkupContent, String>? documentation;
 
   /// A string that should be used when filtering a set of completion items.
-  /// When `falsy` the label is used as the filter text for this item.
+  /// When `falsy` the label is used.
   final String? filterText;
 
   /// A string that should be inserted into a document when selecting this
-  /// completion. When `falsy` the label is used as the insert text for this
-  /// item.
+  /// completion. When `falsy` the label is used.
   ///
   /// The `insertText` is subject to interpretation by the client side. Some
   /// tools might not take the string literally. For example VS Code when code
@@ -5745,15 +5986,14 @@ class CompletionItem implements ToJsonable {
   final InsertTextFormat? insertTextFormat;
 
   /// How whitespace and indentation is handled during completion item
-  /// insertion. If not provided the client's default value depends on the
+  /// insertion. If not provided the clients default value depends on the
   /// `textDocument.completion.insertTextMode` client capability.
-  ///  @since 3.16.0 @since 3.17.0 - support for
-  /// `textDocument.completion.insertTextMode`
+  ///
+  /// @since 3.16.0
   final InsertTextMode? insertTextMode;
 
   /// The kind of this completion item. Based of the kind an icon is chosen by
-  /// the editor. The standardized set of available values is defined in
-  /// `CompletionItemKind`.
+  /// the editor.
   final CompletionItemKind? kind;
 
   /// The label of this completion item.
@@ -5766,37 +6006,35 @@ class CompletionItem implements ToJsonable {
   final String label;
 
   /// Additional details for the label
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final CompletionItemLabelDetails? labelDetails;
 
   /// Select this item when showing.
   ///
   /// *Note* that only one completion item can be selected and that the tool /
-  /// client decides which item that is. The rule is that the *first* item of
-  /// those that match best is selected.
+  /// client decides which item that is. The rule is that the *first*
+  /// item of those that match best is selected.
   final bool? preselect;
 
   /// A string that should be used when comparing this item with other items.
-  /// When `falsy` the label is used as the sort text for this item.
+  /// When `falsy` the label is used.
   final String? sortText;
 
   /// Tags for this completion item.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final List<CompletionItemTag>? tags;
 
   /// An edit which is applied to a document when selecting this completion.
-  /// When an edit is provided the value of `insertText` is ignored.
-  ///
-  /// *Note:* The range of the edit must be a single line range and it must
-  /// contain the position at which completion has been requested.
+  /// When an edit is provided the value of insertText is ignored.
   ///
   /// Most editors support two different operations when accepting a completion
   /// item. One is to insert a completion text and the other is to replace an
   /// existing text with a completion text. Since this can usually not be
   /// predetermined by a server it can report both ranges. Clients need to
-  /// signal support for `InsertReplaceEdit`s via the
-  /// `textDocument.completion.completionItem.insertReplaceSupport` client
-  /// capability property.
+  /// signal support for `InsertReplaceEdits` via the
+  /// `textDocument.completion.insertReplaceSupport` client capability property.
   ///
   /// *Note 1:* The text edit's range as well as both ranges from an insert
   /// replace edit must be a [single line] and they must contain the position at
@@ -5804,7 +6042,8 @@ class CompletionItem implements ToJsonable {
   /// *Note 2:* If an `InsertReplaceEdit` is returned the edit's insert range
   /// must be a prefix of the edit's replace range, that means it must be
   /// contained and starting at the same position.
-  ///  @since 3.16.0 additional type `InsertReplaceEdit`
+  ///
+  /// @since 3.16.0 additional type `InsertReplaceEdit`
   final Either2<InsertReplaceEdit, TextEdit>? textEdit;
 
   /// The edit text used if the completion item is part of a CompletionList and
@@ -5815,7 +6054,8 @@ class CompletionItem implements ToJsonable {
   ///
   /// If not provided and a list's default range is provided the label property
   /// is used as a text.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final String? textEditText;
 
   @override
@@ -6386,7 +6626,8 @@ class CompletionItemKind implements ToJsonable {
 }
 
 /// Additional details for a completion item label.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class CompletionItemLabelDetails implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CompletionItemLabelDetails.canParse,
@@ -6409,13 +6650,14 @@ class CompletionItemLabelDetails implements ToJsonable {
   }
 
   /// An optional string which is rendered less prominently after {@link
-  /// CompletionItemLabelDetails.detail}. Should be used for fully qualified
-  /// names or file path.
+  /// CompletionItem.detail}. Should be used for fully qualified names and file
+  /// paths.
   final String? description;
 
   /// An optional string which is rendered less prominently directly after
-  /// {@link CompletionItem.label label}, without any spacing. Should be used
-  /// for function signatures or type annotations.
+  /// {@link CompletionItem.label label},
+  /// without any spacing. Should be used for function signatures and type
+  /// annotations.
   final String? detail;
 
   @override
@@ -6555,7 +6797,8 @@ class CompletionItemResolveSupport implements ToJsonable {
 
 /// Completion item tags are extra annotations that tweak the rendering of a
 /// completion item.
-///  @since 3.15.0
+///
+/// @since 3.15.0
 class CompletionItemTag implements ToJsonable {
   const CompletionItemTag(this._value);
   const CompletionItemTag.fromJson(this._value);
@@ -6659,8 +6902,7 @@ class CompletionItemTagSupport implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// Represents a collection of completion items ([CompletionItem]) to be
-/// presented in the editor.
+/// Represents a collection of completion items to be presented in the editor.
 class CompletionList implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CompletionList.canParse,
@@ -6691,8 +6933,8 @@ class CompletionList implements ToJsonable {
     );
   }
 
-  /// This list is not complete. Further typing should result in recomputing
-  /// this list.
+  /// This list it not complete. Further typing results in recomputing this
+  /// list.
   ///
   /// Recomputed lists have all their items replaced (not appended) in the
   /// incomplete completion sessions.
@@ -6708,7 +6950,8 @@ class CompletionList implements ToJsonable {
   ///
   /// Servers are only allowed to return default values if the client signals
   /// support for this via the `completionList.itemDefaults` capability.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final CompletionListItemDefaults? itemDefaults;
 
   /// The completion items.
@@ -6854,23 +7097,28 @@ class CompletionListItemDefaults implements ToJsonable {
   }
 
   /// A default commit character set.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final List<String>? commitCharacters;
 
   /// A default data value.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final Object? data;
 
-  /// A default edit range
-  ///  @since 3.17.0
+  /// A default edit range.
+  ///
+  /// @since 3.17.0
   final Either2<CompletionItemEditRange, Range>? editRange;
 
-  /// A default insert text format
-  ///  @since 3.17.0
+  /// A default insert text format.
+  ///
+  /// @since 3.17.0
   final InsertTextFormat? insertTextFormat;
 
-  /// A default insert text mode
-  ///  @since 3.17.0
+  /// A default insert text mode.
+  ///
+  /// @since 3.17.0
   final InsertTextMode? insertTextMode;
 
   @override
@@ -7024,16 +7272,18 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// The list of all possible characters that commit a completion. This field
   /// can be used if clients don't support individual commit characters per
-  /// completion item. See client capability
-  /// `completion.completionItem.commitCharactersSupport`.
+  /// completion item. See
+  /// `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`
   ///
   /// If a server provides both `allCommitCharacters` and commit characters on
   /// an individual completion item the ones on the completion item win.
-  ///  @since 3.2.0
+  ///
+  /// @since 3.2.0
   final List<String>? allCommitCharacters;
 
   /// The server supports the following `CompletionItem` specific capabilities.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final CompletionOptionsCompletionItem? completionItem;
 
   /// The server provides support to resolve additional information for a
@@ -7189,7 +7439,8 @@ class CompletionOptionsCompletionItem implements ToJsonable {
   /// The server has support for completion item label details (see also
   /// `CompletionItemLabelDetails`) when receiving a completion item in a
   /// resolve call.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final bool? labelDetailsSupport;
 
   @override
@@ -7236,6 +7487,7 @@ class CompletionOptionsCompletionItem implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Completion parameters
 class CompletionParams
     implements
         PartialResultParams,
@@ -7289,8 +7541,9 @@ class CompletionParams
     );
   }
 
-  /// The completion context. This is only available if the client specifies to
-  /// send this using the client capability `completion.contextSupport === true`
+  /// The completion context. This is only available it the client specifies to
+  /// send this using the client capability
+  /// `textDocument.completion.contextSupport === true`
   final CompletionContext? context;
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -7432,6 +7685,7 @@ class CompletionParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Registration options for a CompletionRequest.
 class CompletionRegistrationOptions
     implements CompletionOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -7482,17 +7736,19 @@ class CompletionRegistrationOptions
 
   /// The list of all possible characters that commit a completion. This field
   /// can be used if clients don't support individual commit characters per
-  /// completion item. See client capability
-  /// `completion.completionItem.commitCharactersSupport`.
+  /// completion item. See
+  /// `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`
   ///
   /// If a server provides both `allCommitCharacters` and commit characters on
   /// an individual completion item the ones on the completion item win.
-  ///  @since 3.2.0
+  ///
+  /// @since 3.2.0
   @override
   final List<String>? allCommitCharacters;
 
   /// The server supports the following `CompletionItem` specific capabilities.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   @override
   final CompletionOptionsCompletionItem? completionItem;
 
@@ -7688,7 +7944,7 @@ class CompletionTriggerKind implements ToJsonable {
   /// `triggerCharacters` properties of the `CompletionRegistrationOptions`.
   static const TriggerCharacter = CompletionTriggerKind._(2);
 
-  /// Completion was re-triggered as the current completion list is incomplete.
+  /// Completion was re-triggered as current completion list is incomplete
   static const TriggerForIncompleteCompletions = CompletionTriggerKind._(3);
 
   @override
@@ -7791,6 +8047,7 @@ class ConfigurationItem implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameters of a configuration request.
 class ConfigurationParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ConfigurationParams.canParse,
@@ -7865,8 +8122,8 @@ class ConfigurationParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// Create file operation
-class CreateFile implements ToJsonable {
+/// Create file operation.
+class CreateFile implements ResourceOperation, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CreateFile.canParse,
     CreateFile.fromJson,
@@ -7902,10 +8159,13 @@ class CreateFile implements ToJsonable {
   }
 
   /// An optional annotation identifier describing the operation.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
+  @override
   final String? annotationId;
 
   /// A create
+  @override
   final String kind;
 
   /// Additional options
@@ -8108,7 +8368,8 @@ class CreateFileOptions implements ToJsonable {
 
 /// The parameters sent in notifications/requests for user-initiated creation of
 /// files.
-///  @since 3.16.0
+///
+/// @since 3.16.0
 class CreateFilesParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CreateFilesParams.canParse,
@@ -8183,6 +8444,7 @@ class CreateFilesParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.14.0
 class DeclarationClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DeclarationClientCapabilities.canParse,
@@ -8645,6 +8907,7 @@ class DeclarationRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Client Capabilities for a DefinitionRequest.
 class DefinitionClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DefinitionClientCapabilities.canParse,
@@ -8670,7 +8933,8 @@ class DefinitionClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   /// The client supports additional metadata in the form of definition links.
-  ///  @since 3.14.0
+  ///
+  /// @since 3.14.0
   final bool? linkSupport;
 
   @override
@@ -8735,6 +8999,7 @@ class DefinitionClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Server Capabilities for a DefinitionRequest.
 class DefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DefinitionOptions.canParse,
@@ -8801,6 +9066,7 @@ class DefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Parameters for a DefinitionRequest.
 class DefinitionParams
     implements
         PartialResultParams,
@@ -8972,6 +9238,7 @@ class DefinitionParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Registration options for a DefinitionRequest.
 class DefinitionRegistrationOptions
     implements DefinitionOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -9078,7 +9345,7 @@ class DefinitionRegistrationOptions
 }
 
 /// Delete file operation
-class DeleteFile implements ToJsonable {
+class DeleteFile implements ResourceOperation, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DeleteFile.canParse,
     DeleteFile.fromJson,
@@ -9114,10 +9381,13 @@ class DeleteFile implements ToJsonable {
   }
 
   /// An optional annotation identifier describing the operation.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
+  @override
   final String? annotationId;
 
   /// A delete
+  @override
   final String kind;
 
   /// Delete options.
@@ -9320,7 +9590,8 @@ class DeleteFileOptions implements ToJsonable {
 
 /// The parameters sent in notifications/requests for user-initiated deletes of
 /// files.
-///  @since 3.16.0
+///
+/// @since 3.16.0
 class DeleteFilesParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DeleteFilesParams.canParse,
@@ -9395,6 +9666,8 @@ class DeleteFilesParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Represents a diagnostic, such as a compiler error or warning. Diagnostic
+/// objects are only valid in the scope of a resource.
 class Diagnostic implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     Diagnostic.canParse,
@@ -9453,23 +9726,26 @@ class Diagnostic implements ToJsonable {
     );
   }
 
-  /// The diagnostic's code, which might appear in the user interface.
+  /// The diagnostic's code, which usually appear in the user interface.
   final String? code;
 
-  /// An optional property to describe the error code.
-  ///  @since 3.16.0
+  /// An optional property to describe the error code. Requires the code field
+  /// (above) to be present/not null.
+  ///
+  /// @since 3.16.0
   final CodeDescription? codeDescription;
 
   /// A data entry field that is preserved between a
   /// `textDocument/publishDiagnostics` notification and
   /// `textDocument/codeAction` request.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final Object? data;
 
-  /// The diagnostic's message.
+  /// The diagnostic's message. It usually appears in the user interface
   final String message;
 
-  /// The range at which the message applies.
+  /// The range at which the message applies
   final Range range;
 
   /// An array of related diagnostic information, e.g. when symbol-names within
@@ -9481,11 +9757,12 @@ class Diagnostic implements ToJsonable {
   final DiagnosticSeverity? severity;
 
   /// A human-readable string describing the source of this diagnostic, e.g.
-  /// 'typescript' or 'super lint'.
+  /// 'typescript' or 'super lint'. It usually appears in the user interface.
   final String? source;
 
   /// Additional metadata about the diagnostic.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final List<DiagnosticTag>? tags;
 
   @override
@@ -9672,7 +9949,8 @@ class Diagnostic implements ToJsonable {
 }
 
 /// Client capabilities specific to diagnostic pull requests.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class DiagnosticClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DiagnosticClientCapabilities.canParse,
@@ -9767,7 +10045,8 @@ class DiagnosticClientCapabilities implements ToJsonable {
 }
 
 /// Diagnostic options.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class DiagnosticOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DiagnosticOptions.canParse,
@@ -9919,7 +10198,8 @@ class DiagnosticOptions implements WorkDoneProgressOptions, ToJsonable {
 }
 
 /// Diagnostic registration options.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class DiagnosticRegistrationOptions
     implements
         DiagnosticOptions,
@@ -10139,7 +10419,7 @@ class DiagnosticRegistrationOptions
 }
 
 /// Represents a related message and source code location for a diagnostic. This
-/// should be used to point to code locations that cause or are related to a
+/// should be used to point to code locations that cause or related to a
 /// diagnostics, e.g when duplicating a symbol in a scope.
 class DiagnosticRelatedInformation implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -10241,7 +10521,8 @@ class DiagnosticRelatedInformation implements ToJsonable {
 }
 
 /// Cancellation data returned from a diagnostic request.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class DiagnosticServerCancellationData implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DiagnosticServerCancellationData.canParse,
@@ -10311,6 +10592,7 @@ class DiagnosticServerCancellationData implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The diagnostic's severity.
 class DiagnosticSeverity implements ToJsonable {
   const DiagnosticSeverity(this._value);
   const DiagnosticSeverity.fromJson(this._value);
@@ -10348,7 +10630,8 @@ class DiagnosticSeverity implements ToJsonable {
 }
 
 /// The diagnostic tags.
-///  @since 3.15.0
+///
+/// @since 3.15.0
 class DiagnosticTag implements ToJsonable {
   const DiagnosticTag(this._value);
   const DiagnosticTag.fromJson(this._value);
@@ -10385,7 +10668,8 @@ class DiagnosticTag implements ToJsonable {
 }
 
 /// Workspace client capabilities specific to diagnostic pull requests.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class DiagnosticWorkspaceClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DiagnosticWorkspaceClientCapabilities.canParse,
@@ -10524,6 +10808,7 @@ class DidChangeConfigurationClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameters of a change configuration notification.
 class DidChangeConfigurationParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DidChangeConfigurationParams.canParse,
@@ -10577,7 +10862,8 @@ class DidChangeConfigurationParams implements ToJsonable {
 }
 
 /// The params sent in a change notebook document notification.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class DidChangeNotebookDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DidChangeNotebookDocumentParams.canParse,
@@ -10603,19 +10889,25 @@ class DidChangeNotebookDocumentParams implements ToJsonable {
 
   /// The actual changes to the notebook document.
   ///
-  /// The change describes single state change to the notebook document. So it
-  /// moves a notebook document, its cells and its cell text document contents
-  /// from state S to S'.
+  /// The changes describe single state changes to the notebook document. So if
+  /// there are two changes c1 (at array index 0) and c2 (at array index 1) for
+  /// a notebook in state S then c1 moves the notebook from S to S' and c2 from
+  /// S' to S''. So c1 is computed on the state S and c2 is computed on the
+  /// state S'.
   ///
   /// To mirror the content of a notebook using change events use the following
   /// approach:
   /// - start with the same initial content
-  /// - apply the 'notebookDocument/didChange' notifications in the order
+  /// - apply the 'notebookDocument/didChange' notifications in the order you
+  /// receive them.
+  /// - apply the `NotebookChangeEvent`s in a single notification in the order
   ///   you receive them.
   final NotebookDocumentChangeEvent change;
 
   /// The notebook document that did change. The version number points to the
-  /// version after all provided changes have been applied.
+  /// version after all provided changes have been applied. If only the text
+  /// document content of a cell changes the notebook version doesn't
+  /// necessarily have to change.
   final VersionedNotebookDocumentIdentifier notebookDocument;
 
   @override
@@ -10694,6 +10986,7 @@ class DidChangeNotebookDocumentParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The change text document notification's parameters.
 class DidChangeTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DidChangeTextDocumentParams.canParse,
@@ -10737,9 +11030,10 @@ class DidChangeTextDocumentParams implements ToJsonable {
   /// approach:
   /// - start with the same initial content
   /// - apply the 'textDocument/didChange' notifications in the order you
-  ///   receive them.
-  /// - apply the `TextDocumentContentChangeEvent`s in a single notification
-  ///   in the order you receive them.
+  /// receive them.
+  /// - apply the `TextDocumentContentChangeEvent`s in a single notification in
+  /// the order
+  ///   you receive them.
   final List<
       Either2<TextDocumentContentChangeEvent1,
           TextDocumentContentChangeEvent2>> contentChanges;
@@ -10863,8 +11157,11 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
   /// for file changes from the server side.
   final bool? dynamicRegistration;
 
-  /// Whether the client has support for relative patterns or not.
-  ///  @since 3.17.0
+  /// Whether the client has support for {@link  RelativePattern relative
+  /// pattern}
+  /// or not.
+  ///
+  /// @since 3.17.0
   final bool? relativePatternSupport;
 
   @override
@@ -10930,6 +11227,7 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The watched files change notification's parameters.
 class DidChangeWatchedFilesParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DidChangeWatchedFilesParams.canParse,
@@ -11005,7 +11303,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// Describe options to be used when registering for file system change events.
+/// Describe options to be used when registered for text document change events.
 class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DidChangeWatchedFilesRegistrationOptions.canParse,
@@ -11084,6 +11382,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameters of a `workspace/didChangeWorkspaceFolders` notification.
 class DidChangeWorkspaceFoldersParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DidChangeWorkspaceFoldersParams.canParse,
@@ -11156,7 +11455,8 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
 }
 
 /// The params sent in a close notebook document notification.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class DidCloseNotebookDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DidCloseNotebookDocumentParams.canParse,
@@ -11267,6 +11567,7 @@ class DidCloseNotebookDocumentParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameters sent in a close text document notification
 class DidCloseTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DidCloseTextDocumentParams.canParse,
@@ -11338,8 +11639,9 @@ class DidCloseTextDocumentParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// The params sent in a open notebook document notification.
-///  @since 3.17.0
+/// The params sent in an open notebook document notification.
+///
+/// @since 3.17.0
 class DidOpenNotebookDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DidOpenNotebookDocumentParams.canParse,
@@ -11448,6 +11750,7 @@ class DidOpenNotebookDocumentParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameters sent in an open text document notification
 class DidOpenTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DidOpenTextDocumentParams.canParse,
@@ -11520,7 +11823,8 @@ class DidOpenTextDocumentParams implements ToJsonable {
 }
 
 /// The params sent in a save notebook document notification.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class DidSaveNotebookDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DidSaveNotebookDocumentParams.canParse,
@@ -11592,6 +11896,7 @@ class DidSaveNotebookDocumentParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameters sent in a save text document notification
 class DidSaveTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DidSaveTextDocumentParams.canParse,
@@ -11704,7 +12009,9 @@ class DocumentColorClientCapabilities implements ToJsonable {
     );
   }
 
-  /// Whether document color supports dynamic registration.
+  /// Whether implementation supports dynamic registration. If this is set to
+  /// `true` the client supports the new `DocumentColorRegistrationOptions`
+  /// return value for the corresponding server capability as well.
   final bool? dynamicRegistration;
 
   @override
@@ -11818,6 +12125,7 @@ class DocumentColorOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Parameters for a DocumentColorRequest.
 class DocumentColorParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -12090,7 +12398,8 @@ class DocumentColorRegistrationOptions
 }
 
 /// Parameters of the document diagnostic request.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class DocumentDiagnosticParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -12273,40 +12582,9 @@ class DocumentDiagnosticParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// The document diagnostic report kinds.
-///  @since 3.17.0
-class DocumentDiagnosticReportKind implements ToJsonable {
-  const DocumentDiagnosticReportKind(this._value);
-  const DocumentDiagnosticReportKind.fromJson(this._value);
-
-  final String _value;
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    return obj is String;
-  }
-
-  /// A diagnostic report with a full set of problems.
-  static const Full = DocumentDiagnosticReportKind('full');
-
-  /// A report indicating that the last returned report is still accurate.
-  static const Unchanged = DocumentDiagnosticReportKind('unchanged');
-
-  @override
-  Object toJson() => _value;
-
-  @override
-  String toString() => _value.toString();
-
-  @override
-  int get hashCode => _value.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      other is DocumentDiagnosticReportKind && other._value == _value;
-}
-
 /// A partial result for a document diagnostic report.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class DocumentDiagnosticReportPartialResult implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentDiagnosticReportPartialResult.canParse,
@@ -12410,6 +12688,7 @@ class DocumentDiagnosticReportPartialResult implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Client capabilities of a DocumentFormattingRequest.
 class DocumentFormattingClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentFormattingClientCapabilities.canParse,
@@ -12476,6 +12755,7 @@ class DocumentFormattingClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Provider options for a DocumentFormattingRequest.
 class DocumentFormattingOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentFormattingOptions.canParse,
@@ -12544,6 +12824,7 @@ class DocumentFormattingOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameters of a DocumentFormattingRequest.
 class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentFormattingParams.canParse,
@@ -12678,6 +12959,7 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Registration options for a DocumentFormattingRequest.
 class DocumentFormattingRegistrationOptions
     implements
         DocumentFormattingOptions,
@@ -12814,7 +13096,7 @@ class DocumentHighlight implements ToJsonable {
     );
   }
 
-  /// The highlight kind, default is DocumentHighlightKind.Text.
+  /// The highlight kind, default is text.
   final DocumentHighlightKind? kind;
 
   /// The range this highlight applies to.
@@ -12885,6 +13167,7 @@ class DocumentHighlight implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Client Capabilities for a DocumentHighlightRequest.
 class DocumentHighlightClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentHighlightClientCapabilities.canParse,
@@ -12985,6 +13268,7 @@ class DocumentHighlightKind implements ToJsonable {
       other is DocumentHighlightKind && other._value == _value;
 }
 
+/// Provider options for a DocumentHighlightRequest.
 class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentHighlightOptions.canParse,
@@ -13053,6 +13337,7 @@ class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Parameters for a DocumentHighlightRequest.
 class DocumentHighlightParams
     implements
         PartialResultParams,
@@ -13225,6 +13510,7 @@ class DocumentHighlightParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Registration options for a DocumentHighlightRequest.
 class DocumentHighlightRegistrationOptions
     implements
         DocumentHighlightOptions,
@@ -13380,9 +13666,10 @@ class DocumentLink implements ToJsonable {
   ///
   /// If a tooltip is provided, is will be displayed in a string that includes
   /// instructions on how to trigger the link, such as `{0} (ctrl + click)`. The
-  /// specific instructions vary depending on OS, user settings, and
-  /// localization.
-  ///  @since 3.15.0
+  /// specific instructions vary depending on OS,
+  /// user settings, and localization.
+  ///
+  /// @since 3.15.0
   final String? tooltip;
 
   @override
@@ -13472,6 +13759,7 @@ class DocumentLink implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The client capabilities of a DocumentLinkRequest.
 class DocumentLinkClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentLinkClientCapabilities.canParse,
@@ -13497,7 +13785,8 @@ class DocumentLinkClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   /// Whether the client supports the `tooltip` property on `DocumentLink`.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final bool? tooltipSupport;
 
   @override
@@ -13562,6 +13851,7 @@ class DocumentLinkClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Provider options for a DocumentLinkRequest.
 class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentLinkOptions.canParse,
@@ -13653,6 +13943,7 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameters of a DocumentLinkRequest.
 class DocumentLinkParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -13791,6 +14082,7 @@ class DocumentLinkParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Registration options for a DocumentLinkRequest.
 class DocumentLinkRegistrationOptions
     implements
         DocumentLinkOptions,
@@ -13922,6 +14214,7 @@ class DocumentLinkRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Client capabilities of a DocumentOnTypeFormattingRequest.
 class DocumentOnTypeFormattingClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentOnTypeFormattingClientCapabilities.canParse,
@@ -13988,6 +14281,7 @@ class DocumentOnTypeFormattingClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Provider options for a DocumentOnTypeFormattingRequest.
 class DocumentOnTypeFormattingOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentOnTypeFormattingOptions.canParse,
@@ -14092,6 +14386,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameters of a DocumentOnTypeFormattingRequest.
 class DocumentOnTypeFormattingParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentOnTypeFormattingParams.canParse,
@@ -14256,6 +14551,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Registration options for a DocumentOnTypeFormattingRequest.
 class DocumentOnTypeFormattingRegistrationOptions
     implements
         DocumentOnTypeFormattingOptions,
@@ -14402,6 +14698,7 @@ class DocumentOnTypeFormattingRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Client capabilities of a DocumentRangeFormattingRequest.
 class DocumentRangeFormattingClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentRangeFormattingClientCapabilities.canParse,
@@ -14420,7 +14717,7 @@ class DocumentRangeFormattingClientCapabilities implements ToJsonable {
     );
   }
 
-  /// Whether formatting supports dynamic registration.
+  /// Whether range formatting supports dynamic registration.
   final bool? dynamicRegistration;
 
   @override
@@ -14468,6 +14765,7 @@ class DocumentRangeFormattingClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Provider options for a DocumentRangeFormattingRequest.
 class DocumentRangeFormattingOptions
     implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -14537,6 +14835,7 @@ class DocumentRangeFormattingOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameters of a DocumentRangeFormattingRequest.
 class DocumentRangeFormattingParams
     implements WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -14700,6 +14999,7 @@ class DocumentRangeFormattingParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Registration options for a DocumentRangeFormattingRequest.
 class DocumentRangeFormattingRegistrationOptions
     implements
         DocumentRangeFormattingOptions,
@@ -14868,7 +15168,8 @@ class DocumentSymbol implements ToJsonable {
   final List<DocumentSymbol>? children;
 
   /// Indicates if this symbol is deprecated.
-  ///  @deprecated Use tags instead
+  ///
+  /// @deprecated Use tags instead
   final bool? deprecated;
 
   /// More detail for this symbol, e.g the signature of a function.
@@ -14889,11 +15190,12 @@ class DocumentSymbol implements ToJsonable {
   final Range range;
 
   /// The range that should be selected and revealed when this symbol is being
-  /// picked, e.g. the name of a function. Must be contained by the `range`.
+  /// picked, e.g the name of a function. Must be contained by the `range`.
   final Range selectionRange;
 
   /// Tags for this document symbol.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final List<SymbolTag>? tags;
 
   @override
@@ -15077,6 +15379,7 @@ class DocumentSymbol implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Client Capabilities for a DocumentSymbolRequest.
 class DocumentSymbolClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentSymbolClientCapabilities.canParse,
@@ -15126,7 +15429,8 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
 
   /// The client supports an additional label presented in the UI when
   /// registering a document symbol provider.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final bool? labelSupport;
 
   /// Specific capabilities for the `SymbolKind` in the
@@ -15136,7 +15440,8 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
   /// The client supports tags on `SymbolInformation`. Tags are supported on
   /// `DocumentSymbol` if `hierarchicalDocumentSymbolSupport` is set to true.
   /// Clients supporting tags have to handle unknown tags gracefully.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final DocumentSymbolClientCapabilitiesTagSupport? tagSupport;
 
   @override
@@ -15410,6 +15715,7 @@ class DocumentSymbolClientCapabilitiesTagSupport implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Provider options for a DocumentSymbolRequest.
 class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DocumentSymbolOptions.canParse,
@@ -15436,7 +15742,8 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// A human-readable string that is shown when multiple outlines trees are
   /// shown for the same document.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final String? label;
   @override
   final bool? workDoneProgress;
@@ -15503,6 +15810,7 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Parameters for a DocumentSymbolRequest.
 class DocumentSymbolParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -15641,6 +15949,7 @@ class DocumentSymbolParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Registration options for a DocumentSymbolRequest.
 class DocumentSymbolRegistrationOptions
     implements
         DocumentSymbolOptions,
@@ -15680,7 +15989,8 @@ class DocumentSymbolRegistrationOptions
 
   /// A human-readable string that is shown when multiple outlines trees are
   /// shown for the same document.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   @override
   final String? label;
   @override
@@ -15774,6 +16084,7 @@ class DocumentSymbolRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Predefined error codes.
 class ErrorCodes implements ToJsonable {
   const ErrorCodes(this._value);
   const ErrorCodes.fromJson(this._value);
@@ -15796,30 +16107,32 @@ class ErrorCodes implements ToJsonable {
   static const InvalidParams = ErrorCodes(-32602);
   static const InvalidRequest = ErrorCodes(-32600);
 
-  /// This is the end range of JSON-RPC reserved error codes. It doesn't denote
+  /// This is the end range of JSON RPC reserved error codes. It doesn't denote
   /// a real error code.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   static const jsonrpcReservedErrorRangeEnd = ErrorCodes(-32000);
 
-  /// This is the start range of JSON-RPC reserved error codes. It doesn't
-  /// denote a real error code. No LSP error codes should be defined between the
-  /// start and end range. For backwards compatibility the
+  /// This is the start range of JSON RPC reserved error codes. It doesn't
+  /// denote a real error code. No application error codes should be defined
+  /// between the start and end range. For backwards compatibility the
   /// `ServerNotInitialized` and the `UnknownErrorCode` are left in the range.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   static const jsonrpcReservedErrorRangeStart = ErrorCodes(-32099);
 
   /// This is the end range of LSP reserved error codes. It doesn't denote a
   /// real error code.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   static const lspReservedErrorRangeEnd = ErrorCodes(-32800);
 
   /// This is the start range of LSP reserved error codes. It doesn't denote a
   /// real error code.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   static const lspReservedErrorRangeStart = ErrorCodes(-32899);
   static const MethodNotFound = ErrorCodes(-32601);
-
-  /// Defined by JSON-RPC
   static const ParseError = ErrorCodes(-32700);
 
   /// The client has canceled a request and a server as detected the cancel.
@@ -15828,12 +16141,14 @@ class ErrorCodes implements ToJsonable {
   /// A request failed but it was syntactically correct, e.g the method name was
   /// known and the parameters were valid. The error message should contain
   /// human readable information about why the request failed.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   static const RequestFailed = ErrorCodes(-32803);
 
   /// The server cancelled the request. This error code should only be used for
   /// requests that explicitly support being server cancellable.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   static const ServerCancelled = ErrorCodes(-32802);
 
   /// Error code indicating that a server received a notification or request
@@ -15855,6 +16170,7 @@ class ErrorCodes implements ToJsonable {
       other is ErrorCodes && other._value == _value;
 }
 
+/// The client capabilities of a ExecuteCommandRequest.
 class ExecuteCommandClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ExecuteCommandClientCapabilities.canParse,
@@ -15919,6 +16235,7 @@ class ExecuteCommandClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The server capabilities of a ExecuteCommandRequest.
 class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ExecuteCommandOptions.canParse,
@@ -16019,6 +16336,7 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameters of a ExecuteCommandRequest.
 class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ExecuteCommandParams.canParse,
@@ -16148,7 +16466,7 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// Execute command registration options.
+/// Registration options for a ExecuteCommandRequest.
 class ExecuteCommandRegistrationOptions
     implements ExecuteCommandOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -16393,7 +16711,7 @@ class FailureHandlingKind implements ToJsonable {
       other is FailureHandlingKind && other._value == _value;
 }
 
-/// The file event type.
+/// The file event type
 class FileChangeType implements ToJsonable {
   const FileChangeType(this._value);
   const FileChangeType.fromJson(this._value);
@@ -16428,7 +16746,8 @@ class FileChangeType implements ToJsonable {
 }
 
 /// Represents information on a file/folder create.
-///  @since 3.16.0
+///
+/// @since 3.16.0
 class FileCreate implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     FileCreate.canParse,
@@ -16499,7 +16818,8 @@ class FileCreate implements ToJsonable {
 }
 
 /// Represents information on a file/folder delete.
-///  @since 3.16.0
+///
+/// @since 3.16.0
 class FileDelete implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     FileDelete.canParse,
@@ -16582,7 +16902,7 @@ class FileEvent implements ToJsonable {
   });
   static FileEvent fromJson(Map<String, Object?> json) {
     final typeJson = json['type'];
-    final type = typeJson as int;
+    final type = FileChangeType.fromJson(typeJson as int);
     final uriJson = json['uri'];
     final uri = uriJson as String;
     return FileEvent(
@@ -16592,15 +16912,15 @@ class FileEvent implements ToJsonable {
   }
 
   /// The change type.
-  final int type;
+  final FileChangeType type;
 
-  /// The file's URI.
+  /// The file's uri.
   final String uri;
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['type'] = type;
+    result['type'] = type.toJson();
     result['uri'] = uri;
     return result;
   }
@@ -16618,8 +16938,8 @@ class FileEvent implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (type is! int) {
-          reporter.reportError('must be of type int');
+        if (!FileChangeType.canParse(type, reporter)) {
+          reporter.reportError('must be of type FileChangeType');
           return false;
         }
       } finally {
@@ -16668,6 +16988,13 @@ class FileEvent implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Capabilities relating to events from file operations by the user in the
+/// client.
+///
+/// These events do not come from the file system, they come from user
+/// operations like renaming a file in the UI.
+///
+/// @since 3.16.0
 class FileOperationClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     FileOperationClientCapabilities.canParse,
@@ -16869,8 +17196,9 @@ class FileOperationClientCapabilities implements ToJsonable {
 }
 
 /// A filter to describe in which file operation requests or notifications the
-/// server is interested in.
-///  @since 3.16.0
+/// server is interested in receiving.
+///
+/// @since 3.16.0
 class FileOperationFilter implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     FileOperationFilter.canParse,
@@ -16896,7 +17224,7 @@ class FileOperationFilter implements ToJsonable {
   /// The actual file operation pattern.
   final FileOperationPattern pattern;
 
-  /// A Uri like `file` or `untitled`.
+  /// A Uri scheme like `file` or `untitled`.
   final String? scheme;
 
   @override
@@ -16965,6 +17293,9 @@ class FileOperationFilter implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Options for notifications/requests for user operations on files.
+///
+/// @since 3.16.0
 class FileOperationOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     FileOperationOptions.canParse,
@@ -17173,8 +17504,9 @@ class FileOperationOptions implements ToJsonable {
 }
 
 /// A pattern to describe in which file operation requests or notifications the
-/// server is interested in.
-///  @since 3.16.0
+/// server is interested in receiving.
+///
+/// @since 3.16.0
 class FileOperationPattern implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     FileOperationPattern.canParse,
@@ -17210,12 +17542,12 @@ class FileOperationPattern implements ToJsonable {
   /// - `?` to match on one character in a path segment
   /// - `**` to match any number of path segments, including none
   /// - `{}` to group sub patterns into an OR expression. (e.g. `**​/*.{ts,js}`
-  ///   matches all TypeScript and JavaScript files)
-  /// - `[]` to declare a range of characters to match in a path segment
-  ///   (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
+  /// matches all TypeScript and JavaScript files)
+  /// - `[]` to declare a range of characters to match in a path segment (e.g.,
+  /// `example.[0-9]` to match on `example.0`, `example.1`, …)
   /// - `[!...]` to negate a range of characters to match in a path segment
-  ///   (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but
-  ///   not `example.0`)
+  /// (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but not
+  /// `example.0`)
   final String glob;
 
   /// Whether to match files or folders with this pattern.
@@ -17312,7 +17644,8 @@ class FileOperationPattern implements ToJsonable {
 }
 
 /// A pattern kind describing if a glob pattern matches a file a folder or both.
-///  @since 3.16.0
+///
+/// @since 3.16.0
 class FileOperationPatternKind implements ToJsonable {
   const FileOperationPatternKind(this._value);
   const FileOperationPatternKind.fromJson(this._value);
@@ -17344,7 +17677,8 @@ class FileOperationPatternKind implements ToJsonable {
 }
 
 /// Matching options for the file operation pattern.
-///  @since 3.16.0
+///
+/// @since 3.16.0
 class FileOperationPatternOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     FileOperationPatternOptions.canParse,
@@ -17410,7 +17744,8 @@ class FileOperationPatternOptions implements ToJsonable {
 }
 
 /// The options to register for file operations.
-///  @since 3.16.0
+///
+/// @since 3.16.0
 class FileOperationRegistrationOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     FileOperationRegistrationOptions.canParse,
@@ -17489,7 +17824,8 @@ class FileOperationRegistrationOptions implements ToJsonable {
 }
 
 /// Represents information on a file/folder rename.
-///  @since 3.16.0
+///
+/// @since 3.16.0
 class FileRename implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     FileRename.canParse,
@@ -17616,7 +17952,8 @@ class FileSystemWatcher implements ToJsonable {
 
   /// The glob pattern to watch. See {@link GlobPattern glob pattern} for more
   /// detail.
-  ///  @since 3.17.0 support for relative patterns.
+  ///
+  /// @since 3.17.0 support for relative patterns.
   final Either2<String, RelativePattern> globPattern;
 
   /// The kind of events of interest. If omitted it defaults to WatchKind.Create
@@ -17734,7 +18071,8 @@ class FoldingRange implements ToJsonable {
   /// The text that the client should show when the specified range is
   /// collapsed. If not defined or not supported by the client, a default will
   /// be chosen by the client.
-  ///  @since 3.17.0 - proposed
+  ///
+  /// @since 3.17.0
   final String? collapsedText;
 
   /// The zero-based character offset before the folded range ends. If not
@@ -17746,9 +18084,9 @@ class FoldingRange implements ToJsonable {
   /// smaller than the number of lines in the document.
   final int endLine;
 
-  /// Describes the kind of the folding range such as `comment` or `region`. The
+  /// Describes the kind of the folding range such as `comment' or 'region'. The
   /// kind is used to categorize folding ranges and used by commands like 'Fold
-  /// all comments'. See [FoldingRangeKind] for an enumeration of standardized
+  /// all comments'. See FoldingRangeKind for an enumeration of standardized
   /// kinds.
   final FoldingRangeKind? kind;
 
@@ -17939,11 +18277,14 @@ class FoldingRangeClientCapabilities implements ToJsonable {
   /// server capability as well.
   final bool? dynamicRegistration;
 
-  /// Specific options for the folding range. @since 3.17.0
+  /// Specific options for the folding range.
+  ///
+  /// @since 3.17.0
   final FoldingRangeClientCapabilitiesFoldingRange? foldingRange;
 
   /// Specific options for the folding range kind.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final FoldingRangeClientCapabilitiesFoldingRangeKind? foldingRangeKind;
 
   /// If set, the client signals that it only supports folding complete lines.
@@ -18089,7 +18430,8 @@ class FoldingRangeClientCapabilitiesFoldingRange implements ToJsonable {
 
   /// If set, the client signals that it supports setting collapsedText on
   /// folding ranges to display custom labels instead of the default text.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final bool? collapsedText;
 
   @override
@@ -18226,7 +18568,7 @@ class FoldingRangeKind implements ToJsonable {
   /// Folding range for a comment
   static const Comment = FoldingRangeKind('comment');
 
-  /// Folding range for a imports or includes
+  /// Folding range for an import or include
   static const Imports = FoldingRangeKind('imports');
 
   /// Folding range for a region (e.g. `#region`)
@@ -18313,6 +18655,7 @@ class FoldingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Parameters for a FoldingRangeRequest.
 class FoldingRangeParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -18619,7 +18962,8 @@ class FormattingOptions implements ToJsonable {
   }
 
   /// Insert a newline character at the end of the file if one does not exist.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final bool? insertFinalNewline;
 
   /// Prefer spaces over tabs.
@@ -18629,11 +18973,13 @@ class FormattingOptions implements ToJsonable {
   final int tabSize;
 
   /// Trim all newlines after the final newline at the end of the file.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final bool? trimFinalNewlines;
 
   /// Trim trailing whitespace on a line.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final bool? trimTrailingWhitespace;
 
   @override
@@ -18755,7 +19101,8 @@ class FormattingOptions implements ToJsonable {
 }
 
 /// A diagnostic report with a full set of problems.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class FullDocumentDiagnosticReport implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     FullDocumentDiagnosticReport.canParse,
@@ -18896,6 +19243,9 @@ class FullDocumentDiagnosticReport implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// General client capabilities.
+///
+/// @since 3.16.0
 class GeneralClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     GeneralClientCapabilities.canParse,
@@ -18937,12 +19287,13 @@ class GeneralClientCapabilities implements ToJsonable {
   }
 
   /// Client capabilities specific to the client's markdown parser.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final MarkdownClientCapabilities? markdown;
 
   /// The position encodings supported by the client. Client and server have to
   /// agree on the same position encoding to ensure that offsets (e.g. character
-  /// position in a line) are interpreted the same on both side.
+  /// position in a line) are interpreted the same on both sides.
   ///
   /// To keep the protocol backwards compatible the following applies: if the
   /// value 'utf-16' is missing from the array of position encodings servers can
@@ -18954,17 +19305,20 @@ class GeneralClientCapabilities implements ToJsonable {
   /// Implementation considerations: since the conversion from one encoding into
   /// another requires the content of the file / line the conversion is best
   /// done where the file is read which is usually on the server side.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final List<PositionEncodingKind>? positionEncodings;
 
   /// Client capabilities specific to regular expressions.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final RegularExpressionsClientCapabilities? regularExpressions;
 
   /// Client capability that signals how the client handles stale requests (e.g.
   /// a request for which the client will not process the response anymore since
   /// the information is outdated).
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final GeneralClientCapabilitiesStaleRequestSupport? staleRequestSupport;
 
   @override
@@ -19099,7 +19453,7 @@ class GeneralClientCapabilitiesStaleRequestSupport implements ToJsonable {
   final bool cancel;
 
   /// The list of requests for which the client will retry the request if it
-  /// receives a response with error code `ContentModified``
+  /// receives a response with error code `ContentModified`
   final List<String> retryOnContentModified;
 
   @override
@@ -19211,8 +19565,8 @@ class Hover implements ToJsonable {
   /// The hover's content
   final Either2<MarkupContent, String> contents;
 
-  /// An optional range is a range inside a text document that is used to
-  /// visualize a hover, e.g. by changing the background color.
+  /// An optional range inside the text document that is used to visualize the
+  /// hover, e.g. by changing the background color.
   final Range? range;
 
   @override
@@ -19305,9 +19659,8 @@ class HoverClientCapabilities implements ToJsonable {
     );
   }
 
-  /// Client supports the follow content formats if the content property refers
-  /// to a `literal of type MarkupContent`. The order describes the preferred
-  /// format of the client.
+  /// Client supports the following content formats for the content property.
+  /// The order describes the preferred format of the client.
   final List<MarkupKind>? contentFormat;
 
   /// Whether hover supports dynamic registration.
@@ -19380,6 +19733,7 @@ class HoverClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Hover options.
 class HoverOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     HoverOptions.canParse,
@@ -19446,6 +19800,7 @@ class HoverOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Parameters for a HoverRequest.
 class HoverParams
     implements TextDocumentPositionParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -19581,6 +19936,7 @@ class HoverParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Registration options for a HoverRequest.
 class HoverRegistrationOptions
     implements HoverOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -19686,6 +20042,7 @@ class HoverRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.6.0
 class ImplementationClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ImplementationClientCapabilities.canParse,
@@ -19713,7 +20070,8 @@ class ImplementationClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   /// The client supports additional metadata in the form of definition links.
-  ///  @since 3.14.0
+  ///
+  /// @since 3.14.0
   final bool? linkSupport;
 
   @override
@@ -20150,6 +20508,7 @@ class ImplementationRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The initialize parameters
 class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InitializeParams.canParse,
@@ -20188,9 +20547,10 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
     final rootUriJson = json['rootUri'];
     final rootUri = rootUriJson as String?;
     final traceJson = json['trace'];
-    final trace = const {null, 'off', 'messages', 'verbose'}.contains(traceJson)
+    final trace = const {null, 'off', 'messages', 'compact', 'verbose'}
+            .contains(traceJson)
         ? traceJson as String?
-        : throw '''$traceJson was not one of (null, 'off', 'messages', 'verbose')''';
+        : throw '''$traceJson was not one of (null, 'off', 'messages', 'compact', 'verbose')''';
     final workDoneTokenJson = json['workDoneToken'];
     final workDoneToken = workDoneTokenJson == null
         ? null
@@ -20221,7 +20581,8 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   final ClientCapabilities capabilities;
 
   /// Information about the client
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final InitializeParamsClientInfo? clientInfo;
 
   /// User provided initialization options.
@@ -20232,22 +20593,25 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   ///
   /// Uses IETF language tags as the value's syntax (See
   /// https://en.wikipedia.org/wiki/IETF_language_tag)
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final String? locale;
 
-  /// The process Id of the parent process that started the server. Is null if
-  /// the process has not been started by another process. If the parent process
-  /// is not alive then the server should exit (see exit notification) its
-  /// process.
+  /// The process Id of the parent process that started the server.
+  ///
+  /// Is `null` if the process has not been started by another process. If the
+  /// parent process is not alive then the server should exit.
   final int? processId;
 
   /// The rootPath of the workspace. Is null if no folder is open.
-  ///  @deprecated in favour of `rootUri`.
+  ///
+  /// @deprecated in favour of rootUri.
   final String? rootPath;
 
   /// The rootUri of the workspace. Is null if no folder is open. If both
   /// `rootPath` and `rootUri` are set `rootUri` wins.
-  ///  @deprecated in favour of `workspaceFolders`
+  ///
+  /// @deprecated in favour of workspaceFolders.
   final String? rootUri;
 
   /// The initial trace setting. If omitted trace is disabled ('off').
@@ -20258,10 +20622,12 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   final Either2<int, String>? workDoneToken;
 
   /// The workspace folders configured in the client when the server starts.
+  ///
   /// This property is only available if the client supports workspace folders.
   /// It can be `null` if the client supports workspace folders but none are
   /// configured.
-  ///  @since 3.6.0
+  ///
+  /// @since 3.6.0
   final List<WorkspaceFolder>? workspaceFolders;
 
   @override
@@ -20380,9 +20746,10 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
         if (trace != null &&
             trace != 'off' &&
             trace != 'messages' &&
+            trace != 'compact' &&
             trace != 'verbose') {
           reporter.reportError(
-              'must be one of the literals \'off\', \'messages\', \'verbose\'');
+              'must be one of the literals \'off\', \'messages\', \'compact\', \'verbose\'');
           return false;
         }
       } finally {
@@ -20550,6 +20917,7 @@ class InitializeParamsClientInfo implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The result returned from an initialize request.
 class InitializeResult implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InitializeResult.canParse,
@@ -20579,7 +20947,8 @@ class InitializeResult implements ToJsonable {
   final ServerCapabilities capabilities;
 
   /// Information about the server.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final InitializeResultServerInfo? serverInfo;
 
   @override
@@ -20781,7 +21150,8 @@ class InitializedParams implements ToJsonable {
 }
 
 /// Inlay hint information.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class InlayHint implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InlayHint.canParse,
@@ -20846,7 +21216,7 @@ class InlayHint implements ToJsonable {
     );
   }
 
-  /// A data entry field that is preserved on a inlay hint between a
+  /// A data entry field that is preserved on an inlay hint between a
   /// `textDocument/inlayHint` and a `inlayHint/resolve` request.
   final Object? data;
 
@@ -20882,15 +21252,9 @@ class InlayHint implements ToJsonable {
   /// *Note* that edits are expected to change the document so that the inlay
   /// hint (or its nearest variant) is now part of the document and the inlay
   /// hint itself is now obsolete.
-  ///
-  /// Depending on the client capability `inlayHint.resolveSupport` clients
-  /// might resolve this property late using the resolve request.
   final List<TextEdit>? textEdits;
 
   /// The tooltip text when you hover over this item.
-  ///
-  /// Depending on the client capability `inlayHint.resolveSupport` clients
-  /// might resolve this property late using the resolve request.
   final Either2<MarkupContent, String>? tooltip;
 
   @override
@@ -21056,7 +21420,8 @@ class InlayHint implements ToJsonable {
 }
 
 /// Inlay hint client capabilities.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class InlayHintClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InlayHintClientCapabilities.canParse,
@@ -21084,7 +21449,7 @@ class InlayHintClientCapabilities implements ToJsonable {
   /// Whether inlay hints support dynamic registration.
   final bool? dynamicRegistration;
 
-  /// Indicates which properties a client can resolve lazily on a inlay hint.
+  /// Indicates which properties a client can resolve lazily on an inlay hint.
   final InlayHintClientCapabilitiesResolveSupport? resolveSupport;
 
   @override
@@ -21230,7 +21595,8 @@ class InlayHintClientCapabilitiesResolveSupport implements ToJsonable {
 }
 
 /// Inlay hint kinds.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class InlayHintKind implements ToJsonable {
   const InlayHintKind(this._value);
   const InlayHintKind.fromJson(this._value);
@@ -21263,7 +21629,8 @@ class InlayHintKind implements ToJsonable {
 
 /// An inlay hint label part allows for interactive and composite labels of
 /// inlay hints.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class InlayHintLabelPart implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InlayHintLabelPart.canParse,
@@ -21315,8 +21682,8 @@ class InlayHintLabelPart implements ToJsonable {
   /// The editor will use this location for the hover and for code navigation
   /// features: This part will become a clickable link that resolves to the
   /// definition of the symbol at the given location (not necessarily the
-  /// location itself), it shows the hover that shows at the given location, and
-  /// it shows a context menu with further code navigation commands.
+  /// location itself), it shows the hover that shows at the given location,
+  /// and it shows a context menu with further code navigation commands.
   ///
   /// Depending on the client capability `inlayHint.resolveSupport` clients
   /// might resolve this property late using the resolve request.
@@ -21432,7 +21799,8 @@ class InlayHintLabelPart implements ToJsonable {
 }
 
 /// Inlay hint options used during static registration.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class InlayHintOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InlayHintOptions.canParse,
@@ -21525,7 +21893,8 @@ class InlayHintOptions implements WorkDoneProgressOptions, ToJsonable {
 }
 
 /// A parameter literal used in inlay hint requests.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class InlayHintParams implements WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InlayHintParams.canParse,
@@ -21558,7 +21927,7 @@ class InlayHintParams implements WorkDoneProgressParams, ToJsonable {
     );
   }
 
-  /// The visible document range for which inlay hints should be computed.
+  /// The document range for which inlay hints should be computed.
   final Range range;
 
   /// The text document.
@@ -21659,7 +22028,8 @@ class InlayHintParams implements WorkDoneProgressParams, ToJsonable {
 }
 
 /// Inlay hint options used during static or dynamic registration.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class InlayHintRegistrationOptions
     implements
         InlayHintOptions,
@@ -21818,7 +22188,8 @@ class InlayHintRegistrationOptions
 }
 
 /// Client workspace capabilities specific to inlay hints.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class InlayHintWorkspaceClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InlayHintWorkspaceClientCapabilities.canParse,
@@ -21892,7 +22263,8 @@ class InlayHintWorkspaceClientCapabilities implements ToJsonable {
 }
 
 /// Client capabilities specific to inline values.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class InlineValueClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InlineValueClientCapabilities.canParse,
@@ -22062,13 +22434,11 @@ class InlineValueContext implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// Provide an inline value through an expression evaluation.
+/// Provide an inline value through an expression evaluation. If only a range is
+/// specified, the expression will be extracted from the underlying document. An
+/// optional expression can be used to override the extracted expression.
 ///
-/// If only a range is specified, the expression will be extracted from the
-/// underlying document.
-///
-/// An optional expression can be used to override the extracted expression.
-///  @since 3.17.0
+/// @since 3.17.0
 class InlineValueEvaluatableExpression implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InlineValueEvaluatableExpression.canParse,
@@ -22164,7 +22534,8 @@ class InlineValueEvaluatableExpression implements ToJsonable {
 }
 
 /// Inline value options used during static registration.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class InlineValueOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InlineValueOptions.canParse,
@@ -22233,7 +22604,8 @@ class InlineValueOptions implements WorkDoneProgressOptions, ToJsonable {
 }
 
 /// A parameter literal used in inline value requests.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class InlineValueParams implements WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InlineValueParams.canParse,
@@ -22397,7 +22769,8 @@ class InlineValueParams implements WorkDoneProgressParams, ToJsonable {
 }
 
 /// Inline value options used during static or dynamic registration.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class InlineValueRegistrationOptions
     implements
         InlineValueOptions,
@@ -22532,7 +22905,8 @@ class InlineValueRegistrationOptions
 }
 
 /// Provide inline value as text.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class InlineValueText implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InlineValueText.canParse,
@@ -22631,13 +23005,11 @@ class InlineValueText implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// Provide inline value through a variable lookup.
-///
-/// If only a range is specified, the variable name will be extracted from the
-/// underlying document.
-///
+/// Provide inline value through a variable lookup. If only a range is
+/// specified, the variable name will be extracted from the underlying document.
 /// An optional variable name can be used to override the extracted name.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class InlineValueVariableLookup implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InlineValueVariableLookup.canParse,
@@ -22763,7 +23135,8 @@ class InlineValueVariableLookup implements ToJsonable {
 }
 
 /// Client workspace capabilities specific to inline values.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class InlineValueWorkspaceClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InlineValueWorkspaceClientCapabilities.canParse,
@@ -22787,7 +23160,7 @@ class InlineValueWorkspaceClientCapabilities implements ToJsonable {
   ///
   /// Note that this event is global and will force the client to refresh all
   /// inline values currently shown. It should be used with absolute care and is
-  /// useful for situation where a server for example detect a project wide
+  /// useful for situation where a server for example detects a project wide
   /// change that requires such a calculation.
   final bool? refreshSupport;
 
@@ -22837,7 +23210,8 @@ class InlineValueWorkspaceClientCapabilities implements ToJsonable {
 }
 
 /// A special text edit to provide an insert and a replace operation.
-///  @since 3.16.0
+///
+/// @since 3.16.0
 class InsertReplaceEdit implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     InsertReplaceEdit.canParse,
@@ -22990,8 +23364,11 @@ class InsertTextFormat implements ToJsonable {
   ///
   /// A snippet can define tab stops and placeholders with `$1`, `$2` and
   /// `${3:foo}`. `$0` defines the final tab stop, it defaults to the end of the
-  /// snippet. Placeholders with equal identifiers are linked, that is typing in
-  /// one will update others too.
+  /// snippet. Placeholders with equal identifiers are linked,
+  /// that is typing in one will update others too.
+  ///
+  /// See also:
+  /// https://microsoft.github.io/language-server-protocol/specifications/specification-current/#snippet_syntax
   static const Snippet = InsertTextFormat._(2);
 
   @override
@@ -23009,7 +23386,8 @@ class InsertTextFormat implements ToJsonable {
 }
 
 /// How whitespace and indentation is handled during completion item insertion.
-///  @since 3.16.0
+///
+/// @since 3.16.0
 class InsertTextMode implements ToJsonable {
   const InsertTextMode(this._value);
   const InsertTextMode.fromJson(this._value);
@@ -23048,6 +23426,9 @@ class InsertTextMode implements ToJsonable {
       other is InsertTextMode && other._value == _value;
 }
 
+/// Client capabilities for the linked editing range request.
+///
+/// @since 3.16.0
 class LinkedEditingRangeClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     LinkedEditingRangeClientCapabilities.canParse,
@@ -23456,6 +23837,9 @@ class LinkedEditingRangeRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The result of a linked editing range request.
+///
+/// @since 3.16.0
 class LinkedEditingRanges implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     LinkedEditingRanges.canParse,
@@ -23479,7 +23863,7 @@ class LinkedEditingRanges implements ToJsonable {
     );
   }
 
-  /// A list of ranges that can be renamed together. The ranges must have
+  /// A list of ranges that can be edited together. The ranges must have
   /// identical length and contain identical text content. The ranges cannot
   /// overlap.
   final List<Range> ranges;
@@ -23558,6 +23942,7 @@ class LinkedEditingRanges implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Represents a location inside a resource, such as a line inside a text file.
 class Location implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     Location.canParse,
@@ -23653,6 +24038,9 @@ class Location implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Represents the connection of two locations. Provides additional metadata
+/// over normal locations,
+/// including an origin range.
 class LocationLink implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     LocationLink.canParse,
@@ -23688,7 +24076,7 @@ class LocationLink implements ToJsonable {
   /// Span of the origin of this link.
   ///
   /// Used as the underlined span for mouse interaction. Defaults to the word
-  /// range at the mouse position.
+  /// range at the definition position.
   final Range? originSelectionRange;
 
   /// The full target range of this link. If the target for example is a symbol
@@ -23698,7 +24086,7 @@ class LocationLink implements ToJsonable {
   final Range targetRange;
 
   /// The range that should be selected and revealed when this link is being
-  /// followed, e.g the name of a function. Must be contained by the the
+  /// followed, e.g the name of a function. Must be contained by the
   /// `targetRange`. See also `DocumentSymbol#range`
   final Range targetSelectionRange;
 
@@ -23815,6 +24203,7 @@ class LocationLink implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The log message parameters.
 class LogMessageParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     LogMessageParams.canParse,
@@ -23836,10 +24225,10 @@ class LogMessageParams implements ToJsonable {
     );
   }
 
-  /// The actual message
+  /// The actual message.
   final String message;
 
-  /// The message type.
+  /// The message type. See {@link MessageType}
   final MessageType type;
 
   @override
@@ -23934,11 +24323,7 @@ class LogTraceParams implements ToJsonable {
     );
   }
 
-  /// The message to be logged.
   final String message;
-
-  /// Additional information that can be computed if the `trace` configuration
-  /// is set to `'verbose'`
   final String? verbose;
 
   @override
@@ -24007,7 +24392,8 @@ class LogTraceParams implements ToJsonable {
 }
 
 /// Client capabilities specific to the used markdown parser.
-///  @since 3.16.0
+///
+/// @since 3.16.0
 class MarkdownClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     MarkdownClientCapabilities.canParse,
@@ -24036,7 +24422,8 @@ class MarkdownClientCapabilities implements ToJsonable {
   }
 
   /// A list of HTML tags that the client allows / supports in Markdown.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final List<String>? allowedTags;
 
   /// The name of the parser.
@@ -24136,18 +24523,22 @@ class MarkdownClientCapabilities implements ToJsonable {
 /// `plaintext` and `markdown` as markup kinds.
 ///
 /// If the kind is `markdown` then the value can contain fenced code blocks like
-/// in GitHub issues.
+/// in GitHub issues. See
+/// https://help.github.com/articles/creating-and-highlighting-code-blocks/#syntax-highlighting
 ///
 /// Here is an example how such a string can be constructed using JavaScript /
-/// TypeScript: ```typescript let markdown: MarkdownContent = {
-/// 	kind: MarkupKind.Markdown,
-/// 	value: [
-/// 		'# Header',
-/// 		'Some text',
-/// 		'```typescript',
-/// 		'someCode();',
-/// 		'```'
-/// 	].join('\n') }; ```
+/// TypeScript:
+/// ```ts let markdown: MarkdownContent = {
+///  kind: MarkupKind.Markdown,
+///  value: [
+///    '# Header',
+///    'Some text',
+///    '```typescript',
+///    'someCode();',
+///    '```'
+///  ].join('\n')
+/// };
+/// ```
 ///
 /// *Please Note* that clients might sanitize the return markdown. A client
 /// could decide to remove HTML from the markdown to avoid script execution.
@@ -24358,6 +24749,7 @@ class MessageActionItem implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The message type
 class MessageType implements ToJsonable {
   const MessageType(this._value);
   const MessageType.fromJson(this._value);
@@ -24394,7 +24786,7 @@ class MessageType implements ToJsonable {
       other is MessageType && other._value == _value;
 }
 
-/// Valid LSP methods known at the time of code generation from the spec.
+/// All standard LSP Methods read from the JSON spec.
 class Method implements ToJsonable {
   const Method(this._value);
   const Method.fromJson(this._value);
@@ -24723,6 +25115,8 @@ class Method implements ToJsonable {
 }
 
 /// Moniker definition to match LSIF 0.5 moniker definition.
+///
+/// @since 3.16.0
 class Moniker implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     Moniker.canParse,
@@ -24875,6 +25269,9 @@ class Moniker implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Client capabilities specific to the moniker request.
+///
+/// @since 3.16.0
 class MonikerClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     MonikerClientCapabilities.canParse,
@@ -24892,10 +25289,9 @@ class MonikerClientCapabilities implements ToJsonable {
     );
   }
 
-  /// Whether implementation supports dynamic registration. If this is set to
-  /// `true` the client supports the new `(TextDocumentRegistrationOptions &
-  /// StaticRegistrationOptions)` return value for the corresponding server
-  /// capability as well.
+  /// Whether moniker supports dynamic registration. If this is set to `true`
+  /// the client supports the new `MonikerRegistrationOptions` return value for
+  /// the corresponding server capability as well.
   final bool? dynamicRegistration;
 
   @override
@@ -24943,6 +25339,8 @@ class MonikerClientCapabilities implements ToJsonable {
 }
 
 /// The moniker kind.
+///
+/// @since 3.16.0
 class MonikerKind implements ToJsonable {
   const MonikerKind(this._value);
   const MonikerKind.fromJson(this._value);
@@ -25324,7 +25722,8 @@ class MonikerRegistrationOptions
 /// A cell's document URI must be unique across ALL notebook cells and can
 /// therefore be used to uniquely identify a notebook cell or the cell's text
 /// document.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class NotebookCell implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     NotebookCell.canParse,
@@ -25367,6 +25766,8 @@ class NotebookCell implements ToJsonable {
   final NotebookCellKind kind;
 
   /// Additional metadata stored with the cell.
+  ///
+  /// Note: should always be an object literal (e.g. LSPObject)
   final Object? metadata;
 
   @override
@@ -25464,7 +25865,8 @@ class NotebookCell implements ToJsonable {
 }
 
 /// A change describing how to move a `NotebookCell` array from state S to S'.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class NotebookCellArrayChange implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     NotebookCellArrayChange.canParse,
@@ -25594,7 +25996,8 @@ class NotebookCellArrayChange implements ToJsonable {
 }
 
 /// A notebook cell kind.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class NotebookCellKind implements ToJsonable {
   const NotebookCellKind(this._value);
   const NotebookCellKind.fromJson(this._value);
@@ -25627,7 +26030,8 @@ class NotebookCellKind implements ToJsonable {
 
 /// A notebook cell text document filter denotes a cell text document by
 /// different properties.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class NotebookCellTextDocumentFilter implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     NotebookCellTextDocumentFilter.canParse,
@@ -25748,7 +26152,8 @@ class NotebookCellTextDocumentFilter implements ToJsonable {
 }
 
 /// A notebook document.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class NotebookDocument implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     NotebookDocument.canParse,
@@ -25788,6 +26193,8 @@ class NotebookDocument implements ToJsonable {
   final List<NotebookCell> cells;
 
   /// Additional metadata stored with the notebook document.
+  ///
+  /// Note: should always be an object literal (e.g. LSPObject)
   final Object? metadata;
 
   /// The type of the notebook.
@@ -25923,7 +26330,8 @@ class NotebookDocument implements ToJsonable {
 }
 
 /// A change event for a notebook document.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class NotebookDocumentChangeEvent implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     NotebookDocumentChangeEvent.canParse,
@@ -25952,6 +26360,8 @@ class NotebookDocumentChangeEvent implements ToJsonable {
   final NotebookDocumentChangeEventCells? cells;
 
   /// The changed meta data if any.
+  ///
+  /// Note: should always be an object literal (e.g. LSPObject)
   final Object? metadata;
 
   @override
@@ -26405,7 +26815,8 @@ class NotebookDocumentChangeEventCellsTextContent implements ToJsonable {
 }
 
 /// Capabilities specific to the notebook document support.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class NotebookDocumentClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     NotebookDocumentClientCapabilities.canParse,
@@ -26426,7 +26837,8 @@ class NotebookDocumentClientCapabilities implements ToJsonable {
   }
 
   /// Capabilities specific to notebook document synchronization
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final NotebookDocumentSyncClientCapabilities synchronization;
 
   @override
@@ -26507,13 +26919,13 @@ class NotebookDocumentFilter1 implements ToJsonable {
     );
   }
 
-  /// The type of the enclosing notebook.
+  /// The type of the enclosing notebook. */
   final String notebookType;
 
-  /// A glob pattern.
+  /// A glob pattern. */
   final String? pattern;
 
-  /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
+  /// A Uri scheme, like `file` or `untitled`. */
   final String? scheme;
 
   @override
@@ -26624,13 +27036,13 @@ class NotebookDocumentFilter2 implements ToJsonable {
     );
   }
 
-  /// The type of the enclosing notebook.
+  /// The type of the enclosing notebook. */
   final String? notebookType;
 
-  /// A glob pattern.
+  /// A glob pattern. */
   final String? pattern;
 
-  /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
+  /// A Uri scheme, like `file` or `untitled`.*/
   final String scheme;
 
   @override
@@ -26741,13 +27153,13 @@ class NotebookDocumentFilter3 implements ToJsonable {
     );
   }
 
-  /// The type of the enclosing notebook.
+  /// The type of the enclosing notebook. */
   final String? notebookType;
 
-  /// A glob pattern.
+  /// A glob pattern. */
   final String pattern;
 
-  /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
+  /// A Uri scheme, like `file` or `untitled`. */
   final String? scheme;
 
   @override
@@ -26834,7 +27246,8 @@ class NotebookDocumentFilter3 implements ToJsonable {
 }
 
 /// A literal to identify a notebook document in the client.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class NotebookDocumentIdentifier implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     NotebookDocumentIdentifier.canParse,
@@ -26906,7 +27319,8 @@ class NotebookDocumentIdentifier implements ToJsonable {
 }
 
 /// Notebook specific client capabilities.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class NotebookDocumentSyncClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     NotebookDocumentSyncClientCapabilities.canParse,
@@ -27004,13 +27418,14 @@ class NotebookDocumentSyncClientCapabilities implements ToJsonable {
 
 /// Options specific to a notebook plus its cells to be synced to the server.
 ///
-/// If a selector provider a notebook document filter but no cell selector all
+/// If a selector provides a notebook document filter but no cell selector all
 /// cells of a matching notebook document will be synced.
 ///
 /// If a selector provides no notebook document filter but only a cell selector
 /// all notebook document that contain at least one matching cell will be
 /// synced.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class NotebookDocumentSyncOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     NotebookDocumentSyncOptions.canParse,
@@ -27551,7 +27966,8 @@ class NotebookDocumentSyncOptionsNotebookSelectorCells implements ToJsonable {
 }
 
 /// Registration options specific to a notebook.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class NotebookDocumentSyncRegistrationOptions
     implements
         NotebookDocumentSyncOptions,
@@ -27708,6 +28124,8 @@ class NotebookDocumentSyncRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// A text document identifier to optionally denote a specific version of a text
+/// document.
 class OptionalVersionedTextDocumentIdentifier
     implements TextDocumentIdentifier, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -27731,19 +28149,16 @@ class OptionalVersionedTextDocumentIdentifier
     );
   }
 
-  /// The text document's URI.
+  /// The text document's uri.
   @override
   final String uri;
 
-  /// The version number of this document. If an optional versioned text
-  /// document identifier is sent from the server to the client and the file is
-  /// not open in the editor (the server has not received an open notification
-  /// before) the server can send `null` to indicate that the version is known
-  /// and the content on disk is the master (as specified with document content
+  /// The version number of this document. If a versioned text document
+  /// identifier is sent from the server to the client and the file is not open
+  /// in the editor (the server has not received an open notification before)
+  /// the server can send `null` to indicate that the version is unknown and the
+  /// content on disk is the truth (as specified with document content
   /// ownership).
-  ///
-  /// The version number of a document will increase after each change,
-  /// including undo/redo. The number doesn't need to be consecutive.
   final int? version;
 
   @override
@@ -28179,6 +28594,32 @@ class PlaceholderAndRange implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Position in a text document expressed as zero-based line and character
+/// offset. Prior to 3.17 the offsets were always based on a UTF-16 string
+/// representation. So a string of the form `a𐐀b` the character offset of the
+/// character `a` is 0, the character offset of `𐐀` is 1 and the character
+/// offset of b is 3 since `𐐀` is represented using two code units in UTF-16.
+/// Since 3.17 clients and servers can agree on a different string encoding
+/// representation (e.g. UTF-8). The client announces it's supported encoding
+/// via the client capability `general.positionEncodings`. The value is an array
+/// of position encodings the client supports, with decreasing preference (e.g.
+/// the encoding at index `0` is the most preferred one). To stay backwards
+/// compatible the only mandatory encoding is UTF-16 represented via the string
+/// `utf-16`. The server can pick one of the encodings offered by the client and
+/// signals that encoding back to the client via the initialize result's
+/// property `capabilities.positionEncoding`. If the string value `utf-16` is
+/// missing from the client's capability `general.positionEncodings` servers can
+/// safely assume that the client supports UTF-16. If the server omits the
+/// position encoding in its initialize result the encoding defaults to the
+/// string value `utf-16`. Implementation considerations: since the conversion
+/// from one encoding into another requires the content of the file / line the
+/// conversion is best done where the file is read which is usually on the
+/// server side.
+///
+/// Positions are line end character agnostic. So you can not specify a position
+/// that denotes `\r|\n` or `\n|` where `|` represents the character offset.
+///
+/// @since 3.17.0 - support for negotiated position encoding.
 class Position implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     Position.canParse,
@@ -28200,14 +28641,20 @@ class Position implements ToJsonable {
     );
   }
 
-  /// Character offset on a line in a document (zero-based). The meaning of this
-  /// offset is determined by the negotiated `PositionEncodingKind`.
+  /// Character offset on a line in a document (zero-based).
+  ///
+  /// The meaning of this offset is determined by the negotiated
+  /// `PositionEncodingKind`.
   ///
   /// If the character value is greater than the line length it defaults back to
   /// the line length.
   final int character;
 
   /// Line position in a document (zero-based).
+  ///
+  /// If a line number is greater than the number of lines in a document, it
+  /// defaults back to the number of lines in the document. If a line number is
+  /// negative, it defaults to 0.
   final int line;
 
   @override
@@ -28282,7 +28729,8 @@ class Position implements ToJsonable {
 }
 
 /// A set of predefined position encoding kinds.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class PositionEncodingKind implements ToJsonable {
   const PositionEncodingKind(this._value);
   const PositionEncodingKind.fromJson(this._value);
@@ -28300,8 +28748,8 @@ class PositionEncodingKind implements ToJsonable {
 
   /// Character offsets count UTF-32 code units.
   ///
-  /// Implementation note: these are the same as Unicode code points, so this
-  /// `PositionEncodingKind` may also be used for an encoding-agnostic
+  /// Implementation note: these are the same as Unicode code points,
+  /// so this `PositionEncodingKind` may also be used for an encoding-agnostic
   /// representation of character offsets.
   static const UTF32 = PositionEncodingKind('utf-32');
 
@@ -28458,6 +28906,75 @@ class PrepareRenameParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class PrepareRenameResult2 implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    PrepareRenameResult2.canParse,
+    PrepareRenameResult2.fromJson,
+  );
+
+  PrepareRenameResult2({
+    required this.defaultBehavior,
+  });
+  static PrepareRenameResult2 fromJson(Map<String, Object?> json) {
+    final defaultBehaviorJson = json['defaultBehavior'];
+    final defaultBehavior = defaultBehaviorJson as bool;
+    return PrepareRenameResult2(
+      defaultBehavior: defaultBehavior,
+    );
+  }
+
+  final bool defaultBehavior;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['defaultBehavior'] = defaultBehavior;
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('defaultBehavior');
+      try {
+        if (!obj.containsKey('defaultBehavior')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final defaultBehavior = obj['defaultBehavior'];
+        if (defaultBehavior == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (defaultBehavior is! bool) {
+          reporter.reportError('must be of type bool');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type PrepareRenameResult2');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is PrepareRenameResult2 &&
+        other.runtimeType == PrepareRenameResult2) {
+      return defaultBehavior == other.defaultBehavior && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => defaultBehavior.hashCode;
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class PrepareSupportDefaultBehavior implements ToJsonable {
   const PrepareSupportDefaultBehavior(this._value);
   const PrepareSupportDefaultBehavior.fromJson(this._value);
@@ -28468,7 +28985,7 @@ class PrepareSupportDefaultBehavior implements ToJsonable {
     return obj is int;
   }
 
-  /// The client's default behavior is to select the identifier according to the
+  /// The client's default behavior is to select the identifier according the to
   /// language's syntax rule.
   static const Identifier = PrepareSupportDefaultBehavior(1);
 
@@ -28487,7 +29004,8 @@ class PrepareSupportDefaultBehavior implements ToJsonable {
 }
 
 /// A previous result id in a workspace pull request.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class PreviousResultId implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     PreviousResultId.canParse,
@@ -28586,7 +29104,7 @@ class PreviousResultId implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class ProgressParams<T> implements ToJsonable {
+class ProgressParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ProgressParams.canParse,
     ProgressParams.fromJson,
@@ -28596,7 +29114,7 @@ class ProgressParams<T> implements ToJsonable {
     required this.token,
     this.value,
   });
-  static ProgressParams<T> fromJson<T>(Map<String, Object?> json) {
+  static ProgressParams fromJson(Map<String, Object?> json) {
     final tokenJson = json['token'];
     final token = tokenJson is int
         ? Either2<int, String>.t1(tokenJson)
@@ -28605,7 +29123,7 @@ class ProgressParams<T> implements ToJsonable {
             : (throw '''$tokenJson was not one of (int, String)'''));
     final valueJson = json['value'];
     final value = valueJson;
-    return ProgressParams<T>(
+    return ProgressParams(
       token: token,
       value: value,
     );
@@ -28647,7 +29165,7 @@ class ProgressParams<T> implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError('must be of type ProgressParams<T>');
+      reporter.reportError('must be of type ProgressParams');
       return false;
     }
   }
@@ -28670,6 +29188,7 @@ class ProgressParams<T> implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The publish diagnostic client capabilities.
 class PublishDiagnosticsClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     PublishDiagnosticsClientCapabilities.canParse,
@@ -28708,13 +29227,15 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
   }
 
   /// Client supports a codeDescription property
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final bool? codeDescriptionSupport;
 
   /// Whether code action supports the `data` property which is preserved
   /// between a `textDocument/publishDiagnostics` and `textDocument/codeAction`
   /// request.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final bool? dataSupport;
 
   /// Whether the clients accepts diagnostics with related information.
@@ -28722,12 +29243,14 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
 
   /// Client supports the tag property to provide meta data about a diagnostic.
   /// Clients supporting tags have to handle unknown tags gracefully.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final PublishDiagnosticsClientCapabilitiesTagSupport? tagSupport;
 
   /// Whether the client interprets the version property of the
   /// `textDocument/publishDiagnostics` notification's parameter.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final bool? versionSupport;
 
   @override
@@ -28918,6 +29441,7 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The publish diagnostic notification's parameters.
 class PublishDiagnosticsParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     PublishDiagnosticsParams.canParse,
@@ -28953,7 +29477,8 @@ class PublishDiagnosticsParams implements ToJsonable {
 
   /// Optional the version number of the document the diagnostics are published
   /// for.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final int? version;
 
   @override
@@ -29047,6 +29572,18 @@ class PublishDiagnosticsParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// A range in a text document expressed as (zero-based) start and end
+/// positions.
+///
+/// If you want to specify a range that contains a line including the line
+/// ending character(s) then use an end position denoting the start of the next
+/// line. For example:
+/// ```ts
+/// {
+///     start: { line: 5, character: 23 }
+///     end : { line 6, character : 0 }
+/// }
+/// ```
 class Range implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     Range.canParse,
@@ -29145,6 +29682,7 @@ class Range implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Client Capabilities for a ReferencesRequest.
 class ReferenceClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ReferenceClientCapabilities.canParse,
@@ -29209,6 +29747,8 @@ class ReferenceClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Value-object that contains additional information when requesting
+/// references.
 class ReferenceContext implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ReferenceContext.canParse,
@@ -29278,6 +29818,7 @@ class ReferenceContext implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Reference options.
 class ReferenceOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ReferenceOptions.canParse,
@@ -29344,6 +29885,7 @@ class ReferenceOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Parameters for a ReferencesRequest.
 class ReferenceParams
     implements
         PartialResultParams,
@@ -29543,6 +30085,7 @@ class ReferenceParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Registration options for a ReferencesRequest.
 class ReferenceRegistrationOptions
     implements ReferenceOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -29648,7 +30191,8 @@ class ReferenceRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// General parameters to register for a capability.
+/// General parameters to to register for an notification or to register a
+/// provider.
 class Registration implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     Registration.canParse,
@@ -29839,6 +30383,8 @@ class RegistrationParams implements ToJsonable {
 }
 
 /// Client capabilities specific to regular expressions.
+///
+/// @since 3.16.0
 class RegularExpressionsClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     RegularExpressionsClientCapabilities.canParse,
@@ -29935,7 +30481,8 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
 }
 
 /// A full diagnostic report with a set of related documents.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class RelatedFullDocumentDiagnosticReport
     implements FullDocumentDiagnosticReport, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -29998,7 +30545,8 @@ class RelatedFullDocumentDiagnosticReport
   /// file B which A depends on. An example of such a language is C/C++ where
   /// marco definitions in a file a.cpp and result in errors in a header file
   /// b.hpp.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final Map<
       String,
       Either2<FullDocumentDiagnosticReport,
@@ -30135,7 +30683,8 @@ class RelatedFullDocumentDiagnosticReport
 }
 
 /// An unchanged diagnostic report with a set of related documents.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class RelatedUnchangedDocumentDiagnosticReport
     implements UnchangedDocumentDiagnosticReport, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -30189,7 +30738,8 @@ class RelatedUnchangedDocumentDiagnosticReport
   /// file B which A depends on. An example of such a language is C/C++ where
   /// marco definitions in a file a.cpp and result in errors in a header file
   /// b.hpp.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final Map<
       String,
       Either2<FullDocumentDiagnosticReport,
@@ -30311,7 +30861,8 @@ class RelatedUnchangedDocumentDiagnosticReport
 /// A relative pattern is a helper to construct glob patterns that are matched
 /// relatively to a base URI. The common value for a `baseUri` is a workspace
 /// folder root, but it can be another absolute URI as well.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class RelativePattern implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     RelativePattern.canParse,
@@ -30455,23 +31006,25 @@ class RenameClientCapabilities implements ToJsonable {
   /// Whether rename supports dynamic registration.
   final bool? dynamicRegistration;
 
-  /// Whether th client honors the change annotations in text edits and resource
-  /// operations returned via the rename request's workspace edit by for example
-  /// presenting the workspace edit in the user interface and asking for
-  /// confirmation.
-  ///  @since 3.16.0
+  /// Whether the client honors the change annotations in text edits and
+  /// resource operations returned via the rename request's workspace edit by
+  /// for example presenting the workspace edit in the user interface and asking
+  /// for confirmation.
+  ///
+  /// @since 3.16.0
   final bool? honorsChangeAnnotations;
 
   /// Client supports testing for validity of rename operations before
   /// execution.
-  ///  @since version 3.12.0
+  ///
+  /// @since 3.12.0
   final bool? prepareSupport;
 
-  /// Client supports the default behavior result (`{ defaultBehavior: boolean
-  /// }`).
+  /// Client supports the default behavior result.
   ///
   /// The value indicates the default behavior used by the client.
-  ///  @since version 3.16.0
+  ///
+  /// @since 3.16.0
   final PrepareSupportDefaultBehavior? prepareSupportDefaultBehavior;
 
   @override
@@ -30573,7 +31126,7 @@ class RenameClientCapabilities implements ToJsonable {
 }
 
 /// Rename file operation
-class RenameFile implements ToJsonable {
+class RenameFile implements ResourceOperation, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     RenameFile.canParse,
     RenameFile.fromJson,
@@ -30613,10 +31166,13 @@ class RenameFile implements ToJsonable {
   }
 
   /// An optional annotation identifier describing the operation.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
+  @override
   final String? annotationId;
 
   /// A rename
+  @override
   final String kind;
 
   /// The new location.
@@ -30843,7 +31399,8 @@ class RenameFileOptions implements ToJsonable {
 
 /// The parameters sent in notifications/requests for user-initiated renames of
 /// files.
-///  @since 3.16.0
+///
+/// @since 3.16.0
 class RenameFilesParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     RenameFilesParams.canParse,
@@ -30919,6 +31476,7 @@ class RenameFilesParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Provider options for a RenameRequest.
 class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     RenameOptions.canParse,
@@ -30944,6 +31502,8 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   /// Renames should be checked and tested before being executed.
+  ///
+  /// @since version 3.12.0
   final bool? prepareProvider;
   @override
   final bool? workDoneProgress;
@@ -31009,8 +31569,8 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-class RenameParams
-    implements TextDocumentPositionParams, WorkDoneProgressParams, ToJsonable {
+/// The parameters of a RenameRequest.
+class RenameParams implements WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     RenameParams.canParse,
     RenameParams.fromJson,
@@ -31047,15 +31607,13 @@ class RenameParams
   }
 
   /// The new name of the symbol. If the given name is not valid the request
-  /// must return a [ResponseError] with an appropriate message set.
+  /// must return a ResponseError with an appropriate message set.
   final String newName;
 
-  /// The position inside the text document.
-  @override
+  /// The position at which this request was sent.
   final Position position;
 
-  /// The text document.
-  @override
+  /// The document to rename.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
@@ -31173,6 +31731,7 @@ class RenameParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Registration options for a RenameRequest.
 class RenameRegistrationOptions
     implements RenameOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -31208,6 +31767,8 @@ class RenameRegistrationOptions
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// Renames should be checked and tested before being executed.
+  ///
+  /// @since version 3.12.0
   @override
   final bool? prepareProvider;
   @override
@@ -31301,6 +31862,110 @@ class RenameRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// A generic resource operation.
+class ResourceOperation implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    ResourceOperation.canParse,
+    ResourceOperation.fromJson,
+  );
+
+  ResourceOperation({
+    this.annotationId,
+    required this.kind,
+  });
+  static ResourceOperation fromJson(Map<String, Object?> json) {
+    if (RenameFile.canParse(json, nullLspJsonReporter)) {
+      return RenameFile.fromJson(json);
+    }
+    if (CreateFile.canParse(json, nullLspJsonReporter)) {
+      return CreateFile.fromJson(json);
+    }
+    if (DeleteFile.canParse(json, nullLspJsonReporter)) {
+      return DeleteFile.fromJson(json);
+    }
+    final annotationIdJson = json['annotationId'];
+    final annotationId = annotationIdJson as String?;
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    return ResourceOperation(
+      annotationId: annotationId,
+      kind: kind,
+    );
+  }
+
+  /// An optional annotation identifier describing the operation.
+  ///
+  /// @since 3.16.0
+  final String? annotationId;
+
+  /// The resource operation kind.
+  final String kind;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (annotationId != null) {
+      result['annotationId'] = annotationId;
+    }
+    result['kind'] = kind;
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('annotationId');
+      try {
+        final annotationId = obj['annotationId'];
+        if (annotationId != null && annotationId is! String) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('kind');
+      try {
+        if (!obj.containsKey('kind')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final kind = obj['kind'];
+        if (kind == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (kind is! String) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type ResourceOperation');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is ResourceOperation && other.runtimeType == ResourceOperation) {
+      return annotationId == other.annotationId && kind == other.kind && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        annotationId,
+        kind,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class ResourceOperationKind implements ToJsonable {
   const ResourceOperationKind._(this._value);
   const ResourceOperationKind.fromJson(this._value);
@@ -31340,6 +32005,7 @@ class ResourceOperationKind implements ToJsonable {
       other is ResourceOperationKind && other._value == _value;
 }
 
+/// Save options.
 class SaveOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SaveOptions.canParse,
@@ -31350,6 +32016,10 @@ class SaveOptions implements ToJsonable {
     this.includeText,
   });
   static SaveOptions fromJson(Map<String, Object?> json) {
+    if (TextDocumentSaveRegistrationOptions.canParse(
+        json, nullLspJsonReporter)) {
+      return TextDocumentSaveRegistrationOptions.fromJson(json);
+    }
     final includeTextJson = json['includeText'];
     final includeText = includeTextJson as bool?;
     return SaveOptions(
@@ -31403,6 +32073,8 @@ class SaveOptions implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// A selection range represents a part of a selection hierarchy. A selection
+/// range may have a parent selection range that contains it.
 class SelectionRange implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SelectionRange.canParse,
@@ -31430,7 +32102,7 @@ class SelectionRange implements ToJsonable {
   /// must contain `this.range`.
   final SelectionRange? parent;
 
-  /// The range ([Range]) of this selection range.
+  /// The range of this selection range.
   final Range range;
 
   @override
@@ -31632,6 +32304,7 @@ class SelectionRangeOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// A parameter literal used in selection range requests.
 class SelectionRangeParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -31935,6 +32608,10 @@ class SelectionRangeRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// A set of predefined token modifiers. This set is not fixed an clients can
+/// specify additional token types via the corresponding client capabilities.
+///
+/// @since 3.16.0
 class SemanticTokenModifiers implements ToJsonable {
   const SemanticTokenModifiers(this._value);
   const SemanticTokenModifiers.fromJson(this._value);
@@ -31970,6 +32647,10 @@ class SemanticTokenModifiers implements ToJsonable {
       other is SemanticTokenModifiers && other._value == _value;
 }
 
+/// A set of predefined token types. This set is not fixed an clients can
+/// specify additional token types via the corresponding client capabilities.
+///
+/// @since 3.16.0
 class SemanticTokenTypes implements ToJsonable {
   const SemanticTokenTypes(this._value);
   const SemanticTokenTypes.fromJson(this._value);
@@ -32023,6 +32704,7 @@ class SemanticTokenTypes implements ToJsonable {
       other is SemanticTokenTypes && other._value == _value;
 }
 
+/// @since 3.16.0
 class SemanticTokens implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SemanticTokens.canParse,
@@ -32121,6 +32803,7 @@ class SemanticTokens implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.16.0
 class SemanticTokensClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SemanticTokensClientCapabilities.canParse,
@@ -32183,7 +32866,8 @@ class SemanticTokensClientCapabilities implements ToJsonable {
   /// returned semantic tokens for colorization.
   ///
   /// If the value is `undefined` then the client behavior is not specified.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final bool? augmentsSyntaxTokens;
 
   /// Whether implementation supports dynamic registration. If this is set to
@@ -32192,7 +32876,7 @@ class SemanticTokensClientCapabilities implements ToJsonable {
   /// capability as well.
   final bool? dynamicRegistration;
 
-  /// The formats the clients supports.
+  /// The token formats the clients supports.
   final List<TokenFormat> formats;
 
   /// Whether the client supports tokens that can span multiple lines.
@@ -32212,9 +32896,10 @@ class SemanticTokensClientCapabilities implements ToJsonable {
   final SemanticTokensClientCapabilitiesRequests requests;
 
   /// Whether the client allows the server to actively cancel a semantic token
-  /// request, e.g. supports returning ErrorCodes.ServerCancelled. If a server
-  /// does the client needs to retrigger the request.
-  ///  @since 3.17.0
+  /// request, e.g. supports returning LSPErrorCodes.ServerCancelled. If a
+  /// server does the client needs to retrigger the request.
+  ///
+  /// @since 3.17.0
   final bool? serverCancelSupport;
 
   /// The token modifiers that the client supports.
@@ -32651,6 +33336,7 @@ class SemanticTokensClientCapabilitiesRequestsRange implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.16.0
 class SemanticTokensDelta implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SemanticTokensDelta.canParse,
@@ -32749,6 +33435,7 @@ class SemanticTokensDelta implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.16.0
 class SemanticTokensDeltaParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -32916,6 +33603,7 @@ class SemanticTokensDeltaParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.16.0
 class SemanticTokensDeltaPartialResult implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SemanticTokensDeltaPartialResult.canParse,
@@ -32991,6 +33679,7 @@ class SemanticTokensDeltaPartialResult implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.16.0
 class SemanticTokensEdit implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SemanticTokensEdit.canParse,
@@ -33116,6 +33805,7 @@ class SemanticTokensEdit implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.16.0
 class SemanticTokensLegend implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SemanticTokensLegend.canParse,
@@ -33225,6 +33915,7 @@ class SemanticTokensLegend implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.16.0
 class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SemanticTokensOptions.canParse,
@@ -33493,6 +34184,7 @@ class SemanticTokensOptionsRange implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.16.0
 class SemanticTokensParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -33631,6 +34323,7 @@ class SemanticTokensParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.16.0
 class SemanticTokensPartialResult implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SemanticTokensPartialResult.canParse,
@@ -33701,6 +34394,7 @@ class SemanticTokensPartialResult implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.16.0
 class SemanticTokensRangeParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -33867,6 +34561,7 @@ class SemanticTokensRangeParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.16.0
 class SemanticTokensRegistrationOptions
     implements
         SemanticTokensOptions,
@@ -34100,6 +34795,7 @@ class SemanticTokensRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.16.0
 class SemanticTokensWorkspaceClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SemanticTokensWorkspaceClientCapabilities.canParse,
@@ -34123,7 +34819,7 @@ class SemanticTokensWorkspaceClientCapabilities implements ToJsonable {
   ///
   /// Note that this event is global and will force the client to refresh all
   /// semantic tokens currently shown. It should be used with absolute care and
-  /// is useful for situation where a server for example detect a project wide
+  /// is useful for situation where a server for example detects a project wide
   /// change that requires such a calculation.
   final bool? refreshSupport;
 
@@ -34172,6 +34868,7 @@ class SemanticTokensWorkspaceClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Defines the capabilities provided by a language server.
 class ServerCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ServerCapabilities.canParse,
@@ -34669,28 +35366,27 @@ class ServerCapabilities implements ToJsonable {
   }
 
   /// The server provides call hierarchy support.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>?
       callHierarchyProvider;
 
-  /// The server provides code actions. The `CodeActionOptions` return type is
-  /// only valid if the client signals code action literal support via the
-  /// property `textDocument.codeAction.codeActionLiteralSupport`.
+  /// The server provides code actions. CodeActionOptions may only be specified
+  /// if the client states that it supports `codeActionLiteralSupport` in its
+  /// initial `initialize` request.
   final Either2<bool, CodeActionOptions>? codeActionProvider;
 
   /// The server provides code lens.
   final CodeLensOptions? codeLensProvider;
 
   /// The server provides color provider support.
-  ///  @since 3.6.0
   final Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>?
       colorProvider;
 
   /// The server provides completion support.
   final CompletionOptions? completionProvider;
 
-  /// The server provides go to declaration support.
-  ///  @since 3.14.0
+  /// The server provides Goto Declaration support.
   final Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>?
       declarationProvider;
 
@@ -34698,7 +35394,8 @@ class ServerCapabilities implements ToJsonable {
   final Either2<bool, DefinitionOptions>? definitionProvider;
 
   /// The server has support for pull model diagnostics.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final Either2<DiagnosticOptions, DiagnosticRegistrationOptions>?
       diagnosticProvider;
 
@@ -34728,40 +35425,43 @@ class ServerCapabilities implements ToJsonable {
   final Object? experimental;
 
   /// The server provides folding provider support.
-  ///  @since 3.10.0
   final Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>?
       foldingRangeProvider;
 
   /// The server provides hover support.
   final Either2<bool, HoverOptions>? hoverProvider;
 
-  /// The server provides goto implementation support.
-  ///  @since 3.6.0
+  /// The server provides Goto Implementation support.
   final Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>?
       implementationProvider;
 
   /// The server provides inlay hints.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final Either3<bool, InlayHintOptions, InlayHintRegistrationOptions>?
       inlayHintProvider;
 
   /// The server provides inline values.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final Either3<bool, InlineValueOptions, InlineValueRegistrationOptions>?
       inlineValueProvider;
 
   /// The server provides linked editing range support.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final Either3<bool, LinkedEditingRangeOptions,
       LinkedEditingRangeRegistrationOptions>? linkedEditingRangeProvider;
 
-  /// Whether server provides moniker support.
-  ///  @since 3.16.0
+  /// The server provides moniker support.
+  ///
+  /// @since 3.16.0
   final Either3<bool, MonikerOptions, MonikerRegistrationOptions>?
       monikerProvider;
 
   /// Defines how notebook documents are synced.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final Either2<NotebookDocumentSyncOptions,
       NotebookDocumentSyncRegistrationOptions>? notebookDocumentSync;
 
@@ -34772,7 +35472,8 @@ class ServerCapabilities implements ToJsonable {
   /// that a server can return is 'utf-16'.
   ///
   /// If omitted it defaults to 'utf-16'.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final PositionEncodingKind? positionEncoding;
 
   /// The server provides find references support.
@@ -34784,12 +35485,12 @@ class ServerCapabilities implements ToJsonable {
   final Either2<bool, RenameOptions>? renameProvider;
 
   /// The server provides selection range support.
-  ///  @since 3.15.0
   final Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>?
       selectionRangeProvider;
 
   /// The server provides semantic tokens support.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>?
       semanticTokensProvider;
 
@@ -34798,22 +35499,21 @@ class ServerCapabilities implements ToJsonable {
 
   /// Defines how text documents are synced. Is either a detailed structure
   /// defining each notification or for backwards compatibility the
-  /// TextDocumentSyncKind number. If omitted it defaults to
-  /// `TextDocumentSyncKind.None`.
+  /// TextDocumentSyncKind number.
   final Either2<TextDocumentSyncKind, TextDocumentSyncOptions>?
       textDocumentSync;
 
-  /// The server provides goto type definition support.
-  ///  @since 3.6.0
+  /// The server provides Goto Type Definition support.
   final Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>?
       typeDefinitionProvider;
 
   /// The server provides type hierarchy support.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final Either3<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>?
       typeHierarchyProvider;
 
-  /// Workspace specific server capabilities
+  /// Workspace specific server capabilities.
   final ServerCapabilitiesWorkspace? workspace;
 
   /// The server provides workspace symbol support.
@@ -35517,12 +36217,15 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
     );
   }
 
-  /// The server is interested in file notifications/requests.
-  ///  @since 3.16.0
+  /// The server is interested in notifications/requests for operations on
+  /// files.
+  ///
+  /// @since 3.16.0
   final FileOperationOptions? fileOperations;
 
   /// The server supports workspace folder.
-  ///  @since 3.6.0
+  ///
+  /// @since 3.6.0
   final WorkspaceFoldersServerCapabilities? workspaceFolders;
 
   @override
@@ -35602,21 +36305,18 @@ class SetTraceParams implements ToJsonable {
   });
   static SetTraceParams fromJson(Map<String, Object?> json) {
     final valueJson = json['value'];
-    final value = const {'off', 'messages', 'verbose'}.contains(valueJson)
-        ? valueJson as String
-        : throw '''$valueJson was not one of ('off', 'messages', 'verbose')''';
+    final value = TraceValues.fromJson(valueJson as String);
     return SetTraceParams(
       value: value,
     );
   }
 
-  /// The new value that should be assigned to the trace setting.
-  final String value;
+  final TraceValues value;
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['value'] = value;
+    result['value'] = value.toJson();
     return result;
   }
 
@@ -35633,9 +36333,8 @@ class SetTraceParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (value != 'off' && value != 'messages' && value != 'verbose') {
-          reporter.reportError(
-              'must be one of the literals \'off\', \'messages\', \'verbose\'');
+        if (!TraceValues.canParse(value, reporter)) {
+          reporter.reportError('must be of type TraceValues');
           return false;
         }
       } finally {
@@ -35663,8 +36362,9 @@ class SetTraceParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// Client capabilities for the show document request.
-///  @since 3.16.0
+/// Client capabilities for the showDocument request.
+///
+/// @since 3.16.0
 class ShowDocumentClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ShowDocumentClientCapabilities.canParse,
@@ -35682,7 +36382,7 @@ class ShowDocumentClientCapabilities implements ToJsonable {
     );
   }
 
-  /// The client has support for the show document request.
+  /// The client has support for the showDocument request.
   final bool support;
 
   @override
@@ -35736,7 +36436,8 @@ class ShowDocumentClientCapabilities implements ToJsonable {
 }
 
 /// Params to show a document.
-///  @since 3.16.0
+///
+/// @since 3.16.0
 class ShowDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ShowDocumentParams.canParse,
@@ -35884,8 +36585,9 @@ class ShowDocumentParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// The result of an show document request.
-///  @since 3.16.0
+/// The result of a showDocument request.
+///
+/// @since 3.16.0
 class ShowDocumentResult implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ShowDocumentResult.canParse,
@@ -35956,6 +36658,7 @@ class ShowDocumentResult implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameters of a notification message.
 class ShowMessageParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     ShowMessageParams.canParse,
@@ -35980,7 +36683,7 @@ class ShowMessageParams implements ToJsonable {
   /// The actual message.
   final String message;
 
-  /// The message type.
+  /// The message type. See {@link MessageType}
   final MessageType type;
 
   @override
@@ -36149,7 +36852,7 @@ class ShowMessageRequestClientCapabilitiesMessageActionItem
   }
 
   /// Whether the client supports additional attributes which are preserved and
-  /// sent back to the server in the request's response.
+  /// send back to the server in the request's response.
   final bool? additionalPropertiesSupport;
 
   @override
@@ -36231,10 +36934,10 @@ class ShowMessageRequestParams implements ToJsonable {
   /// The message action items to present.
   final List<MessageActionItem>? actions;
 
-  /// The actual message
+  /// The actual message.
   final String message;
 
-  /// The message type.
+  /// The message type. See {@link MessageType}
   final MessageType type;
 
   @override
@@ -36369,8 +37072,8 @@ class SignatureHelp implements ToJsonable {
   final int? activeParameter;
 
   /// The active signature. If omitted or the value lies outside the range of
-  /// `signatures` the value defaults to zero or is ignore if the
-  /// `SignatureHelp` as no signatures.
+  /// `signatures` the value defaults to zero or is ignored if the
+  /// `SignatureHelp` has no signatures.
   ///
   /// Whenever possible implementors should make an active decision about the
   /// active signature and shouldn't rely on a default value.
@@ -36379,8 +37082,7 @@ class SignatureHelp implements ToJsonable {
   /// better express this.
   final int? activeSignature;
 
-  /// One or more signatures. If no signatures are available the signature help
-  /// request should return `null`.
+  /// One or more signatures.
   final List<SignatureInformation> signatures;
 
   @override
@@ -36468,6 +37170,7 @@ class SignatureHelp implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Client Capabilities for a SignatureHelpRequest.
 class SignatureHelpClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SignatureHelpClientCapabilities.canParse,
@@ -36500,7 +37203,8 @@ class SignatureHelpClientCapabilities implements ToJsonable {
   /// `textDocument/signatureHelp` request. A client that opts into
   /// contextSupport will also support the `retriggerCharacters` on
   /// `SignatureHelpOptions`.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final bool? contextSupport;
 
   /// Whether signature help supports dynamic registration.
@@ -36625,11 +37329,12 @@ class SignatureHelpClientCapabilitiesSignatureInformation
 
   /// The client supports the `activeParameter` property on
   /// `SignatureInformation` literal.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final bool? activeParameterSupport;
 
-  /// Client supports the follow content formats for the documentation property.
-  /// The order describes the preferred format of the client.
+  /// Client supports the following content formats for the documentation
+  /// property. The order describes the preferred format of the client.
   final List<MarkupKind>? documentationFormat;
 
   /// Client capabilities specific to parameter information.
@@ -36724,7 +37429,8 @@ class SignatureHelpClientCapabilitiesSignatureInformation
 
 /// Additional information about the context in which a signature help request
 /// was triggered.
-///  @since 3.15.0
+///
+/// @since 3.15.0
 class SignatureHelpContext implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SignatureHelpContext.canParse,
@@ -36766,15 +37472,15 @@ class SignatureHelpContext implements ToJsonable {
 
   /// `true` if signature help was already showing when it was triggered.
   ///
-  /// Retriggers occur when the signature help is already active and can be
+  /// Retriggers occurs when the signature help is already active and can be
   /// caused by actions such as typing a trigger character, a cursor move, or
   /// document content changes.
   final bool isRetrigger;
 
   /// Character that caused signature help to be triggered.
   ///
-  /// This is undefined when triggerKind !==
-  /// SignatureHelpTriggerKind.TriggerCharacter
+  /// This is undefined when `triggerKind !==
+  /// SignatureHelpTriggerKind.TriggerCharacter`
   final String? triggerCharacter;
 
   /// Action that caused signature help to be triggered.
@@ -36885,6 +37591,7 @@ class SignatureHelpContext implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Server Capabilities for a SignatureHelpRequest.
 class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SignatureHelpOptions.canParse,
@@ -36921,10 +37628,11 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
   ///
   /// These trigger characters are only active when signature help is already
   /// showing. All trigger characters are also counted as re-trigger characters.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final List<String>? retriggerCharacters;
 
-  /// The characters that trigger signature help automatically.
+  /// List of characters that trigger signature help automatically.
   final List<String>? triggerCharacters;
   @override
   final bool? workDoneProgress;
@@ -37012,6 +37720,7 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Parameters for a SignatureHelpRequest.
 class SignatureHelpParams
     implements TextDocumentPositionParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -37054,7 +37763,8 @@ class SignatureHelpParams
   /// The signature help context. This is only available if the client specifies
   /// to send this using the client capability
   /// `textDocument.signatureHelp.contextSupport === true`
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final SignatureHelpContext? context;
 
   /// The position inside the text document.
@@ -37176,6 +37886,7 @@ class SignatureHelpParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Registration options for a SignatureHelpRequest.
 class SignatureHelpRegistrationOptions
     implements
         SignatureHelpOptions,
@@ -37225,11 +37936,12 @@ class SignatureHelpRegistrationOptions
   ///
   /// These trigger characters are only active when signature help is already
   /// showing. All trigger characters are also counted as re-trigger characters.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   @override
   final List<String>? retriggerCharacters;
 
-  /// The characters that trigger signature help automatically.
+  /// List of characters that trigger signature help automatically.
   @override
   final List<String>? triggerCharacters;
   @override
@@ -37345,7 +38057,8 @@ class SignatureHelpRegistrationOptions
 }
 
 /// How a signature help was triggered.
-///  @since 3.15.0
+///
+/// @since 3.15.0
 class SignatureHelpTriggerKind implements ToJsonable {
   const SignatureHelpTriggerKind(this._value);
   const SignatureHelpTriggerKind.fromJson(this._value);
@@ -37424,7 +38137,8 @@ class SignatureInformation implements ToJsonable {
   /// The index of the active parameter.
   ///
   /// If provided, this is used in place of `SignatureHelp.activeParameter`.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final int? activeParameter;
 
   /// The human-readable doc-comment of this signature. Will be shown in the UI
@@ -37562,7 +38276,8 @@ class SignatureInformationParameterInformation implements ToJsonable {
 
   /// The client supports processing label offsets instead of a simple label
   /// string.
-  ///  @since 3.14.0
+  ///
+  /// @since 3.14.0
   final bool? labelOffsetSupport;
 
   @override
@@ -37722,8 +38437,7 @@ class StaticRegistrationOptions implements ToJsonable {
 
 /// Represents information about programming constructs like variables, classes,
 /// interfaces etc.
-///  @deprecated use DocumentSymbol or WorkspaceSymbol instead.
-class SymbolInformation implements ToJsonable {
+class SymbolInformation implements BaseSymbolInformation, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     SymbolInformation.canParse,
     SymbolInformation.fromJson,
@@ -37766,31 +38480,37 @@ class SymbolInformation implements ToJsonable {
   /// user interface purposes (e.g. to render a qualifier in the user interface
   /// if necessary). It can't be used to re-infer a hierarchy for the document
   /// symbols.
+  @override
   final String? containerName;
 
   /// Indicates if this symbol is deprecated.
-  ///  @deprecated Use tags instead
+  ///
+  /// @deprecated Use tags instead
   final bool? deprecated;
 
   /// The kind of this symbol.
+  @override
   final SymbolKind kind;
 
   /// The location of this symbol. The location's range is used by a tool to
   /// reveal the location in the editor. If the symbol is selected in the tool
   /// the range's start information is used to position the cursor. So the range
-  /// usually spans more then the actual symbol's name and does normally include
+  /// usually spans more than the actual symbol's name and does normally include
   /// things like visibility modifiers.
   ///
-  /// The range doesn't have to denote a node range in the sense of a abstract
+  /// The range doesn't have to denote a node range in the sense of an abstract
   /// syntax tree. It can therefore not be used to re-construct a hierarchy of
   /// the symbols.
   final Location location;
 
   /// The name of this symbol.
+  @override
   final String name;
 
   /// Tags for this symbol.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
+  @override
   final List<SymbolTag>? tags;
 
   @override
@@ -37987,7 +38707,8 @@ class SymbolKind implements ToJsonable {
 }
 
 /// Symbol tags are extra annotations that tweak the rendering of a symbol.
-///  @since 3.16
+///
+/// @since 3.16
 class SymbolTag implements ToJsonable {
   const SymbolTag(this._value);
   const SymbolTag.fromJson(this._value);
@@ -38015,8 +38736,7 @@ class SymbolTag implements ToJsonable {
       other is SymbolTag && other._value == _value;
 }
 
-/// Describe options to be used when registering for text document change
-/// events.
+/// Describe options to be used when registered for text document change events.
 class TextDocumentChangeRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -38048,8 +38768,7 @@ class TextDocumentChangeRegistrationOptions
   @override
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
-  /// How documents are synced to the server. See TextDocumentSyncKind.Full and
-  /// TextDocumentSyncKind.Incremental.
+  /// How documents are synced to the server.
   final TextDocumentSyncKind syncKind;
 
   @override
@@ -38355,7 +39074,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
   }
 
   /// Capabilities specific to the various call hierarchy requests.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final CallHierarchyClientCapabilities? callHierarchy;
 
   /// Capabilities specific to the `textDocument/codeAction` request.
@@ -38366,21 +39086,24 @@ class TextDocumentClientCapabilities implements ToJsonable {
 
   /// Capabilities specific to the `textDocument/documentColor` and the
   /// `textDocument/colorPresentation` request.
-  ///  @since 3.6.0
+  ///
+  /// @since 3.6.0
   final DocumentColorClientCapabilities? colorProvider;
 
   /// Capabilities specific to the `textDocument/completion` request.
   final CompletionClientCapabilities? completion;
 
   /// Capabilities specific to the `textDocument/declaration` request.
-  ///  @since 3.14.0
+  ///
+  /// @since 3.14.0
   final DeclarationClientCapabilities? declaration;
 
   /// Capabilities specific to the `textDocument/definition` request.
   final DefinitionClientCapabilities? definition;
 
   /// Capabilities specific to the diagnostic pull model.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final DiagnosticClientCapabilities? diagnostic;
 
   /// Capabilities specific to the `textDocument/documentHighlight` request.
@@ -38393,7 +39116,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
   final DocumentSymbolClientCapabilities? documentSymbol;
 
   /// Capabilities specific to the `textDocument/foldingRange` request.
-  ///  @since 3.10.0
+  ///
+  /// @since 3.10.0
   final FoldingRangeClientCapabilities? foldingRange;
 
   /// Capabilities specific to the `textDocument/formatting` request.
@@ -38403,27 +39127,31 @@ class TextDocumentClientCapabilities implements ToJsonable {
   final HoverClientCapabilities? hover;
 
   /// Capabilities specific to the `textDocument/implementation` request.
-  ///  @since 3.6.0
+  ///
+  /// @since 3.6.0
   final ImplementationClientCapabilities? implementation;
 
   /// Capabilities specific to the `textDocument/inlayHint` request.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final InlayHintClientCapabilities? inlayHint;
 
   /// Capabilities specific to the `textDocument/inlineValue` request.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final InlineValueClientCapabilities? inlineValue;
 
   /// Capabilities specific to the `textDocument/linkedEditingRange` request.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final LinkedEditingRangeClientCapabilities? linkedEditingRange;
 
-  /// Capabilities specific to the `textDocument/moniker` request.
-  ///  @since 3.16.0
+  /// Client capabilities specific to the `textDocument/moniker` request.
+  ///
+  /// @since 3.16.0
   final MonikerClientCapabilities? moniker;
 
-  /// request. Capabilities specific to the `textDocument/onTypeFormatting`
-  /// request.
+  /// Capabilities specific to the `textDocument/onTypeFormatting` request.
   final DocumentOnTypeFormattingClientCapabilities? onTypeFormatting;
 
   /// Capabilities specific to the `textDocument/publishDiagnostics`
@@ -38440,23 +39168,29 @@ class TextDocumentClientCapabilities implements ToJsonable {
   final RenameClientCapabilities? rename;
 
   /// Capabilities specific to the `textDocument/selectionRange` request.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final SelectionRangeClientCapabilities? selectionRange;
 
-  /// Capabilities specific to the various semantic token requests.
-  ///  @since 3.16.0
+  /// Capabilities specific to the various semantic token request.
+  ///
+  /// @since 3.16.0
   final SemanticTokensClientCapabilities? semanticTokens;
 
   /// Capabilities specific to the `textDocument/signatureHelp` request.
   final SignatureHelpClientCapabilities? signatureHelp;
+
+  /// Defines which synchronization capabilities the client supports.
   final TextDocumentSyncClientCapabilities? synchronization;
 
   /// Capabilities specific to the `textDocument/typeDefinition` request.
-  ///  @since 3.6.0
+  ///
+  /// @since 3.6.0
   final TypeDefinitionClientCapabilities? typeDefinition;
 
   /// Capabilities specific to the various type hierarchy requests.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final TypeHierarchyClientCapabilities? typeHierarchy;
 
   @override
@@ -39034,7 +39768,8 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
   final Range range;
 
   /// The optional length of the range that got replaced.
-  ///  @deprecated use range instead.
+  ///
+  /// @deprecated use range instead.
   final int? rangeLength;
 
   /// The new text for the provided range.
@@ -39199,6 +39934,11 @@ class TextDocumentContentChangeEvent2 implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Describes textual changes on a text document. A TextDocumentEdit describes
+/// all changes on a document version Si and after they are applied move the
+/// document to version Si+1. So the creator of a TextDocumentEdit doesn't need
+/// to sort the array of edits or do any kind of ordering. However the edits
+/// must be non overlapping.
 class TextDocumentEdit implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     TextDocumentEdit.canParse,
@@ -39233,8 +39973,9 @@ class TextDocumentEdit implements ToJsonable {
   }
 
   /// The edits to be applied.
-  ///  @since 3.16.0 - support for AnnotatedTextEdit. This is guarded by the
-  /// client capability `workspace.workspaceEdit.changeAnnotationSupport`
+  ///
+  /// @since 3.16.0 - support for AnnotatedTextEdit. This is guarded using a
+  /// client capability.
   final List<Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>> edits;
 
   /// The text document to change.
@@ -39326,6 +40067,240 @@ class TextDocumentEdit implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class TextDocumentFilter1 implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    TextDocumentFilter1.canParse,
+    TextDocumentFilter1.fromJson,
+  );
+
+  TextDocumentFilter1({
+    required this.language,
+    this.pattern,
+    this.scheme,
+  });
+  static TextDocumentFilter1 fromJson(Map<String, Object?> json) {
+    final languageJson = json['language'];
+    final language = languageJson as String;
+    final patternJson = json['pattern'];
+    final pattern = patternJson as String?;
+    final schemeJson = json['scheme'];
+    final scheme = schemeJson as String?;
+    return TextDocumentFilter1(
+      language: language,
+      pattern: pattern,
+      scheme: scheme,
+    );
+  }
+
+  /// A language id, like `typescript`. */
+  final String language;
+
+  /// A glob pattern, like `*.{ts,js}`. */
+  final String? pattern;
+
+  /// A Uri scheme, like `file` or `untitled`. */
+  final String? scheme;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['language'] = language;
+    if (pattern != null) {
+      result['pattern'] = pattern;
+    }
+    if (scheme != null) {
+      result['scheme'] = scheme;
+    }
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('language');
+      try {
+        if (!obj.containsKey('language')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final language = obj['language'];
+        if (language == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (language is! String) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('pattern');
+      try {
+        final pattern = obj['pattern'];
+        if (pattern != null && pattern is! String) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('scheme');
+      try {
+        final scheme = obj['scheme'];
+        if (scheme != null && scheme is! String) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type TextDocumentFilter1');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is TextDocumentFilter1 &&
+        other.runtimeType == TextDocumentFilter1) {
+      return language == other.language &&
+          pattern == other.pattern &&
+          scheme == other.scheme &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        language,
+        pattern,
+        scheme,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class TextDocumentFilter3 implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    TextDocumentFilter3.canParse,
+    TextDocumentFilter3.fromJson,
+  );
+
+  TextDocumentFilter3({
+    this.language,
+    required this.pattern,
+    this.scheme,
+  });
+  static TextDocumentFilter3 fromJson(Map<String, Object?> json) {
+    final languageJson = json['language'];
+    final language = languageJson as String?;
+    final patternJson = json['pattern'];
+    final pattern = patternJson as String;
+    final schemeJson = json['scheme'];
+    final scheme = schemeJson as String?;
+    return TextDocumentFilter3(
+      language: language,
+      pattern: pattern,
+      scheme: scheme,
+    );
+  }
+
+  /// A language id, like `typescript`. */
+  final String? language;
+
+  /// A glob pattern, like `*.{ts,js}`. */
+  final String pattern;
+
+  /// A Uri scheme, like `file` or `untitled`. */
+  final String? scheme;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (language != null) {
+      result['language'] = language;
+    }
+    result['pattern'] = pattern;
+    if (scheme != null) {
+      result['scheme'] = scheme;
+    }
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      reporter.push('language');
+      try {
+        final language = obj['language'];
+        if (language != null && language is! String) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('pattern');
+      try {
+        if (!obj.containsKey('pattern')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        final pattern = obj['pattern'];
+        if (pattern == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (pattern is! String) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('scheme');
+      try {
+        final scheme = obj['scheme'];
+        if (scheme != null && scheme is! String) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type TextDocumentFilter3');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is TextDocumentFilter3 &&
+        other.runtimeType == TextDocumentFilter3) {
+      return language == other.language &&
+          pattern == other.pattern &&
+          scheme == other.scheme &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        language,
+        pattern,
+        scheme,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class TextDocumentFilterWithScheme implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     TextDocumentFilterWithScheme.canParse,
@@ -39335,7 +40310,7 @@ class TextDocumentFilterWithScheme implements ToJsonable {
   TextDocumentFilterWithScheme({
     this.language,
     this.pattern,
-    this.scheme,
+    required this.scheme,
   });
   static TextDocumentFilterWithScheme fromJson(Map<String, Object?> json) {
     final languageJson = json['language'];
@@ -39343,7 +40318,7 @@ class TextDocumentFilterWithScheme implements ToJsonable {
     final patternJson = json['pattern'];
     final pattern = patternJson as String?;
     final schemeJson = json['scheme'];
-    final scheme = schemeJson as String?;
+    final scheme = schemeJson as String;
     return TextDocumentFilterWithScheme(
       language: language,
       pattern: pattern,
@@ -39351,26 +40326,14 @@ class TextDocumentFilterWithScheme implements ToJsonable {
     );
   }
 
-  /// A language id, like `typescript`.
+  /// A language id, like `typescript`. */
   final String? language;
 
-  /// A glob pattern, like `*.{ts,js}`.
-  ///
-  /// Glob patterns can have the following syntax:
-  /// - `*` to match one or more characters in a path segment
-  /// - `?` to match on one character in a path segment
-  /// - `**` to match any number of path segments, including none
-  /// - `{}` to group sub patterns into an OR expression. (e.g. `**​/*.{ts,js}`
-  ///   matches all TypeScript and JavaScript files)
-  /// - `[]` to declare a range of characters to match in a path segment
-  ///   (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
-  /// - `[!...]` to negate a range of characters to match in a path segment
-  ///   (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but
-  ///   not `example.0`)
+  /// A glob pattern, like `*.{ts,js}`. */
   final String? pattern;
 
-  /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
-  final String? scheme;
+  /// A Uri scheme, like `file` or `untitled`. */
+  final String scheme;
 
   @override
   Map<String, Object?> toJson() {
@@ -39381,9 +40344,7 @@ class TextDocumentFilterWithScheme implements ToJsonable {
     if (pattern != null) {
       result['pattern'] = pattern;
     }
-    if (scheme != null) {
-      result['scheme'] = scheme;
-    }
+    result['scheme'] = scheme;
     return result;
   }
 
@@ -39411,8 +40372,16 @@ class TextDocumentFilterWithScheme implements ToJsonable {
       }
       reporter.push('scheme');
       try {
+        if (!obj.containsKey('scheme')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
         final scheme = obj['scheme'];
-        if (scheme != null && scheme is! String) {
+        if (scheme == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (scheme is! String) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -39449,6 +40418,7 @@ class TextDocumentFilterWithScheme implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// A literal to identify a text document in the client.
 class TextDocumentIdentifier implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     TextDocumentIdentifier.canParse,
@@ -39473,7 +40443,7 @@ class TextDocumentIdentifier implements ToJsonable {
     );
   }
 
-  /// The text document's URI.
+  /// The text document's uri.
   final String uri;
 
   @override
@@ -39526,6 +40496,7 @@ class TextDocumentIdentifier implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// An item to transfer a text document from the client to the server.
 class TextDocumentItem implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     TextDocumentItem.canParse,
@@ -39561,7 +40532,7 @@ class TextDocumentItem implements ToJsonable {
   /// The content of the opened text document.
   final String text;
 
-  /// The text document's URI.
+  /// The text document's uri.
   final String uri;
 
   /// The version number of this document (it will increase after each change,
@@ -39683,6 +40654,8 @@ class TextDocumentItem implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// A parameter literal used in requests to pass a text document and a position
+/// inside that document.
 class TextDocumentPositionParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     TextDocumentPositionParams.canParse,
@@ -39696,9 +40669,6 @@ class TextDocumentPositionParams implements ToJsonable {
   static TextDocumentPositionParams fromJson(Map<String, Object?> json) {
     if (ReferenceParams.canParse(json, nullLspJsonReporter)) {
       return ReferenceParams.fromJson(json);
-    }
-    if (RenameParams.canParse(json, nullLspJsonReporter)) {
-      return RenameParams.fromJson(json);
     }
     if (CompletionParams.canParse(json, nullLspJsonReporter)) {
       return CompletionParams.fromJson(json);
@@ -39845,10 +40815,6 @@ class TextDocumentRegistrationOptions implements ToJsonable {
         json, nullLspJsonReporter)) {
       return TextDocumentChangeRegistrationOptions.fromJson(json);
     }
-    if (TextDocumentSaveRegistrationOptions.canParse(
-        json, nullLspJsonReporter)) {
-      return TextDocumentSaveRegistrationOptions.fromJson(json);
-    }
     if (CallHierarchyRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return CallHierarchyRegistrationOptions.fromJson(json);
     }
@@ -39931,6 +40897,10 @@ class TextDocumentRegistrationOptions implements ToJsonable {
     }
     if (SignatureHelpRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return SignatureHelpRegistrationOptions.fromJson(json);
+    }
+    if (TextDocumentSaveRegistrationOptions.canParse(
+        json, nullLspJsonReporter)) {
+      return TextDocumentSaveRegistrationOptions.fromJson(json);
     }
     if (TypeDefinitionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return TypeDefinitionRegistrationOptions.fromJson(json);
@@ -40043,8 +41013,9 @@ class TextDocumentSaveReason implements ToJsonable {
       other is TextDocumentSaveReason && other._value == _value;
 }
 
+/// Save registration options.
 class TextDocumentSaveRegistrationOptions
-    implements TextDocumentRegistrationOptions, ToJsonable {
+    implements SaveOptions, TextDocumentRegistrationOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     TextDocumentSaveRegistrationOptions.canParse,
     TextDocumentSaveRegistrationOptions.fromJson,
@@ -40075,6 +41046,7 @@ class TextDocumentSaveRegistrationOptions
   final List<TextDocumentFilterWithScheme>? documentSelector;
 
   /// The client is supposed to include the content on save.
+  @override
   final bool? includeText;
 
   @override
@@ -40498,6 +41470,7 @@ class TextDocumentSyncOptions implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// A text edit applicable to a text document.
 class TextEdit implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     TextEdit.canParse,
@@ -40629,6 +41602,40 @@ class TokenFormat implements ToJsonable {
       other is TokenFormat && other._value == _value;
 }
 
+class TraceValues implements ToJsonable {
+  const TraceValues(this._value);
+  const TraceValues.fromJson(this._value);
+
+  final String _value;
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    return obj is String;
+  }
+
+  /// Trace messages only.
+  static const Messages = TraceValues('messages');
+
+  /// Turn tracing off.
+  static const Off = TraceValues('off');
+
+  /// Verbose message tracing.
+  static const Verbose = TraceValues('verbose');
+
+  @override
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  int get hashCode => _value.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      other is TraceValues && other._value == _value;
+}
+
+/// Since 3.6.0
 class TypeDefinitionClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     TypeDefinitionClientCapabilities.canParse,
@@ -40656,7 +41663,8 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
   final bool? dynamicRegistration;
 
   /// The client supports additional metadata in the form of definition links.
-  ///  @since 3.14.0
+  ///
+  /// Since 3.14.0
   final bool? linkSupport;
 
   @override
@@ -41093,6 +42101,7 @@ class TypeDefinitionRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.17.0
 class TypeHierarchyClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     TypeHierarchyClientCapabilities.canParse,
@@ -41160,6 +42169,7 @@ class TypeHierarchyClientCapabilities implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// @since 3.17.0
 class TypeHierarchyItem implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     TypeHierarchyItem.canParse,
@@ -41228,8 +42238,7 @@ class TypeHierarchyItem implements ToJsonable {
   final Range range;
 
   /// The range that should be selected and revealed when this symbol is being
-  /// picked, e.g. the name of a function. Must be contained by the
-  /// [`range`](#TypeHierarchyItem.range).
+  /// picked, e.g. the name of a function. Must be contained by the `range`.
   final Range selectionRange;
 
   /// Tags for this item.
@@ -41411,6 +42420,9 @@ class TypeHierarchyItem implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Type hierarchy options used during static registration.
+///
+/// @since 3.17.0
 class TypeHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     TypeHierarchyOptions.canParse,
@@ -41478,6 +42490,9 @@ class TypeHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameter of a `textDocument/prepareTypeHierarchy` request.
+///
+/// @since 3.17.0
 class TypeHierarchyPrepareParams
     implements TextDocumentPositionParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -41614,6 +42629,9 @@ class TypeHierarchyPrepareParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Type hierarchy options used during static or dynamic registration.
+///
+/// @since 3.17.0
 class TypeHierarchyRegistrationOptions
     implements
         StaticRegistrationOptions,
@@ -41747,6 +42765,9 @@ class TypeHierarchyRegistrationOptions
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameter of a `typeHierarchy/subtypes` request.
+///
+/// @since 3.17.0
 class TypeHierarchySubtypesParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -41883,6 +42904,9 @@ class TypeHierarchySubtypesParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// The parameter of a `typeHierarchy/supertypes` request.
+///
+/// @since 3.17.0
 class TypeHierarchySupertypesParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -42021,7 +43045,8 @@ class TypeHierarchySupertypesParams
 
 /// A diagnostic report indicating that the last returned report is still
 /// accurate.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class UnchangedDocumentDiagnosticReport implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     UnchangedDocumentDiagnosticReport.canParse,
@@ -42136,6 +43161,8 @@ class UnchangedDocumentDiagnosticReport implements ToJsonable {
 }
 
 /// Moniker uniqueness level to define scope of the moniker.
+///
+/// @since 3.16.0
 class UniquenessLevel implements ToJsonable {
   const UniquenessLevel(this._value);
   const UniquenessLevel.fromJson(this._value);
@@ -42175,7 +43202,7 @@ class UniquenessLevel implements ToJsonable {
       other is UniquenessLevel && other._value == _value;
 }
 
-/// General parameters to unregister a capability.
+/// General parameters to unregister a request or notification.
 class Unregistration implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     Unregistration.canParse,
@@ -42201,7 +43228,7 @@ class Unregistration implements ToJsonable {
   /// provided during the register request.
   final String id;
 
-  /// The method / capability to unregister for.
+  /// The method to unregister for.
   final String method;
 
   @override
@@ -42294,9 +43321,6 @@ class UnregistrationParams implements ToJsonable {
     );
   }
 
-  /// This should correctly be named `unregistrations`. However changing this //
-  /// is a breaking change and needs to wait until we deliver a 4.x version //
-  /// of the specification.
   final List<Unregistration> unregisterations;
 
   @override
@@ -42355,7 +43379,8 @@ class UnregistrationParams implements ToJsonable {
 }
 
 /// A versioned notebook document identifier.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class VersionedNotebookDocumentIdentifier implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     VersionedNotebookDocumentIdentifier.canParse,
@@ -42457,6 +43482,7 @@ class VersionedNotebookDocumentIdentifier implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// A text document identifier to denote a specific version of a text document.
 class VersionedTextDocumentIdentifier
     implements TextDocumentIdentifier, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -42479,14 +43505,11 @@ class VersionedTextDocumentIdentifier
     );
   }
 
-  /// The text document's URI.
+  /// The text document's uri.
   @override
   final String uri;
 
   /// The version number of this document.
-  ///
-  /// The version number of a document will increase after each change,
-  /// including undo/redo. The number doesn't need to be consecutive.
   final int version;
 
   @override
@@ -42594,7 +43617,7 @@ class WatchKind implements ToJsonable {
       other is WatchKind && other._value == _value;
 }
 
-/// The parameters send in a will save text document notification.
+/// The parameters sent in a will save text document notification.
 class WillSaveTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     WillSaveTextDocumentParams.canParse,
@@ -42728,12 +43751,14 @@ class WindowClientCapabilities implements ToJsonable {
     );
   }
 
-  /// Client capabilities for the show document request.
-  ///  @since 3.16.0
+  /// Capabilities specific to the showDocument request.
+  ///
+  /// @since 3.16.0
   final ShowDocumentClientCapabilities? showDocument;
 
-  /// Capabilities specific to the showMessage request
-  ///  @since 3.16.0
+  /// Capabilities specific to the showMessage request.
+  ///
+  /// @since 3.16.0
   final ShowMessageRequestClientCapabilities? showMessage;
 
   /// It indicates whether the client supports server initiated progress using
@@ -42742,7 +43767,8 @@ class WindowClientCapabilities implements ToJsonable {
   /// The capability also controls Whether client supports handling of progress
   /// notifications. If set servers are allowed to report a `workDoneProgress`
   /// property in the request specific server capabilities.
-  ///  @since 3.15.0
+  ///
+  /// @since 3.15.0
   final bool? workDoneProgress;
 
   @override
@@ -42882,7 +43908,7 @@ class WorkDoneProgressBegin implements ToJsonable {
   /// ignore the `percentage` value in subsequent in report notifications.
   ///
   /// The value should be steadily rising. Clients are free to ignore values
-  /// that are not following this rule. The value range is [0, 100]
+  /// that are not following this rule. The value range is [0, 100].
   final int? percentage;
 
   /// Mandatory title of the progress operation. Used to briefly inform about
@@ -43427,6 +44453,9 @@ class WorkDoneProgressParams implements ToJsonable {
     if (InlineValueParams.canParse(json, nullLspJsonReporter)) {
       return InlineValueParams.fromJson(json);
     }
+    if (RenameParams.canParse(json, nullLspJsonReporter)) {
+      return RenameParams.fromJson(json);
+    }
     if (DocumentFormattingParams.canParse(json, nullLspJsonReporter)) {
       return DocumentFormattingParams.fromJson(json);
     }
@@ -43477,9 +44506,6 @@ class WorkDoneProgressParams implements ToJsonable {
     }
     if (ReferenceParams.canParse(json, nullLspJsonReporter)) {
       return ReferenceParams.fromJson(json);
-    }
-    if (RenameParams.canParse(json, nullLspJsonReporter)) {
-      return RenameParams.fromJson(json);
     }
     if (SemanticTokensParams.canParse(json, nullLspJsonReporter)) {
       return SemanticTokensParams.fromJson(json);
@@ -43627,11 +44653,10 @@ class WorkDoneProgressReport implements ToJsonable {
     );
   }
 
-  /// Controls enablement state of a cancel button. This property is only valid
-  /// if a cancel button got requested in the `WorkDoneProgressBegin` payload.
+  /// Controls enablement state of a cancel button.
   ///
-  /// Clients that don't support cancellation or don't support control the
-  /// button's enablement state are allowed to ignore the setting.
+  /// Clients that don't support cancellation or don't support controlling the
+  /// button's enablement state are allowed to ignore the property.
   final bool? cancellable;
   final String kind;
 
@@ -43748,6 +44773,7 @@ class WorkDoneProgressReport implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Workspace specific client capabilities.
 class WorkspaceClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     WorkspaceClientCapabilities.canParse,
@@ -43851,19 +44877,23 @@ class WorkspaceClientCapabilities implements ToJsonable {
   }
 
   /// The client supports applying batch edits to the workspace by supporting
-  /// the request 'workspace/applyEdit'
+  /// the request
+  /// 'workspace/applyEdit'
   final bool? applyEdit;
 
   /// Capabilities specific to the code lens requests scoped to the workspace.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0.
   final CodeLensWorkspaceClientCapabilities? codeLens;
 
   /// The client supports `workspace/configuration` requests.
-  ///  @since 3.6.0
+  ///
+  /// @since 3.6.0
   final bool? configuration;
 
-  /// Client workspace capabilities specific to diagnostics.
-  ///  @since 3.17.0.
+  /// Capabilities specific to the diagnostic requests scoped to the workspace.
+  ///
+  /// @since 3.17.0.
   final DiagnosticWorkspaceClientCapabilities? diagnostics;
 
   /// Capabilities specific to the `workspace/didChangeConfiguration`
@@ -43877,31 +44907,38 @@ class WorkspaceClientCapabilities implements ToJsonable {
   /// Capabilities specific to the `workspace/executeCommand` request.
   final ExecuteCommandClientCapabilities? executeCommand;
 
-  /// The client has support for file requests/notifications.
-  ///  @since 3.16.0
+  /// The client has support for file notifications/requests for user operations
+  /// on files.
+  ///
+  /// Since 3.16.0
   final FileOperationClientCapabilities? fileOperations;
 
-  /// Client workspace capabilities specific to inlay hints.
-  ///  @since 3.17.0
+  /// Capabilities specific to the inlay hint requests scoped to the workspace.
+  ///
+  /// @since 3.17.0.
   final InlayHintWorkspaceClientCapabilities? inlayHint;
 
-  /// Client workspace capabilities specific to inline values.
-  ///  @since 3.17.0
+  /// Capabilities specific to the inline values requests scoped to the
+  /// workspace.
+  ///
+  /// @since 3.17.0.
   final InlineValueWorkspaceClientCapabilities? inlineValue;
 
   /// Capabilities specific to the semantic token requests scoped to the
   /// workspace.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0.
   final SemanticTokensWorkspaceClientCapabilities? semanticTokens;
 
   /// Capabilities specific to the `workspace/symbol` request.
   final WorkspaceSymbolClientCapabilities? symbol;
 
-  /// Capabilities specific to `WorkspaceEdit`s
+  /// Capabilities specific to `WorkspaceEdit`s.
   final WorkspaceEditClientCapabilities? workspaceEdit;
 
   /// The client has support for workspace folders.
-  ///  @since 3.6.0
+  ///
+  /// @since 3.6.0
   final bool? workspaceFolders;
 
   @override
@@ -44178,7 +45215,8 @@ class WorkspaceClientCapabilities implements ToJsonable {
 }
 
 /// Parameters of the workspace diagnostic request.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class WorkspaceDiagnosticParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -44345,7 +45383,8 @@ class WorkspaceDiagnosticParams
 }
 
 /// A workspace diagnostic report.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class WorkspaceDiagnosticReport implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     WorkspaceDiagnosticReport.canParse,
@@ -44446,7 +45485,8 @@ class WorkspaceDiagnosticReport implements ToJsonable {
 }
 
 /// A partial result for a workspace diagnostic report.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class WorkspaceDiagnosticReportPartialResult implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     WorkspaceDiagnosticReportPartialResult.canParse,
@@ -44548,6 +45588,22 @@ class WorkspaceDiagnosticReportPartialResult implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// A workspace edit represents changes to many resources managed in the
+/// workspace. The edit should either provide `changes` or `documentChanges`. If
+/// documentChanges are present they are preferred over `changes` if the client
+/// can handle versioned document edits.
+///
+/// Since version 3.13.0 a workspace edit can contain resource operations as
+/// well. If resource operations are present clients need to execute the
+/// operations in the order in which they are provided. So a workspace edit for
+/// example can consist of the following two changes:
+/// (1) a create file a.txt and (2) a text document edit which insert text into
+/// file a.txt.
+///
+/// An invalid sequence (e.g. (1) delete file a.txt and (2) insert text into
+/// file a.txt) will cause failure of the operation. How the client recovers
+/// from the failure is described by the client capability:
+/// `workspace.workspaceEdit.failureHandling`
 class WorkspaceEdit implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     WorkspaceEdit.canParse,
@@ -44600,7 +45656,8 @@ class WorkspaceEdit implements ToJsonable {
   ///
   /// Whether clients honor this property depends on the client capability
   /// `workspace.changeAnnotationSupport`.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final Map<String, ChangeAnnotation>? changeAnnotations;
 
   /// Holds changes to existing resources.
@@ -44771,7 +45828,8 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
 
   /// Whether the client in general supports change annotations on text edits,
   /// create file, rename file and delete file changes.
-  ///  @since 3.16.0
+  ///
+  /// @since 3.16.0
   final WorkspaceEditClientCapabilitiesChangeAnnotationSupport?
       changeAnnotationSupport;
 
@@ -44780,18 +45838,21 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
 
   /// The failure handling strategy of a client if applying the workspace edit
   /// fails.
-  ///  @since 3.13.0
+  ///
+  /// @since 3.13.0
   final FailureHandlingKind? failureHandling;
 
   /// Whether the client normalizes line endings to the client specific setting.
   /// If set to `true` the client will normalize line ending characters in a
-  /// workspace edit to the client specific new line character(s).
-  ///  @since 3.16.0
+  /// workspace edit to the client-specified new line character.
+  ///
+  /// @since 3.16.0
   final bool? normalizesLineEndings;
 
   /// The resource operations the client supports. Clients should at least
   /// support 'create', 'rename' and 'delete' files and folders.
-  ///  @since 3.13.0
+  ///
+  /// @since 3.13.0
   final List<ResourceOperationKind>? resourceOperations;
 
   @override
@@ -44929,8 +45990,8 @@ class WorkspaceEditClientCapabilitiesChangeAnnotationSupport
     );
   }
 
-  /// Whether the client groups edits with equal labels into tree nodes, for
-  /// instance all edits labelled with "Changes in Strings" would be a tree
+  /// Whether the client groups edits with equal labels into tree nodes,
+  /// for instance all edits labelled with "Changes in Strings" would be a tree
   /// node.
   final bool? groupsOnLabel;
 
@@ -44980,6 +46041,7 @@ class WorkspaceEditClientCapabilitiesChangeAnnotationSupport
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// A workspace folder inside a client.
 class WorkspaceFolder implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     WorkspaceFolder.canParse,
@@ -45219,7 +46281,7 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
 
   /// Whether the server wants to receive workspace folder change notifications.
   ///
-  /// If a string is provided, the string is treated as an ID under which the
+  /// If a string is provided the string is treated as an ID under which the
   /// notification is registered on the client side. The ID can be used to
   /// unregister for these events using the `client/unregisterCapability`
   /// request.
@@ -45294,7 +46356,8 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
 }
 
 /// A full document diagnostic report for a workspace diagnostic result.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class WorkspaceFullDocumentDiagnosticReport
     implements FullDocumentDiagnosticReport, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -45486,9 +46549,12 @@ class WorkspaceFullDocumentDiagnosticReport
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// A special workspace symbol that supports locations without a range
-///  @since 3.17.0
-class WorkspaceSymbol implements ToJsonable {
+/// A special workspace symbol that supports locations without a range.
+///
+/// See also SymbolInformation.
+///
+/// @since 3.17.0
+class WorkspaceSymbol implements BaseSymbolInformation, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     WorkspaceSymbol.canParse,
     WorkspaceSymbol.fromJson,
@@ -45496,6 +46562,7 @@ class WorkspaceSymbol implements ToJsonable {
 
   WorkspaceSymbol({
     this.containerName,
+    this.data,
     required this.kind,
     required this.location,
     required this.name,
@@ -45504,6 +46571,8 @@ class WorkspaceSymbol implements ToJsonable {
   static WorkspaceSymbol fromJson(Map<String, Object?> json) {
     final containerNameJson = json['containerName'];
     final containerName = containerNameJson as String?;
+    final dataJson = json['data'];
+    final data = dataJson;
     final kindJson = json['kind'];
     final kind = SymbolKind.fromJson(kindJson as int);
     final locationJson = json['location'];
@@ -45523,6 +46592,7 @@ class WorkspaceSymbol implements ToJsonable {
         .toList();
     return WorkspaceSymbol(
       containerName: containerName,
+      data: data,
       kind: kind,
       location: location,
       name: name,
@@ -45534,22 +46604,32 @@ class WorkspaceSymbol implements ToJsonable {
   /// user interface purposes (e.g. to render a qualifier in the user interface
   /// if necessary). It can't be used to re-infer a hierarchy for the document
   /// symbols.
+  @override
   final String? containerName;
 
+  /// A data entry field that is preserved on a workspace symbol between a
+  /// workspace symbol request and a workspace symbol resolve request.
+  final Object? data;
+
   /// The kind of this symbol.
+  @override
   final SymbolKind kind;
 
-  /// The location of this symbol. Whether a server is allowed to return a
+  /// The location of the symbol. Whether a server is allowed to return a
   /// location without a range depends on the client capability
   /// `workspace.symbol.resolveSupport`.
   ///
-  /// See also `SymbolInformation.location`.
+  /// See SymbolInformation#location for more details.
   final Either2<Location, WorkspaceSymbolLocation> location;
 
   /// The name of this symbol.
+  @override
   final String name;
 
-  /// Tags for this completion item.
+  /// Tags for this symbol.
+  ///
+  /// @since 3.16.0
+  @override
   final List<SymbolTag>? tags;
 
   @override
@@ -45557,6 +46637,9 @@ class WorkspaceSymbol implements ToJsonable {
     var result = <String, Object?>{};
     if (containerName != null) {
       result['containerName'] = containerName;
+    }
+    if (data != null) {
+      result['data'] = data;
     }
     result['kind'] = kind.toJson();
     result['location'] = location;
@@ -45658,6 +46741,7 @@ class WorkspaceSymbol implements ToJsonable {
   bool operator ==(Object other) {
     if (other is WorkspaceSymbol && other.runtimeType == WorkspaceSymbol) {
       return containerName == other.containerName &&
+          data == other.data &&
           kind == other.kind &&
           location == other.location &&
           name == other.name &&
@@ -45670,6 +46754,7 @@ class WorkspaceSymbol implements ToJsonable {
   @override
   int get hashCode => Object.hash(
         containerName,
+        data,
         kind,
         location,
         name,
@@ -45680,6 +46765,7 @@ class WorkspaceSymbol implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Client capabilities for a WorkspaceSymbolRequest.
 class WorkspaceSymbolClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     WorkspaceSymbolClientCapabilities.canParse,
@@ -45724,16 +46810,18 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
   /// The client support partial workspace symbols. The client will send the
   /// request `workspaceSymbol/resolve` to the server to resolve additional
   /// properties.
-  ///  @since 3.17.0 - proposedState
+  ///
+  /// @since 3.17.0
   final WorkspaceSymbolClientCapabilitiesResolveSupport? resolveSupport;
 
   /// Specific capabilities for the `SymbolKind` in the `workspace/symbol`
   /// request.
   final WorkspaceSymbolClientCapabilitiesSymbolKind? symbolKind;
 
-  /// The client supports tags on `SymbolInformation` and `WorkspaceSymbol`.
-  /// Clients supporting tags have to handle unknown tags gracefully.
-  ///  @since 3.16.0
+  /// The client supports tags on `SymbolInformation`. Clients supporting tags
+  /// have to handle unknown tags gracefully.
+  ///
+  /// @since 3.16.0
   final WorkspaceSymbolClientCapabilitiesTagSupport? tagSupport;
 
   @override
@@ -46137,6 +47225,7 @@ class WorkspaceSymbolLocation implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Server capabilities for a WorkspaceSymbolRequest.
 class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     WorkspaceSymbolOptions.canParse,
@@ -46164,7 +47253,8 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
 
   /// The server provides support to resolve additional information for a
   /// workspace symbol.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   final bool? resolveProvider;
   @override
   final bool? workDoneProgress;
@@ -46231,7 +47321,7 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// The parameters of a Workspace Symbol Request.
+/// The parameters of a WorkspaceSymbolRequest.
 class WorkspaceSymbolParams
     implements PartialResultParams, WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -46370,6 +47460,7 @@ class WorkspaceSymbolParams
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Registration options for a WorkspaceSymbolRequest.
 class WorkspaceSymbolRegistrationOptions
     implements WorkspaceSymbolOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -46395,7 +47486,8 @@ class WorkspaceSymbolRegistrationOptions
 
   /// The server provides support to resolve additional information for a
   /// workspace symbol.
-  ///  @since 3.17.0
+  ///
+  /// @since 3.17.0
   @override
   final bool? resolveProvider;
   @override
@@ -46465,7 +47557,8 @@ class WorkspaceSymbolRegistrationOptions
 }
 
 /// An unchanged document diagnostic report for a workspace diagnostic result.
-///  @since 3.17.0
+///
+/// @since 3.17.0
 class WorkspaceUnchangedDocumentDiagnosticReport
     implements UnchangedDocumentDiagnosticReport, ToJsonable {
   static const jsonHandler = LspJsonHandler(

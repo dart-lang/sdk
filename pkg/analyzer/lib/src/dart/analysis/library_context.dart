@@ -101,12 +101,7 @@ class LibraryContext {
   /// Get the [LibraryElement] for the given library.
   LibraryElement getLibraryElement(Uri uri) {
     _createElementFactoryTypeProvider();
-    return elementFactory.libraryOfUri2('$uri');
-  }
-
-  /// Return [LibraryElement] if it is ready.
-  LibraryElement? getLibraryElementIfReady(String uriStr) {
-    return elementFactory.libraryOfUriIfReady(uriStr);
+    return elementFactory.libraryOfUri2(uri);
   }
 
   /// Load data required to access elements of the given [targetLibrary].
@@ -121,7 +116,7 @@ class LibraryContext {
 
     Future<void> loadBundle(LibraryCycle cycle) async {
       if (cycle.libraries.isEmpty ||
-          elementFactory.hasLibrary(cycle.libraries.first.uriStr)) {
+          elementFactory.hasLibrary(cycle.libraries.first.uri)) {
         return;
       }
 
@@ -260,8 +255,8 @@ class LibraryContext {
             libraries: cycle.libraries.map((e) => e.uri).toSet(),
           );
           for (var libraryFile in cycle.libraries) {
-            var libraryUriStr = libraryFile.uriStr;
-            var libraryElement = elementFactory.libraryOfUri2(libraryUriStr);
+            var libraryUri = libraryFile.uri;
+            var libraryElement = elementFactory.libraryOfUri2(libraryUri);
             libraryElement.bundleMacroExecutor = bundleMacroExecutor;
           }
         }
@@ -290,9 +285,10 @@ class LibraryContext {
   /// Ensure that type provider is created.
   void _createElementFactoryTypeProvider() {
     if (!analysisContext.hasTypeProvider) {
-      var dartCore = elementFactory.libraryOfUri2('dart:core');
-      var dartAsync = elementFactory.libraryOfUri2('dart:async');
-      elementFactory.createTypeProviders(dartCore, dartAsync);
+      elementFactory.createTypeProviders(
+        elementFactory.dartCoreElement,
+        elementFactory.dartAsyncElement,
+      );
     }
   }
 

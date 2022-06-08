@@ -79,36 +79,36 @@ class AllInfo {
   ProgramInfo? program;
 
   /// Information about each library processed by the compiler.
-  final List<LibraryInfo> libraries = <LibraryInfo>[];
+  List<LibraryInfo> libraries = <LibraryInfo>[];
 
   /// Information about each function (includes methods and getters in any
   /// library)
-  final List<FunctionInfo> functions = <FunctionInfo>[];
+  List<FunctionInfo> functions = <FunctionInfo>[];
 
   /// Information about type defs in the program.
-  final List<TypedefInfo> typedefs = <TypedefInfo>[];
+  List<TypedefInfo> typedefs = <TypedefInfo>[];
 
   /// Information about each class (in any library).
-  final List<ClassInfo> classes = <ClassInfo>[];
+  List<ClassInfo> classes = <ClassInfo>[];
 
   /// Information about each class type (in any library).
-  final List<ClassTypeInfo> classTypes = <ClassTypeInfo>[];
+  List<ClassTypeInfo> classTypes = <ClassTypeInfo>[];
 
   /// Information about fields (in any class).
-  final List<FieldInfo> fields = <FieldInfo>[];
+  List<FieldInfo> fields = <FieldInfo>[];
 
   /// Information about constants anywhere in the program.
   // TODO(sigmund): expand docs about canonicalization. We don't put these
   // inside library because a single constant can be used in more than one lib,
   // and we'll include it only once in the output.
-  final List<ConstantInfo> constants = <ConstantInfo>[];
+  List<ConstantInfo> constants = <ConstantInfo>[];
 
   /// Information about closures anywhere in the program.
-  final List<ClosureInfo> closures = <ClosureInfo>[];
+  List<ClosureInfo> closures = <ClosureInfo>[];
 
   /// Information about output units (should be just one entry if not using
   /// deferred loading).
-  final List<OutputUnitInfo> outputUnits = <OutputUnitInfo>[];
+  List<OutputUnitInfo> outputUnits = <OutputUnitInfo>[];
 
   /// Details about all deferred imports and what files would be loaded when the
   /// import is resolved.
@@ -189,19 +189,19 @@ class LibraryInfo extends BasicInfo {
   late final Uri uri;
 
   /// Top level functions defined within the library.
-  final List<FunctionInfo> topLevelFunctions = <FunctionInfo>[];
+  List<FunctionInfo> topLevelFunctions = <FunctionInfo>[];
 
   /// Top level fields defined within the library.
-  final List<FieldInfo> topLevelVariables = <FieldInfo>[];
+  List<FieldInfo> topLevelVariables = <FieldInfo>[];
 
   /// Classes defined within the library.
-  final List<ClassInfo> classes = <ClassInfo>[];
+  List<ClassInfo> classes = <ClassInfo>[];
 
   /// Class types defined within the library.
-  final List<ClassTypeInfo> classTypes = <ClassTypeInfo>[];
+  List<ClassTypeInfo> classTypes = <ClassTypeInfo>[];
 
   /// Typedefs defined within the library.
-  final List<TypedefInfo> typedefs = <TypedefInfo>[];
+  List<TypedefInfo> typedefs = <TypedefInfo>[];
 
   // TODO(sigmund): add here a list of parts. That can help us improve how we
   // encode source-span information in metrics (rather than include the uri on
@@ -248,12 +248,12 @@ class ClassInfo extends BasicInfo {
 
   // TODO(sigmund): split static vs instance vs closures
   /// Functions (static or instance) defined in the class.
-  final List<FunctionInfo> functions = <FunctionInfo>[];
+  List<FunctionInfo> functions = <FunctionInfo>[];
 
   /// Fields defined in the class.
   // TODO(sigmund): currently appears to only be populated with instance fields,
   // but this should be fixed.
-  final List<FieldInfo> fields = <FieldInfo>[];
+  List<FieldInfo> fields = <FieldInfo>[];
 
   ClassInfo(
       {required String name,
@@ -261,6 +261,9 @@ class ClassInfo extends BasicInfo {
       OutputUnitInfo? outputUnit,
       int size = 0})
       : super(InfoKind.clazz, name, outputUnit, size, null);
+
+  ClassInfo.fromKernel({required String name, required this.isAbstract})
+      : super(InfoKind.clazz, name, null, 0, null);
 
   ClassInfo.internal() : super.internal(InfoKind.clazz);
 
@@ -287,10 +290,10 @@ class ClassTypeInfo extends BasicInfo {
 /// file of [BasicInfo.outputUnit].
 class CodeSpan {
   /// Start offset in the generated file.
-  late final int start;
+  int? start;
 
   /// end offset in the generated file.
-  late final int end;
+  int? end;
 
   /// The actual code (optional, blank when using a compact representation of
   /// the encoding).
@@ -325,7 +328,7 @@ class FieldInfo extends BasicInfo with CodeInfo {
   late final String inferredType;
 
   /// Nested closures seen in the field initializer.
-  late final List<ClosureInfo> closures;
+  late List<ClosureInfo> closures;
 
   /// The actual generated code for the field.
   late final List<CodeSpan> code;
@@ -346,6 +349,13 @@ class FieldInfo extends BasicInfo with CodeInfo {
       OutputUnitInfo? outputUnit,
       required this.isConst})
       : super(InfoKind.field, name, outputUnit, size, coverageId);
+
+  FieldInfo.fromKernel(
+      {required String name,
+      String? coverageId,
+      required this.type,
+      required this.isConst})
+      : super(InfoKind.field, name, null, 0, coverageId);
 
   FieldInfo.internal() : super.internal(InfoKind.field);
 
@@ -381,7 +391,7 @@ class FunctionInfo extends BasicInfo with CodeInfo {
   late final FunctionModifiers modifiers;
 
   /// Nested closures that appear within the body of this function.
-  late final List<ClosureInfo> closures;
+  late List<ClosureInfo> closures;
 
   /// The type of this function.
   late final String type;
@@ -421,6 +431,16 @@ class FunctionInfo extends BasicInfo with CodeInfo {
       required this.code})
       : super(InfoKind.function, name, outputUnit, size, coverageId);
 
+  FunctionInfo.fromKernel(
+      {required String name,
+      String? coverageId,
+      required this.functionKind,
+      required this.modifiers,
+      required this.type,
+      required this.returnType,
+      required this.parameters})
+      : super(InfoKind.function, name, null, 0, coverageId);
+
   FunctionInfo.internal() : super.internal(InfoKind.function);
 
   @override
@@ -434,6 +454,9 @@ class ClosureInfo extends BasicInfo {
 
   ClosureInfo({required String name, OutputUnitInfo? outputUnit, int size = 0})
       : super(InfoKind.closure, name, outputUnit, size, null);
+
+  ClosureInfo.fromKernel({required String name})
+      : super(InfoKind.closure, name, null, 0, null);
 
   ClosureInfo.internal() : super.internal(InfoKind.closure);
 

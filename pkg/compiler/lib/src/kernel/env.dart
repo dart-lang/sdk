@@ -776,12 +776,29 @@ class KConstructorDataImpl extends KFunctionDataImpl
 
 abstract class KFieldData extends KMemberData {
   DartType getFieldType(IrToElementMap elementMap);
+
+  /// `true` if this field is the backing field for a `late` or `late final`
+  /// instance field.
+  bool get isLateBackingField;
+
+  /// `true` if this field is the backing field for a `late final` instance
+  /// field.
+  bool get isLateFinalBackingField;
 }
 
 class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   DartType _type;
 
-  KFieldDataImpl(ir.Field node) : super(node);
+  @override
+  final bool isLateBackingField;
+
+  @override
+  final bool isLateFinalBackingField;
+
+  KFieldDataImpl(ir.Field node,
+      {/*required*/ this.isLateBackingField,
+      /*required*/ this.isLateFinalBackingField})
+      : super(node);
 
   @override
   ir.Field get node => super.node;

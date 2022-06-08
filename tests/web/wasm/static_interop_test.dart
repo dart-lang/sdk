@@ -7,6 +7,9 @@ import 'dart:js_wasm';
 
 import 'package:expect/expect.dart';
 
+@JS()
+external void eval(String code);
+
 @JS('JSClass')
 @staticInterop
 class StaticJSClass {

@@ -19,7 +19,8 @@ final _manager = LspRefactorManager._();
 
 /// A base class for refactoring commands that need to create Refactorings from
 /// client-supplied arguments.
-abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler {
+abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
+    with PositionalArgCommandHandler {
   AbstractRefactorCommandHandler(super.server);
 
   @override
@@ -138,38 +139,59 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler {
   }
 
   @override
-  Future<ErrorOr<void>> handle(List<Object?>? arguments,
+  Future<ErrorOr<void>> handle(Map<String, Object?> parameters,
       ProgressReporter progress, CancellationToken cancellationToken) async {
-    if (arguments == null ||
-        arguments.length != 6 ||
-        arguments[0] is! String || // kind
-        arguments[1] is! String || // path
-        (arguments[2] != null && arguments[2] is! int) || // docVersion
-        arguments[3] is! int || // offset
-        arguments[4] is! int || // length
-        // options
-        // Important: This arguments position is documented in
-        // tool/lsp_spec/README.md to allow clients with custom code (such as
-        // VS Code) to intercept the request and inject options (such as a
-        // user-provided name). Any changes to these arguments must be backwards
-        // compatible, keeping the options in this position.
-        (arguments[5] != null && arguments[5] is! Map<String, Object?>)) {
+    if (parameters['kind'] is! String ||
+        parameters['path'] is! String ||
+        (parameters['docVersion'] is! int?) ||
+        parameters['offset'] is! int ||
+        parameters['length'] is! int ||
+        (parameters['options'] is! Map<String, Object?>?)) {
       return ErrorOr.error(ResponseError(
         code: ServerErrorCodes.InvalidCommandArguments,
-        message:
-            '$commandName requires 6 parameters: RefactoringKind, docVersion, filePath, offset, length, options (optional)',
+        message: '$commandName requires 6 parameters: '
+            'kind: String (RefactoringKind), '
+            'filePath: String, '
+            'docVersion: int?, '
+            'offset: int, '
+            'length: int, '
+            'options: Map<String, Object?>',
       ));
     }
 
-    final kind = arguments[0] as String;
-    final path = arguments[1] as String;
-    final docVersion = arguments[2] as int?;
-    final offset = arguments[3] as int;
-    final length = arguments[4] as int;
-    final options = arguments[5] as Map<String, Object?>?;
+    final kind = parameters['kind'] as String;
+    final path = parameters['path'] as String;
+    final docVersion = parameters['docVersion'] as int?;
+    final offset = parameters['offset'] as int;
+    final length = parameters['length'] as int;
+    final options = parameters['options'] as Map<String, Object?>?;
 
     return execute(path, kind, offset, length, options, cancellationToken,
         progress, docVersion);
+  }
+
+  /// Parses "legacy" arguments passed a list, rather than in a map as a single
+  /// argument.
+  ///
+  /// This is provided for backwards compatibility and is only supported by
+  /// handlers intended to be called by clients with their own built arguments.
+  @override
+  Map<String, Object?> parseArgList(List<Object?> arguments) {
+    if (arguments.length != 6) {
+      return {};
+    }
+
+    return {
+      'kind': arguments[0],
+      'path': arguments[1],
+      'docVersion': arguments[2],
+      'offset': arguments[3],
+      'length': arguments[4],
+      // options
+      // This field is overwritten (by index) by Dart-Code (older versions that
+      // are not using Maps) so the index of this item must not change.
+      'options': arguments[5],
+    };
   }
 }
 
