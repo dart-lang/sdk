@@ -341,6 +341,8 @@ class ServerCapabilitiesComputer {
         _server.clientConfiguration.global.enableSdkFormatter;
     final previewCommitCharacters =
         _server.clientConfiguration.global.previewCommitCharacters;
+    final updateImportsOnRename =
+        _server.clientConfiguration.global.updateImportsOnRename;
 
     /// Helper for creating registrations with IDs.
     void register(bool condition, Method method, [ToJsonable? options]) {
@@ -486,7 +488,7 @@ class ServerCapabilitiesComputer {
       TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
-      dynamicRegistrations.fileOperations,
+      updateImportsOnRename && dynamicRegistrations.fileOperations,
       Method.workspace_willRenameFiles,
       fileOperationRegistrationOptions,
     );

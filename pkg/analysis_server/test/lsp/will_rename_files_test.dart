@@ -18,6 +18,74 @@ void main() {
 
 @reflectiveTest
 class WillRenameFilesTest extends AbstractLspAnalysisServerTest {
+  bool isWillRenameFilesRegistration(Registration registration) =>
+      registration.method == Method.workspace_willRenameFiles.toJson();
+
+  Future<void> test_registration_defaultsEnabled() async {
+    final registrations = <Registration>[];
+    await monitorDynamicRegistrations(
+      registrations,
+      () => initialize(
+        workspaceCapabilities: withAllSupportedWorkspaceDynamicRegistrations(
+            emptyWorkspaceClientCapabilities),
+      ),
+    );
+
+    expect(
+      registrations.where(isWillRenameFilesRegistration),
+      hasLength(1),
+    );
+  }
+
+  Future<void> test_registration_disabled() async {
+    final registrations = <Registration>[];
+    await provideConfig(
+      () => monitorDynamicRegistrations(
+        registrations,
+        () => initialize(
+          textDocumentCapabilities:
+              withAllSupportedTextDocumentDynamicRegistrations(
+                  emptyTextDocumentClientCapabilities),
+          workspaceCapabilities: withAllSupportedWorkspaceDynamicRegistrations(
+              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+        ),
+      ),
+      {'updateImportsOnRename': false},
+    );
+
+    expect(
+      registrations.where(isWillRenameFilesRegistration),
+      isEmpty,
+    );
+  }
+
+  Future<void> test_registration_disabledThenEnabled() async {
+    // Start disabled.
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities:
+            withAllSupportedTextDocumentDynamicRegistrations(
+                emptyTextDocumentClientCapabilities),
+        workspaceCapabilities: withAllSupportedWorkspaceDynamicRegistrations(
+            withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      ),
+      {'updateImportsOnRename': false},
+    );
+
+    // Collect any new registrations when enabled.
+    final registrations = <Registration>[];
+    await monitorDynamicRegistrations(
+      registrations,
+      () => updateConfig({'updateImportsOnRename': true}),
+    );
+
+    // Expect that willRenameFiles was included.
+    expect(
+      registrations.where(isWillRenameFilesRegistration),
+      hasLength(1),
+    );
+  }
+
   Future<void> test_rename_updatesImports() async {
     final otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
     final otherFileUri = Uri.file(otherFilePath);

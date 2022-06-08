@@ -213,5 +213,17 @@ class LspResourceClientConfiguration {
   /// Values are "always", "prompt", "never". Any other values should be treated
   /// like "never".
   String get renameFilesWithClasses =>
-      _settings['renameFilesWithClasses'] as String? ?? 'never';
+      _settings['renameFilesWithClasses'] as String? ??
+      _fallback?.renameFilesWithClasses ??
+      'never';
+
+  /// Whether to update imports and other directives when files are renamed.
+  ///
+  /// This setting works by controlling whether the server registers for
+  /// `willRenameFiles` requests from the client. Changing the value after
+  /// initialization will register/unregister appropriately.
+  bool get updateImportsOnRename =>
+      _settings['updateImportsOnRename'] as bool? ??
+      _fallback?.updateImportsOnRename ??
+      true;
 }
