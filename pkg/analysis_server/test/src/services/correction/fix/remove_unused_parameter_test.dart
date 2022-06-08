@@ -13,6 +13,8 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveUnusedParameterTest);
     defineReflectiveTests(RemoveUnusedParameterBulkTest);
+    defineReflectiveTests(RemoveUnusedParameterTestHint);
+    defineReflectiveTests(RemoveUnusedParameterBulkTestHint);
   });
 }
 
@@ -32,6 +34,52 @@ class C {
 class C {
   int y;
   C({this.y = 0});
+}
+''');
+  }
+}
+
+@reflectiveTest
+class RemoveUnusedParameterBulkTestHint extends BulkFixProcessorTest {
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+class _C {
+  int? a;
+  int b;
+  int? c;
+  _C([this.a, this.b = 1, this.c]);
+}
+
+class _C2 {
+  int? a;
+  int b;
+  int? c;
+  _C2({this.a, this.b = 1, this.c});
+}
+
+void main() {
+  print(_C());
+  print(_C2());
+}
+''');
+    await assertHasFix('''
+class _C {
+  int? a;
+  int b;
+  int? c;
+  _C([this.b = 1]);
+}
+
+class _C2 {
+  int? a;
+  int b;
+  int? c;
+  _C2({this.b = 1});
+}
+
+void main() {
+  print(_C());
+  print(_C2());
 }
 ''');
   }
@@ -274,6 +322,98 @@ class C {
     await assertHasFix('''
 class C {
   C();
+}
+''');
+  }
+}
+
+/// Situations exist where unused parameters are flagged by hints, rather
+/// than lints.   Apply the same algorithm for parameter removal as for
+/// lints.
+@reflectiveTest
+class RemoveUnusedParameterTestHint extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_UNUSED_PARAMETER;
+
+  Future<void> test_optionalNamed() async {
+    await resolveTestCode('''
+class _C {
+  final int variable;
+  int? somethingElse;
+  _C({required this.variable, this.somethingElse});
+}
+
+void main() {
+  print(_C(variable: 123));
+}
+''');
+    await assertHasFix('''
+class _C {
+  final int variable;
+  int? somethingElse;
+  _C({required this.variable});
+}
+
+void main() {
+  print(_C(variable: 123));
+}
+''');
+  }
+
+  Future<void> test_optionalPositional() async {
+    await resolveTestCode('''
+class _C {
+  int? somethingElse;
+  int? entirely;
+  _C([this.somethingElse, this.entirely]);
+}
+
+void main() {
+  print(_C(123));
+}
+''');
+    await assertHasFix('''
+class _C {
+  int? somethingElse;
+  int? entirely;
+  _C([this.somethingElse]);
+}
+
+void main() {
+  print(_C(123));
+}
+''');
+  }
+
+  Future<void> test_optionalSuperNamed() async {
+    await resolveTestCode('''
+class B {
+  final int? key;
+  B({this.key});
+}
+
+class _C extends B {
+  final int variable;
+  _C({super.key, required this.variable});
+}
+
+void main() {
+  print(_C(variable: 123));
+}
+''');
+    await assertHasFix('''
+class B {
+  final int? key;
+  B({this.key});
+}
+
+class _C extends B {
+  final int variable;
+  _C({required this.variable});
+}
+
+void main() {
+  print(_C(variable: 123));
 }
 ''');
   }
