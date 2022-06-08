@@ -6,17 +6,17 @@ fa4 float
 fa5 float
 fa6 float
 fa7 float
-(a0, a1) int64[float]
-(a2, a3) int64[float]
-(a4, a5) int64[float]
-(a6, a7) int64[float]
+a0 int32[float]
+a1 int32[float]
+a2 int32[float]
+a3 int32[float]
+a4 int32[float]
+a5 int32[float]
+a6 int32[float]
+a7 int32[float]
 S+0 float
 S+4 float
 S+8 float
 S+12 float
-S+16 float
-S+20 float
-S+24 float
-S+28 float
 =>
 fa0 float

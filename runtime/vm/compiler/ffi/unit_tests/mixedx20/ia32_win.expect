@@ -1,0 +1,22 @@
+S+0 int32
+S+4 float
+S+8 int32
+S+12 double
+S+20 int32
+S+24 float
+S+28 int32
+S+32 double
+S+40 int32
+S+44 float
+S+48 int32
+S+52 double
+S+60 int32
+S+64 float
+S+68 int32
+S+72 double
+S+80 int32
+S+84 float
+S+88 int32
+S+92 double
+=>
+xmm0 double

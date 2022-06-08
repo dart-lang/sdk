@@ -127,13 +127,10 @@ intptr_t NativePrimitiveType::AlignmentInBytesStack() const {
     case kAlignedToWordSize:
       // The default is to align stack arguments to word size.
       return compiler::target::kWordSize;
-    case kAlignedToWordSizeBut8AlignedTo8: {
-      // However, arm32 deviates slightly.
-      if (SizeInBytes() == 8) {
-        return 8;
-      }
-      return compiler::target::kWordSize;
-    }
+    case kAlignedToWordSizeAndValueSize:
+      // However, arm32+riscv32 align to the greater of word size or value size.
+      return Utils::Maximum(SizeInBytes(),
+                            static_cast<intptr_t>(compiler::target::kWordSize));
     case kAlignedToValueSize:
       // iOS on arm64 only aligns to size.
       return SizeInBytes();

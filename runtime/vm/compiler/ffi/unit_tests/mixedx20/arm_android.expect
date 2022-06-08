@@ -1,0 +1,22 @@
+r0 int32
+r1 int32[float]
+r2 int32
+S+0 double
+S+8 int32
+S+12 float
+S+16 int32
+S+24 double
+S+32 int32
+S+36 float
+S+40 int32
+S+48 double
+S+56 int32
+S+60 float
+S+64 int32
+S+72 double
+S+80 int32
+S+84 float
+S+88 int32
+S+96 double
+=>
+(r0, r1) int64[double]
