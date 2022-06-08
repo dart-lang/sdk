@@ -6,6 +6,7 @@
 #define RUNTIME_VM_HEAP_MARKER_H_
 
 #include "vm/allocation.h"
+#include "vm/heap/gc_shared.h"
 #include "vm/heap/pointer_block.h"
 #include "vm/os_thread.h"  // Mutex.
 
@@ -38,12 +39,10 @@ class GCMarker {
   // Marking must later be finalized by calling MarkObjects.
   void StartConcurrentMark(PageSpace* page_space);
 
-  // Called when a synchronous GC is required, but concurrent marking is still
-  // in progress.
-  void AssistConcurrentMark();
-
-  // Perform incremental marking if available.
-  void NotifyIdle(int64_t deadline);
+  // Contribute to marking.
+  void IncrementalMarkWithUnlimitedBudget(PageSpace* page_space);
+  void IncrementalMarkWithSizeBudget(PageSpace* page_space, intptr_t size);
+  void IncrementalMarkWithTimeBudget(PageSpace* page_space, int64_t deadline);
 
   // (Re)mark roots, drain the marking queue and finalize weak references.
   // Does not required StartConcurrentMark to have been previously called.
@@ -71,6 +70,7 @@ class GCMarker {
   Heap* const heap_;
   MarkingStack marking_stack_;
   MarkingStack deferred_marking_stack_;
+  GCLinkedLists global_list_;
   MarkingVisitorBase<true>** visitors_;
 
   NewPage* new_page_;

@@ -434,7 +434,8 @@ class PageSpace {
 
   bool ShouldStartIdleMarkSweep(int64_t deadline);
   bool ShouldPerformIdleMarkCompact(int64_t deadline);
-  void NotifyIdle(int64_t deadline);
+  void IncrementalMarkWithSizeBudget(intptr_t size);
+  void IncrementalMarkWithTimeBudget(int64_t deadline);
   void AssistTasks(MonitorLocker* ml);
 
   void AddGCTime(int64_t micros) { gc_time_micros_ += micros; }

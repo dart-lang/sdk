@@ -416,7 +416,9 @@ void Heap::NotifyIdle(int64_t deadline) {
     }
   }
 
-  old_space_.NotifyIdle(deadline);
+  if (FLAG_mark_when_idle) {
+    old_space_.IncrementalMarkWithTimeBudget(deadline);
+  }
 
   if (OS::GetCurrentMonotonicMicros() < deadline) {
     SemiSpace::ClearCache();
