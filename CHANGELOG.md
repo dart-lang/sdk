@@ -56,11 +56,6 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 #### `dart:io`
 
-- **Breaking Change** [#34218](https://github.com/dart-lang/sdk/issues/34218):
-  Constants in `dart:io`'s networking APIs following the `SCREAMING_CAPS`
-  convention have been removed (they were previously deprecated). Please use
-  the corresponding `lowerCamelCase` constants instead.
-
 - **Breaking Change** [#45630][]: The Dart VM no longer automatically restores
     the initial terminal settings upon exit. Programs that change the `Stdin`
     settings `lineMode` and `echoMode` are now responsible for restoring the

@@ -19,6 +19,33 @@ abstract class WebSocketStatus {
   static const int missingMandatoryExtension = 1010;
   static const int internalServerError = 1011;
   static const int reserved1015 = 1015;
+
+  @Deprecated("Use normalClosure instead")
+  static const int NORMAL_CLOSURE = normalClosure;
+  @Deprecated("Use goingAway instead")
+  static const int GOING_AWAY = goingAway;
+  @Deprecated("Use protocolError instead")
+  static const int PROTOCOL_ERROR = protocolError;
+  @Deprecated("Use unsupportedData instead")
+  static const int UNSUPPORTED_DATA = unsupportedData;
+  @Deprecated("Use reserved1004 instead")
+  static const int RESERVED_1004 = reserved1004;
+  @Deprecated("Use noStatusReceived instead")
+  static const int NO_STATUS_RECEIVED = noStatusReceived;
+  @Deprecated("Use abnormalClosure instead")
+  static const int ABNORMAL_CLOSURE = abnormalClosure;
+  @Deprecated("Use invalidFramePayloadData instead")
+  static const int INVALID_FRAME_PAYLOAD_DATA = invalidFramePayloadData;
+  @Deprecated("Use policyViolation instead")
+  static const int POLICY_VIOLATION = policyViolation;
+  @Deprecated("Use messageTooBig instead")
+  static const int MESSAGE_TOO_BIG = messageTooBig;
+  @Deprecated("Use missingMandatoryExtension instead")
+  static const int MISSING_MANDATORY_EXTENSION = missingMandatoryExtension;
+  @Deprecated("Use internalServerError instead")
+  static const int INTERNAL_SERVER_ERROR = internalServerError;
+  @Deprecated("Use reserved1015 instead")
+  static const int RESERVED_1015 = reserved1015;
 }
 
 /// Options controlling compression in a [WebSocket].
@@ -41,6 +68,8 @@ class CompressionOptions {
   /// * `clientMaxWindowBits`: null (default maximal window size of 15 bits)
   /// * `serverMaxWindowBits`: null (default maximal window size of 15 bits)
   static const CompressionOptions compressionDefault = CompressionOptions();
+  @Deprecated("Use compressionDefault instead")
+  static const CompressionOptions DEFAULT = compressionDefault;
 
   /// No-compression configuration.
   ///
@@ -48,6 +77,8 @@ class CompressionOptions {
   /// [WebSocket].
   static const CompressionOptions compressionOff =
       CompressionOptions(enabled: false);
+  @Deprecated("Use compressionOff instead")
+  static const CompressionOptions OFF = compressionOff;
 
   /// Whether the client will reuse its compression instances.
   final bool clientNoContextTakeover;
@@ -268,6 +299,15 @@ abstract class WebSocket
   static const int open = 1;
   static const int closing = 2;
   static const int closed = 3;
+
+  @Deprecated("Use connecting instead")
+  static const int CONNECTING = connecting;
+  @Deprecated("Use open instead")
+  static const int OPEN = open;
+  @Deprecated("Use closing instead")
+  static const int CLOSING = closing;
+  @Deprecated("Use closed instead")
+  static const int CLOSED = closed;
 
   /// The interval between ping signals.
   ///
