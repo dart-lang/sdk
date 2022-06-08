@@ -69,7 +69,7 @@ class InferenceVisitor
     int fileOffset;
     if (!inferrer.isTopLevel) {
       // In local inference we have access to the current file uri.
-      uri = inferrer.helper!.uri;
+      uri = inferrer.helper.uri;
       fileOffset = node.fileOffset;
     } else {
       Location? location = node.location;
@@ -429,7 +429,7 @@ class InferenceVisitor
         }
         if (operandType.isPotentiallyNullable) {
           if (!inferrer.isTopLevel) {
-            result = inferrer.helper!.buildProblem(
+            result = inferrer.helper.buildProblem(
                 templateInstantiationNullableGenericFunctionType.withArguments(
                     operandType, inferrer.isNonNullableByDefault),
                 node.fileOffset,
@@ -443,14 +443,14 @@ class InferenceVisitor
       } else {
         if (!inferrer.isTopLevel) {
           if (operandType.typeParameters.isEmpty) {
-            result = inferrer.helper!.buildProblem(
+            result = inferrer.helper.buildProblem(
                 templateInstantiationNonGenericFunctionType.withArguments(
                     operandType, inferrer.isNonNullableByDefault),
                 node.fileOffset,
                 noLength);
           } else if (operandType.typeParameters.length >
               node.typeArguments.length) {
-            result = inferrer.helper!.buildProblem(
+            result = inferrer.helper.buildProblem(
                 templateInstantiationTooFewArguments.withArguments(
                     operandType.typeParameters.length,
                     node.typeArguments.length),
@@ -458,7 +458,7 @@ class InferenceVisitor
                 noLength);
           } else if (operandType.typeParameters.length <
               node.typeArguments.length) {
-            result = inferrer.helper!.buildProblem(
+            result = inferrer.helper.buildProblem(
                 templateInstantiationTooManyArguments.withArguments(
                     operandType.typeParameters.length,
                     node.typeArguments.length),
@@ -469,7 +469,7 @@ class InferenceVisitor
       }
     } else if (operandType is! InvalidType) {
       if (!inferrer.isTopLevel) {
-        result = inferrer.helper!.buildProblem(
+        result = inferrer.helper.buildProblem(
             templateInstantiationNonGenericFunctionType.withArguments(
                 operandType, inferrer.isNonNullableByDefault),
             node.fileOffset,
@@ -716,7 +716,7 @@ class InferenceVisitor
       SourceLibraryBuilder library = inferrer.libraryBuilder;
       if (!hadExplicitTypeArguments) {
         library.checkBoundsInConstructorInvocation(
-            node, inferrer.typeSchemaEnvironment, inferrer.helper!.uri,
+            node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
             inferred: true);
       }
     }
@@ -750,7 +750,7 @@ class InferenceVisitor
       inferrer.libraryBuilder.checkBoundsInStaticInvocation(
           replacement,
           inferrer.typeSchemaEnvironment,
-          inferrer.helper!.uri,
+          inferrer.helper.uri,
           typeArgumentsInfo);
     }
     return inferrer.instantiateTearOff(
@@ -1013,12 +1013,12 @@ class InferenceVisitor
       SourceLibraryBuilder library = inferrer.libraryBuilder;
       if (!hadExplicitTypeArguments) {
         library.checkBoundsInFactoryInvocation(
-            node, inferrer.typeSchemaEnvironment, inferrer.helper!.uri,
+            node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
             inferred: true);
       }
       if (inferrer.isNonNullableByDefault) {
         if (node.target == inferrer.coreTypes.listDefaultConstructor) {
-          resultNode = inferrer.helper!.wrapInProblem(node,
+          resultNode = inferrer.helper.wrapInProblem(node,
               messageDefaultListConstructorError, node.fileOffset, noLength);
         }
       }
@@ -1043,7 +1043,7 @@ class InferenceVisitor
     if (!inferrer.isTopLevel) {
       if (inferrer.isNonNullableByDefault) {
         if (node.target == inferrer.coreTypes.listDefaultConstructor) {
-          resultNode = inferrer.helper!.wrapInProblem(node,
+          resultNode = inferrer.helper.wrapInProblem(node,
               messageDefaultListConstructorError, node.fileOffset, noLength);
         }
       }
@@ -1068,7 +1068,7 @@ class InferenceVisitor
     if (!inferrer.isTopLevel) {
       if (inferrer.isNonNullableByDefault) {
         if (node.target == inferrer.coreTypes.listDefaultConstructor) {
-          resultNode = inferrer.helper!.wrapInProblem(node,
+          resultNode = inferrer.helper.wrapInProblem(node,
               messageDefaultListConstructorError, node.fileOffset, noLength);
         }
       }
@@ -1572,7 +1572,7 @@ class InferenceVisitor
 
     int? intValue = node.asInt64();
     if (intValue == null) {
-      Expression replacement = inferrer.helper!.buildProblem(
+      Expression replacement = inferrer.helper.buildProblem(
           templateIntegerLiteralIsOutOfRange.withArguments(node.literal),
           node.fileOffset,
           node.literal.length);
@@ -1699,7 +1699,7 @@ class InferenceVisitor
         if (spreadElementType == null) {
           if (inferrer.coreTypes.isNull(spreadTypeBound) &&
               !element.isNullAware) {
-            replacement = inferrer.helper!.buildProblem(
+            replacement = inferrer.helper.buildProblem(
                 templateNonNullAwareSpreadIsNull.withArguments(
                     spreadType, inferrer.isNonNullableByDefault),
                 element.expression.fileOffset,
@@ -1711,7 +1711,7 @@ class InferenceVisitor
                 spreadType is! NullType &&
                 !element.isNullAware) {
               Expression receiver = element.expression;
-              replacement = inferrer.helper!.buildProblem(
+              replacement = inferrer.helper.buildProblem(
                   messageNullableSpreadError, receiver.fileOffset, 1,
                   context: inferrer.getWhyNotPromotedContext(
                       inferrer.flowAnalysis.whyNotPromoted(receiver)(),
@@ -1719,7 +1719,7 @@ class InferenceVisitor
                       (type) => !type.isPotentiallyNullable));
             }
 
-            replacement = inferrer.helper!.buildProblem(
+            replacement = inferrer.helper.buildProblem(
                 templateSpreadTypeMismatch.withArguments(
                     spreadType, inferrer.isNonNullableByDefault),
                 element.expression.fileOffset,
@@ -1735,7 +1735,7 @@ class InferenceVisitor
               if (subtypeCheckResult.isSubtypeWhenIgnoringNullabilities()) {
                 if (spreadElementType == subtypeCheckResult.subtype &&
                     inferredTypeArgument == subtypeCheckResult.supertype) {
-                  replacement = inferrer.helper!.buildProblem(
+                  replacement = inferrer.helper.buildProblem(
                       templateSpreadElementTypeMismatchNullability
                           .withArguments(
                               spreadElementType,
@@ -1744,7 +1744,7 @@ class InferenceVisitor
                       element.expression.fileOffset,
                       1);
                 } else {
-                  replacement = inferrer.helper!.buildProblem(
+                  replacement = inferrer.helper.buildProblem(
                       templateSpreadElementTypeMismatchPartNullability
                           .withArguments(
                               spreadElementType,
@@ -1756,7 +1756,7 @@ class InferenceVisitor
                       1);
                 }
               } else {
-                replacement = inferrer.helper!.buildProblem(
+                replacement = inferrer.helper.buildProblem(
                     templateSpreadElementTypeMismatch.withArguments(
                         spreadElementType,
                         inferredTypeArgument,
@@ -1765,7 +1765,7 @@ class InferenceVisitor
                     1);
               }
             } else {
-              replacement = inferrer.helper!.buildProblem(
+              replacement = inferrer.helper.buildProblem(
                   templateSpreadElementTypeMismatch.withArguments(
                       spreadElementType,
                       inferredTypeArgument,
@@ -1780,7 +1780,7 @@ class InferenceVisitor
               spreadType is! NullType &&
               !element.isNullAware) {
             Expression receiver = element.expression;
-            replacement = inferrer.helper!.buildProblem(
+            replacement = inferrer.helper.buildProblem(
                 messageNullableSpreadError, receiver.fileOffset, 1,
                 context: inferrer.getWhyNotPromotedContext(
                     inferrer.flowAnalysis.whyNotPromoted(receiver)(),
@@ -2203,7 +2203,7 @@ class InferenceVisitor
           if (inferrer.coreTypes.isNull(spreadTypeBound) &&
               !entry.isNullAware) {
             replacement = new MapLiteralEntry(
-                inferrer.helper!.buildProblem(
+                inferrer.helper.buildProblem(
                     templateNonNullAwareSpreadIsNull.withArguments(
                         spreadType, inferrer.isNonNullableByDefault),
                     entry.expression.fileOffset,
@@ -2217,7 +2217,7 @@ class InferenceVisitor
                 spreadType is! NullType &&
                 !entry.isNullAware) {
               Expression receiver = entry.expression;
-              Expression problem = inferrer.helper!.buildProblem(
+              Expression problem = inferrer.helper.buildProblem(
                   messageNullableSpreadError, receiver.fileOffset, 1,
                   context: inferrer.getWhyNotPromotedContext(
                       inferrer.flowAnalysis.whyNotPromoted(receiver)(),
@@ -2233,7 +2233,7 @@ class InferenceVisitor
             iterableSpreadType = spreadType;
           } else {
             Expression receiver = entry.expression;
-            Expression problem = inferrer.helper!.buildProblem(
+            Expression problem = inferrer.helper.buildProblem(
                 templateSpreadMapEntryTypeMismatch.withArguments(
                     spreadType, inferrer.isNonNullableByDefault),
                 receiver.fileOffset,
@@ -2257,14 +2257,14 @@ class InferenceVisitor
               if (subtypeCheckResult.isSubtypeWhenIgnoringNullabilities()) {
                 if (actualKeyType == subtypeCheckResult.subtype &&
                     inferredKeyType == subtypeCheckResult.supertype) {
-                  keyError = inferrer.helper!.buildProblem(
+                  keyError = inferrer.helper.buildProblem(
                       templateSpreadMapEntryElementKeyTypeMismatchNullability
                           .withArguments(actualKeyType, inferredKeyType,
                               inferrer.isNonNullableByDefault),
                       entry.expression.fileOffset,
                       1);
                 } else {
-                  keyError = inferrer.helper!.buildProblem(
+                  keyError = inferrer.helper.buildProblem(
                       // ignore: lines_longer_than_80_chars
                       templateSpreadMapEntryElementKeyTypeMismatchPartNullability
                           .withArguments(
@@ -2277,7 +2277,7 @@ class InferenceVisitor
                       1);
                 }
               } else {
-                keyError = inferrer.helper!.buildProblem(
+                keyError = inferrer.helper.buildProblem(
                     templateSpreadMapEntryElementKeyTypeMismatch.withArguments(
                         actualKeyType,
                         inferredKeyType,
@@ -2286,7 +2286,7 @@ class InferenceVisitor
                     1);
               }
             } else {
-              keyError = inferrer.helper!.buildProblem(
+              keyError = inferrer.helper.buildProblem(
                   templateSpreadMapEntryElementKeyTypeMismatch.withArguments(
                       actualKeyType,
                       inferredKeyType,
@@ -2303,14 +2303,14 @@ class InferenceVisitor
               if (subtypeCheckResult.isSubtypeWhenIgnoringNullabilities()) {
                 if (actualValueType == subtypeCheckResult.subtype &&
                     inferredValueType == subtypeCheckResult.supertype) {
-                  valueError = inferrer.helper!.buildProblem(
+                  valueError = inferrer.helper.buildProblem(
                       templateSpreadMapEntryElementValueTypeMismatchNullability
                           .withArguments(actualValueType, inferredValueType,
                               inferrer.isNonNullableByDefault),
                       entry.expression.fileOffset,
                       1);
                 } else {
-                  valueError = inferrer.helper!.buildProblem(
+                  valueError = inferrer.helper.buildProblem(
                       // ignore: lines_longer_than_80_chars
                       templateSpreadMapEntryElementValueTypeMismatchPartNullability
                           .withArguments(
@@ -2323,7 +2323,7 @@ class InferenceVisitor
                       1);
                 }
               } else {
-                valueError = inferrer.helper!.buildProblem(
+                valueError = inferrer.helper.buildProblem(
                     templateSpreadMapEntryElementValueTypeMismatch
                         .withArguments(actualValueType, inferredValueType,
                             inferrer.isNonNullableByDefault),
@@ -2331,7 +2331,7 @@ class InferenceVisitor
                     1);
               }
             } else {
-              valueError = inferrer.helper!.buildProblem(
+              valueError = inferrer.helper.buildProblem(
                   templateSpreadMapEntryElementValueTypeMismatch.withArguments(
                       actualValueType,
                       inferredValueType,
@@ -2346,7 +2346,7 @@ class InferenceVisitor
               spreadType is! NullType &&
               !entry.isNullAware) {
             Expression receiver = entry.expression;
-            keyError = inferrer.helper!.buildProblem(
+            keyError = inferrer.helper.buildProblem(
                 messageNullableSpreadError, receiver.fileOffset, 1,
                 context: inferrer.getWhyNotPromotedContext(
                     inferrer.flowAnalysis.whyNotPromoted(receiver)(),
@@ -2618,7 +2618,7 @@ class InferenceVisitor
     MapLiteralEntry replacement = entry;
     if (iterableSpreadOffset != null) {
       replacement = new MapLiteralEntry(
-          inferrer.helper!.buildProblem(
+          inferrer.helper.buildProblem(
               templateSpreadMapEntryTypeMismatch.withArguments(
                   iterableSpreadType!, inferrer.isNonNullableByDefault),
               iterableSpreadOffset!,
@@ -2786,7 +2786,9 @@ class InferenceVisitor
         InterfaceType setType = inferrer.coreTypes.thisInterfaceType(
             inferrer.coreTypes.setClass, inferrer.libraryBuilder.nonNullable);
         for (int i = 0; i < node.entries.length; ++i) {
-          setElements.add(convertToElement(node.entries[i], inferrer.helper,
+          setElements.add(convertToElement(
+              node.entries[i],
+              inferrer.isTopLevel ? null : inferrer.helper,
               inferrer.assignedVariables.reassignInfo));
           formalTypesForSet.add(setType.typeArguments[0]);
         }
@@ -2838,7 +2840,7 @@ class InferenceVisitor
       if (canBeSet && canBeMap && node.entries.isNotEmpty) {
         Expression replacement = node;
         if (!inferrer.isTopLevel) {
-          replacement = inferrer.helper!.buildProblem(
+          replacement = inferrer.helper.buildProblem(
               messageCantDisambiguateNotEnoughInformation, node.fileOffset, 1);
         }
         return new ExpressionInferenceResult(
@@ -2848,7 +2850,7 @@ class InferenceVisitor
       if (!canBeSet && !canBeMap) {
         Expression replacement = node;
         if (!inferrer.isTopLevel) {
-          replacement = inferrer.helper!.buildProblem(
+          replacement = inferrer.helper.buildProblem(
               messageCantDisambiguateAmbiguousInformation, node.fileOffset, 1);
         }
         return new ExpressionInferenceResult(
@@ -4396,7 +4398,7 @@ class InferenceVisitor
           (type) => !type.isPotentiallyNullable);
       return new ExpressionInferenceResult(
           binaryType,
-          inferrer.helper!.wrapInProblem(
+          inferrer.helper.wrapInProblem(
               binary,
               templateNullableOperatorCallError.withArguments(
                   binaryName.text, leftType, inferrer.isNonNullableByDefault),
@@ -4516,7 +4518,7 @@ class InferenceVisitor
       // probably be referred to as "Unary operator '-' ...".
       return new ExpressionInferenceResult(
           unaryType,
-          inferrer.helper!.wrapInProblem(
+          inferrer.helper.wrapInProblem(
               unary,
               templateNullableOperatorCallError.withArguments(unaryName.text,
                   expressionType, inferrer.isNonNullableByDefault),
@@ -4652,7 +4654,7 @@ class InferenceVisitor
     if (!inferrer.isTopLevel && readTarget.isNullable) {
       return new ExpressionInferenceResult(
           readType,
-          inferrer.helper!.wrapInProblem(
+          inferrer.helper.wrapInProblem(
               read,
               templateNullableOperatorCallError.withArguments(indexGetName.text,
                   receiverType, inferrer.isNonNullableByDefault),
@@ -4751,7 +4753,7 @@ class InferenceVisitor
         break;
     }
     if (!inferrer.isTopLevel && writeTarget.isNullable) {
-      return inferrer.helper!.wrapInProblem(
+      return inferrer.helper.wrapInProblem(
           write,
           templateNullableOperatorCallError.withArguments(
               indexSetName.text, receiverType, inferrer.isNonNullableByDefault),
@@ -5037,7 +5039,7 @@ class InferenceVisitor
         break;
     }
     if (!inferrer.isTopLevel && writeTarget.isNullable) {
-      return inferrer.helper!.wrapInProblem(
+      return inferrer.helper.wrapInProblem(
           write,
           templateNullablePropertyAccessError.withArguments(
               propertyName.text, receiverType, inferrer.isNonNullableByDefault),
@@ -6039,7 +6041,7 @@ class InferenceVisitor
       }
 
       if (!library.loader.target.backendTarget.supportsSetLiterals) {
-        inferrer.helper!.transformSetLiterals = true;
+        inferrer.helper.transformSetLiterals = true;
       }
     }
     return new ExpressionInferenceResult(inferredType, node);
@@ -6099,7 +6101,7 @@ class InferenceVisitor
       inferrer.libraryBuilder.checkBoundsInStaticInvocation(
           node,
           inferrer.typeSchemaEnvironment,
-          inferrer.helper!.uri,
+          inferrer.helper.uri,
           typeArgumentsInfo);
     }
     return new ExpressionInferenceResult(
@@ -6310,7 +6312,7 @@ class InferenceVisitor
           if (inferrer.libraryBuilder.isNonNullableByDefault) {
             if (!inferrer.typeSchemaEnvironment.isSubtypeOf(caseExpressionType,
                 expressionType, SubtypeCheckMode.withNullabilities)) {
-              inferrer.helper!.addProblem(
+              inferrer.helper.addProblem(
                   templateSwitchExpressionNotSubtype.withArguments(
                       caseExpressionType,
                       expressionType,
@@ -6328,7 +6330,7 @@ class InferenceVisitor
             // Check whether the expression type is assignable to the case
             // expression type.
             if (!inferrer.isAssignable(expressionType, caseExpressionType)) {
-              inferrer.helper!.addProblem(
+              inferrer.helper.addProblem(
                   templateSwitchExpressionNotAssignable.withArguments(
                       expressionType,
                       caseExpressionType,
@@ -6358,7 +6360,7 @@ class InferenceVisitor
           if (caseIndex < node.cases.length - 1 &&
               inferrer.flowAnalysis.isReachable) {
             inferrer.libraryBuilder.addProblem(messageSwitchCaseFallThrough,
-                switchCase.fileOffset, noLength, inferrer.helper!.uri);
+                switchCase.fileOffset, noLength, inferrer.helper.uri);
           }
         }
       }
@@ -6431,7 +6433,7 @@ class InferenceVisitor
           expressionResult.inferredType)) {
         return new ExpressionInferenceResult(
             const DynamicType(),
-            inferrer.helper!.buildProblem(
+            inferrer.helper.buildProblem(
                 templateThrowingNotAssignableToObjectError.withArguments(
                     expressionResult.inferredType, true),
                 node.expression.fileOffset,
@@ -6563,7 +6565,7 @@ class InferenceVisitor
           if (isDefinitelyAssigned) {
             return new ExpressionInferenceResult(
                 resultType,
-                inferrer.helper!.wrapInProblem(
+                inferrer.helper.wrapInProblem(
                     resultExpression,
                     templateLateDefinitelyAssignedError
                         .withArguments(node.variable.name!),
@@ -6574,7 +6576,7 @@ class InferenceVisitor
           if (!isDefinitelyUnassigned) {
             return new ExpressionInferenceResult(
                 resultType,
-                inferrer.helper!.wrapInProblem(
+                inferrer.helper.wrapInProblem(
                     resultExpression,
                     templateFinalPossiblyAssignedError
                         .withArguments(node.variable.name!),
@@ -6857,7 +6859,7 @@ class InferenceVisitor
               String name = variable.lateName ?? variable.name!;
               return new ExpressionInferenceResult(
                   resultType,
-                  inferrer.helper!.wrapInProblem(
+                  inferrer.helper.wrapInProblem(
                       resultExpression,
                       templateLateDefinitelyUnassignedError.withArguments(name),
                       node.fileOffset,
@@ -6868,7 +6870,7 @@ class InferenceVisitor
               if (variable.isFinal) {
                 return new ExpressionInferenceResult(
                     resultType,
-                    inferrer.helper!.wrapInProblem(
+                    inferrer.helper.wrapInProblem(
                         resultExpression,
                         templateFinalNotAssignedError
                             .withArguments(node.variable.name!),
@@ -6877,7 +6879,7 @@ class InferenceVisitor
               } else if (declaredOrInferredType.isPotentiallyNonNullable) {
                 return new ExpressionInferenceResult(
                     resultType,
-                    inferrer.helper!.wrapInProblem(
+                    inferrer.helper.wrapInProblem(
                         resultExpression,
                         templateNonNullableNotAssignedError
                             .withArguments(node.variable.name!),
@@ -7039,7 +7041,7 @@ class InferenceVisitor
           }
           int? intValue = receiver.asInt64(negated: true);
           if (intValue == null) {
-            Expression error = inferrer.helper!.buildProblem(
+            Expression error = inferrer.helper.buildProblem(
                 templateIntegerLiteralIsOutOfRange
                     .withArguments(receiver.literal),
                 receiver.fileOffset,
@@ -7088,7 +7090,7 @@ class InferenceVisitor
                 operationName, operandType, inferrer.isNonNullableByDefault),
             offset,
             noLength,
-            inferrer.helper!.uri);
+            inferrer.helper.uri);
       }
     }
   }

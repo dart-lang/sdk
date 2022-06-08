@@ -172,7 +172,7 @@ class _SyncClosureContext implements ClosureContext {
             returnType is NullType) {
           // Valid return;
         } else {
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               new NullLiteral()..fileOffset = statement.fileOffset,
               messageReturnWithoutExpressionSync,
               statement.fileOffset,
@@ -193,7 +193,7 @@ class _SyncClosureContext implements ClosureContext {
                 expressionType is NullType)) {
           // It is a compile-time error if s is `return e;`, T is void, and S is
           // neither void, dynamic, nor Null.
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               statement.expression!,
               messageReturnFromVoidFunction,
               statement.expression!.fileOffset,
@@ -203,7 +203,7 @@ class _SyncClosureContext implements ClosureContext {
             expressionType is VoidType) {
           // It is a compile-time error if s is `return e;`, T is neither void
           // nor dynamic, and S is void.
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               statement.expression!,
               templateInvalidReturn.withArguments(expressionType,
                   _declaredReturnType, inferrer.isNonNullableByDefault),
@@ -238,7 +238,7 @@ class _SyncClosureContext implements ClosureContext {
             returnType is NullType) {
           // Valid return;
         } else {
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               new NullLiteral()..fileOffset = statement.fileOffset,
               messageReturnWithoutExpression,
               statement.fileOffset,
@@ -262,7 +262,7 @@ class _SyncClosureContext implements ClosureContext {
             expressionType is! DynamicType &&
             expressionType is! NullType) {
           // Invalid if T is void and S is not void, dynamic, or Null
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               statement.expression!,
               messageReturnFromVoidFunction,
               statement.expression!.fileOffset,
@@ -273,7 +273,7 @@ class _SyncClosureContext implements ClosureContext {
             returnType is! DynamicType &&
             returnType is! NullType) {
           // Invalid if S is void and T is not void, dynamic, or Null.
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               statement.expression!,
               messageVoidExpression,
               statement.expression!.fileOffset,
@@ -443,7 +443,7 @@ class _SyncClosureContext implements ClosureContext {
       Statement resultStatement =
           inferenceResult.hasChanged ? inferenceResult.statement : body;
       // Create a synthetic return statement with the error.
-      Statement returnStatement = new ReturnStatement(inferrer.helper!
+      Statement returnStatement = new ReturnStatement(inferrer.helper
           .wrapInProblem(
               new NullLiteral()..fileOffset = fileOffset,
               templateImplicitReturnNull.withArguments(
@@ -528,7 +528,7 @@ class _AsyncClosureContext implements ClosureContext {
             futureValueType is NullType) {
           // Valid return;
         } else {
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               new NullLiteral()..fileOffset = statement.fileOffset,
               messageReturnWithoutExpressionAsync,
               statement.fileOffset,
@@ -553,7 +553,7 @@ class _AsyncClosureContext implements ClosureContext {
                 flattenedExpressionType is NullType)) {
           // It is a compile-time error if s is `return e;`, T_v is void, and
           // flatten(S) is neither void, dynamic, Null.
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               new NullLiteral()..fileOffset = statement.fileOffset,
               templateInvalidReturnAsync.withArguments(
                   expressionType, returnType, inferrer.isNonNullableByDefault),
@@ -565,7 +565,7 @@ class _AsyncClosureContext implements ClosureContext {
             flattenedExpressionType is VoidType) {
           // It is a compile-time error if s is `return e;`, T_v is neither void
           // nor dynamic, and flatten(S) is void.
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               new NullLiteral()..fileOffset = statement.fileOffset,
               templateInvalidReturnAsync.withArguments(
                   expressionType, returnType, inferrer.isNonNullableByDefault),
@@ -610,7 +610,7 @@ class _AsyncClosureContext implements ClosureContext {
             flattenedReturnType is NullType) {
           // Valid return;
         } else {
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               new NullLiteral()..fileOffset = statement.fileOffset,
               messageReturnWithoutExpression,
               statement.fileOffset,
@@ -644,7 +644,7 @@ class _AsyncClosureContext implements ClosureContext {
             flattenedExpressionType is! DynamicType &&
             flattenedExpressionType is! NullType) {
           // Invalid if T is void and flatten(S) is not void, dynamic, or Null.
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               statement.expression!,
               messageReturnFromVoidFunction,
               statement.expression!.fileOffset,
@@ -656,7 +656,7 @@ class _AsyncClosureContext implements ClosureContext {
             flattenedReturnType is! NullType) {
           // Invalid if flatten(S) is void and flatten(T) is not void, dynamic,
           // or Null.
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               statement.expression!,
               messageVoidExpression,
               statement.expression!.fileOffset,
@@ -856,7 +856,7 @@ class _AsyncClosureContext implements ClosureContext {
       Statement resultStatement =
           inferenceResult.hasChanged ? inferenceResult.statement : body;
       // Create a synthetic return statement with the error.
-      Statement returnStatement = new ReturnStatement(inferrer.helper!
+      Statement returnStatement = new ReturnStatement(inferrer.helper
           .wrapInProblem(
               new NullLiteral()..fileOffset = fileOffset,
               templateImplicitReturnNull.withArguments(

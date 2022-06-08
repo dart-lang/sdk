@@ -19983,7 +19983,9 @@ library
   exports
     package:test/a.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+  exportNamespace
     C: package:test/a.dart;C
 ''',
         withExportScope: true);
@@ -20003,7 +20005,9 @@ library
   exports
     package:test/a.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+  exportNamespace
     C: package:test/a.dart;C
 ''',
         withExportScope: true);
@@ -20028,7 +20032,9 @@ library
   exports
     package:test/foo.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/foo.dart::@unit::package:test/foo.dart::@class::A
+  exportNamespace
     A: package:test/foo.dart;A
 ''',
         withExportScope: true);
@@ -20055,7 +20061,9 @@ library
   exports
     package:test/foo_io.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/foo_io.dart::@unit::package:test/foo_io.dart::@class::A
+  exportNamespace
     A: package:test/foo_io.dart;A
 ''',
         withExportScope: true);
@@ -20082,12 +20090,45 @@ library
   exports
     package:test/foo_html.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/foo_html.dart::@unit::package:test/foo_html.dart::@class::A
+  exportNamespace
     A: package:test/foo_html.dart;A
 ''',
         withExportScope: true);
     ExportElement export = library.exports[0];
     expect(export.exportedLibrary!.source.shortName, 'foo_html.dart');
+  }
+
+  test_export_cycle() async {
+    addSource('$testPackageLibPath/a.dart', r'''
+export 'test.dart';
+class A {}
+''');
+
+    var library = await buildLibrary(r'''
+export 'a.dart';
+class X {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  exports
+    package:test/a.dart
+  definingUnit
+    classes
+      class X @23
+        constructors
+          synthetic @-1
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+  exportNamespace
+    A: package:test/a.dart;A
+    X: package:test/test.dart;X
+''',
+        withExportScope: true);
   }
 
   test_export_function() async {
@@ -20100,7 +20141,9 @@ library
   exports
     package:test/a.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@function::f
+  exportNamespace
     f: package:test/a.dart;f
 ''',
         withExportScope: true);
@@ -20136,7 +20179,10 @@ library
       combinators
         hide: A, C
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::B
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::D
+  exportNamespace
     B: package:test/a.dart;B
     D: package:test/a.dart;D
 ''',
@@ -20163,8 +20209,56 @@ library
         hide: A
         show: C
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+  exportNamespace
     C: package:test/a.dart;C
+''',
+        withExportScope: true);
+  }
+
+  test_export_reexport() async {
+    addSource('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    addSource('$testPackageLibPath/b.dart', r'''
+export 'a.dart';
+class B {}
+''');
+
+    addSource('$testPackageLibPath/c.dart', r'''
+export 'a.dart';
+class C {}
+''');
+
+    var library = await buildLibrary(r'''
+export 'b.dart';
+export 'c.dart';
+class X {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  exports
+    package:test/b.dart
+    package:test/c.dart
+  definingUnit
+    classes
+      class X @40
+        constructors
+          synthetic @-1
+  exportedReferences
+    exported[0, 1] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[0] root::package:test/b.dart::@unit::package:test/b.dart::@class::B
+    exported[1] root::package:test/c.dart::@unit::package:test/c.dart::@class::C
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+  exportNamespace
+    A: package:test/a.dart;A
+    B: package:test/b.dart;B
+    C: package:test/c.dart;C
+    X: package:test/test.dart;X
 ''',
         withExportScope: true);
   }
@@ -20179,7 +20273,9 @@ library
   exports
     package:test/a.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
+  exportNamespace
     f=: package:test/a.dart;f=
 ''',
         withExportScope: true);
@@ -20204,7 +20300,10 @@ library
       combinators
         show: A, C
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+  exportNamespace
     A: package:test/a.dart;A
     C: package:test/a.dart;C
 ''',
@@ -20226,7 +20325,10 @@ library
       combinators
         show: f
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::f
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
+  exportNamespace
     f: package:test/a.dart;f?
     f=: package:test/a.dart;f=
 ''',
@@ -20243,7 +20345,9 @@ library
   exports
     package:test/a.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@typeAlias::F
+  exportNamespace
     F: package:test/a.dart;F
 ''',
         withExportScope: true);
@@ -20266,7 +20370,10 @@ library
   exports
     package:test/a.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@setter::x
+  exportNamespace
     x: package:test/a.dart;x?
     x=: package:test/a.dart;x=
 ''',
@@ -20283,7 +20390,9 @@ library
   exports
     package:test/a.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+  exportNamespace
     x: package:test/a.dart;x?
 ''',
         withExportScope: true);
@@ -20299,7 +20408,9 @@ library
   exports
     package:test/a.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+  exportNamespace
     x: package:test/a.dart;x?
 ''',
         withExportScope: true);
@@ -20415,7 +20526,8 @@ library
     package:test/a.dart
     package:test/b.dart
   definingUnit
-  exportScope
+  exportedReferences
+  exportNamespace
 ''',
         withExportScope: true);
   }

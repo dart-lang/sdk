@@ -18,6 +18,7 @@ import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/element_flags.dart';
+import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
@@ -109,7 +110,7 @@ class BundleWriter {
     for (var unitElement in libraryElement.units) {
       _writeUnitElement(unitElement);
     }
-    _writeReferences(libraryElement.exportedReferences);
+    _writeExportedReferences(libraryElement.exportedReferences);
 
     _libraries.add(
       _Library(
@@ -196,6 +197,22 @@ class BundleWriter {
       );
       _writeList(element.constructors, _writeConstructorElement);
       _writeList(element.methods, _writeMethodElement);
+    });
+  }
+
+  void _writeExportedReferences(List<ExportedReference> elements) {
+    _writeList<ExportedReference>(elements, (exported) {
+      final index = _references._indexOfReference(exported.reference);
+      if (exported is ExportedReferenceDeclared) {
+        _sink.writeByte(0);
+        _sink.writeUInt30(index);
+      } else if (exported is ExportedReferenceExported) {
+        _sink.writeByte(1);
+        _sink.writeUInt30(index);
+        _sink.writeUint30List(exported.indexes);
+      } else {
+        throw UnimplementedError('(${exported.runtimeType}) $exported');
+      }
     });
   }
 
@@ -383,16 +400,6 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeType(element.returnType);
     _writeList(element.parameters, _writeParameterElement);
-  }
-
-  void _writeReferences(List<Reference> references) {
-    var length = references.length;
-    _sink.writeUInt30(length);
-
-    for (var reference in references) {
-      var index = _references._indexOfReference(reference);
-      _sink.writeUInt30(index);
-    }
   }
 
   void _writeTopLevelVariableElement(TopLevelVariableElement element) {

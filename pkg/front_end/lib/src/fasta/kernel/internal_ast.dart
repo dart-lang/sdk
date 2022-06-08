@@ -1032,7 +1032,7 @@ Expression? checkWebIntLiteralsErrorIfUnexact(
       ? '0x${asDouble.toRadixString(16)}'
       : asDouble.toString();
   int length = literal?.length ?? noLength;
-  return inferrer.helper!.buildProblem(
+  return inferrer.helper.buildProblem(
       templateWebLiteralCannotBeRepresentedExactly.withArguments(text, nearest),
       charOffset,
       length);
