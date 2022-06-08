@@ -1477,6 +1477,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   bool IsPrefixLoaded(const LibraryPrefix& prefix) const;
   void SetPrefixIsLoaded(const LibraryPrefix& prefix);
 
+  MallocGrowableArray<ObjectPtr>* pointers_to_verify_at_exit() {
+    return &pointers_to_verify_at_exit_;
+  }
+
  private:
   friend class Dart;                  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().
@@ -1734,6 +1738,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   static bool creation_enabled_;
 
   ArrayPtr loaded_prefixes_set_storage_;
+
+  MallocGrowableArray<ObjectPtr> pointers_to_verify_at_exit_;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;

@@ -2823,6 +2823,11 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   visitor->VisitPointer(
       reinterpret_cast<ObjectPtr*>(&loaded_prefixes_set_storage_));
+
+  if (pointers_to_verify_at_exit_.length() != 0) {
+    visitor->VisitPointers(&pointers_to_verify_at_exit_[0],
+                           pointers_to_verify_at_exit_.length());
+  }
 }
 
 void IsolateGroup::ReleaseStoreBuffers() {
