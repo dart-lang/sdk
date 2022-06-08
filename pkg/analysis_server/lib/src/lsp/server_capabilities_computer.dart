@@ -127,6 +127,13 @@ class ServerCapabilitiesComputer {
           glob: '**/*.dart',
           matches: FileOperationPatternKind.file,
         ),
+      ),
+      FileOperationFilter(
+        scheme: 'file',
+        pattern: FileOperationPattern(
+          glob: '**/',
+          matches: FileOperationPatternKind.folder,
+        ),
       )
     ],
   );

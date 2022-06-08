@@ -86,7 +86,7 @@ class WillRenameFilesTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  Future<void> test_rename_updatesImports() async {
+  Future<void> test_renameFile_updatesImports() async {
     final otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
     final otherFileUri = Uri.file(otherFilePath);
     final otherFileNewPath = join(projectFolderPath, 'lib', 'other_new.dart');
@@ -115,6 +115,46 @@ final a = A();
       FileRename(
         oldUri: otherFileUri.toString(),
         newUri: otherFileNewUri.toString(),
+      ),
+    ]);
+
+    // Ensure applying the edit will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(mainContent),
+    };
+    applyChanges(contents, edit.changes!);
+    expect(contents[mainFilePath], equals(expectedMainContent));
+  }
+
+  Future<void> test_renameFolder_updatesImports() async {
+    final oldFolderPath = join(projectFolderPath, 'lib', 'folder');
+    final newFolderPath = join(projectFolderPath, 'lib', 'folder_new');
+    final otherFilePath = join(oldFolderPath, 'other.dart');
+    final otherFileUri = Uri.file(otherFilePath);
+
+    final mainContent = '''
+import 'folder/other.dart';
+
+final a = A();
+''';
+
+    final otherContent = '''
+class A {}
+''';
+
+    final expectedMainContent = '''
+import 'folder_new/other.dart';
+
+final a = A();
+''';
+
+    await initialize();
+    await openFile(mainFileUri, mainContent);
+    await openFile(otherFileUri, otherContent);
+    final edit = await onWillRename([
+      FileRename(
+        oldUri: Uri.file(oldFolderPath).toString(),
+        newUri: Uri.file(newFolderPath).toString(),
       ),
     ]);
 
