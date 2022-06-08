@@ -1,0 +1,8 @@
+class A<T> {}
+
+fn1<T>() => const <A<T>>[];
+fn2<T>() => const <A<T>>{};
+fn3<T>() => const <A<T>, String>{};
+fn4<T>() => const <int, A<T>>{};
+fn5<T>() => const <A<T>, A<T>>{};
+main() {}

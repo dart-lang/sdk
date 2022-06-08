@@ -1446,8 +1446,19 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           templateNotConstantExpression
               .withArguments('Non-constant list literal'));
     }
+
+    DartType? type = _evaluateDartType(node, node.typeArgument);
+    if (type == null) {
+      AbortConstant error = _gotError!;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
+    // ignore: unnecessary_null_comparison
+    assert(type != null);
+
     final ListConstantBuilder builder = new ListConstantBuilder(
-        node, convertType(node.typeArgument), this,
+        node, convertType(type), this,
         isMutable: !node.isConst);
     // These expressions are at the same level, so one of them being
     // unevaluated doesn't mean a sibling is or has an unevaluated child.
@@ -1483,8 +1494,19 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           templateNotConstantExpression
               .withArguments('Non-constant set literal'));
     }
+
+    DartType? type = _evaluateDartType(node, node.typeArgument);
+    if (type == null) {
+      AbortConstant error = _gotError!;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
+    // ignore: unnecessary_null_comparison
+    assert(type != null);
+
     final SetConstantBuilder builder =
-        new SetConstantBuilder(node, convertType(node.typeArgument), this);
+        new SetConstantBuilder(node, convertType(type), this);
     // These expressions are at the same level, so one of them being
     // unevaluated doesn't mean a sibling is or has an unevaluated child.
     // We therefore reset it before each call, combine it and set it correctly
@@ -1519,8 +1541,29 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           templateNotConstantExpression
               .withArguments('Non-constant map literal'));
     }
+
+    DartType? keyType = _evaluateDartType(node, node.keyType);
+    if (keyType == null) {
+      AbortConstant error = _gotError!;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
+    // ignore: unnecessary_null_comparison
+    assert(keyType != null);
+
+    DartType? valueType = _evaluateDartType(node, node.valueType);
+    if (valueType == null) {
+      AbortConstant error = _gotError!;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
+    // ignore: unnecessary_null_comparison
+    assert(valueType != null);
+
     final MapConstantBuilder builder = new MapConstantBuilder(
-        node, convertType(node.keyType), convertType(node.valueType), this);
+        node, convertType(keyType), convertType(valueType), this);
     // These expressions are at the same level, so one of them being
     // unevaluated doesn't mean a sibling is or has an unevaluated child.
     // We therefore reset it before each call, combine it and set it correctly
