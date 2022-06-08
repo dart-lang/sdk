@@ -85,7 +85,6 @@ vars = {
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "browser_launcher_rev": "f841375ad337381e23d333b6eaaebde3d8266c68",
   "characters_rev": "4b1d4b7737ad47cd2b8105c47e2159174010f29f",
-  "charcode_rev": "84ea427711e24abf3b832923959caa7dd9a8514b",
   "chrome_rev": "19997",
   "cli_util_rev": "b0adbba89442b2ea6fef39c7a82fe79cb31e1168",
   "clock_rev": "f594d86da123015186d5680b0d0e8255c52fc162",
@@ -308,8 +307,6 @@ deps = {
       Var("dart_git") + "browser_launcher.git" + "@" + Var("browser_launcher_rev"),
   Var("dart_root") + "/third_party/pkg/characters":
       Var("dart_git") + "characters.git" + "@" + Var("characters_rev"),
-  Var("dart_root") + "/third_party/pkg/charcode":
-      Var("dart_git") + "charcode.git" + "@" + Var("charcode_rev"),
   Var("dart_root") + "/third_party/pkg/cli_util":
       Var("dart_git") + "cli_util.git" + "@" + Var("cli_util_rev"),
   Var("dart_root") + "/third_party/pkg/clock":

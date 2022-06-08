@@ -72,7 +72,6 @@ class FuzzyMatcher {
       '0000000000000000000000000000000010000000000000112222222222100000'
       '0333333333333333333333333330000002222222222222222222222222200000';
 
-  /// TODO(brianwilkerson) Use package:charcode.
   static final int $a = 'a'.codeUnitAt(0);
   static final int $z = 'z'.codeUnitAt(0);
 
