@@ -97,8 +97,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 
   @override
   List<InterfaceType> get allSupertypes {
-    var sessionImpl = library.session as AnalysisSessionImpl;
-    return sessionImpl.classHierarchy.implementedInterfaces(this);
+    return library.session.classHierarchy.implementedInterfaces(this);
   }
 
   @override
@@ -3701,7 +3700,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   final AnalysisContext context;
 
   @override
-  AnalysisSession session;
+  AnalysisSessionImpl session;
 
   /// The language version for the library.
   LibraryLanguageVersion? _languageVersion;

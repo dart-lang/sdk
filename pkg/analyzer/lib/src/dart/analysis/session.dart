@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 
 /// A concrete implementation of an analysis session.
 class AnalysisSessionImpl implements AnalysisSession {
@@ -36,6 +37,10 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   DeclaredVariables get declaredVariables => _driver.declaredVariables;
+
+  LinkedElementFactory get elementFactory {
+    return _driver.libraryContext.elementFactory;
+  }
 
   @override
   ResourceProvider get resourceProvider => _driver.resourceProvider;

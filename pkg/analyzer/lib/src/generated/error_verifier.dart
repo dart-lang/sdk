@@ -17,7 +17,6 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
@@ -1921,7 +1920,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
     var element = node.declaredElement as ClassElement;
 
-    var analysisSession = _currentLibrary.session as AnalysisSessionImpl;
+    var analysisSession = _currentLibrary.session;
     var errors = analysisSession.classHierarchy.errors(element);
 
     for (var error in errors) {
