@@ -33,14 +33,11 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
                      MarkingStack* marking_stack,
                      MarkingStack* deferred_marking_stack)
       : ObjectPointerVisitor(isolate_group),
-        thread_(Thread::Current()),
         page_space_(page_space),
         work_list_(marking_stack),
         deferred_work_list_(deferred_marking_stack),
         marked_bytes_(0),
-        marked_micros_(0) {
-    ASSERT(thread_->isolate_group() == isolate_group);
-  }
+        marked_micros_(0) {}
   ~MarkingVisitorBase() { ASSERT(delayed_.IsEmpty()); }
 
   uintptr_t marked_bytes() const { return marked_bytes_; }
@@ -279,8 +276,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     // buffer. Release the store buffer to satisfy the invariant that
     // thread local store buffer is empty after marking and all references
     // are processed.
-    // TODO(http://dartbug.com/48957):  `thread_` can differ from
-    // `Thread::Current()`.
     Thread::Current()->ReleaseStoreBuffer();
   }
 
