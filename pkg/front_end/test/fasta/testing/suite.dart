@@ -852,7 +852,8 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
               NonNullableByDefaultCompiledMode.Invalid) {
             // In this case we expect and want a runtime error.
             if (runResult.outcome == ExpectationSet.Default["RuntimeError"]) {
-              // We convert this to pass because that's exactly what we'd expect.
+              // We convert this to pass because that's exactly what we'd
+              // expect.
               return pass(result);
             } else {
               // Different outcome - that's a failure!

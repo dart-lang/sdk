@@ -173,7 +173,14 @@ abstract class TypeInferrer {
 
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables;
 
-  InferenceHelper? helper;
+  InferenceHelper get helper;
+
+  void set helper(InferenceHelper helper);
+
+  /// Indicates whether the construct we are currently performing inference for
+  /// is outside of a method body, and hence top level type inference rules
+  /// should apply.
+  bool get isTopLevel;
 
   /// Performs full type inference on the given field initializer.
   ExpressionInferenceResult inferFieldInitializer(
@@ -263,9 +270,7 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   final Uri uriForInstrumentation;
 
-  /// Indicates whether the construct we are currently performing inference for
-  /// is outside of a method body, and hence top level type inference rules
-  /// should apply.
+  @override
   final bool isTopLevel;
 
   final ClassHierarchy classHierarchy;
@@ -280,8 +285,7 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   final SourceLibraryBuilder libraryBuilder;
 
-  @override
-  InferenceHelper? helper;
+  InferenceHelper? _helper;
 
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
@@ -303,6 +307,18 @@ class TypeInferrerImpl implements TypeInferrer {
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         isTopLevel = topLevel {}
+
+  @override
+  InferenceHelper get helper => _helper!;
+
+  @override
+  void set helper(InferenceHelper helper) {
+    if (isTopLevel) {
+      throw new StateError("Attempting to assign TypeInferrerImpl.helper "
+          "during top-level inference.");
+    }
+    _helper = helper;
+  }
 
   CoreTypes get coreTypes => engine.coreTypes;
 
@@ -342,8 +358,9 @@ class TypeInferrerImpl implements TypeInferrer {
       int fileOffset, Message errorMessage, Message warningMessage) {
     if (libraryBuilder.loader.target.context.options.warnOnReachabilityCheck &&
         // ignore: unnecessary_null_comparison
-        warningMessage != null) {
-      helper?.addProblem(warningMessage, fileOffset, noLength);
+        warningMessage != null &&
+        !isTopLevel) {
+      helper.addProblem(warningMessage, fileOffset, noLength);
     }
     Arguments arguments;
     // ignore: unnecessary_null_comparison
@@ -499,7 +516,7 @@ class TypeInferrerImpl implements TypeInferrer {
     } else {
       inferenceResult = initializer.accept(new InferenceVisitor(this));
     }
-    this.helper = null;
+    _helper = null;
     return inferenceResult;
   }
 
@@ -684,13 +701,13 @@ class TypeInferrerImpl implements TypeInferrer {
         break;
       case AssignabilityKind.unassignableVoid:
         // Error: not assignable.  Perform error recovery.
-        result = helper!.wrapInProblem(
+        result = helper.wrapInProblem(
             expression, messageVoidExpression, expression.fileOffset, noLength);
         break;
       case AssignabilityKind.unassignablePrecise:
         // The type of the expression is known precisely, so an implicit
         // downcast is guaranteed to fail.  Insert a compile-time error.
-        result = helper!.wrapInProblem(
+        result = helper.wrapInProblem(
             expression,
             preciseTypeErrorTemplate!.withArguments(
                 expressionType, contextType, isNonNullableByDefault),
@@ -751,7 +768,7 @@ class TypeInferrerImpl implements TypeInferrer {
         break;
       default:
         return unhandled("${assignabilityResult}", "ensureAssignable",
-            fileOffset, helper!.uri);
+            fileOffset, helper.uri);
     }
 
     if (!identical(result, expression)) {
@@ -778,7 +795,7 @@ class TypeInferrerImpl implements TypeInferrer {
       ..isTypeError = true
       ..fileOffset = expression.fileOffset;
     if (contextType is! InvalidType) {
-      errorNode = helper!.wrapInProblem(
+      errorNode = helper.wrapInProblem(
           errorNode,
           template.withArguments(callName.text),
           errorNode.fileOffset,
@@ -803,7 +820,7 @@ class TypeInferrerImpl implements TypeInferrer {
       ..isForNonNullableByDefault = isNonNullableByDefault
       ..fileOffset = expression.fileOffset;
     if (contextType is! InvalidType && expressionType is! InvalidType) {
-      errorNode = helper!.wrapInProblem(
+      errorNode = helper.wrapInProblem(
           errorNode, message, errorNode.fileOffset, noLength,
           context: context);
     }
@@ -1385,7 +1402,7 @@ class TypeInferrerImpl implements TypeInferrer {
           identical(name.text, unaryMinusName.text)) {
         length = 1;
       }
-      return helper!.buildProblem(
+      return helper.buildProblem(
           errorTemplate.withArguments(name.text,
               resolveTypeParameter(receiverType), isNonNullableByDefault),
           fileOffset,
@@ -2033,7 +2050,7 @@ class TypeInferrerImpl implements TypeInferrer {
       {List<LocatedMessage>? context}) {
     return createNullAwareExpressionInferenceResult(
         result.inferredType,
-        helper!.wrapInProblem(
+        helper.wrapInProblem(
             result.nullAwareAction, message, fileOffset, length,
             context: context),
         result.nullAwareGuards);
@@ -2076,7 +2093,8 @@ class TypeInferrerImpl implements TypeInferrer {
 
     // For full (non-top level) inference, we need access to the
     // ExpressionGeneratorHelper so that we can perform error recovery.
-    assert(isTopLevel || helper != null);
+    assert(isTopLevel || _helper != null,
+        "Helper hasn't been set up for full inference.");
 
     // When doing top level inference, we skip subexpressions whose type isn't
     // needed so that we don't induce bogus dependencies on fields mentioned in
@@ -2099,8 +2117,8 @@ class TypeInferrerImpl implements TypeInferrer {
     assert(inferredType != null,
         "No type inferred for $expression (${expression.runtimeType}).");
     if (inferredType is VoidType && !isVoidAllowed) {
-      if (expression.parent is! ArgumentsImpl) {
-        helper?.addProblem(
+      if (expression.parent is! ArgumentsImpl && !isTopLevel) {
+        helper.addProblem(
             messageVoidExpression, expression.fileOffset, noLength);
       }
     }
@@ -2159,7 +2177,7 @@ class TypeInferrerImpl implements TypeInferrer {
         inferExpression(initializer, declaredType, true, isVoidAllowed: true);
     initializerResult = ensureAssignableResult(declaredType, initializerResult,
         isVoidAllowed: declaredType is VoidType);
-    this.helper = null;
+    _helper = null;
     return initializerResult;
   }
 
@@ -2185,7 +2203,7 @@ class TypeInferrerImpl implements TypeInferrer {
     assert(!(asyncMarker == AsyncMarker.Async && futureValueType == null),
         "No future value type computed.");
     closureContext = null;
-    this.helper = null;
+    _helper = null;
     flowAnalysis.finish();
     return new InferredFunctionBody(
         result.hasChanged ? result.statement : body, futureValueType);
@@ -2624,7 +2642,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
     if (isSpecialCasedBinaryOperator || isSpecialCasedTernaryOperator) {
       if (typeChecksNeeded && !identical(calleeType, unknownFunction)) {
-        LocatedMessage? argMessage = helper!.checkArgumentsForType(
+        LocatedMessage? argMessage = helper.checkArgumentsForType(
             calleeType, arguments, offset,
             isExtensionMemberInvocation: isExtensionMemberInvocation);
         if (argMessage != null) {
@@ -2634,7 +2652,7 @@ class TypeInferrerImpl implements TypeInferrer {
               argMessage.messageObject,
               argMessage.charOffset,
               argMessage.length,
-              helper!,
+              helper,
               isInapplicable: true,
               hoistedArguments: localHoistedExpressions);
         }
@@ -2657,23 +2675,8 @@ class TypeInferrerImpl implements TypeInferrer {
     }
 
     // Check for and remove duplicated named arguments.
-    List<NamedExpression> named = arguments.named;
-    if (named.length == 2) {
-      if (named[0].name == named[1].name) {
-        String name = named[1].name;
-        Expression error = helper!.wrapInProblem(
-            _createDuplicateExpression(
-                named[0].fileOffset, named[0].value, named[1].value),
-            templateDuplicatedNamedArgument.withArguments(name),
-            named[1].fileOffset,
-            name.length);
-        arguments.named = [new NamedExpression(named[1].name, error)];
-        if (useFormalAndActualTypes) {
-          formalTypes!.removeLast();
-          actualTypes!.removeLast();
-        }
-      }
-    } else if (named.length > 2) {
+    if (!isTopLevel) {
+      List<NamedExpression> named = arguments.named;
       Map<String, NamedExpression> seenNames = <String, NamedExpression>{};
       bool hasProblem = false;
       int namedTypeIndex = arguments.positional.length;
@@ -2683,7 +2686,7 @@ class TypeInferrerImpl implements TypeInferrer {
         if (seenNames.containsKey(name)) {
           hasProblem = true;
           NamedExpression prevNamedExpression = seenNames[name]!;
-          prevNamedExpression.value = helper!.wrapInProblem(
+          prevNamedExpression.value = helper.wrapInProblem(
               _createDuplicateExpression(prevNamedExpression.fileOffset,
                   prevNamedExpression.value, expression.value),
               templateDuplicatedNamedArgument.withArguments(name),
@@ -2727,7 +2730,7 @@ class TypeInferrerImpl implements TypeInferrer {
     List<DartType> positionalArgumentTypes = [];
     List<NamedType> namedArgumentTypes = [];
     if (typeChecksNeeded && !identical(calleeType, unknownFunction)) {
-      LocatedMessage? argMessage = helper!.checkArgumentsForType(
+      LocatedMessage? argMessage = helper.checkArgumentsForType(
           calleeType, arguments, offset,
           isExtensionMemberInvocation: isExtensionMemberInvocation);
       if (argMessage != null) {
@@ -2737,7 +2740,7 @@ class TypeInferrerImpl implements TypeInferrer {
             argMessage.messageObject,
             argMessage.charOffset,
             argMessage.length,
-            helper!,
+            helper,
             isInapplicable: true,
             hoistedArguments: localHoistedExpressions);
       } else {
@@ -3015,9 +3018,12 @@ class TypeInferrerImpl implements TypeInferrer {
   void inferMetadata(
       InferenceHelper helper, TreeNode? parent, List<Expression>? annotations) {
     if (annotations != null) {
-      this.helper = helper;
+      // We bypass the check for assignment of the helper during top-level
+      // inference and use `_helper = helper` instead of `this.helper = helper`
+      // because inference on metadata requires the helper.
+      _helper = helper;
       inferMetadataKeepingHelper(parent, annotations);
-      this.helper = null;
+      _helper = null;
     }
   }
 
@@ -3205,11 +3211,8 @@ class TypeInferrerImpl implements TypeInferrer {
           isImplicitCall: isImplicitCall,
           isExtensionMemberInvocation: true);
       if (!isTopLevel) {
-        libraryBuilder.checkBoundsInStaticInvocation(
-            staticInvocation,
-            typeSchemaEnvironment,
-            helper!.uri,
-            getTypeArgumentsInfo(arguments));
+        libraryBuilder.checkBoundsInStaticInvocation(staticInvocation,
+            typeSchemaEnvironment, helper.uri, getTypeArgumentsInfo(arguments));
       }
 
       Expression replacement = result.applyResult(staticInvocation);
@@ -3226,7 +3229,7 @@ class TypeInferrerImpl implements TypeInferrer {
           //   extension on int {
           //     void call() {}
           //   }
-          replacement = helper!.wrapInProblem(
+          replacement = helper.wrapInProblem(
               replacement,
               templateNullableExpressionCallError.withArguments(
                   receiverType, isNonNullableByDefault),
@@ -3241,7 +3244,7 @@ class TypeInferrerImpl implements TypeInferrer {
           //   extension on int {
           //     void methodOnNonNullInt() {}
           //   }
-          replacement = helper!.wrapInProblem(
+          replacement = helper.wrapInProblem(
               replacement,
               templateNullableMethodCallError.withArguments(
                   name.text, receiverType, isNonNullableByDefault),
@@ -3323,7 +3326,7 @@ class TypeInferrerImpl implements TypeInferrer {
         // Handles cases like:
         //   void Function()? f;
         //   f();
-        replacement = helper!.wrapInProblem(
+        replacement = helper.wrapInProblem(
             replacement,
             templateNullableExpressionCallError.withArguments(
                 receiverType, isNonNullableByDefault),
@@ -3334,7 +3337,7 @@ class TypeInferrerImpl implements TypeInferrer {
         // Handles cases like:
         //   void Function()? f;
         //   f.call();
-        replacement = helper!.wrapInProblem(
+        replacement = helper.wrapInProblem(
             replacement,
             templateNullableMethodCallError.withArguments(
                 callName.text, receiverType, isNonNullableByDefault),
@@ -3499,7 +3502,7 @@ class TypeInferrerImpl implements TypeInferrer {
         //   class C {
         //     void call();
         //   }
-        replacement = helper!.wrapInProblem(
+        replacement = helper.wrapInProblem(
             replacement,
             templateNullableExpressionCallError.withArguments(
                 receiverType, isNonNullableByDefault),
@@ -3510,7 +3513,7 @@ class TypeInferrerImpl implements TypeInferrer {
         // Handles cases like:
         //   int? i;
         //   i.abs();
-        replacement = helper!.wrapInProblem(
+        replacement = helper.wrapInProblem(
             replacement,
             templateNullableMethodCallError.withArguments(
                 methodName.text, receiverType, isNonNullableByDefault),
@@ -3624,7 +3627,7 @@ class TypeInferrerImpl implements TypeInferrer {
             new ExpressionInvocation(receiver, arguments)
               ..fileOffset = fileOffset);
       } else {
-        Expression error = helper!.buildProblem(
+        Expression error = helper.buildProblem(
             templateImplicitCallOfNonMethod.withArguments(
                 receiverType, isNonNullableByDefault),
             fileOffset,
@@ -3821,7 +3824,7 @@ class TypeInferrerImpl implements TypeInferrer {
             new ExpressionInvocation(receiver, arguments)
               ..fileOffset = fileOffset);
       } else {
-        Expression error = helper!.buildProblem(
+        Expression error = helper.buildProblem(
             templateImplicitCallOfNonMethod.withArguments(
                 receiverType, isNonNullableByDefault),
             fileOffset,
@@ -4070,7 +4073,7 @@ class TypeInferrerImpl implements TypeInferrer {
           actualMethodName,
           interfaceTarget,
           arguments,
-          helper!.uri,
+          helper.uri,
           fileOffset);
     }
   }
@@ -4083,14 +4086,8 @@ class TypeInferrerImpl implements TypeInferrer {
     // If [arguments] were inferred, check them.
     if (!isTopLevel) {
       // We only perform checks in full inference.
-      libraryBuilder.checkBoundsInInstantiation(
-          typeSchemaEnvironment,
-          classHierarchy,
-          this,
-          functionType,
-          arguments,
-          helper!.uri,
-          fileOffset,
+      libraryBuilder.checkBoundsInInstantiation(typeSchemaEnvironment,
+          classHierarchy, this, functionType, arguments, helper.uri, fileOffset,
           inferred: inferred);
     }
   }
@@ -4107,7 +4104,7 @@ class TypeInferrerImpl implements TypeInferrer {
           functionType,
           localName,
           arguments,
-          helper!.uri,
+          helper.uri,
           fileOffset);
     }
   }
@@ -4197,7 +4194,7 @@ class TypeInferrerImpl implements TypeInferrer {
     if (hasDeclaredInitializer) {
       initializer = ensureAssignableResult(declaredType, result).expression;
     }
-    this.helper = null;
+    _helper = null;
     return initializer;
   }
 
@@ -4231,7 +4228,6 @@ class TypeInferrerImpl implements TypeInferrer {
 
     // For full (non-top level) inference, we need access to the
     // ExpressionGeneratorHelper so that we can perform error recovery.
-    if (!isTopLevel) assert(helper != null);
     InferenceVisitor visitor = new InferenceVisitor(this);
     if (statement is InternalStatement) {
       return statement.acceptInference(visitor);
@@ -4491,7 +4487,7 @@ class TypeInferrerImpl implements TypeInferrer {
               templateDuplicatedDeclarationUse.withArguments(name.text),
               charOffset,
               name.text.length,
-              helper!.uri);
+              helper.uri);
         }
         classMember = null;
       }
@@ -4576,7 +4572,7 @@ class TypeInferrerImpl implements TypeInferrer {
       return engine.forest.createSuperMethodInvocation(fileOffset, indexGetName,
           null, engine.forest.createArguments(fileOffset, <Expression>[index]));
     } else {
-      return helper!.buildProblem(
+      return helper.buildProblem(
           templateSuperclassHasNoMethod.withArguments(indexGetName.text),
           fileOffset,
           noLength);
@@ -4593,7 +4589,7 @@ class TypeInferrerImpl implements TypeInferrer {
           engine.forest
               .createArguments(fileOffset, <Expression>[index, value]));
     } else {
-      return helper!.buildProblem(
+      return helper.buildProblem(
           templateSuperclassHasNoMethod.withArguments(indexSetName.text),
           fileOffset,
           noLength);
@@ -4670,7 +4666,7 @@ class TypeInferrerImpl implements TypeInferrer {
           .toList();
       template = ambiguousTemplate;
     }
-    return helper!.wrapInProblem(
+    return helper.wrapInProblem(
         wrappedExpression,
         template.withArguments(name.text, resolveTypeParameter(receiverType),
             isNonNullableByDefault),
@@ -4691,7 +4687,7 @@ class TypeInferrerImpl implements TypeInferrer {
           .createMethodInvocation(fileOffset, receiver, name, arguments);
     } else if (implicitInvocationPropertyName != null) {
       assert(extensionAccessCandidates == null);
-      return helper!.wrapInProblem(
+      return helper.wrapInProblem(
           _createInvalidInvocation(fileOffset, receiver, name, arguments),
           templateInvokeNonFunction
               .withArguments(implicitInvocationPropertyName.text),
@@ -4891,7 +4887,7 @@ class TypeInferrerImpl implements TypeInferrer {
               typeArgument, isNonNullableByDefault),
           fileOffset,
           noLength,
-          helper!.uri);
+          helper.uri);
     }
   }
 
@@ -4916,6 +4912,9 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       this.benchmarker)
       : impl = new TypeInferrerImpl(engine, uriForInstrumentation, topLevel,
             thisType, library, assignedVariables, dataForTesting);
+
+  @override
+  bool get isTopLevel => impl.isTopLevel;
 
   @override
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables =>
@@ -5056,10 +5055,10 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   }
 
   @override
-  InferenceHelper? get helper => impl.helper;
+  InferenceHelper get helper => impl.helper;
 
   @override
-  void set helper(InferenceHelper? helper) => impl.helper = helper;
+  void set helper(InferenceHelper helper) => impl.helper = helper;
 }
 
 abstract class MixinInferrer {
@@ -6015,7 +6014,7 @@ class _WhyNotPromotedVisitor
     int offset = node.fileOffset;
     return templateVariableCouldBeNullDueToWrite
         .withArguments(reason.variable.name!, reason.documentationLink)
-        .withLocation(inferrer.helper!.uri, offset, noLength);
+        .withLocation(inferrer.helper.uri, offset, noLength);
   }
 
   @override

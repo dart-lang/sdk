@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue49153.dart:9:42: Error: Duplicated named argument 'x'.
+// const a = {"a": A(x: 0, y: "", z: false, x: 1)};
+//                                          ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::num> extends core::Object /*hasConstConstructor*/  {
+  const constructor •({core::int? x = null, core::String? y = null, core::bool? z = null}) → self::A<self::A::X>
+    : super core::Object::•()
+    ;
+}
+static const field core::Map<core::String, self::A<core::num>> a = const <core::String, self::A<core::num>>{"a": const self::A::•<core::num>(x: invalid-expression "pkg/front_end/testcases/general/issue49153.dart:9:42: Error: Duplicated named argument 'x'.
+const a = {\"a\": A(x: 0, y: \"\", z: false, x: 1)};
+                                         ^" in block {
+  0;
+} =>1, y: "", z: false)};
+static method main() → dynamic
+  ;
