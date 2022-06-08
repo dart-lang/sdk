@@ -19,6 +19,8 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 
 MicroContextObjects createMicroContextObjects({
   required FileResolver fileResolver,
@@ -55,6 +57,12 @@ MicroContextObjects createMicroContextObjects({
 
   analysisContext2.currentSession = analysisSession;
   analysisSession.analysisContext = analysisContext2;
+
+  analysisSession.elementFactory = LinkedElementFactory(
+    analysisContext,
+    analysisSession,
+    Reference.root(),
+  );
 
   return MicroContextObjects._(
     declaredVariables: declaredVariables,
@@ -151,6 +159,9 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
 
   @override
   late _MicroAnalysisContextImpl analysisContext;
+
+  @override
+  late final LinkedElementFactory elementFactory;
 
   _MicroAnalysisSessionImpl(
     this.fileResolver,

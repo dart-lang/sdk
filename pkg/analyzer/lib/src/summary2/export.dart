@@ -14,11 +14,10 @@ class Export {
   Export(this.exporter, this.index, this.combinators);
 
   bool addToExportScope(String name, ExportedReference exported) {
-    for (Combinator combinator in combinators) {
-      if (combinator.isShow && !combinator.matches(name)) return false;
-      if (combinator.isHide && combinator.matches(name)) return false;
+    if (combinators.allows(name)) {
+      return exporter.exportScope.export(index, name, exported);
     }
-    return exporter.exportScope.export(index, name, exported);
+    return false;
   }
 }
 
