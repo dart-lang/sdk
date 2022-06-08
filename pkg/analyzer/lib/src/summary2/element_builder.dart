@@ -108,7 +108,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addClass(name, element);
-    _libraryBuilder.localScope.declare(name, reference);
+    _libraryBuilder.declare(name, reference);
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -142,7 +142,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addClass(name, element);
-    _libraryBuilder.localScope.declare(name, reference);
+    _libraryBuilder.declare(name, reference);
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -215,7 +215,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addEnum(name, element);
-    _libraryBuilder.localScope.declare(name, reference);
+    _libraryBuilder.declare(name, reference);
 
     var holder = _EnclosingContext(
       reference,
@@ -414,7 +414,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var reference = _enclosingContext.addExtension(refName, element);
 
     if (name != null) {
-      _libraryBuilder.localScope.declare(name, reference);
+      _libraryBuilder.declare(name, reference);
     }
 
     var holder = _EnclosingContext(reference, element);
@@ -595,11 +595,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       typeParameters: functionExpression.typeParameters,
     );
 
-    var localScope = _libraryBuilder.localScope;
     if (node.isSetter) {
-      localScope.declare('$name=', reference);
+      _libraryBuilder.declare('$name=', reference);
     } else {
-      localScope.declare(name, reference);
+      _libraryBuilder.declare(name, reference);
     }
 
     _buildType(node.returnType);
@@ -620,7 +619,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addTypeAlias(name, element);
-    _libraryBuilder.localScope.declare(name, reference);
+    _libraryBuilder.declare(name, reference);
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -728,7 +727,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addTypeAlias(name, element);
-    _libraryBuilder.localScope.declare(name, reference);
+    _libraryBuilder.declare(name, reference);
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -881,7 +880,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addMixin(name, element);
-    _libraryBuilder.localScope.declare(name, reference);
+    _libraryBuilder.declare(name, reference);
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -1058,15 +1057,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var getter = element.getter;
       if (getter is PropertyAccessorElementImpl) {
         _enclosingContext.addGetter(name, getter);
-        var localScope = _libraryBuilder.localScope;
-        localScope.declare(name, getter.reference!);
+        _libraryBuilder.declare(name, getter.reference!);
       }
 
       var setter = element.setter;
       if (setter is PropertyAccessorElementImpl) {
         _enclosingContext.addSetter(name, setter);
-        var localScope = _libraryBuilder.localScope;
-        localScope.declare('$name=', setter.reference!);
+        _libraryBuilder.declare('$name=', setter.reference!);
       }
     }
 

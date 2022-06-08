@@ -22,6 +22,7 @@ import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/element_flags.dart';
+import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
@@ -462,10 +463,9 @@ class LibraryReader {
       units.add(unitElement);
     }
 
-    var exportsIndexList = _reader.readUInt30List();
-    libraryElement.exportedReferences = exportsIndexList
-        .map((index) => _referenceReader.referenceOfIndex(index))
-        .toList();
+    libraryElement.exportedReferences = _reader.readTypedList(
+      _readExportedReference,
+    );
 
     libraryElement.definingCompilationUnit = units[0];
     libraryElement.parts = units.skip(1).toList();
@@ -625,6 +625,26 @@ class LibraryReader {
     unitElement.enums = List.generate(count, (_) {
       return _readEnumElement(unitElement, unitReference);
     });
+  }
+
+  ExportedReference _readExportedReference() {
+    final kind = _reader.readByte();
+    if (kind == 0) {
+      final index = _reader.readUInt30();
+      final reference = _referenceReader.referenceOfIndex(index);
+      return ExportedReferenceDeclared(
+        reference: reference,
+      );
+    } else if (kind == 1) {
+      final index = _reader.readUInt30();
+      final reference = _referenceReader.referenceOfIndex(index);
+      return ExportedReferenceExported(
+        reference: reference,
+        indexes: _reader.readUInt30List(),
+      );
+    } else {
+      throw StateError('kind: $kind');
+    }
   }
 
   ExportElementImpl _readExportElement() {

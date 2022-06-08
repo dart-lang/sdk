@@ -9,7 +9,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/task/inference_error.dart';
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
 import 'resolved_ast_printer.dart';
@@ -135,6 +137,8 @@ class _ElementWriter {
   });
 
   void writeLibraryElement(LibraryElement e) {
+    e as LibraryElementImpl;
+
     _writelnWithIndent('library');
     _withIndent(() {
       var name = e.name;
@@ -169,9 +173,13 @@ class _ElementWriter {
       });
 
       if (withExportScope) {
-        _writelnWithIndent('exportScope');
+        _writelnWithIndent('exportedReferences');
         _withIndent(() {
-          _writeExportScope(e);
+          _writeExportedReferences(e);
+        });
+        _writelnWithIndent('exportNamespace');
+        _withIndent(() {
+          _writeExportNamespace(e);
         });
       }
     });
@@ -455,6 +463,23 @@ class _ElementWriter {
     }
   }
 
+  void _writeExportedReferences(LibraryElementImpl e) {
+    final exportedReferences = e.exportedReferences.toList();
+    exportedReferences.sortBy((e) => e.reference.toString());
+
+    for (final exported in exportedReferences) {
+      _writeIndentedLine(() {
+        if (exported is ExportedReferenceDeclared) {
+          buffer.write('declared ');
+        } else if (exported is ExportedReferenceExported) {
+          buffer.write('exported${exported.indexes} ');
+        }
+        // TODO(scheglov) Use the same writer as for resolved AST.
+        buffer.write(exported.reference);
+      });
+    }
+  }
+
   void _writeExportElement(ExportElement e) {
     _writeIndentedLine(() {
       _writeUri(e.exportedLibrary?.source);
@@ -468,7 +493,7 @@ class _ElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeExportScope(LibraryElement e) {
+  void _writeExportNamespace(LibraryElement e) {
     var map = e.exportNamespace.definedNames;
     var names = map.keys.toList()..sort();
     for (var name in names) {

@@ -43,6 +43,7 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
+import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -3713,7 +3714,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   late TypeSystemImpl typeSystem;
 
-  late final List<Reference> exportedReferences;
+  late final List<ExportedReference> exportedReferences;
 
   LibraryElementLinkedData? linkedData;
 

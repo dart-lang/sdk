@@ -22,7 +22,6 @@ import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
-import 'package:analyzer/src/summary2/scope.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
@@ -48,10 +47,10 @@ class LibraryBuilder {
   final List<ImplicitEnumNodes> implicitEnumNodes = [];
 
   /// Local declarations.
-  final Scope localScope = Scope();
+  final Map<String, Reference> _declaredReferences = {};
 
   /// The export scope of the library.
-  final Scope exportScope = Scope();
+  final ExportScope exportScope = ExportScope();
 
   /// The `export` directives that export this library.
   final List<Export> exports = [];
@@ -86,13 +85,16 @@ class LibraryBuilder {
   }
 
   void addExporters() {
-    for (var element in element.exports) {
-      var exportedLibrary = element.exportedLibrary;
+    final exportElements = element.exports;
+    for (var i = 0; i < exportElements.length; i++) {
+      final exportElement = exportElements[i];
+
+      final exportedLibrary = exportElement.exportedLibrary;
       if (exportedLibrary is! LibraryElementImpl) {
         continue;
       }
 
-      var combinators = element.combinators.map((combinator) {
+      final combinators = exportElement.combinators.map((combinator) {
         if (combinator is ShowElementCombinator) {
           return Combinator.show(combinator.shownNames);
         } else if (combinator is HideElementCombinator) {
@@ -102,39 +104,25 @@ class LibraryBuilder {
         }
       }).toList();
 
-      var exportedUri = exportedLibrary.source.uri;
-      var exportedBuilder = linker.builders[exportedUri];
+      final exportedUri = exportedLibrary.source.uri;
+      final exportedBuilder = linker.builders[exportedUri];
 
-      var export = Export(this, combinators);
+      final export = Export(this, i, combinators);
       if (exportedBuilder != null) {
         exportedBuilder.exports.add(export);
       } else {
         final exportedReferences = exportedLibrary.exportedReferences;
-        for (final reference in exportedReferences) {
+        for (final exported in exportedReferences) {
+          final reference = exported.reference;
           final name = reference.name;
           if (reference.isSetter) {
-            export.addToExportScope('$name=', reference);
+            export.addToExportScope('$name=', exported);
           } else {
-            export.addToExportScope(name, reference);
+            export.addToExportScope(name, exported);
           }
         }
       }
     }
-  }
-
-  /// Return `true` if the export scope was modified.
-  bool addToExportScope(String name, Reference reference) {
-    if (name.startsWith('_')) return false;
-    if (reference.isPrefix) return false;
-
-    var existing = exportScope.map[name];
-    if (existing == reference) return false;
-
-    // Ambiguous declaration detected.
-    if (existing != null) return false;
-
-    exportScope.map[name] = reference;
-    return true;
   }
 
   /// Build elements for declarations in the library units, add top-level
@@ -171,8 +159,10 @@ class LibraryBuilder {
   }
 
   void buildInitialExportScope() {
-    localScope.forEach((name, reference) {
-      addToExportScope(name, reference);
+    _declaredReferences.forEach((name, reference) {
+      if (name.startsWith('_')) return;
+      if (reference.isPrefix) return;
+      exportScope.declare(name, reference);
     });
   }
 
@@ -192,6 +182,10 @@ class LibraryBuilder {
         }
       }
     }
+  }
+
+  void declare(String name, Reference reference) {
+    _declaredReferences[name] = reference;
   }
 
   Future<void> executeMacroDeclarationsPhase() async {
@@ -379,7 +373,8 @@ class LibraryBuilder {
 
     var definedNames = <String, Element>{};
     for (var entry in exportScope.map.entries) {
-      var element = linker.elementFactory.elementOfReference(entry.value);
+      var reference = entry.value.reference;
+      var element = linker.elementFactory.elementOfReference(reference);
       if (element != null) {
         definedNames[entry.key] = element;
       }
@@ -399,11 +394,11 @@ class LibraryBuilder {
     if (reference.name == 'dart:core') {
       var dynamicRef = reference.getChild('dynamic');
       dynamicRef.element = DynamicElementImpl.instance;
-      localScope.declare('dynamic', dynamicRef);
+      declare('dynamic', dynamicRef);
 
       var neverRef = reference.getChild('Never');
       neverRef.element = NeverElementImpl.instance;
-      localScope.declare('Never', neverRef);
+      declare('Never', neverRef);
     }
   }
 

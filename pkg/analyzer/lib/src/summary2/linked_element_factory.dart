@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
+import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:meta/meta.dart';
 
@@ -68,11 +69,14 @@ class LinkedElementFactory {
     _libraryReaders.addAll(libraries);
   }
 
-  Namespace buildExportNamespace(Uri uri, List<Reference> exportedReferences) {
+  Namespace buildExportNamespace(
+    Uri uri,
+    List<ExportedReference> exportedReferences,
+  ) {
     var exportedNames = <String, Element>{};
 
     for (var exportedReference in exportedReferences) {
-      var element = elementOfReference(exportedReference);
+      var element = elementOfReference(exportedReference.reference);
       // TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/41212
       if (element == null) {
         throw StateError(

@@ -138,7 +138,10 @@ library
         class MyClass @-1
           constructors
             synthetic @-1
-  exportScope
+  exportedReferences
+    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+  exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
 ''',
@@ -199,7 +202,10 @@ library
         class MyClass @-1
           constructors
             synthetic @-1
-  exportScope
+  exportedReferences
+    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+  exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
 ''',
@@ -268,7 +274,10 @@ library
         class MyClass @-1
           constructors
             synthetic @-1
-  exportScope
+  exportedReferences
+    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+  exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
 ''',
@@ -337,7 +346,10 @@ library
         class MyClass @-1
           constructors
             synthetic @-1
-  exportScope
+  exportedReferences
+    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+  exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
 ''',
@@ -399,7 +411,10 @@ library
         class MyClass @-1
           constructors
             synthetic @-1
-  exportScope
+  exportedReferences
+    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+  exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
 ''',
@@ -469,7 +484,10 @@ library
         class MyClass @-1
           constructors
             synthetic @-1
-  exportScope
+  exportedReferences
+    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+  exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
 ''',
@@ -538,7 +556,10 @@ library
         class MyClass @-1
           constructors
             synthetic @-1
-  exportScope
+  exportedReferences
+    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+  exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
 ''',
@@ -612,7 +633,10 @@ library
         class MyClass @-1
           constructors
             synthetic @-1
-  exportScope
+  exportedReferences
+    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+  exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
 ''',
