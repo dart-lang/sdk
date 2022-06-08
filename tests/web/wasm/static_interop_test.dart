@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:js_util_wasm';
-import 'dart:js_wasm';
-
 import 'package:expect/expect.dart';
+import 'package:js/js.dart';
 
 @JS()
 external void eval(String code);

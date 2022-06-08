@@ -78,11 +78,11 @@ class JsUtilWasmOptimizer extends Transformer {
         _jsifyRawTarget = _coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', 'jsifyRaw'),
         _wrapDartCallbackTarget = _coreTypes.index
-            .getTopLevelProcedure('dart:js_util_wasm', '_wrapDartCallback'),
+            .getTopLevelProcedure('dart:_js_helper', '_wrapDartCallback'),
         _newObjectTarget =
             _coreTypes.index.getTopLevelProcedure('dart:js_util', 'newObject'),
-        _allowInteropTarget = _coreTypes.index
-            .getTopLevelProcedure('dart:js_util_wasm', 'allowInterop'),
+        _allowInteropTarget =
+            _coreTypes.index.getTopLevelProcedure('dart:js', 'allowInterop'),
         _wasmAnyRefClass = _coreTypes.index.getClass('dart:wasm', 'WasmAnyRef'),
         _objectClass = _coreTypes.objectClass,
         _pragmaClass = _coreTypes.pragmaClass,
@@ -283,8 +283,10 @@ class JsUtilWasmOptimizer extends Transformer {
   StaticInvocation _allowInterop(
       Procedure node, FunctionType type, Expression argument) {
     String callbackTrampolineName = _createCallbackTrampoline(node, type);
-    return StaticInvocation(_wrapDartCallbackTarget,
-        Arguments([argument, StringLiteral(callbackTrampolineName)]));
+    return StaticInvocation(
+        _wrapDartCallbackTarget,
+        Arguments([argument, StringLiteral(callbackTrampolineName)],
+            types: [type]));
   }
 
   StaticGet get _globalThis => StaticGet(_globalThisMember);
