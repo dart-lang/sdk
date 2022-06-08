@@ -152,7 +152,6 @@ class LinkedElementFactory {
     }
   }
 
-  /// TODO(scheglov) Why would this method return `null`?
   Element? elementOfReference(Reference reference) {
     if (reference.element != null) {
       return reference.element;

@@ -35,6 +35,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -841,6 +842,8 @@ class LibraryContext {
   final CiderByteStore byteStore;
   final MicroContextObjects contextObjects;
 
+  late final LinkedElementFactory elementFactory;
+
   Set<LibraryCycle> loadedBundles = Set.identity();
 
   LibraryContext(
@@ -849,10 +852,12 @@ class LibraryContext {
     this.resourceProvider,
     this.byteStore,
     this.contextObjects,
-  );
-
-  LinkedElementFactory get elementFactory {
-    return contextObjects.analysisSession.elementFactory;
+  ) {
+    elementFactory = LinkedElementFactory(
+      contextObjects.analysisContext,
+      contextObjects.analysisSession,
+      Reference.root(),
+    );
   }
 
   /// Notifies this object that it is about to be discarded.
