@@ -60,6 +60,13 @@ class RegisterNames {
     return fpu_d_reg_names[reg];
   }
 #endif  // defined(TARGET_ARCH_ARM)
+
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+  static const char* RegisterByteName(ByteRegister reg) {
+    ASSERT((0 <= reg) && (reg < kNumberOfByteRegisters));
+    return cpu_reg_byte_names[reg];
+  }
+#endif  // defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
 };
 
 static constexpr bool IsArgumentRegister(Register reg) {

@@ -60,6 +60,7 @@ enum ByteRegister {
   R13B = 13,
   R14B = 14,
   R15B = 15,
+  kNumberOfByteRegisters = 16,
   kNoByteRegister = -1  // Signals an illegal register.
 };
 
@@ -102,6 +103,7 @@ const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
 extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
 extern const char* const cpu_reg_abi_names[kNumberOfCpuRegisters];
+extern const char* const cpu_reg_byte_names[kNumberOfByteRegisters];
 extern const char* const fpu_reg_names[kNumberOfXmmRegisters];
 
 enum RexBits {

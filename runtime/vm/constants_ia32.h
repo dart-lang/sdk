@@ -42,6 +42,7 @@ enum ByteRegister {
   CH = 5,
   DH = 6,
   BH = 7,
+  kNumberOfByteRegisters = 8,
   kNoByteRegister = -1  // Signals an illegal register.
 };
 
@@ -76,6 +77,7 @@ const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
 extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
 extern const char* const cpu_reg_abi_names[kNumberOfCpuRegisters];
+extern const char* const cpu_reg_byte_names[kNumberOfByteRegisters];
 extern const char* const fpu_reg_names[kNumberOfXmmRegisters];
 
 // Register aliases.

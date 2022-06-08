@@ -314,7 +314,7 @@ class DisassemblerX64 : public ValueObject {
   }
 
   const char* NameOfByteCPURegister(int reg) const {
-    return NameOfCPURegister(reg);
+    return RegisterNames::RegisterByteName(static_cast<ByteRegister>(reg));
   }
 
   // A way to get rax or eax's name.
@@ -842,7 +842,7 @@ int DisassemblerX64::SetCC(uint8_t* data) {
   ASSERT(0x0F == *data);
   uint8_t cond = *(data + 1) & 0x0F;
   const char* mnem = conditional_code_suffix[cond];
-  Print("set%s%s ", mnem, operand_size_code());
+  Print("set%s ", mnem);
   PrintRightByteOperand(data + 2);
   return 3;  // includes 0x0F
 }
