@@ -30,6 +30,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
     // modified since.
     final path = parameters['path'] as String;
     final docIdentifier = server.getVersionedDocumentIdentifier(path);
+    final autoTriggered = (parameters['autoTriggered'] as bool?) ?? false;
 
     final result = await requireResolvedUnit(path);
 
@@ -42,13 +43,15 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
       final unit = result.unit;
 
       if (hasScanParseErrors(result.errors)) {
-        // It's not uncommon for editors to run this command automatically on-save
-        // so if the file in in an invalid state it's better to fail silently
-        // than trigger errors (VS Code recently started showing popups when
-        // LSP requests return errors).
-        server.instrumentationService.logInfo(
-            'Unable to $commandName because the file contains parse errors');
-        return success(null);
+        if (autoTriggered) {
+          return success(null);
+        }
+        return ErrorOr.error(ResponseError(
+          code: ServerErrorCodes.FileHasErrors,
+          message:
+              'Unable to $commandName because the file contains parse errors',
+          data: path,
+        ));
       }
 
       final organizer = ImportOrganizer(code, unit, result.errors);

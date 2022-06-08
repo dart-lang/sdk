@@ -31,6 +31,7 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
     // modified since.
     final path = parameters['path'] as String;
     final docIdentifier = server.getVersionedDocumentIdentifier(path);
+    final autoTriggered = (parameters['autoTriggered'] as bool?) ?? false;
 
     var session = await server.getAnalysisSession(path);
     final result = session?.getParsedUnit(path);
@@ -40,6 +41,9 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
     }
 
     if (result is! ParsedUnitResult) {
+      if (autoTriggered) {
+        return success(null);
+      }
       return ErrorOr.error(ResponseError(
         code: ServerErrorCodes.FileNotAnalyzed,
         message: '$commandName is only available for analyzed files',
@@ -50,6 +54,9 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
     final unit = result.unit;
 
     if (hasScanParseErrors(result.errors)) {
+      if (autoTriggered) {
+        return success(null);
+      }
       return ErrorOr.error(ResponseError(
         code: ServerErrorCodes.FileHasErrors,
         message:

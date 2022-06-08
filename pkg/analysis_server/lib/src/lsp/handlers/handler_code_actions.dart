@@ -161,6 +161,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
               offset,
               length,
               unit,
+              params.context.triggerKind,
             ),
           );
         });
@@ -344,6 +345,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     int offset,
     int length,
     ResolvedUnitResult unit,
+    CodeActionTriggerKind? triggerKind,
   ) async {
     final docIdentifier = server.getVersionedDocumentIdentifier(path);
 
@@ -352,7 +354,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         performance.runAsync(
           '_getSourceActions',
           (_) => _getSourceActions(shouldIncludeKind, supportsLiterals,
-              supportsWorkspaceApplyEdit, path),
+              supportsWorkspaceApplyEdit, path, triggerKind),
         ),
       // Assists go under the Refactor CodeActionKind so check that here.
       if (shouldIncludeAnyOfKind(CodeActionKind.Refactor))
@@ -644,6 +646,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     bool supportsLiteralCodeActions,
     bool supportsApplyEdit,
     String path,
+    CodeActionTriggerKind? triggerKind,
   ) async {
     // The source actions supported are only valid for Dart files.
     var pathContext = server.resourceProvider.pathContext;
@@ -657,6 +660,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       return const [];
     }
 
+    final autoTriggered = triggerKind == CodeActionTriggerKind.Automatic;
+
     return [
       if (shouldIncludeKind(DartCodeActionKind.SortMembers))
         _commandOrCodeAction(
@@ -666,7 +671,10 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
               title: 'Sort Members',
               command: Commands.sortMembers,
               arguments: [
-                {'path': path}
+                {
+                  'path': path,
+                  if (autoTriggered) 'autoTriggered': true,
+                }
               ]),
         ),
       if (shouldIncludeKind(CodeActionKind.SourceOrganizeImports))
@@ -677,7 +685,10 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
               title: 'Organize Imports',
               command: Commands.organizeImports,
               arguments: [
-                {'path': path}
+                {
+                  'path': path,
+                  if (autoTriggered) 'autoTriggered': true,
+                }
               ]),
         ),
       if (shouldIncludeKind(DartCodeActionKind.FixAll))
@@ -688,7 +699,10 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
             title: 'Fix All',
             command: Commands.fixAll,
             arguments: [
-              {'path': path}
+              {
+                'path': path,
+                if (autoTriggered) 'autoTriggered': true,
+              }
             ],
           ),
         ),
