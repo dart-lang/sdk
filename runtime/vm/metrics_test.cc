@@ -99,20 +99,20 @@ ISOLATE_UNIT_TEST_CASE(Metric_EmbedderAPI) {
   {
     TransitionVMToNative transition(thread);
 
-    Dart_Isolate isolate = Dart_CurrentIsolate();
+    Dart_IsolateGroup isolate_group = Dart_CurrentIsolateGroup();
 #if !defined(PRODUCT)
     EXPECT(Dart_VMIsolateCountMetric() > 0);
 #endif
-    EXPECT(Dart_IsolateHeapOldUsedMetric(isolate) > 0);
-    EXPECT(Dart_IsolateHeapOldUsedMaxMetric(isolate) > 0);
-    EXPECT(Dart_IsolateHeapOldCapacityMetric(isolate) > 0);
-    EXPECT(Dart_IsolateHeapOldCapacityMaxMetric(isolate) > 0);
-    EXPECT(Dart_IsolateHeapNewUsedMetric(isolate) > 0);
-    EXPECT(Dart_IsolateHeapNewUsedMaxMetric(isolate) > 0);
-    EXPECT(Dart_IsolateHeapNewCapacityMetric(isolate) > 0);
-    EXPECT(Dart_IsolateHeapNewCapacityMaxMetric(isolate) > 0);
-    EXPECT(Dart_IsolateHeapGlobalUsedMetric(isolate) > 0);
-    EXPECT(Dart_IsolateHeapGlobalUsedMaxMetric(isolate) > 0);
+    EXPECT(Dart_IsolateGroupHeapOldUsedMetric(isolate_group) > 0);
+    EXPECT(Dart_IsolateGroupHeapOldUsedMaxMetric(isolate_group) > 0);
+    EXPECT(Dart_IsolateGroupHeapOldCapacityMetric(isolate_group) > 0);
+    EXPECT(Dart_IsolateGroupHeapOldCapacityMaxMetric(isolate_group) > 0);
+    EXPECT(Dart_IsolateGroupHeapNewUsedMetric(isolate_group) > 0);
+    EXPECT(Dart_IsolateGroupHeapNewUsedMaxMetric(isolate_group) > 0);
+    EXPECT(Dart_IsolateGroupHeapNewCapacityMetric(isolate_group) > 0);
+    EXPECT(Dart_IsolateGroupHeapNewCapacityMaxMetric(isolate_group) > 0);
+    EXPECT(Dart_IsolateGroupHeapGlobalUsedMetric(isolate_group) > 0);
+    EXPECT(Dart_IsolateGroupHeapGlobalUsedMaxMetric(isolate_group) > 0);
   }
 }
 
