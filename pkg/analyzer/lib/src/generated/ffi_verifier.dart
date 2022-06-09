@@ -943,12 +943,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         }
         final arrayDimensions = declaredType.arrayDimensions;
         _validateSizeOfAnnotation(fieldType, annotations, arrayDimensions);
-        final arrayElement = declaredType.arrayElementType;
-        if (arrayElement.isCompoundSubtype) {
-          final elementClass = (arrayElement as InterfaceType).element;
-          _validatePackingNesting(compound!.declaredElement!, elementClass,
-              errorNode: fieldType);
-        }
       } else if (declaredType.isCompoundSubtype) {
         final clazz = (declaredType as InterfaceType).element;
         if (clazz.isEmptyStruct) {
@@ -957,8 +951,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             clazz.supertype!.getDisplayString(withNullability: false)
           ]);
         }
-        _validatePackingNesting(compound!.declaredElement!, clazz,
-            errorNode: fieldType);
       } else {
         _errorReporter.reportErrorForNode(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT,
             fieldType, [fieldType.toSource()]);
@@ -1121,28 +1113,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
       _errorReporter.reportErrorForNode(
           FfiCode.PACKED_ANNOTATION_ALIGNMENT, errorNode);
-    }
-  }
-
-  void _validatePackingNesting(ClassElement outer, ClassElement nested,
-      {required TypeAnnotation errorNode}) {
-    final outerPacking = outer.structPacking;
-    if (outerPacking == null) {
-      // No packing for outer class, so we're done.
-      return;
-    }
-    bool error = false;
-    final nestedPacking = nested.structPacking;
-    if (nestedPacking == null) {
-      // The outer struct packs, but the nested struct does not.
-      error = true;
-    } else if (outerPacking < nestedPacking) {
-      // The outer struct packs tighter than the nested struct.
-      error = true;
-    }
-    if (error) {
-      _errorReporter.reportErrorForNode(FfiCode.PACKED_NESTING_NON_PACKED,
-          errorNode, [nested.name, outer.name]);
     }
   }
 
@@ -1484,17 +1454,6 @@ extension on ClassElement {
   bool get isFfiClass {
     return library.name == FfiVerifier._dartFfiLibraryName;
   }
-
-  int? get structPacking {
-    final packedAnnotations =
-        metadata.where((annotation) => annotation.isPacked);
-
-    if (packedAnnotations.isEmpty) {
-      return null;
-    }
-
-    return packedAnnotations.first.packedMemberAlignment;
-  }
 }
 
 extension on ExtensionElement {
@@ -1531,16 +1490,6 @@ extension on DartType {
       iterator = iterator.typeArguments.single;
     }
     return dimensions;
-  }
-
-  DartType get arrayElementType {
-    DartType iterator = this;
-    while (iterator is InterfaceType &&
-        iterator.element.name == FfiVerifier._arrayClassName &&
-        iterator.element.isFfiClass) {
-      iterator = iterator.typeArguments.single;
-    }
-    return iterator;
   }
 
   bool get isAbiSpecificInteger {

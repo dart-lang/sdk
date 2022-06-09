@@ -783,45 +783,6 @@ class TestStruct1602 extends Struct {
   Pointer<Uint8> notEmpty;
 }
 
-class TestStruct1603 extends Struct {
-  Pointer<Uint8> notEmpty;
-}
-
-@Packed(1)
-class TestStruct1603Packed extends Struct {
-  Pointer<Uint8> notEmpty;
-
-  TestStruct1603 nestedNotPacked; //# 1603: compile-time error
-}
-
-@Packed(8)
-class TestStruct1604 extends Struct {
-  Pointer<Uint8> notEmpty;
-}
-
-@Packed(1)
-class TestStruct1604Packed extends Struct {
-  Pointer<Uint8> notEmpty;
-
-  TestStruct1604 nestedLooselyPacked; //# 1604: compile-time error
-}
-
-@Packed(1)
-class TestStruct1605Packed extends Struct {
-  Pointer<Uint8> notEmpty;
-
-  @Array(2) //# 1605: compile-time error
-  Array<TestStruct1603> nestedNotPacked; //# 1605: compile-time error
-}
-
-@Packed(1)
-class TestStruct1606Packed extends Struct {
-  Pointer<Uint8> notEmpty;
-
-  @Array(2) //# 1606: compile-time error
-  Array<TestStruct1604> nestedLooselyPacked; //# 1606: compile-time error
-}
-
 @Packed(0) //# 1607: compile-time error
 class TestStruct1607 extends Struct {
   Pointer<Uint8> notEmpty;
@@ -883,6 +844,5 @@ class AbiSpecificInteger4
 class MyFinalizableStruct extends Struct
     implements Finalizable //# 2000: compile-time error
 {
-   Pointer<Void> field;
+  Pointer<Void> field;
 }
-

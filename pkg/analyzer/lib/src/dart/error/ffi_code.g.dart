@@ -369,19 +369,6 @@ class FfiCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the name of the outer struct
-  ///  1: the name of the struct being nested
-  static const FfiCode PACKED_NESTING_NON_PACKED = FfiCode(
-    'PACKED_NESTING_NON_PACKED',
-    "Nesting the non-packed or less tightly packed struct '{0}' in a packed "
-        "struct '{1}' isn't supported.",
-    correctionMessage:
-        "Try packing the nested struct or packing the nested struct more "
-        "tightly.",
-    hasPublishedDocs: true,
-  );
-
   ///  No parameters.
   static const FfiCode SIZE_ANNOTATION_DIMENSIONS = FfiCode(
     'SIZE_ANNOTATION_DIMENSIONS',

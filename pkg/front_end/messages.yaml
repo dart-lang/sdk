@@ -4667,11 +4667,6 @@ FfiPackedAnnotationAlignment:
   problemMessage: "Only packing to 1, 2, 4, 8, and 16 bytes is supported."
   external: test/ffi_test.dart
 
-FfiPackedNestingNonPacked:
-  # Used by dart:ffi
-  problemMessage: "Nesting the non-packed or less tightly packed struct '#name' in a packed struct '#name2' is not supported."
-  external: test/ffi_test.dart
-
 FfiSizeAnnotation:
   # Used by dart:ffi
   problemMessage: "Field '#name' must have exactly one 'Array' annotation."

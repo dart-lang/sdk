@@ -1193,8 +1193,6 @@ FfiCode.PACKED_ANNOTATION:
   status: needsEvaluation
 FfiCode.PACKED_ANNOTATION_ALIGNMENT:
   status: needsEvaluation
-FfiCode.PACKED_NESTING_NON_PACKED:
-  status: needsEvaluation
 FfiCode.SIZE_ANNOTATION_DIMENSIONS:
   status: needsEvaluation
 FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS:

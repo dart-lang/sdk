@@ -17,7 +17,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiTypeMismatch,
         templateFfiFieldInitializer,
         templateFfiPackedAnnotation,
-        templateFfiPackedNestingNonPacked,
         templateFfiSizeAnnotation,
         templateFfiSizeAnnotationDimensions,
         templateFfiStructGeneric;
@@ -440,10 +439,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           // This class is invalid, but continue reporting other errors on it.
           success = false;
         }
-        if (isCompoundSubtype(type)) {
-          final clazz = (type as InterfaceType).classNode;
-          _checkPacking(node, packing, clazz, f);
-        } else if (isArrayType(type)) {
+        if (isArrayType(type)) {
           final sizeAnnotations = _getArraySizeAnnotations(f);
           if (sizeAnnotations.length == 1) {
             final singleElementType = arraySingleElementType(type);
@@ -453,10 +449,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               // An error on the type will already have been reported.
               success = false;
             } else {
-              if (isCompoundSubtype(singleElementType)) {
-                final clazz = singleElementType.classNode;
-                _checkPacking(node, packing, clazz, f);
-              }
               final dimensions = sizeAnnotations.single;
               if (arrayDimensions(type) != dimensions.length) {
                 diagnosticReporter.report(
@@ -513,35 +505,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       }
     }
     return success;
-  }
-
-  void _checkPacking(Class outerClass, int? outerClassPacking, Class fieldClass,
-      Member errorNode) {
-    if (outerClassPacking == null) {
-      // Outer struct has no packing, nesting anything is fine.
-      return;
-    }
-
-    final fieldPackingAnnotations = _getPackedAnnotations(fieldClass);
-    bool error = false;
-    if (fieldPackingAnnotations.isEmpty) {
-      // Outer struct has packing but inner one doesn't.
-      error = true;
-    } else {
-      final fieldPacking = fieldPackingAnnotations.first;
-      if (fieldPacking > outerClassPacking) {
-        // Outer struct has stricter packing than the inner.
-        error = true;
-      }
-    }
-    if (error) {
-      diagnosticReporter.report(
-          templateFfiPackedNestingNonPacked.withArguments(
-              fieldClass.name, outerClass.name),
-          errorNode.fileOffset,
-          errorNode.name.text.length,
-          errorNode.fileUri);
-    }
   }
 
   void _checkConstructors(Class node, IndexedClass? indexedClass) {

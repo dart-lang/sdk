@@ -783,46 +783,6 @@ class TestStruct1602 extends Struct {
   external Pointer<Uint8> notEmpty;
 }
 
-class TestStruct1603 extends Struct {
-  external Pointer<Uint8> notEmpty;
-}
-
-@Packed(1)
-class TestStruct1603Packed extends Struct {
-  external Pointer<Uint8> notEmpty;
-
-  external TestStruct1603 nestedNotPacked; //# 1603: compile-time error
-}
-
-@Packed(8)
-class TestStruct1604 extends Struct {
-  external Pointer<Uint8> notEmpty;
-}
-
-@Packed(1)
-class TestStruct1604Packed extends Struct {
-  external Pointer<Uint8> notEmpty;
-
-  external TestStruct1604 nestedLooselyPacked; //# 1604: compile-time error
-}
-
-@Packed(1)
-class TestStruct1605Packed extends Struct {
-  external Pointer<Uint8> notEmpty;
-
-  @Array(2) //# 1605: compile-time error
-  external Array<TestStruct1603> nestedNotPacked; //# 1605: compile-time error
-}
-
-@Packed(1)
-class TestStruct1606Packed extends Struct {
-  external Pointer<Uint8> notEmpty;
-
-  @Array(2) //# 1606: compile-time error
-  external Array<TestStruct1604> //# 1606: compile-time error
-      nestedLooselyPacked; //# 1606: compile-time error
-}
-
 @Packed(0) //# 1607: compile-time error
 class TestStruct1607 extends Struct {
   external Pointer<Uint8> notEmpty;
