@@ -108,7 +108,6 @@ import "dart:_internal"
         CastStream,
         CastStreamTransformer,
         checkNotNullable,
-        checkUnsoundType,
         EmptyIterator,
         IterableElementError,
         nullFuture,

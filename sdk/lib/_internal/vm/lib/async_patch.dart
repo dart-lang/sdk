@@ -236,7 +236,7 @@ class _AsyncStarStreamController<T> {
     if ((future != null) && future._mayComplete) {
       // If the stream has been cancelled, complete the cancellation future
       // with the error.
-      future._completeWithValueUnchecked(null);
+      future._completeWithValue(null);
     }
     controller.close();
   }
@@ -292,7 +292,7 @@ void _completeOnAsyncReturn(_Future _future, Object? value, bool is_sync) {
   if (!is_sync || value is Future) {
     _future._asyncCompleteUnchecked(value);
   } else {
-    _future._completeWithValueUnchecked(value);
+    _future._completeWithValue(value);
   }
 }
 
@@ -303,9 +303,9 @@ void _completeWithNoFutureOnAsyncReturn(
   // allow then and error handlers to be attached.
   // async_jump_var=0 is prior to first await, =1 is first await.
   if (!is_sync) {
-    _future._asyncCompleteWithValueUnchecked(value);
+    _future._asyncCompleteUncheckedNoFuture(value);
   } else {
-    _future._completeWithValueUnchecked(value);
+    _future._completeWithValue(value);
   }
 }
 

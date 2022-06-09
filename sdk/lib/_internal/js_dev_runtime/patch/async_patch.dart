@@ -27,7 +27,7 @@ _async<T>(Function() initGenerator) {
   late Object? Function(Object?) onValue;
   late Object Function(Object, StackTrace?) onError;
 
-  _Future<Object?> onAwait(Object? value) {
+  onAwait(Object? value) {
     _Future<Object?> f;
     if (value is _Future) {
       f = value;
@@ -84,15 +84,31 @@ _async<T>(Function() initGenerator) {
       var iteratorValue = JS('', '#.next(null)', iter);
       var value = JS('', '#.value', iteratorValue);
       if (JS<bool>('!', '#.done', iteratorValue)) {
-        if (isRunningAsEvent) {
-          asyncFuture._completeUnchecked(value);
+        // TODO(jmesserly): this is a workaround for ignored cast failures.
+        // Remove it once we've fixed those. We should be able to call:
+        //
+        //     if (isRunningAsEvent) {
+        //       asyncFuture._complete(value);
+        //     } else {
+        //       asyncFuture._asyncComplete(value);
+        //     }
+        //
+        // But if the user code returns `Future<dynamic>` instead of
+        // `Future<T>`, that function won't recognize it as a future and will
+        // instead treat it as a completed value.
+        if (value is Future) {
+          if (value is _Future) {
+            _Future._chainCoreFuture(value, asyncFuture);
+          } else {
+            asyncFuture._chainForeignFuture(value);
+          }
+        } else if (isRunningAsEvent) {
+          asyncFuture._completeWithValue(JS('', '#', value));
         } else {
-          asyncFuture._asyncCompleteUnchecked(value);
+          asyncFuture._asyncComplete(JS('', '#', value));
         }
       } else {
-        _Future<dynamic> awaitedFuture = onAwait(value); // _Future<Object?>.
-        awaitedFuture.then(asyncFuture._completeWithValueUnchecked,
-            onError: asyncFuture._completeError);
+        _Future._chainCoreFuture(onAwait(value), asyncFuture);
       }
     } catch (e, s) {
       if (isRunningAsEvent) {

@@ -303,13 +303,18 @@ abstract class Future<T> {
       if (result is Future<T>) {
         return result;
       } else {
-        return _Future<T>().._setValue(result);
+        // TODO(40014): Remove cast when type promotion works.
+        return new _Future<T>.value(result as dynamic);
       }
     } catch (error, stackTrace) {
-      var currentZone = Zone._current;
-      return _Future<T>.zone(currentZone)
-        .._asyncCompleteErrorObject(
-            _interceptSyncError(currentZone, error, stackTrace));
+      var future = new _Future<T>();
+      AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
+      if (replacement != null) {
+        future._asyncCompleteError(replacement.error, replacement.stackTrace);
+      } else {
+        future._asyncCompleteError(error, stackTrace);
+      }
+      return future;
     }
   }
 
@@ -341,10 +346,7 @@ abstract class Future<T> {
   @pragma("vm:entry-point")
   @pragma("vm:prefer-inline")
   factory Future.value([FutureOr<T>? value]) {
-    if (value != null) {
-      return _Future<T>().._asyncCompleteUnchecked(value);
-    }
-    return _Future<T>().._setValue(value as T);
+    return new _Future<T>.immediate(value == null ? value as T : value);
   }
 
   /// Creates a future that completes with an error.
@@ -367,10 +369,15 @@ abstract class Future<T> {
   factory Future.error(Object error, [StackTrace? stackTrace]) {
     // TODO(40614): Remove once non-nullability is sound.
     checkNotNullable(error, "error");
-    var currentZone = Zone._current;
-    return _Future<T>.zone(currentZone)
-      .._asyncCompleteErrorObject(
-          _interceptSyncError(currentZone, error, stackTrace));
+    if (!identical(Zone.current, _rootZone)) {
+      AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
+      if (replacement != null) {
+        error = replacement.error;
+        stackTrace = replacement.stackTrace;
+      }
+    }
+    stackTrace ??= AsyncError.defaultStackTrace(error);
+    return new _Future<T>.immediateError(error, stackTrace);
   }
 
   /// Creates a future that runs its computation after a delay.
@@ -1223,13 +1230,28 @@ abstract class Completer<T> {
 // for error replacement and missing stack trace first.
 void _completeWithErrorCallback(
     _Future result, Object error, StackTrace? stackTrace) {
-  result._completeErrorObject(
-      _interceptSyncError(result._zone, error, stackTrace));
+  AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
+  if (replacement != null) {
+    error = replacement.error;
+    stackTrace = replacement.stackTrace;
+  } else {
+    stackTrace ??= AsyncError.defaultStackTrace(error);
+  }
+  result._completeError(error, stackTrace);
 }
 
 // Like [_completeWithErrorCallback] but completes asynchronously.
 void _asyncCompleteWithErrorCallback(
     _Future result, Object error, StackTrace? stackTrace) {
-  result._asyncCompleteErrorObject(
-      _interceptSyncError(result._zone, error, stackTrace));
+  AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
+  if (replacement != null) {
+    error = replacement.error;
+    stackTrace = replacement.stackTrace;
+  } else {
+    stackTrace ??= AsyncError.defaultStackTrace(error);
+  }
+  if (stackTrace == null) {
+    throw "unreachable"; // TODO(lrn): Remove when type promotion works.
+  }
+  result._asyncCompleteError(error, stackTrace);
 }

@@ -198,20 +198,27 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
 
   void complete([FutureOr<T>? value]) {
     // All paths require that if value is null, null as T succeeds.
-    value ??= value as T;
+    value = (value == null) ? value as T : value;
     if (!isSync) {
-      _future._asyncCompleteUnchecked(value);
+      _future._asyncComplete(value);
+    } else if (value is Future<T>) {
+      assert(!_future._isComplete);
+      _future._chainFuture(value);
     } else {
-      _future._completeUnchecked(value);
+      // TODO(40014): Remove cast when type promotion works.
+      // This would normally be `as T` but we use `as dynamic` to make the
+      // unneeded check be implicit to match dart2js unsound optimizations in
+      // the user code.
+      _future._completeWithValue(value as dynamic);
     }
   }
 
   void completeError(Object e, [StackTrace? st]) {
-    var error = AsyncError(e, st);
+    st ??= AsyncError.defaultStackTrace(e);
     if (isSync) {
-      _future._completeErrorObject(error);
+      _future._completeError(e, st);
     } else {
-      _future._asyncCompleteErrorObject(error);
+      _future._asyncCompleteError(e, st);
     }
   }
 

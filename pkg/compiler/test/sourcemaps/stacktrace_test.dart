@@ -125,8 +125,7 @@ const List<LineException> afterExceptions = const [
   const LineException('_asyncAwait.<anonymous function>', 'async_patch.dart'),
   const LineException('_asyncStart.<anonymous function>', 'async_patch.dart'),
   const LineException('_RootZone.runUnary', 'zone.dart'),
-  const LineException('_FutureListener.propagate', 'future_impl.dart'),
-  const LineException('_FutureListener.propagateResults', 'future_impl.dart'),
+  const LineException('_FutureListener.handleValue', 'future_impl.dart'),
   const LineException('_Future._completeWithValue', 'future_impl.dart'),
   const LineException(
       '_Future._propagateToListeners.handleValueCallback', 'future_impl.dart'),
@@ -137,7 +136,6 @@ const List<LineException> afterExceptions = const [
   const LineException('_startMicrotaskLoop', 'schedule_microtask.dart'),
   const LineException('_AsyncRun._scheduleImmediateJsOverride.internalCallback',
       'async_patch.dart'),
-  const LineException('Closure.cspForwardCall', 'js_helper.dart'),
   const LineException('invokeClosure.<anonymous function>', 'js_helper.dart'),
   const LineException('invokeClosure', 'js_helper.dart'),
   const LineException('convertDartClosureToJS', 'js_helper.dart'),

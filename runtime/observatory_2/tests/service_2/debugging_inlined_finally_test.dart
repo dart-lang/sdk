@@ -54,7 +54,6 @@ var tests = <IsolateTest>[
       expect(bpt.location.script.id, equals(script.id));
       expect(bpt.location.script.tokenToLine(bpt.location.tokenPos),
           equals(LINE_A));
-      await waitUntilBreakpointIsReady(isolate.breakpoints, result);
       expect(isolate.breakpoints.length, equals(1));
     }
 
@@ -66,7 +65,6 @@ var tests = <IsolateTest>[
       expect(bpt.location.script.id, equals(script.id));
       expect(bpt.location.script.tokenToLine(bpt.location.tokenPos),
           equals(LINE_B));
-      await waitUntilBreakpointIsReady(isolate.breakpoints, result);
       expect(isolate.breakpoints.length, equals(2));
     }
 
@@ -78,7 +76,6 @@ var tests = <IsolateTest>[
       expect(bpt.location.script.id, equals(script.id));
       expect(bpt.location.script.tokenToLine(bpt.location.tokenPos),
           equals(LINE_C));
-      await waitUntilBreakpointIsReady(isolate.breakpoints, result);
       expect(isolate.breakpoints.length, equals(3));
     }
 

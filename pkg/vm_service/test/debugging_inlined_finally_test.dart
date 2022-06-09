@@ -60,7 +60,6 @@ var tests = <IsolateTest>[
         LINE_A,
       );
       isolate = await service.getIsolate(isolateId);
-      await waitUntilBreakpointIsReady(isolate, bpt);
       expect(isolate.breakpoints!.length, 1);
     }
 
@@ -74,7 +73,6 @@ var tests = <IsolateTest>[
         LINE_B,
       );
       isolate = await service.getIsolate(isolateId);
-      await waitUntilBreakpointIsReady(isolate, bpt);
       expect(isolate.breakpoints!.length, 2);
     }
 
@@ -88,7 +86,6 @@ var tests = <IsolateTest>[
         LINE_C,
       );
       isolate = await service.getIsolate(isolateId);
-      await waitUntilBreakpointIsReady(isolate, bpt);
       expect(isolate.breakpoints!.length, 3);
     }
     // Wait for breakpoint events.
