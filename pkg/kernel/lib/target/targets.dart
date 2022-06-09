@@ -22,7 +22,7 @@ class TargetFlags {
       {this.trackWidgetCreation = false,
       this.enableNullSafety = false,
       this.supportMirrors = true,
-      this.compactAsync = false});
+      this.compactAsync = true});
 
   @override
   bool operator ==(other) {
@@ -786,8 +786,7 @@ class TestTargetFlags extends TargetFlags {
       this.unsupportedDartLibraries: const {}})
       : super(
             trackWidgetCreation: trackWidgetCreation,
-            enableNullSafety: enableNullSafety,
-            compactAsync: true);
+            enableNullSafety: enableNullSafety);
 }
 
 mixin TestTargetMixin on Target {

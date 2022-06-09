@@ -44,14 +44,10 @@ var tests = <IsolateTest>[
   stepInto, // exit helper via a single step.
 
   hasStoppedAtBreakpoint,
-  stoppedAtLine(20), // return null (weird dispatching)
-  stepInto, // exit helper via a single step.
-
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(25), // await helper (weird dispatching)
+  stoppedAtLine(LINE_D), // await helper
   smartNext,
 
-  hasStoppedAtBreakpoint, //19
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_E), // arrive after the await.
   resumeIsolate
 ];

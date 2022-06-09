@@ -72,14 +72,14 @@ main() async {
   await runTest();
   verifyStackTrace([
     r'^#\d+      _registerUnaryCallback \(.*zone_callback_stack_traces_test.dart:32(:33)?\)$',
-    r'^#\d+      bar \(.*zone_callback_stack_traces_test.dart:16(:9)?\)$',
+    r'^#\d+      bar \(.*zone_callback_stack_traces_test.dart:16(:3)?\)$',
     r'^#\d+      runTest \(.*zone_callback_stack_traces_test.dart:24(:19)?\)$',
     r'^#\d+      main \(.*zone_callback_stack_traces_test.dart:72(:9)?\)$',
   ], registerUnaryCallbackStackTrace);
 
   verifyStackTrace([
     r'^#\d+      _registerBinaryCallback \(.*zone_callback_stack_traces_test.dart:44(:33)?\)$',
-    r'^#\d+      bar \(.*zone_callback_stack_traces_test.dart:16(:9)?\)$',
+    r'^#\d+      bar \(.*zone_callback_stack_traces_test.dart:16(:3)?\)$',
     r'^#\d+      runTest \(.*zone_callback_stack_traces_test.dart:24(:19)?\)$',
     r'^#\d+      main \(.*zone_callback_stack_traces_test.dart:72(:9)?\)$',
   ], registerBinaryCallbackStackTrace);
