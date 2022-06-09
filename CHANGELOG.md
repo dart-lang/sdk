@@ -56,6 +56,10 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 #### `dart:io`
 
+- **Breaking Change** [#49045](https://github.com/dart-lang/sdk/issues/49045):
+  The `uri` property of `RedirectException` in `dart:io` has been changed to
+  be nullable. Programs must be updated to handle the `null` case.
+
 - **Breaking Change** [#34218](https://github.com/dart-lang/sdk/issues/34218):
   Constants in `dart:io`'s networking APIs following the `SCREAMING_CAPS`
   convention have been removed (they were previously deprecated). Please use
