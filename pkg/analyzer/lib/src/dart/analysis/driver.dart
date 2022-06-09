@@ -17,7 +17,6 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -117,9 +116,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// the content from the file.
   final FileContentCache _fileContentCache;
 
-  /// The context root from which this context was created.
-  ContextRootImpl? contextRoot;
-
   /// The analysis options to analyze with.
   AnalysisOptionsImpl _analysisOptions;
 
@@ -136,7 +132,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final macro.MultiMacroExecutor? macroExecutor;
 
   /// The declared environment variables.
-  final DeclaredVariables declaredVariables;
+  DeclaredVariables declaredVariables = DeclaredVariables();
 
   /// The analysis context that created this driver / session.
   api.AnalysisContext? analysisContext;
@@ -260,11 +256,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     required Packages packages,
     this.macroKernelBuilder,
     this.macroExecutor,
-    this.contextRoot,
     FileContentCache? fileContentCache,
     this.enableIndex = false,
     SummaryDataStore? externalSummaries,
-    DeclaredVariables? declaredVariables,
     bool retainDataForTesting = false,
   })  : _scheduler = scheduler,
         _resourceProvider = resourceProvider,
@@ -276,13 +270,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _packages = packages,
         _sourceFactory = sourceFactory,
         _externalSummaries = externalSummaries,
-        declaredVariables = declaredVariables ?? DeclaredVariables(),
         testingData = retainDataForTesting ? TestingData() : null {
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = AnalysisDriverTestView(this);
     _createFileTracker();
     _scheduler.add(this);
-    _scheduler.driverWatcher?.addedDriver(this);
     _search = Search(this);
   }
 
@@ -336,7 +328,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /// Return the path of the folder at the root of the context.
-  String get name => contextRoot?.root.path ?? '';
+  String get name => analysisContext?.contextRoot.root.path ?? '';
 
   /// Return the number of files scheduled for analysis.
   int get numberOfFilesToAnalyze => _fileTracker.numberOfPendingFiles;
@@ -577,7 +569,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ///
   /// At least one of the optional parameters should be provided, but only those
   /// that represent state that has actually changed need be provided.
-  @Deprecated('Provide all necessary values to the constructor')
   void configure({
     api.AnalysisContext? analysisContext,
     AnalysisOptionsImpl? analysisOptions,
@@ -586,7 +577,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }) {
     if (analysisContext != null) {
       this.analysisContext = analysisContext;
-      contextRoot = analysisContext.contextRoot as ContextRootImpl;
       _scheduler.driverWatcher?.addedDriver(this);
     }
     if (analysisOptions != null) {
@@ -1506,7 +1496,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _resourceProvider,
       name,
       sourceFactory,
-      contextRoot?.workspace,
+      analysisContext?.contextRoot.workspace,
       analysisOptions,
       declaredVariables,
       _saltForUnlinked,
@@ -1584,7 +1574,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     buffer.addUint32List(_analysisOptions.signature);
     _addDeclaredVariablesToSignature(buffer);
 
-    var workspace = contextRoot?.workspace;
+    var workspace = analysisContext?.contextRoot.workspace;
     workspace?.contributeToResolutionSalt(buffer);
 
     _saltForResolution = buffer.toUint32List();
@@ -2000,6 +1990,9 @@ class AnalysisDriverScheduler {
   void add(AnalysisDriverGeneric driver) {
     _drivers.add(driver);
     _hasWork.notify();
+    if (driver is AnalysisDriver && driver.analysisContext != null) {
+      driverWatcher?.addedDriver(driver);
+    }
   }
 
   /// Notify that there is a change to the [driver], it it might need to
