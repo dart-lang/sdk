@@ -525,19 +525,17 @@ void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
     // We want an exact type match, but also need `is` to have the analyzer
     // promote the type to allow access to the fields on `other`.
     ..writeIndentedln(
-        'if (other is ${interface.name} && other.runtimeType == ${interface.name}) {')
+        'return other is ${interface.name} && other.runtimeType == ${interface.name}')
     ..indent()
-    ..writeIndented('return ');
+    ..writeIndented('');
   for (var field in _getAllFields(interface)) {
+    buffer.write(' && ');
     final type = resolveTypeAlias(field.type);
     _writeEqualsExpression(buffer, type, field.name, 'other.${field.name}');
-    buffer.write(' && ');
   }
   buffer
-    ..writeln('true;')
+    ..writeln(';')
     ..outdent()
-    ..writeIndentedln('}')
-    ..writeIndentedln('return false;')
     ..outdent()
     ..writeIndentedln('}');
 }

@@ -28,7 +28,7 @@ import 'package:collection/collection.dart' show groupBy;
 class CodeActionHandler extends MessageHandler<CodeActionParams,
     List<Either2<Command, CodeAction>>> {
   // Because server+plugin results are different types and we lose
-  // priorites when converting them to CodeActions, store the priorities
+  // priorities when converting them to CodeActions, store the priorities
   // against each action in an expando. This avoids wrapping CodeActions in
   // another wrapper class (since we can't modify the LSP-spec-generated
   // CodeAction class).
