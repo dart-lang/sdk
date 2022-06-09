@@ -11,8 +11,11 @@ import 'package:macro/macro2.dart';
 
 @Macro2()
 /*class: Class:
+declarations:
+
 augment class Class {
   hasMacro() => true;
 
-}*/
+}
+*/
 class Class {}

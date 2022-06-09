@@ -32,6 +32,7 @@ class topLevelFunction5GeneratedClass {
 import 'package:macro/macro.dart';
 
 /*member: topLevelFunction1:
+types:
 class topLevelFunction1GeneratedClass {
   external void method();
 }*/
@@ -39,6 +40,7 @@ class topLevelFunction1GeneratedClass {
 void topLevelFunction1() {}
 
 /*member: topLevelFunction2:
+types:
 class topLevelFunction2GeneratedClass {
   external dynamic method();
 }*/
@@ -46,6 +48,7 @@ class topLevelFunction2GeneratedClass {
 dynamic topLevelFunction2() {}
 
 /*member: topLevelFunction3:
+types:
 class topLevelFunction3GeneratedClass {
   external int method();
 }*/
@@ -53,6 +56,7 @@ class topLevelFunction3GeneratedClass {
 int topLevelFunction3() => 0;
 
 /*member: topLevelFunction4:
+types:
 class topLevelFunction4GeneratedClass {
   external FunctionTypesMacro1? method();
 }*/
@@ -60,6 +64,7 @@ class topLevelFunction4GeneratedClass {
 FunctionTypesMacro1? topLevelFunction4() => null;
 
 /*member: topLevelFunction5:
+types:
 class topLevelFunction5GeneratedClass {
   external dynamic method();
 }*/

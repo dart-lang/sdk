@@ -27,11 +27,17 @@ import 'package:macro/data_class.dart';
 
 @DataClass()
 /*class: Foo:
+declarations:
+import 'dart:core' as prefix0;
+
 augment class Foo {
 const Foo({required this.bar, required this.baz});
-external int get hashCode;
-external bool operator ==(Object other);
-external String toString();
+external prefix0.int get hashCode;
+external prefix0.bool operator ==(prefix0.Object other);
+external prefix0.String toString();
+}
+definitions:
+augment class Foo {
 augment int hashCode() {
     return bar.hashCode ^ baz.hashCode;
   }

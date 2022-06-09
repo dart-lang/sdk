@@ -54,8 +54,11 @@ class D1 {}
 class D2 {}
 
 /*member: topLevelFunction1:
+declarations:
+
 void topLevelFunction1GeneratedMethod_es() {}
 
+definitions:
 augment A topLevelFunction1(A a, ) {
   print('isExactly=true');
   print('isSubtype=true');
@@ -66,8 +69,11 @@ augment A topLevelFunction1(A a, ) {
 external A topLevelFunction1(A a);
 
 /*member: topLevelFunction2:
+declarations:
+
 void topLevelFunction2GeneratedMethod_s() {}
 
+definitions:
 augment B2 topLevelFunction2(B1 a, ) {
   print('isExactly=false');
   print('isSubtype=true');
@@ -78,8 +84,11 @@ augment B2 topLevelFunction2(B1 a, ) {
 external B2 topLevelFunction2(B1 a);
 
 /*member: topLevelFunction3:
+declarations:
+
 void topLevelFunction3GeneratedMethod_() {}
 
+definitions:
 augment C2 topLevelFunction3(C1 a, ) {
   print('isExactly=false');
   print('isSubtype=false');
@@ -90,8 +99,11 @@ augment C2 topLevelFunction3(C1 a, ) {
 external C2 topLevelFunction3(C1 a);
 
 /*member: topLevelFunction4:
+declarations:
+
 void topLevelFunction4GeneratedMethod_() {}
 
+definitions:
 augment D2 topLevelFunction4(D1 a, ) {
   print('isExactly=false');
   print('isSubtype=false');
