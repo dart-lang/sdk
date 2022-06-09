@@ -19,8 +19,9 @@ void main(List<String> args) {
     ...listSubdirectories(platform('third_party/pkg_tested')),
     ...listSubdirectories(platform('third_party/pkg')),
     ...listSubdirectories(platform('third_party/pkg/file/packages')),
-    ...listSubdirectories(platform('third_party/pkg/test/pkgs')),
+    ...listSubdirectories(platform('third_party/pkg/http/pkgs')),
     ...listSubdirectories(platform('third_party/pkg/shelf/pkgs')),
+    ...listSubdirectories(platform('third_party/pkg/test/pkgs')),
     platform('pkg/vm_service/test/test_package'),
     platform('runtime/observatory_2'),
     platform(
