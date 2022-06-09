@@ -198,6 +198,7 @@ class DDCStep implements IOModularStep {
       '--modules=es6',
       '--no-summarize',
       '--no-source-map',
+      '--experimental-output-compiled-kernel',
       '--multi-root-scheme',
       rootScheme,
       ...sources,
