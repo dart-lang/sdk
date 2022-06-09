@@ -14,6 +14,7 @@ import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart'
     show ByteStore, MemoryByteStore;
+import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -116,18 +117,15 @@ class ContextBuilderImpl implements ContextBuilder {
       packages: _createPackageMap(
         contextRoot: contextRoot,
       ),
+      contextRoot: contextRoot as ContextRootImpl,
       enableIndex: enableIndex,
       externalSummaries: summaryData,
       retainDataForTesting: retainDataForTesting,
       fileContentCache: fileContentCache,
       macroKernelBuilder: macroKernelBuilder,
       macroExecutor: macroExecutor,
+      declaredVariables: declaredVariables,
     );
-
-    if (declaredVariables != null) {
-      driver.declaredVariables = declaredVariables;
-      driver.configure();
-    }
 
     // AnalysisDriver reports results into streams.
     // We need to drain these streams to avoid memory leak.
@@ -136,11 +134,7 @@ class ContextBuilderImpl implements ContextBuilder {
       driver.exceptions.drain<void>();
     }
 
-    DriverBasedAnalysisContext context =
-        DriverBasedAnalysisContext(resourceProvider, contextRoot, driver);
-    driver.configure(analysisContext: context);
-
-    return context;
+    return DriverBasedAnalysisContext(resourceProvider, contextRoot, driver);
   }
 
   /// Return [Packages] to analyze the [contextRoot].

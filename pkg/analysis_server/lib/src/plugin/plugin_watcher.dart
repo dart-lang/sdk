@@ -38,7 +38,7 @@ class PluginWatcher implements DriverWatcher {
   /// analysis.
   @override
   void addedDriver(AnalysisDriver driver) {
-    var contextRoot = driver.analysisContext!.contextRoot;
+    var contextRoot = driver.contextRoot!;
     _driverInfo[driver] = _DriverInfo(
         contextRoot, <String>[contextRoot.root.path, _getSdkPath(driver)]);
     var enabledPlugins = driver.analysisOptions.enabledPluginNames;
@@ -65,8 +65,7 @@ class PluginWatcher implements DriverWatcher {
           // TODO(brianwilkerson) Do we need to wait for the plugin to be added?
           // If we don't, then tests don't have any way to know when to expect
           // that the list of plugins has been updated.
-          manager.addPluginToContextRoot(
-              driver.analysisContext!.contextRoot, pluginPath);
+          manager.addPluginToContextRoot(driver.contextRoot!, pluginPath);
         }
       }
     }
@@ -79,7 +78,7 @@ class PluginWatcher implements DriverWatcher {
     if (info == null) {
       throw StateError('Cannot remove a driver that was not added');
     }
-    manager.removedContextRoot(driver.analysisContext!.contextRoot);
+    manager.removedContextRoot(driver.contextRoot!);
     _driverInfo.remove(driver);
   }
 
