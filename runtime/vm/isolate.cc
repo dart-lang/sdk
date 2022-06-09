@@ -614,12 +614,14 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
     thread->isolate_ = nullptr;
     thread->isolate_group_ = this;
     thread->field_table_values_ = nullptr;
+#if defined(DART_PRECOMPILED_RUNTIME)
     if (object_store() != nullptr) {
 #define INIT_ENTRY_POINT(name)                                                 \
   thread->name##_entry_point_ = Function::EntryPointOf(object_store()->name());
       CACHED_FUNCTION_ENTRY_POINTS_LIST(INIT_ENTRY_POINT)
 #undef INIT_ENTRY_POINT
     }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
     ASSERT(heap() != nullptr);
     thread->heap_ = heap();
     thread->set_os_thread(os_thread);
