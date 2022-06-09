@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -39,6 +40,9 @@ class AddNullCheck extends CorrectionProducer {
       }
     } else if (coveredNode is IndexExpression) {
       target = coveredNode.realTarget;
+      if (target.staticType?.nullabilitySuffix != NullabilitySuffix.question) {
+        target = coveredNode;
+      }
     } else if (coveredNode is Expression &&
         coveredNodeParent is FunctionExpressionInvocation) {
       target = coveredNode;
