@@ -1733,60 +1733,6 @@ class C implements A, B {
 ''');
   }
 
-  test_infer_mixin_new_syntax() async {
-    await assertNoErrorsInCode('''
-abstract class A<T> {}
-
-class B {}
-
-mixin M<T> on A<T> {}
-
-class C extends A<B> with M {}
-''');
-    CompilationUnit unit = result.unit;
-    ClassElement classC = unit.declaredElement!.getType('C')!;
-    expect(classC.mixins, hasLength(1));
-    assertType(classC.mixins[0], 'M<B>');
-  }
-
-  test_infer_mixin_with_substitution_functionType_new_syntax() async {
-    await assertErrorsInCode('''
-abstract class A<T> {}
-
-class B {}
-
-mixin M<T, U> on A<T Function(U)> {}
-
-class C extends A<int Function(String)> with M {}
-''', [
-      error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        47,
-        1,
-      ),
-    ]);
-    CompilationUnit unit = result.unit;
-    ClassElement classC = unit.declaredElement!.getType('C')!;
-    expect(classC.mixins, hasLength(1));
-    assertType(classC.mixins[0], 'M<int, String>');
-  }
-
-  test_infer_mixin_with_substitution_new_syntax() async {
-    await assertNoErrorsInCode('''
-abstract class A<T> {}
-
-class B {}
-
-mixin M<T> on A<List<T>> {}
-
-class C extends A<List<B>> with M {}
-''');
-    CompilationUnit unit = result.unit;
-    ClassElement classC = unit.declaredElement!.getType('C')!;
-    expect(classC.mixins, hasLength(1));
-    assertType(classC.mixins[0], 'M<B>');
-  }
-
   test_initializingFormalForNonExistentField() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2393,39 +2339,6 @@ class C {
 ''');
   }
 
-  test_mixin_of_mixin_type_argument_inference() async {
-    // In the code below, B's superclass constraints don't include A, because
-    // superclass constraints are determined from the mixin's superclass, and
-    // B's superclass is Object.  So no mixin type inference is attempted, and
-    // "with B" is interpreted as "with B<dynamic>".
-    await assertNoErrorsInCode('''
-class A<T> {}
-class B<T> = Object with A<T>;
-class C = Object with B;
-''');
-    var bReference = result.unit.declaredElement!.getType('C')!.mixins[0];
-    assertTypeDynamic(bReference.typeArguments[0]);
-  }
-
-  test_mixin_of_mixin_type_argument_inference_cascaded_mixin() async {
-    // In the code below, B has a single superclass constraint, A1, because
-    // superclass constraints are determined from the mixin's superclass, and
-    // B's superclass is "Object with A1<T>".  So mixin type inference succeeds
-    // (since C's base class implements A1<int>), and "with B" is interpreted as
-    // "with B<int>".
-    await assertErrorsInCode('''
-class A1<T> {}
-class A2<T> {}
-class B<T> = Object with A1<T>, A2<T>;
-class Base implements A1<int> {}
-class C = Base with B;
-''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 122, 1),
-    ]);
-    var bReference = result.unit.declaredElement!.getType('C')!.mixins[0];
-    assertType(bReference.typeArguments[0], 'int');
-  }
-
   test_mixinDeclaresConstructor() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2442,30 +2355,6 @@ class A {
 }
 class B extends Object with A {}
 ''');
-  }
-
-  test_mixinInference_with_actual_mixins() async {
-    await assertNoErrorsInCode('''
-class I<X> {}
-
-mixin M0<T> on I<T> {}
-
-mixin M1<T> on I<T> {
-  T foo(T a) => a;
-}
-
-class A = I<int> with M0, M1;
-
-void main () {
-  var x = new A().foo(0);
-  x;
-}
-''');
-    var main = result.unit.declarations.last as FunctionDeclaration;
-    var mainBody = main.functionExpression.body as BlockFunctionBody;
-    var xDecl = mainBody.block.statements[0] as VariableDeclarationStatement;
-    var xElem = xDecl.variables.variables[0].declaredElement!;
-    assertType(xElem.type, 'int');
   }
 
   test_multipleSuperInitializers_no() async {
