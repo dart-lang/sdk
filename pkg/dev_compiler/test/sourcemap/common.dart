@@ -100,7 +100,11 @@ class CheckSteps extends Step<Data, Data, ChainContext> {
 
 File findInOutDir(String relative) {
   var outerDir = sdkRoot.path;
-  for (var outDir in const ['out/ReleaseX64', 'xcodebuild/ReleaseX64']) {
+  for (var outDir in const [
+    'out/ReleaseX64',
+    'xcodebuild/ReleaseX64',
+    'xcodebuild/ReleaseARM64'
+  ]) {
     var tryPath = p.join(outerDir, outDir, relative);
     var file = File(tryPath);
     if (file.existsSync()) return file;

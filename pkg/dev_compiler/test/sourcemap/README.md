@@ -3,11 +3,9 @@
 This folder contains two types of tests for validating sourcemaps:
 the debugging behavior and the stacktrace behavior.
 
-For both there are 2 suits: One for (legacy) DDC and one for DDC with kernel (DDK).
-
-Running the tests likely requires the compilation of the correct targets. DDK currently also
+Running the tests requires the compilation of the correct targets. DDC currently also
 requires `ddc_sdk.dill` inside
-`{sdkroot}/{out,xcodebuild}/ReleaseX64/ddc_sdk.dill`.
+`{sdkroot}/{out,xcodebuild}/{ReleaseX64,ReleaseARM64}/ddc_sdk.dill`.
 
 Except for that, running them should simply be a matter of executing the `*_suite.dart` files.
 
@@ -22,19 +20,19 @@ See `README.md` in `pkg/sourcemap_testing`.
 
 One can filter which tests are run by running (from the sourcemap folder):
 ```
-dart sourcemaps_ddc_suite.dart -- sourcemaps_ddc//printing_class_fields
+dart sourcemaps_ddk_suite.dart -- sourcemaps_ddk/printing_class_fields
 ```
 
 One can additionally get debug output for failing tests (i.e. tests with different outcome than
 expected), e.g.:
 ```
-dart sourcemaps_ddc_suite.dart -Ddebug=true -- sourcemaps_ddc//printing_class_fields
+dart sourcemaps_ddk_suite.dart -Ddebug=true -- sourcemaps_ddk/printing_class_fields
 ```
 
 The latter is also useful in combination with `/*fail*/` when adding new tests to see all the places
 where the debugger stopped (both in JS positions and translated to dart positions).
 
-For instance `-Ddebug=true -- sourcemaps_ddk//next_through_catch_test` with a `/*fail*/`
+For instance `-Ddebug=true -- sourcemaps_ddk/next_through_catch_test` with a `/*fail*/`
 currently gives output like the following:
 
 ```
