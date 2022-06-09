@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:js_util';
-import 'dart:js_wasm';
 
 import 'package:expect/expect.dart';
+import 'package:js/js.dart';
 
 @JS()
 external void eval(String code);

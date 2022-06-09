@@ -290,7 +290,10 @@ typedef struct {
 typedef struct {
   const char* type;
   const char* reason;
+
+  // DEPRECATED: Use [isolate_group_id] instead.
   const char* isolate_id;
+  Dart_IsolateGroupId isolate_group_id;
 
   Dart_GCStats new_space;
   Dart_GCStats old_space;
@@ -457,30 +460,68 @@ DART_EXPORT void Dart_SetThreadName(const char* name);
 DART_EXPORT int64_t Dart_VMIsolateCountMetric();  // Counter
 DART_EXPORT int64_t Dart_VMCurrentRSSMetric();    // Byte
 DART_EXPORT int64_t Dart_VMPeakRSSMetric();       // Byte
+
+// DEPRECATED: Use Dart_IsolateGroupHeapOldUsedMetric instead
 DART_EXPORT int64_t
 Dart_IsolateHeapOldUsedMetric(Dart_Isolate isolate);  // Byte
+// DEPRECATED: Use Dart_IsolateGroupHeapOldUsedMaxMetric instead.
 DART_EXPORT int64_t
 Dart_IsolateHeapOldUsedMaxMetric(Dart_Isolate isolate);  // Byte
+// DEPRECATED: Use Dart_IsolateGroupHeapOldCapacityMetric instead.
 DART_EXPORT int64_t
 Dart_IsolateHeapOldCapacityMetric(Dart_Isolate isolate);  // Byte
+// DEPRECATED: Use Dart_IsolateGroupHeapOldCapacityMaxMetric instead.
 DART_EXPORT int64_t
 Dart_IsolateHeapOldCapacityMaxMetric(Dart_Isolate isolate);  // Byte
+// DEPRECATED: Use Dart_IsolateGroupHeapOldExternalMetric instead.
 DART_EXPORT int64_t
 Dart_IsolateHeapOldExternalMetric(Dart_Isolate isolate);  // Byte
+// DEPRECATED: Use Dart_IsolateGroupHeapNewUsedMetric instead.
 DART_EXPORT int64_t
 Dart_IsolateHeapNewUsedMetric(Dart_Isolate isolate);  // Byte
+// DEPRECATED: Use Dart_IsolateGroupHeapNewUsedMaxMetric instead.
 DART_EXPORT int64_t
 Dart_IsolateHeapNewUsedMaxMetric(Dart_Isolate isolate);  // Byte
+// DEPRECATED: Use Dart_IsolateGroupHeapNewCapacityMetric instead.
 DART_EXPORT int64_t
 Dart_IsolateHeapNewCapacityMetric(Dart_Isolate isolate);  // Byte
+// DEPRECATED: Use Dart_IsolateGroupHeapNewCapacityMaxMetric instead.
 DART_EXPORT int64_t
 Dart_IsolateHeapNewCapacityMaxMetric(Dart_Isolate isolate);  // Byte
+// DEPRECATED: Use Dart_IsolateGroupHeapNewExternalMetric instead.
 DART_EXPORT int64_t
 Dart_IsolateHeapNewExternalMetric(Dart_Isolate isolate);  // Byte
+// DEPRECATED: Use Dart_IsolateGroupHeapGlobalUsedMetric instead.
 DART_EXPORT int64_t
 Dart_IsolateHeapGlobalUsedMetric(Dart_Isolate isolate);  // Byte
+// DEPRECATED: Use Dart_IsolateGroupHeapGlobalUsedMaxMetric instead.
 DART_EXPORT int64_t
 Dart_IsolateHeapGlobalUsedMaxMetric(Dart_Isolate isolate);  // Byte
+
+DART_EXPORT int64_t
+Dart_IsolateGroupHeapOldUsedMetric(Dart_IsolateGroup group);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateGroupHeapOldUsedMaxMetric(Dart_IsolateGroup group);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateGroupHeapOldCapacityMetric(Dart_IsolateGroup group);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateGroupHeapOldCapacityMaxMetric(Dart_IsolateGroup group);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateGroupHeapOldExternalMetric(Dart_IsolateGroup group);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateGroupHeapNewUsedMetric(Dart_IsolateGroup group);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateGroupHeapNewUsedMaxMetric(Dart_IsolateGroup group);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateGroupHeapNewCapacityMetric(Dart_IsolateGroup group);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateGroupHeapNewCapacityMaxMetric(Dart_IsolateGroup group);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateGroupHeapNewExternalMetric(Dart_IsolateGroup group);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateGroupHeapGlobalUsedMetric(Dart_IsolateGroup group);  // Byte
+DART_EXPORT int64_t
+Dart_IsolateGroupHeapGlobalUsedMaxMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
 Dart_IsolateRunnableLatencyMetric(Dart_Isolate isolate);  // Microsecond
 DART_EXPORT int64_t

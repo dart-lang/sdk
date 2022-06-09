@@ -1205,6 +1205,14 @@ DART_EXPORT Dart_IsolateGroup Dart_CurrentIsolateGroup(void);
 DART_EXPORT void* Dart_CurrentIsolateGroupData(void);
 
 /**
+ * Gets an id that uniquely identifies current isolate group.
+ *
+ * It is the responsibility of the caller to free the returned ID.
+ */
+typedef int64_t Dart_IsolateGroupId;
+DART_EXPORT Dart_IsolateGroupId Dart_CurrentIsolateGroupId();
+
+/**
  * Returns the callback data associated with the specified isolate group. This
  * data was passed to the isolate when it was created.
  * The embedder is responsible for ensuring the consistency of this data

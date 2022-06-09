@@ -658,11 +658,11 @@ class CallingConventions {
 
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
-      kAlignedToWordSizeBut8AlignedTo8;
+      kAlignedToWordSizeAndValueSize;
 
   // How stack arguments are aligned.
   static constexpr AlignmentStrategy kArgumentStackAlignment =
-      kAlignedToWordSizeBut8AlignedTo8;
+      kAlignedToWordSizeAndValueSize;
 
   // How fields in compounds are aligned.
 #if defined(DART_TARGET_OS_MACOS_IOS)

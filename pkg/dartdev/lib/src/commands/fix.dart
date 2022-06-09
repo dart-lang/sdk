@@ -268,11 +268,13 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
 
   io.FileSystemEntity _getTarget(List<String> arguments) {
     var argumentCount = arguments.length;
-    if (argumentCount == 0) return io.Directory.current.absolute;
     if (argumentCount > 1) {
       usageException('Only one file or directory is expected.');
     }
-    var normalizedPath = path.canonicalize(path.normalize(arguments[0]));
+
+    var basePath =
+        argumentCount == 0 ? io.Directory.current.absolute.path : arguments[0];
+    var normalizedPath = path.canonicalize(path.normalize(basePath));
     return io.FileSystemEntity.isDirectorySync(normalizedPath)
         ? io.Directory(normalizedPath)
         : io.File(normalizedPath);

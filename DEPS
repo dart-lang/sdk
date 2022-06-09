@@ -85,7 +85,6 @@ vars = {
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "browser_launcher_rev": "f841375ad337381e23d333b6eaaebde3d8266c68",
   "characters_rev": "4b1d4b7737ad47cd2b8105c47e2159174010f29f",
-  "charcode_rev": "84ea427711e24abf3b832923959caa7dd9a8514b",
   "chrome_rev": "19997",
   "cli_util_rev": "b0adbba89442b2ea6fef39c7a82fe79cb31e1168",
   "clock_rev": "f594d86da123015186d5680b0d0e8255c52fc162",
@@ -106,7 +105,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "d7b73536a8079331c888b7da539b80e6825270ea",
 
-  "dartdoc_rev": "f5bcc4bd46f4ce956b6c27ebaf741f6e90d7fca9",
+  "dartdoc_rev": "b61647bc3833302c23bd79f03aa1fbe83578af50",
   "devtools_rev": "51ac983d2db7eb19b3ce5956cb70b769d74fe784",
   "ffi_rev": "0c8364a728cfe4e4ba859c53b99d56b3dbe3add4",
   "file_rev": "0132eeedea2933513bf230513a766a8baeab0c4f",
@@ -133,7 +132,7 @@ vars = {
   "path_rev": "3d41ea582f5b0b18de3d90008809b877ff3f69bc",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "c40cc32eabecb9d60f1045d1403108d968805f9a",
-  "protobuf_rev": "b149f801cf7a5e959cf1dbf72d61068ac275f24b",
+  "protobuf_rev": "408f69b98b2d2de947c4922506416e2ca4905ad5",
   "pub_rev": "51435efcd574b7bc18d47a5dd620cb9759dea8f8",
   "pub_semver_rev": "5c0b4bfd5ca57fe16f1319c581dc8c882e9b8cb2",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
@@ -308,8 +307,6 @@ deps = {
       Var("dart_git") + "browser_launcher.git" + "@" + Var("browser_launcher_rev"),
   Var("dart_root") + "/third_party/pkg/characters":
       Var("dart_git") + "characters.git" + "@" + Var("characters_rev"),
-  Var("dart_root") + "/third_party/pkg/charcode":
-      Var("dart_git") + "charcode.git" + "@" + Var("charcode_rev"),
   Var("dart_root") + "/third_party/pkg/cli_util":
       Var("dart_git") + "cli_util.git" + "@" + Var("cli_util_rev"),
   Var("dart_root") + "/third_party/pkg/clock":

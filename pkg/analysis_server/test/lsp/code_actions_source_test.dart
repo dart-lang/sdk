@@ -139,7 +139,30 @@ int minified(int x, int y) => min(x, y);
     );
   }
 
-  Future<void> test_failsSilentlyIfFileHasErrors() async {
+  Future<void> test_fileHasErrors_failsSilentlyForAutomatic() async {
+    final content = 'invalid dart code';
+    newFile(mainFilePath, content);
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+
+    final codeActions = await getCodeActions(
+      mainFileUri.toString(),
+      triggerKind: CodeActionTriggerKind.Automatic,
+    );
+    final codeAction = findCommand(codeActions, Commands.organizeImports)!;
+
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command!,
+    );
+
+    // Expect a valid null result.
+    final response = await executeCommand(command);
+    expect(response, isNull);
+  }
+
+  Future<void> test_fileHasErrors_failsWithErrorForManual() async {
     final content = 'invalid dart code';
     newFile(mainFilePath, content);
     await initialize(
@@ -154,10 +177,10 @@ int minified(int x, int y) => min(x, y);
       (codeAction) => codeAction.command!,
     );
 
-    final commandResponse = await executeCommand(command);
-    // Invalid code returns an empty success() response to avoid triggering
-    // errors in the editor if run automatically on every save.
-    expect(commandResponse, isNull);
+    // Ensure the request returned an error (error repsonses are thrown by
+    // the test helper to make consuming success results simpler).
+    await expectLater(executeCommand(command),
+        throwsA(isResponseError(ServerErrorCodes.FileHasErrors)));
   }
 
   Future<void> test_filtersCorrectly() async {
@@ -339,7 +362,30 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
         throwsA(isResponseError(ServerErrorCodes.ClientFailedToApplyEdit)));
   }
 
-  Future<void> test_failsIfFileHasErrors() async {
+  Future<void> test_fileHasErrors_failsSilentlyForAutomatic() async {
+    final content = 'invalid dart code';
+    newFile(mainFilePath, content);
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+
+    final codeActions = await getCodeActions(
+      mainFileUri.toString(),
+      triggerKind: CodeActionTriggerKind.Automatic,
+    );
+    final codeAction = findCommand(codeActions, Commands.sortMembers)!;
+
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command!,
+    );
+
+    // Expect a valid null result.
+    final response = await executeCommand(command);
+    expect(response, isNull);
+  }
+
+  Future<void> test_fileHasErrors_failsWithErrorForManual() async {
     final content = 'invalid dart code';
     newFile(mainFilePath, content);
     await initialize(

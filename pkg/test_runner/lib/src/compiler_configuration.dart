@@ -892,6 +892,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         exec = "$simBuildDir/gen_snapshot";
       } else if (_isArm64 && _configuration.useQemu) {
         exec = "$buildDir/clang_x64/gen_snapshot";
+      } else if (_isRiscv32 && _configuration.useQemu) {
+        exec = "$buildDir/x86/gen_snapshot";
       } else if (_isRiscv64 && _configuration.useQemu) {
         exec = "$buildDir/x64/gen_snapshot";
       } else {

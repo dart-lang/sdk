@@ -1034,16 +1034,22 @@ bool PageSpace::ShouldPerformIdleMarkCompact(int64_t deadline) {
   return estimated_mark_compact_completion <= deadline;
 }
 
-void PageSpace::NotifyIdle(int64_t deadline) {
+void PageSpace::IncrementalMarkWithSizeBudget(intptr_t size) {
   if (marker_ != nullptr) {
-    marker_->NotifyIdle(deadline);
+    marker_->IncrementalMarkWithSizeBudget(this, size);
+  }
+}
+
+void PageSpace::IncrementalMarkWithTimeBudget(int64_t deadline) {
+  if (marker_ != nullptr) {
+    marker_->IncrementalMarkWithTimeBudget(this, deadline);
   }
 }
 
 void PageSpace::AssistTasks(MonitorLocker* ml) {
   if (phase() == PageSpace::kMarking) {
     ml->Exit();
-    marker_->AssistConcurrentMark();
+    marker_->IncrementalMarkWithUnlimitedBudget(this);
     ml->Enter();
   }
   if ((phase() == kSweepingLarge) || (phase() == kSweepingRegular)) {

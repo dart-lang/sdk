@@ -16,9 +16,8 @@ enum AlignmentStrategy {
   kAlignedToValueSizeBut8AlignedTo4,
   // Align to the architecture size.
   kAlignedToWordSize,
-  // Align to the architecture size, but align 8 byte-sized values to 8 bytes.
-  // Both double and int64.
-  kAlignedToWordSizeBut8AlignedTo8,
+  // Align to the greater of architecture size or value size.
+  kAlignedToWordSizeAndValueSize,
 };
 
 // Minimum size strategies for how to store values.

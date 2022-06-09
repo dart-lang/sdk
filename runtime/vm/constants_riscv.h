@@ -511,7 +511,7 @@ class CallingConventions {
 
   // How stack arguments are aligned.
   static constexpr AlignmentStrategy kArgumentStackAlignment =
-      kAlignedToWordSize;
+      kAlignedToWordSizeAndValueSize;
 
   // How fields in compounds are aligned.
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;

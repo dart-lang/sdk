@@ -1,4 +1,4 @@
-Struct(size: 72, field alignment: 8, stack alignment: 4, members: {
+Struct(size: 72, field alignment: 8, stack alignment: 8, members: {
   0: int8,
   2: int16,
   4: int32,

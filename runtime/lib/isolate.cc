@@ -144,6 +144,17 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
           visited_(visited),
           working_set_(working_set) {}
 
+    void VisitObject(ObjectPtr obj) {
+      if (!obj->IsHeapObject() || obj->untag()->IsCanonical()) {
+        return;
+      }
+      if (visited_->GetValueExclusive(obj) == 1) {
+        return;
+      }
+      visited_->SetValueExclusive(obj, 1);
+      working_set_->Add(obj);
+    }
+
    private:
     void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
       for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
@@ -157,17 +168,6 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
       for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
         VisitObject(ptr->Decompress(heap_base));
       }
-    }
-
-    void VisitObject(ObjectPtr obj) {
-      if (!obj->IsHeapObject() || obj->untag()->IsCanonical()) {
-        return;
-      }
-      if (visited_->GetValueExclusive(obj) == 1) {
-        return;
-      }
-      visited_->SetValueExclusive(obj, 1);
-      working_set_->Add(obj);
     }
 
     WeakTable* visited_;
@@ -185,55 +185,76 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
   Function& erroneous_closure_function = Function::Handle(zone);
   Class& erroneous_nativewrapper_class = Class::Handle(zone);
   Class& erroneous_finalizable_class = Class::Handle(zone);
+  Array& array = Array::Handle(zone);
   const char* error_message = nullptr;
+  Thread* thread = Thread::Current();
 
-  {
-    NoSafepointScope no_safepoint;
-    // working_set contains only elements that have not been visited yet that
-    // need to be processed.
-    // So before adding elements to working_set ensure to check visited flag,
-    // set visited flag at the same time as the element is added.
-    MallocGrowableArray<ObjectPtr> working_set;
-    std::unique_ptr<WeakTable> visited(new WeakTable());
+  // working_set contains only elements that have not been visited yet that
+  // need to be processed.
+  // So before adding elements to working_set ensure to check visited flag,
+  // set visited flag at the same time as the element is added.
 
-    SendMessageValidator visitor(isolate->group(), visited.get(), &working_set);
+  // This working set of raw pointers is visited by GC, only one for a given
+  // isolate should be in use.
+  MallocGrowableArray<ObjectPtr>* const working_set =
+      isolate->pointers_to_verify_at_exit();
+  ASSERT(working_set->length() == 0);
+  std::unique_ptr<WeakTable> visited(new WeakTable());
 
-    visited->SetValueExclusive(obj.ptr(), 1);
-    working_set.Add(obj.ptr());
+  SendMessageValidator visitor(isolate->group(), visited.get(), working_set);
 
-    while (!working_set.is_empty() && !error_found) {
-      ObjectPtr raw = working_set.RemoveLast();
+  visited->SetValueExclusive(obj.ptr(), 1);
+  working_set->Add(obj.ptr());
 
-      const intptr_t cid = raw->GetClassId();
-      // Keep the list in sync with the one in runtime/vm/object_graph_copy.cc
-      switch (cid) {
-        // Can be shared.
-        case kOneByteStringCid:
-        case kTwoByteStringCid:
-        case kExternalOneByteStringCid:
-        case kExternalTwoByteStringCid:
-        case kMintCid:
-        case kImmutableArrayCid:
-        case kNeverCid:
-        case kSentinelCid:
-        case kInt32x4Cid:
-        case kSendPortCid:
-        case kCapabilityCid:
-        case kRegExpCid:
-        case kStackTraceCid:
-          continue;
-        // Cannot be shared due to possibly being mutable boxes for unboxed
-        // fields in JIT, but can be transferred via Isolate.exit()
-        case kDoubleCid:
-        case kFloat32x4Cid:
-        case kFloat64x2Cid:
-          continue;
+  while (!working_set->is_empty() && !error_found) {
+    thread->CheckForSafepoint();
 
-        case kClosureCid:
-          closure ^= raw;
-          // Only context has to be checked.
-          working_set.Add(closure.context());
-          continue;
+    ObjectPtr raw = working_set->RemoveLast();
+
+    const intptr_t cid = raw->GetClassId();
+    // Keep the list in sync with the one in runtime/vm/object_graph_copy.cc
+    switch (cid) {
+      // Can be shared.
+      case kOneByteStringCid:
+      case kTwoByteStringCid:
+      case kExternalOneByteStringCid:
+      case kExternalTwoByteStringCid:
+      case kMintCid:
+      case kImmutableArrayCid:
+      case kNeverCid:
+      case kSentinelCid:
+      case kInt32x4Cid:
+      case kSendPortCid:
+      case kCapabilityCid:
+      case kRegExpCid:
+      case kStackTraceCid:
+        continue;
+      // Cannot be shared due to possibly being mutable boxes for unboxed
+      // fields in JIT, but can be transferred via Isolate.exit()
+      case kDoubleCid:
+      case kFloat32x4Cid:
+      case kFloat64x2Cid:
+        continue;
+
+      case kArrayCid:
+      {
+        array ^= Array::RawCast(raw);
+        visitor.VisitObject(array.GetTypeArguments());
+        const intptr_t batch_size = (2 << 14) - 1;
+        for (intptr_t i = 0; i < array.Length(); ++i) {
+          ObjectPtr ptr = array.At(i);
+          visitor.VisitObject(ptr);
+          if ((i & batch_size) == batch_size) {
+            thread->CheckForSafepoint();
+          }
+        }
+        continue;
+      }
+      case kClosureCid:
+        closure ^= raw;
+        // Only context has to be checked.
+        working_set->Add(closure.context());
+        continue;
 
 #define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \
   case k##type##Cid:                                                           \
@@ -242,33 +263,32 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
     error_found = true;                                                        \
     break;
 
-          MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
-          // TODO(http://dartbug.com/47777): Send and exit support: remove this.
-          MESSAGE_SNAPSHOT_ILLEGAL(Finalizer);
-          MESSAGE_SNAPSHOT_ILLEGAL(NativeFinalizer);
-          MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
-          MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
-          MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
-          MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
-          MESSAGE_SNAPSHOT_ILLEGAL(SuspendState);
+        MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
+        // TODO(http://dartbug.com/47777): Send and exit support: remove this.
+        MESSAGE_SNAPSHOT_ILLEGAL(Finalizer);
+        MESSAGE_SNAPSHOT_ILLEGAL(NativeFinalizer);
+        MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
+        MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
+        MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
+        MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
+        MESSAGE_SNAPSHOT_ILLEGAL(SuspendState);
 
-        default:
-          if (cid >= kNumPredefinedCids) {
-            klass = class_table->At(cid);
-            if (klass.num_native_fields() != 0) {
-              erroneous_nativewrapper_class = klass.ptr();
-              error_found = true;
-              break;
-            }
-            if (klass.implements_finalizable()) {
-              erroneous_finalizable_class = klass.ptr();
-              error_found = true;
-              break;
-            }
+      default:
+        if (cid >= kNumPredefinedCids) {
+          klass = class_table->At(cid);
+          if (klass.num_native_fields() != 0) {
+            erroneous_nativewrapper_class = klass.ptr();
+            error_found = true;
+            break;
           }
-      }
-      raw->untag()->VisitPointers(&visitor);
+          if (klass.implements_finalizable()) {
+            erroneous_finalizable_class = klass.ptr();
+            error_found = true;
+            break;
+          }
+        }
     }
+    raw->untag()->VisitPointers(&visitor);
   }
   if (error_found) {
     const char* exception_message;
@@ -292,9 +312,11 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
                                       " : (object implements Finalizable - %s)",
                                       erroneous_finalizable_class.ToCString());
     }
+    working_set->Clear();
     return Exceptions::CreateUnhandledException(
         zone, Exceptions::kArgumentValue, exception_message);
   }
+  ASSERT(working_set->length() == 0);
   isolate->set_forward_table_new(nullptr);
   return obj.ptr();
 }

@@ -1426,6 +1426,13 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #define R(r) (1 << r)
 
+static Register RemapA3A4A5(Register r) {
+  if (r == A3) return T3;
+  if (r == A4) return T4;
+  if (r == A5) return T5;
+  return r;
+}
+
 static void RemapA3A4A5(LocationSummary* summary) {
   // A3/A4/A5 are unavailable in normal register allocation because they are
   // assigned to TMP/TMP2/PP. This assignment is important for reducing code
@@ -1435,13 +1442,16 @@ static void RemapA3A4A5(LocationSummary* summary) {
   // Note that A3/A4/A5 might be not be the 3rd/4th/5th input because of mixed
   // integer and floating-point arguments.
   for (intptr_t i = 0; i < summary->input_count(); i++) {
-    if (!summary->in(i).IsRegister()) continue;
-    if (summary->in(i).reg() == A3) {
-      summary->set_in(i, Location::RegisterLocation(T3));
-    } else if (summary->in(i).reg() == A4) {
-      summary->set_in(i, Location::RegisterLocation(T4));
-    } else if (summary->in(i).reg() == A5) {
-      summary->set_in(i, Location::RegisterLocation(T5));
+    if (summary->in(i).IsRegister()) {
+      Register r = RemapA3A4A5(summary->in(i).reg());
+      summary->set_in(i, Location::RegisterLocation(r));
+    } else if (summary->in(i).IsPairLocation() &&
+               summary->in(i).AsPairLocation()->At(0).IsRegister()) {
+      ASSERT(summary->in(i).AsPairLocation()->At(1).IsRegister());
+      Register r0 = RemapA3A4A5(summary->in(i).AsPairLocation()->At(0).reg());
+      Register r1 = RemapA3A4A5(summary->in(i).AsPairLocation()->At(1).reg());
+      summary->set_in(i, Location::Pair(Location::RegisterLocation(r0),
+                                        Location::RegisterLocation(r1)));
     }
   }
 }
@@ -1461,18 +1471,28 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
 
 #undef R
 
+static void MoveA3A4A5(FlowGraphCompiler* compiler, Register r) {
+  if (r == T3) {
+    __ mv(A3, T3);
+  } else if (r == T4) {
+    __ mv(A4, T4);
+  } else if (r == T5) {
+    __ mv(A5, T5);
+  }
+}
+
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Beware! Do not use CODE_REG/TMP/TMP2/PP within FfiCallInstr as they are
   // assigned to A2/A3/A4/A5, which may be in use as argument registers.
   __ set_constant_pool_allowed(false);
   for (intptr_t i = 0; i < locs()->input_count(); i++) {
-    if (!locs()->in(i).IsRegister()) continue;
-    if (locs()->in(i).reg() == T3) {
-      __ mv(A3, T3);
-    } else if (locs()->in(i).reg() == T4) {
-      __ mv(A4, T4);
-    } else if (locs()->in(i).reg() == T5) {
-      __ mv(A5, T5);
+    if (locs()->in(i).IsRegister()) {
+      MoveA3A4A5(compiler, locs()->in(i).reg());
+    } else if (locs()->in(i).IsPairLocation() &&
+               locs()->in(i).AsPairLocation()->At(0).IsRegister()) {
+      ASSERT(locs()->in(i).AsPairLocation()->At(1).IsRegister());
+      MoveA3A4A5(compiler, locs()->in(i).AsPairLocation()->At(0).reg());
+      MoveA3A4A5(compiler, locs()->in(i).AsPairLocation()->At(1).reg());
     }
   }
 
@@ -7336,34 +7356,75 @@ LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (from()) {
     case kUnboxedFloat: {
-      ASSERT(to() == kUnboxedInt64);
-      const FpuRegister src = locs()->in(0).fpu_reg();
-      const Register dst = locs()->out(0).reg();
-      __ fmvxw(dst, src);
+      switch (to()) {
+        case kUnboxedInt32: {
+          const FpuRegister src = locs()->in(0).fpu_reg();
+          const Register dst = locs()->out(0).reg();
+          __ fmvxw(dst, src);
+          break;
+        }
+        case kUnboxedInt64: {
+          const FpuRegister src = locs()->in(0).fpu_reg();
+#if XLEN == 32
+          const Register dst0 = locs()->out(0).AsPairLocation()->At(0).reg();
+          const Register dst1 = locs()->out(0).AsPairLocation()->At(1).reg();
+          __ fmvxw(dst0, src);
+          __ li(dst1, 0);
+#else
+          const Register dst = locs()->out(0).reg();
+          __ fmvxw(dst, src);
+#endif
+          break;
+        }
+        default:
+          UNREACHABLE();
+      }
       break;
     }
-#if XLEN >= 64
     case kUnboxedDouble: {
       ASSERT(to() == kUnboxedInt64);
       const FpuRegister src = locs()->in(0).fpu_reg();
+#if XLEN == 32
+      const Register dst0 = locs()->out(0).AsPairLocation()->At(0).reg();
+      const Register dst1 = locs()->out(0).AsPairLocation()->At(1).reg();
+      __ subi(SP, SP, 16);
+      __ fsd(src, compiler::Address(SP, 0));
+      __ lw(dst0, compiler::Address(SP, 0));
+      __ lw(dst1, compiler::Address(SP, 4));
+      __ addi(SP, SP, 16);
+#else
       const Register dst = locs()->out(0).reg();
       __ fmvxd(dst, src);
+#endif
       break;
     }
-#endif
     case kUnboxedInt64: {
-      const Register src = locs()->in(0).reg();
       switch (to()) {
-#if XLEN >= 64
         case kUnboxedDouble: {
           const FpuRegister dst = locs()->out(0).fpu_reg();
+#if XLEN == 32
+          const Register src0 = locs()->in(0).AsPairLocation()->At(0).reg();
+          const Register src1 = locs()->in(0).AsPairLocation()->At(1).reg();
+          __ subi(SP, SP, 16);
+          __ sw(src0, compiler::Address(SP, 0));
+          __ sw(src1, compiler::Address(SP, 4));
+          __ fld(dst, compiler::Address(SP, 0));
+          __ addi(SP, SP, 16);
+#else
+          const Register src = locs()->in(0).reg();
           __ fmvdx(dst, src);
+#endif
           break;
         }
-#endif
         case kUnboxedFloat: {
           const FpuRegister dst = locs()->out(0).fpu_reg();
+#if XLEN == 32
+          const Register src0 = locs()->in(0).AsPairLocation()->At(0).reg();
+          __ fmvwx(dst, src0);
+#else
+          const Register src = locs()->in(0).reg();
           __ fmvwx(dst, src);
+#endif
           break;
         }
         default:

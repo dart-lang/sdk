@@ -87,9 +87,21 @@ external WasmAnyRef? setPropertyRaw(
 external WasmAnyRef? callMethodVarArgsRaw(
     WasmAnyRef o, WasmAnyRef method, WasmAnyRef? args);
 
+// Currently, `allowInterop` returns a Function type. This is unfortunate for
+// Dart2wasm because it means arbitrary Dart functions can flow to JS util
+// calls. Our only solutions is to cache every function called with
+// `allowInterop` and to replace them with the wrapped variant when they flow
+// to JS.
+// NOTE: We are not currently replacing functions returned from JS.
+Map<Function, JSValue> functionToJSWrapper = {};
+
 WasmAnyRef? jsifyRaw(Object? object) {
   if (object == null) {
     return null;
+  } else if (object is Function) {
+    assert(functionToJSWrapper.containsKey(object),
+        'Must call `allowInterop` on functions before they flow to JS');
+    return functionToJSWrapper[object]?.toAnyRef();
   } else if (object is JSValue) {
     return object.toAnyRef();
   } else if (object is String) {
@@ -101,7 +113,21 @@ WasmAnyRef? jsifyRaw(Object? object) {
   }
 }
 
-/// js_util_wasm methods used by the wasm runtime.
+@pragma("wasm:import", "dart2wasm.wrapDartCallback")
+external WasmAnyRef _wrapDartCallbackRaw(
+    WasmAnyRef callback, WasmAnyRef trampolineName);
+
+F _wrapDartCallback<F extends Function>(F f, String trampolineName) {
+  if (functionToJSWrapper.containsKey(f)) {
+    return f;
+  }
+  JSValue wrappedFunction = JSValue(_wrapDartCallbackRaw(
+      f.toJS().toAnyRef(), trampolineName.toJS().toAnyRef()));
+  functionToJSWrapper[f] = wrappedFunction;
+  return f;
+}
+
+/// Methods used by the wasm runtime.
 @pragma("wasm:export", "\$listLength")
 double _listLength(List list) => list.length.toDouble();
 

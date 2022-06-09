@@ -1016,6 +1016,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     Range? range,
     Position? position,
     List<CodeActionKind>? kinds,
+    CodeActionTriggerKind? triggerKind,
   }) {
     range ??= position != null
         ? Range(start: position, end: position)
@@ -1025,10 +1026,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       CodeActionParams(
         textDocument: TextDocumentIdentifier(uri: fileUri),
         range: range,
-        // TODO(dantup): We may need to revise the tests/implementation when
-        // it's clear how we're supposed to handle diagnostics:
-        // https://github.com/Microsoft/language-server-protocol/issues/583
-        context: CodeActionContext(diagnostics: [], only: kinds),
+        context: CodeActionContext(
+          // TODO(dantup): We may need to revise the tests/implementation when
+          // it's clear how we're supposed to handle diagnostics:
+          // https://github.com/Microsoft/language-server-protocol/issues/583
+          diagnostics: [],
+          only: kinds,
+          triggerKind: triggerKind,
+        ),
       ),
     );
     return expectSuccessfulResponseTo(

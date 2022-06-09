@@ -4625,7 +4625,7 @@ ASSEMBLER_TEST_RUN(TestSetCC, test) {
   EXPECT_DISASSEMBLY(
       "mov eax,0xffffffff\n"
       "cmp eax,eax\n"
-      "setnz eax\n"
+      "setnz al\n"
       "ret\n");
 }
 

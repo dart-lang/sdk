@@ -214,7 +214,6 @@ if (is_fuchsia) {
       "pkg/smith",
       "third_party/pkg/args",
       "third_party/pkg/async",
-      "third_party/pkg/charcode",
       "third_party/pkg/collection",
       "third_party/pkg/convert",
       "third_party/pkg/crypto",

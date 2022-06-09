@@ -375,6 +375,22 @@ import 'package:test/new/nested/d.dart';
             '${convertPath('/tmp')} does not belong to an analysis root.');
   }
 
+  Future<void> test_folder_siblingFiles() async {
+    testFile = convertPath('/home/test/lib/old/a.dart');
+    final pathB = convertPath('/home/test/lib/old/b.dart');
+    addSource(pathB, '');
+    await resolveTestCode('''
+import 'a.dart';
+''');
+    // Rename the whole 'old' folder to 'new''.
+    _createRefactoring('/home/test/lib/new', oldFile: '/home/test/lib/old');
+    await _assertSuccessfulRefactoring();
+    // No changes, because import was a relative path and both files are inside
+    // the renamed folder.
+    assertNoFileChange(testFile);
+    assertNoFileChange(pathB);
+  }
+
   Future<void> test_nonexistent_file_returns_failure() async {
     await resolveTestFile();
     _createRefactoring(convertPath('/home/test/test_missing_new.dart'),

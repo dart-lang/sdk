@@ -514,12 +514,12 @@ class Compiler implements CompilerDiagnosticsFacade {
     return programSize;
   }
 
-  GlobalTypeInferenceResults globalTypeInferenceResultsTestMode(
-      GlobalTypeInferenceResults results) {
+  DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResultsTestMode(
+      DataAndIndices<GlobalTypeInferenceResults> results) {
     SerializationStrategy strategy = const BytesInMemorySerializationStrategy();
-    List<int> irData = strategy.unpackAndSerializeComponent(results);
+    List<int> irData = strategy.unpackAndSerializeComponent(results.data);
     List<int> closedWorldData =
-        strategy.serializeClosedWorld(results.closedWorld);
+        strategy.serializeClosedWorld(results.data.closedWorld, options);
     var component = strategy.deserializeComponent(irData);
     var closedWorldAndIndices = strategy.deserializeClosedWorld(
         options,
@@ -530,28 +530,28 @@ class Compiler implements CompilerDiagnosticsFacade {
         closedWorldData);
     List<int> globalTypeInferenceResultsData =
         strategy.serializeGlobalTypeInferenceResults(
-            closedWorldAndIndices.indices, results);
+            closedWorldAndIndices.indices, results.data, options);
     return strategy.deserializeGlobalTypeInferenceResults(
         options,
         reporter,
         environment,
         abstractValueStrategy,
         component,
-        closedWorldAndIndices.closedWorld,
+        closedWorldAndIndices.data,
         closedWorldAndIndices.indices,
         globalTypeInferenceResultsData);
   }
 
-  Future<ClosedWorldAndIndices> produceClosedWorld(
+  Future<DataAndIndices<JsClosedWorld>> produceClosedWorld(
       load_kernel.Output output, ModuleData moduleData) async {
     ir.Component component = output.component;
-    ClosedWorldAndIndices closedWorldAndIndices;
+    DataAndIndices<JsClosedWorld> closedWorldAndIndices;
     if (options.readClosedWorldUri == null) {
       Uri rootLibraryUri = output.rootLibraryUri;
       Iterable<Uri> libraries = output.libraries;
       JsClosedWorld closedWorld =
           computeClosedWorld(component, moduleData, rootLibraryUri, libraries);
-      closedWorldAndIndices = ClosedWorldAndIndices(closedWorld, null);
+      closedWorldAndIndices = DataAndIndices<JsClosedWorld>(closedWorld, null);
       if (options.writeClosedWorldUri != null) {
         serializationTask.serializeComponent(
             closedWorld.elementMap.programEnv.mainComponent);
@@ -562,29 +562,31 @@ class Compiler implements CompilerDiagnosticsFacade {
           environment, abstractValueStrategy, component);
     }
     if (closedWorldAndIndices != null && retainDataForTesting) {
-      backendClosedWorldForTesting = closedWorldAndIndices.closedWorld;
+      backendClosedWorldForTesting = closedWorldAndIndices.data;
       closedWorldIndicesForTesting = closedWorldAndIndices.indices;
     }
     return closedWorldAndIndices;
   }
 
   bool shouldStopAfterClosedWorld(
-          ClosedWorldAndIndices closedWorldAndIndices) =>
+          DataAndIndices<JsClosedWorld> closedWorldAndIndices) =>
       closedWorldAndIndices == null ||
-      closedWorldAndIndices.closedWorld == null ||
+      closedWorldAndIndices.data == null ||
       stopAfterClosedWorldForTesting ||
       options.stopAfterProgramSplit ||
       options.writeClosedWorldUri != null;
 
-  Future<GlobalTypeInferenceResults> produceGlobalTypeInferenceResults(
-      ClosedWorldAndIndices closedWorldAndIndices) async {
-    JsClosedWorld closedWorld = closedWorldAndIndices.closedWorld;
-    GlobalTypeInferenceResults globalTypeInferenceResults;
+  Future<DataAndIndices<GlobalTypeInferenceResults>>
+      produceGlobalTypeInferenceResults(
+          DataAndIndices<JsClosedWorld> closedWorldAndIndices) async {
+    JsClosedWorld closedWorld = closedWorldAndIndices.data;
+    DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResults;
     if (options.readDataUri == null) {
-      globalTypeInferenceResults = performGlobalTypeInference(closedWorld);
+      globalTypeInferenceResults =
+          DataAndIndices(performGlobalTypeInference(closedWorld), null);
       if (options.writeDataUri != null) {
         serializationTask.serializeGlobalTypeInference(
-            globalTypeInferenceResults, closedWorldAndIndices.indices);
+            globalTypeInferenceResults.data, closedWorldAndIndices.indices);
       } else if (options.testMode) {
         globalTypeInferenceResults =
             globalTypeInferenceResultsTestMode(globalTypeInferenceResults);
@@ -612,20 +614,24 @@ class Compiler implements CompilerDiagnosticsFacade {
   }
 
   Future<CodegenResults> produceCodegenResults(
-      GlobalTypeInferenceResults globalTypeInferenceResults,
-      DataSourceIndices indices) async {
-    CodegenInputs codegenInputs = initializeCodegen(globalTypeInferenceResults);
+      DataAndIndices<GlobalTypeInferenceResults>
+          globalTypeInferenceResults) async {
+    CodegenInputs codegenInputs =
+        initializeCodegen(globalTypeInferenceResults.data);
     CodegenResults codegenResults;
     if (options.readCodegenUri == null) {
-      codegenResults = OnDemandCodegenResults(globalTypeInferenceResults,
+      codegenResults = OnDemandCodegenResults(globalTypeInferenceResults.data,
           codegenInputs, backendStrategy.functionCompiler);
       if (options.writeCodegenUri != null) {
-        serializationTask.serializeCodegen(
-            backendStrategy, codegenResults, indices);
+        serializationTask.serializeCodegen(backendStrategy, codegenResults,
+            globalTypeInferenceResults.indices);
       }
     } else {
       codegenResults = await serializationTask.deserializeCodegen(
-          backendStrategy, globalTypeInferenceResults, codegenInputs, indices);
+          backendStrategy,
+          globalTypeInferenceResults.data,
+          codegenInputs,
+          globalTypeInferenceResults.indices);
     }
     return codegenResults;
   }
@@ -646,18 +652,18 @@ class Compiler implements CompilerDiagnosticsFacade {
     if (shouldStopAfterModularAnalysis) return;
 
     // Compute closed world.
-    ClosedWorldAndIndices closedWorldAndIndices =
+    DataAndIndices<JsClosedWorld> closedWorldAndIndices =
         await produceClosedWorld(output, moduleData);
     if (shouldStopAfterClosedWorld(closedWorldAndIndices)) return;
 
     // Run global analysis.
-    GlobalTypeInferenceResults globalTypeInferenceResults =
+    DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResults =
         await produceGlobalTypeInferenceResults(closedWorldAndIndices);
     if (shouldStopAfterGlobalTypeInference) return;
 
     // Run codegen.
-    CodegenResults codegenResults = await produceCodegenResults(
-        globalTypeInferenceResults, closedWorldAndIndices.indices);
+    CodegenResults codegenResults =
+        await produceCodegenResults(globalTypeInferenceResults);
     if (shouldStopAfterCodegen) return;
 
     // Link.
@@ -1036,6 +1042,7 @@ class ProgressImpl implements Progress {
 class InteractiveProgress implements Progress {
   final Stopwatch _stopwatchPhase = Stopwatch()..start();
   final Stopwatch _stopwatchInterval = Stopwatch()..start();
+
   @override
   void startPhase() {
     print('');

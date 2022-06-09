@@ -218,14 +218,12 @@ wasm:
       uri: "html/dartium/nativewrappers.dart"
     isolate:
       uri: isolate/isolate.dart
+    js:
+      uri: js/js.dart
+      patches: _internal/wasm/lib/js_patch.dart
     js_util:
       uri: js_util/js_util.dart
       patches: _internal/wasm/lib/js_util_patch.dart
-    js_util_wasm:
-      uri: js_util/js_util_wasm.dart
-      patches: _internal/wasm/lib/js_util_wasm_patch.dart
-    js_wasm:
-      uri: js/js_wasm.dart
     math:
       uri: math/math.dart
       patches: _internal/wasm/lib/math_patch.dart

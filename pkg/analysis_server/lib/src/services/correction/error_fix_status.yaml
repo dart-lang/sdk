@@ -1490,7 +1490,7 @@ HintCode.UNUSED_CATCH_STACK:
 HintCode.UNUSED_ELEMENT:
   status: hasFix
 HintCode.UNUSED_ELEMENT_PARAMETER:
-  status: needsEvaluation
+  status: hasFix
 HintCode.UNUSED_FIELD:
   status: hasFix
 HintCode.UNUSED_IMPORT:

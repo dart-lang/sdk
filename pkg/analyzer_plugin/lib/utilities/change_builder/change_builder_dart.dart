@@ -359,10 +359,6 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   /// If there is no existing import, a new import is added.
   ImportLibraryElementResult importLibraryElement(Uri uri);
 
-  /// Return `true` if the given library [uri] is already imported or will be
-  /// imported by a scheduled edit.
-  bool importsLibrary(Uri uri);
-
   /// Optionally create an edit to replace the given [typeAnnotation] with the
   /// type `Future` (with the given type annotation as the type argument). The
   /// [typeProvider] is used to check the current type, because if it is already

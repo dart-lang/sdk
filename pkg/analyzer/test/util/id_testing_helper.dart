@@ -16,15 +16,8 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 
 /// Test configuration used for testing the analyzer without experiments.
@@ -102,45 +95,36 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
     Map<String, List<String>>? skipMap}) async {
   MemberAnnotations<IdValue> memberAnnotations =
       testData.expectedMaps[config.marker]!;
-  var resourceProvider = MemoryResourceProvider();
-  var testUris = <Uri>[];
-  for (var entry in testData.memorySourceFiles.entries) {
-    var testUri = _toTestUri(entry.key);
-    testUris.add(testUri);
-    resourceProvider.newFile(
-        resourceProvider.convertPath(testUri.path), entry.value);
+
+  final resourceProvider = MemoryResourceProvider();
+  final testFiles = <_TestFile>[];
+  for (final entry in testData.memorySourceFiles.entries) {
+    final uri = _toTestUri(entry.key);
+    final path = resourceProvider.convertPath(uri.path);
+    final file = resourceProvider.getFile(path);
+    testFiles.add(
+      _TestFile(uri: uri, file: file),
+    );
+    file.writeAsStringSync(entry.value);
   }
-  var sdkRoot = resourceProvider.newFolder(
+
+  final sdkRoot = resourceProvider.newFolder(
     resourceProvider.convertPath('/sdk'),
   );
   createMockSdk(
     resourceProvider: resourceProvider,
     root: sdkRoot,
   );
-  var sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
-  var logBuffer = StringBuffer();
-  var logger = PerformanceLog(logBuffer);
-  var scheduler = AnalysisDriverScheduler(logger);
-  // TODO(paulberry): Do we need a non-empty package map for any of these tests?
-  var packageMap = <String, List<Folder>>{};
-  var byteStore = MemoryByteStore();
-  var analysisOptions = AnalysisOptionsImpl()
-    ..contextFeatures = config.featureSet;
-  var driver = AnalysisDriver(
-    scheduler: scheduler,
-    logger: logger,
+
+  final contextCollection = AnalysisContextCollectionImpl(
+    includedPaths: testFiles.map((e) => e.path).toList(),
     resourceProvider: resourceProvider,
-    byteStore: byteStore,
-    sourceFactory: SourceFactory([
-      DartUriResolver(sdk),
-      PackageMapUriResolver(resourceProvider, packageMap),
-      ResourceUriResolver(resourceProvider)
-    ]),
-    analysisOptions: analysisOptions,
-    packages: Packages.empty,
     retainDataForTesting: true,
+    sdkPath: sdkRoot.path,
   );
-  scheduler.start();
+  final analysisContext = contextCollection.contexts.single;
+  final analysisSession = analysisContext.currentSession;
+  final driver = analysisContext.driver;
 
   Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
   Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};
@@ -150,9 +134,10 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
   }
 
   var results = <Uri, ResolvedUnitResult>{};
-  for (var testUri in testUris) {
-    var path = resourceProvider.convertPath(testUri.path);
-    var result = await driver.getResult(path) as ResolvedUnitResult;
+  for (final testFile in testFiles) {
+    final testUri = testFile.uri;
+    final result = await analysisSession.getResolvedUnit(testFile.path);
+    result as ResolvedUnitResult;
     var errors =
         result.errors.where((e) => e.severity == Severity.error).toList();
     if (errors.isNotEmpty) {
@@ -328,4 +313,16 @@ class TestConfig {
 
   TestConfig(this.marker, this.name, {FeatureSet? featureSet})
       : featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
+}
+
+class _TestFile {
+  final Uri uri;
+  final File file;
+
+  _TestFile({
+    required this.uri,
+    required this.file,
+  });
+
+  String get path => file.path;
 }

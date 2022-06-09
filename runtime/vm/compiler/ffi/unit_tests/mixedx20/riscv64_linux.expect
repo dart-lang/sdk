@@ -1,0 +1,22 @@
+a0 int64
+fa0 float
+a1 int64
+fa1 double
+a2 int64
+fa2 float
+a3 int64
+fa3 double
+a4 int64
+fa4 float
+a5 int64
+fa5 double
+a6 int64
+fa6 float
+a7 int64
+fa7 double
+S+0 int64
+S+8 float
+S+16 int64
+S+24 double
+=>
+fa0 double

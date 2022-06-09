@@ -16,6 +16,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   static final List<ir.DartType> emptyListOfDartTypes =
       List<ir.DartType>.empty();
 
+  final bool enableDeferredStrategy;
   final bool useDataKinds;
   final ValueInterner /*?*/ interner;
   DataSourceIndices importedIndices;
@@ -46,8 +47,10 @@ class DataSourceReader implements migrated.DataSourceReader {
     }
   }
 
-  DataSourceReader(this._sourceReader,
-      {this.useDataKinds = false, this.importedIndices, this.interner}) {
+  DataSourceReader(this._sourceReader, CompilerOptions options,
+      {this.useDataKinds = false, this.importedIndices, this.interner})
+      : enableDeferredStrategy =
+            (options?.features?.deferredSerialization?.isEnabled ?? false) {
     _stringIndex = _createSource<String>();
     _uriIndex = _createSource<Uri>();
     _memberNodeIndex = _createSource<MemberData>();

@@ -1234,6 +1234,7 @@ VM_METRIC_LIST(VM_METRIC_API)
 #undef VM_METRIC_API
 #endif  // !defined(PRODUCT)
 
+// TODO(dartbug.com/49211): Remove definition of deprecated functions.
 #define ISOLATE_GROUP_METRIC_API(type, variable, name, unit)                   \
   DART_EXPORT int64_t Dart_Isolate##variable##Metric(Dart_Isolate isolate) {   \
     if (isolate == nullptr) {                                                  \
@@ -1241,6 +1242,15 @@ VM_METRIC_LIST(VM_METRIC_API)
     }                                                                          \
     Isolate* iso = reinterpret_cast<Isolate*>(isolate);                        \
     return iso->group()->Get##variable##Metric()->Value();                     \
+  }                                                                            \
+  DART_EXPORT int64_t Dart_IsolateGroup##variable##Metric(                     \
+      Dart_IsolateGroup isolate_group) {                                       \
+    if (isolate_group == nullptr) {                                            \
+      FATAL1("%s expects argument 'isolate_group' to be non-null.",            \
+             CURRENT_FUNC);                                                    \
+    }                                                                          \
+    IsolateGroup* group = reinterpret_cast<IsolateGroup*>(isolate_group);      \
+    return group->Get##variable##Metric()->Value();                            \
   }
 ISOLATE_GROUP_METRIC_LIST(ISOLATE_GROUP_METRIC_API)
 #undef ISOLATE_GROUP_METRIC_API
@@ -1526,6 +1536,12 @@ DART_EXPORT void* Dart_CurrentIsolateGroupData() {
   CHECK_ISOLATE_GROUP(isolate_group);
   NoSafepointScope no_safepoint_scope;
   return isolate_group->embedder_data();
+}
+
+DART_EXPORT Dart_IsolateGroupId Dart_CurrentIsolateGroupId() {
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  return isolate_group->id();
 }
 
 DART_EXPORT void* Dart_IsolateGroupData(Dart_Isolate isolate) {

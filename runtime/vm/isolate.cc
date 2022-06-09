@@ -479,10 +479,10 @@ void IsolateGroup::CreateHeap(bool is_vm_isolate,
 
   is_vm_isolate_heap_ = is_vm_isolate;
 
-#define ISOLATE_METRIC_CONSTRUCTORS(type, variable, name, unit)                \
+#define ISOLATE_GROUP_METRIC_CONSTRUCTORS(type, variable, name, unit)          \
   metric_##variable##_.InitInstance(this, name, nullptr, Metric::unit);
-  ISOLATE_GROUP_METRIC_LIST(ISOLATE_METRIC_CONSTRUCTORS)
-#undef ISOLATE_METRIC_CONSTRUCTORS
+  ISOLATE_GROUP_METRIC_LIST(ISOLATE_GROUP_METRIC_CONSTRUCTORS)
+#undef ISOLATE_GROUP_METRIC_CONSTRUCTORS
 }
 
 void IsolateGroup::Shutdown() {
@@ -2823,6 +2823,11 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   visitor->VisitPointer(
       reinterpret_cast<ObjectPtr*>(&loaded_prefixes_set_storage_));
+
+  if (pointers_to_verify_at_exit_.length() != 0) {
+    visitor->VisitPointers(&pointers_to_verify_at_exit_[0],
+                           pointers_to_verify_at_exit_.length());
+  }
 }
 
 void IsolateGroup::ReleaseStoreBuffers() {

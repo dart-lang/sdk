@@ -1,0 +1,22 @@
+r0 int64
+v0 float
+r1 int64
+v1 double
+r2 int64
+v2 float
+r3 int64
+v3 double
+r4 int64
+v4 float
+r5 int64
+v5 double
+r6 int64
+v6 float
+r7 int64
+v7 double
+S+0 int64
+S+8 float
+S+16 int64
+S+24 double
+=>
+v0 double

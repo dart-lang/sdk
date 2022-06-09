@@ -17,7 +17,6 @@ import 'rename_parameter_test.dart' as rename_parameter;
 import 'rename_test.dart' as rename;
 import 'replaced_by_test.dart' as replaced_by;
 import 'sdk_fix_test.dart' as sdk_fix;
-import 'test_use_case_test.dart' as test_use_case;
 import 'transform_override_set_parser_test.dart'
     as transform_override_set_parser;
 import 'transform_set_manager_test.dart' as transform_set_manager;
@@ -38,7 +37,6 @@ void main() {
     rename.main();
     replaced_by.main();
     sdk_fix.main();
-    test_use_case.main();
     transform_override_set_parser.main();
     transform_set_manager.main();
     transform_set_parser.main();

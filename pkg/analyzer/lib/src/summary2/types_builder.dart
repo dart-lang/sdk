@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
@@ -573,8 +572,7 @@ class _MixinsInference {
     for (var declaration in declarations) {
       if (declaration is ClassOrMixinDeclaration) {
         var element = declaration.declaredElement as ClassElementImpl;
-        var sessionImpl = element.library.session as AnalysisSessionImpl;
-        sessionImpl.classHierarchy.remove(element);
+        element.library.session.classHierarchy.remove(element);
       }
     }
   }

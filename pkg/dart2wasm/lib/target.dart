@@ -50,9 +50,8 @@ class WasmTarget extends Target {
         'dart:_js_helper',
         'dart:typed_data',
         'dart:nativewrappers',
+        'dart:js',
         'dart:js_util',
-        'dart:js_util_wasm',
-        'dart:js_wasm',
         'dart:wasm',
         'dart:developer',
       ];
@@ -62,9 +61,8 @@ class WasmTarget extends Target {
         'dart:_js_helper',
         'dart:collection',
         'dart:typed_data',
+        'dart:js',
         'dart:js_util',
-        'dart:js_util_wasm',
-        'dart:js_wasm',
         'dart:wasm',
       ];
 
@@ -107,7 +105,7 @@ class WasmTarget extends Target {
       ChangedStructureNotifier? changedStructureNotifier}) {
     List<Library>? transitiveImportingJSInterop =
         jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-            component, Uri.parse("dart:js_wasm"));
+            component, Uri.parse("package:js/js.dart"));
     if (transitiveImportingJSInterop == null) {
       logger?.call("Skipped JS interop transformations");
     } else {

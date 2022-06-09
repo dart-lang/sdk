@@ -1339,6 +1339,9 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNUSED_ELEMENT: [
       RemoveUnusedElement.new,
     ],
+    HintCode.UNUSED_ELEMENT_PARAMETER: [
+      RemoveUnusedParameter.new,
+    ],
     HintCode.UNUSED_FIELD: [
       RemoveUnusedField.new,
     ],

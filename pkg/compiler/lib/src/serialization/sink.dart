@@ -13,6 +13,8 @@ part of 'serialization.dart';
 class DataSinkWriter implements migrated.DataSinkWriter {
   final DataSink _sinkWriter;
 
+  final bool enableDeferredStrategy;
+
   /// If `true`, serialization of every data kind is preceded by a [DataKind]
   /// value.
   ///
@@ -56,8 +58,10 @@ class DataSinkWriter implements migrated.DataSinkWriter {
     }
   }
 
-  DataSinkWriter(this._sinkWriter,
-      {this.useDataKinds = false, this.tagFrequencyMap, this.importedIndices}) {
+  DataSinkWriter(this._sinkWriter, CompilerOptions options,
+      {this.useDataKinds = false, this.tagFrequencyMap, this.importedIndices})
+      : enableDeferredStrategy =
+            (options?.features?.deferredSerialization?.isEnabled ?? false) {
     _dartTypeNodeWriter = DartTypeNodeWriter(this);
     _stringIndex = _createSink<String>();
     _uriIndex = _createSink<Uri>();

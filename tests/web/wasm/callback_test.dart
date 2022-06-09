@@ -3,11 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:js_util';
-import 'dart:js_util_wasm';
-import 'dart:js_wasm';
 import 'dart:wasm';
 
 import 'package:expect/expect.dart';
+import 'package:js/js.dart';
 
 @JS()
 external void eval(String code);
@@ -17,8 +16,7 @@ typedef SumStringCallback = String Function(String a, String b);
 @JS()
 @staticInterop
 class DartFromJSCallbackHelper {
-  // TODO(joshualitt): Update [allowInterop] to return a function.
-  external factory DartFromJSCallbackHelper.factory(Object summer);
+  external factory DartFromJSCallbackHelper.factory(SumStringCallback summer);
 }
 
 extension DartFromJSCallbackHelperMethods on DartFromJSCallbackHelper {
