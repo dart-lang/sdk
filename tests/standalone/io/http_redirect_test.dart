@@ -323,6 +323,31 @@ void testAutoRedirect() {
   });
 }
 
+void testAutoRedirectZeroMaxRedirects() {
+  setupServer().then((server) {
+    HttpClient client = new HttpClient();
+
+    client
+        .getUrl(Uri.parse("http://127.0.0.1:${server.port}/redirect"))
+        .then((HttpClientRequest request) {
+      request
+        ..followRedirects = true
+        ..maxRedirects = 0;
+
+      return request.close();
+    }).then((HttpClientResponse response) {
+      response.drain();
+      Expect.fail("Response data not expected");
+    }, onError: (error) {
+      final httpException = error as HttpException;
+      Expect.equals(httpException.message, "Redirect limit exceeded");
+      Expect.equals(httpException.uri, null);
+      server.close();
+      client.close();
+    });
+  });
+}
+
 void testAutoRedirectWithHeaders() {
   setupServer().then((server) {
     HttpClient client = new HttpClient();
@@ -606,6 +631,7 @@ main() {
   testManualRedirect();
   testManualRedirectWithHeaders();
   testAutoRedirect();
+  testAutoRedirectZeroMaxRedirects();
   testAutoRedirectWithHeaders();
   testShouldCopyHeadersOnRedirect();
   testCrossDomainAutoRedirectWithHeaders();

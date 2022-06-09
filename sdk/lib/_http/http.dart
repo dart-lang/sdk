@@ -1978,5 +1978,5 @@ class RedirectException implements HttpException {
 
   String toString() => "RedirectException: $message";
 
-  Uri get uri => redirects.last.location;
+  Uri? get uri => redirects.isEmpty ? null : redirects.last.location;
 }
