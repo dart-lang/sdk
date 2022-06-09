@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.9
 import 'package:kernel/ast.dart';
 import 'package:kernel/util/graph.dart';
 
@@ -44,7 +45,7 @@ class StrongComponents {
   final Uri mainUri;
 
   /// The filesystem instance for resolving files.
-  final FileSystem? fileSystem;
+  final FileSystem fileSystem;
 
   /// The set of libraries for each module URI.
   ///
@@ -67,13 +68,10 @@ class StrongComponents {
     }
     // If we don't have a file uri, just use the first library in the
     // component.
-    Library? entrypoint;
-    for (Library library in component.libraries) {
-      if (library.fileUri == mainUri || library.importUri == mainUri) {
-        entrypoint = library;
-        break;
-      }
-    }
+    Library entrypoint = component.libraries.firstWhere(
+        (Library library) =>
+            library.fileUri == mainUri || library.importUri == mainUri,
+        orElse: () => null);
 
     if (entrypoint == null) {
       throw Exception('Could not find entrypoint ${mainUri} in Component.');

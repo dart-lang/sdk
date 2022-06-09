@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.8
+
 /// A library to invoke the CFE to compute kernel summary files.
 ///
 /// Used by `utils/bazel/kernel_worker.dart`.
@@ -117,7 +119,7 @@ final summaryArgsParser = new ArgParser()
 
 class ComputeKernelResult {
   final bool succeeded;
-  final fe.InitializedCompilerState? previousState;
+  final fe.InitializedCompilerState previousState;
 
   ComputeKernelResult(this.succeeded, this.previousState);
 }
@@ -132,9 +134,9 @@ class ComputeKernelResult {
 /// Returns whether or not the summary was successfully output.
 Future<ComputeKernelResult> computeKernel(List<String> args,
     {bool isWorker: false,
-    StringBuffer? outputBuffer,
-    Map<Uri, List<int>>? inputDigests,
-    fe.InitializedCompilerState? previousState}) async {
+    StringBuffer outputBuffer,
+    Map<Uri, List<int>> inputDigests,
+    fe.InitializedCompilerState previousState}) async {
   inputDigests ??= <Uri, List<int>>{};
   dynamic out = outputBuffer ?? stderr;
   bool succeeded = true;
@@ -170,7 +172,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   // TODO(sigmund,jakemac): make target mandatory. We allow null to be backwards
   // compatible while we migrate existing clients of this tool.
   var targetName =
-      (parsedArgs['target'] as String?) ?? (summaryOnly ? 'ddc' : 'vm');
+      (parsedArgs['target'] as String) ?? (summaryOnly ? 'ddc' : 'vm');
   var targetFlags = new TargetFlags(
       trackWidgetCreation: trackWidgetCreation,
       enableNullSafety: nnbdMode == fe.NnbdMode.Strong);
@@ -223,7 +225,6 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       break;
     default:
       out.writeln('error: unsupported target: $targetName');
-      return ComputeKernelResult(false, previousState);
   }
 
   List<Uri> linkedInputs =
@@ -359,12 +360,12 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     }
   }
 
-  List<int>? kernel;
+  List<int> kernel;
   bool wroteUsedDills = false;
   if (usingIncrementalCompiler) {
     state.options.onDiagnostic = onDiagnostic;
     IncrementalCompilerResult incrementalCompilerResult =
-        await state.incrementalCompiler!.computeDelta(
+        await state.incrementalCompiler.computeDelta(
             entryPoints: sources,
             fullComponent: true,
             trackNeededDillLibraries: recordUsedInputs);
@@ -372,9 +373,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
 
     if (recordUsedInputs) {
       Set<Uri> usedOutlines = {};
-      for (Library lib in incrementalCompilerResult.neededDillLibraries!) {
+      for (Library lib in incrementalCompilerResult.neededDillLibraries) {
         if (lib.importUri.isScheme("dart")) continue;
-        Uri? uri = state.libraryToInputDill![lib.importUri];
+        Uri uri = state.libraryToInputDill[lib.importUri];
         if (uri == null) {
           throw new StateError("Library ${lib.importUri} was recorded as used, "
               "but was not in the list of known libraries.");
@@ -387,7 +388,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       wroteUsedDills = true;
     }
 
-    kernel = await state.incrementalCompiler!.context.runInContext((_) {
+    kernel = await state.incrementalCompiler.context.runInContext((_) {
       if (summaryOnly) {
         incrementalComponent.uriToSource.clear();
         incrementalComponent.problemsAsJson = null;
@@ -411,15 +412,13 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     kernel = await fe.compileSummary(state, sources, onDiagnostic,
         includeOffsets: false);
   } else {
-    Component? component = await fe
+    Component component = await fe
         .compileComponent(state, sources, onDiagnostic, buildSummary: summary);
-    if (component != null) {
-      kernel = fe.serializeComponent(component,
-          filter: excludeNonSources
-              ? (library) => sources.contains(library.importUri)
-              : null,
-          includeOffsets: true);
-    }
+    kernel = fe.serializeComponent(component,
+        filter: excludeNonSources
+            ? (library) => sources.contains(library.importUri)
+            : null,
+        includeOffsets: true);
   }
   state.options.onDiagnostic = null; // See http://dartbug.com/36983.
 
@@ -469,6 +468,7 @@ class DevCompilerSummaryTarget extends DevCompilerTarget with SummaryMixin {
 }
 
 Uri toUri(String uriString) {
+  if (uriString == null) return null;
   // Windows-style paths use '\', so convert them to '/' in case they've been
   // concatenated with Unix-style paths.
   return Uri.base.resolve(uriString.replaceAll("\\", "/"));
