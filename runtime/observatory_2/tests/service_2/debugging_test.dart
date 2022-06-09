@@ -79,6 +79,7 @@ var tests = <IsolateTest>[
     expect(bpt.type, equals('Breakpoint'));
     expect(bpt.location.script.id, equals(script.id));
     expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(15));
+    await waitUntilBreakpointIsReady(isolate.breakpoints, bpt);
     expect(isolate.breakpoints.length, equals(1));
 
     await completer.future; // Wait for breakpoint events.
@@ -188,6 +189,7 @@ var tests = <IsolateTest>[
     expect(bpt.type, equals('Breakpoint'));
     expect(bpt.location.script.name, equals('debugging_test.dart'));
     expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(12));
+    await waitUntilBreakpointIsReady(isolate.breakpoints, bpt);
     expect(isolate.breakpoints.length, equals(1));
 
     await completer.future; // Wait for breakpoint events.

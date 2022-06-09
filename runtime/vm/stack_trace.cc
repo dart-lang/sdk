@@ -21,8 +21,8 @@ const intptr_t k_FutureListener_stateCatchError = 2;
 // - sdk/lib/async/future_impl.dart:_FutureListener.stateWhenComplete.
 const intptr_t k_FutureListener_stateWhenComplete = 8;
 
-// Keep in sync with sdk/lib/async/future_impl.dart:_FutureListener.handleValue.
-const intptr_t kNumArgsFutureListenerHandleValue = 1;
+// Keep in sync with sdk/lib/async/future_impl.dart:_FutureListener.propagate.
+const intptr_t kNumArgsFutureListenerPropagate = 0;
 
 // Find current yield index from async closure.
 // Async closures contains a variable, :await_jump_var that holds the index into
@@ -538,19 +538,19 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
     return caller_closure_finder->FindCaller(closure);
   }
 
-  // May have been called from `_FutureListener.handleValue`, which means its
+  // May have been called from `_FutureListener.propagate`, which means its
   // receiver holds the Future chain.
   DartFrameIterator future_frames(frames);
   if (function.recognized_kind() == MethodRecognizer::kRootZoneRunUnary) {
     frame = future_frames.NextFrame();
     function = frame->LookupDartFunction();
     if (function.recognized_kind() !=
-        MethodRecognizer::kFutureListenerHandleValue) {
+        MethodRecognizer::kFutureListenerPropagate) {
       return Closure::null();
     }
   }
   if (function.recognized_kind() ==
-      MethodRecognizer::kFutureListenerHandleValue) {
+      MethodRecognizer::kFutureListenerPropagate) {
     *is_async = true;
     *skip_frame = true;
 
@@ -558,9 +558,9 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
     // before the arguments to the call.
     Object& receiver =
         Object::Handle(*(reinterpret_cast<ObjectPtr*>(frame->GetCallerSp()) +
-                         kNumArgsFutureListenerHandleValue));
+                         kNumArgsFutureListenerPropagate));
     if (receiver.ptr() == Symbols::OptimizedOut().ptr()) {
-      // In the very rare case that _FutureListener.handleValue has deoptimized
+      // In the very rare case that _FutureListener.propagate has deoptimized
       // it may override the receiver slot in the caller frame with "<optimized
       // out>" due to the `this` no longer being needed.
       return Closure::null();

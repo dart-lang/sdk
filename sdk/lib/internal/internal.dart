@@ -762,6 +762,17 @@ T checkNotNullable<T extends Object>(T value, String name) {
   return value;
 }
 
+/// Used in asserts to check that [object] has *unsound* type [T].
+///
+/// Throws if [object] does not have type [T] in sound null safe mode,
+/// or it does not have type `T?` in unsound null safe mode.
+///
+/// Returns `true` if it doesn't throw, so it can be used in an `assert`.
+bool checkUnsoundType<T>(Object? object) {
+  object as T;
+  return true;
+}
+
 /// A [TypeError] thrown by [checkNotNullable].
 class NotNullableError<T> extends Error implements TypeError {
   final String _name;

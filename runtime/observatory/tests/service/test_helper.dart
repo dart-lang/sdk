@@ -716,3 +716,23 @@ Future runDDSTests(List<String> mainArgs, List<DDSTest> tests,
     );
   }
 }
+
+/// Waits until the breakpoint map has been updated with the given
+/// [breakpoint].
+///
+/// The `Isolate.addBreakpoint()` call will do a RPC call to the VM and return
+/// the added breakpoint.
+///
+/// Though the `Isolate.breakpoints` map will *not* reflect this immediately.
+/// This map is updated asynchronously by listening for
+/// `ServiceEvent.kBreakpointAdded` events from the VM's `kDebugStream` (see
+/// [VM] class)
+Future waitUntilBreakpointIsReady(
+    Map<int, Breakpoint> map, Breakpoint breakpoint) async {
+  for (int i = 0; i < 100; ++i) {
+    if (map.containsKey(breakpoint.number)) return;
+    await Future.delayed(const Duration(milliseconds: 1));
+  }
+  throw TimeoutException(
+      'The expected breakpoint has not been advertised by the VM in time');
+}

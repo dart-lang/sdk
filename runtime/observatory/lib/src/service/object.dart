@@ -1793,8 +1793,10 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       case ServiceEvent.kPausePostRequest:
       case ServiceEvent.kNone:
       case ServiceEvent.kResume:
-        assert((pauseEvent == null) ||
-            !event.timestamp!.isBefore(pauseEvent!.timestamp));
+        assert(
+            (pauseEvent == null) ||
+                !event.timestamp!.isBefore(pauseEvent!.timestamp),
+            "${event.timestamp} is before ${pauseEvent!.timestamp}");
         pauseEvent = createEventFromServiceEvent(event) as M.DebugEvent;
         _updateRunState();
         break;

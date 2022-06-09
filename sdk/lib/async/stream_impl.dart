@@ -1079,14 +1079,15 @@ class _StreamIterator<T> implements StreamIterator<T> {
 
   void _onDone() {
     var subscription = _subscription;
-    _Future<bool> moveNextFuture = _stateData as dynamic;
+    _Future moveNextFuture = _stateData as dynamic;
+    assert(moveNextFuture is _Future<bool>);
     _subscription = null;
     _stateData = null;
     if (subscription != null) {
       moveNextFuture._completeWithValue(false);
     } else {
       // Event delivered during `listen` call.
-      moveNextFuture._asyncCompleteWithValue(false);
+      moveNextFuture._asyncCompleteWithValueUnchecked(false);
     }
   }
 }

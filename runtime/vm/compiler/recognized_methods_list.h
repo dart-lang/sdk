@@ -281,10 +281,10 @@ namespace dart {
   V(::, reachabilityFence, ReachabilityFence, 0x730f2b7f)                      \
   V(::, _asyncThenWrapperHelper, AsyncThenWrapperHelper, 0x0c17f838)           \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0xf296c901)                          \
-  V(_Future, timeout, FutureTimeout, 0xa7cb3294)                               \
+  V(_Future, timeout, FutureTimeout, 0x8d415c97)                               \
   V(Future, wait, FutureWait, 0xb0b596bd)                                      \
   V(_RootZone, runUnary, RootZoneRunUnary, 0xb607f8bf)                         \
-  V(_FutureListener, handleValue, FutureListenerHandleValue, 0x438115a8)       \
+  V(_FutureListener, propagate, FutureListenerPropagate, 0x8a29635e)           \
   V(::, has63BitSmis, Has63BitSmis, 0xf61b56f1)                                \
   V(::, get:extensionStreamHasListener, ExtensionStreamHasListener, 0xfab46343)\
 

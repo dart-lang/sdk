@@ -95,7 +95,7 @@ final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final result = await service.getStack(isolateRef.id!);
 
-    expect(result.frames, hasLength(10));
+    expect(result.frames, hasLength(8)); // Must match frames below.
     expect(result.asyncCausalFrames, hasLength(26));
     expect(result.awaiterFrames, hasLength(13));
 
@@ -103,8 +103,6 @@ final tests = <IsolateTest>[
       [equals('Regular'), endsWith(' func10')],
       [equals('Regular'), endsWith(' _RootZone.runUnary')],
       [equals('Regular'), anything], // Internal mech. ..
-      [equals('Regular'), anything],
-      [equals('Regular'), anything],
       [equals('Regular'), anything],
       [equals('Regular'), anything],
       [equals('Regular'), anything],

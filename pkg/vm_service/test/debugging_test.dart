@@ -94,6 +94,7 @@ var tests = <IsolateTest>[
     expect(location.line, 16);
 
     isolate = await service.getIsolate(isolateId);
+    await waitUntilBreakpointIsReady(isolate, bpt);
     expect(isolate.breakpoints!.length, 1);
 
     await completer.future; // Wait for breakpoint events.
@@ -217,6 +218,7 @@ var tests = <IsolateTest>[
 
     // Refresh isolate state.
     isolate = await service.getIsolate(isolateId);
+    await waitUntilBreakpointIsReady(isolate, bpt);
     expect(isolate.breakpoints!.length, 1);
 
     await completer.future; // Wait for breakpoint events.
