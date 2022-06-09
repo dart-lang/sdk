@@ -72,6 +72,11 @@ class CallerClosureFinder {
 
   static bool IsRunningAsync(const Closure& receiver_closure);
 
+  // Tests if given [function] with given value of :suspend_state variable
+  // was suspended at least once and running asynchronously.
+  static bool WasPreviouslySuspended(const Function& function,
+                                     const Object& suspend_state_var);
+
  private:
   ClosurePtr FindCallerInternal(const Closure& receiver_closure);
   ClosurePtr GetCallerInFutureListenerInternal(const Object& future_listener);
