@@ -631,8 +631,32 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
+    var annotation = ffiPackedAnnotations.first;
+
+    final arguments = annotation.arguments?.arguments;
+    if (arguments == null) {
+      return;
+    }
+
+    for (final argument in arguments) {
+      if (argument is SetOrMapLiteral) {
+        for (final element in argument.elements) {
+          if (element is MapLiteralEntry) {
+            final name = element.value.staticType?.element?.name;
+            if (name != null &&
+                !_primitiveIntegerNativeTypesFixedSize.contains(name)) {
+              _errorReporter.reportErrorForNode(
+                  FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
+                  element.value,
+                  [name]);
+            }
+          }
+        }
+        return;
+      }
+    }
     final annotationConstant =
-        ffiPackedAnnotations.first.elementAnnotation?.computeConstantValue();
+        annotation.elementAnnotation?.computeConstantValue();
     final mappingValues = annotationConstant?.getField('mapping')?.toMapValue();
     if (mappingValues == null) {
       return;
@@ -643,7 +667,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           !_primitiveIntegerNativeTypesFixedSize.contains(nativeTypeName)) {
         _errorReporter.reportErrorForNode(
             FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
-            ffiPackedAnnotations.first.name);
+            arguments.first,
+            [nativeTypeName]);
       }
     }
   }

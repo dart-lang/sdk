@@ -468,8 +468,8 @@ class C extends AbiSpecificInteger {
 
 ### abi_specific_integer_mapping_unsupported
 
-_Only mappings to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16',
-'UInt32', and 'Uint64' are supported._
+_Invalid mapping to '{0}'; only mappings to 'Int8', 'Int16', 'Int32', 'Int64',
+'Uint8', 'Uint16', 'UInt32', and 'Uint64' are supported._
 
 #### Description
 
@@ -493,7 +493,7 @@ entry is `Array<Uint8>`, which isn't a valid integer type:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-@[!AbiSpecificIntegerMapping!]({Abi.macosX64 : Array<Uint8>(4)})
+@AbiSpecificIntegerMapping({Abi.macosX64 : [!Array<Uint8>(4)!]})
 class C extends AbiSpecificInteger {
   const C();
 }

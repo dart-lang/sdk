@@ -40,7 +40,30 @@ class UintPtr extends AbiSpecificInteger {
   const UintPtr();
 }
 ''', [
-      error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED, 20, 25),
+      error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED, 96, 8,
+          messageContains: ["Invalid mapping to 'IntPtr'"]),
+      error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED, 125, 9,
+          messageContains: ["Invalid mapping to 'UintPtr'"]),
+    ]);
+  }
+
+  test_invalidMapping_identifier() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+const c = {
+  Abi.androidArm: Uint32(),
+  Abi.androidArm64: IntPtr(),
+  Abi.androidIA32: UintPtr(),
+};
+@AbiSpecificIntegerMapping(c)
+class UintPtr extends AbiSpecificInteger {
+  const UintPtr();
+}
+''', [
+      error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED, 149, 1,
+          messageContains: ["Invalid mapping to 'IntPtr'"]),
+      error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED, 149, 1,
+          messageContains: ["Invalid mapping to 'UintPtr'"]),
     ]);
   }
 

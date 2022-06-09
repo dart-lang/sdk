@@ -42,11 +42,12 @@ class FfiCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the value of the invalid mapping
   static const FfiCode ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED = FfiCode(
     'ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED',
-    "Only mappings to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', "
-        "'UInt32', and 'Uint64' are supported.",
+    "Invalid mapping to '{0}'; only mappings to 'Int8', 'Int16', 'Int32', "
+        "'Int64', 'Uint8', 'Uint16', 'UInt32', and 'Uint64' are supported.",
     correctionMessage:
         "Try changing the value to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', "
         "'Uint16', 'UInt32', or 'Uint64'.",

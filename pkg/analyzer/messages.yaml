@@ -5685,10 +5685,10 @@ CompileTimeErrorCode:
 
       The following code produces this diagnostic because the class `A` is used
       in both the `extends` and `with` clauses for the class `B`:
-  
+
       ```dart
       class A {}
-  
+
       class B extends A with [!A!] {}
       ```
 
@@ -15809,10 +15809,12 @@ FfiCode:
       }
       ```
   ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED:
-    problemMessage: "Only mappings to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', 'UInt32', and 'Uint64' are supported."
+    problemMessage: "Invalid mapping to '{0}'; only mappings to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', 'UInt32', and 'Uint64' are supported."
     correctionMessage: Try changing the value to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', 'UInt32', or 'Uint64'.
     hasPublishedDocs: true
-    comment: No parameters.
+    comment: |-
+      Parameters:
+      0: the value of the invalid mapping
     documentation: |-
       #### Description
 
@@ -15836,7 +15838,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      @[!AbiSpecificIntegerMapping!]({Abi.macosX64 : Array<Uint8>(4)})
+      @AbiSpecificIntegerMapping({Abi.macosX64 : [!Array<Uint8>(4)!]})
       class C extends AbiSpecificInteger {
         const C();
       }
