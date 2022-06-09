@@ -445,6 +445,13 @@ class ReplaceInfo {
   ReplaceInfo(this.replacementText, this.startPosition, this.length);
 
   @override
+  int get hashCode => Object.hash(
+        replacementText,
+        startPosition,
+        length,
+      );
+
+  @override
   bool operator ==(Object other) =>
       other is ReplaceInfo &&
       replacementText == other.replacementText &&
