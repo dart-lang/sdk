@@ -17,7 +17,8 @@ import 'package:kernel/ast.dart'
         Nullability,
         Supertype,
         getAsTypeArguments;
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/src/unaliasing.dart';
 import 'package:kernel/text/text_serialization_verifier.dart';
 
@@ -99,8 +100,8 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   InterfaceType rawType(Nullability nullability);
 
-  List<DartType> buildAliasedTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments);
+  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
+      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy);
 
   Supertype buildMixedInType(
       LibraryBuilder library, List<TypeBuilder>? arguments);
@@ -346,11 +347,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       TypeUse typeUse,
       Uri fileUri,
       int charOffset,
+      ClassHierarchyBase? hierarchy,
       {required bool hasExplicitTypeArguments}) {
     return buildAliasedTypeWithBuiltArguments(
         library,
         nullabilityBuilder.build(library),
-        buildAliasedTypeArguments(library, arguments),
+        buildAliasedTypeArguments(library, arguments, hierarchy),
         typeUse,
         fileUri,
         charOffset,
@@ -363,7 +365,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     Class cls = isPatch ? origin.cls : this.cls;
     if (arguments != null) {
       List<DartType> typeArguments =
-          buildAliasedTypeArguments(library, arguments);
+          buildAliasedTypeArguments(library, arguments, /* hierarchy = */ null);
       typeArguments = unaliasTypes(typeArguments,
           legacyEraseAliases: !library.isNonNullableByDefault)!;
       return new Supertype(cls, typeArguments);

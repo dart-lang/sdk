@@ -27,6 +27,10 @@ abstract class MixinInferrer {
 abstract class ClassHierarchyBase {
   CoreTypes get coreTypes;
 
+  /// Returns the instantiation of [superclass] that is implemented by [class_],
+  /// or `null` if [class_] does not implement [superclass] at all.
+  Supertype? getClassAsInstanceOf(Class class_, Class superclass);
+
   /// Returns the instantiation of [superclass] that is implemented by [type],
   /// or `null` if [type] does not implement [superclass] at all.
   InterfaceType? getTypeAsInstanceOf(
@@ -101,10 +105,6 @@ abstract class ClassHierarchy
   // class (e.g. getClassAsInstanceOf applied to all superclasses and
   // interfaces).
   List<Supertype> genericSupertypesOf(Class class_);
-
-  /// Returns the instantiation of [superclass] that is implemented by [class_],
-  /// or `null` if [class_] does not implement [superclass] at all.
-  Supertype? getClassAsInstanceOf(Class class_, Class superclass);
 
   /// Returns the instantiation of [superclass] that is implemented by [type],
   /// or `null` if [type] does not implement [superclass].  [superclass] must

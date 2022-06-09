@@ -5,6 +5,7 @@
 library fasta.function_type_alias_builder;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import '../fasta_codes.dart'
     show
@@ -13,10 +14,8 @@ import '../fasta_codes.dart'
         templateTypeArgumentMismatch,
         messageTypedefTypeVariableNotConstructor,
         messageTypedefTypeVariableNotConstructorCause;
-
 import '../problems.dart' show unhandled;
 import '../source/source_library_builder.dart';
-
 import 'class_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
@@ -52,8 +51,8 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
 
   DartType buildThisType();
 
-  List<DartType> buildAliasedTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments);
+  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
+      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy);
 
   /// Returns `true` if this typedef is an alias of the `Null` type.
   bool get isNullAlias;
@@ -176,6 +175,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       TypeUse typeUse,
       Uri fileUri,
       int charOffset,
+      ClassHierarchyBase? hierarchy,
       {required bool hasExplicitTypeArguments}) {
     DartType thisType = buildThisType();
     if (thisType is InvalidType) return thisType;
@@ -184,7 +184,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     return buildAliasedTypeWithBuiltArguments(
         library,
         nullability,
-        buildAliasedTypeArguments(library, arguments),
+        buildAliasedTypeArguments(library, arguments, hierarchy),
         typeUse,
         fileUri,
         charOffset,

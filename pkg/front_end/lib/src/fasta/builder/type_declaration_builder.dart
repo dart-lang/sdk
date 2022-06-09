@@ -5,6 +5,7 @@
 library fasta.type_declaration_builder;
 
 import 'package:kernel/ast.dart' show DartType, Nullability;
+import 'package:kernel/class_hierarchy.dart';
 
 import 'builder.dart';
 import 'library_builder.dart';
@@ -48,6 +49,7 @@ abstract class TypeDeclarationBuilder implements ModifierBuilder {
       TypeUse typeUse,
       Uri fileUri,
       int charOffset,
+      ClassHierarchyBase? hierarchy,
       {required bool hasExplicitTypeArguments});
 
   /// [arguments] have already been built.

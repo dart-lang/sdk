@@ -297,7 +297,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       membersBuilder.inferFieldType(this, _overrideDependencies!);
       _overrideDependencies = null;
     } else {
-      inferType();
+      type.build(libraryBuilder, TypeUse.fieldType,
+          hierarchy: membersBuilder.hierarchyBuilder);
     }
     _typeEnsured = true;
   }
@@ -460,7 +461,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  void inferTypes(TypeEnvironment typeEnvironment) {
+  void inferTypes(ClassHierarchyBase hierarchy) {
     inferType();
   }
 

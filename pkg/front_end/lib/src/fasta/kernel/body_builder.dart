@@ -7543,7 +7543,7 @@ class BodyBuilder extends StackListenerImpl
       {required bool allowPotentiallyConstantType}) {
     return validateTypeVariableUse(typeBuilder,
             allowPotentiallyConstantType: allowPotentiallyConstantType)
-        .buildAliased(libraryBuilder, typeUse);
+        .buildAliased(libraryBuilder, typeUse, /* hierarchy = */ null);
   }
 
   @override

@@ -2260,10 +2260,10 @@ class OutlineBuilder extends StackListenerImpl {
           metadata,
           kind,
           modifiers,
-          // TODO(johnniwinther): Avoid creating inferable types for omitted
-          // types in uninferable context, like omitted parameter types of
-          // function types.
-          type ?? libraryBuilder.addInferableType(),
+          type ??
+              (memberKind.isParameterInferable
+                  ? libraryBuilder.addInferableType()
+                  : const ImplicitTypeBuilder()),
           name == null ? FormalParameterBuilder.noNameSentinel : name as String,
           thisKeyword != null,
           superKeyword != null,
@@ -3469,4 +3469,30 @@ enum _MethodKind {
   extensionMethod,
   enumConstructor,
   enumMethod,
+}
+
+extension on MemberKind {
+  /// Returns `true` if a parameter occurring in this context can be inferred.
+  bool get isParameterInferable {
+    switch (this) {
+      case MemberKind.Catch:
+      case MemberKind.FunctionTypeAlias:
+      case MemberKind.Factory:
+      case MemberKind.FunctionTypedParameter:
+      case MemberKind.GeneralizedFunctionType:
+      case MemberKind.Local:
+      case MemberKind.StaticMethod:
+      case MemberKind.TopLevelMethod:
+      case MemberKind.ExtensionNonStaticMethod:
+      case MemberKind.ExtensionStaticMethod:
+        return false;
+      case MemberKind.NonStaticMethod:
+      // These can be inferred but cannot hold parameters so the cases are
+      // dead code:
+      case MemberKind.NonStaticField:
+      case MemberKind.StaticField:
+      case MemberKind.TopLevelField:
+        return true;
+    }
+  }
 }

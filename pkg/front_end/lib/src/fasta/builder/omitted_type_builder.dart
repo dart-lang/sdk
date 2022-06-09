@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/type_environment.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import '../source/source_library_builder.dart';
 import 'library_builder.dart';
@@ -13,16 +13,6 @@ import 'type_builder.dart';
 
 abstract class OmittedTypeBuilder extends TypeBuilder {
   const OmittedTypeBuilder();
-
-  @override
-  DartType build(LibraryBuilder library, TypeUse typeUse) {
-    throw new UnsupportedError('$runtimeType.build');
-  }
-
-  @override
-  DartType buildAliased(LibraryBuilder library, TypeUse typeUse) {
-    throw new UnsupportedError('$runtimeType.buildAliased');
-  }
 
   @override
   Supertype? buildMixedInType(LibraryBuilder library) {
@@ -78,50 +68,53 @@ class ImplicitTypeBuilder extends OmittedTypeBuilder {
   const ImplicitTypeBuilder();
 
   @override
+  DartType build(LibraryBuilder library, TypeUse typeUse,
+          {ClassHierarchyBase? hierarchy}) =>
+      type;
+
+  @override
+  DartType buildAliased(LibraryBuilder library, TypeUse typeUse,
+          ClassHierarchyBase? hierarchy) =>
+      type;
+
+  @override
+  bool get isExplicit => true;
+
+  @override
   bool get hasType => true;
 
   @override
   DartType get type => const DynamicType();
 }
 
-class InferableTypeBuilder extends OmittedTypeBuilder {
+class InferableTypeBuilder extends OmittedTypeBuilder
+    with ListenableTypeBuilderMixin<DartType> {
   @override
-  bool get hasType => _type != null;
-
-  DartType? _type;
-
-  @override
-  DartType get type => _type!;
-
-  List<InferredTypeListener>? _listeners;
-
-  @override
-  void registerInferredTypeListener(InferredTypeListener onType) {
-    if (hasType) {
-      onType.onInferredType(type);
-    } else {
-      (_listeners ??= []).add(onType);
+  DartType build(LibraryBuilder library, TypeUse typeUse,
+      {ClassHierarchyBase? hierarchy}) {
+    if (hierarchy != null) {
+      inferType(hierarchy);
+      return type;
     }
+    throw new UnsupportedError('$runtimeType.build');
   }
 
-  void _registerType(DartType type) {
-    // TODO(johnniwinther): Avoid multiple registration from enums and
-    //  duplicated fields.
-    if (_type == null) {
-      _type = type;
-      List<InferredTypeListener>? listeners = _listeners;
-      if (listeners != null) {
-        _listeners = null;
-        for (InferredTypeListener listener in listeners) {
-          listener.onInferredType(type);
-        }
-      }
+  @override
+  DartType buildAliased(
+      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
+    if (hierarchy != null) {
+      inferType(hierarchy);
+      return type;
     }
+    throw new UnsupportedError('$runtimeType.buildAliased');
   }
+
+  @override
+  bool get isExplicit => false;
 
   @override
   void registerInferredType(DartType type) {
-    _registerType(type);
+    registerType(type);
   }
 
   Inferable? _inferable;
@@ -141,11 +134,11 @@ class InferableTypeBuilder extends OmittedTypeBuilder {
   ///
   /// If an [Inferable] has been register, this is called to infer the type of
   /// this builder. Otherwise the type is inferred to be `dynamic`.
-  void inferType(TypeEnvironment typeEnvironment) {
+  void inferType(ClassHierarchyBase hierarchy) {
     if (!hasType) {
       Inferable? inferable = _inferable;
       if (inferable != null) {
-        inferable.inferTypes(typeEnvironment);
+        inferable.inferTypes(hierarchy);
       } else {
         registerInferredType(const DynamicType());
       }
@@ -164,5 +157,5 @@ abstract class InferredTypeListener {
 abstract class Inferable {
   /// Triggers the inference of the types of one or more
   /// [InferableTypeBuilder]s.
-  void inferTypes(TypeEnvironment typeEnvironment);
+  void inferTypes(ClassHierarchyBase hierarchy);
 }

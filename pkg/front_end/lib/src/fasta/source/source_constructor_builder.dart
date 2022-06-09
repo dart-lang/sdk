@@ -59,7 +59,7 @@ import 'source_function_builder.dart';
 abstract class SourceConstructorBuilder
     implements ConstructorBuilder, SourceMemberBuilder {
   /// Infers the types of any untyped initializing formals.
-  void inferFormalTypes(TypeEnvironment typeEnvironment);
+  void inferFormalTypes(ClassHierarchyBase hierarchy);
 
   void addSuperParameterDefaultValueCloners(
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
@@ -249,12 +249,12 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
-  void inferTypes(TypeEnvironment typeEnvironment) {
-    inferFormalTypes(typeEnvironment);
+  void inferTypes(ClassHierarchyBase hierarchy) {
+    inferFormalTypes(hierarchy);
   }
 
   @override
-  void inferFormalTypes(TypeEnvironment typeEnvironment) {
+  void inferFormalTypes(ClassHierarchyBase hierarchy) {
     if (_hasFormalsInferred) return;
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
@@ -278,7 +278,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
               doFinishConstructor: false);
         }
         finalizeSuperInitializingFormals(
-            typeEnvironment, _superParameterDefaultValueCloners, initializers);
+            hierarchy, _superParameterDefaultValueCloners, initializers);
       }
     }
     _hasFormalsInferred = true;
@@ -333,7 +333,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   }
 
   void finalizeSuperInitializingFormals(
-      TypeEnvironment typeEnvironment,
+      ClassHierarchyBase hierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
       List<Initializer>? initializers) {
     if (formals == null) return;
@@ -351,7 +351,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
         _computeSuperTargetBuilder(initializers);
 
     if (superTargetBuilder is SourceConstructorBuilder) {
-      superTargetBuilder.inferFormalTypes(typeEnvironment);
+      superTargetBuilder.inferFormalTypes(hierarchy);
     }
 
     Constructor superTarget;
@@ -386,8 +386,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     List<int?>? positionalSuperParameters;
     List<String>? namedSuperParameters;
 
-    Supertype? supertype = typeEnvironment.hierarchy
-        .getClassAsInstanceOf(classBuilder.cls, superTarget.enclosingClass);
+    Supertype? supertype = hierarchy.getClassAsInstanceOf(
+        classBuilder.cls, superTarget.enclosingClass);
     assert(supertype != null);
     Map<TypeParameter, DartType> substitution =
         new Map<TypeParameter, DartType>.fromIterables(
@@ -818,10 +818,10 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
       super.libraryBuilder as SourceLibraryBuilder;
 
   @override
-  void inferFormalTypes(TypeEnvironment typeEnvironment) {
+  void inferFormalTypes(ClassHierarchyBase hierarchy) {
     if (_immediatelyDefiningConstructor is SourceConstructorBuilder) {
       (_immediatelyDefiningConstructor as SourceConstructorBuilder)
-          .inferFormalTypes(typeEnvironment);
+          .inferFormalTypes(hierarchy);
     }
     if (_typeDependency != null) {
       _typeDependency!.copyInferred();

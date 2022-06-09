@@ -18,6 +18,7 @@ import '../scope.dart' show Scope;
 import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
+import '../type_inference/type_schema.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'builder.dart';
 import 'class_builder.dart';
@@ -147,11 +148,17 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   VariableDeclaration build(SourceLibraryBuilder library) {
     if (variable == null) {
-      DartType? builtType = type is OmittedTypeBuilder
-          // `null` is used in [VariableDeclarationImpl] to signal an omitted
-          // type.
-          ? null
-          : type.build(library, TypeUse.parameterType);
+      DartType? builtType;
+      if (type is OmittedTypeBuilder) {
+        // `null` is used in [VariableDeclarationImpl] to signal an omitted
+        // type.
+        builtType = null;
+      } else if (type.isExplicit) {
+        builtType = type.build(library, TypeUse.parameterType);
+      } else {
+        // This type needs to be computed at a later point in time.
+        builtType = const UnknownType();
+      }
       variable = new VariableDeclarationImpl(
           name == noNameSentinel ? null : name,
           type: builtType,

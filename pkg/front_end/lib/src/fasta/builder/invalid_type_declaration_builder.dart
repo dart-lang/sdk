@@ -5,6 +5,7 @@
 library fasta.invalid_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, InvalidType, Nullability;
+import 'package:kernel/class_hierarchy.dart';
 
 import '../fasta_codes.dart' show LocatedMessage;
 import '../scope.dart';
@@ -40,6 +41,7 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
       TypeUse typeUse,
       Uri fileUri,
       int charOffset,
+      ClassHierarchyBase? hierarchy,
       {required bool hasExplicitTypeArguments}) {
     return buildAliasedTypeWithBuiltArguments(
         library, null, null, typeUse, fileUri, charOffset,
