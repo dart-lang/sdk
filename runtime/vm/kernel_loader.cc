@@ -2056,17 +2056,17 @@ void KernelLoader::LoadProcedure(const Library& library,
     switch (function_node_helper.dart_async_marker_) {
       case FunctionNodeHelper::kSyncStar:
         function.set_modifier(UntaggedFunction::kSyncGen);
-        function.set_is_visible(!FLAG_lazy_async_stacks);
+        function.set_is_visible(false);
         break;
       case FunctionNodeHelper::kAsync:
         function.set_modifier(UntaggedFunction::kAsync);
-        function.set_is_inlinable(!FLAG_lazy_async_stacks);
-        function.set_is_visible(!FLAG_lazy_async_stacks);
+        function.set_is_inlinable(false);
+        function.set_is_visible(false);
         break;
       case FunctionNodeHelper::kAsyncStar:
         function.set_modifier(UntaggedFunction::kAsyncGen);
-        function.set_is_inlinable(!FLAG_lazy_async_stacks);
-        function.set_is_visible(!FLAG_lazy_async_stacks);
+        function.set_is_inlinable(false);
+        function.set_is_visible(false);
         break;
       default:
         // no special modifier

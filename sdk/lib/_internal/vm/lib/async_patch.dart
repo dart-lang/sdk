@@ -372,15 +372,69 @@ class _SuspendState {
     }
   }
 
+  @pragma("vm:invisible")
+  @pragma("vm:prefer-inline")
+  void _awaitCompletedFuture(_Future future) {
+    assert(future._isComplete);
+    final zone = Zone._current;
+    if (future._hasError) {
+      @pragma("vm:invisible")
+      void run() {
+        final AsyncError asyncError =
+            unsafeCast<AsyncError>(future._resultOrListeners);
+        zone.runBinary(
+            unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback),
+            asyncError.error,
+            asyncError.stackTrace);
+      }
+
+      zone.scheduleMicrotask(run);
+    } else {
+      @pragma("vm:invisible")
+      void run() {
+        zone.runUnary(unsafeCast<dynamic Function(dynamic)>(_thenCallback),
+            future._resultOrListeners);
+      }
+
+      zone.scheduleMicrotask(run);
+    }
+  }
+
+  @pragma("vm:invisible")
+  @pragma("vm:prefer-inline")
+  void _awaitNotFuture(Object? object) {
+    final zone = Zone._current;
+    @pragma("vm:invisible")
+    void run() {
+      zone.runUnary(
+          unsafeCast<dynamic Function(dynamic)>(_thenCallback), object);
+    }
+
+    zone.scheduleMicrotask(run);
+  }
+
   @pragma("vm:entry-point", "call")
   @pragma("vm:invisible")
   Object? _await(Object? object) {
-    if (_trace) print('_awaitAsync (object=$object)');
+    if (_trace) print('_await (object=$object)');
     if (_thenCallback == null) {
       _createAsyncCallbacks();
     }
-    _awaitHelper(object, unsafeCast<dynamic Function(dynamic)>(_thenCallback),
-        unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback));
+    if (object is _Future) {
+      if (object._isComplete) {
+        _awaitCompletedFuture(object);
+      } else {
+        object._thenAwait<dynamic>(
+            unsafeCast<dynamic Function(dynamic)>(_thenCallback),
+            unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback));
+      }
+    } else if (object is! Future) {
+      _awaitNotFuture(object);
+    } else {
+      object.then(unsafeCast<dynamic Function(dynamic)>(_thenCallback),
+          onError:
+              unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback));
+    }
     return _functionData;
   }
 
@@ -392,14 +446,16 @@ class _SuspendState {
           'returnValue=$returnValue)');
     }
     _Future future;
-    bool isSync = true;
     if (suspendState is _SuspendState) {
       future = unsafeCast<_Future>(suspendState._functionData);
     } else {
       future = unsafeCast<_Future>(suspendState);
-      isSync = false;
     }
-    _completeOnAsyncReturn(future, returnValue, isSync);
+    if (returnValue is Future) {
+      future._asyncCompleteUnchecked(returnValue);
+    } else {
+      future._completeWithValue(returnValue);
+    }
     return future;
   }
 
@@ -412,14 +468,12 @@ class _SuspendState {
           'returnValue=$returnValue)');
     }
     _Future future;
-    bool isSync = true;
     if (suspendState is _SuspendState) {
       future = unsafeCast<_Future>(suspendState._functionData);
     } else {
       future = unsafeCast<_Future>(suspendState);
-      isSync = false;
     }
-    _completeWithNoFutureOnAsyncReturn(future, returnValue, isSync);
+    future._completeWithValue(returnValue);
     return future;
   }
 

@@ -1384,7 +1384,7 @@ void ScopeBuilder::VisitVariableDeclaration() {
   // Lift the special async vars out of the function body scope, into the
   // outer function declaration scope.
   // This way we can allocate them in the outermost context at fixed indices,
-  // allowing support for --lazy-async-stacks implementation to find awaiters.
+  // allowing support for async stack traces implementation to find awaiters.
   if (name.Equals(Symbols::AwaitJumpVar()) ||
       name.Equals(Symbols::AsyncFuture()) || name.Equals(Symbols::is_sync()) ||
       name.Equals(Symbols::Controller())) {

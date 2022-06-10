@@ -5639,7 +5639,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           // Note: Is..() methods use the modifiers set above, so order
           // matters.
           if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-            function.set_is_inlinable(!FLAG_lazy_async_stacks);
+            function.set_is_inlinable(false);
           }
           ASSERT(!function.IsCompactAsyncFunction());
           ASSERT(!function.IsCompactAsyncStarFunction());

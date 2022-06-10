@@ -27,6 +27,7 @@ class Module with SerializerMixin {
   BaseFunction? startFunction = null;
 
   bool anyFunctionsDefined = false;
+  bool anyTablesDefined = false;
   bool anyMemoriesDefined = false;
   bool anyGlobalsDefined = false;
   bool dataReferencedFromGlobalInitializer = false;
@@ -48,12 +49,16 @@ class Module with SerializerMixin {
   /// All module imports (functions and globals).
   Iterable<Import> get imports => functions
       .whereType<Import>()
+      .followedBy(tables.whereType<Import>())
       .followedBy(memories.whereType<Import>())
       .followedBy(globals.whereType<Import>());
 
   /// All functions defined in the module.
   Iterable<DefinedFunction> get definedFunctions =>
       functions.whereType<DefinedFunction>();
+
+  /// All tables defined in the module.
+  Iterable<DefinedTable> get definedTables => tables.whereType<DefinedTable>();
 
   /// All memories defined in the module.
   Iterable<DefinedMemory> get definedMemories =>
@@ -123,8 +128,9 @@ class Module with SerializerMixin {
   }
 
   /// Add a new table to the module.
-  Table addTable(int minSize, [int? maxSize]) {
-    final table = Table(tables.length, minSize, maxSize);
+  DefinedTable addTable(RefType type, int minSize, [int? maxSize]) {
+    anyTablesDefined = true;
+    final table = DefinedTable(tables.length, type, minSize, maxSize);
     tables.add(table);
     return table;
   }
@@ -191,6 +197,22 @@ class Module with SerializerMixin {
     return function;
   }
 
+  /// Import a table into the module.
+  ///
+  /// All imported tables must be specified before any tables are declared
+  /// using [Module.addTable].
+  ImportedTable importTable(
+      String module, String name, RefType type, int minSize,
+      [int? maxSize]) {
+    if (anyTablesDefined) {
+      throw "All table imports must be specified before any definitions.";
+    }
+    final table =
+        ImportedTable(module, name, tables.length, type, minSize, maxSize);
+    tables.add(table);
+    return table;
+  }
+
   /// Import a memory into the module.
   ///
   /// All imported memories must be specified before any memories are declared
@@ -231,6 +253,20 @@ class Module with SerializerMixin {
   void exportFunction(String name, BaseFunction function) {
     function.exportedName = name;
     _addExport(FunctionExport(name, function));
+  }
+
+  /// Export a table from the module.
+  ///
+  /// All exports must have unique names.
+  void exportTable(String name, Table table) {
+    _addExport(TableExport(name, table));
+  }
+
+  /// Export a memory from the module.
+  ///
+  /// All exports must have unique names.
+  void exportMemory(String name, Memory memory) {
+    _addExport(MemoryExport(name, memory));
   }
 
   /// Export a global variable from the module.
@@ -303,7 +339,7 @@ class _FunctionTypeKey {
   }
 }
 
-/// An (imported or defined) Wasm function.
+/// An (imported or defined) function.
 abstract class BaseFunction {
   final int index;
   final FunctionType type;
@@ -313,7 +349,7 @@ abstract class BaseFunction {
   BaseFunction(this.index, this.type, this.functionName);
 }
 
-/// A function defined in the module.
+/// A function defined in a module.
 class DefinedFunction extends BaseFunction
     with SerializerMixin
     implements Serializable {
@@ -323,9 +359,8 @@ class DefinedFunction extends BaseFunction
   /// The body of the function.
   late final Instructions body;
 
-  DefinedFunction(Module module, int index, FunctionType type,
-      [String? functionName])
-      : super(index, type, functionName) {
+  DefinedFunction(Module module, super.index, super.type,
+      [super.functionName]) {
     for (ValueType paramType in type.inputs) {
       addLocal(paramType);
     }
@@ -380,23 +415,18 @@ class Local {
   String toString() => "$index";
 }
 
-/// A table in a module.
+/// An (imported or defined) table.
 class Table implements Serializable {
   final int index;
+  final RefType type;
   final int minSize;
   final int? maxSize;
-  final List<BaseFunction?> elements;
 
-  Table(this.index, this.minSize, this.maxSize)
-      : elements = List.filled(minSize, null);
-
-  void setElement(int index, BaseFunction function) {
-    elements[index] = function;
-  }
+  Table(this.index, this.type, this.minSize, this.maxSize);
 
   @override
   void serialize(Serializer s) {
-    s.writeByte(0x70); // funcref
+    s.write(type);
     if (maxSize == null) {
       s.writeByte(0x00);
       s.writeUnsigned(minSize);
@@ -408,7 +438,21 @@ class Table implements Serializable {
   }
 }
 
-/// A memory in a module.
+/// A table defined in a module.
+class DefinedTable extends Table {
+  final List<BaseFunction?> elements;
+
+  DefinedTable(super.index, super.type, super.minSize, super.maxSize)
+      : elements = List.filled(minSize, null);
+
+  void setElement(int index, BaseFunction function) {
+    assert(type == RefType.func(),
+        "Elements are only supported for funcref tables");
+    elements[index] = function;
+  }
+}
+
+/// An (imported or defined) memory.
 class Memory {
   final int index;
   final bool shared;
@@ -438,9 +482,9 @@ class Memory {
   }
 }
 
+/// A memory defined in a module.
 class DefinedMemory extends Memory implements Serializable {
-  DefinedMemory(int index, bool shared, int minSize, int? maxSize)
-      : super(index, shared, minSize, maxSize);
+  DefinedMemory(super.index, super.shared, super.minSize, super.maxSize);
 
   @override
   void serialize(Serializer s) => _serializeLimits(s);
@@ -507,7 +551,7 @@ class DataSegment implements Serializable {
   }
 }
 
-/// An (imported or defined) global variable in a module.
+/// An (imported or defined) global variable.
 abstract class Global {
   final int index;
   final GlobalType type;
@@ -518,14 +562,13 @@ abstract class Global {
   String toString() => "$index";
 }
 
-/// A global variable defined in the module.
+/// A global variable defined in a module.
 class DefinedGlobal extends Global implements Serializable {
   final Instructions initializer;
 
-  DefinedGlobal(Module module, int index, GlobalType type)
+  DefinedGlobal(Module module, super.index, super.type)
       : initializer =
-            Instructions(module, [type.type], isGlobalInitializer: true),
-        super(index, type);
+            Instructions(module, [type.type], isGlobalInitializer: true);
 
   @override
   void serialize(Serializer s) {
@@ -535,7 +578,7 @@ class DefinedGlobal extends Global implements Serializable {
   }
 }
 
-/// Any import (function or global).
+/// Any import (function, table, memory or global).
 abstract class Import implements Serializable {
   String get module;
   String get name;
@@ -546,9 +589,8 @@ class ImportedFunction extends BaseFunction implements Import {
   final String module;
   final String name;
 
-  ImportedFunction(this.module, this.name, int index, FunctionType type,
-      [String? functionName])
-      : super(index, type, functionName);
+  ImportedFunction(this.module, this.name, super.index, super.type,
+      [super.functionName]);
 
   @override
   void serialize(Serializer s) {
@@ -562,14 +604,30 @@ class ImportedFunction extends BaseFunction implements Import {
   String toString() => "$module.$name";
 }
 
+/// An imported table.
+class ImportedTable extends Table implements Import {
+  final String module;
+  final String name;
+
+  ImportedTable(this.module, this.name, super.index, super.type, super.minSize,
+      super.maxSize);
+
+  @override
+  void serialize(Serializer s) {
+    s.writeName(module);
+    s.writeName(name);
+    s.writeByte(0x01);
+    super.serialize(s);
+  }
+}
+
 /// An imported memory.
 class ImportedMemory extends Memory implements Import {
   final String module;
   final String name;
 
-  ImportedMemory(
-      this.module, this.name, int index, bool shared, int minSize, int? maxSize)
-      : super(index, shared, minSize, maxSize);
+  ImportedMemory(this.module, this.name, super.index, super.shared,
+      super.minSize, super.maxSize);
 
   @override
   void serialize(Serializer s) {
@@ -585,8 +643,7 @@ class ImportedGlobal extends Global implements Import {
   final String module;
   final String name;
 
-  ImportedGlobal(this.module, this.name, int index, GlobalType type)
-      : super(index, type);
+  ImportedGlobal(this.module, this.name, super.index, super.type);
 
   @override
   void serialize(Serializer s) {
@@ -606,7 +663,7 @@ abstract class Export implements Serializable {
 class FunctionExport extends Export {
   final BaseFunction function;
 
-  FunctionExport(String name, this.function) : super(name);
+  FunctionExport(super.name, this.function);
 
   @override
   void serialize(Serializer s) {
@@ -616,10 +673,36 @@ class FunctionExport extends Export {
   }
 }
 
+class TableExport extends Export {
+  final Table table;
+
+  TableExport(super.name, this.table);
+
+  @override
+  void serialize(Serializer s) {
+    s.writeName(name);
+    s.writeByte(0x01);
+    s.writeUnsigned(table.index);
+  }
+}
+
+class MemoryExport extends Export {
+  final Memory memory;
+
+  MemoryExport(super.name, this.memory);
+
+  @override
+  void serialize(Serializer s) {
+    s.writeName(name);
+    s.writeByte(0x02);
+    s.writeUnsigned(memory.index);
+  }
+}
+
 class GlobalExport extends Export {
   final Global global;
 
-  GlobalExport(String name, this.global) : super(name);
+  GlobalExport(super.name, this.global);
 
   @override
   void serialize(Serializer s) {
@@ -651,7 +734,7 @@ abstract class Section with SerializerMixin implements Serializable {
 }
 
 class TypeSection extends Section {
-  TypeSection(Module module) : super(module);
+  TypeSection(super.module);
 
   @override
   int get id => 1;
@@ -669,7 +752,7 @@ class TypeSection extends Section {
 }
 
 class ImportSection extends Section {
-  ImportSection(Module module) : super(module);
+  ImportSection(super.module);
 
   @override
   int get id => 2;
@@ -684,7 +767,7 @@ class ImportSection extends Section {
 }
 
 class FunctionSection extends Section {
-  FunctionSection(Module module) : super(module);
+  FunctionSection(super.module);
 
   @override
   int get id => 3;
@@ -702,22 +785,22 @@ class FunctionSection extends Section {
 }
 
 class TableSection extends Section {
-  TableSection(Module module) : super(module);
+  TableSection(super.module);
 
   @override
   int get id => 4;
 
   @override
-  bool get isNotEmpty => module.tables.isNotEmpty;
+  bool get isNotEmpty => module.definedTables.isNotEmpty;
 
   @override
   void serializeContents() {
-    writeList(module.tables);
+    writeList(module.definedTables.toList());
   }
 }
 
 class MemorySection extends Section {
-  MemorySection(Module module) : super(module);
+  MemorySection(super.module);
 
   @override
   int get id => 5;
@@ -732,7 +815,7 @@ class MemorySection extends Section {
 }
 
 class TagSection extends Section {
-  TagSection(Module module) : super(module);
+  TagSection(super.module);
 
   @override
   int get id => 13;
@@ -747,7 +830,7 @@ class TagSection extends Section {
 }
 
 class GlobalSection extends Section {
-  GlobalSection(Module module) : super(module);
+  GlobalSection(super.module);
 
   @override
   int get id => 6;
@@ -762,7 +845,7 @@ class GlobalSection extends Section {
 }
 
 class ExportSection extends Section {
-  ExportSection(Module module) : super(module);
+  ExportSection(super.module);
 
   @override
   int get id => 7;
@@ -777,7 +860,7 @@ class ExportSection extends Section {
 }
 
 class StartSection extends Section {
-  StartSection(Module module) : super(module);
+  StartSection(super.module);
 
   @override
   int get id => 8;
@@ -800,10 +883,18 @@ class _Element implements Serializable {
 
   @override
   void serialize(Serializer s) {
-    s.writeUnsigned(table.index);
+    if (table.index != 0) {
+      s.writeByte(0x02);
+      s.writeUnsigned(table.index);
+    } else {
+      s.writeByte(0x00);
+    }
     s.writeByte(0x41); // i32.const
     s.writeSigned(startIndex);
     s.writeByte(0x0B); // end
+    if (table.index != 0) {
+      s.writeByte(0x00); // elemkind
+    }
     s.writeUnsigned(entries.length);
     for (var entry in entries) {
       s.writeUnsigned(entry.index);
@@ -812,21 +903,21 @@ class _Element implements Serializable {
 }
 
 class ElementSection extends Section {
-  ElementSection(Module module) : super(module);
+  ElementSection(super.module);
 
   @override
   int get id => 9;
 
   @override
   bool get isNotEmpty =>
-      module.tables.any((table) => table.elements.any((e) => e != null));
+      module.definedTables.any((table) => table.elements.any((e) => e != null));
 
   @override
   void serializeContents() {
     // Group nonempty element entries into contiguous stretches and serialize
     // each stretch as an element.
     List<_Element> elements = [];
-    for (Table table in module.tables) {
+    for (DefinedTable table in module.definedTables) {
       _Element? current = null;
       for (int i = 0; i < table.elements.length; i++) {
         BaseFunction? function = table.elements[i];
@@ -846,7 +937,7 @@ class ElementSection extends Section {
 }
 
 class DataCountSection extends Section {
-  DataCountSection(Module module) : super(module);
+  DataCountSection(super.module);
 
   @override
   int get id => 12;
@@ -861,7 +952,7 @@ class DataCountSection extends Section {
 }
 
 class CodeSection extends Section {
-  CodeSection(Module module) : super(module);
+  CodeSection(super.module);
 
   @override
   int get id => 10;
@@ -876,7 +967,7 @@ class CodeSection extends Section {
 }
 
 class DataSection extends Section {
-  DataSection(Module module) : super(module);
+  DataSection(super.module);
 
   @override
   int get id => 11;
@@ -891,14 +982,14 @@ class DataSection extends Section {
 }
 
 abstract class CustomSection extends Section {
-  CustomSection(Module module) : super(module);
+  CustomSection(super.module);
 
   @override
   int get id => 0;
 }
 
 class NameSection extends CustomSection {
-  NameSection(Module module) : super(module);
+  NameSection(super.module);
 
   @override
   bool get isNotEmpty => module.functionNameCount > 0;

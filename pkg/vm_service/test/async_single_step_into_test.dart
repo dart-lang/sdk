@@ -1,17 +1,15 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
-// VMOptions=--lazy-async-stacks
 
 import 'dart:developer';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const LINE_A = 17;
-const LINE_B = 18;
-const LINE_C = 23;
-const LINE_D = 24;
+const LINE_A = 15;
+const LINE_B = 16;
+const LINE_C = 21;
+const LINE_D = 22;
 
 helper() async {
   print('helper'); // LINE_A.

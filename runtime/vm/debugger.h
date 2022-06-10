@@ -524,7 +524,6 @@ class DebuggerStackTrace : public ZoneAllocated {
                         Array* deopt_frame);
 
   static DebuggerStackTrace* CollectAsyncCausal();
-  static DebuggerStackTrace* CollectAsyncLazy();
 
   ZoneGrowableArray<ActivationFrame*> trace_;
 

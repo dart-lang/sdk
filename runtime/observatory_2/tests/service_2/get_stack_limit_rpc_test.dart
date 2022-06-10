@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--lazy-async-stacks
-
 import 'dart:async';
 import 'dart:developer';
 
@@ -53,7 +51,7 @@ var tests = <IsolateTest>[
     var frames = stack['frames'];
     var asyncFrames = stack['asyncCausalFrames'];
     var awaiterFrames = stack['awaiterFrames'];
-    expect(frames.length, greaterThanOrEqualTo(20));
+    expect(frames.length, greaterThanOrEqualTo(12));
     expect(asyncFrames.length, greaterThan(frames.length));
     expect(awaiterFrames.length, greaterThan(frames.length));
     expect(stack['truncated'], false);

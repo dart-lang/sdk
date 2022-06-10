@@ -144,46 +144,17 @@ class StackTraceUtils : public AllStatic {
   /// hit which has yielded before (i.e. is not in sync-async case).
   ///
   /// From there on finds the closure of the async/async* frame and starts
-  /// traversing the listeners:
-  ///     while (closure != null) {
-  ///       yield_index = closure.context[Context::kAsyncJumpVarIndex]
-  ///       pc = closure.function.code.pc_descriptors.LookupPcFromYieldIndex(
-  ///           yield_index);
-  ///       <emit pc in frame>
-  ///       closure = closure.context[Context::kAsyncCompleterVarIndex]._future
-  ///           ._resultOrListeners.callback;
-  ///     }
+  /// traversing the listeners.
   ///
   /// If [on_sync_frames] is non-nullptr, it will be called for every
   /// synchronous frame which is collected.
-  static void CollectFramesLazy(
+  static void CollectFrames(
       Thread* thread,
       const GrowableObjectArray& code_array,
       GrowableArray<uword>* pc_offset_array,
       int skip_frames,
       std::function<void(StackFrame*)>* on_sync_frames = nullptr,
       bool* has_async = nullptr);
-
-  /// Counts the number of stack frames.
-  /// Skips over the first |skip_frames|.
-  /// If |async_function| is not null, stops at the function that has
-  /// |async_function| as its parent, and records in 'sync_async_end' whether
-  /// |async_function| was called synchronously.
-  static intptr_t CountFrames(Thread* thread,
-                              int skip_frames,
-                              const Function& async_function,
-                              bool* sync_async_end);
-
-  /// Collects |count| frames into |code_array| and |pc_offset_array|.
-  /// Writing begins at |array_offset|.
-  /// Skips over the first |skip_frames|.
-  /// Returns the number of frames collected.
-  static intptr_t CollectFrames(Thread* thread,
-                                const Array& code_array,
-                                const TypedData& pc_offset_array,
-                                intptr_t array_offset,
-                                intptr_t count,
-                                int skip_frames);
 };
 
 }  // namespace dart

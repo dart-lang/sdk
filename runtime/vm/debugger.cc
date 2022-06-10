@@ -1966,13 +1966,6 @@ void DebuggerStackTrace::AppendCodeFrames(Thread* thread,
 }
 
 DebuggerStackTrace* DebuggerStackTrace::CollectAsyncCausal() {
-  if (FLAG_lazy_async_stacks) {
-    return CollectAsyncLazy();
-  }
-  return nullptr;
-}
-
-DebuggerStackTrace* DebuggerStackTrace::CollectAsyncLazy() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -1996,9 +1989,8 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncLazy() {
                                   &inlined_code, &deopt_frame);
   };
 
-  StackTraceUtils::CollectFramesLazy(thread, code_array, &pc_offset_array,
-                                     /*skip_frames=*/0, &on_sync_frame,
-                                     &has_async);
+  StackTraceUtils::CollectFrames(thread, code_array, &pc_offset_array,
+                                 /*skip_frames=*/0, &on_sync_frame, &has_async);
 
   // If the entire stack is sync, return no (async) trace.
   if (!has_async) {
@@ -4072,31 +4064,29 @@ ErrorPtr Debugger::PauseStepping() {
   }
 
   // We need to manually set a synthetic breakpoint for async_op before entry.
-  if (FLAG_lazy_async_stacks) {
-    // async and async* functions always contain synthetic async_ops.
-    if ((frame->function().IsAsyncFunction() ||
-         frame->function().IsAsyncGenerator()) &&
-        !frame->function().IsSuspendableFunction()) {
-      ASSERT(!frame->GetSavedCurrentContext().IsNull());
-      ASSERT(frame->GetSavedCurrentContext().num_variables() >
-             Context::kAsyncFutureIndex);
+  // async and async* functions always contain synthetic async_ops.
+  if ((frame->function().IsAsyncFunction() ||
+       frame->function().IsAsyncGenerator()) &&
+      !frame->function().IsSuspendableFunction()) {
+    ASSERT(!frame->GetSavedCurrentContext().IsNull());
+    ASSERT(frame->GetSavedCurrentContext().num_variables() >
+           Context::kAsyncFutureIndex);
 
-      const Object& async_future = Object::Handle(
-          frame->GetSavedCurrentContext().At(Context::kAsyncFutureIndex));
+    const Object& async_future = Object::Handle(
+        frame->GetSavedCurrentContext().At(Context::kAsyncFutureIndex));
 
-      // Only set breakpoint when entering async_op the first time.
-      // :async_future should be uninitialised at this point:
-      if (async_future.IsNull()) {
-        const Function& async_op = Function::Handle(
-            ClosureFunctionsCache::GetUniqueInnerClosure(frame->function()));
-        if (!async_op.IsNull()) {
-          SetBreakpointAtAsyncOp(async_op);
-          // After setting the breakpoint we stop stepping and continue the
-          // debugger until the next breakpoint, to step over all the
-          // synthetic code.
-          Continue();
-          return Error::null();
-        }
+    // Only set breakpoint when entering async_op the first time.
+    // :async_future should be uninitialised at this point:
+    if (async_future.IsNull()) {
+      const Function& async_op = Function::Handle(
+          ClosureFunctionsCache::GetUniqueInnerClosure(frame->function()));
+      if (!async_op.IsNull()) {
+        SetBreakpointAtAsyncOp(async_op);
+        // After setting the breakpoint we stop stepping and continue the
+        // debugger until the next breakpoint, to step over all the
+        // synthetic code.
+        Continue();
+        return Error::null();
       }
     }
   }
