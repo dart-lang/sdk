@@ -175,6 +175,14 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       }
       _overrideDependencies = null;
     }
+    returnType.build(libraryBuilder, TypeUse.fieldType,
+        hierarchy: membersBuilder.hierarchyBuilder);
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals!) {
+        formal.type.build(libraryBuilder, TypeUse.parameterType,
+            hierarchy: membersBuilder.hierarchyBuilder);
+      }
+    }
     _typeEnsured = true;
   }
 

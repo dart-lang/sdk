@@ -5,6 +5,7 @@
 library fasta.future_or_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, FutureOrType, Nullability;
+import 'package:kernel/class_hierarchy.dart';
 
 import 'builtin_type_declaration_builder.dart';
 import 'library_builder.dart';
@@ -27,9 +28,11 @@ class FutureOrTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
       TypeUse typeUse,
       Uri fileUri,
       int charOffset,
+      ClassHierarchyBase? hierarchy,
       {required bool hasExplicitTypeArguments}) {
     return new FutureOrType(
-        arguments!.single.buildAliased(library, TypeUse.typeArgument),
+        arguments!.single
+            .buildAliased(library, TypeUse.typeArgument, hierarchy),
         nullabilityBuilder.build(library));
   }
 

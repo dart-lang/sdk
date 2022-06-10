@@ -71,11 +71,9 @@ class AnalyzerStatusParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is AnalyzerStatusParams &&
-        other.runtimeType == AnalyzerStatusParams) {
-      return isAnalyzing == other.isAnalyzing && true;
-    }
-    return false;
+    return other is AnalyzerStatusParams &&
+        other.runtimeType == AnalyzerStatusParams &&
+        isAnalyzing == other.isAnalyzing;
   }
 
   @override
@@ -164,10 +162,10 @@ class ClosingLabel implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ClosingLabel && other.runtimeType == ClosingLabel) {
-      return label == other.label && range == other.range && true;
-    }
-    return false;
+    return other is ClosingLabel &&
+        other.runtimeType == ClosingLabel &&
+        label == other.label &&
+        range == other.range;
   }
 
   @override
@@ -212,11 +210,8 @@ class CompletionItemResolutionInfo implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionItemResolutionInfo &&
-        other.runtimeType == CompletionItemResolutionInfo) {
-      return true;
-    }
-    return false;
+    return other is CompletionItemResolutionInfo &&
+        other.runtimeType == CompletionItemResolutionInfo;
   }
 
   @override
@@ -281,11 +276,9 @@ class DartDiagnosticServer implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DartDiagnosticServer &&
-        other.runtimeType == DartDiagnosticServer) {
-      return port == other.port && true;
-    }
-    return false;
+    return other is DartDiagnosticServer &&
+        other.runtimeType == DartDiagnosticServer &&
+        port == other.port;
   }
 
   @override
@@ -497,18 +490,15 @@ class DartSuggestionSetCompletionItemResolutionInfo
 
   @override
   bool operator ==(Object other) {
-    if (other is DartSuggestionSetCompletionItemResolutionInfo &&
-        other.runtimeType == DartSuggestionSetCompletionItemResolutionInfo) {
-      return displayUri == other.displayUri &&
-          file == other.file &&
-          iLength == other.iLength &&
-          libId == other.libId &&
-          offset == other.offset &&
-          rLength == other.rLength &&
-          rOffset == other.rOffset &&
-          true;
-    }
-    return false;
+    return other is DartSuggestionSetCompletionItemResolutionInfo &&
+        other.runtimeType == DartSuggestionSetCompletionItemResolutionInfo &&
+        displayUri == other.displayUri &&
+        file == other.file &&
+        iLength == other.iLength &&
+        libId == other.libId &&
+        offset == other.offset &&
+        rLength == other.rLength &&
+        rOffset == other.rOffset;
   }
 
   @override
@@ -679,16 +669,14 @@ class Element implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Element && other.runtimeType == Element) {
-      return kind == other.kind &&
-          name == other.name &&
-          parameters == other.parameters &&
-          range == other.range &&
-          returnType == other.returnType &&
-          typeParameters == other.typeParameters &&
-          true;
-    }
-    return false;
+    return other is Element &&
+        other.runtimeType == Element &&
+        kind == other.kind &&
+        name == other.name &&
+        parameters == other.parameters &&
+        range == other.range &&
+        returnType == other.returnType &&
+        typeParameters == other.typeParameters;
   }
 
   @override
@@ -929,24 +917,19 @@ class FlutterOutline implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FlutterOutline && other.runtimeType == FlutterOutline) {
-      return listEqual(
-              attributes,
-              other.attributes,
-              (FlutterOutlineAttribute a, FlutterOutlineAttribute b) =>
-                  a == b) &&
-          listEqual(children, other.children,
-              (FlutterOutline a, FlutterOutline b) => a == b) &&
-          className == other.className &&
-          codeRange == other.codeRange &&
-          dartElement == other.dartElement &&
-          kind == other.kind &&
-          label == other.label &&
-          range == other.range &&
-          variableName == other.variableName &&
-          true;
-    }
-    return false;
+    return other is FlutterOutline &&
+        other.runtimeType == FlutterOutline &&
+        listEqual(attributes, other.attributes,
+            (FlutterOutlineAttribute a, FlutterOutlineAttribute b) => a == b) &&
+        listEqual(children, other.children,
+            (FlutterOutline a, FlutterOutline b) => a == b) &&
+        className == other.className &&
+        codeRange == other.codeRange &&
+        dartElement == other.dartElement &&
+        kind == other.kind &&
+        label == other.label &&
+        range == other.range &&
+        variableName == other.variableName;
   }
 
   @override
@@ -1065,14 +1048,11 @@ class FlutterOutlineAttribute implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FlutterOutlineAttribute &&
-        other.runtimeType == FlutterOutlineAttribute) {
-      return label == other.label &&
-          name == other.name &&
-          valueRange == other.valueRange &&
-          true;
-    }
-    return false;
+    return other is FlutterOutlineAttribute &&
+        other.runtimeType == FlutterOutlineAttribute &&
+        label == other.label &&
+        name == other.name &&
+        valueRange == other.valueRange;
   }
 
   @override
@@ -1199,14 +1179,12 @@ class IncomingMessage implements Message, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is IncomingMessage && other.runtimeType == IncomingMessage) {
-      return clientRequestTime == other.clientRequestTime &&
-          jsonrpc == other.jsonrpc &&
-          method == other.method &&
-          params == other.params &&
-          true;
-    }
-    return false;
+    return other is IncomingMessage &&
+        other.runtimeType == IncomingMessage &&
+        clientRequestTime == other.clientRequestTime &&
+        jsonrpc == other.jsonrpc &&
+        method == other.method &&
+        params == other.params;
   }
 
   @override
@@ -1300,12 +1278,10 @@ class Message implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Message && other.runtimeType == Message) {
-      return clientRequestTime == other.clientRequestTime &&
-          jsonrpc == other.jsonrpc &&
-          true;
-    }
-    return false;
+    return other is Message &&
+        other.runtimeType == Message &&
+        clientRequestTime == other.clientRequestTime &&
+        jsonrpc == other.jsonrpc;
   }
 
   @override
@@ -1427,15 +1403,12 @@ class NotificationMessage implements IncomingMessage, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotificationMessage &&
-        other.runtimeType == NotificationMessage) {
-      return clientRequestTime == other.clientRequestTime &&
-          jsonrpc == other.jsonrpc &&
-          method == other.method &&
-          params == other.params &&
-          true;
-    }
-    return false;
+    return other is NotificationMessage &&
+        other.runtimeType == NotificationMessage &&
+        clientRequestTime == other.clientRequestTime &&
+        jsonrpc == other.jsonrpc &&
+        method == other.method &&
+        params == other.params;
   }
 
   @override
@@ -1575,15 +1548,12 @@ class Outline implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Outline && other.runtimeType == Outline) {
-      return listEqual(
-              children, other.children, (Outline a, Outline b) => a == b) &&
-          codeRange == other.codeRange &&
-          element == other.element &&
-          range == other.range &&
-          true;
-    }
-    return false;
+    return other is Outline &&
+        other.runtimeType == Outline &&
+        listEqual(children, other.children, (Outline a, Outline b) => a == b) &&
+        codeRange == other.codeRange &&
+        element == other.element &&
+        range == other.range;
   }
 
   @override
@@ -1656,11 +1626,9 @@ class PubPackageCompletionItemResolutionInfo
 
   @override
   bool operator ==(Object other) {
-    if (other is PubPackageCompletionItemResolutionInfo &&
-        other.runtimeType == PubPackageCompletionItemResolutionInfo) {
-      return packageName == other.packageName && true;
-    }
-    return false;
+    return other is PubPackageCompletionItemResolutionInfo &&
+        other.runtimeType == PubPackageCompletionItemResolutionInfo &&
+        packageName == other.packageName;
   }
 
   @override
@@ -1752,14 +1720,11 @@ class PublishClosingLabelsParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PublishClosingLabelsParams &&
-        other.runtimeType == PublishClosingLabelsParams) {
-      return listEqual(labels, other.labels,
-              (ClosingLabel a, ClosingLabel b) => a == b) &&
-          uri == other.uri &&
-          true;
-    }
-    return false;
+    return other is PublishClosingLabelsParams &&
+        other.runtimeType == PublishClosingLabelsParams &&
+        listEqual(
+            labels, other.labels, (ClosingLabel a, ClosingLabel b) => a == b) &&
+        uri == other.uri;
   }
 
   @override
@@ -1852,11 +1817,10 @@ class PublishFlutterOutlineParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PublishFlutterOutlineParams &&
-        other.runtimeType == PublishFlutterOutlineParams) {
-      return outline == other.outline && uri == other.uri && true;
-    }
-    return false;
+    return other is PublishFlutterOutlineParams &&
+        other.runtimeType == PublishFlutterOutlineParams &&
+        outline == other.outline &&
+        uri == other.uri;
   }
 
   @override
@@ -1948,11 +1912,10 @@ class PublishOutlineParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PublishOutlineParams &&
-        other.runtimeType == PublishOutlineParams) {
-      return outline == other.outline && uri == other.uri && true;
-    }
-    return false;
+    return other is PublishOutlineParams &&
+        other.runtimeType == PublishOutlineParams &&
+        outline == other.outline &&
+        uri == other.uri;
   }
 
   @override
@@ -2102,15 +2065,13 @@ class RequestMessage implements IncomingMessage, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RequestMessage && other.runtimeType == RequestMessage) {
-      return clientRequestTime == other.clientRequestTime &&
-          id == other.id &&
-          jsonrpc == other.jsonrpc &&
-          method == other.method &&
-          params == other.params &&
-          true;
-    }
-    return false;
+    return other is RequestMessage &&
+        other.runtimeType == RequestMessage &&
+        clientRequestTime == other.clientRequestTime &&
+        id == other.id &&
+        jsonrpc == other.jsonrpc &&
+        method == other.method &&
+        params == other.params;
   }
 
   @override
@@ -2226,13 +2187,11 @@ class ResponseError implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ResponseError && other.runtimeType == ResponseError) {
-      return code == other.code &&
-          data == other.data &&
-          message == other.message &&
-          true;
-    }
-    return false;
+    return other is ResponseError &&
+        other.runtimeType == ResponseError &&
+        code == other.code &&
+        data == other.data &&
+        message == other.message;
   }
 
   @override
@@ -2376,15 +2335,13 @@ class ResponseMessage implements Message, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ResponseMessage && other.runtimeType == ResponseMessage) {
-      return clientRequestTime == other.clientRequestTime &&
-          error == other.error &&
-          id == other.id &&
-          jsonrpc == other.jsonrpc &&
-          result == other.result &&
-          true;
-    }
-    return false;
+    return other is ResponseMessage &&
+        other.runtimeType == ResponseMessage &&
+        clientRequestTime == other.clientRequestTime &&
+        error == other.error &&
+        id == other.id &&
+        jsonrpc == other.jsonrpc &&
+        result == other.result;
   }
 
   @override
@@ -2511,13 +2468,11 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SnippetTextEdit && other.runtimeType == SnippetTextEdit) {
-      return insertTextFormat == other.insertTextFormat &&
-          newText == other.newText &&
-          range == other.range &&
-          true;
-    }
-    return false;
+    return other is SnippetTextEdit &&
+        other.runtimeType == SnippetTextEdit &&
+        insertTextFormat == other.insertTextFormat &&
+        newText == other.newText &&
+        range == other.range;
   }
 
   @override
@@ -2604,11 +2559,10 @@ class ValidateRefactorResult implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ValidateRefactorResult &&
-        other.runtimeType == ValidateRefactorResult) {
-      return message == other.message && valid == other.valid && true;
-    }
-    return false;
+    return other is ValidateRefactorResult &&
+        other.runtimeType == ValidateRefactorResult &&
+        message == other.message &&
+        valid == other.valid;
   }
 
   @override

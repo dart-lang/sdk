@@ -2639,6 +2639,71 @@ void f() {
 ''');
   }
 
+  Future<void> test_snippets_functionClassMember() async {
+    final content = '''
+class A {
+  fun^
+}
+''';
+
+    await initializeWithSnippetSupport();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartFunctionSnippetProducer.prefix,
+      label: DartFunctionSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+class A {
+  ${1:void} ${2:name}(${3:params}) {
+    $0
+  }
+}
+''');
+  }
+
+  Future<void> test_snippets_functionNested() async {
+    final content = '''
+void a() {
+  fun^
+}
+''';
+
+    await initializeWithSnippetSupport();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartFunctionSnippetProducer.prefix,
+      label: DartFunctionSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+void a() {
+  ${1:void} ${2:name}(${3:params}) {
+    $0
+  }
+}
+''');
+  }
+
+  Future<void> test_snippets_functionTopLevel() async {
+    final content = '''
+fun^
+''';
+
+    await initializeWithSnippetSupport();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: DartFunctionSnippetProducer.prefix,
+      label: DartFunctionSnippetProducer.label,
+    );
+
+    expect(updated, r'''
+${1:void} ${2:name}(${3:params}) {
+  $0
+}
+''');
+  }
+
   Future<void> test_snippets_if() async {
     final content = '''
 void f() {

@@ -24,6 +24,7 @@ import 'dart:convert';
 
 @ImportConflictMacro()
 /*member: function:
+definitions:
 augment void function(int i, FutureOr<Random> f, JsonCodec c, ) {
   var prefix = int;
   var prefix0 = FutureOr<Random>;

@@ -2294,7 +2294,7 @@ severity: $severity
     }
 
     for (InferableTypeBuilder typeBuilder in inferableTypes) {
-      typeBuilder.inferType(typeInferenceEngine.typeSchemaEnvironment);
+      typeBuilder.inferType(typeInferenceEngine.hierarchyBuilder);
     }
 
     typeInferenceEngine.isTypeInferencePrepared = true;

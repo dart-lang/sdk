@@ -86,6 +86,10 @@ abstract class Stream<T> {
     throw 0;
   }
 
+  factory Stream.value(T value) {
+    throw 0;
+  }
+
   Future<T> get first;
 
   StreamSubscription<T> listen(void onData(T event)?,

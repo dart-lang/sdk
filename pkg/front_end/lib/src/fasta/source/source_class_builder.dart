@@ -6,7 +6,7 @@ library fasta.source_class_builder;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
-    show ClassHierarchy, ClassHierarchyMembers;
+    show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
@@ -523,8 +523,8 @@ class SourceClassBuilder extends ClassBuilderImpl
   int get typeVariablesCount => typeVariables?.length ?? 0;
 
   @override
-  List<DartType> buildAliasedTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments) {
+  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
+      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
     if (arguments == null && typeVariables == null) {
       return <DartType>[];
     }
@@ -538,7 +538,8 @@ class SourceClassBuilder extends ClassBuilderImpl
               // TODO(johnniwinther): Using [libraryBuilder] here instead of
               // [library] preserves the nullability of the original
               // declaration. Should we legacy erase this?
-              .buildAliased(libraryBuilder, TypeUse.defaultTypeAsTypeArgument),
+              .buildAliased(
+                  libraryBuilder, TypeUse.defaultTypeAsTypeArgument, hierarchy),
           growable: true);
       if (library is SourceLibraryBuilder) {
         library.inferredTypes.addAll(result);
@@ -558,8 +559,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     assert(arguments!.length == typeVariablesCount);
-    List<DartType> result = new List<DartType>.generate(arguments!.length,
-        (int i) => arguments[i].buildAliased(library, TypeUse.typeArgument),
+    List<DartType> result = new List<DartType>.generate(
+        arguments!.length,
+        (int i) =>
+            arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
         growable: true);
     return result;
   }

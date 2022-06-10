@@ -27,6 +27,7 @@ augment void topLevelFunction4(prefix0.int a, {prefix0.int? b, prefix0.int? c, }
 import 'package:macro/macro.dart';
 
 /*member: topLevelFunction1:
+definitions:
 augment void topLevelFunction1(int a, ) {
   throw 42;
 }*/
@@ -34,6 +35,7 @@ augment void topLevelFunction1(int a, ) {
 external void topLevelFunction1(int a);
 
 /*member: topLevelFunction2:
+definitions:
 augment void topLevelFunction2(int a, int b, ) {
   throw 42;
 }*/
@@ -41,6 +43,7 @@ augment void topLevelFunction2(int a, int b, ) {
 external void topLevelFunction2(int a, int b);
 
 /*member: topLevelFunction3:
+definitions:
 augment void topLevelFunction3(int a, [int? b, ]) {
   throw 42;
 }*/
@@ -48,6 +51,7 @@ augment void topLevelFunction3(int a, [int? b, ]) {
 external void topLevelFunction3(int a, [int? b]);
 
 /*member: topLevelFunction4:
+definitions:
 augment void topLevelFunction4(int a, {int? b, int? c, }) {
   throw 42;
 }*/

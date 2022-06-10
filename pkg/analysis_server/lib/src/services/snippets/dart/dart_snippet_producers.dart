@@ -166,6 +166,47 @@ class DartForLoopSnippetProducer extends DartSnippetProducer {
       DartForLoopSnippetProducer._(request);
 }
 
+/// Produces a [Snippet] that creates a function definition.
+class DartFunctionSnippetProducer extends DartSnippetProducer {
+  static const prefix = 'fun';
+  static const label = 'fun';
+
+  DartFunctionSnippetProducer._(super.request);
+
+  @override
+  Future<Snippet> compute() async {
+    final builder = ChangeBuilder(session: request.analysisSession);
+    final indent = utils.getLinePrefix(request.offset);
+
+    await builder.addDartFileEdit(request.filePath, (builder) {
+      builder.addReplacement(request.replacementRange, (builder) {
+        void writeIndented(String string) => builder.write('$indent$string');
+
+        builder.addSimpleLinkedEdit('returnType', 'void');
+        builder.write(' ');
+        builder.addSimpleLinkedEdit('name', 'name');
+        builder.write('(');
+        builder.addSimpleLinkedEdit('params', 'params');
+        builder.writeln(') {');
+        writeIndented('  ');
+        builder.selectHere();
+        builder.writeln();
+        writeIndented('}');
+      });
+    });
+
+    return Snippet(
+      prefix,
+      label,
+      'Insert a function definition.',
+      builder.sourceChange,
+    );
+  }
+
+  static DartFunctionSnippetProducer newInstance(DartSnippetRequest request) =>
+      DartFunctionSnippetProducer._(request);
+}
+
 /// Produces a [Snippet] that creates an if/else statement.
 class DartIfElseSnippetProducer extends DartSnippetProducer {
   static const prefix = 'ife';

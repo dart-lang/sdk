@@ -202,54 +202,82 @@ class MacroDataComputer extends DataComputer<String> {
         .dataForTesting!
         .macroApplicationData;
     StringBuffer sb = new StringBuffer();
-    List<DeclarationCode> mergedClassAugmentations = [];
+
+    StringBuffer typesSources = new StringBuffer();
+    List<DeclarationCode> mergedClassTypes = [];
     for (MapEntry<SourceClassBuilder, List<MacroExecutionResult>> entry
         in macroApplicationData.classTypesResults.entries) {
       if (entry.key.cls == cls) {
         for (MacroExecutionResult result in entry.value) {
           if (result.libraryAugmentations.isNotEmpty) {
-            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
+            if (result.libraryAugmentations.isNotEmpty) {
+              typesSources.write(
+                  '\n${codeToString(result.libraryAugmentations.single)}');
+            }
+            mergedClassTypes
+                .addAll(result.classAugmentations[entry.key.name] ?? const []);
           }
-          mergedClassAugmentations
-              .addAll(result.classAugmentations[entry.key.name] ?? const []);
         }
       }
     }
-    for (MapEntry<SourceClassBuilder, List<MacroExecutionResult>> entry
-        in macroApplicationData.classDeclarationsResults.entries) {
+    if (mergedClassTypes.isNotEmpty) {
+      typesSources.write('\naugment class ${cls.name} {');
+      for (var result in mergedClassTypes) {
+        typesSources.write('\n${codeToString(result)}');
+      }
+      typesSources.write('\n}');
+    }
+    if (typesSources.isNotEmpty) {
+      sb.write('types:');
+      sb.write(typesSources);
+    }
+
+    StringBuffer declarationsSources = new StringBuffer();
+    for (MapEntry<SourceClassBuilder, List<String>> entry
+        in macroApplicationData.classDeclarationsSources.entries) {
       if (entry.key.cls == cls) {
-        for (MacroExecutionResult result in entry.value) {
-          if (result.libraryAugmentations.isNotEmpty) {
-            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
+        for (String result in entry.value) {
+          if (result.isNotEmpty) {
+            declarationsSources.write('\n${result}');
           }
-          mergedClassAugmentations
-              .addAll(result.classAugmentations[entry.key.name] ?? const []);
         }
       }
     }
+    if (declarationsSources.isNotEmpty) {
+      sb.write('declarations:');
+      sb.write(declarationsSources);
+    }
+
+    StringBuffer definitionsSources = new StringBuffer();
+    List<DeclarationCode> mergedClassDefinitions = [];
     for (MapEntry<SourceClassBuilder, List<MacroExecutionResult>> entry
         in macroApplicationData.classDefinitionsResults.entries) {
       if (entry.key.cls == cls) {
         for (MacroExecutionResult result in entry.value) {
           if (result.libraryAugmentations.isNotEmpty) {
-            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
+            definitionsSources
+                .write('\n${codeToString(result.libraryAugmentations.single)}');
           }
-          mergedClassAugmentations
+          mergedClassDefinitions
               .addAll(result.classAugmentations[entry.key.name] ?? const []);
         }
       }
     }
-    if (mergedClassAugmentations.isNotEmpty) {
-      sb.write('\naugment class ${cls.name} {');
-      for (var result in mergedClassAugmentations) {
-        sb.write('\n${codeToString(result)}');
+    if (mergedClassDefinitions.isNotEmpty) {
+      definitionsSources.write('\naugment class ${cls.name} {');
+      for (var result in mergedClassDefinitions) {
+        definitionsSources.write('\n${codeToString(result)}');
       }
-      sb.write('\n}');
+      definitionsSources.write('\n}');
     }
+    if (definitionsSources.isNotEmpty) {
+      sb.write('definitions:');
+      sb.write(definitionsSources);
+    }
+
     if (sb.isNotEmpty) {
       Id id = new ClassId(cls.name);
-      registry.registerValue(
-          cls.fileUri, cls.fileOffset, id, sb.toString(), cls);
+      registry.registerValue(cls.fileUri, cls.fileOffset, id, '\n$sb', cls);
     }
   }
 
@@ -266,69 +294,64 @@ class MacroDataComputer extends DataComputer<String> {
         .dataForTesting!
         .macroApplicationData;
     StringBuffer sb = StringBuffer();
-    List<DeclarationCode> mergedAugmentations = [];
+
+    StringBuffer typesSources = new StringBuffer();
     for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry
         in macroApplicationData.memberTypesResults.entries) {
       if (_isMember(entry.key, member)) {
         for (MacroExecutionResult result in entry.value) {
           if (result.libraryAugmentations.isNotEmpty) {
-            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
-          }
-          if (member.enclosingClass != null) {
-            mergedAugmentations.addAll(
-                result.classAugmentations[member.enclosingClass!.name] ??
-                    const []);
+            if (result.libraryAugmentations.isNotEmpty) {
+              typesSources.write(
+                  '\n${codeToString(result.libraryAugmentations.single)}');
+            }
           }
         }
       }
     }
-    for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry
-        in macroApplicationData.memberDeclarationsResults.entries) {
+    if (typesSources.isNotEmpty) {
+      sb.write('types:');
+      sb.write(typesSources);
+    }
+
+    StringBuffer declarationsSources = new StringBuffer();
+    for (MapEntry<MemberBuilder, List<String>> entry
+        in macroApplicationData.memberDeclarationsSources.entries) {
       if (_isMember(entry.key, member)) {
-        for (MacroExecutionResult result in entry.value) {
-          if (result.libraryAugmentations.isNotEmpty) {
-            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
-          }
-          if (member.enclosingClass != null) {
-            mergedAugmentations.addAll(
-                result.classAugmentations[member.enclosingClass!.name] ??
-                    const []);
+        for (String result in entry.value) {
+          if (result.isNotEmpty) {
+            declarationsSources.write('\n${result}');
           }
         }
       }
     }
+    if (declarationsSources.isNotEmpty) {
+      sb.write('declarations:');
+      sb.write(declarationsSources);
+    }
+
+    StringBuffer definitionsSources = new StringBuffer();
     for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry
         in macroApplicationData.memberDefinitionsResults.entries) {
       if (_isMember(entry.key, member)) {
         for (MacroExecutionResult result in entry.value) {
           if (result.libraryAugmentations.isNotEmpty) {
-            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
-          }
-          if (member.enclosingClass != null) {
-            mergedAugmentations.addAll(
-                result.classAugmentations[member.enclosingClass!.name] ??
-                    const []);
+            definitionsSources
+                .write('\n${codeToString(result.libraryAugmentations.single)}');
           }
         }
       }
     }
-    if (mergedAugmentations.isNotEmpty) {
-      if (member.enclosingClass != null) {
-        sb.write('\naugment class ${member.enclosingClass!.name} {');
-      }
-      for (DeclarationCode augmentation in mergedAugmentations) {
-        sb.write('\n${codeToString(augmentation)}');
-      }
-      if (member.enclosingClass != null) {
-        sb.write('\n}');
-      }
+    if (definitionsSources.isNotEmpty) {
+      sb.write('definitions:');
+      sb.write(definitionsSources);
     }
     if (sb.isNotEmpty) {
       Id id = computeMemberId(member);
       MemberBuilder memberBuilder =
           lookupMemberBuilder(testResultData.compilerResult, member)!;
       registry.registerValue(memberBuilder.fileUri!, memberBuilder.charOffset,
-          id, sb.toString(), member);
+          id, '\n$sb', member);
     }
   }
 }

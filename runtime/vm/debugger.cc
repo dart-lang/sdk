@@ -768,7 +768,8 @@ ObjectPtr ActivationFrame::GetAsyncAwaiter(
     if (function_.IsCompactAsyncFunction() ||
         function_.IsCompactAsyncStarFunction()) {
       const auto& suspend_state = Object::Handle(GetSuspendStateVar());
-      if (suspend_state.IsSuspendState()) {
+      if (caller_closure_finder->WasPreviouslySuspended(function_,
+                                                        suspend_state)) {
         return caller_closure_finder->FindCallerFromSuspendState(
             SuspendState::Cast(suspend_state));
       }
@@ -846,7 +847,8 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   } else if ((fp() != 0) && function().IsCompactAsyncFunction()) {
     CallerClosureFinder caller_closure_finder(Thread::Current()->zone());
     auto& suspend_state = Object::Handle(GetSuspendStateVar());
-    if (!suspend_state.IsSuspendState()) {
+    if (!caller_closure_finder.WasPreviouslySuspended(function(),
+                                                      suspend_state)) {
       return false;
     }
     Object& futureOrListener =
@@ -2117,7 +2119,8 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAwaiterReturn() {
         // Grab the awaiter.
         async_activation ^= activation->GetAsyncAwaiter(&caller_closure_finder);
         // Bail if we've reach the end of sync execution stack.
-        if (Object::Handle(activation->GetSuspendStateVar()).IsSuspendState()) {
+        if (caller_closure_finder.WasPreviouslySuspended(
+                function, Object::Handle(activation->GetSuspendStateVar()))) {
           break;
         }
       } else {

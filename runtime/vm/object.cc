@@ -3907,6 +3907,10 @@ bool Library::FindPragma(Thread* T,
 
   auto& metadata = Array::Cast(metadata_obj);
   auto& pragma_class = Class::Handle(Z, IG->object_store()->pragma_class());
+  if (pragma_class.IsNull()) {
+    // Precompiler may drop pragma class.
+    return false;
+  }
   auto& pragma_name_field =
       Field::Handle(Z, pragma_class.LookupField(Symbols::name()));
   auto& pragma_options_field =

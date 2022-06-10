@@ -104,21 +104,60 @@ class MacroApplicationDataForTesting {
   Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData = {};
   Map<SourceLibraryBuilder, String> libraryTypesResult = {};
   Map<SourceLibraryBuilder, String> libraryDefinitionResult = {};
+
   Map<SourceClassBuilder, List<macro.MacroExecutionResult>> classTypesResults =
       {};
+
   Map<SourceClassBuilder, List<macro.MacroExecutionResult>>
       classDeclarationsResults = {};
+  Map<SourceClassBuilder, List<String>> classDeclarationsSources = {};
+
   Map<SourceClassBuilder, List<macro.MacroExecutionResult>>
       classDefinitionsResults = {};
+
   Map<MemberBuilder, List<macro.MacroExecutionResult>> memberTypesResults = {};
+  Map<MemberBuilder, List<String>> memberTypesSources = {};
+
   Map<MemberBuilder, List<macro.MacroExecutionResult>>
       memberDeclarationsResults = {};
+  Map<MemberBuilder, List<String>> memberDeclarationsSources = {};
+
   Map<MemberBuilder, List<macro.MacroExecutionResult>>
       memberDefinitionsResults = {};
 
   List<ApplicationDataForTesting> typesApplicationOrder = [];
   List<ApplicationDataForTesting> declarationsApplicationOrder = [];
   List<ApplicationDataForTesting> definitionApplicationOrder = [];
+
+  void registerTypesResults(
+      Builder builder, List<macro.MacroExecutionResult> results) {
+    if (builder is SourceClassBuilder) {
+      (classTypesResults[builder] ??= []).addAll(results);
+    } else {
+      (memberTypesResults[builder as MemberBuilder] ??= []).addAll(results);
+    }
+  }
+
+  void registerDeclarationsResult(
+      Builder builder, macro.MacroExecutionResult result, String source) {
+    if (builder is SourceClassBuilder) {
+      (classDeclarationsResults[builder] ??= []).add(result);
+      (classDeclarationsSources[builder] ??= []).add(source);
+    } else {
+      (memberDeclarationsResults[builder as MemberBuilder] ??= []).add(result);
+      (memberDeclarationsSources[builder] ??= []).add(source);
+    }
+  }
+
+  void registerDefinitionsResults(
+      Builder builder, List<macro.MacroExecutionResult> results) {
+    if (builder is SourceClassBuilder) {
+      (classDefinitionsResults[builder] ??= []).addAll(results);
+    } else {
+      (memberDefinitionsResults[builder as MemberBuilder] ??= [])
+          .addAll(results);
+    }
+  }
 }
 
 class ApplicationDataForTesting {
@@ -347,12 +386,7 @@ class MacroApplications {
     }
 
     if (retainDataForTesting) {
-      Builder builder = applicationData.builder;
-      if (builder is SourceClassBuilder) {
-        dataForTesting?.classTypesResults[builder] = results;
-      } else {
-        dataForTesting?.memberTypesResults[builder as MemberBuilder] = results;
-      }
+      dataForTesting?.registerTypesResults(applicationData.builder, results);
     }
     return results;
   }
@@ -429,6 +463,10 @@ class MacroApplications {
         if (result.isNotEmpty) {
           String source = _macroExecutor.buildAugmentationLibrary(
               [result], _resolveIdentifier, _inferOmittedType);
+          if (retainDataForTesting) {
+            dataForTesting?.registerDeclarationsResult(
+                applicationData.builder, result, source);
+          }
           SourceLibraryBuilder augmentationLibrary = await applicationData
               .libraryBuilder
               .createAugmentationLibrary(source);
@@ -518,13 +556,8 @@ class MacroApplications {
       }
     }
     if (retainDataForTesting) {
-      Builder builder = applicationData.builder;
-      if (builder is SourceClassBuilder) {
-        dataForTesting?.classDefinitionsResults[builder] = results;
-      } else {
-        dataForTesting?.memberDefinitionsResults[builder as MemberBuilder] =
-            results;
-      }
+      dataForTesting?.registerDefinitionsResults(
+          applicationData.builder, results);
     }
     return results;
   }

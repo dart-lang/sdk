@@ -130,13 +130,11 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is AnnotatedTextEdit && other.runtimeType == AnnotatedTextEdit) {
-      return annotationId == other.annotationId &&
-          newText == other.newText &&
-          range == other.range &&
-          true;
-    }
-    return false;
+    return other is AnnotatedTextEdit &&
+        other.runtimeType == AnnotatedTextEdit &&
+        annotationId == other.annotationId &&
+        newText == other.newText &&
+        range == other.range;
   }
 
   @override
@@ -228,11 +226,10 @@ class ApplyWorkspaceEditParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ApplyWorkspaceEditParams &&
-        other.runtimeType == ApplyWorkspaceEditParams) {
-      return edit == other.edit && label == other.label && true;
-    }
-    return false;
+    return other is ApplyWorkspaceEditParams &&
+        other.runtimeType == ApplyWorkspaceEditParams &&
+        edit == other.edit &&
+        label == other.label;
   }
 
   @override
@@ -349,14 +346,11 @@ class ApplyWorkspaceEditResult implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ApplyWorkspaceEditResult &&
-        other.runtimeType == ApplyWorkspaceEditResult) {
-      return applied == other.applied &&
-          failedChange == other.failedChange &&
-          failureReason == other.failureReason &&
-          true;
-    }
-    return false;
+    return other is ApplyWorkspaceEditResult &&
+        other.runtimeType == ApplyWorkspaceEditResult &&
+        applied == other.applied &&
+        failedChange == other.failedChange &&
+        failureReason == other.failureReason;
   }
 
   @override
@@ -508,15 +502,12 @@ class BaseSymbolInformation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is BaseSymbolInformation &&
-        other.runtimeType == BaseSymbolInformation) {
-      return containerName == other.containerName &&
-          kind == other.kind &&
-          name == other.name &&
-          listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is BaseSymbolInformation &&
+        other.runtimeType == BaseSymbolInformation &&
+        containerName == other.containerName &&
+        kind == other.kind &&
+        name == other.name &&
+        listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b);
   }
 
   @override
@@ -585,11 +576,9 @@ class CallHierarchyClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CallHierarchyClientCapabilities &&
-        other.runtimeType == CallHierarchyClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
-    }
-    return false;
+    return other is CallHierarchyClientCapabilities &&
+        other.runtimeType == CallHierarchyClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration;
   }
 
   @override
@@ -688,14 +677,10 @@ class CallHierarchyIncomingCall implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CallHierarchyIncomingCall &&
-        other.runtimeType == CallHierarchyIncomingCall) {
-      return from == other.from &&
-          listEqual(
-              fromRanges, other.fromRanges, (Range a, Range b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is CallHierarchyIncomingCall &&
+        other.runtimeType == CallHierarchyIncomingCall &&
+        from == other.from &&
+        listEqual(fromRanges, other.fromRanges, (Range a, Range b) => a == b);
   }
 
   @override
@@ -826,14 +811,11 @@ class CallHierarchyIncomingCallsParams
 
   @override
   bool operator ==(Object other) {
-    if (other is CallHierarchyIncomingCallsParams &&
-        other.runtimeType == CallHierarchyIncomingCallsParams) {
-      return item == other.item &&
-          partialResultToken == other.partialResultToken &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is CallHierarchyIncomingCallsParams &&
+        other.runtimeType == CallHierarchyIncomingCallsParams &&
+        item == other.item &&
+        partialResultToken == other.partialResultToken &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -1069,18 +1051,16 @@ class CallHierarchyItem implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CallHierarchyItem && other.runtimeType == CallHierarchyItem) {
-      return data == other.data &&
-          detail == other.detail &&
-          kind == other.kind &&
-          name == other.name &&
-          range == other.range &&
-          selectionRange == other.selectionRange &&
-          listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b) &&
-          uri == other.uri &&
-          true;
-    }
-    return false;
+    return other is CallHierarchyItem &&
+        other.runtimeType == CallHierarchyItem &&
+        data == other.data &&
+        detail == other.detail &&
+        kind == other.kind &&
+        name == other.name &&
+        range == other.range &&
+        selectionRange == other.selectionRange &&
+        listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b) &&
+        uri == other.uri;
   }
 
   @override
@@ -1155,11 +1135,9 @@ class CallHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CallHierarchyOptions &&
-        other.runtimeType == CallHierarchyOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is CallHierarchyOptions &&
+        other.runtimeType == CallHierarchyOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -1260,14 +1238,10 @@ class CallHierarchyOutgoingCall implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CallHierarchyOutgoingCall &&
-        other.runtimeType == CallHierarchyOutgoingCall) {
-      return listEqual(
-              fromRanges, other.fromRanges, (Range a, Range b) => a == b) &&
-          to == other.to &&
-          true;
-    }
-    return false;
+    return other is CallHierarchyOutgoingCall &&
+        other.runtimeType == CallHierarchyOutgoingCall &&
+        listEqual(fromRanges, other.fromRanges, (Range a, Range b) => a == b) &&
+        to == other.to;
   }
 
   @override
@@ -1398,14 +1372,11 @@ class CallHierarchyOutgoingCallsParams
 
   @override
   bool operator ==(Object other) {
-    if (other is CallHierarchyOutgoingCallsParams &&
-        other.runtimeType == CallHierarchyOutgoingCallsParams) {
-      return item == other.item &&
-          partialResultToken == other.partialResultToken &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is CallHierarchyOutgoingCallsParams &&
+        other.runtimeType == CallHierarchyOutgoingCallsParams &&
+        item == other.item &&
+        partialResultToken == other.partialResultToken &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -1537,14 +1508,11 @@ class CallHierarchyPrepareParams
 
   @override
   bool operator ==(Object other) {
-    if (other is CallHierarchyPrepareParams &&
-        other.runtimeType == CallHierarchyPrepareParams) {
-      return position == other.position &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is CallHierarchyPrepareParams &&
+        other.runtimeType == CallHierarchyPrepareParams &&
+        position == other.position &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -1668,19 +1636,15 @@ class CallHierarchyRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is CallHierarchyRegistrationOptions &&
-        other.runtimeType == CallHierarchyRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          id == other.id &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is CallHierarchyRegistrationOptions &&
+        other.runtimeType == CallHierarchyRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        id == other.id &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -1754,10 +1718,9 @@ class CancelParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CancelParams && other.runtimeType == CancelParams) {
-      return id == other.id && true;
-    }
-    return false;
+    return other is CancelParams &&
+        other.runtimeType == CancelParams &&
+        id == other.id;
   }
 
   @override
@@ -1869,13 +1832,11 @@ class ChangeAnnotation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ChangeAnnotation && other.runtimeType == ChangeAnnotation) {
-      return description == other.description &&
-          label == other.label &&
-          needsConfirmation == other.needsConfirmation &&
-          true;
-    }
-    return false;
+    return other is ChangeAnnotation &&
+        other.runtimeType == ChangeAnnotation &&
+        description == other.description &&
+        label == other.label &&
+        needsConfirmation == other.needsConfirmation;
   }
 
   @override
@@ -2056,17 +2017,14 @@ class ClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ClientCapabilities &&
-        other.runtimeType == ClientCapabilities) {
-      return experimental == other.experimental &&
-          general == other.general &&
-          notebookDocument == other.notebookDocument &&
-          textDocument == other.textDocument &&
-          window == other.window &&
-          workspace == other.workspace &&
-          true;
-    }
-    return false;
+    return other is ClientCapabilities &&
+        other.runtimeType == ClientCapabilities &&
+        experimental == other.experimental &&
+        general == other.general &&
+        notebookDocument == other.notebookDocument &&
+        textDocument == other.textDocument &&
+        window == other.window &&
+        workspace == other.workspace;
   }
 
   @override
@@ -2320,19 +2278,17 @@ class CodeAction implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeAction && other.runtimeType == CodeAction) {
-      return command == other.command &&
-          data == other.data &&
-          listEqual(diagnostics, other.diagnostics,
-              (Diagnostic a, Diagnostic b) => a == b) &&
-          disabled == other.disabled &&
-          edit == other.edit &&
-          isPreferred == other.isPreferred &&
-          kind == other.kind &&
-          title == other.title &&
-          true;
-    }
-    return false;
+    return other is CodeAction &&
+        other.runtimeType == CodeAction &&
+        command == other.command &&
+        data == other.data &&
+        listEqual(diagnostics, other.diagnostics,
+            (Diagnostic a, Diagnostic b) => a == b) &&
+        disabled == other.disabled &&
+        edit == other.edit &&
+        isPreferred == other.isPreferred &&
+        kind == other.kind &&
+        title == other.title;
   }
 
   @override
@@ -2555,18 +2511,15 @@ class CodeActionClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeActionClientCapabilities &&
-        other.runtimeType == CodeActionClientCapabilities) {
-      return codeActionLiteralSupport == other.codeActionLiteralSupport &&
-          dataSupport == other.dataSupport &&
-          disabledSupport == other.disabledSupport &&
-          dynamicRegistration == other.dynamicRegistration &&
-          honorsChangeAnnotations == other.honorsChangeAnnotations &&
-          isPreferredSupport == other.isPreferredSupport &&
-          resolveSupport == other.resolveSupport &&
-          true;
-    }
-    return false;
+    return other is CodeActionClientCapabilities &&
+        other.runtimeType == CodeActionClientCapabilities &&
+        codeActionLiteralSupport == other.codeActionLiteralSupport &&
+        dataSupport == other.dataSupport &&
+        disabledSupport == other.disabledSupport &&
+        dynamicRegistration == other.dynamicRegistration &&
+        honorsChangeAnnotations == other.honorsChangeAnnotations &&
+        isPreferredSupport == other.isPreferredSupport &&
+        resolveSupport == other.resolveSupport;
   }
 
   @override
@@ -2646,12 +2599,10 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeActionClientCapabilitiesCodeActionLiteralSupport &&
+    return other is CodeActionClientCapabilitiesCodeActionLiteralSupport &&
         other.runtimeType ==
-            CodeActionClientCapabilitiesCodeActionLiteralSupport) {
-      return codeActionKind == other.codeActionKind && true;
-    }
-    return false;
+            CodeActionClientCapabilitiesCodeActionLiteralSupport &&
+        codeActionKind == other.codeActionKind;
   }
 
   @override
@@ -2722,13 +2673,9 @@ class CodeActionClientCapabilitiesResolveSupport implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeActionClientCapabilitiesResolveSupport &&
-        other.runtimeType == CodeActionClientCapabilitiesResolveSupport) {
-      return listEqual(
-              properties, other.properties, (String a, String b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is CodeActionClientCapabilitiesResolveSupport &&
+        other.runtimeType == CodeActionClientCapabilitiesResolveSupport &&
+        listEqual(properties, other.properties, (String a, String b) => a == b);
   }
 
   @override
@@ -2856,15 +2803,13 @@ class CodeActionContext implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeActionContext && other.runtimeType == CodeActionContext) {
-      return listEqual(diagnostics, other.diagnostics,
-              (Diagnostic a, Diagnostic b) => a == b) &&
-          listEqual(only, other.only,
-              (CodeActionKind a, CodeActionKind b) => a == b) &&
-          triggerKind == other.triggerKind &&
-          true;
-    }
-    return false;
+    return other is CodeActionContext &&
+        other.runtimeType == CodeActionContext &&
+        listEqual(diagnostics, other.diagnostics,
+            (Diagnostic a, Diagnostic b) => a == b) &&
+        listEqual(
+            only, other.only, (CodeActionKind a, CodeActionKind b) => a == b) &&
+        triggerKind == other.triggerKind;
   }
 
   @override
@@ -2936,11 +2881,9 @@ class CodeActionDisabled implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeActionDisabled &&
-        other.runtimeType == CodeActionDisabled) {
-      return reason == other.reason && true;
-    }
-    return false;
+    return other is CodeActionDisabled &&
+        other.runtimeType == CodeActionDisabled &&
+        reason == other.reason;
   }
 
   @override
@@ -3097,13 +3040,10 @@ class CodeActionLiteralSupportCodeActionKind implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeActionLiteralSupportCodeActionKind &&
-        other.runtimeType == CodeActionLiteralSupportCodeActionKind) {
-      return listEqual(valueSet, other.valueSet,
-              (CodeActionKind a, CodeActionKind b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is CodeActionLiteralSupportCodeActionKind &&
+        other.runtimeType == CodeActionLiteralSupportCodeActionKind &&
+        listEqual(valueSet, other.valueSet,
+            (CodeActionKind a, CodeActionKind b) => a == b);
   }
 
   @override
@@ -3218,14 +3158,12 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeActionOptions && other.runtimeType == CodeActionOptions) {
-      return listEqual(codeActionKinds, other.codeActionKinds,
-              (CodeActionKind a, CodeActionKind b) => a == b) &&
-          resolveProvider == other.resolveProvider &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is CodeActionOptions &&
+        other.runtimeType == CodeActionOptions &&
+        listEqual(codeActionKinds, other.codeActionKinds,
+            (CodeActionKind a, CodeActionKind b) => a == b) &&
+        resolveProvider == other.resolveProvider &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -3410,15 +3348,13 @@ class CodeActionParams
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeActionParams && other.runtimeType == CodeActionParams) {
-      return context == other.context &&
-          partialResultToken == other.partialResultToken &&
-          range == other.range &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is CodeActionParams &&
+        other.runtimeType == CodeActionParams &&
+        context == other.context &&
+        partialResultToken == other.partialResultToken &&
+        range == other.range &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -3570,21 +3506,17 @@ class CodeActionRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeActionRegistrationOptions &&
-        other.runtimeType == CodeActionRegistrationOptions) {
-      return listEqual(codeActionKinds, other.codeActionKinds,
-              (CodeActionKind a, CodeActionKind b) => a == b) &&
-          listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          resolveProvider == other.resolveProvider &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is CodeActionRegistrationOptions &&
+        other.runtimeType == CodeActionRegistrationOptions &&
+        listEqual(codeActionKinds, other.codeActionKinds,
+            (CodeActionKind a, CodeActionKind b) => a == b) &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        resolveProvider == other.resolveProvider &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -3694,10 +3626,9 @@ class CodeDescription implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeDescription && other.runtimeType == CodeDescription) {
-      return href == other.href && true;
-    }
-    return false;
+    return other is CodeDescription &&
+        other.runtimeType == CodeDescription &&
+        href == other.href;
   }
 
   @override
@@ -3803,13 +3734,11 @@ class CodeLens implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeLens && other.runtimeType == CodeLens) {
-      return command == other.command &&
-          data == other.data &&
-          range == other.range &&
-          true;
-    }
-    return false;
+    return other is CodeLens &&
+        other.runtimeType == CodeLens &&
+        command == other.command &&
+        data == other.data &&
+        range == other.range;
   }
 
   @override
@@ -3874,11 +3803,9 @@ class CodeLensClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeLensClientCapabilities &&
-        other.runtimeType == CodeLensClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
-    }
-    return false;
+    return other is CodeLensClientCapabilities &&
+        other.runtimeType == CodeLensClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration;
   }
 
   @override
@@ -3961,12 +3888,10 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeLensOptions && other.runtimeType == CodeLensOptions) {
-      return resolveProvider == other.resolveProvider &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is CodeLensOptions &&
+        other.runtimeType == CodeLensOptions &&
+        resolveProvider == other.resolveProvider &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -4097,13 +4022,11 @@ class CodeLensParams
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeLensParams && other.runtimeType == CodeLensParams) {
-      return partialResultToken == other.partialResultToken &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is CodeLensParams &&
+        other.runtimeType == CodeLensParams &&
+        partialResultToken == other.partialResultToken &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -4220,19 +4143,15 @@ class CodeLensRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeLensRegistrationOptions &&
-        other.runtimeType == CodeLensRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          resolveProvider == other.resolveProvider &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is CodeLensRegistrationOptions &&
+        other.runtimeType == CodeLensRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        resolveProvider == other.resolveProvider &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -4305,11 +4224,9 @@ class CodeLensWorkspaceClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeLensWorkspaceClientCapabilities &&
-        other.runtimeType == CodeLensWorkspaceClientCapabilities) {
-      return refreshSupport == other.refreshSupport && true;
-    }
-    return false;
+    return other is CodeLensWorkspaceClientCapabilities &&
+        other.runtimeType == CodeLensWorkspaceClientCapabilities &&
+        refreshSupport == other.refreshSupport;
   }
 
   @override
@@ -4454,14 +4371,12 @@ class Color implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Color && other.runtimeType == Color) {
-      return alpha == other.alpha &&
-          blue == other.blue &&
-          green == other.green &&
-          red == other.red &&
-          true;
-    }
-    return false;
+    return other is Color &&
+        other.runtimeType == Color &&
+        alpha == other.alpha &&
+        blue == other.blue &&
+        green == other.green &&
+        red == other.red;
   }
 
   @override
@@ -4559,10 +4474,10 @@ class ColorInformation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ColorInformation && other.runtimeType == ColorInformation) {
-      return color == other.color && range == other.range && true;
-    }
-    return false;
+    return other is ColorInformation &&
+        other.runtimeType == ColorInformation &&
+        color == other.color &&
+        range == other.range;
   }
 
   @override
@@ -4684,14 +4599,12 @@ class ColorPresentation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ColorPresentation && other.runtimeType == ColorPresentation) {
-      return listEqual(additionalTextEdits, other.additionalTextEdits,
-              (TextEdit a, TextEdit b) => a == b) &&
-          label == other.label &&
-          textEdit == other.textEdit &&
-          true;
-    }
-    return false;
+    return other is ColorPresentation &&
+        other.runtimeType == ColorPresentation &&
+        listEqual(additionalTextEdits, other.additionalTextEdits,
+            (TextEdit a, TextEdit b) => a == b) &&
+        label == other.label &&
+        textEdit == other.textEdit;
   }
 
   @override
@@ -4875,16 +4788,13 @@ class ColorPresentationParams
 
   @override
   bool operator ==(Object other) {
-    if (other is ColorPresentationParams &&
-        other.runtimeType == ColorPresentationParams) {
-      return color == other.color &&
-          partialResultToken == other.partialResultToken &&
-          range == other.range &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is ColorPresentationParams &&
+        other.runtimeType == ColorPresentationParams &&
+        color == other.color &&
+        partialResultToken == other.partialResultToken &&
+        range == other.range &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -5008,14 +4918,12 @@ class Command implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Command && other.runtimeType == Command) {
-      return listEqual(
-              arguments, other.arguments, (Object? a, Object? b) => a == b) &&
-          command == other.command &&
-          title == other.title &&
-          true;
-    }
-    return false;
+    return other is Command &&
+        other.runtimeType == Command &&
+        listEqual(
+            arguments, other.arguments, (Object? a, Object? b) => a == b) &&
+        command == other.command &&
+        title == other.title;
   }
 
   @override
@@ -5206,17 +5114,14 @@ class CompletionClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionClientCapabilities &&
-        other.runtimeType == CompletionClientCapabilities) {
-      return completionItem == other.completionItem &&
-          completionItemKind == other.completionItemKind &&
-          completionList == other.completionList &&
-          contextSupport == other.contextSupport &&
-          dynamicRegistration == other.dynamicRegistration &&
-          insertTextMode == other.insertTextMode &&
-          true;
-    }
-    return false;
+    return other is CompletionClientCapabilities &&
+        other.runtimeType == CompletionClientCapabilities &&
+        completionItem == other.completionItem &&
+        completionItemKind == other.completionItemKind &&
+        completionList == other.completionList &&
+        contextSupport == other.contextSupport &&
+        dynamicRegistration == other.dynamicRegistration &&
+        insertTextMode == other.insertTextMode;
   }
 
   @override
@@ -5511,22 +5416,19 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionClientCapabilitiesCompletionItem &&
-        other.runtimeType == CompletionClientCapabilitiesCompletionItem) {
-      return commitCharactersSupport == other.commitCharactersSupport &&
-          deprecatedSupport == other.deprecatedSupport &&
-          listEqual(documentationFormat, other.documentationFormat,
-              (MarkupKind a, MarkupKind b) => a == b) &&
-          insertReplaceSupport == other.insertReplaceSupport &&
-          insertTextModeSupport == other.insertTextModeSupport &&
-          labelDetailsSupport == other.labelDetailsSupport &&
-          preselectSupport == other.preselectSupport &&
-          resolveSupport == other.resolveSupport &&
-          snippetSupport == other.snippetSupport &&
-          tagSupport == other.tagSupport &&
-          true;
-    }
-    return false;
+    return other is CompletionClientCapabilitiesCompletionItem &&
+        other.runtimeType == CompletionClientCapabilitiesCompletionItem &&
+        commitCharactersSupport == other.commitCharactersSupport &&
+        deprecatedSupport == other.deprecatedSupport &&
+        listEqual(documentationFormat, other.documentationFormat,
+            (MarkupKind a, MarkupKind b) => a == b) &&
+        insertReplaceSupport == other.insertReplaceSupport &&
+        insertTextModeSupport == other.insertTextModeSupport &&
+        labelDetailsSupport == other.labelDetailsSupport &&
+        preselectSupport == other.preselectSupport &&
+        resolveSupport == other.resolveSupport &&
+        snippetSupport == other.snippetSupport &&
+        tagSupport == other.tagSupport;
   }
 
   @override
@@ -5610,13 +5512,10 @@ class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionClientCapabilitiesCompletionItemKind &&
-        other.runtimeType == CompletionClientCapabilitiesCompletionItemKind) {
-      return listEqual(valueSet, other.valueSet,
-              (CompletionItemKind a, CompletionItemKind b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is CompletionClientCapabilitiesCompletionItemKind &&
+        other.runtimeType == CompletionClientCapabilitiesCompletionItemKind &&
+        listEqual(valueSet, other.valueSet,
+            (CompletionItemKind a, CompletionItemKind b) => a == b);
   }
 
   @override
@@ -5688,13 +5587,10 @@ class CompletionClientCapabilitiesCompletionList implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionClientCapabilitiesCompletionList &&
-        other.runtimeType == CompletionClientCapabilitiesCompletionList) {
-      return listEqual(itemDefaults, other.itemDefaults,
-              (String a, String b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is CompletionClientCapabilitiesCompletionList &&
+        other.runtimeType == CompletionClientCapabilitiesCompletionList &&
+        listEqual(
+            itemDefaults, other.itemDefaults, (String a, String b) => a == b);
   }
 
   @override
@@ -5783,12 +5679,10 @@ class CompletionContext implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionContext && other.runtimeType == CompletionContext) {
-      return triggerCharacter == other.triggerCharacter &&
-          triggerKind == other.triggerKind &&
-          true;
-    }
-    return false;
+    return other is CompletionContext &&
+        other.runtimeType == CompletionContext &&
+        triggerCharacter == other.triggerCharacter &&
+        triggerKind == other.triggerKind;
   }
 
   @override
@@ -6347,32 +6241,30 @@ class CompletionItem implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionItem && other.runtimeType == CompletionItem) {
-      return listEqual(additionalTextEdits, other.additionalTextEdits,
-              (TextEdit a, TextEdit b) => a == b) &&
-          command == other.command &&
-          listEqual(commitCharacters, other.commitCharacters,
-              (String a, String b) => a == b) &&
-          data == other.data &&
-          deprecated == other.deprecated &&
-          detail == other.detail &&
-          documentation == other.documentation &&
-          filterText == other.filterText &&
-          insertText == other.insertText &&
-          insertTextFormat == other.insertTextFormat &&
-          insertTextMode == other.insertTextMode &&
-          kind == other.kind &&
-          label == other.label &&
-          labelDetails == other.labelDetails &&
-          preselect == other.preselect &&
-          sortText == other.sortText &&
-          listEqual(tags, other.tags,
-              (CompletionItemTag a, CompletionItemTag b) => a == b) &&
-          textEdit == other.textEdit &&
-          textEditText == other.textEditText &&
-          true;
-    }
-    return false;
+    return other is CompletionItem &&
+        other.runtimeType == CompletionItem &&
+        listEqual(additionalTextEdits, other.additionalTextEdits,
+            (TextEdit a, TextEdit b) => a == b) &&
+        command == other.command &&
+        listEqual(commitCharacters, other.commitCharacters,
+            (String a, String b) => a == b) &&
+        data == other.data &&
+        deprecated == other.deprecated &&
+        detail == other.detail &&
+        documentation == other.documentation &&
+        filterText == other.filterText &&
+        insertText == other.insertText &&
+        insertTextFormat == other.insertTextFormat &&
+        insertTextMode == other.insertTextMode &&
+        kind == other.kind &&
+        label == other.label &&
+        labelDetails == other.labelDetails &&
+        preselect == other.preselect &&
+        sortText == other.sortText &&
+        listEqual(tags, other.tags,
+            (CompletionItemTag a, CompletionItemTag b) => a == b) &&
+        textEdit == other.textEdit &&
+        textEditText == other.textEditText;
   }
 
   @override
@@ -6481,11 +6373,10 @@ class CompletionItemEditRange implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionItemEditRange &&
-        other.runtimeType == CompletionItemEditRange) {
-      return insert == other.insert && replace == other.replace && true;
-    }
-    return false;
+    return other is CompletionItemEditRange &&
+        other.runtimeType == CompletionItemEditRange &&
+        insert == other.insert &&
+        replace == other.replace;
   }
 
   @override
@@ -6558,13 +6449,10 @@ class CompletionItemInsertTextModeSupport implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionItemInsertTextModeSupport &&
-        other.runtimeType == CompletionItemInsertTextModeSupport) {
-      return listEqual(valueSet, other.valueSet,
-              (InsertTextMode a, InsertTextMode b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is CompletionItemInsertTextModeSupport &&
+        other.runtimeType == CompletionItemInsertTextModeSupport &&
+        listEqual(valueSet, other.valueSet,
+            (InsertTextMode a, InsertTextMode b) => a == b);
   }
 
   @override
@@ -6703,11 +6591,10 @@ class CompletionItemLabelDetails implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionItemLabelDetails &&
-        other.runtimeType == CompletionItemLabelDetails) {
-      return description == other.description && detail == other.detail && true;
-    }
-    return false;
+    return other is CompletionItemLabelDetails &&
+        other.runtimeType == CompletionItemLabelDetails &&
+        description == other.description &&
+        detail == other.detail;
   }
 
   @override
@@ -6779,13 +6666,9 @@ class CompletionItemResolveSupport implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionItemResolveSupport &&
-        other.runtimeType == CompletionItemResolveSupport) {
-      return listEqual(
-              properties, other.properties, (String a, String b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is CompletionItemResolveSupport &&
+        other.runtimeType == CompletionItemResolveSupport &&
+        listEqual(properties, other.properties, (String a, String b) => a == b);
   }
 
   @override
@@ -6886,13 +6769,10 @@ class CompletionItemTagSupport implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionItemTagSupport &&
-        other.runtimeType == CompletionItemTagSupport) {
-      return listEqual(valueSet, other.valueSet,
-              (CompletionItemTag a, CompletionItemTag b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is CompletionItemTagSupport &&
+        other.runtimeType == CompletionItemTagSupport &&
+        listEqual(valueSet, other.valueSet,
+            (CompletionItemTag a, CompletionItemTag b) => a == b);
   }
 
   @override
@@ -7027,14 +6907,12 @@ class CompletionList implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionList && other.runtimeType == CompletionList) {
-      return isIncomplete == other.isIncomplete &&
-          itemDefaults == other.itemDefaults &&
-          listEqual(items, other.items,
-              (CompletionItem a, CompletionItem b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is CompletionList &&
+        other.runtimeType == CompletionList &&
+        isIncomplete == other.isIncomplete &&
+        itemDefaults == other.itemDefaults &&
+        listEqual(
+            items, other.items, (CompletionItem a, CompletionItem b) => a == b);
   }
 
   @override
@@ -7200,17 +7078,14 @@ class CompletionListItemDefaults implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionListItemDefaults &&
-        other.runtimeType == CompletionListItemDefaults) {
-      return listEqual(commitCharacters, other.commitCharacters,
-              (String a, String b) => a == b) &&
-          data == other.data &&
-          editRange == other.editRange &&
-          insertTextFormat == other.insertTextFormat &&
-          insertTextMode == other.insertTextMode &&
-          true;
-    }
-    return false;
+    return other is CompletionListItemDefaults &&
+        other.runtimeType == CompletionListItemDefaults &&
+        listEqual(commitCharacters, other.commitCharacters,
+            (String a, String b) => a == b) &&
+        data == other.data &&
+        editRange == other.editRange &&
+        insertTextFormat == other.insertTextFormat &&
+        insertTextMode == other.insertTextMode;
   }
 
   @override
@@ -7393,17 +7268,15 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionOptions && other.runtimeType == CompletionOptions) {
-      return listEqual(allCommitCharacters, other.allCommitCharacters,
-              (String a, String b) => a == b) &&
-          completionItem == other.completionItem &&
-          resolveProvider == other.resolveProvider &&
-          listEqual(triggerCharacters, other.triggerCharacters,
-              (String a, String b) => a == b) &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is CompletionOptions &&
+        other.runtimeType == CompletionOptions &&
+        listEqual(allCommitCharacters, other.allCommitCharacters,
+            (String a, String b) => a == b) &&
+        completionItem == other.completionItem &&
+        resolveProvider == other.resolveProvider &&
+        listEqual(triggerCharacters, other.triggerCharacters,
+            (String a, String b) => a == b) &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -7473,11 +7346,9 @@ class CompletionOptionsCompletionItem implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionOptionsCompletionItem &&
-        other.runtimeType == CompletionOptionsCompletionItem) {
-      return labelDetailsSupport == other.labelDetailsSupport && true;
-    }
-    return false;
+    return other is CompletionOptionsCompletionItem &&
+        other.runtimeType == CompletionOptionsCompletionItem &&
+        labelDetailsSupport == other.labelDetailsSupport;
   }
 
   @override
@@ -7661,15 +7532,13 @@ class CompletionParams
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionParams && other.runtimeType == CompletionParams) {
-      return context == other.context &&
-          partialResultToken == other.partialResultToken &&
-          position == other.position &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is CompletionParams &&
+        other.runtimeType == CompletionParams &&
+        context == other.context &&
+        partialResultToken == other.partialResultToken &&
+        position == other.position &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -7885,24 +7754,20 @@ class CompletionRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionRegistrationOptions &&
-        other.runtimeType == CompletionRegistrationOptions) {
-      return listEqual(allCommitCharacters, other.allCommitCharacters,
-              (String a, String b) => a == b) &&
-          completionItem == other.completionItem &&
-          listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          resolveProvider == other.resolveProvider &&
-          listEqual(triggerCharacters, other.triggerCharacters,
-              (String a, String b) => a == b) &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is CompletionRegistrationOptions &&
+        other.runtimeType == CompletionRegistrationOptions &&
+        listEqual(allCommitCharacters, other.allCommitCharacters,
+            (String a, String b) => a == b) &&
+        completionItem == other.completionItem &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        resolveProvider == other.resolveProvider &&
+        listEqual(triggerCharacters, other.triggerCharacters,
+            (String a, String b) => a == b) &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -8031,10 +7896,10 @@ class ConfigurationItem implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ConfigurationItem && other.runtimeType == ConfigurationItem) {
-      return scopeUri == other.scopeUri && section == other.section && true;
-    }
-    return false;
+    return other is ConfigurationItem &&
+        other.runtimeType == ConfigurationItem &&
+        scopeUri == other.scopeUri &&
+        section == other.section;
   }
 
   @override
@@ -8106,13 +7971,10 @@ class ConfigurationParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ConfigurationParams &&
-        other.runtimeType == ConfigurationParams) {
-      return listEqual(items, other.items,
-              (ConfigurationItem a, ConfigurationItem b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is ConfigurationParams &&
+        other.runtimeType == ConfigurationParams &&
+        listEqual(items, other.items,
+            (ConfigurationItem a, ConfigurationItem b) => a == b);
   }
 
   @override
@@ -8255,14 +8117,12 @@ class CreateFile implements ResourceOperation, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CreateFile && other.runtimeType == CreateFile) {
-      return annotationId == other.annotationId &&
-          kind == other.kind &&
-          options == other.options &&
-          uri == other.uri &&
-          true;
-    }
-    return false;
+    return other is CreateFile &&
+        other.runtimeType == CreateFile &&
+        annotationId == other.annotationId &&
+        kind == other.kind &&
+        options == other.options &&
+        uri == other.uri;
   }
 
   @override
@@ -8348,12 +8208,10 @@ class CreateFileOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CreateFileOptions && other.runtimeType == CreateFileOptions) {
-      return ignoreIfExists == other.ignoreIfExists &&
-          overwrite == other.overwrite &&
-          true;
-    }
-    return false;
+    return other is CreateFileOptions &&
+        other.runtimeType == CreateFileOptions &&
+        ignoreIfExists == other.ignoreIfExists &&
+        overwrite == other.overwrite;
   }
 
   @override
@@ -8429,12 +8287,9 @@ class CreateFilesParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CreateFilesParams && other.runtimeType == CreateFilesParams) {
-      return listEqual(
-              files, other.files, (FileCreate a, FileCreate b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is CreateFilesParams &&
+        other.runtimeType == CreateFilesParams &&
+        listEqual(files, other.files, (FileCreate a, FileCreate b) => a == b);
   }
 
   @override
@@ -8517,13 +8372,10 @@ class DeclarationClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DeclarationClientCapabilities &&
-        other.runtimeType == DeclarationClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration &&
-          linkSupport == other.linkSupport &&
-          true;
-    }
-    return false;
+    return other is DeclarationClientCapabilities &&
+        other.runtimeType == DeclarationClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration &&
+        linkSupport == other.linkSupport;
   }
 
   @override
@@ -8589,11 +8441,9 @@ class DeclarationOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DeclarationOptions &&
-        other.runtimeType == DeclarationOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is DeclarationOptions &&
+        other.runtimeType == DeclarationOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -8752,14 +8602,12 @@ class DeclarationParams
 
   @override
   bool operator ==(Object other) {
-    if (other is DeclarationParams && other.runtimeType == DeclarationParams) {
-      return partialResultToken == other.partialResultToken &&
-          position == other.position &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is DeclarationParams &&
+        other.runtimeType == DeclarationParams &&
+        partialResultToken == other.partialResultToken &&
+        position == other.position &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -8881,19 +8729,15 @@ class DeclarationRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is DeclarationRegistrationOptions &&
-        other.runtimeType == DeclarationRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          id == other.id &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is DeclarationRegistrationOptions &&
+        other.runtimeType == DeclarationRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        id == other.id &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -8980,13 +8824,10 @@ class DefinitionClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DefinitionClientCapabilities &&
-        other.runtimeType == DefinitionClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration &&
-          linkSupport == other.linkSupport &&
-          true;
-    }
-    return false;
+    return other is DefinitionClientCapabilities &&
+        other.runtimeType == DefinitionClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration &&
+        linkSupport == other.linkSupport;
   }
 
   @override
@@ -9053,10 +8894,9 @@ class DefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DefinitionOptions && other.runtimeType == DefinitionOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is DefinitionOptions &&
+        other.runtimeType == DefinitionOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -9216,14 +9056,12 @@ class DefinitionParams
 
   @override
   bool operator ==(Object other) {
-    if (other is DefinitionParams && other.runtimeType == DefinitionParams) {
-      return partialResultToken == other.partialResultToken &&
-          position == other.position &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is DefinitionParams &&
+        other.runtimeType == DefinitionParams &&
+        partialResultToken == other.partialResultToken &&
+        position == other.position &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -9320,18 +9158,14 @@ class DefinitionRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is DefinitionRegistrationOptions &&
-        other.runtimeType == DefinitionRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is DefinitionRegistrationOptions &&
+        other.runtimeType == DefinitionRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -9477,14 +9311,12 @@ class DeleteFile implements ResourceOperation, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DeleteFile && other.runtimeType == DeleteFile) {
-      return annotationId == other.annotationId &&
-          kind == other.kind &&
-          options == other.options &&
-          uri == other.uri &&
-          true;
-    }
-    return false;
+    return other is DeleteFile &&
+        other.runtimeType == DeleteFile &&
+        annotationId == other.annotationId &&
+        kind == other.kind &&
+        options == other.options &&
+        uri == other.uri;
   }
 
   @override
@@ -9570,12 +9402,10 @@ class DeleteFileOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DeleteFileOptions && other.runtimeType == DeleteFileOptions) {
-      return ignoreIfNotExists == other.ignoreIfNotExists &&
-          recursive == other.recursive &&
-          true;
-    }
-    return false;
+    return other is DeleteFileOptions &&
+        other.runtimeType == DeleteFileOptions &&
+        ignoreIfNotExists == other.ignoreIfNotExists &&
+        recursive == other.recursive;
   }
 
   @override
@@ -9651,12 +9481,9 @@ class DeleteFilesParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DeleteFilesParams && other.runtimeType == DeleteFilesParams) {
-      return listEqual(
-              files, other.files, (FileDelete a, FileDelete b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is DeleteFilesParams &&
+        other.runtimeType == DeleteFilesParams &&
+        listEqual(files, other.files, (FileDelete a, FileDelete b) => a == b);
   }
 
   @override
@@ -9910,25 +9737,22 @@ class Diagnostic implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Diagnostic && other.runtimeType == Diagnostic) {
-      return code == other.code &&
-          codeDescription == other.codeDescription &&
-          data == other.data &&
-          message == other.message &&
-          range == other.range &&
-          listEqual(
-              relatedInformation,
-              other.relatedInformation,
-              (DiagnosticRelatedInformation a,
-                      DiagnosticRelatedInformation b) =>
-                  a == b) &&
-          severity == other.severity &&
-          source == other.source &&
-          listEqual(
-              tags, other.tags, (DiagnosticTag a, DiagnosticTag b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is Diagnostic &&
+        other.runtimeType == Diagnostic &&
+        code == other.code &&
+        codeDescription == other.codeDescription &&
+        data == other.data &&
+        message == other.message &&
+        range == other.range &&
+        listEqual(
+            relatedInformation,
+            other.relatedInformation,
+            (DiagnosticRelatedInformation a, DiagnosticRelatedInformation b) =>
+                a == b) &&
+        severity == other.severity &&
+        source == other.source &&
+        listEqual(
+            tags, other.tags, (DiagnosticTag a, DiagnosticTag b) => a == b);
   }
 
   @override
@@ -10025,13 +9849,10 @@ class DiagnosticClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DiagnosticClientCapabilities &&
-        other.runtimeType == DiagnosticClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration &&
-          relatedDocumentSupport == other.relatedDocumentSupport &&
-          true;
-    }
-    return false;
+    return other is DiagnosticClientCapabilities &&
+        other.runtimeType == DiagnosticClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration &&
+        relatedDocumentSupport == other.relatedDocumentSupport;
   }
 
   @override
@@ -10175,14 +9996,12 @@ class DiagnosticOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DiagnosticOptions && other.runtimeType == DiagnosticOptions) {
-      return identifier == other.identifier &&
-          interFileDependencies == other.interFileDependencies &&
-          workDoneProgress == other.workDoneProgress &&
-          workspaceDiagnostics == other.workspaceDiagnostics &&
-          true;
-    }
-    return false;
+    return other is DiagnosticOptions &&
+        other.runtimeType == DiagnosticOptions &&
+        identifier == other.identifier &&
+        interFileDependencies == other.interFileDependencies &&
+        workDoneProgress == other.workDoneProgress &&
+        workspaceDiagnostics == other.workspaceDiagnostics;
   }
 
   @override
@@ -10386,22 +10205,18 @@ class DiagnosticRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is DiagnosticRegistrationOptions &&
-        other.runtimeType == DiagnosticRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          id == other.id &&
-          identifier == other.identifier &&
-          interFileDependencies == other.interFileDependencies &&
-          workDoneProgress == other.workDoneProgress &&
-          workspaceDiagnostics == other.workspaceDiagnostics &&
-          true;
-    }
-    return false;
+    return other is DiagnosticRegistrationOptions &&
+        other.runtimeType == DiagnosticRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        id == other.id &&
+        identifier == other.identifier &&
+        interFileDependencies == other.interFileDependencies &&
+        workDoneProgress == other.workDoneProgress &&
+        workspaceDiagnostics == other.workspaceDiagnostics;
   }
 
   @override
@@ -10503,11 +10318,10 @@ class DiagnosticRelatedInformation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DiagnosticRelatedInformation &&
-        other.runtimeType == DiagnosticRelatedInformation) {
-      return location == other.location && message == other.message && true;
-    }
-    return false;
+    return other is DiagnosticRelatedInformation &&
+        other.runtimeType == DiagnosticRelatedInformation &&
+        location == other.location &&
+        message == other.message;
   }
 
   @override
@@ -10578,11 +10392,9 @@ class DiagnosticServerCancellationData implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DiagnosticServerCancellationData &&
-        other.runtimeType == DiagnosticServerCancellationData) {
-      return retriggerRequest == other.retriggerRequest && true;
-    }
-    return false;
+    return other is DiagnosticServerCancellationData &&
+        other.runtimeType == DiagnosticServerCancellationData &&
+        retriggerRequest == other.retriggerRequest;
   }
 
   @override
@@ -10728,11 +10540,9 @@ class DiagnosticWorkspaceClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DiagnosticWorkspaceClientCapabilities &&
-        other.runtimeType == DiagnosticWorkspaceClientCapabilities) {
-      return refreshSupport == other.refreshSupport && true;
-    }
-    return false;
+    return other is DiagnosticWorkspaceClientCapabilities &&
+        other.runtimeType == DiagnosticWorkspaceClientCapabilities &&
+        refreshSupport == other.refreshSupport;
   }
 
   @override
@@ -10794,11 +10604,9 @@ class DidChangeConfigurationClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidChangeConfigurationClientCapabilities &&
-        other.runtimeType == DidChangeConfigurationClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
-    }
-    return false;
+    return other is DidChangeConfigurationClientCapabilities &&
+        other.runtimeType == DidChangeConfigurationClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration;
   }
 
   @override
@@ -10847,11 +10655,9 @@ class DidChangeConfigurationParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidChangeConfigurationParams &&
-        other.runtimeType == DidChangeConfigurationParams) {
-      return settings == other.settings && true;
-    }
-    return false;
+    return other is DidChangeConfigurationParams &&
+        other.runtimeType == DidChangeConfigurationParams &&
+        settings == other.settings;
   }
 
   @override
@@ -10967,13 +10773,10 @@ class DidChangeNotebookDocumentParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidChangeNotebookDocumentParams &&
-        other.runtimeType == DidChangeNotebookDocumentParams) {
-      return change == other.change &&
-          notebookDocument == other.notebookDocument &&
-          true;
-    }
-    return false;
+    return other is DidChangeNotebookDocumentParams &&
+        other.runtimeType == DidChangeNotebookDocumentParams &&
+        change == other.change &&
+        notebookDocument == other.notebookDocument;
   }
 
   @override
@@ -11102,22 +10905,19 @@ class DidChangeTextDocumentParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidChangeTextDocumentParams &&
-        other.runtimeType == DidChangeTextDocumentParams) {
-      return listEqual(
-              contentChanges,
-              other.contentChanges,
-              (Either2<TextDocumentContentChangeEvent1,
-                              TextDocumentContentChangeEvent2>
-                          a,
-                      Either2<TextDocumentContentChangeEvent1,
-                              TextDocumentContentChangeEvent2>
-                          b) =>
-                  a == b) &&
-          textDocument == other.textDocument &&
-          true;
-    }
-    return false;
+    return other is DidChangeTextDocumentParams &&
+        other.runtimeType == DidChangeTextDocumentParams &&
+        listEqual(
+            contentChanges,
+            other.contentChanges,
+            (Either2<TextDocumentContentChangeEvent1,
+                            TextDocumentContentChangeEvent2>
+                        a,
+                    Either2<TextDocumentContentChangeEvent1,
+                            TextDocumentContentChangeEvent2>
+                        b) =>
+                a == b) &&
+        textDocument == other.textDocument;
   }
 
   @override
@@ -11208,13 +11008,10 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidChangeWatchedFilesClientCapabilities &&
-        other.runtimeType == DidChangeWatchedFilesClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration &&
-          relativePatternSupport == other.relativePatternSupport &&
-          true;
-    }
-    return false;
+    return other is DidChangeWatchedFilesClientCapabilities &&
+        other.runtimeType == DidChangeWatchedFilesClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration &&
+        relativePatternSupport == other.relativePatternSupport;
   }
 
   @override
@@ -11287,13 +11084,9 @@ class DidChangeWatchedFilesParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidChangeWatchedFilesParams &&
-        other.runtimeType == DidChangeWatchedFilesParams) {
-      return listEqual(
-              changes, other.changes, (FileEvent a, FileEvent b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is DidChangeWatchedFilesParams &&
+        other.runtimeType == DidChangeWatchedFilesParams &&
+        listEqual(changes, other.changes, (FileEvent a, FileEvent b) => a == b);
   }
 
   @override
@@ -11366,13 +11159,10 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidChangeWatchedFilesRegistrationOptions &&
-        other.runtimeType == DidChangeWatchedFilesRegistrationOptions) {
-      return listEqual(watchers, other.watchers,
-              (FileSystemWatcher a, FileSystemWatcher b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is DidChangeWatchedFilesRegistrationOptions &&
+        other.runtimeType == DidChangeWatchedFilesRegistrationOptions &&
+        listEqual(watchers, other.watchers,
+            (FileSystemWatcher a, FileSystemWatcher b) => a == b);
   }
 
   @override
@@ -11440,11 +11230,9 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidChangeWorkspaceFoldersParams &&
-        other.runtimeType == DidChangeWorkspaceFoldersParams) {
-      return event == other.event && true;
-    }
-    return false;
+    return other is DidChangeWorkspaceFoldersParams &&
+        other.runtimeType == DidChangeWorkspaceFoldersParams &&
+        event == other.event;
   }
 
   @override
@@ -11547,14 +11335,11 @@ class DidCloseNotebookDocumentParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidCloseNotebookDocumentParams &&
-        other.runtimeType == DidCloseNotebookDocumentParams) {
-      return listEqual(cellTextDocuments, other.cellTextDocuments,
-              (TextDocumentIdentifier a, TextDocumentIdentifier b) => a == b) &&
-          notebookDocument == other.notebookDocument &&
-          true;
-    }
-    return false;
+    return other is DidCloseNotebookDocumentParams &&
+        other.runtimeType == DidCloseNotebookDocumentParams &&
+        listEqual(cellTextDocuments, other.cellTextDocuments,
+            (TextDocumentIdentifier a, TextDocumentIdentifier b) => a == b) &&
+        notebookDocument == other.notebookDocument;
   }
 
   @override
@@ -11625,11 +11410,9 @@ class DidCloseTextDocumentParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidCloseTextDocumentParams &&
-        other.runtimeType == DidCloseTextDocumentParams) {
-      return textDocument == other.textDocument && true;
-    }
-    return false;
+    return other is DidCloseTextDocumentParams &&
+        other.runtimeType == DidCloseTextDocumentParams &&
+        textDocument == other.textDocument;
   }
 
   @override
@@ -11730,14 +11513,11 @@ class DidOpenNotebookDocumentParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidOpenNotebookDocumentParams &&
-        other.runtimeType == DidOpenNotebookDocumentParams) {
-      return listEqual(cellTextDocuments, other.cellTextDocuments,
-              (TextDocumentItem a, TextDocumentItem b) => a == b) &&
-          notebookDocument == other.notebookDocument &&
-          true;
-    }
-    return false;
+    return other is DidOpenNotebookDocumentParams &&
+        other.runtimeType == DidOpenNotebookDocumentParams &&
+        listEqual(cellTextDocuments, other.cellTextDocuments,
+            (TextDocumentItem a, TextDocumentItem b) => a == b) &&
+        notebookDocument == other.notebookDocument;
   }
 
   @override
@@ -11808,11 +11588,9 @@ class DidOpenTextDocumentParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidOpenTextDocumentParams &&
-        other.runtimeType == DidOpenTextDocumentParams) {
-      return textDocument == other.textDocument && true;
-    }
-    return false;
+    return other is DidOpenTextDocumentParams &&
+        other.runtimeType == DidOpenTextDocumentParams &&
+        textDocument == other.textDocument;
   }
 
   @override
@@ -11882,11 +11660,9 @@ class DidSaveNotebookDocumentParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidSaveNotebookDocumentParams &&
-        other.runtimeType == DidSaveNotebookDocumentParams) {
-      return notebookDocument == other.notebookDocument && true;
-    }
-    return false;
+    return other is DidSaveNotebookDocumentParams &&
+        other.runtimeType == DidSaveNotebookDocumentParams &&
+        notebookDocument == other.notebookDocument;
   }
 
   @override
@@ -11975,11 +11751,10 @@ class DidSaveTextDocumentParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidSaveTextDocumentParams &&
-        other.runtimeType == DidSaveTextDocumentParams) {
-      return text == other.text && textDocument == other.textDocument && true;
-    }
-    return false;
+    return other is DidSaveTextDocumentParams &&
+        other.runtimeType == DidSaveTextDocumentParams &&
+        text == other.text &&
+        textDocument == other.textDocument;
   }
 
   @override
@@ -12044,11 +11819,9 @@ class DocumentColorClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentColorClientCapabilities &&
-        other.runtimeType == DocumentColorClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
-    }
-    return false;
+    return other is DocumentColorClientCapabilities &&
+        other.runtimeType == DocumentColorClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration;
   }
 
   @override
@@ -12111,11 +11884,9 @@ class DocumentColorOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentColorOptions &&
-        other.runtimeType == DocumentColorOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is DocumentColorOptions &&
+        other.runtimeType == DocumentColorOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -12243,14 +12014,11 @@ class DocumentColorParams
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentColorParams &&
-        other.runtimeType == DocumentColorParams) {
-      return partialResultToken == other.partialResultToken &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is DocumentColorParams &&
+        other.runtimeType == DocumentColorParams &&
+        partialResultToken == other.partialResultToken &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -12371,19 +12139,15 @@ class DocumentColorRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentColorRegistrationOptions &&
-        other.runtimeType == DocumentColorRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          id == other.id &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is DocumentColorRegistrationOptions &&
+        other.runtimeType == DocumentColorRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        id == other.id &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -12557,16 +12321,13 @@ class DocumentDiagnosticParams
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentDiagnosticParams &&
-        other.runtimeType == DocumentDiagnosticParams) {
-      return identifier == other.identifier &&
-          partialResultToken == other.partialResultToken &&
-          previousResultId == other.previousResultId &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is DocumentDiagnosticParams &&
+        other.runtimeType == DocumentDiagnosticParams &&
+        identifier == other.identifier &&
+        partialResultToken == other.partialResultToken &&
+        previousResultId == other.previousResultId &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -12664,21 +12425,18 @@ class DocumentDiagnosticReportPartialResult implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentDiagnosticReportPartialResult &&
-        other.runtimeType == DocumentDiagnosticReportPartialResult) {
-      return mapEqual(
-              relatedDocuments,
-              other.relatedDocuments,
-              (Either2<FullDocumentDiagnosticReport,
-                              UnchangedDocumentDiagnosticReport>
-                          a,
-                      Either2<FullDocumentDiagnosticReport,
-                              UnchangedDocumentDiagnosticReport>
-                          b) =>
-                  a == b) &&
-          true;
-    }
-    return false;
+    return other is DocumentDiagnosticReportPartialResult &&
+        other.runtimeType == DocumentDiagnosticReportPartialResult &&
+        mapEqual(
+            relatedDocuments,
+            other.relatedDocuments,
+            (Either2<FullDocumentDiagnosticReport,
+                            UnchangedDocumentDiagnosticReport>
+                        a,
+                    Either2<FullDocumentDiagnosticReport,
+                            UnchangedDocumentDiagnosticReport>
+                        b) =>
+                a == b);
   }
 
   @override
@@ -12741,11 +12499,9 @@ class DocumentFormattingClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentFormattingClientCapabilities &&
-        other.runtimeType == DocumentFormattingClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
-    }
-    return false;
+    return other is DocumentFormattingClientCapabilities &&
+        other.runtimeType == DocumentFormattingClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration;
   }
 
   @override
@@ -12810,11 +12566,9 @@ class DocumentFormattingOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentFormattingOptions &&
-        other.runtimeType == DocumentFormattingOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is DocumentFormattingOptions &&
+        other.runtimeType == DocumentFormattingOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -12938,14 +12692,11 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentFormattingParams &&
-        other.runtimeType == DocumentFormattingParams) {
-      return options == other.options &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is DocumentFormattingParams &&
+        other.runtimeType == DocumentFormattingParams &&
+        options == other.options &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -13046,18 +12797,14 @@ class DocumentFormattingRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentFormattingRegistrationOptions &&
-        other.runtimeType == DocumentFormattingRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is DocumentFormattingRegistrationOptions &&
+        other.runtimeType == DocumentFormattingRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -13151,10 +12898,10 @@ class DocumentHighlight implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentHighlight && other.runtimeType == DocumentHighlight) {
-      return kind == other.kind && range == other.range && true;
-    }
-    return false;
+    return other is DocumentHighlight &&
+        other.runtimeType == DocumentHighlight &&
+        kind == other.kind &&
+        range == other.range;
   }
 
   @override
@@ -13220,11 +12967,9 @@ class DocumentHighlightClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentHighlightClientCapabilities &&
-        other.runtimeType == DocumentHighlightClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
-    }
-    return false;
+    return other is DocumentHighlightClientCapabilities &&
+        other.runtimeType == DocumentHighlightClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration;
   }
 
   @override
@@ -13323,11 +13068,9 @@ class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentHighlightOptions &&
-        other.runtimeType == DocumentHighlightOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is DocumentHighlightOptions &&
+        other.runtimeType == DocumentHighlightOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -13487,15 +13230,12 @@ class DocumentHighlightParams
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentHighlightParams &&
-        other.runtimeType == DocumentHighlightParams) {
-      return partialResultToken == other.partialResultToken &&
-          position == other.position &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is DocumentHighlightParams &&
+        other.runtimeType == DocumentHighlightParams &&
+        partialResultToken == other.partialResultToken &&
+        position == other.position &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -13597,18 +13337,14 @@ class DocumentHighlightRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentHighlightRegistrationOptions &&
-        other.runtimeType == DocumentHighlightRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is DocumentHighlightRegistrationOptions &&
+        other.runtimeType == DocumentHighlightRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -13737,14 +13473,12 @@ class DocumentLink implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentLink && other.runtimeType == DocumentLink) {
-      return data == other.data &&
-          range == other.range &&
-          target == other.target &&
-          tooltip == other.tooltip &&
-          true;
-    }
-    return false;
+    return other is DocumentLink &&
+        other.runtimeType == DocumentLink &&
+        data == other.data &&
+        range == other.range &&
+        target == other.target &&
+        tooltip == other.tooltip;
   }
 
   @override
@@ -13832,13 +13566,10 @@ class DocumentLinkClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentLinkClientCapabilities &&
-        other.runtimeType == DocumentLinkClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration &&
-          tooltipSupport == other.tooltipSupport &&
-          true;
-    }
-    return false;
+    return other is DocumentLinkClientCapabilities &&
+        other.runtimeType == DocumentLinkClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration &&
+        tooltipSupport == other.tooltipSupport;
   }
 
   @override
@@ -13924,13 +13655,10 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentLinkOptions &&
-        other.runtimeType == DocumentLinkOptions) {
-      return resolveProvider == other.resolveProvider &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is DocumentLinkOptions &&
+        other.runtimeType == DocumentLinkOptions &&
+        resolveProvider == other.resolveProvider &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -14061,14 +13789,11 @@ class DocumentLinkParams
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentLinkParams &&
-        other.runtimeType == DocumentLinkParams) {
-      return partialResultToken == other.partialResultToken &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is DocumentLinkParams &&
+        other.runtimeType == DocumentLinkParams &&
+        partialResultToken == other.partialResultToken &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -14188,19 +13913,15 @@ class DocumentLinkRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentLinkRegistrationOptions &&
-        other.runtimeType == DocumentLinkRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          resolveProvider == other.resolveProvider &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is DocumentLinkRegistrationOptions &&
+        other.runtimeType == DocumentLinkRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        resolveProvider == other.resolveProvider &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -14267,11 +13988,9 @@ class DocumentOnTypeFormattingClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentOnTypeFormattingClientCapabilities &&
-        other.runtimeType == DocumentOnTypeFormattingClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
-    }
-    return false;
+    return other is DocumentOnTypeFormattingClientCapabilities &&
+        other.runtimeType == DocumentOnTypeFormattingClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration;
   }
 
   @override
@@ -14366,14 +14085,11 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentOnTypeFormattingOptions &&
-        other.runtimeType == DocumentOnTypeFormattingOptions) {
-      return firstTriggerCharacter == other.firstTriggerCharacter &&
-          listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
-              (String a, String b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is DocumentOnTypeFormattingOptions &&
+        other.runtimeType == DocumentOnTypeFormattingOptions &&
+        firstTriggerCharacter == other.firstTriggerCharacter &&
+        listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
+            (String a, String b) => a == b);
   }
 
   @override
@@ -14528,15 +14244,12 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentOnTypeFormattingParams &&
-        other.runtimeType == DocumentOnTypeFormattingParams) {
-      return ch == other.ch &&
-          options == other.options &&
-          position == other.position &&
-          textDocument == other.textDocument &&
-          true;
-    }
-    return false;
+    return other is DocumentOnTypeFormattingParams &&
+        other.runtimeType == DocumentOnTypeFormattingParams &&
+        ch == other.ch &&
+        options == other.options &&
+        position == other.position &&
+        textDocument == other.textDocument;
   }
 
   @override
@@ -14671,20 +14384,16 @@ class DocumentOnTypeFormattingRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentOnTypeFormattingRegistrationOptions &&
-        other.runtimeType == DocumentOnTypeFormattingRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          firstTriggerCharacter == other.firstTriggerCharacter &&
-          listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
-              (String a, String b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is DocumentOnTypeFormattingRegistrationOptions &&
+        other.runtimeType == DocumentOnTypeFormattingRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        firstTriggerCharacter == other.firstTriggerCharacter &&
+        listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
+            (String a, String b) => a == b);
   }
 
   @override
@@ -14751,11 +14460,9 @@ class DocumentRangeFormattingClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentRangeFormattingClientCapabilities &&
-        other.runtimeType == DocumentRangeFormattingClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
-    }
-    return false;
+    return other is DocumentRangeFormattingClientCapabilities &&
+        other.runtimeType == DocumentRangeFormattingClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration;
   }
 
   @override
@@ -14821,11 +14528,9 @@ class DocumentRangeFormattingOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentRangeFormattingOptions &&
-        other.runtimeType == DocumentRangeFormattingOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is DocumentRangeFormattingOptions &&
+        other.runtimeType == DocumentRangeFormattingOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -14976,15 +14681,12 @@ class DocumentRangeFormattingParams
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentRangeFormattingParams &&
-        other.runtimeType == DocumentRangeFormattingParams) {
-      return options == other.options &&
-          range == other.range &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is DocumentRangeFormattingParams &&
+        other.runtimeType == DocumentRangeFormattingParams &&
+        options == other.options &&
+        range == other.range &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -15086,18 +14788,14 @@ class DocumentRangeFormattingRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentRangeFormattingRegistrationOptions &&
-        other.runtimeType == DocumentRangeFormattingRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is DocumentRangeFormattingRegistrationOptions &&
+        other.runtimeType == DocumentRangeFormattingRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -15348,19 +15046,17 @@ class DocumentSymbol implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentSymbol && other.runtimeType == DocumentSymbol) {
-      return listEqual(children, other.children,
-              (DocumentSymbol a, DocumentSymbol b) => a == b) &&
-          deprecated == other.deprecated &&
-          detail == other.detail &&
-          kind == other.kind &&
-          name == other.name &&
-          range == other.range &&
-          selectionRange == other.selectionRange &&
-          listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is DocumentSymbol &&
+        other.runtimeType == DocumentSymbol &&
+        listEqual(children, other.children,
+            (DocumentSymbol a, DocumentSymbol b) => a == b) &&
+        deprecated == other.deprecated &&
+        detail == other.detail &&
+        kind == other.kind &&
+        name == other.name &&
+        range == other.range &&
+        selectionRange == other.selectionRange &&
+        listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b);
   }
 
   @override
@@ -15535,17 +15231,14 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentSymbolClientCapabilities &&
-        other.runtimeType == DocumentSymbolClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration &&
-          hierarchicalDocumentSymbolSupport ==
-              other.hierarchicalDocumentSymbolSupport &&
-          labelSupport == other.labelSupport &&
-          symbolKind == other.symbolKind &&
-          tagSupport == other.tagSupport &&
-          true;
-    }
-    return false;
+    return other is DocumentSymbolClientCapabilities &&
+        other.runtimeType == DocumentSymbolClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration &&
+        hierarchicalDocumentSymbolSupport ==
+            other.hierarchicalDocumentSymbolSupport &&
+        labelSupport == other.labelSupport &&
+        symbolKind == other.symbolKind &&
+        tagSupport == other.tagSupport;
   }
 
   @override
@@ -15622,13 +15315,10 @@ class DocumentSymbolClientCapabilitiesSymbolKind implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentSymbolClientCapabilitiesSymbolKind &&
-        other.runtimeType == DocumentSymbolClientCapabilitiesSymbolKind) {
-      return listEqual(valueSet, other.valueSet,
-              (SymbolKind a, SymbolKind b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is DocumentSymbolClientCapabilitiesSymbolKind &&
+        other.runtimeType == DocumentSymbolClientCapabilitiesSymbolKind &&
+        listEqual(
+            valueSet, other.valueSet, (SymbolKind a, SymbolKind b) => a == b);
   }
 
   @override
@@ -15699,13 +15389,10 @@ class DocumentSymbolClientCapabilitiesTagSupport implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentSymbolClientCapabilitiesTagSupport &&
-        other.runtimeType == DocumentSymbolClientCapabilitiesTagSupport) {
-      return listEqual(
-              valueSet, other.valueSet, (SymbolTag a, SymbolTag b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is DocumentSymbolClientCapabilitiesTagSupport &&
+        other.runtimeType == DocumentSymbolClientCapabilitiesTagSupport &&
+        listEqual(
+            valueSet, other.valueSet, (SymbolTag a, SymbolTag b) => a == b);
   }
 
   @override
@@ -15791,13 +15478,10 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentSymbolOptions &&
-        other.runtimeType == DocumentSymbolOptions) {
-      return label == other.label &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is DocumentSymbolOptions &&
+        other.runtimeType == DocumentSymbolOptions &&
+        label == other.label &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -15928,14 +15612,11 @@ class DocumentSymbolParams
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentSymbolParams &&
-        other.runtimeType == DocumentSymbolParams) {
-      return partialResultToken == other.partialResultToken &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is DocumentSymbolParams &&
+        other.runtimeType == DocumentSymbolParams &&
+        partialResultToken == other.partialResultToken &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -16058,19 +15739,15 @@ class DocumentSymbolRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentSymbolRegistrationOptions &&
-        other.runtimeType == DocumentSymbolRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          label == other.label &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is DocumentSymbolRegistrationOptions &&
+        other.runtimeType == DocumentSymbolRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        label == other.label &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -16221,11 +15898,9 @@ class ExecuteCommandClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ExecuteCommandClientCapabilities &&
-        other.runtimeType == ExecuteCommandClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
-    }
-    return false;
+    return other is ExecuteCommandClientCapabilities &&
+        other.runtimeType == ExecuteCommandClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration;
   }
 
   @override
@@ -16316,14 +15991,10 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ExecuteCommandOptions &&
-        other.runtimeType == ExecuteCommandOptions) {
-      return listEqual(
-              commands, other.commands, (String a, String b) => a == b) &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is ExecuteCommandOptions &&
+        other.runtimeType == ExecuteCommandOptions &&
+        listEqual(commands, other.commands, (String a, String b) => a == b) &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -16444,15 +16115,12 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ExecuteCommandParams &&
-        other.runtimeType == ExecuteCommandParams) {
-      return listEqual(
-              arguments, other.arguments, (Object? a, Object? b) => a == b) &&
-          command == other.command &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is ExecuteCommandParams &&
+        other.runtimeType == ExecuteCommandParams &&
+        listEqual(
+            arguments, other.arguments, (Object? a, Object? b) => a == b) &&
+        command == other.command &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -16546,14 +16214,10 @@ class ExecuteCommandRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is ExecuteCommandRegistrationOptions &&
-        other.runtimeType == ExecuteCommandRegistrationOptions) {
-      return listEqual(
-              commands, other.commands, (String a, String b) => a == b) &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is ExecuteCommandRegistrationOptions &&
+        other.runtimeType == ExecuteCommandRegistrationOptions &&
+        listEqual(commands, other.commands, (String a, String b) => a == b) &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -16643,12 +16307,10 @@ class ExecutionSummary implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ExecutionSummary && other.runtimeType == ExecutionSummary) {
-      return executionOrder == other.executionOrder &&
-          success == other.success &&
-          true;
-    }
-    return false;
+    return other is ExecutionSummary &&
+        other.runtimeType == ExecutionSummary &&
+        executionOrder == other.executionOrder &&
+        success == other.success;
   }
 
   @override
@@ -16804,10 +16466,9 @@ class FileCreate implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FileCreate && other.runtimeType == FileCreate) {
-      return uri == other.uri && true;
-    }
-    return false;
+    return other is FileCreate &&
+        other.runtimeType == FileCreate &&
+        uri == other.uri;
   }
 
   @override
@@ -16876,10 +16537,9 @@ class FileDelete implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FileDelete && other.runtimeType == FileDelete) {
-      return uri == other.uri && true;
-    }
-    return false;
+    return other is FileDelete &&
+        other.runtimeType == FileDelete &&
+        uri == other.uri;
   }
 
   @override
@@ -16972,10 +16632,10 @@ class FileEvent implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FileEvent && other.runtimeType == FileEvent) {
-      return type == other.type && uri == other.uri && true;
-    }
-    return false;
+    return other is FileEvent &&
+        other.runtimeType == FileEvent &&
+        type == other.type &&
+        uri == other.uri;
   }
 
   @override
@@ -17166,18 +16826,15 @@ class FileOperationClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FileOperationClientCapabilities &&
-        other.runtimeType == FileOperationClientCapabilities) {
-      return didCreate == other.didCreate &&
-          didDelete == other.didDelete &&
-          didRename == other.didRename &&
-          dynamicRegistration == other.dynamicRegistration &&
-          willCreate == other.willCreate &&
-          willDelete == other.willDelete &&
-          willRename == other.willRename &&
-          true;
-    }
-    return false;
+    return other is FileOperationClientCapabilities &&
+        other.runtimeType == FileOperationClientCapabilities &&
+        didCreate == other.didCreate &&
+        didDelete == other.didDelete &&
+        didRename == other.didRename &&
+        dynamicRegistration == other.dynamicRegistration &&
+        willCreate == other.willCreate &&
+        willDelete == other.willDelete &&
+        willRename == other.willRename;
   }
 
   @override
@@ -17276,11 +16933,10 @@ class FileOperationFilter implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FileOperationFilter &&
-        other.runtimeType == FileOperationFilter) {
-      return pattern == other.pattern && scheme == other.scheme && true;
-    }
-    return false;
+    return other is FileOperationFilter &&
+        other.runtimeType == FileOperationFilter &&
+        pattern == other.pattern &&
+        scheme == other.scheme;
   }
 
   @override
@@ -17476,17 +17132,14 @@ class FileOperationOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FileOperationOptions &&
-        other.runtimeType == FileOperationOptions) {
-      return didCreate == other.didCreate &&
-          didDelete == other.didDelete &&
-          didRename == other.didRename &&
-          willCreate == other.willCreate &&
-          willDelete == other.willDelete &&
-          willRename == other.willRename &&
-          true;
-    }
-    return false;
+    return other is FileOperationOptions &&
+        other.runtimeType == FileOperationOptions &&
+        didCreate == other.didCreate &&
+        didDelete == other.didDelete &&
+        didRename == other.didRename &&
+        willCreate == other.willCreate &&
+        willDelete == other.willDelete &&
+        willRename == other.willRename;
   }
 
   @override
@@ -17622,14 +17275,11 @@ class FileOperationPattern implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FileOperationPattern &&
-        other.runtimeType == FileOperationPattern) {
-      return glob == other.glob &&
-          matches == other.matches &&
-          options == other.options &&
-          true;
-    }
-    return false;
+    return other is FileOperationPattern &&
+        other.runtimeType == FileOperationPattern &&
+        glob == other.glob &&
+        matches == other.matches &&
+        options == other.options;
   }
 
   @override
@@ -17729,11 +17379,9 @@ class FileOperationPatternOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FileOperationPatternOptions &&
-        other.runtimeType == FileOperationPatternOptions) {
-      return ignoreCase == other.ignoreCase && true;
-    }
-    return false;
+    return other is FileOperationPatternOptions &&
+        other.runtimeType == FileOperationPatternOptions &&
+        ignoreCase == other.ignoreCase;
   }
 
   @override
@@ -17807,13 +17455,10 @@ class FileOperationRegistrationOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FileOperationRegistrationOptions &&
-        other.runtimeType == FileOperationRegistrationOptions) {
-      return listEqual(filters, other.filters,
-              (FileOperationFilter a, FileOperationFilter b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is FileOperationRegistrationOptions &&
+        other.runtimeType == FileOperationRegistrationOptions &&
+        listEqual(filters, other.filters,
+            (FileOperationFilter a, FileOperationFilter b) => a == b);
   }
 
   @override
@@ -17908,10 +17553,10 @@ class FileRename implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FileRename && other.runtimeType == FileRename) {
-      return newUri == other.newUri && oldUri == other.oldUri && true;
-    }
-    return false;
+    return other is FileRename &&
+        other.runtimeType == FileRename &&
+        newUri == other.newUri &&
+        oldUri == other.oldUri;
   }
 
   @override
@@ -18011,10 +17656,10 @@ class FileSystemWatcher implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FileSystemWatcher && other.runtimeType == FileSystemWatcher) {
-      return globPattern == other.globPattern && kind == other.kind && true;
-    }
-    return false;
+    return other is FileSystemWatcher &&
+        other.runtimeType == FileSystemWatcher &&
+        globPattern == other.globPattern &&
+        kind == other.kind;
   }
 
   @override
@@ -18206,16 +17851,14 @@ class FoldingRange implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FoldingRange && other.runtimeType == FoldingRange) {
-      return collapsedText == other.collapsedText &&
-          endCharacter == other.endCharacter &&
-          endLine == other.endLine &&
-          kind == other.kind &&
-          startCharacter == other.startCharacter &&
-          startLine == other.startLine &&
-          true;
-    }
-    return false;
+    return other is FoldingRange &&
+        other.runtimeType == FoldingRange &&
+        collapsedText == other.collapsedText &&
+        endCharacter == other.endCharacter &&
+        endLine == other.endLine &&
+        kind == other.kind &&
+        startCharacter == other.startCharacter &&
+        startLine == other.startLine;
   }
 
   @override
@@ -18385,16 +18028,13 @@ class FoldingRangeClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FoldingRangeClientCapabilities &&
-        other.runtimeType == FoldingRangeClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration &&
-          foldingRange == other.foldingRange &&
-          foldingRangeKind == other.foldingRangeKind &&
-          lineFoldingOnly == other.lineFoldingOnly &&
-          rangeLimit == other.rangeLimit &&
-          true;
-    }
-    return false;
+    return other is FoldingRangeClientCapabilities &&
+        other.runtimeType == FoldingRangeClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration &&
+        foldingRange == other.foldingRange &&
+        foldingRangeKind == other.foldingRangeKind &&
+        lineFoldingOnly == other.lineFoldingOnly &&
+        rangeLimit == other.rangeLimit;
   }
 
   @override
@@ -18465,11 +18105,9 @@ class FoldingRangeClientCapabilitiesFoldingRange implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FoldingRangeClientCapabilitiesFoldingRange &&
-        other.runtimeType == FoldingRangeClientCapabilitiesFoldingRange) {
-      return collapsedText == other.collapsedText && true;
-    }
-    return false;
+    return other is FoldingRangeClientCapabilitiesFoldingRange &&
+        other.runtimeType == FoldingRangeClientCapabilitiesFoldingRange &&
+        collapsedText == other.collapsedText;
   }
 
   @override
@@ -18538,13 +18176,10 @@ class FoldingRangeClientCapabilitiesFoldingRangeKind implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FoldingRangeClientCapabilitiesFoldingRangeKind &&
-        other.runtimeType == FoldingRangeClientCapabilitiesFoldingRangeKind) {
-      return listEqual(valueSet, other.valueSet,
-              (FoldingRangeKind a, FoldingRangeKind b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is FoldingRangeClientCapabilitiesFoldingRangeKind &&
+        other.runtimeType == FoldingRangeClientCapabilitiesFoldingRangeKind &&
+        listEqual(valueSet, other.valueSet,
+            (FoldingRangeKind a, FoldingRangeKind b) => a == b);
   }
 
   @override
@@ -18641,11 +18276,9 @@ class FoldingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FoldingRangeOptions &&
-        other.runtimeType == FoldingRangeOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is FoldingRangeOptions &&
+        other.runtimeType == FoldingRangeOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -18773,14 +18406,11 @@ class FoldingRangeParams
 
   @override
   bool operator ==(Object other) {
-    if (other is FoldingRangeParams &&
-        other.runtimeType == FoldingRangeParams) {
-      return partialResultToken == other.partialResultToken &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is FoldingRangeParams &&
+        other.runtimeType == FoldingRangeParams &&
+        partialResultToken == other.partialResultToken &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -18901,19 +18531,15 @@ class FoldingRangeRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is FoldingRangeRegistrationOptions &&
-        other.runtimeType == FoldingRangeRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          id == other.id &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is FoldingRangeRegistrationOptions &&
+        other.runtimeType == FoldingRangeRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        id == other.id &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -19076,15 +18702,13 @@ class FormattingOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FormattingOptions && other.runtimeType == FormattingOptions) {
-      return insertFinalNewline == other.insertFinalNewline &&
-          insertSpaces == other.insertSpaces &&
-          tabSize == other.tabSize &&
-          trimFinalNewlines == other.trimFinalNewlines &&
-          trimTrailingWhitespace == other.trimTrailingWhitespace &&
-          true;
-    }
-    return false;
+    return other is FormattingOptions &&
+        other.runtimeType == FormattingOptions &&
+        insertFinalNewline == other.insertFinalNewline &&
+        insertSpaces == other.insertSpaces &&
+        tabSize == other.tabSize &&
+        trimFinalNewlines == other.trimFinalNewlines &&
+        trimTrailingWhitespace == other.trimTrailingWhitespace;
   }
 
   @override
@@ -19221,15 +18845,11 @@ class FullDocumentDiagnosticReport implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FullDocumentDiagnosticReport &&
-        other.runtimeType == FullDocumentDiagnosticReport) {
-      return listEqual(
-              items, other.items, (Diagnostic a, Diagnostic b) => a == b) &&
-          kind == other.kind &&
-          resultId == other.resultId &&
-          true;
-    }
-    return false;
+    return other is FullDocumentDiagnosticReport &&
+        other.runtimeType == FullDocumentDiagnosticReport &&
+        listEqual(items, other.items, (Diagnostic a, Diagnostic b) => a == b) &&
+        kind == other.kind &&
+        resultId == other.resultId;
   }
 
   @override
@@ -19401,16 +19021,13 @@ class GeneralClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is GeneralClientCapabilities &&
-        other.runtimeType == GeneralClientCapabilities) {
-      return markdown == other.markdown &&
-          listEqual(positionEncodings, other.positionEncodings,
-              (PositionEncodingKind a, PositionEncodingKind b) => a == b) &&
-          regularExpressions == other.regularExpressions &&
-          staleRequestSupport == other.staleRequestSupport &&
-          true;
-    }
-    return false;
+    return other is GeneralClientCapabilities &&
+        other.runtimeType == GeneralClientCapabilities &&
+        markdown == other.markdown &&
+        listEqual(positionEncodings, other.positionEncodings,
+            (PositionEncodingKind a, PositionEncodingKind b) => a == b) &&
+        regularExpressions == other.regularExpressions &&
+        staleRequestSupport == other.staleRequestSupport;
   }
 
   @override
@@ -19513,14 +19130,11 @@ class GeneralClientCapabilitiesStaleRequestSupport implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is GeneralClientCapabilitiesStaleRequestSupport &&
-        other.runtimeType == GeneralClientCapabilitiesStaleRequestSupport) {
-      return cancel == other.cancel &&
-          listEqual(retryOnContentModified, other.retryOnContentModified,
-              (String a, String b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is GeneralClientCapabilitiesStaleRequestSupport &&
+        other.runtimeType == GeneralClientCapabilitiesStaleRequestSupport &&
+        cancel == other.cancel &&
+        listEqual(retryOnContentModified, other.retryOnContentModified,
+            (String a, String b) => a == b);
   }
 
   @override
@@ -19620,10 +19234,10 @@ class Hover implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Hover && other.runtimeType == Hover) {
-      return contents == other.contents && range == other.range && true;
-    }
-    return false;
+    return other is Hover &&
+        other.runtimeType == Hover &&
+        contents == other.contents &&
+        range == other.range;
   }
 
   @override
@@ -19713,14 +19327,11 @@ class HoverClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is HoverClientCapabilities &&
-        other.runtimeType == HoverClientCapabilities) {
-      return listEqual(contentFormat, other.contentFormat,
-              (MarkupKind a, MarkupKind b) => a == b) &&
-          dynamicRegistration == other.dynamicRegistration &&
-          true;
-    }
-    return false;
+    return other is HoverClientCapabilities &&
+        other.runtimeType == HoverClientCapabilities &&
+        listEqual(contentFormat, other.contentFormat,
+            (MarkupKind a, MarkupKind b) => a == b) &&
+        dynamicRegistration == other.dynamicRegistration;
   }
 
   @override
@@ -19787,10 +19398,9 @@ class HoverOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is HoverOptions && other.runtimeType == HoverOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is HoverOptions &&
+        other.runtimeType == HoverOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -19916,13 +19526,11 @@ class HoverParams
 
   @override
   bool operator ==(Object other) {
-    if (other is HoverParams && other.runtimeType == HoverParams) {
-      return position == other.position &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is HoverParams &&
+        other.runtimeType == HoverParams &&
+        position == other.position &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -20018,18 +19626,14 @@ class HoverRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is HoverRegistrationOptions &&
-        other.runtimeType == HoverRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is HoverRegistrationOptions &&
+        other.runtimeType == HoverRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -20117,13 +19721,10 @@ class ImplementationClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ImplementationClientCapabilities &&
-        other.runtimeType == ImplementationClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration &&
-          linkSupport == other.linkSupport &&
-          true;
-    }
-    return false;
+    return other is ImplementationClientCapabilities &&
+        other.runtimeType == ImplementationClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration &&
+        linkSupport == other.linkSupport;
   }
 
   @override
@@ -20189,11 +19790,9 @@ class ImplementationOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ImplementationOptions &&
-        other.runtimeType == ImplementationOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is ImplementationOptions &&
+        other.runtimeType == ImplementationOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -20352,15 +19951,12 @@ class ImplementationParams
 
   @override
   bool operator ==(Object other) {
-    if (other is ImplementationParams &&
-        other.runtimeType == ImplementationParams) {
-      return partialResultToken == other.partialResultToken &&
-          position == other.position &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is ImplementationParams &&
+        other.runtimeType == ImplementationParams &&
+        partialResultToken == other.partialResultToken &&
+        position == other.position &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -20482,19 +20078,15 @@ class ImplementationRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is ImplementationRegistrationOptions &&
-        other.runtimeType == ImplementationRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          id == other.id &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is ImplementationRegistrationOptions &&
+        other.runtimeType == ImplementationRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        id == other.id &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -20789,21 +20381,19 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InitializeParams && other.runtimeType == InitializeParams) {
-      return capabilities == other.capabilities &&
-          clientInfo == other.clientInfo &&
-          initializationOptions == other.initializationOptions &&
-          locale == other.locale &&
-          processId == other.processId &&
-          rootPath == other.rootPath &&
-          rootUri == other.rootUri &&
-          trace == other.trace &&
-          workDoneToken == other.workDoneToken &&
-          listEqual(workspaceFolders, other.workspaceFolders,
-              (WorkspaceFolder a, WorkspaceFolder b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is InitializeParams &&
+        other.runtimeType == InitializeParams &&
+        capabilities == other.capabilities &&
+        clientInfo == other.clientInfo &&
+        initializationOptions == other.initializationOptions &&
+        locale == other.locale &&
+        processId == other.processId &&
+        rootPath == other.rootPath &&
+        rootUri == other.rootUri &&
+        trace == other.trace &&
+        workDoneToken == other.workDoneToken &&
+        listEqual(workspaceFolders, other.workspaceFolders,
+            (WorkspaceFolder a, WorkspaceFolder b) => a == b);
   }
 
   @override
@@ -20900,11 +20490,10 @@ class InitializeParamsClientInfo implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InitializeParamsClientInfo &&
-        other.runtimeType == InitializeParamsClientInfo) {
-      return name == other.name && version == other.version && true;
-    }
-    return false;
+    return other is InitializeParamsClientInfo &&
+        other.runtimeType == InitializeParamsClientInfo &&
+        name == other.name &&
+        version == other.version;
   }
 
   @override
@@ -21001,12 +20590,10 @@ class InitializeResult implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InitializeResult && other.runtimeType == InitializeResult) {
-      return capabilities == other.capabilities &&
-          serverInfo == other.serverInfo &&
-          true;
-    }
-    return false;
+    return other is InitializeResult &&
+        other.runtimeType == InitializeResult &&
+        capabilities == other.capabilities &&
+        serverInfo == other.serverInfo;
   }
 
   @override
@@ -21095,11 +20682,10 @@ class InitializeResultServerInfo implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InitializeResultServerInfo &&
-        other.runtimeType == InitializeResultServerInfo) {
-      return name == other.name && version == other.version && true;
-    }
-    return false;
+    return other is InitializeResultServerInfo &&
+        other.runtimeType == InitializeResultServerInfo &&
+        name == other.name &&
+        version == other.version;
   }
 
   @override
@@ -21136,10 +20722,7 @@ class InitializedParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InitializedParams && other.runtimeType == InitializedParams) {
-      return true;
-    }
-    return false;
+    return other is InitializedParams && other.runtimeType == InitializedParams;
   }
 
   @override
@@ -21388,19 +20971,17 @@ class InlayHint implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InlayHint && other.runtimeType == InlayHint) {
-      return data == other.data &&
-          kind == other.kind &&
-          label == other.label &&
-          paddingLeft == other.paddingLeft &&
-          paddingRight == other.paddingRight &&
-          position == other.position &&
-          listEqual(
-              textEdits, other.textEdits, (TextEdit a, TextEdit b) => a == b) &&
-          tooltip == other.tooltip &&
-          true;
-    }
-    return false;
+    return other is InlayHint &&
+        other.runtimeType == InlayHint &&
+        data == other.data &&
+        kind == other.kind &&
+        label == other.label &&
+        paddingLeft == other.paddingLeft &&
+        paddingRight == other.paddingRight &&
+        position == other.position &&
+        listEqual(
+            textEdits, other.textEdits, (TextEdit a, TextEdit b) => a == b) &&
+        tooltip == other.tooltip;
   }
 
   @override
@@ -21498,13 +21079,10 @@ class InlayHintClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InlayHintClientCapabilities &&
-        other.runtimeType == InlayHintClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration &&
-          resolveSupport == other.resolveSupport &&
-          true;
-    }
-    return false;
+    return other is InlayHintClientCapabilities &&
+        other.runtimeType == InlayHintClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration &&
+        resolveSupport == other.resolveSupport;
   }
 
   @override
@@ -21578,13 +21156,9 @@ class InlayHintClientCapabilitiesResolveSupport implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InlayHintClientCapabilitiesResolveSupport &&
-        other.runtimeType == InlayHintClientCapabilitiesResolveSupport) {
-      return listEqual(
-              properties, other.properties, (String a, String b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is InlayHintClientCapabilitiesResolveSupport &&
+        other.runtimeType == InlayHintClientCapabilitiesResolveSupport &&
+        listEqual(properties, other.properties, (String a, String b) => a == b);
   }
 
   @override
@@ -21775,15 +21349,12 @@ class InlayHintLabelPart implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InlayHintLabelPart &&
-        other.runtimeType == InlayHintLabelPart) {
-      return command == other.command &&
-          location == other.location &&
-          tooltip == other.tooltip &&
-          value == other.value &&
-          true;
-    }
-    return false;
+    return other is InlayHintLabelPart &&
+        other.runtimeType == InlayHintLabelPart &&
+        command == other.command &&
+        location == other.location &&
+        tooltip == other.tooltip &&
+        value == other.value;
   }
 
   @override
@@ -21874,12 +21445,10 @@ class InlayHintOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InlayHintOptions && other.runtimeType == InlayHintOptions) {
-      return resolveProvider == other.resolveProvider &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is InlayHintOptions &&
+        other.runtimeType == InlayHintOptions &&
+        resolveProvider == other.resolveProvider &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -22007,13 +21576,11 @@ class InlayHintParams implements WorkDoneProgressParams, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InlayHintParams && other.runtimeType == InlayHintParams) {
-      return range == other.range &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is InlayHintParams &&
+        other.runtimeType == InlayHintParams &&
+        range == other.range &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -22159,20 +21726,16 @@ class InlayHintRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is InlayHintRegistrationOptions &&
-        other.runtimeType == InlayHintRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          id == other.id &&
-          resolveProvider == other.resolveProvider &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is InlayHintRegistrationOptions &&
+        other.runtimeType == InlayHintRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        id == other.id &&
+        resolveProvider == other.resolveProvider &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -22248,11 +21811,9 @@ class InlayHintWorkspaceClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InlayHintWorkspaceClientCapabilities &&
-        other.runtimeType == InlayHintWorkspaceClientCapabilities) {
-      return refreshSupport == other.refreshSupport && true;
-    }
-    return false;
+    return other is InlayHintWorkspaceClientCapabilities &&
+        other.runtimeType == InlayHintWorkspaceClientCapabilities &&
+        refreshSupport == other.refreshSupport;
   }
 
   @override
@@ -22316,11 +21877,9 @@ class InlineValueClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InlineValueClientCapabilities &&
-        other.runtimeType == InlineValueClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
-    }
-    return false;
+    return other is InlineValueClientCapabilities &&
+        other.runtimeType == InlineValueClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration;
   }
 
   @override
@@ -22415,13 +21974,10 @@ class InlineValueContext implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InlineValueContext &&
-        other.runtimeType == InlineValueContext) {
-      return frameId == other.frameId &&
-          stoppedLocation == other.stoppedLocation &&
-          true;
-    }
-    return false;
+    return other is InlineValueContext &&
+        other.runtimeType == InlineValueContext &&
+        frameId == other.frameId &&
+        stoppedLocation == other.stoppedLocation;
   }
 
   @override
@@ -22516,11 +22072,10 @@ class InlineValueEvaluatableExpression implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InlineValueEvaluatableExpression &&
-        other.runtimeType == InlineValueEvaluatableExpression) {
-      return expression == other.expression && range == other.range && true;
-    }
-    return false;
+    return other is InlineValueEvaluatableExpression &&
+        other.runtimeType == InlineValueEvaluatableExpression &&
+        expression == other.expression &&
+        range == other.range;
   }
 
   @override
@@ -22589,11 +22144,9 @@ class InlineValueOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InlineValueOptions &&
-        other.runtimeType == InlineValueOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is InlineValueOptions &&
+        other.runtimeType == InlineValueOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -22746,14 +22299,12 @@ class InlineValueParams implements WorkDoneProgressParams, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InlineValueParams && other.runtimeType == InlineValueParams) {
-      return context == other.context &&
-          range == other.range &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is InlineValueParams &&
+        other.runtimeType == InlineValueParams &&
+        context == other.context &&
+        range == other.range &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -22878,19 +22429,15 @@ class InlineValueRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is InlineValueRegistrationOptions &&
-        other.runtimeType == InlineValueRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          id == other.id &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is InlineValueRegistrationOptions &&
+        other.runtimeType == InlineValueRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        id == other.id &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -22989,10 +22536,10 @@ class InlineValueText implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InlineValueText && other.runtimeType == InlineValueText) {
-      return range == other.range && text == other.text && true;
-    }
-    return false;
+    return other is InlineValueText &&
+        other.runtimeType == InlineValueText &&
+        range == other.range &&
+        text == other.text;
   }
 
   @override
@@ -23113,14 +22660,11 @@ class InlineValueVariableLookup implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InlineValueVariableLookup &&
-        other.runtimeType == InlineValueVariableLookup) {
-      return caseSensitiveLookup == other.caseSensitiveLookup &&
-          range == other.range &&
-          variableName == other.variableName &&
-          true;
-    }
-    return false;
+    return other is InlineValueVariableLookup &&
+        other.runtimeType == InlineValueVariableLookup &&
+        caseSensitiveLookup == other.caseSensitiveLookup &&
+        range == other.range &&
+        variableName == other.variableName;
   }
 
   @override
@@ -23195,11 +22739,9 @@ class InlineValueWorkspaceClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InlineValueWorkspaceClientCapabilities &&
-        other.runtimeType == InlineValueWorkspaceClientCapabilities) {
-      return refreshSupport == other.refreshSupport && true;
-    }
-    return false;
+    return other is InlineValueWorkspaceClientCapabilities &&
+        other.runtimeType == InlineValueWorkspaceClientCapabilities &&
+        refreshSupport == other.refreshSupport;
   }
 
   @override
@@ -23320,13 +22862,11 @@ class InsertReplaceEdit implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InsertReplaceEdit && other.runtimeType == InsertReplaceEdit) {
-      return insert == other.insert &&
-          newText == other.newText &&
-          replace == other.replace &&
-          true;
-    }
-    return false;
+    return other is InsertReplaceEdit &&
+        other.runtimeType == InsertReplaceEdit &&
+        insert == other.insert &&
+        newText == other.newText &&
+        replace == other.replace;
   }
 
   @override
@@ -23484,11 +23024,9 @@ class LinkedEditingRangeClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is LinkedEditingRangeClientCapabilities &&
-        other.runtimeType == LinkedEditingRangeClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
-    }
-    return false;
+    return other is LinkedEditingRangeClientCapabilities &&
+        other.runtimeType == LinkedEditingRangeClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration;
   }
 
   @override
@@ -23552,11 +23090,9 @@ class LinkedEditingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is LinkedEditingRangeOptions &&
-        other.runtimeType == LinkedEditingRangeOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is LinkedEditingRangeOptions &&
+        other.runtimeType == LinkedEditingRangeOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -23681,14 +23217,11 @@ class LinkedEditingRangeParams
 
   @override
   bool operator ==(Object other) {
-    if (other is LinkedEditingRangeParams &&
-        other.runtimeType == LinkedEditingRangeParams) {
-      return position == other.position &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is LinkedEditingRangeParams &&
+        other.runtimeType == LinkedEditingRangeParams &&
+        position == other.position &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -23811,19 +23344,15 @@ class LinkedEditingRangeRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is LinkedEditingRangeRegistrationOptions &&
-        other.runtimeType == LinkedEditingRangeRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          id == other.id &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is LinkedEditingRangeRegistrationOptions &&
+        other.runtimeType == LinkedEditingRangeRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        id == other.id &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -23923,13 +23452,10 @@ class LinkedEditingRanges implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is LinkedEditingRanges &&
-        other.runtimeType == LinkedEditingRanges) {
-      return listEqual(ranges, other.ranges, (Range a, Range b) => a == b) &&
-          wordPattern == other.wordPattern &&
-          true;
-    }
-    return false;
+    return other is LinkedEditingRanges &&
+        other.runtimeType == LinkedEditingRanges &&
+        listEqual(ranges, other.ranges, (Range a, Range b) => a == b) &&
+        wordPattern == other.wordPattern;
   }
 
   @override
@@ -24022,10 +23548,10 @@ class Location implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Location && other.runtimeType == Location) {
-      return range == other.range && uri == other.uri && true;
-    }
-    return false;
+    return other is Location &&
+        other.runtimeType == Location &&
+        range == other.range &&
+        uri == other.uri;
   }
 
   @override
@@ -24181,14 +23707,12 @@ class LocationLink implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is LocationLink && other.runtimeType == LocationLink) {
-      return originSelectionRange == other.originSelectionRange &&
-          targetRange == other.targetRange &&
-          targetSelectionRange == other.targetSelectionRange &&
-          targetUri == other.targetUri &&
-          true;
-    }
-    return false;
+    return other is LocationLink &&
+        other.runtimeType == LocationLink &&
+        originSelectionRange == other.originSelectionRange &&
+        targetRange == other.targetRange &&
+        targetSelectionRange == other.targetSelectionRange &&
+        targetUri == other.targetUri;
   }
 
   @override
@@ -24286,10 +23810,10 @@ class LogMessageParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is LogMessageParams && other.runtimeType == LogMessageParams) {
-      return message == other.message && type == other.type && true;
-    }
-    return false;
+    return other is LogMessageParams &&
+        other.runtimeType == LogMessageParams &&
+        message == other.message &&
+        type == other.type;
   }
 
   @override
@@ -24375,10 +23899,10 @@ class LogTraceParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is LogTraceParams && other.runtimeType == LogTraceParams) {
-      return message == other.message && verbose == other.verbose && true;
-    }
-    return false;
+    return other is LogTraceParams &&
+        other.runtimeType == LogTraceParams &&
+        message == other.message &&
+        verbose == other.verbose;
   }
 
   @override
@@ -24496,15 +24020,12 @@ class MarkdownClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is MarkdownClientCapabilities &&
-        other.runtimeType == MarkdownClientCapabilities) {
-      return listEqual(
-              allowedTags, other.allowedTags, (String a, String b) => a == b) &&
-          parser == other.parser &&
-          version == other.version &&
-          true;
-    }
-    return false;
+    return other is MarkdownClientCapabilities &&
+        other.runtimeType == MarkdownClientCapabilities &&
+        listEqual(
+            allowedTags, other.allowedTags, (String a, String b) => a == b) &&
+        parser == other.parser &&
+        version == other.version;
   }
 
   @override
@@ -24624,10 +24145,10 @@ class MarkupContent implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is MarkupContent && other.runtimeType == MarkupContent) {
-      return kind == other.kind && value == other.value && true;
-    }
-    return false;
+    return other is MarkupContent &&
+        other.runtimeType == MarkupContent &&
+        kind == other.kind &&
+        value == other.value;
   }
 
   @override
@@ -24736,10 +24257,9 @@ class MessageActionItem implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is MessageActionItem && other.runtimeType == MessageActionItem) {
-      return title == other.title && true;
-    }
-    return false;
+    return other is MessageActionItem &&
+        other.runtimeType == MessageActionItem &&
+        title == other.title;
   }
 
   @override
@@ -25247,14 +24767,12 @@ class Moniker implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Moniker && other.runtimeType == Moniker) {
-      return identifier == other.identifier &&
-          kind == other.kind &&
-          scheme == other.scheme &&
-          unique == other.unique &&
-          true;
-    }
-    return false;
+    return other is Moniker &&
+        other.runtimeType == Moniker &&
+        identifier == other.identifier &&
+        kind == other.kind &&
+        scheme == other.scheme &&
+        unique == other.unique;
   }
 
   @override
@@ -25324,11 +24842,9 @@ class MonikerClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is MonikerClientCapabilities &&
-        other.runtimeType == MonikerClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
-    }
-    return false;
+    return other is MonikerClientCapabilities &&
+        other.runtimeType == MonikerClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration;
   }
 
   @override
@@ -25428,10 +24944,9 @@ class MonikerOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is MonikerOptions && other.runtimeType == MonikerOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is MonikerOptions &&
+        other.runtimeType == MonikerOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -25590,14 +25105,12 @@ class MonikerParams
 
   @override
   bool operator ==(Object other) {
-    if (other is MonikerParams && other.runtimeType == MonikerParams) {
-      return partialResultToken == other.partialResultToken &&
-          position == other.position &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is MonikerParams &&
+        other.runtimeType == MonikerParams &&
+        partialResultToken == other.partialResultToken &&
+        position == other.position &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -25693,18 +25206,14 @@ class MonikerRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is MonikerRegistrationOptions &&
-        other.runtimeType == MonikerRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is MonikerRegistrationOptions &&
+        other.runtimeType == MonikerRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -25842,14 +25351,12 @@ class NotebookCell implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookCell && other.runtimeType == NotebookCell) {
-      return document == other.document &&
-          executionSummary == other.executionSummary &&
-          kind == other.kind &&
-          metadata == other.metadata &&
-          true;
-    }
-    return false;
+    return other is NotebookCell &&
+        other.runtimeType == NotebookCell &&
+        document == other.document &&
+        executionSummary == other.executionSummary &&
+        kind == other.kind &&
+        metadata == other.metadata;
   }
 
   @override
@@ -25973,15 +25480,12 @@ class NotebookCellArrayChange implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookCellArrayChange &&
-        other.runtimeType == NotebookCellArrayChange) {
-      return listEqual(
-              cells, other.cells, (NotebookCell a, NotebookCell b) => a == b) &&
-          deleteCount == other.deleteCount &&
-          start == other.start &&
-          true;
-    }
-    return false;
+    return other is NotebookCellArrayChange &&
+        other.runtimeType == NotebookCellArrayChange &&
+        listEqual(
+            cells, other.cells, (NotebookCell a, NotebookCell b) => a == b) &&
+        deleteCount == other.deleteCount &&
+        start == other.start;
   }
 
   @override
@@ -26134,11 +25638,10 @@ class NotebookCellTextDocumentFilter implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookCellTextDocumentFilter &&
-        other.runtimeType == NotebookCellTextDocumentFilter) {
-      return language == other.language && notebook == other.notebook && true;
-    }
-    return false;
+    return other is NotebookCellTextDocumentFilter &&
+        other.runtimeType == NotebookCellTextDocumentFilter &&
+        language == other.language &&
+        notebook == other.notebook;
   }
 
   @override
@@ -26304,16 +25807,14 @@ class NotebookDocument implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocument && other.runtimeType == NotebookDocument) {
-      return listEqual(
-              cells, other.cells, (NotebookCell a, NotebookCell b) => a == b) &&
-          metadata == other.metadata &&
-          notebookType == other.notebookType &&
-          uri == other.uri &&
-          version == other.version &&
-          true;
-    }
-    return false;
+    return other is NotebookDocument &&
+        other.runtimeType == NotebookDocument &&
+        listEqual(
+            cells, other.cells, (NotebookCell a, NotebookCell b) => a == b) &&
+        metadata == other.metadata &&
+        notebookType == other.notebookType &&
+        uri == other.uri &&
+        version == other.version;
   }
 
   @override
@@ -26399,11 +25900,10 @@ class NotebookDocumentChangeEvent implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentChangeEvent &&
-        other.runtimeType == NotebookDocumentChangeEvent) {
-      return cells == other.cells && metadata == other.metadata && true;
-    }
-    return false;
+    return other is NotebookDocumentChangeEvent &&
+        other.runtimeType == NotebookDocumentChangeEvent &&
+        cells == other.cells &&
+        metadata == other.metadata;
   }
 
   @override
@@ -26526,20 +26026,17 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentChangeEventCells &&
-        other.runtimeType == NotebookDocumentChangeEventCells) {
-      return listEqual(
-              data, other.data, (NotebookCell a, NotebookCell b) => a == b) &&
-          structure == other.structure &&
-          listEqual(
-              textContent,
-              other.textContent,
-              (NotebookDocumentChangeEventCellsTextContent a,
-                      NotebookDocumentChangeEventCellsTextContent b) =>
-                  a == b) &&
-          true;
-    }
-    return false;
+    return other is NotebookDocumentChangeEventCells &&
+        other.runtimeType == NotebookDocumentChangeEventCells &&
+        listEqual(
+            data, other.data, (NotebookCell a, NotebookCell b) => a == b) &&
+        structure == other.structure &&
+        listEqual(
+            textContent,
+            other.textContent,
+            (NotebookDocumentChangeEventCellsTextContent a,
+                    NotebookDocumentChangeEventCellsTextContent b) =>
+                a == b);
   }
 
   @override
@@ -26663,16 +26160,13 @@ class NotebookDocumentChangeEventCellsStructure implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentChangeEventCellsStructure &&
-        other.runtimeType == NotebookDocumentChangeEventCellsStructure) {
-      return array == other.array &&
-          listEqual(didClose, other.didClose,
-              (TextDocumentIdentifier a, TextDocumentIdentifier b) => a == b) &&
-          listEqual(didOpen, other.didOpen,
-              (TextDocumentItem a, TextDocumentItem b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is NotebookDocumentChangeEventCellsStructure &&
+        other.runtimeType == NotebookDocumentChangeEventCellsStructure &&
+        array == other.array &&
+        listEqual(didClose, other.didClose,
+            (TextDocumentIdentifier a, TextDocumentIdentifier b) => a == b) &&
+        listEqual(didOpen, other.didOpen,
+            (TextDocumentItem a, TextDocumentItem b) => a == b);
   }
 
   @override
@@ -26786,22 +26280,19 @@ class NotebookDocumentChangeEventCellsTextContent implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentChangeEventCellsTextContent &&
-        other.runtimeType == NotebookDocumentChangeEventCellsTextContent) {
-      return listEqual(
-              changes,
-              other.changes,
-              (Either2<TextDocumentContentChangeEvent1,
-                              TextDocumentContentChangeEvent2>
-                          a,
-                      Either2<TextDocumentContentChangeEvent1,
-                              TextDocumentContentChangeEvent2>
-                          b) =>
-                  a == b) &&
-          document == other.document &&
-          true;
-    }
-    return false;
+    return other is NotebookDocumentChangeEventCellsTextContent &&
+        other.runtimeType == NotebookDocumentChangeEventCellsTextContent &&
+        listEqual(
+            changes,
+            other.changes,
+            (Either2<TextDocumentContentChangeEvent1,
+                            TextDocumentContentChangeEvent2>
+                        a,
+                    Either2<TextDocumentContentChangeEvent1,
+                            TextDocumentContentChangeEvent2>
+                        b) =>
+                a == b) &&
+        document == other.document;
   }
 
   @override
@@ -26880,11 +26371,9 @@ class NotebookDocumentClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentClientCapabilities &&
-        other.runtimeType == NotebookDocumentClientCapabilities) {
-      return synchronization == other.synchronization && true;
-    }
-    return false;
+    return other is NotebookDocumentClientCapabilities &&
+        other.runtimeType == NotebookDocumentClientCapabilities &&
+        synchronization == other.synchronization;
   }
 
   @override
@@ -26990,14 +26479,11 @@ class NotebookDocumentFilter1 implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentFilter1 &&
-        other.runtimeType == NotebookDocumentFilter1) {
-      return notebookType == other.notebookType &&
-          pattern == other.pattern &&
-          scheme == other.scheme &&
-          true;
-    }
-    return false;
+    return other is NotebookDocumentFilter1 &&
+        other.runtimeType == NotebookDocumentFilter1 &&
+        notebookType == other.notebookType &&
+        pattern == other.pattern &&
+        scheme == other.scheme;
   }
 
   @override
@@ -27107,14 +26593,11 @@ class NotebookDocumentFilter2 implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentFilter2 &&
-        other.runtimeType == NotebookDocumentFilter2) {
-      return notebookType == other.notebookType &&
-          pattern == other.pattern &&
-          scheme == other.scheme &&
-          true;
-    }
-    return false;
+    return other is NotebookDocumentFilter2 &&
+        other.runtimeType == NotebookDocumentFilter2 &&
+        notebookType == other.notebookType &&
+        pattern == other.pattern &&
+        scheme == other.scheme;
   }
 
   @override
@@ -27224,14 +26707,11 @@ class NotebookDocumentFilter3 implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentFilter3 &&
-        other.runtimeType == NotebookDocumentFilter3) {
-      return notebookType == other.notebookType &&
-          pattern == other.pattern &&
-          scheme == other.scheme &&
-          true;
-    }
-    return false;
+    return other is NotebookDocumentFilter3 &&
+        other.runtimeType == NotebookDocumentFilter3 &&
+        notebookType == other.notebookType &&
+        pattern == other.pattern &&
+        scheme == other.scheme;
   }
 
   @override
@@ -27304,11 +26784,9 @@ class NotebookDocumentIdentifier implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentIdentifier &&
-        other.runtimeType == NotebookDocumentIdentifier) {
-      return uri == other.uri && true;
-    }
-    return false;
+    return other is NotebookDocumentIdentifier &&
+        other.runtimeType == NotebookDocumentIdentifier &&
+        uri == other.uri;
   }
 
   @override
@@ -27397,13 +26875,10 @@ class NotebookDocumentSyncClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentSyncClientCapabilities &&
-        other.runtimeType == NotebookDocumentSyncClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration &&
-          executionSummarySupport == other.executionSummarySupport &&
-          true;
-    }
-    return false;
+    return other is NotebookDocumentSyncClientCapabilities &&
+        other.runtimeType == NotebookDocumentSyncClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration &&
+        executionSummarySupport == other.executionSummarySupport;
   }
 
   @override
@@ -27526,22 +27001,19 @@ class NotebookDocumentSyncOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentSyncOptions &&
-        other.runtimeType == NotebookDocumentSyncOptions) {
-      return listEqual(
-              notebookSelector,
-              other.notebookSelector,
-              (Either2<NotebookDocumentSyncOptionsNotebookSelector,
-                              NotebookDocumentSyncOptionsNotebookSelector2>
-                          a,
-                      Either2<NotebookDocumentSyncOptionsNotebookSelector,
-                              NotebookDocumentSyncOptionsNotebookSelector2>
-                          b) =>
-                  a == b) &&
-          save == other.save &&
-          true;
-    }
-    return false;
+    return other is NotebookDocumentSyncOptions &&
+        other.runtimeType == NotebookDocumentSyncOptions &&
+        listEqual(
+            notebookSelector,
+            other.notebookSelector,
+            (Either2<NotebookDocumentSyncOptionsNotebookSelector,
+                            NotebookDocumentSyncOptionsNotebookSelector2>
+                        a,
+                    Either2<NotebookDocumentSyncOptionsNotebookSelector,
+                            NotebookDocumentSyncOptionsNotebookSelector2>
+                        b) =>
+                a == b) &&
+        save == other.save;
   }
 
   @override
@@ -27663,18 +27135,15 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentSyncOptionsNotebookSelector &&
-        other.runtimeType == NotebookDocumentSyncOptionsNotebookSelector) {
-      return listEqual(
-              cells,
-              other.cells,
-              (NotebookDocumentSyncOptionsNotebookSelectorCells a,
-                      NotebookDocumentSyncOptionsNotebookSelectorCells b) =>
-                  a == b) &&
-          notebook == other.notebook &&
-          true;
-    }
-    return false;
+    return other is NotebookDocumentSyncOptionsNotebookSelector &&
+        other.runtimeType == NotebookDocumentSyncOptionsNotebookSelector &&
+        listEqual(
+            cells,
+            other.cells,
+            (NotebookDocumentSyncOptionsNotebookSelectorCells a,
+                    NotebookDocumentSyncOptionsNotebookSelectorCells b) =>
+                a == b) &&
+        notebook == other.notebook;
   }
 
   @override
@@ -27798,18 +27267,15 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentSyncOptionsNotebookSelector2 &&
-        other.runtimeType == NotebookDocumentSyncOptionsNotebookSelector2) {
-      return listEqual(
-              cells,
-              other.cells,
-              (NotebookDocumentSyncOptionsNotebookSelector2Cells a,
-                      NotebookDocumentSyncOptionsNotebookSelector2Cells b) =>
-                  a == b) &&
-          notebook == other.notebook &&
-          true;
-    }
-    return false;
+    return other is NotebookDocumentSyncOptionsNotebookSelector2 &&
+        other.runtimeType == NotebookDocumentSyncOptionsNotebookSelector2 &&
+        listEqual(
+            cells,
+            other.cells,
+            (NotebookDocumentSyncOptionsNotebookSelector2Cells a,
+                    NotebookDocumentSyncOptionsNotebookSelector2Cells b) =>
+                a == b) &&
+        notebook == other.notebook;
   }
 
   @override
@@ -27879,12 +27345,10 @@ class NotebookDocumentSyncOptionsNotebookSelector2Cells implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentSyncOptionsNotebookSelector2Cells &&
+    return other is NotebookDocumentSyncOptionsNotebookSelector2Cells &&
         other.runtimeType ==
-            NotebookDocumentSyncOptionsNotebookSelector2Cells) {
-      return language == other.language && true;
-    }
-    return false;
+            NotebookDocumentSyncOptionsNotebookSelector2Cells &&
+        language == other.language;
   }
 
   @override
@@ -27951,11 +27415,9 @@ class NotebookDocumentSyncOptionsNotebookSelectorCells implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentSyncOptionsNotebookSelectorCells &&
-        other.runtimeType == NotebookDocumentSyncOptionsNotebookSelectorCells) {
-      return language == other.language && true;
-    }
-    return false;
+    return other is NotebookDocumentSyncOptionsNotebookSelectorCells &&
+        other.runtimeType == NotebookDocumentSyncOptionsNotebookSelectorCells &&
+        language == other.language;
   }
 
   @override
@@ -28094,23 +27556,20 @@ class NotebookDocumentSyncRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is NotebookDocumentSyncRegistrationOptions &&
-        other.runtimeType == NotebookDocumentSyncRegistrationOptions) {
-      return id == other.id &&
-          listEqual(
-              notebookSelector,
-              other.notebookSelector,
-              (Either2<NotebookDocumentSyncOptionsNotebookSelector,
-                              NotebookDocumentSyncOptionsNotebookSelector2>
-                          a,
-                      Either2<NotebookDocumentSyncOptionsNotebookSelector,
-                              NotebookDocumentSyncOptionsNotebookSelector2>
-                          b) =>
-                  a == b) &&
-          save == other.save &&
-          true;
-    }
-    return false;
+    return other is NotebookDocumentSyncRegistrationOptions &&
+        other.runtimeType == NotebookDocumentSyncRegistrationOptions &&
+        id == other.id &&
+        listEqual(
+            notebookSelector,
+            other.notebookSelector,
+            (Either2<NotebookDocumentSyncOptionsNotebookSelector,
+                            NotebookDocumentSyncOptionsNotebookSelector2>
+                        a,
+                    Either2<NotebookDocumentSyncOptionsNotebookSelector,
+                            NotebookDocumentSyncOptionsNotebookSelector2>
+                        b) =>
+                a == b) &&
+        save == other.save;
   }
 
   @override
@@ -28213,11 +27672,10 @@ class OptionalVersionedTextDocumentIdentifier
 
   @override
   bool operator ==(Object other) {
-    if (other is OptionalVersionedTextDocumentIdentifier &&
-        other.runtimeType == OptionalVersionedTextDocumentIdentifier) {
-      return uri == other.uri && version == other.version && true;
-    }
-    return false;
+    return other is OptionalVersionedTextDocumentIdentifier &&
+        other.runtimeType == OptionalVersionedTextDocumentIdentifier &&
+        uri == other.uri &&
+        version == other.version;
   }
 
   @override
@@ -28328,13 +27786,10 @@ class ParameterInformation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ParameterInformation &&
-        other.runtimeType == ParameterInformation) {
-      return documentation == other.documentation &&
-          label == other.label &&
-          true;
-    }
-    return false;
+    return other is ParameterInformation &&
+        other.runtimeType == ParameterInformation &&
+        documentation == other.documentation &&
+        label == other.label;
   }
 
   @override
@@ -28484,11 +27939,9 @@ class PartialResultParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PartialResultParams &&
-        other.runtimeType == PartialResultParams) {
-      return partialResultToken == other.partialResultToken && true;
-    }
-    return false;
+    return other is PartialResultParams &&
+        other.runtimeType == PartialResultParams &&
+        partialResultToken == other.partialResultToken;
   }
 
   @override
@@ -28577,11 +28030,10 @@ class PlaceholderAndRange implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PlaceholderAndRange &&
-        other.runtimeType == PlaceholderAndRange) {
-      return placeholder == other.placeholder && range == other.range && true;
-    }
-    return false;
+    return other is PlaceholderAndRange &&
+        other.runtimeType == PlaceholderAndRange &&
+        placeholder == other.placeholder &&
+        range == other.range;
   }
 
   @override
@@ -28712,10 +28164,10 @@ class Position implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Position && other.runtimeType == Position) {
-      return character == other.character && line == other.line && true;
-    }
-    return false;
+    return other is Position &&
+        other.runtimeType == Position &&
+        character == other.character &&
+        line == other.line;
   }
 
   @override
@@ -28885,14 +28337,11 @@ class PrepareRenameParams
 
   @override
   bool operator ==(Object other) {
-    if (other is PrepareRenameParams &&
-        other.runtimeType == PrepareRenameParams) {
-      return position == other.position &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is PrepareRenameParams &&
+        other.runtimeType == PrepareRenameParams &&
+        position == other.position &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -28961,11 +28410,9 @@ class PrepareRenameResult2 implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PrepareRenameResult2 &&
-        other.runtimeType == PrepareRenameResult2) {
-      return defaultBehavior == other.defaultBehavior && true;
-    }
-    return false;
+    return other is PrepareRenameResult2 &&
+        other.runtimeType == PrepareRenameResult2 &&
+        defaultBehavior == other.defaultBehavior;
   }
 
   @override
@@ -29088,10 +28535,10 @@ class PreviousResultId implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PreviousResultId && other.runtimeType == PreviousResultId) {
-      return uri == other.uri && value == other.value && true;
-    }
-    return false;
+    return other is PreviousResultId &&
+        other.runtimeType == PreviousResultId &&
+        uri == other.uri &&
+        value == other.value;
   }
 
   @override
@@ -29172,10 +28619,10 @@ class ProgressParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ProgressParams && other.runtimeType == ProgressParams) {
-      return token == other.token && value == other.value && true;
-    }
-    return false;
+    return other is ProgressParams &&
+        other.runtimeType == ProgressParams &&
+        token == other.token &&
+        value == other.value;
   }
 
   @override
@@ -29339,16 +28786,13 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PublishDiagnosticsClientCapabilities &&
-        other.runtimeType == PublishDiagnosticsClientCapabilities) {
-      return codeDescriptionSupport == other.codeDescriptionSupport &&
-          dataSupport == other.dataSupport &&
-          relatedInformation == other.relatedInformation &&
-          tagSupport == other.tagSupport &&
-          versionSupport == other.versionSupport &&
-          true;
-    }
-    return false;
+    return other is PublishDiagnosticsClientCapabilities &&
+        other.runtimeType == PublishDiagnosticsClientCapabilities &&
+        codeDescriptionSupport == other.codeDescriptionSupport &&
+        dataSupport == other.dataSupport &&
+        relatedInformation == other.relatedInformation &&
+        tagSupport == other.tagSupport &&
+        versionSupport == other.versionSupport;
   }
 
   @override
@@ -29425,13 +28869,10 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PublishDiagnosticsClientCapabilitiesTagSupport &&
-        other.runtimeType == PublishDiagnosticsClientCapabilitiesTagSupport) {
-      return listEqual(valueSet, other.valueSet,
-              (DiagnosticTag a, DiagnosticTag b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is PublishDiagnosticsClientCapabilitiesTagSupport &&
+        other.runtimeType == PublishDiagnosticsClientCapabilitiesTagSupport &&
+        listEqual(valueSet, other.valueSet,
+            (DiagnosticTag a, DiagnosticTag b) => a == b);
   }
 
   @override
@@ -29550,15 +28991,12 @@ class PublishDiagnosticsParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PublishDiagnosticsParams &&
-        other.runtimeType == PublishDiagnosticsParams) {
-      return listEqual(diagnostics, other.diagnostics,
-              (Diagnostic a, Diagnostic b) => a == b) &&
-          uri == other.uri &&
-          version == other.version &&
-          true;
-    }
-    return false;
+    return other is PublishDiagnosticsParams &&
+        other.runtimeType == PublishDiagnosticsParams &&
+        listEqual(diagnostics, other.diagnostics,
+            (Diagnostic a, Diagnostic b) => a == b) &&
+        uri == other.uri &&
+        version == other.version;
   }
 
   @override
@@ -29666,10 +29104,10 @@ class Range implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Range && other.runtimeType == Range) {
-      return end == other.end && start == other.start && true;
-    }
-    return false;
+    return other is Range &&
+        other.runtimeType == Range &&
+        end == other.end &&
+        start == other.start;
   }
 
   @override
@@ -29733,11 +29171,9 @@ class ReferenceClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ReferenceClientCapabilities &&
-        other.runtimeType == ReferenceClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
-    }
-    return false;
+    return other is ReferenceClientCapabilities &&
+        other.runtimeType == ReferenceClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration;
   }
 
   @override
@@ -29805,10 +29241,9 @@ class ReferenceContext implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ReferenceContext && other.runtimeType == ReferenceContext) {
-      return includeDeclaration == other.includeDeclaration && true;
-    }
-    return false;
+    return other is ReferenceContext &&
+        other.runtimeType == ReferenceContext &&
+        includeDeclaration == other.includeDeclaration;
   }
 
   @override
@@ -29872,10 +29307,9 @@ class ReferenceOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ReferenceOptions && other.runtimeType == ReferenceOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is ReferenceOptions &&
+        other.runtimeType == ReferenceOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -30061,15 +29495,13 @@ class ReferenceParams
 
   @override
   bool operator ==(Object other) {
-    if (other is ReferenceParams && other.runtimeType == ReferenceParams) {
-      return context == other.context &&
-          partialResultToken == other.partialResultToken &&
-          position == other.position &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is ReferenceParams &&
+        other.runtimeType == ReferenceParams &&
+        context == other.context &&
+        partialResultToken == other.partialResultToken &&
+        position == other.position &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -30167,18 +29599,14 @@ class ReferenceRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is ReferenceRegistrationOptions &&
-        other.runtimeType == ReferenceRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is ReferenceRegistrationOptions &&
+        other.runtimeType == ReferenceRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -30286,13 +29714,11 @@ class Registration implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Registration && other.runtimeType == Registration) {
-      return id == other.id &&
-          method == other.method &&
-          registerOptions == other.registerOptions &&
-          true;
-    }
-    return false;
+    return other is Registration &&
+        other.runtimeType == Registration &&
+        id == other.id &&
+        method == other.method &&
+        registerOptions == other.registerOptions;
   }
 
   @override
@@ -30366,13 +29792,10 @@ class RegistrationParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RegistrationParams &&
-        other.runtimeType == RegistrationParams) {
-      return listEqual(registrations, other.registrations,
-              (Registration a, Registration b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is RegistrationParams &&
+        other.runtimeType == RegistrationParams &&
+        listEqual(registrations, other.registrations,
+            (Registration a, Registration b) => a == b);
   }
 
   @override
@@ -30463,11 +29886,10 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RegularExpressionsClientCapabilities &&
-        other.runtimeType == RegularExpressionsClientCapabilities) {
-      return engine == other.engine && version == other.version && true;
-    }
-    return false;
+    return other is RegularExpressionsClientCapabilities &&
+        other.runtimeType == RegularExpressionsClientCapabilities &&
+        engine == other.engine &&
+        version == other.version;
   }
 
   @override
@@ -30649,25 +30071,21 @@ class RelatedFullDocumentDiagnosticReport
 
   @override
   bool operator ==(Object other) {
-    if (other is RelatedFullDocumentDiagnosticReport &&
-        other.runtimeType == RelatedFullDocumentDiagnosticReport) {
-      return listEqual(
-              items, other.items, (Diagnostic a, Diagnostic b) => a == b) &&
-          kind == other.kind &&
-          mapEqual(
-              relatedDocuments,
-              other.relatedDocuments,
-              (Either2<FullDocumentDiagnosticReport,
-                              UnchangedDocumentDiagnosticReport>
-                          a,
-                      Either2<FullDocumentDiagnosticReport,
-                              UnchangedDocumentDiagnosticReport>
-                          b) =>
-                  a == b) &&
-          resultId == other.resultId &&
-          true;
-    }
-    return false;
+    return other is RelatedFullDocumentDiagnosticReport &&
+        other.runtimeType == RelatedFullDocumentDiagnosticReport &&
+        listEqual(items, other.items, (Diagnostic a, Diagnostic b) => a == b) &&
+        kind == other.kind &&
+        mapEqual(
+            relatedDocuments,
+            other.relatedDocuments,
+            (Either2<FullDocumentDiagnosticReport,
+                            UnchangedDocumentDiagnosticReport>
+                        a,
+                    Either2<FullDocumentDiagnosticReport,
+                            UnchangedDocumentDiagnosticReport>
+                        b) =>
+                a == b) &&
+        resultId == other.resultId;
   }
 
   @override
@@ -30828,23 +30246,20 @@ class RelatedUnchangedDocumentDiagnosticReport
 
   @override
   bool operator ==(Object other) {
-    if (other is RelatedUnchangedDocumentDiagnosticReport &&
-        other.runtimeType == RelatedUnchangedDocumentDiagnosticReport) {
-      return kind == other.kind &&
-          mapEqual(
-              relatedDocuments,
-              other.relatedDocuments,
-              (Either2<FullDocumentDiagnosticReport,
-                              UnchangedDocumentDiagnosticReport>
-                          a,
-                      Either2<FullDocumentDiagnosticReport,
-                              UnchangedDocumentDiagnosticReport>
-                          b) =>
-                  a == b) &&
-          resultId == other.resultId &&
-          true;
-    }
-    return false;
+    return other is RelatedUnchangedDocumentDiagnosticReport &&
+        other.runtimeType == RelatedUnchangedDocumentDiagnosticReport &&
+        kind == other.kind &&
+        mapEqual(
+            relatedDocuments,
+            other.relatedDocuments,
+            (Either2<FullDocumentDiagnosticReport,
+                            UnchangedDocumentDiagnosticReport>
+                        a,
+                    Either2<FullDocumentDiagnosticReport,
+                            UnchangedDocumentDiagnosticReport>
+                        b) =>
+                a == b) &&
+        resultId == other.resultId;
   }
 
   @override
@@ -30953,10 +30368,10 @@ class RelativePattern implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RelativePattern && other.runtimeType == RelativePattern) {
-      return baseUri == other.baseUri && pattern == other.pattern && true;
-    }
-    return false;
+    return other is RelativePattern &&
+        other.runtimeType == RelativePattern &&
+        baseUri == other.baseUri &&
+        pattern == other.pattern;
   }
 
   @override
@@ -31101,16 +30516,12 @@ class RenameClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RenameClientCapabilities &&
-        other.runtimeType == RenameClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration &&
-          honorsChangeAnnotations == other.honorsChangeAnnotations &&
-          prepareSupport == other.prepareSupport &&
-          prepareSupportDefaultBehavior ==
-              other.prepareSupportDefaultBehavior &&
-          true;
-    }
-    return false;
+    return other is RenameClientCapabilities &&
+        other.runtimeType == RenameClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration &&
+        honorsChangeAnnotations == other.honorsChangeAnnotations &&
+        prepareSupport == other.prepareSupport &&
+        prepareSupportDefaultBehavior == other.prepareSupportDefaultBehavior;
   }
 
   @override
@@ -31284,15 +30695,13 @@ class RenameFile implements ResourceOperation, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RenameFile && other.runtimeType == RenameFile) {
-      return annotationId == other.annotationId &&
-          kind == other.kind &&
-          newUri == other.newUri &&
-          oldUri == other.oldUri &&
-          options == other.options &&
-          true;
-    }
-    return false;
+    return other is RenameFile &&
+        other.runtimeType == RenameFile &&
+        annotationId == other.annotationId &&
+        kind == other.kind &&
+        newUri == other.newUri &&
+        oldUri == other.oldUri &&
+        options == other.options;
   }
 
   @override
@@ -31379,12 +30788,10 @@ class RenameFileOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RenameFileOptions && other.runtimeType == RenameFileOptions) {
-      return ignoreIfExists == other.ignoreIfExists &&
-          overwrite == other.overwrite &&
-          true;
-    }
-    return false;
+    return other is RenameFileOptions &&
+        other.runtimeType == RenameFileOptions &&
+        ignoreIfExists == other.ignoreIfExists &&
+        overwrite == other.overwrite;
   }
 
   @override
@@ -31461,12 +30868,9 @@ class RenameFilesParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RenameFilesParams && other.runtimeType == RenameFilesParams) {
-      return listEqual(
-              files, other.files, (FileRename a, FileRename b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is RenameFilesParams &&
+        other.runtimeType == RenameFilesParams &&
+        listEqual(files, other.files, (FileRename a, FileRename b) => a == b);
   }
 
   @override
@@ -31551,12 +30955,10 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RenameOptions && other.runtimeType == RenameOptions) {
-      return prepareProvider == other.prepareProvider &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is RenameOptions &&
+        other.runtimeType == RenameOptions &&
+        prepareProvider == other.prepareProvider &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -31709,14 +31111,12 @@ class RenameParams implements WorkDoneProgressParams, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RenameParams && other.runtimeType == RenameParams) {
-      return newName == other.newName &&
-          position == other.position &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is RenameParams &&
+        other.runtimeType == RenameParams &&
+        newName == other.newName &&
+        position == other.position &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -31836,19 +31236,15 @@ class RenameRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is RenameRegistrationOptions &&
-        other.runtimeType == RenameRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          prepareProvider == other.prepareProvider &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is RenameRegistrationOptions &&
+        other.runtimeType == RenameRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        prepareProvider == other.prepareProvider &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -31950,10 +31346,10 @@ class ResourceOperation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ResourceOperation && other.runtimeType == ResourceOperation) {
-      return annotationId == other.annotationId && kind == other.kind && true;
-    }
-    return false;
+    return other is ResourceOperation &&
+        other.runtimeType == ResourceOperation &&
+        annotationId == other.annotationId &&
+        kind == other.kind;
   }
 
   @override
@@ -32060,10 +31456,9 @@ class SaveOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SaveOptions && other.runtimeType == SaveOptions) {
-      return includeText == other.includeText && true;
-    }
-    return false;
+    return other is SaveOptions &&
+        other.runtimeType == SaveOptions &&
+        includeText == other.includeText;
   }
 
   @override
@@ -32154,10 +31549,10 @@ class SelectionRange implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SelectionRange && other.runtimeType == SelectionRange) {
-      return parent == other.parent && range == other.range && true;
-    }
-    return false;
+    return other is SelectionRange &&
+        other.runtimeType == SelectionRange &&
+        parent == other.parent &&
+        range == other.range;
   }
 
   @override
@@ -32223,11 +31618,9 @@ class SelectionRangeClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SelectionRangeClientCapabilities &&
-        other.runtimeType == SelectionRangeClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
-    }
-    return false;
+    return other is SelectionRangeClientCapabilities &&
+        other.runtimeType == SelectionRangeClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration;
   }
 
   @override
@@ -32290,11 +31683,9 @@ class SelectionRangeOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SelectionRangeOptions &&
-        other.runtimeType == SelectionRangeOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is SelectionRangeOptions &&
+        other.runtimeType == SelectionRangeOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -32451,16 +31842,13 @@ class SelectionRangeParams
 
   @override
   bool operator ==(Object other) {
-    if (other is SelectionRangeParams &&
-        other.runtimeType == SelectionRangeParams) {
-      return partialResultToken == other.partialResultToken &&
-          listEqual(
-              positions, other.positions, (Position a, Position b) => a == b) &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is SelectionRangeParams &&
+        other.runtimeType == SelectionRangeParams &&
+        partialResultToken == other.partialResultToken &&
+        listEqual(
+            positions, other.positions, (Position a, Position b) => a == b) &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -32582,19 +31970,15 @@ class SelectionRangeRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is SelectionRangeRegistrationOptions &&
-        other.runtimeType == SelectionRangeRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          id == other.id &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is SelectionRangeRegistrationOptions &&
+        other.runtimeType == SelectionRangeRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        id == other.id &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -32785,12 +32169,10 @@ class SemanticTokens implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokens && other.runtimeType == SemanticTokens) {
-      return listEqual(data, other.data, (int a, int b) => a == b) &&
-          resultId == other.resultId &&
-          true;
-    }
-    return false;
+    return other is SemanticTokens &&
+        other.runtimeType == SemanticTokens &&
+        listEqual(data, other.data, (int a, int b) => a == b) &&
+        resultId == other.resultId;
   }
 
   @override
@@ -33072,23 +32454,19 @@ class SemanticTokensClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensClientCapabilities &&
-        other.runtimeType == SemanticTokensClientCapabilities) {
-      return augmentsSyntaxTokens == other.augmentsSyntaxTokens &&
-          dynamicRegistration == other.dynamicRegistration &&
-          listEqual(formats, other.formats,
-              (TokenFormat a, TokenFormat b) => a == b) &&
-          multilineTokenSupport == other.multilineTokenSupport &&
-          overlappingTokenSupport == other.overlappingTokenSupport &&
-          requests == other.requests &&
-          serverCancelSupport == other.serverCancelSupport &&
-          listEqual(tokenModifiers, other.tokenModifiers,
-              (String a, String b) => a == b) &&
-          listEqual(
-              tokenTypes, other.tokenTypes, (String a, String b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is SemanticTokensClientCapabilities &&
+        other.runtimeType == SemanticTokensClientCapabilities &&
+        augmentsSyntaxTokens == other.augmentsSyntaxTokens &&
+        dynamicRegistration == other.dynamicRegistration &&
+        listEqual(
+            formats, other.formats, (TokenFormat a, TokenFormat b) => a == b) &&
+        multilineTokenSupport == other.multilineTokenSupport &&
+        overlappingTokenSupport == other.overlappingTokenSupport &&
+        requests == other.requests &&
+        serverCancelSupport == other.serverCancelSupport &&
+        listEqual(tokenModifiers, other.tokenModifiers,
+            (String a, String b) => a == b) &&
+        listEqual(tokenTypes, other.tokenTypes, (String a, String b) => a == b);
   }
 
   @override
@@ -33212,11 +32590,10 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensClientCapabilitiesRequests &&
-        other.runtimeType == SemanticTokensClientCapabilitiesRequests) {
-      return full == other.full && range == other.range && true;
-    }
-    return false;
+    return other is SemanticTokensClientCapabilitiesRequests &&
+        other.runtimeType == SemanticTokensClientCapabilitiesRequests &&
+        full == other.full &&
+        range == other.range;
   }
 
   @override
@@ -33282,11 +32659,9 @@ class SemanticTokensClientCapabilitiesRequestsFull implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensClientCapabilitiesRequestsFull &&
-        other.runtimeType == SemanticTokensClientCapabilitiesRequestsFull) {
-      return delta == other.delta && true;
-    }
-    return false;
+    return other is SemanticTokensClientCapabilitiesRequestsFull &&
+        other.runtimeType == SemanticTokensClientCapabilitiesRequestsFull &&
+        delta == other.delta;
   }
 
   @override
@@ -33322,11 +32697,8 @@ class SemanticTokensClientCapabilitiesRequestsRange implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensClientCapabilitiesRequestsRange &&
-        other.runtimeType == SemanticTokensClientCapabilitiesRequestsRange) {
-      return true;
-    }
-    return false;
+    return other is SemanticTokensClientCapabilitiesRequestsRange &&
+        other.runtimeType == SemanticTokensClientCapabilitiesRequestsRange;
   }
 
   @override
@@ -33415,14 +32787,11 @@ class SemanticTokensDelta implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensDelta &&
-        other.runtimeType == SemanticTokensDelta) {
-      return listEqual(edits, other.edits,
-              (SemanticTokensEdit a, SemanticTokensEdit b) => a == b) &&
-          resultId == other.resultId &&
-          true;
-    }
-    return false;
+    return other is SemanticTokensDelta &&
+        other.runtimeType == SemanticTokensDelta &&
+        listEqual(edits, other.edits,
+            (SemanticTokensEdit a, SemanticTokensEdit b) => a == b) &&
+        resultId == other.resultId;
   }
 
   @override
@@ -33580,15 +32949,12 @@ class SemanticTokensDeltaParams
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensDeltaParams &&
-        other.runtimeType == SemanticTokensDeltaParams) {
-      return partialResultToken == other.partialResultToken &&
-          previousResultId == other.previousResultId &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is SemanticTokensDeltaParams &&
+        other.runtimeType == SemanticTokensDeltaParams &&
+        partialResultToken == other.partialResultToken &&
+        previousResultId == other.previousResultId &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -33663,13 +33029,10 @@ class SemanticTokensDeltaPartialResult implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensDeltaPartialResult &&
-        other.runtimeType == SemanticTokensDeltaPartialResult) {
-      return listEqual(edits, other.edits,
-              (SemanticTokensEdit a, SemanticTokensEdit b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is SemanticTokensDeltaPartialResult &&
+        other.runtimeType == SemanticTokensDeltaPartialResult &&
+        listEqual(edits, other.edits,
+            (SemanticTokensEdit a, SemanticTokensEdit b) => a == b);
   }
 
   @override
@@ -33784,14 +33147,11 @@ class SemanticTokensEdit implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensEdit &&
-        other.runtimeType == SemanticTokensEdit) {
-      return listEqual(data, other.data, (int a, int b) => a == b) &&
-          deleteCount == other.deleteCount &&
-          start == other.start &&
-          true;
-    }
-    return false;
+    return other is SemanticTokensEdit &&
+        other.runtimeType == SemanticTokensEdit &&
+        listEqual(data, other.data, (int a, int b) => a == b) &&
+        deleteCount == other.deleteCount &&
+        start == other.start;
   }
 
   @override
@@ -33894,15 +33254,11 @@ class SemanticTokensLegend implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensLegend &&
-        other.runtimeType == SemanticTokensLegend) {
-      return listEqual(tokenModifiers, other.tokenModifiers,
-              (String a, String b) => a == b) &&
-          listEqual(
-              tokenTypes, other.tokenTypes, (String a, String b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is SemanticTokensLegend &&
+        other.runtimeType == SemanticTokensLegend &&
+        listEqual(tokenModifiers, other.tokenModifiers,
+            (String a, String b) => a == b) &&
+        listEqual(tokenTypes, other.tokenTypes, (String a, String b) => a == b);
   }
 
   @override
@@ -34059,15 +33415,12 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensOptions &&
-        other.runtimeType == SemanticTokensOptions) {
-      return full == other.full &&
-          legend == other.legend &&
-          range == other.range &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is SemanticTokensOptions &&
+        other.runtimeType == SemanticTokensOptions &&
+        full == other.full &&
+        legend == other.legend &&
+        range == other.range &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -34132,11 +33485,9 @@ class SemanticTokensOptionsFull implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensOptionsFull &&
-        other.runtimeType == SemanticTokensOptionsFull) {
-      return delta == other.delta && true;
-    }
-    return false;
+    return other is SemanticTokensOptionsFull &&
+        other.runtimeType == SemanticTokensOptionsFull &&
+        delta == other.delta;
   }
 
   @override
@@ -34170,11 +33521,8 @@ class SemanticTokensOptionsRange implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensOptionsRange &&
-        other.runtimeType == SemanticTokensOptionsRange) {
-      return true;
-    }
-    return false;
+    return other is SemanticTokensOptionsRange &&
+        other.runtimeType == SemanticTokensOptionsRange;
   }
 
   @override
@@ -34302,14 +33650,11 @@ class SemanticTokensParams
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensParams &&
-        other.runtimeType == SemanticTokensParams) {
-      return partialResultToken == other.partialResultToken &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is SemanticTokensParams &&
+        other.runtimeType == SemanticTokensParams &&
+        partialResultToken == other.partialResultToken &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -34380,11 +33725,9 @@ class SemanticTokensPartialResult implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensPartialResult &&
-        other.runtimeType == SemanticTokensPartialResult) {
-      return listEqual(data, other.data, (int a, int b) => a == b) && true;
-    }
-    return false;
+    return other is SemanticTokensPartialResult &&
+        other.runtimeType == SemanticTokensPartialResult &&
+        listEqual(data, other.data, (int a, int b) => a == b);
   }
 
   @override
@@ -34538,15 +33881,12 @@ class SemanticTokensRangeParams
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensRangeParams &&
-        other.runtimeType == SemanticTokensRangeParams) {
-      return partialResultToken == other.partialResultToken &&
-          range == other.range &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is SemanticTokensRangeParams &&
+        other.runtimeType == SemanticTokensRangeParams &&
+        partialResultToken == other.partialResultToken &&
+        range == other.range &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -34763,22 +34103,18 @@ class SemanticTokensRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensRegistrationOptions &&
-        other.runtimeType == SemanticTokensRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          full == other.full &&
-          id == other.id &&
-          legend == other.legend &&
-          range == other.range &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is SemanticTokensRegistrationOptions &&
+        other.runtimeType == SemanticTokensRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        full == other.full &&
+        id == other.id &&
+        legend == other.legend &&
+        range == other.range &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -34854,11 +34190,9 @@ class SemanticTokensWorkspaceClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SemanticTokensWorkspaceClientCapabilities &&
-        other.runtimeType == SemanticTokensWorkspaceClientCapabilities) {
-      return refreshSupport == other.refreshSupport && true;
-    }
-    return false;
+    return other is SemanticTokensWorkspaceClientCapabilities &&
+        other.runtimeType == SemanticTokensWorkspaceClientCapabilities &&
+        refreshSupport == other.refreshSupport;
   }
 
   @override
@@ -36103,48 +35437,45 @@ class ServerCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ServerCapabilities &&
-        other.runtimeType == ServerCapabilities) {
-      return callHierarchyProvider == other.callHierarchyProvider &&
-          codeActionProvider == other.codeActionProvider &&
-          codeLensProvider == other.codeLensProvider &&
-          colorProvider == other.colorProvider &&
-          completionProvider == other.completionProvider &&
-          declarationProvider == other.declarationProvider &&
-          definitionProvider == other.definitionProvider &&
-          diagnosticProvider == other.diagnosticProvider &&
-          documentFormattingProvider == other.documentFormattingProvider &&
-          documentHighlightProvider == other.documentHighlightProvider &&
-          documentLinkProvider == other.documentLinkProvider &&
-          documentOnTypeFormattingProvider ==
-              other.documentOnTypeFormattingProvider &&
-          documentRangeFormattingProvider ==
-              other.documentRangeFormattingProvider &&
-          documentSymbolProvider == other.documentSymbolProvider &&
-          executeCommandProvider == other.executeCommandProvider &&
-          experimental == other.experimental &&
-          foldingRangeProvider == other.foldingRangeProvider &&
-          hoverProvider == other.hoverProvider &&
-          implementationProvider == other.implementationProvider &&
-          inlayHintProvider == other.inlayHintProvider &&
-          inlineValueProvider == other.inlineValueProvider &&
-          linkedEditingRangeProvider == other.linkedEditingRangeProvider &&
-          monikerProvider == other.monikerProvider &&
-          notebookDocumentSync == other.notebookDocumentSync &&
-          positionEncoding == other.positionEncoding &&
-          referencesProvider == other.referencesProvider &&
-          renameProvider == other.renameProvider &&
-          selectionRangeProvider == other.selectionRangeProvider &&
-          semanticTokensProvider == other.semanticTokensProvider &&
-          signatureHelpProvider == other.signatureHelpProvider &&
-          textDocumentSync == other.textDocumentSync &&
-          typeDefinitionProvider == other.typeDefinitionProvider &&
-          typeHierarchyProvider == other.typeHierarchyProvider &&
-          workspace == other.workspace &&
-          workspaceSymbolProvider == other.workspaceSymbolProvider &&
-          true;
-    }
-    return false;
+    return other is ServerCapabilities &&
+        other.runtimeType == ServerCapabilities &&
+        callHierarchyProvider == other.callHierarchyProvider &&
+        codeActionProvider == other.codeActionProvider &&
+        codeLensProvider == other.codeLensProvider &&
+        colorProvider == other.colorProvider &&
+        completionProvider == other.completionProvider &&
+        declarationProvider == other.declarationProvider &&
+        definitionProvider == other.definitionProvider &&
+        diagnosticProvider == other.diagnosticProvider &&
+        documentFormattingProvider == other.documentFormattingProvider &&
+        documentHighlightProvider == other.documentHighlightProvider &&
+        documentLinkProvider == other.documentLinkProvider &&
+        documentOnTypeFormattingProvider ==
+            other.documentOnTypeFormattingProvider &&
+        documentRangeFormattingProvider ==
+            other.documentRangeFormattingProvider &&
+        documentSymbolProvider == other.documentSymbolProvider &&
+        executeCommandProvider == other.executeCommandProvider &&
+        experimental == other.experimental &&
+        foldingRangeProvider == other.foldingRangeProvider &&
+        hoverProvider == other.hoverProvider &&
+        implementationProvider == other.implementationProvider &&
+        inlayHintProvider == other.inlayHintProvider &&
+        inlineValueProvider == other.inlineValueProvider &&
+        linkedEditingRangeProvider == other.linkedEditingRangeProvider &&
+        monikerProvider == other.monikerProvider &&
+        notebookDocumentSync == other.notebookDocumentSync &&
+        positionEncoding == other.positionEncoding &&
+        referencesProvider == other.referencesProvider &&
+        renameProvider == other.renameProvider &&
+        selectionRangeProvider == other.selectionRangeProvider &&
+        semanticTokensProvider == other.semanticTokensProvider &&
+        signatureHelpProvider == other.signatureHelpProvider &&
+        textDocumentSync == other.textDocumentSync &&
+        typeDefinitionProvider == other.typeDefinitionProvider &&
+        typeHierarchyProvider == other.typeHierarchyProvider &&
+        workspace == other.workspace &&
+        workspaceSymbolProvider == other.workspaceSymbolProvider;
   }
 
   @override
@@ -36275,13 +35606,10 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ServerCapabilitiesWorkspace &&
-        other.runtimeType == ServerCapabilitiesWorkspace) {
-      return fileOperations == other.fileOperations &&
-          workspaceFolders == other.workspaceFolders &&
-          true;
-    }
-    return false;
+    return other is ServerCapabilitiesWorkspace &&
+        other.runtimeType == ServerCapabilitiesWorkspace &&
+        fileOperations == other.fileOperations &&
+        workspaceFolders == other.workspaceFolders;
   }
 
   @override
@@ -36349,10 +35677,9 @@ class SetTraceParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SetTraceParams && other.runtimeType == SetTraceParams) {
-      return value == other.value && true;
-    }
-    return false;
+    return other is SetTraceParams &&
+        other.runtimeType == SetTraceParams &&
+        value == other.value;
   }
 
   @override
@@ -36421,11 +35748,9 @@ class ShowDocumentClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ShowDocumentClientCapabilities &&
-        other.runtimeType == ShowDocumentClientCapabilities) {
-      return support == other.support && true;
-    }
-    return false;
+    return other is ShowDocumentClientCapabilities &&
+        other.runtimeType == ShowDocumentClientCapabilities &&
+        support == other.support;
   }
 
   @override
@@ -36562,15 +35887,12 @@ class ShowDocumentParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ShowDocumentParams &&
-        other.runtimeType == ShowDocumentParams) {
-      return external == other.external &&
-          selection == other.selection &&
-          takeFocus == other.takeFocus &&
-          uri == other.uri &&
-          true;
-    }
-    return false;
+    return other is ShowDocumentParams &&
+        other.runtimeType == ShowDocumentParams &&
+        external == other.external &&
+        selection == other.selection &&
+        takeFocus == other.takeFocus &&
+        uri == other.uri;
   }
 
   @override
@@ -36644,11 +35966,9 @@ class ShowDocumentResult implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ShowDocumentResult &&
-        other.runtimeType == ShowDocumentResult) {
-      return success == other.success && true;
-    }
-    return false;
+    return other is ShowDocumentResult &&
+        other.runtimeType == ShowDocumentResult &&
+        success == other.success;
   }
 
   @override
@@ -36741,10 +36061,10 @@ class ShowMessageParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ShowMessageParams && other.runtimeType == ShowMessageParams) {
-      return message == other.message && type == other.type && true;
-    }
-    return false;
+    return other is ShowMessageParams &&
+        other.runtimeType == ShowMessageParams &&
+        message == other.message &&
+        type == other.type;
   }
 
   @override
@@ -36817,11 +36137,9 @@ class ShowMessageRequestClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ShowMessageRequestClientCapabilities &&
-        other.runtimeType == ShowMessageRequestClientCapabilities) {
-      return messageActionItem == other.messageActionItem && true;
-    }
-    return false;
+    return other is ShowMessageRequestClientCapabilities &&
+        other.runtimeType == ShowMessageRequestClientCapabilities &&
+        messageActionItem == other.messageActionItem;
   }
 
   @override
@@ -36887,13 +36205,10 @@ class ShowMessageRequestClientCapabilitiesMessageActionItem
 
   @override
   bool operator ==(Object other) {
-    if (other is ShowMessageRequestClientCapabilitiesMessageActionItem &&
+    return other is ShowMessageRequestClientCapabilitiesMessageActionItem &&
         other.runtimeType ==
-            ShowMessageRequestClientCapabilitiesMessageActionItem) {
-      return additionalPropertiesSupport == other.additionalPropertiesSupport &&
-          true;
-    }
-    return false;
+            ShowMessageRequestClientCapabilitiesMessageActionItem &&
+        additionalPropertiesSupport == other.additionalPropertiesSupport;
   }
 
   @override
@@ -37011,15 +36326,12 @@ class ShowMessageRequestParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ShowMessageRequestParams &&
-        other.runtimeType == ShowMessageRequestParams) {
-      return listEqual(actions, other.actions,
-              (MessageActionItem a, MessageActionItem b) => a == b) &&
-          message == other.message &&
-          type == other.type &&
-          true;
-    }
-    return false;
+    return other is ShowMessageRequestParams &&
+        other.runtimeType == ShowMessageRequestParams &&
+        listEqual(actions, other.actions,
+            (MessageActionItem a, MessageActionItem b) => a == b) &&
+        message == other.message &&
+        type == other.type;
   }
 
   @override
@@ -37149,14 +36461,12 @@ class SignatureHelp implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SignatureHelp && other.runtimeType == SignatureHelp) {
-      return activeParameter == other.activeParameter &&
-          activeSignature == other.activeSignature &&
-          listEqual(signatures, other.signatures,
-              (SignatureInformation a, SignatureInformation b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is SignatureHelp &&
+        other.runtimeType == SignatureHelp &&
+        activeParameter == other.activeParameter &&
+        activeSignature == other.activeSignature &&
+        listEqual(signatures, other.signatures,
+            (SignatureInformation a, SignatureInformation b) => a == b);
   }
 
   @override
@@ -37274,14 +36584,11 @@ class SignatureHelpClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SignatureHelpClientCapabilities &&
-        other.runtimeType == SignatureHelpClientCapabilities) {
-      return contextSupport == other.contextSupport &&
-          dynamicRegistration == other.dynamicRegistration &&
-          signatureInformation == other.signatureInformation &&
-          true;
-    }
-    return false;
+    return other is SignatureHelpClientCapabilities &&
+        other.runtimeType == SignatureHelpClientCapabilities &&
+        contextSupport == other.contextSupport &&
+        dynamicRegistration == other.dynamicRegistration &&
+        signatureInformation == other.signatureInformation;
   }
 
   @override
@@ -37404,16 +36711,13 @@ class SignatureHelpClientCapabilitiesSignatureInformation
 
   @override
   bool operator ==(Object other) {
-    if (other is SignatureHelpClientCapabilitiesSignatureInformation &&
+    return other is SignatureHelpClientCapabilitiesSignatureInformation &&
         other.runtimeType ==
-            SignatureHelpClientCapabilitiesSignatureInformation) {
-      return activeParameterSupport == other.activeParameterSupport &&
-          listEqual(documentationFormat, other.documentationFormat,
-              (MarkupKind a, MarkupKind b) => a == b) &&
-          parameterInformation == other.parameterInformation &&
-          true;
-    }
-    return false;
+            SignatureHelpClientCapabilitiesSignatureInformation &&
+        activeParameterSupport == other.activeParameterSupport &&
+        listEqual(documentationFormat, other.documentationFormat,
+            (MarkupKind a, MarkupKind b) => a == b) &&
+        parameterInformation == other.parameterInformation;
   }
 
   @override
@@ -37568,15 +36872,12 @@ class SignatureHelpContext implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SignatureHelpContext &&
-        other.runtimeType == SignatureHelpContext) {
-      return activeSignatureHelp == other.activeSignatureHelp &&
-          isRetrigger == other.isRetrigger &&
-          triggerCharacter == other.triggerCharacter &&
-          triggerKind == other.triggerKind &&
-          true;
-    }
-    return false;
+    return other is SignatureHelpContext &&
+        other.runtimeType == SignatureHelpContext &&
+        activeSignatureHelp == other.activeSignatureHelp &&
+        isRetrigger == other.isRetrigger &&
+        triggerCharacter == other.triggerCharacter &&
+        triggerKind == other.triggerKind;
   }
 
   @override
@@ -37697,16 +36998,13 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SignatureHelpOptions &&
-        other.runtimeType == SignatureHelpOptions) {
-      return listEqual(retriggerCharacters, other.retriggerCharacters,
-              (String a, String b) => a == b) &&
-          listEqual(triggerCharacters, other.triggerCharacters,
-              (String a, String b) => a == b) &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is SignatureHelpOptions &&
+        other.runtimeType == SignatureHelpOptions &&
+        listEqual(retriggerCharacters, other.retriggerCharacters,
+            (String a, String b) => a == b) &&
+        listEqual(triggerCharacters, other.triggerCharacters,
+            (String a, String b) => a == b) &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -37863,15 +37161,12 @@ class SignatureHelpParams
 
   @override
   bool operator ==(Object other) {
-    if (other is SignatureHelpParams &&
-        other.runtimeType == SignatureHelpParams) {
-      return context == other.context &&
-          position == other.position &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is SignatureHelpParams &&
+        other.runtimeType == SignatureHelpParams &&
+        context == other.context &&
+        position == other.position &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -38026,22 +37321,18 @@ class SignatureHelpRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is SignatureHelpRegistrationOptions &&
-        other.runtimeType == SignatureHelpRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          listEqual(retriggerCharacters, other.retriggerCharacters,
-              (String a, String b) => a == b) &&
-          listEqual(triggerCharacters, other.triggerCharacters,
-              (String a, String b) => a == b) &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is SignatureHelpRegistrationOptions &&
+        other.runtimeType == SignatureHelpRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        listEqual(retriggerCharacters, other.retriggerCharacters,
+            (String a, String b) => a == b) &&
+        listEqual(triggerCharacters, other.triggerCharacters,
+            (String a, String b) => a == b) &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -38232,16 +37523,13 @@ class SignatureInformation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SignatureInformation &&
-        other.runtimeType == SignatureInformation) {
-      return activeParameter == other.activeParameter &&
-          documentation == other.documentation &&
-          label == other.label &&
-          listEqual(parameters, other.parameters,
-              (ParameterInformation a, ParameterInformation b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is SignatureInformation &&
+        other.runtimeType == SignatureInformation &&
+        activeParameter == other.activeParameter &&
+        documentation == other.documentation &&
+        label == other.label &&
+        listEqual(parameters, other.parameters,
+            (ParameterInformation a, ParameterInformation b) => a == b);
   }
 
   @override
@@ -38311,11 +37599,9 @@ class SignatureInformationParameterInformation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SignatureInformationParameterInformation &&
-        other.runtimeType == SignatureInformationParameterInformation) {
-      return labelOffsetSupport == other.labelOffsetSupport && true;
-    }
-    return false;
+    return other is SignatureInformationParameterInformation &&
+        other.runtimeType == SignatureInformationParameterInformation &&
+        labelOffsetSupport == other.labelOffsetSupport;
   }
 
   @override
@@ -38421,11 +37707,9 @@ class StaticRegistrationOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is StaticRegistrationOptions &&
-        other.runtimeType == StaticRegistrationOptions) {
-      return id == other.id && true;
-    }
-    return false;
+    return other is StaticRegistrationOptions &&
+        other.runtimeType == StaticRegistrationOptions &&
+        id == other.id;
   }
 
   @override
@@ -38628,16 +37912,14 @@ class SymbolInformation implements BaseSymbolInformation, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SymbolInformation && other.runtimeType == SymbolInformation) {
-      return containerName == other.containerName &&
-          deprecated == other.deprecated &&
-          kind == other.kind &&
-          location == other.location &&
-          name == other.name &&
-          listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is SymbolInformation &&
+        other.runtimeType == SymbolInformation &&
+        containerName == other.containerName &&
+        deprecated == other.deprecated &&
+        kind == other.kind &&
+        location == other.location &&
+        name == other.name &&
+        listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b);
   }
 
   @override
@@ -38827,18 +38109,14 @@ class TextDocumentChangeRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentChangeRegistrationOptions &&
-        other.runtimeType == TextDocumentChangeRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          syncKind == other.syncKind &&
-          true;
-    }
-    return false;
+    return other is TextDocumentChangeRegistrationOptions &&
+        other.runtimeType == TextDocumentChangeRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        syncKind == other.syncKind;
   }
 
   @override
@@ -39664,41 +38942,38 @@ class TextDocumentClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilities &&
-        other.runtimeType == TextDocumentClientCapabilities) {
-      return callHierarchy == other.callHierarchy &&
-          codeAction == other.codeAction &&
-          codeLens == other.codeLens &&
-          colorProvider == other.colorProvider &&
-          completion == other.completion &&
-          declaration == other.declaration &&
-          definition == other.definition &&
-          diagnostic == other.diagnostic &&
-          documentHighlight == other.documentHighlight &&
-          documentLink == other.documentLink &&
-          documentSymbol == other.documentSymbol &&
-          foldingRange == other.foldingRange &&
-          formatting == other.formatting &&
-          hover == other.hover &&
-          implementation == other.implementation &&
-          inlayHint == other.inlayHint &&
-          inlineValue == other.inlineValue &&
-          linkedEditingRange == other.linkedEditingRange &&
-          moniker == other.moniker &&
-          onTypeFormatting == other.onTypeFormatting &&
-          publishDiagnostics == other.publishDiagnostics &&
-          rangeFormatting == other.rangeFormatting &&
-          references == other.references &&
-          rename == other.rename &&
-          selectionRange == other.selectionRange &&
-          semanticTokens == other.semanticTokens &&
-          signatureHelp == other.signatureHelp &&
-          synchronization == other.synchronization &&
-          typeDefinition == other.typeDefinition &&
-          typeHierarchy == other.typeHierarchy &&
-          true;
-    }
-    return false;
+    return other is TextDocumentClientCapabilities &&
+        other.runtimeType == TextDocumentClientCapabilities &&
+        callHierarchy == other.callHierarchy &&
+        codeAction == other.codeAction &&
+        codeLens == other.codeLens &&
+        colorProvider == other.colorProvider &&
+        completion == other.completion &&
+        declaration == other.declaration &&
+        definition == other.definition &&
+        diagnostic == other.diagnostic &&
+        documentHighlight == other.documentHighlight &&
+        documentLink == other.documentLink &&
+        documentSymbol == other.documentSymbol &&
+        foldingRange == other.foldingRange &&
+        formatting == other.formatting &&
+        hover == other.hover &&
+        implementation == other.implementation &&
+        inlayHint == other.inlayHint &&
+        inlineValue == other.inlineValue &&
+        linkedEditingRange == other.linkedEditingRange &&
+        moniker == other.moniker &&
+        onTypeFormatting == other.onTypeFormatting &&
+        publishDiagnostics == other.publishDiagnostics &&
+        rangeFormatting == other.rangeFormatting &&
+        references == other.references &&
+        rename == other.rename &&
+        selectionRange == other.selectionRange &&
+        semanticTokens == other.semanticTokens &&
+        signatureHelp == other.signatureHelp &&
+        synchronization == other.synchronization &&
+        typeDefinition == other.typeDefinition &&
+        typeHierarchy == other.typeHierarchy;
   }
 
   @override
@@ -39843,14 +39118,11 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentContentChangeEvent1 &&
-        other.runtimeType == TextDocumentContentChangeEvent1) {
-      return range == other.range &&
-          rangeLength == other.rangeLength &&
-          text == other.text &&
-          true;
-    }
-    return false;
+    return other is TextDocumentContentChangeEvent1 &&
+        other.runtimeType == TextDocumentContentChangeEvent1 &&
+        range == other.range &&
+        rangeLength == other.rangeLength &&
+        text == other.text;
   }
 
   @override
@@ -39920,11 +39192,9 @@ class TextDocumentContentChangeEvent2 implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentContentChangeEvent2 &&
-        other.runtimeType == TextDocumentContentChangeEvent2) {
-      return text == other.text && true;
-    }
-    return false;
+    return other is TextDocumentContentChangeEvent2 &&
+        other.runtimeType == TextDocumentContentChangeEvent2 &&
+        text == other.text;
   }
 
   @override
@@ -40043,18 +39313,15 @@ class TextDocumentEdit implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentEdit && other.runtimeType == TextDocumentEdit) {
-      return listEqual(
-              edits,
-              other.edits,
-              (Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> a,
-                      Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>
-                          b) =>
-                  a == b) &&
-          textDocument == other.textDocument &&
-          true;
-    }
-    return false;
+    return other is TextDocumentEdit &&
+        other.runtimeType == TextDocumentEdit &&
+        listEqual(
+            edits,
+            other.edits,
+            (Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> a,
+                    Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> b) =>
+                a == b) &&
+        textDocument == other.textDocument;
   }
 
   @override
@@ -40163,14 +39430,11 @@ class TextDocumentFilter1 implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentFilter1 &&
-        other.runtimeType == TextDocumentFilter1) {
-      return language == other.language &&
-          pattern == other.pattern &&
-          scheme == other.scheme &&
-          true;
-    }
-    return false;
+    return other is TextDocumentFilter1 &&
+        other.runtimeType == TextDocumentFilter1 &&
+        language == other.language &&
+        pattern == other.pattern &&
+        scheme == other.scheme;
   }
 
   @override
@@ -40280,14 +39544,11 @@ class TextDocumentFilter3 implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentFilter3 &&
-        other.runtimeType == TextDocumentFilter3) {
-      return language == other.language &&
-          pattern == other.pattern &&
-          scheme == other.scheme &&
-          true;
-    }
-    return false;
+    return other is TextDocumentFilter3 &&
+        other.runtimeType == TextDocumentFilter3 &&
+        language == other.language &&
+        pattern == other.pattern &&
+        scheme == other.scheme;
   }
 
   @override
@@ -40397,14 +39658,11 @@ class TextDocumentFilterWithScheme implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentFilterWithScheme &&
-        other.runtimeType == TextDocumentFilterWithScheme) {
-      return language == other.language &&
-          pattern == other.pattern &&
-          scheme == other.scheme &&
-          true;
-    }
-    return false;
+    return other is TextDocumentFilterWithScheme &&
+        other.runtimeType == TextDocumentFilterWithScheme &&
+        language == other.language &&
+        pattern == other.pattern &&
+        scheme == other.scheme;
   }
 
   @override
@@ -40482,11 +39740,9 @@ class TextDocumentIdentifier implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentIdentifier &&
-        other.runtimeType == TextDocumentIdentifier) {
-      return uri == other.uri && true;
-    }
-    return false;
+    return other is TextDocumentIdentifier &&
+        other.runtimeType == TextDocumentIdentifier &&
+        uri == other.uri;
   }
 
   @override
@@ -40632,14 +39888,12 @@ class TextDocumentItem implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentItem && other.runtimeType == TextDocumentItem) {
-      return languageId == other.languageId &&
-          text == other.text &&
-          uri == other.uri &&
-          version == other.version &&
-          true;
-    }
-    return false;
+    return other is TextDocumentItem &&
+        other.runtimeType == TextDocumentItem &&
+        languageId == other.languageId &&
+        text == other.text &&
+        uri == other.uri &&
+        version == other.version;
   }
 
   @override
@@ -40781,13 +40035,10 @@ class TextDocumentPositionParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentPositionParams &&
-        other.runtimeType == TextDocumentPositionParams) {
-      return position == other.position &&
-          textDocument == other.textDocument &&
-          true;
-    }
-    return false;
+    return other is TextDocumentPositionParams &&
+        other.runtimeType == TextDocumentPositionParams &&
+        position == other.position &&
+        textDocument == other.textDocument;
   }
 
   @override
@@ -40958,17 +40209,13 @@ class TextDocumentRegistrationOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentRegistrationOptions &&
-        other.runtimeType == TextDocumentRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          true;
-    }
-    return false;
+    return other is TextDocumentRegistrationOptions &&
+        other.runtimeType == TextDocumentRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b);
   }
 
   @override
@@ -41099,18 +40346,14 @@ class TextDocumentSaveRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentSaveRegistrationOptions &&
-        other.runtimeType == TextDocumentSaveRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          includeText == other.includeText &&
-          true;
-    }
-    return false;
+    return other is TextDocumentSaveRegistrationOptions &&
+        other.runtimeType == TextDocumentSaveRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        includeText == other.includeText;
   }
 
   @override
@@ -41237,15 +40480,12 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentSyncClientCapabilities &&
-        other.runtimeType == TextDocumentSyncClientCapabilities) {
-      return didSave == other.didSave &&
-          dynamicRegistration == other.dynamicRegistration &&
-          willSave == other.willSave &&
-          willSaveWaitUntil == other.willSaveWaitUntil &&
-          true;
-    }
-    return false;
+    return other is TextDocumentSyncClientCapabilities &&
+        other.runtimeType == TextDocumentSyncClientCapabilities &&
+        didSave == other.didSave &&
+        dynamicRegistration == other.dynamicRegistration &&
+        willSave == other.willSave &&
+        willSaveWaitUntil == other.willSaveWaitUntil;
   }
 
   @override
@@ -41445,16 +40685,13 @@ class TextDocumentSyncOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentSyncOptions &&
-        other.runtimeType == TextDocumentSyncOptions) {
-      return change == other.change &&
-          openClose == other.openClose &&
-          save == other.save &&
-          willSave == other.willSave &&
-          willSaveWaitUntil == other.willSaveWaitUntil &&
-          true;
-    }
-    return false;
+    return other is TextDocumentSyncOptions &&
+        other.runtimeType == TextDocumentSyncOptions &&
+        change == other.change &&
+        openClose == other.openClose &&
+        save == other.save &&
+        willSave == other.willSave &&
+        willSaveWaitUntil == other.willSaveWaitUntil;
   }
 
   @override
@@ -41560,10 +40797,10 @@ class TextEdit implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextEdit && other.runtimeType == TextEdit) {
-      return newText == other.newText && range == other.range && true;
-    }
-    return false;
+    return other is TextEdit &&
+        other.runtimeType == TextEdit &&
+        newText == other.newText &&
+        range == other.range;
   }
 
   @override
@@ -41710,13 +40947,10 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TypeDefinitionClientCapabilities &&
-        other.runtimeType == TypeDefinitionClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration &&
-          linkSupport == other.linkSupport &&
-          true;
-    }
-    return false;
+    return other is TypeDefinitionClientCapabilities &&
+        other.runtimeType == TypeDefinitionClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration &&
+        linkSupport == other.linkSupport;
   }
 
   @override
@@ -41782,11 +41016,9 @@ class TypeDefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TypeDefinitionOptions &&
-        other.runtimeType == TypeDefinitionOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is TypeDefinitionOptions &&
+        other.runtimeType == TypeDefinitionOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -41945,15 +41177,12 @@ class TypeDefinitionParams
 
   @override
   bool operator ==(Object other) {
-    if (other is TypeDefinitionParams &&
-        other.runtimeType == TypeDefinitionParams) {
-      return partialResultToken == other.partialResultToken &&
-          position == other.position &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is TypeDefinitionParams &&
+        other.runtimeType == TypeDefinitionParams &&
+        partialResultToken == other.partialResultToken &&
+        position == other.position &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -42075,19 +41304,15 @@ class TypeDefinitionRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is TypeDefinitionRegistrationOptions &&
-        other.runtimeType == TypeDefinitionRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          id == other.id &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is TypeDefinitionRegistrationOptions &&
+        other.runtimeType == TypeDefinitionRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        id == other.id &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -42155,11 +41380,9 @@ class TypeHierarchyClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TypeHierarchyClientCapabilities &&
-        other.runtimeType == TypeHierarchyClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration && true;
-    }
-    return false;
+    return other is TypeHierarchyClientCapabilities &&
+        other.runtimeType == TypeHierarchyClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration;
   }
 
   @override
@@ -42390,18 +41613,16 @@ class TypeHierarchyItem implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TypeHierarchyItem && other.runtimeType == TypeHierarchyItem) {
-      return data == other.data &&
-          detail == other.detail &&
-          kind == other.kind &&
-          name == other.name &&
-          range == other.range &&
-          selectionRange == other.selectionRange &&
-          listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b) &&
-          uri == other.uri &&
-          true;
-    }
-    return false;
+    return other is TypeHierarchyItem &&
+        other.runtimeType == TypeHierarchyItem &&
+        data == other.data &&
+        detail == other.detail &&
+        kind == other.kind &&
+        name == other.name &&
+        range == other.range &&
+        selectionRange == other.selectionRange &&
+        listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b) &&
+        uri == other.uri;
   }
 
   @override
@@ -42476,11 +41697,9 @@ class TypeHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TypeHierarchyOptions &&
-        other.runtimeType == TypeHierarchyOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is TypeHierarchyOptions &&
+        other.runtimeType == TypeHierarchyOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -42608,14 +41827,11 @@ class TypeHierarchyPrepareParams
 
   @override
   bool operator ==(Object other) {
-    if (other is TypeHierarchyPrepareParams &&
-        other.runtimeType == TypeHierarchyPrepareParams) {
-      return position == other.position &&
-          textDocument == other.textDocument &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is TypeHierarchyPrepareParams &&
+        other.runtimeType == TypeHierarchyPrepareParams &&
+        position == other.position &&
+        textDocument == other.textDocument &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -42739,19 +41955,15 @@ class TypeHierarchyRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is TypeHierarchyRegistrationOptions &&
-        other.runtimeType == TypeHierarchyRegistrationOptions) {
-      return listEqual(
-              documentSelector,
-              other.documentSelector,
-              (TextDocumentFilterWithScheme a,
-                      TextDocumentFilterWithScheme b) =>
-                  a == b) &&
-          id == other.id &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is TypeHierarchyRegistrationOptions &&
+        other.runtimeType == TypeHierarchyRegistrationOptions &&
+        listEqual(
+            documentSelector,
+            other.documentSelector,
+            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
+                a == b) &&
+        id == other.id &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -42883,14 +42095,11 @@ class TypeHierarchySubtypesParams
 
   @override
   bool operator ==(Object other) {
-    if (other is TypeHierarchySubtypesParams &&
-        other.runtimeType == TypeHierarchySubtypesParams) {
-      return item == other.item &&
-          partialResultToken == other.partialResultToken &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is TypeHierarchySubtypesParams &&
+        other.runtimeType == TypeHierarchySubtypesParams &&
+        item == other.item &&
+        partialResultToken == other.partialResultToken &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -43022,14 +42231,11 @@ class TypeHierarchySupertypesParams
 
   @override
   bool operator ==(Object other) {
-    if (other is TypeHierarchySupertypesParams &&
-        other.runtimeType == TypeHierarchySupertypesParams) {
-      return item == other.item &&
-          partialResultToken == other.partialResultToken &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is TypeHierarchySupertypesParams &&
+        other.runtimeType == TypeHierarchySupertypesParams &&
+        item == other.item &&
+        partialResultToken == other.partialResultToken &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -43143,11 +42349,10 @@ class UnchangedDocumentDiagnosticReport implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is UnchangedDocumentDiagnosticReport &&
-        other.runtimeType == UnchangedDocumentDiagnosticReport) {
-      return kind == other.kind && resultId == other.resultId && true;
-    }
-    return false;
+    return other is UnchangedDocumentDiagnosticReport &&
+        other.runtimeType == UnchangedDocumentDiagnosticReport &&
+        kind == other.kind &&
+        resultId == other.resultId;
   }
 
   @override
@@ -43286,10 +42491,10 @@ class Unregistration implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Unregistration && other.runtimeType == Unregistration) {
-      return id == other.id && method == other.method && true;
-    }
-    return false;
+    return other is Unregistration &&
+        other.runtimeType == Unregistration &&
+        id == other.id &&
+        method == other.method;
   }
 
   @override
@@ -43362,13 +42567,10 @@ class UnregistrationParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is UnregistrationParams &&
-        other.runtimeType == UnregistrationParams) {
-      return listEqual(unregisterations, other.unregisterations,
-              (Unregistration a, Unregistration b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is UnregistrationParams &&
+        other.runtimeType == UnregistrationParams &&
+        listEqual(unregisterations, other.unregisterations,
+            (Unregistration a, Unregistration b) => a == b);
   }
 
   @override
@@ -43465,11 +42667,10 @@ class VersionedNotebookDocumentIdentifier implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is VersionedNotebookDocumentIdentifier &&
-        other.runtimeType == VersionedNotebookDocumentIdentifier) {
-      return uri == other.uri && version == other.version && true;
-    }
-    return false;
+    return other is VersionedNotebookDocumentIdentifier &&
+        other.runtimeType == VersionedNotebookDocumentIdentifier &&
+        uri == other.uri &&
+        version == other.version;
   }
 
   @override
@@ -43567,11 +42768,10 @@ class VersionedTextDocumentIdentifier
 
   @override
   bool operator ==(Object other) {
-    if (other is VersionedTextDocumentIdentifier &&
-        other.runtimeType == VersionedTextDocumentIdentifier) {
-      return uri == other.uri && version == other.version && true;
-    }
-    return false;
+    return other is VersionedTextDocumentIdentifier &&
+        other.runtimeType == VersionedTextDocumentIdentifier &&
+        uri == other.uri &&
+        version == other.version;
   }
 
   @override
@@ -43701,13 +42901,10 @@ class WillSaveTextDocumentParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WillSaveTextDocumentParams &&
-        other.runtimeType == WillSaveTextDocumentParams) {
-      return reason == other.reason &&
-          textDocument == other.textDocument &&
-          true;
-    }
-    return false;
+    return other is WillSaveTextDocumentParams &&
+        other.runtimeType == WillSaveTextDocumentParams &&
+        reason == other.reason &&
+        textDocument == other.textDocument;
   }
 
   @override
@@ -43832,14 +43029,11 @@ class WindowClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WindowClientCapabilities &&
-        other.runtimeType == WindowClientCapabilities) {
-      return showDocument == other.showDocument &&
-          showMessage == other.showMessage &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is WindowClientCapabilities &&
+        other.runtimeType == WindowClientCapabilities &&
+        showDocument == other.showDocument &&
+        showMessage == other.showMessage &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -44011,16 +43205,13 @@ class WorkDoneProgressBegin implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkDoneProgressBegin &&
-        other.runtimeType == WorkDoneProgressBegin) {
-      return cancellable == other.cancellable &&
-          kind == other.kind &&
-          message == other.message &&
-          percentage == other.percentage &&
-          title == other.title &&
-          true;
-    }
-    return false;
+    return other is WorkDoneProgressBegin &&
+        other.runtimeType == WorkDoneProgressBegin &&
+        cancellable == other.cancellable &&
+        kind == other.kind &&
+        message == other.message &&
+        percentage == other.percentage &&
+        title == other.title;
   }
 
   @override
@@ -44096,11 +43287,9 @@ class WorkDoneProgressCancelParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkDoneProgressCancelParams &&
-        other.runtimeType == WorkDoneProgressCancelParams) {
-      return token == other.token && true;
-    }
-    return false;
+    return other is WorkDoneProgressCancelParams &&
+        other.runtimeType == WorkDoneProgressCancelParams &&
+        token == other.token;
   }
 
   @override
@@ -44170,11 +43359,9 @@ class WorkDoneProgressCreateParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkDoneProgressCreateParams &&
-        other.runtimeType == WorkDoneProgressCreateParams) {
-      return token == other.token && true;
-    }
-    return false;
+    return other is WorkDoneProgressCreateParams &&
+        other.runtimeType == WorkDoneProgressCreateParams &&
+        token == other.token;
   }
 
   @override
@@ -44264,11 +43451,10 @@ class WorkDoneProgressEnd implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkDoneProgressEnd &&
-        other.runtimeType == WorkDoneProgressEnd) {
-      return kind == other.kind && message == other.message && true;
-    }
-    return false;
+    return other is WorkDoneProgressEnd &&
+        other.runtimeType == WorkDoneProgressEnd &&
+        kind == other.kind &&
+        message == other.message;
   }
 
   @override
@@ -44417,11 +43603,9 @@ class WorkDoneProgressOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkDoneProgressOptions &&
-        other.runtimeType == WorkDoneProgressOptions) {
-      return workDoneProgress == other.workDoneProgress && true;
-    }
-    return false;
+    return other is WorkDoneProgressOptions &&
+        other.runtimeType == WorkDoneProgressOptions &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -44606,11 +43790,9 @@ class WorkDoneProgressParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkDoneProgressParams &&
-        other.runtimeType == WorkDoneProgressParams) {
-      return workDoneToken == other.workDoneToken && true;
-    }
-    return false;
+    return other is WorkDoneProgressParams &&
+        other.runtimeType == WorkDoneProgressParams &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -44750,15 +43932,12 @@ class WorkDoneProgressReport implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkDoneProgressReport &&
-        other.runtimeType == WorkDoneProgressReport) {
-      return cancellable == other.cancellable &&
-          kind == other.kind &&
-          message == other.message &&
-          percentage == other.percentage &&
-          true;
-    }
-    return false;
+    return other is WorkDoneProgressReport &&
+        other.runtimeType == WorkDoneProgressReport &&
+        cancellable == other.cancellable &&
+        kind == other.kind &&
+        message == other.message &&
+        percentage == other.percentage;
   }
 
   @override
@@ -45171,25 +44350,22 @@ class WorkspaceClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceClientCapabilities &&
-        other.runtimeType == WorkspaceClientCapabilities) {
-      return applyEdit == other.applyEdit &&
-          codeLens == other.codeLens &&
-          configuration == other.configuration &&
-          diagnostics == other.diagnostics &&
-          didChangeConfiguration == other.didChangeConfiguration &&
-          didChangeWatchedFiles == other.didChangeWatchedFiles &&
-          executeCommand == other.executeCommand &&
-          fileOperations == other.fileOperations &&
-          inlayHint == other.inlayHint &&
-          inlineValue == other.inlineValue &&
-          semanticTokens == other.semanticTokens &&
-          symbol == other.symbol &&
-          workspaceEdit == other.workspaceEdit &&
-          workspaceFolders == other.workspaceFolders &&
-          true;
-    }
-    return false;
+    return other is WorkspaceClientCapabilities &&
+        other.runtimeType == WorkspaceClientCapabilities &&
+        applyEdit == other.applyEdit &&
+        codeLens == other.codeLens &&
+        configuration == other.configuration &&
+        diagnostics == other.diagnostics &&
+        didChangeConfiguration == other.didChangeConfiguration &&
+        didChangeWatchedFiles == other.didChangeWatchedFiles &&
+        executeCommand == other.executeCommand &&
+        fileOperations == other.fileOperations &&
+        inlayHint == other.inlayHint &&
+        inlineValue == other.inlineValue &&
+        semanticTokens == other.semanticTokens &&
+        symbol == other.symbol &&
+        workspaceEdit == other.workspaceEdit &&
+        workspaceFolders == other.workspaceFolders;
   }
 
   @override
@@ -45358,16 +44534,13 @@ class WorkspaceDiagnosticParams
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceDiagnosticParams &&
-        other.runtimeType == WorkspaceDiagnosticParams) {
-      return identifier == other.identifier &&
-          partialResultToken == other.partialResultToken &&
-          listEqual(previousResultIds, other.previousResultIds,
-              (PreviousResultId a, PreviousResultId b) => a == b) &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is WorkspaceDiagnosticParams &&
+        other.runtimeType == WorkspaceDiagnosticParams &&
+        identifier == other.identifier &&
+        partialResultToken == other.partialResultToken &&
+        listEqual(previousResultIds, other.previousResultIds,
+            (PreviousResultId a, PreviousResultId b) => a == b) &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -45460,21 +44633,18 @@ class WorkspaceDiagnosticReport implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceDiagnosticReport &&
-        other.runtimeType == WorkspaceDiagnosticReport) {
-      return listEqual(
-              items,
-              other.items,
-              (Either2<WorkspaceFullDocumentDiagnosticReport,
-                              WorkspaceUnchangedDocumentDiagnosticReport>
-                          a,
-                      Either2<WorkspaceFullDocumentDiagnosticReport,
-                              WorkspaceUnchangedDocumentDiagnosticReport>
-                          b) =>
-                  a == b) &&
-          true;
-    }
-    return false;
+    return other is WorkspaceDiagnosticReport &&
+        other.runtimeType == WorkspaceDiagnosticReport &&
+        listEqual(
+            items,
+            other.items,
+            (Either2<WorkspaceFullDocumentDiagnosticReport,
+                            WorkspaceUnchangedDocumentDiagnosticReport>
+                        a,
+                    Either2<WorkspaceFullDocumentDiagnosticReport,
+                            WorkspaceUnchangedDocumentDiagnosticReport>
+                        b) =>
+                a == b);
   }
 
   @override
@@ -45564,21 +44734,18 @@ class WorkspaceDiagnosticReportPartialResult implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceDiagnosticReportPartialResult &&
-        other.runtimeType == WorkspaceDiagnosticReportPartialResult) {
-      return listEqual(
-              items,
-              other.items,
-              (Either2<WorkspaceFullDocumentDiagnosticReport,
-                              WorkspaceUnchangedDocumentDiagnosticReport>
-                          a,
-                      Either2<WorkspaceFullDocumentDiagnosticReport,
-                              WorkspaceUnchangedDocumentDiagnosticReport>
-                          b) =>
-                  a == b) &&
-          true;
-    }
-    return false;
+    return other is WorkspaceDiagnosticReportPartialResult &&
+        other.runtimeType == WorkspaceDiagnosticReportPartialResult &&
+        listEqual(
+            items,
+            other.items,
+            (Either2<WorkspaceFullDocumentDiagnosticReport,
+                            WorkspaceUnchangedDocumentDiagnosticReport>
+                        a,
+                    Either2<WorkspaceFullDocumentDiagnosticReport,
+                            WorkspaceUnchangedDocumentDiagnosticReport>
+                        b) =>
+                a == b);
   }
 
   @override
@@ -45754,25 +44921,23 @@ class WorkspaceEdit implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceEdit && other.runtimeType == WorkspaceEdit) {
-      return mapEqual(changeAnnotations, other.changeAnnotations,
-              (ChangeAnnotation a, ChangeAnnotation b) => a == b) &&
-          mapEqual(
-              changes,
-              other.changes,
-              (List<TextEdit> a, List<TextEdit> b) =>
-                  listEqual(a, b, (TextEdit a, TextEdit b) => a == b)) &&
-          listEqual(
-              documentChanges,
-              other.documentChanges,
-              (Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit> a,
-                      Either4<CreateFile, DeleteFile, RenameFile,
-                              TextDocumentEdit>
-                          b) =>
-                  a == b) &&
-          true;
-    }
-    return false;
+    return other is WorkspaceEdit &&
+        other.runtimeType == WorkspaceEdit &&
+        mapEqual(changeAnnotations, other.changeAnnotations,
+            (ChangeAnnotation a, ChangeAnnotation b) => a == b) &&
+        mapEqual(
+            changes,
+            other.changes,
+            (List<TextEdit> a, List<TextEdit> b) =>
+                listEqual(a, b, (TextEdit a, TextEdit b) => a == b)) &&
+        listEqual(
+            documentChanges,
+            other.documentChanges,
+            (Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit> a,
+                    Either4<CreateFile, DeleteFile, RenameFile,
+                            TextDocumentEdit>
+                        b) =>
+                a == b);
   }
 
   @override
@@ -45945,17 +45110,14 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceEditClientCapabilities &&
-        other.runtimeType == WorkspaceEditClientCapabilities) {
-      return changeAnnotationSupport == other.changeAnnotationSupport &&
-          documentChanges == other.documentChanges &&
-          failureHandling == other.failureHandling &&
-          normalizesLineEndings == other.normalizesLineEndings &&
-          listEqual(resourceOperations, other.resourceOperations,
-              (ResourceOperationKind a, ResourceOperationKind b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is WorkspaceEditClientCapabilities &&
+        other.runtimeType == WorkspaceEditClientCapabilities &&
+        changeAnnotationSupport == other.changeAnnotationSupport &&
+        documentChanges == other.documentChanges &&
+        failureHandling == other.failureHandling &&
+        normalizesLineEndings == other.normalizesLineEndings &&
+        listEqual(resourceOperations, other.resourceOperations,
+            (ResourceOperationKind a, ResourceOperationKind b) => a == b);
   }
 
   @override
@@ -46026,12 +45188,10 @@ class WorkspaceEditClientCapabilitiesChangeAnnotationSupport
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceEditClientCapabilitiesChangeAnnotationSupport &&
+    return other is WorkspaceEditClientCapabilitiesChangeAnnotationSupport &&
         other.runtimeType ==
-            WorkspaceEditClientCapabilitiesChangeAnnotationSupport) {
-      return groupsOnLabel == other.groupsOnLabel && true;
-    }
-    return false;
+            WorkspaceEditClientCapabilitiesChangeAnnotationSupport &&
+        groupsOnLabel == other.groupsOnLabel;
   }
 
   @override
@@ -46125,10 +45285,10 @@ class WorkspaceFolder implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceFolder && other.runtimeType == WorkspaceFolder) {
-      return name == other.name && uri == other.uri && true;
-    }
-    return false;
+    return other is WorkspaceFolder &&
+        other.runtimeType == WorkspaceFolder &&
+        name == other.name &&
+        uri == other.uri;
   }
 
   @override
@@ -46230,15 +45390,12 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceFoldersChangeEvent &&
-        other.runtimeType == WorkspaceFoldersChangeEvent) {
-      return listEqual(added, other.added,
-              (WorkspaceFolder a, WorkspaceFolder b) => a == b) &&
-          listEqual(removed, other.removed,
-              (WorkspaceFolder a, WorkspaceFolder b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is WorkspaceFoldersChangeEvent &&
+        other.runtimeType == WorkspaceFoldersChangeEvent &&
+        listEqual(added, other.added,
+            (WorkspaceFolder a, WorkspaceFolder b) => a == b) &&
+        listEqual(removed, other.removed,
+            (WorkspaceFolder a, WorkspaceFolder b) => a == b);
   }
 
   @override
@@ -46336,13 +45493,10 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceFoldersServerCapabilities &&
-        other.runtimeType == WorkspaceFoldersServerCapabilities) {
-      return changeNotifications == other.changeNotifications &&
-          supported == other.supported &&
-          true;
-    }
-    return false;
+    return other is WorkspaceFoldersServerCapabilities &&
+        other.runtimeType == WorkspaceFoldersServerCapabilities &&
+        changeNotifications == other.changeNotifications &&
+        supported == other.supported;
   }
 
   @override
@@ -46523,17 +45677,13 @@ class WorkspaceFullDocumentDiagnosticReport
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceFullDocumentDiagnosticReport &&
-        other.runtimeType == WorkspaceFullDocumentDiagnosticReport) {
-      return listEqual(
-              items, other.items, (Diagnostic a, Diagnostic b) => a == b) &&
-          kind == other.kind &&
-          resultId == other.resultId &&
-          uri == other.uri &&
-          version == other.version &&
-          true;
-    }
-    return false;
+    return other is WorkspaceFullDocumentDiagnosticReport &&
+        other.runtimeType == WorkspaceFullDocumentDiagnosticReport &&
+        listEqual(items, other.items, (Diagnostic a, Diagnostic b) => a == b) &&
+        kind == other.kind &&
+        resultId == other.resultId &&
+        uri == other.uri &&
+        version == other.version;
   }
 
   @override
@@ -46739,16 +45889,14 @@ class WorkspaceSymbol implements BaseSymbolInformation, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceSymbol && other.runtimeType == WorkspaceSymbol) {
-      return containerName == other.containerName &&
-          data == other.data &&
-          kind == other.kind &&
-          location == other.location &&
-          name == other.name &&
-          listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is WorkspaceSymbol &&
+        other.runtimeType == WorkspaceSymbol &&
+        containerName == other.containerName &&
+        data == other.data &&
+        kind == other.kind &&
+        location == other.location &&
+        name == other.name &&
+        listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b);
   }
 
   @override
@@ -46902,15 +46050,12 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceSymbolClientCapabilities &&
-        other.runtimeType == WorkspaceSymbolClientCapabilities) {
-      return dynamicRegistration == other.dynamicRegistration &&
-          resolveSupport == other.resolveSupport &&
-          symbolKind == other.symbolKind &&
-          tagSupport == other.tagSupport &&
-          true;
-    }
-    return false;
+    return other is WorkspaceSymbolClientCapabilities &&
+        other.runtimeType == WorkspaceSymbolClientCapabilities &&
+        dynamicRegistration == other.dynamicRegistration &&
+        resolveSupport == other.resolveSupport &&
+        symbolKind == other.symbolKind &&
+        tagSupport == other.tagSupport;
   }
 
   @override
@@ -46986,13 +46131,9 @@ class WorkspaceSymbolClientCapabilitiesResolveSupport implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceSymbolClientCapabilitiesResolveSupport &&
-        other.runtimeType == WorkspaceSymbolClientCapabilitiesResolveSupport) {
-      return listEqual(
-              properties, other.properties, (String a, String b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is WorkspaceSymbolClientCapabilitiesResolveSupport &&
+        other.runtimeType == WorkspaceSymbolClientCapabilitiesResolveSupport &&
+        listEqual(properties, other.properties, (String a, String b) => a == b);
   }
 
   @override
@@ -47063,13 +46204,10 @@ class WorkspaceSymbolClientCapabilitiesSymbolKind implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceSymbolClientCapabilitiesSymbolKind &&
-        other.runtimeType == WorkspaceSymbolClientCapabilitiesSymbolKind) {
-      return listEqual(valueSet, other.valueSet,
-              (SymbolKind a, SymbolKind b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is WorkspaceSymbolClientCapabilitiesSymbolKind &&
+        other.runtimeType == WorkspaceSymbolClientCapabilitiesSymbolKind &&
+        listEqual(
+            valueSet, other.valueSet, (SymbolKind a, SymbolKind b) => a == b);
   }
 
   @override
@@ -47140,13 +46278,10 @@ class WorkspaceSymbolClientCapabilitiesTagSupport implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceSymbolClientCapabilitiesTagSupport &&
-        other.runtimeType == WorkspaceSymbolClientCapabilitiesTagSupport) {
-      return listEqual(
-              valueSet, other.valueSet, (SymbolTag a, SymbolTag b) => a == b) &&
-          true;
-    }
-    return false;
+    return other is WorkspaceSymbolClientCapabilitiesTagSupport &&
+        other.runtimeType == WorkspaceSymbolClientCapabilitiesTagSupport &&
+        listEqual(
+            valueSet, other.valueSet, (SymbolTag a, SymbolTag b) => a == b);
   }
 
   @override
@@ -47211,11 +46346,9 @@ class WorkspaceSymbolLocation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceSymbolLocation &&
-        other.runtimeType == WorkspaceSymbolLocation) {
-      return uri == other.uri && true;
-    }
-    return false;
+    return other is WorkspaceSymbolLocation &&
+        other.runtimeType == WorkspaceSymbolLocation &&
+        uri == other.uri;
   }
 
   @override
@@ -47302,13 +46435,10 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceSymbolOptions &&
-        other.runtimeType == WorkspaceSymbolOptions) {
-      return resolveProvider == other.resolveProvider &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is WorkspaceSymbolOptions &&
+        other.runtimeType == WorkspaceSymbolOptions &&
+        resolveProvider == other.resolveProvider &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -47439,14 +46569,11 @@ class WorkspaceSymbolParams
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceSymbolParams &&
-        other.runtimeType == WorkspaceSymbolParams) {
-      return partialResultToken == other.partialResultToken &&
-          query == other.query &&
-          workDoneToken == other.workDoneToken &&
-          true;
-    }
-    return false;
+    return other is WorkspaceSymbolParams &&
+        other.runtimeType == WorkspaceSymbolParams &&
+        partialResultToken == other.partialResultToken &&
+        query == other.query &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -47537,13 +46664,10 @@ class WorkspaceSymbolRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceSymbolRegistrationOptions &&
-        other.runtimeType == WorkspaceSymbolRegistrationOptions) {
-      return resolveProvider == other.resolveProvider &&
-          workDoneProgress == other.workDoneProgress &&
-          true;
-    }
-    return false;
+    return other is WorkspaceSymbolRegistrationOptions &&
+        other.runtimeType == WorkspaceSymbolRegistrationOptions &&
+        resolveProvider == other.resolveProvider &&
+        workDoneProgress == other.workDoneProgress;
   }
 
   @override
@@ -47701,15 +46825,12 @@ class WorkspaceUnchangedDocumentDiagnosticReport
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceUnchangedDocumentDiagnosticReport &&
-        other.runtimeType == WorkspaceUnchangedDocumentDiagnosticReport) {
-      return kind == other.kind &&
-          resultId == other.resultId &&
-          uri == other.uri &&
-          version == other.version &&
-          true;
-    }
-    return false;
+    return other is WorkspaceUnchangedDocumentDiagnosticReport &&
+        other.runtimeType == WorkspaceUnchangedDocumentDiagnosticReport &&
+        kind == other.kind &&
+        resultId == other.resultId &&
+        uri == other.uri &&
+        version == other.version;
   }
 
   @override

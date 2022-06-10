@@ -54,6 +54,11 @@ var tests = <IsolateTest>[
   stepOver, // print.
 
   hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_H), // foobar().
+  stepInto,
+
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_H), // await for.
   stepInto,
 
   hasStoppedAtBreakpoint,

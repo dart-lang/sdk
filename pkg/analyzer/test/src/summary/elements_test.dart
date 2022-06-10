@@ -30683,6 +30683,129 @@ library
 ''');
   }
 
+  test_mixin_inference_classAlias_oneMixin() async {
+    // In the code below, B's superclass constraints don't include A, because
+    // superclass constraints are determined from the mixin's superclass, and
+    // B's superclass is Object.  So no mixin type inference is attempted, and
+    // "with B" is interpreted as "with B<dynamic>".
+    var library = await buildLibrary(r'''
+class A<T> {}
+class B<T> = Object with A<T>;
+class C = A<int> with B;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class alias B @20
+        typeParameters
+          covariant T @22
+            defaultType: dynamic
+        supertype: Object
+        mixins
+          A<T>
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::•
+      class alias C @51
+        supertype: A<int>
+        mixins
+          B<dynamic>
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::•
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: int}
+''');
+  }
+
+  test_mixin_inference_classAlias_twoMixins() async {
+    // In the code below, `B` has a single superclass constraint, A1, because
+    // superclass constraints are determined from the mixin's superclass, and
+    // B's superclass is "Object with A1<T>".  So mixin type inference succeeds
+    // (since C's base class implements A1<int>), and "with B" is interpreted as
+    // "with B<int>".
+    var library = await buildLibrary(r'''
+class A1<T> {}
+class A2<T> {}
+class B<T> = Object with A1<T>, A2<T>;
+class Base implements A1<int> {}
+class C = Base with B;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A1 @6
+        typeParameters
+          covariant T @9
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class A2 @21
+        typeParameters
+          covariant T @24
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class alias B @36
+        typeParameters
+          covariant T @38
+            defaultType: dynamic
+        supertype: Object
+        mixins
+          A1<T>
+          A2<T>
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::•
+      class Base @75
+        interfaces
+          A1<int>
+        constructors
+          synthetic @-1
+      class alias C @108
+        supertype: Base
+        mixins
+          B<int>
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::Base::@constructor::•
+            superConstructor: self::@class::Base::@constructor::•
+''');
+  }
+
   test_mixin_inference_legacy() async {
     var library = await buildLibrary(r'''
 // @dart = 2.9
@@ -30716,6 +30839,78 @@ library
             defaultType: dynamic
         superclassConstraints
           A<U*>*
+''');
+  }
+
+  test_mixin_inference_nested_functionType() async {
+    var library = await buildLibrary(r'''
+class A<T> {}
+mixin M<T, U> on A<T Function(U)> {}
+class C extends A<int Function(String)> with M {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class C @57
+        supertype: A<int Function(String)>
+        mixins
+          M<int, String>
+        constructors
+          synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: int Function(String)}
+    mixins
+      mixin M @20
+        typeParameters
+          covariant T @22
+            defaultType: dynamic
+          covariant U @25
+            defaultType: dynamic
+        superclassConstraints
+          A<T Function(U)>
+''');
+  }
+
+  test_mixin_inference_nested_interfaceType() async {
+    var library = await buildLibrary(r'''
+abstract class A<T> {}
+mixin M<T> on A<List<T>> {}
+class C extends A<List<int>> with M {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      abstract class A @15
+        typeParameters
+          covariant T @17
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class C @57
+        supertype: A<List<int>>
+        mixins
+          M<int>
+        constructors
+          synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: List<int>}
+    mixins
+      mixin M @29
+        typeParameters
+          covariant T @31
+            defaultType: dynamic
+        superclassConstraints
+          A<List<T>>
 ''');
   }
 
@@ -30831,6 +31026,57 @@ import 'a.dart';
 class B extends A<int> with M<int> {
   synthetic B();
 }
+''');
+  }
+
+  test_mixin_inference_twoMixins() async {
+    // Both `M1` and `M2` have their type arguments inferred.
+    var library = await buildLibrary(r'''
+class I<X> {}
+mixin M1<T> on I<T> {}
+mixin M2<T> on I<T> {}
+class A = I<int> with M1, M2;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class I @6
+        typeParameters
+          covariant X @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class alias A @66
+        supertype: I<int>
+        mixins
+          M1<int>
+          M2<int>
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::I::@constructor::•
+            superConstructor: ConstructorMember
+              base: self::@class::I::@constructor::•
+              substitution: {X: int}
+    mixins
+      mixin M1 @20
+        typeParameters
+          covariant T @23
+            defaultType: dynamic
+        superclassConstraints
+          I<T>
+      mixin M2 @43
+        typeParameters
+          covariant T @46
+            defaultType: dynamic
+        superclassConstraints
+          I<T>
 ''');
   }
 

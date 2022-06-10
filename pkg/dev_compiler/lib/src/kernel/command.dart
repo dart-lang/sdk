@@ -40,17 +40,23 @@ const _binaryName = 'dartdevc -k';
 
 /// Invoke the compiler with [args].
 ///
-/// Returns `true` if the program compiled without any fatal errors.
-Future<CompilerResult> compile(List<String> args,
+/// Returns a [CompilerResult], with a success flag indicating whether the
+/// program compiled without any fatal errors.
+///
+/// The result may also contain a [previousResult], which can be passed back in
+/// for batch/worker executions to attempt to existing state.
+Future<CompilerResult> compile(ParsedArguments args,
     {fe.InitializedCompilerState compilerState,
-    bool isWorker = false,
-    bool useIncrementalCompiler = false,
-    Map<Uri, List<int>> inputDigests}) async {
+    Map<Uri, List<int>> inputDigests}) {
+  if (compilerState != null && !args.isBatchOrWorker) {
+    throw ArgumentError(
+        'previousResult requires --batch or --bazel_worker mode/');
+  }
   try {
-    return await _compile(args,
+    return _compile(args.rest,
         compilerState: compilerState,
-        isWorker: isWorker,
-        useIncrementalCompiler: useIncrementalCompiler,
+        isWorker: args.isWorker,
+        useIncrementalCompiler: args.useIncrementalCompiler,
         inputDigests: inputDigests);
   } catch (error, stackTrace) {
     print('''
@@ -60,13 +66,13 @@ You can report this bug at:
 Please include the information below in your report, along with
 any other information that may help us track it down. Thanks!
 -------------------- %< --------------------
-    $_binaryName arguments: ${args.join(' ')}
+    $_binaryName arguments: ${args.rest.join(' ')}
     dart --version: ${Platform.version}
 
 $error
 $stackTrace
 ''');
-    return CompilerResult(70);
+    return Future.value(CompilerResult(70));
   }
 }
 

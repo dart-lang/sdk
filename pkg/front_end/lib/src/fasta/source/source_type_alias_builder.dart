@@ -180,8 +180,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   @override
-  List<DartType> buildAliasedTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments) {
+  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
+      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
     if (arguments == null && typeVariables == null) {
       return <DartType>[];
     }
@@ -196,7 +196,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               // [library] preserves the nullability of the original
               // declaration. We legacy erase it later, but should we legacy
               // erase it now also?
-              .buildAliased(libraryBuilder, TypeUse.defaultTypeAsTypeArgument),
+              .buildAliased(
+                  libraryBuilder, TypeUse.defaultTypeAsTypeArgument, hierarchy),
           growable: true);
       if (library is SourceLibraryBuilder) {
         library.inferredTypes.addAll(result);
@@ -216,8 +217,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     }
 
     // arguments.length == typeVariables.length
-    return new List<DartType>.generate(arguments!.length,
-        (int i) => arguments[i].buildAliased(library, TypeUse.typeArgument),
+    return new List<DartType>.generate(
+        arguments!.length,
+        (int i) =>
+            arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
         growable: true);
   }
 

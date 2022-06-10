@@ -69,23 +69,30 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
     if (subtype.classNode == supertype) {
       return new Supertype(supertype, subtype.typeArguments);
     }
-    ClassHierarchyNode clsNode = getNodeFromClass(subtype.classNode);
-    ClassHierarchyNode supertypeNode = getNodeFromClass(supertype);
+    Supertype? cls = getClassAsInstanceOf(subtype.classNode, supertype);
+    if (cls != null) {
+      return Substitution.fromInterfaceType(subtype).substituteSupertype(cls);
+    }
+    return null;
+  }
+
+  @override
+  Supertype? getClassAsInstanceOf(Class subclass, Class superclass) {
+    ClassHierarchyNode clsNode = getNodeFromClass(subclass);
+    ClassHierarchyNode supertypeNode = getNodeFromClass(superclass);
     List<Supertype> superclasses = clsNode.superclasses;
     int depth = supertypeNode.depth;
     if (depth < superclasses.length) {
-      Supertype superclass = superclasses[depth];
-      if (superclass.classNode == supertype) {
-        return Substitution.fromInterfaceType(subtype)
-            .substituteSupertype(superclass);
+      Supertype cls = superclasses[depth];
+      if (cls.classNode == superclass) {
+        return cls;
       }
     }
     List<Supertype> superinterfaces = clsNode.interfaces;
     for (int i = 0; i < superinterfaces.length; i++) {
-      Supertype superinterface = superinterfaces[i];
-      if (superinterface.classNode == supertype) {
-        return Substitution.fromInterfaceType(subtype)
-            .substituteSupertype(superinterface);
+      Supertype interface = superinterfaces[i];
+      if (interface.classNode == superclass) {
+        return interface;
       }
     }
     return null;

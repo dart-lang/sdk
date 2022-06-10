@@ -86,7 +86,6 @@ export '../fasta/fasta_codes.dart'
         templateFfiNativeUnexpectedNumberOfParametersWithReceiver,
         templateFfiNotStatic,
         templateFfiPackedAnnotation,
-        templateFfiPackedNestingNonPacked,
         templateFfiSizeAnnotation,
         templateFfiSizeAnnotationDimensions,
         templateFfiStructGeneric,

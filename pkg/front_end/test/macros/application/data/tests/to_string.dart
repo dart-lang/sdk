@@ -12,11 +12,14 @@ import 'package:macro/macro.dart';
 
 @ToStringMacro()
 /*class: A:
+declarations:
+
 augment class A {
   toString() {
     return "A(a=${a},b=${b})";
   }
-}*/
+}
+*/
 class A {
   var a;
   var b;
@@ -24,11 +27,14 @@ class A {
 
 @ToStringMacro()
 /*class: B:
+declarations:
+
 augment class B {
   toString() {
     return "B(c=${c},d=${d},e=${e})";
   }
-}*/
+}
+*/
 class B {
   var c, d;
   var e;

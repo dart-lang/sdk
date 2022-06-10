@@ -11869,6 +11869,9 @@ class SuspendState : public Instance {
   InstancePtr function_data() const {
     return untag()->function_data();
   }
+  ClosurePtr error_callback() const {
+    return untag()->error_callback();
+  }
 
   // Returns Code object corresponding to the suspended function.
   CodePtr GetCodeObject() const;

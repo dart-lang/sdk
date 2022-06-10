@@ -6,6 +6,7 @@
 
 import 'dart:io';
 
+import 'package:dev_compiler/src/compiler/shared_command.dart';
 import 'package:dev_compiler/src/kernel/command.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:sourcemap_testing/src/stepping_helper.dart';
@@ -62,6 +63,7 @@ class DevCompilerRunner implements CompilerRunner {
     var packageConfigPath =
         sdkRoot.uri.resolve('.dart_tool/package_config.json').toFilePath();
     var args = <String>[
+      '--batch',
       '--packages=$packageConfigPath',
       '--modules=es6',
       '--dart-sdk-summary=${ddcSdkSummary.path}',
@@ -72,7 +74,8 @@ class DevCompilerRunner implements CompilerRunner {
 
     var succeeded = false;
     try {
-      var result = await compile(args, compilerState: context.compilerState);
+      var result = await compile(ParsedArguments.from(args),
+          compilerState: context.compilerState);
       context.compilerState =
           result.compilerState as fe.InitializedCompilerState;
       succeeded = result.success;
@@ -86,7 +89,7 @@ class DevCompilerRunner implements CompilerRunner {
       var ddc = getDdcDir().uri.resolve('bin/dartdevc.dart');
 
       throw 'Error from ddc when executing with something like '
-          '$dartExecutable ${ddc.toFilePath()} --kernel '
+          '$dartExecutable ${ddc.toFilePath()} '
           "${args.reduce((value, element) => '$value "$element"')}";
     }
 

@@ -1046,6 +1046,9 @@ class FixProcessor extends BaseProcessor {
       MakeReturnTypeNullable.new,
       ReplaceReturnType.new,
     ],
+    CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED: [
+      ChangeTo.formalParameter,
+    ],
     CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY: [
       AddSwitchCaseBreak.new,
     ],

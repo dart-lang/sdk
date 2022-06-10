@@ -3262,7 +3262,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 } else {
                   builtTypeArguments = unaliasTypes(
                       declarationBuilder.buildAliasedTypeArguments(
-                          _helper.libraryBuilder, unaliasedTypeArguments),
+                          _helper.libraryBuilder,
+                          unaliasedTypeArguments,
+                          /* hierarchy = */ null),
                       legacyEraseAliases:
                           !_helper.libraryBuilder.isNonNullableByDefault)!;
                 }

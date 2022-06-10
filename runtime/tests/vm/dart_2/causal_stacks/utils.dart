@@ -323,15 +323,12 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
     final expected = const <String>[
       r'^#0      throwSync \(.*/utils.dart:18(:3)?\)$',
       r'^#1      noYields3 \(.*/utils.dart:56(:3)?\)$',
-      r'^#2      noYields3 \(.*/utils.dart:55(:23)?\)$',
-      r'^#3      noYields2 \(.*/utils.dart:52(:9)?\)$',
-      r'^#4      noYields2 \(.*/utils.dart:51(:23)?\)$',
-      r'^#5      noYields \(.*/utils.dart:48(:9)?\)$',
-      r'^#6      noYields \(.*/utils.dart:47(:22)?\)$',
+      r'^#2      noYields2 \(.*/utils.dart:52(:9)?\)$',
+      r'^#3      noYields \(.*/utils.dart:48(:9)?\)$',
     ];
     final postfix = const <String>[
-      r'^#9      doTestsNoCausalNoLazy ',
-      r'^#10     _RootZone.runUnary ',
+      r'^#5      doTestsNoCausalNoLazy ',
+      r'^#6      _RootZone.runUnary ',
       // The rest are internal frames which we don't really care about.
       IGNORE_REMAINING_STACK,
     ];
@@ -340,8 +337,7 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
         noYields,
         expected +
             const <String>[
-              r'^#7      doTestAwait ',
-              r'^#8      doTestAwait ',
+              r'^#4      doTestAwait ',
             ] +
             postfix,
         debugInfoFilename);
@@ -350,8 +346,7 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
         noYields,
         expected +
             const <String>[
-              r'^#7      doTestAwaitThen ',
-              r'^#8      doTestAwaitThen ',
+              r'^#4      doTestAwaitThen ',
             ] +
             postfix,
         debugInfoFilename);
@@ -360,8 +355,7 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
         noYields,
         expected +
             const <String>[
-              r'^#7      doTestAwaitCatchError ',
-              r'^#8      doTestAwaitCatchError ',
+              r'^#4      doTestAwaitCatchError ',
             ] +
             postfix,
         debugInfoFilename);

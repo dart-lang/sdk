@@ -14,6 +14,7 @@ import 'dart:isolate';
 import 'package:bazel_worker/bazel_worker.dart';
 
 import 'src/compiler/shared_command.dart';
+import 'src/kernel/command.dart';
 import 'src/kernel/expression_compiler_worker.dart';
 
 /// The internal entry point for the Dart Dev Compiler.
@@ -66,8 +67,8 @@ class _CompilerWorker extends AsyncWorkerLoop {
     }
 
     lastResult = await runZoned(
-        () =>
-            compile(args, previousResult: context, inputDigests: inputDigests),
+        () => compile(args,
+            compilerState: context?.kernelState, inputDigests: inputDigests),
         zoneSpecification:
             ZoneSpecification(print: (self, parent, zone, message) {
       output.writeln(message.toString());
@@ -95,7 +96,7 @@ Future runBatch(ParsedArguments batchArgs) async {
 
     String outcome;
     try {
-      result = await compile(args, previousResult: result);
+      result = await compile(args, compilerState: result?.kernelState);
       outcome = result.success ? 'PASS' : (result.crashed ? 'CRASH' : 'FAIL');
     } catch (e, s) {
       outcome = 'CRASH';

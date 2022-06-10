@@ -5,12 +5,13 @@
 library fasta.never_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, Nullability;
+import 'package:kernel/class_hierarchy.dart';
 
+import '../uris.dart';
 import 'builtin_type_declaration_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
-import '../uris.dart';
 
 class NeverTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   final LibraryBuilder coreLibrary;
@@ -31,6 +32,7 @@ class NeverTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
       TypeUse typeUse,
       Uri fileUri,
       int charOffset,
+      ClassHierarchyBase? hierarchy,
       {required bool hasExplicitTypeArguments}) {
     return type.withDeclaredNullability(nullabilityBuilder.build(library));
   }

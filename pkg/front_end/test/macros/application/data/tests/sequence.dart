@@ -29,41 +29,65 @@ Declarations Order:
 
 import 'package:macro/macro.dart';
 
+@SequenceMacro(0)
 /*class: Class1:
+declarations:
+
 augment class Class1 {
   method() {}
-}*/
-@SequenceMacro(0)
+}
+*/
 class Class1 {}
 
-/*class: Class2:
-augment class Class2 {
-  method() {}
-  method1() {}
-}*/
 @SequenceMacro(0)
 @SequenceMacro(1)
+/*class: Class2:
+declarations:
+
+augment class Class2 {
+  method() {}
+}
+
+
+augment class Class2 {
+  method1() {}
+}
+*/
 class Class2 {}
 
+@SequenceMacro(0)
 /*class: Class3:
+declarations:
+
 augment class Class3 {
   method1() {}
-}*/
-@SequenceMacro(0)
+}
+*/
 class Class3 {
   @SequenceMacro(1)
   method() {}
 }
 
-/*class: Class4:
-augment class Class4 {
-  method1() {}
-  method3() {}
-  method4() {}
-}*/
 @SequenceMacro(0)
 @SequenceMacro(1)
 @SequenceMacro(2)
+/*class: Class4:
+declarations:
+
+augment class Class4 {
+  method1() {}
+}
+
+
+augment class Class4 {
+  method3() {}
+}
+
+
+augment class Class4 {
+  method4() {}
+}
+*/
 class Class4 {
   @SequenceMacro(3)
   method() {}
@@ -72,79 +96,112 @@ class Class4 {
   method2() {}
 }
 
+@SequenceMacro(0)
 /*class: Class5c:
+declarations:
+
 augment class Class5c {
   method2() {}
-}*/
-@SequenceMacro(0)
+}
+*/
 class Class5c extends Class5b {}
 
+@SequenceMacro(0)
 /*class: Class5b:
+declarations:
+
 augment class Class5b {
   method1() {}
-}*/
-@SequenceMacro(0)
+}
+*/
 class Class5b extends Class5a {}
 
+@SequenceMacro(0)
 /*class: Class5a:
+declarations:
+
 augment class Class5a {
   method() {}
-}*/
-@SequenceMacro(0)
+}
+*/
 class Class5a {}
 
+@SequenceMacro(0)
 /*class: Class6d:
+declarations:
+
 augment class Class6d {
   method2() {}
-}*/
-@SequenceMacro(0)
+}
+*/
 abstract class Class6d implements Class6c, Class6b {}
 
+@SequenceMacro(0)
 /*class: Class6c:
+declarations:
+
 augment class Class6c {
   method() {}
-}*/
-@SequenceMacro(0)
+}
+*/
 class Class6c {}
 
+@SequenceMacro(0)
 /*class: Class6b:
+declarations:
+
 augment class Class6b {
   method1() {}
-}*/
-@SequenceMacro(0)
+}
+*/
 abstract class Class6b implements Class6a {}
 
+@SequenceMacro(0)
 /*class: Class6a:
+declarations:
+
 augment class Class6a {
   method() {}
-}*/
-@SequenceMacro(0)
+}
+*/
 class Class6a {}
 
+@SequenceMacro(0)
 /*class: Class7d:
+declarations:
+
 augment class Class7d {
   method2() {}
-}*/
-@SequenceMacro(0)
+}
+*/
 class Class7d with Class7b, Class7c {}
 
+@SequenceMacro(0)
 /*class: Class7c:
+declarations:
+
 augment class Class7c {
   method() {}
-}*/
-@SequenceMacro(0)
+}
+*/
 class Class7c {}
 
+@SequenceMacro(0)
 /*class: Class7b:
+declarations:
+
 augment class Class7b {
   method1() {}
-}*/
-@SequenceMacro(0)
+}
+*/
 class Class7b with Class7a {}
 
+@SequenceMacro(0)
 /*class: Class7a:
+declarations:
+
 augment class Class7a {
   method() {}
-}*/
-@SequenceMacro(0)
+}
+*/
 class Class7a {}

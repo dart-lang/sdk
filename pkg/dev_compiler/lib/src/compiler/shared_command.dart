@@ -4,7 +4,6 @@
 
 // @dart = 2.9
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -12,7 +11,6 @@ import 'package:front_end/src/api_unstable/ddc.dart'
     show InitializedCompilerState, parseExperimentalArguments;
 import 'package:path/path.dart' as p;
 
-import '../kernel/command.dart' as kernel_compiler;
 import 'module_builder.dart';
 
 // TODO(nshahan) Merge all of this file the locations where they are used in
@@ -32,7 +30,7 @@ class SharedCompilerOptions {
   final bool sourceMap;
 
   /// Whether to emit the source mapping file in the program text, so the
-  /// runtime can enable synchronous stack trace deobsfuscation.
+  /// runtime can enable synchronous stack trace deobfuscation.
   final bool inlineSourceMap;
 
   /// Whether to emit the full compiled kernel.
@@ -67,7 +65,7 @@ class SharedCompilerOptions {
   /// Whether to emit the debug symbols
   ///
   /// Debugger uses this information about to construct mapping between
-  /// dart and js objecys that otherwise requires expensive communication with
+  /// dart and js objects that otherwise requires expensive communication with
   /// the browser.
   final bool emitDebugSymbols;
 
@@ -436,28 +434,6 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
   return map;
 }
 
-/// Invoke the compiler with [args], optionally with the kernel backend if
-/// [isKernel] is set.
-///
-/// Returns a [CompilerResult], with a success flag indicating whether the
-/// program compiled without any fatal errors.
-///
-/// The result may also contain a [previousResult], which can be passed back in
-/// for batch/worker executions to attempt to existing state.
-Future<CompilerResult> compile(ParsedArguments args,
-    {CompilerResult previousResult, Map<Uri, List<int>> inputDigests}) {
-  if (previousResult != null && !args.isBatchOrWorker) {
-    throw ArgumentError(
-        'previousResult requires --batch or --bazel_worker mode/');
-  }
-
-  return kernel_compiler.compile(args.rest,
-      compilerState: previousResult?.kernelState,
-      isWorker: args.isWorker,
-      useIncrementalCompiler: args.useIncrementalCompiler,
-      inputDigests: inputDigests);
-}
-
 /// The result of a single `dartdevc` compilation.
 ///
 /// Typically used for exiting the process with [exitCode] or checking the
@@ -498,7 +474,7 @@ class CompilerResult {
 /// [isBatch]/[isWorker] mode are preprocessed because they can combine
 /// argument lists from the initial invocation and from batch/worker jobs.
 class ParsedArguments {
-  /// The user's arguments to the compiler for this compialtion.
+  /// The user's arguments to the compiler for this compilation.
   final List<String> rest;
 
   /// Whether to run in `--batch` mode, e.g the Dart SDK and Language tests.

@@ -445,6 +445,25 @@ bool CallerClosureFinder::IsRunningAsync(const Closure& receiver_closure) {
   return Bool::Cast(is_sync).value();
 }
 
+bool CallerClosureFinder::WasPreviouslySuspended(
+    const Function& function,
+    const Object& suspend_state_var) {
+  if (!suspend_state_var.IsSuspendState()) {
+    return false;
+  }
+  if (function.IsCompactAsyncFunction()) {
+    // Error callback is set after both 'then' and 'error' callbacks are
+    // registered with the Zone. Callback registration may query
+    // stack trace and should still collect the synchronous stack trace.
+    return SuspendState::Cast(suspend_state_var).error_callback() !=
+           Object::null();
+  } else if (function.IsCompactAsyncStarFunction()) {
+    return true;
+  } else {
+    UNREACHABLE();
+  }
+}
+
 ClosurePtr StackTraceUtils::FindClosureInFrame(ObjectPtr* last_object_in_caller,
                                                const Function& function) {
   NoSafepointScope nsp;
@@ -488,7 +507,8 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
         zone, *reinterpret_cast<ObjectPtr*>(LocalVarAddress(
                   frame->fp(), runtime_frame_layout.FrameSlotForVariableIndex(
                                    SuspendState::kSuspendStateVarIndex))));
-    if (suspend_state.IsSuspendState()) {
+    if (caller_closure_finder->WasPreviouslySuspended(function,
+                                                      suspend_state)) {
       *is_async = true;
       return caller_closure_finder->FindCallerFromSuspendState(
           SuspendState::Cast(suspend_state));
