@@ -19,18 +19,17 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   final ContextRoot contextRoot;
 
   /// The driver on which this context is based.
-  final AnalysisDriver driver;
+  late final AnalysisDriver driver;
 
   /// Initialize a newly created context that uses the given [resourceProvider]
   /// to access the file system and that is based on the given analysis
   /// [driver].
   DriverBasedAnalysisContext(
     this.resourceProvider,
-    this.contextRoot,
-    this.driver,
-  ) {
-    driver.analysisContext = this;
-  }
+    this.contextRoot, [
+    @Deprecated('AnalysisDriver will set itself, remove this')
+        AnalysisDriver? analysisDriver,
+  ]);
 
   @override
   AnalysisOptions get analysisOptions => driver.analysisOptions;
