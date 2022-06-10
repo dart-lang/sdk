@@ -2881,6 +2881,13 @@ static void CollectStringifiedType(Zone* zone,
     output.Add(instance);
     return;
   }
+  if (type.IsTypeRef()) {
+    // A TypeRef is used to break cycles in the representation of types
+    // calling type class on it will cause an infinite recursion.
+    // We use null instead.
+    output.Add(instance);
+    return;
+  }
   const Class& cls = Class::Handle(type.type_class());
   const Library& lib = Library::Handle(zone, cls.library());
 
