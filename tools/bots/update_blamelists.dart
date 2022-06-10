@@ -141,7 +141,7 @@ void updateBlameLists(
       }
       result.blamelistStartIndex = newStartIndex;
       var updateIndex = Update(['blamelist_start_index'], result.data);
-      if (!await database.commit([updateIndex])) {
+      if (!await database.commit(writes: [updateIndex])) {
         // Commiting the change to the database had a conflict, retry.
         needsRetry = true;
         if (++attempts == maxAttempts) {
