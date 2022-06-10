@@ -334,7 +334,7 @@ Future sendAndWaitDebugDidSendFirstFrameEvent(Process _server) async {
     /* expression */ 'WidgetsBinding.instance.debugDidSendFirstFrameEvent',
     /* no definitions */
     /* <boundarykey> */ inputKey,
-    /* no type-defintions */
+    /* no type-definitions */
     /* <boundarykey> */ inputKey,
     /* libraryUri */ 'package:flutter/src/widgets/binding.dart',
     /* class */ '',
@@ -350,7 +350,7 @@ Future sendAndWaitSetSelection(Process _server) async {
         'arg1, "dummy_68")',
     /* definition #1 */ 'arg1',
     /* <boundarykey> */ inputKey,
-    /* no type-defintions */
+    /* no type-definitions */
     /* <boundarykey> */ inputKey,
     /* libraryUri */ 'package:flutter/src/widgets/widget_inspector.dart',
     /* class */ '',
@@ -366,7 +366,7 @@ Future sendAndWaitToObject(Process _server) async {
         '"inspector-836", "tree_112")',
     /* no definitions */
     /* <boundarykey> */ inputKey,
-    /* no type-defintions */
+    /* no type-definitions */
     /* <boundarykey> */ inputKey,
     /* libraryUri */ 'package:flutter/src/widgets/widget_inspector.dart',
     /* class */ '',
@@ -382,7 +382,7 @@ Future sendAndWaitToObjectForSourceLocation(Process _server) async {
         'toObjectForSourceLocation("inspector-607", "tree_112")',
     /* no definitions */
     /* <boundarykey> */ inputKey,
-    /* no type-defintions */
+    /* no type-definitions */
     /* <boundarykey> */ inputKey,
     /* libraryUri */ 'package:flutter/src/widgets/widget_inspector.dart',
     /* class */ '',

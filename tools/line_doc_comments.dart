@@ -2,7 +2,6 @@
 
 /// Converts block-style Doc comments in Dart code to line style.
 
-// @dart = 2.9
 library line_doc_comments;
 
 import 'dart:io';
@@ -46,10 +45,10 @@ String fixContents(List<String> lines, String path) {
   var buffer = StringBuffer();
   var linesOut = 0;
   var inBlock = false;
-  String indent;
+  String? indent;
 
-  for (var line in lines) {
-    var oldLine = line;
+  for (String? line in lines) {
+    var oldLine = line!;
     if (inBlock) {
       // See if it's the end of the comment.
       if (endBlock.hasMatch(line)) {
@@ -72,7 +71,7 @@ String fixContents(List<String> lines, String path) {
       // See if it's a one-line block comment like: /** Blah. */
       var match = oneLineBlock.firstMatch(line);
       if (match != null) {
-        var comment = match[2];
+        var comment = match[2]!;
         if (comment != '') {
           // Remove the extra space before the `*/`
           if (comment.endsWith(' ')) {

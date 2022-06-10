@@ -182,7 +182,6 @@ declarative
 decrease
 decrements
 dectcem
-defintions
 deleting
 denylist
 depended

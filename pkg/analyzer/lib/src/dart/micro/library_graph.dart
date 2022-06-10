@@ -467,7 +467,6 @@ class FileSystemState {
 
     var unusedPaths = _pathToFile.keys.toSet();
     unusedPaths.removeAll(allReferenced);
-    testView.removedPaths = unusedPaths;
 
     var removedFiles = <FileState>[];
     for (var path in unusedPaths) {
@@ -512,7 +511,6 @@ class FileSystemState {
 
 class FileSystemStateTestView {
   final List<String> partsDiscoveredLibraries = [];
-  Set<String> removedPaths = {};
 }
 
 class FileSystemStateTimer {

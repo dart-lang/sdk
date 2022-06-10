@@ -1242,7 +1242,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
           // definitions (one per line)
           // ...
           // <boundarykey>
-          // type-defintions (one per line)
+          // type-definitions (one per line)
           // ...
           // <boundarykey>
           // <libraryUri: String>

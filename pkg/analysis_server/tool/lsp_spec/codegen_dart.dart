@@ -151,10 +151,10 @@ List<N> _getSortedUnique<N extends LspEntity>(List<N> items) {
     final nameTypeKey = '${item.name}|${item.runtimeType}';
     if (uniqueByName.containsKey(nameTypeKey)) {
       // At the time of writing, there were two duplicated types:
-      // - TextDocumentSyncKind (same defintion in both places)
+      // - TextDocumentSyncKind (same definition in both places)
       // - TextDocumentSyncOptions (first definition is just a subset)
       // If this list grows, consider handling this better - or try to have the
-      // spec updated to be unambigious.
+      // spec updated to be unambiguous.
       print('WARN: More than one definition for $nameTypeKey.');
     }
 

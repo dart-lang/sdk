@@ -147,7 +147,7 @@ static void AssertArgumentsInEnv(FlowGraph* flow_graph, Definition* call) {
                                            ->definition(),
                 call);
       } else {
-        // Redefintion instructions and boxing/unboxing are inserted
+        // Redefinition instructions and boxing/unboxing are inserted
         // without updating environment uses (FlowGraph::RenameDominatedUses,
         // FlowGraph::InsertConversionsFor).
         // Also, constants may belong to different blocks (e.g. function entry

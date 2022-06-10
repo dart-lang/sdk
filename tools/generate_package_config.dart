@@ -16,21 +16,18 @@ final repoRoot = dirname(dirname(fromUri(Platform.script)));
 void main(List<String> args) {
   var packageDirs = [
     ...listSubdirectories(platform('pkg')),
-    ...listSubdirectories(platform('third_party/pkg_tested')),
     ...listSubdirectories(platform('third_party/pkg')),
-    ...listSubdirectories(platform('third_party/pkg/file/packages')),
-    ...listSubdirectories(platform('third_party/pkg/test/pkgs')),
-    ...listSubdirectories(platform('third_party/pkg/shelf/pkgs')),
+    ...listSubdirectories(platform('third_party/pkg_tested')),
     platform('pkg/vm_service/test/test_package'),
-    platform('runtime/observatory_2'),
     platform(
         'runtime/observatory_2/tests/service_2/observatory_test_package_2'),
     platform('runtime/observatory'),
     platform('runtime/observatory/tests/service/observatory_test_package'),
+    platform('runtime/observatory_2'),
     platform('sdk/lib/_internal/sdk_library_metadata'),
     platform('third_party/devtools/devtools_shared'),
-    platform('third_party/pkg/protobuf/protobuf'),
-    platform('third_party/pkg/webdev/frontend_server_client'),
+    // Explicitly add package:file (shadowed by //pubspec.yaml).
+    platform('third_party/pkg/file/packages/file'),
     platform('tools/package_deps'),
   ];
 
@@ -170,13 +167,23 @@ Iterable<Package> makeFeAnalyzerSharedPackageConfigs(
   }
 }
 
-/// Finds the paths of the immediate subdirectories of [dir] that
-/// contain pubspecs.
-Iterable<String> listSubdirectories(String dir) sync* {
-  for (var entry in Directory(join(repoRoot, dir)).listSync()) {
-    if (entry is! Directory) continue;
-    if (!File(join(entry.path, 'pubspec.yaml')).existsSync()) continue;
-    yield join(dir, basename(entry.path));
+/// Finds the paths of the subdirectories of [dirPath] that contain pubspecs.
+///
+/// This method recurses until it finds a pubspec.yaml file.
+Iterable<String> listSubdirectories(String parentPath) sync* {
+  final parent = Directory(join(repoRoot, parentPath));
+
+  for (var child in parent.listSync().whereType<Directory>()) {
+    var name = basename(child.path);
+
+    // Don't recurse into dot directories.
+    if (name.startsWith('.')) continue;
+
+    if (File(join(child.path, 'pubspec.yaml')).existsSync()) {
+      yield join(parentPath, name);
+    } else {
+      yield* listSubdirectories(join(parentPath, name));
+    }
   }
 }
 
