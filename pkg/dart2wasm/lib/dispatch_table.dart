@@ -294,7 +294,7 @@ class DispatchTable {
 
   void output() {
     w.Module m = translator.m;
-    w.Table wasmTable = m.addTable(table.length);
+    w.DefinedTable wasmTable = m.addTable(w.RefType.func(), table.length);
     for (int i = 0; i < table.length; i++) {
       Reference? target = table[i];
       if (target != null) {
