@@ -554,7 +554,7 @@ void main() async {
           // definitions (one per line)
           // ...
           // <boundarykey>
-          // type-defintions (one per line)
+          // type-definitions (one per line)
           // ...
           // <boundarykey>
           // <libraryUri: String>
@@ -644,7 +644,7 @@ void main() async {
           // definitions (one per line)
           // ...
           // <boundarykey>
-          // type-defintions (one per line)
+          // type-definitions (one per line)
           // ...
           // <boundarykey>
           // <libraryUri: String>
@@ -871,7 +871,7 @@ void main() async {
           // definitions (one per line)
           // ...
           // <boundarykey>
-          // type-defintions (one per line)
+          // type-definitions (one per line)
           // ...
           // <boundarykey>
           // <libraryUri: String>
@@ -2799,7 +2799,7 @@ void main(List<String> arguments, SendPort sendPort) {
           // definitions (one per line)
           // ...
           // <boundarykey>
-          // type-defintions (one per line)
+          // type-definitions (one per line)
           // ...
           // <boundarykey>
           // <libraryUri: String>
