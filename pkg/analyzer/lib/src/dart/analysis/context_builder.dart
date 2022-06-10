@@ -106,6 +106,9 @@ class ContextBuilderImpl implements ContextBuilder {
       updateAnalysisOptions(options);
     }
 
+    final analysisContext =
+        DriverBasedAnalysisContext(resourceProvider, contextRoot);
+
     var driver = AnalysisDriver(
       scheduler: scheduler,
       logger: performanceLog,
@@ -116,18 +119,15 @@ class ContextBuilderImpl implements ContextBuilder {
       packages: _createPackageMap(
         contextRoot: contextRoot,
       ),
+      analysisContext: analysisContext,
       enableIndex: enableIndex,
       externalSummaries: summaryData,
       retainDataForTesting: retainDataForTesting,
       fileContentCache: fileContentCache,
       macroKernelBuilder: macroKernelBuilder,
       macroExecutor: macroExecutor,
+      declaredVariables: declaredVariables,
     );
-
-    if (declaredVariables != null) {
-      driver.declaredVariables = declaredVariables;
-      driver.configure();
-    }
 
     // AnalysisDriver reports results into streams.
     // We need to drain these streams to avoid memory leak.
@@ -136,11 +136,7 @@ class ContextBuilderImpl implements ContextBuilder {
       driver.exceptions.drain<void>();
     }
 
-    DriverBasedAnalysisContext context =
-        DriverBasedAnalysisContext(resourceProvider, contextRoot, driver);
-    driver.configure(analysisContext: context);
-
-    return context;
+    return analysisContext;
   }
 
   /// Return [Packages] to analyze the [contextRoot].

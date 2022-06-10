@@ -7,7 +7,6 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
     as macro;
-import 'package:analyzer/dart/analysis/analysis_context.dart' as api;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -17,6 +16,7 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -132,10 +132,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final macro.MultiMacroExecutor? macroExecutor;
 
   /// The declared environment variables.
-  DeclaredVariables declaredVariables = DeclaredVariables();
+  final DeclaredVariables declaredVariables;
 
   /// The analysis context that created this driver / session.
-  api.AnalysisContext? analysisContext;
+  DriverBasedAnalysisContext? analysisContext;
 
   /// The salt to mix into all hashes used as keys for unlinked data.
   Uint32List _saltForUnlinked = Uint32List(0);
@@ -256,9 +256,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     required Packages packages,
     this.macroKernelBuilder,
     this.macroExecutor,
+    this.analysisContext,
     FileContentCache? fileContentCache,
     this.enableIndex = false,
     SummaryDataStore? externalSummaries,
+    DeclaredVariables? declaredVariables,
     bool retainDataForTesting = false,
   })  : _scheduler = scheduler,
         _resourceProvider = resourceProvider,
@@ -270,7 +272,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _packages = packages,
         _sourceFactory = sourceFactory,
         _externalSummaries = externalSummaries,
+        declaredVariables = declaredVariables ?? DeclaredVariables(),
         testingData = retainDataForTesting ? TestingData() : null {
+    analysisContext?.driver = this;
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = AnalysisDriverTestView(this);
     _createFileTracker();
@@ -569,8 +573,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ///
   /// At least one of the optional parameters should be provided, but only those
   /// that represent state that has actually changed need be provided.
+  @Deprecated('Provide all necessary values to the constructor')
   void configure({
-    api.AnalysisContext? analysisContext,
+    DriverBasedAnalysisContext? analysisContext,
     AnalysisOptionsImpl? analysisOptions,
     Packages? packages,
     SourceFactory? sourceFactory,
