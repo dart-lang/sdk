@@ -40,9 +40,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     InitializedCompilerState? oldState,
     Set<String> tags,
     List<Component> outputLoadedAdditionalDills,
-    Uri sdkSummary,
-    Uri packagesFile,
-    Uri librariesSpecificationUri,
+    Uri? sdkSummary,
+    Uri? packagesFile,
+    Uri? librariesSpecificationUri,
     List<Uri> additionalDills,
     Map<Uri, List<int>> workerInputDigests,
     Target target,
@@ -59,8 +59,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   bool isRetry = false;
   while (true) {
     try {
-      final List<int>? sdkDigest = workerInputDigests[sdkSummary];
-      if (sdkDigest == null) {
+      final List<int>? sdkDigest =
+          sdkSummary == null ? null : workerInputDigests[sdkSummary];
+      if (sdkDigest == null && sdkSummary != null) {
         throw new StateError("Expected to get digest for $sdkSummary");
       }
 
@@ -69,7 +70,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       Map<Uri, Uri> workerInputCacheLibs =
           oldState?.workerInputCacheLibs ?? new Map<Uri, Uri>();
 
-      WorkerInputComponent? cachedSdkInput = workerInputCache[sdkSummary];
+      WorkerInputComponent? cachedSdkInput =
+          sdkSummary == null ? null : workerInputCache[sdkSummary];
 
       IncrementalCompiler incrementalCompiler;
       CompilerOptions options;
@@ -84,8 +86,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
               explicitExperimentalFlags) ||
           !equalMaps(oldState.options.environmentDefines, environmentDefines) ||
           !equalSets(oldState.tags, tags) ||
-          cachedSdkInput == null ||
-          !digestsEqual(cachedSdkInput.digest, sdkDigest)) {
+          (sdkSummary != null &&
+              (cachedSdkInput == null ||
+                  !digestsEqual(cachedSdkInput.digest, sdkDigest)))) {
         // No - or immediately not correct - previous state.
         // We'll load a new sdk, anything loaded already will have a wrong root.
         workerInputCache.clear();
@@ -107,28 +110,30 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           ..nnbdMode = nnbdMode;
 
         processedOpts = new ProcessedOptions(options: options);
-        cachedSdkInput = new WorkerInputComponent(
-            sdkDigest, (await processedOpts.loadSdkSummary(null))!);
-        workerInputCache[sdkSummary] = cachedSdkInput;
-        for (Library lib in cachedSdkInput.component.libraries) {
-          if (workerInputCacheLibs.containsKey(lib.importUri)) {
-            throw new StateError("Duplicate sources in sdk.");
+        if (sdkSummary != null && sdkDigest != null) {
+          cachedSdkInput = new WorkerInputComponent(
+              sdkDigest, (await processedOpts.loadSdkSummary(null))!);
+          workerInputCache[sdkSummary] = cachedSdkInput;
+          for (Library lib in cachedSdkInput.component.libraries) {
+            if (workerInputCacheLibs.containsKey(lib.importUri)) {
+              throw new StateError("Duplicate sources in sdk.");
+            }
+            workerInputCacheLibs[lib.importUri] = sdkSummary;
           }
-          workerInputCacheLibs[lib.importUri] = sdkSummary;
         }
 
         incrementalCompiler = new IncrementalCompiler.fromComponent(
             new CompilerContext(processedOpts),
-            cachedSdkInput.component,
+            cachedSdkInput?.component,
             outlineOnly);
       } else {
         options = oldState.options;
         processedOpts = oldState.processedOpts;
-        Component sdkComponent = cachedSdkInput.component;
+        Component? sdkComponent = cachedSdkInput?.component;
 
         // Make sure the canonical name root knows about the sdk - otherwise we
         // won't be able to link to it when loading more outlines.
-        sdkComponent.adoptChildren();
+        sdkComponent?.adoptChildren();
 
         // TODO(jensj): This is - at least currently - necessary,
         // although it's not entirely obvious why.
@@ -149,7 +154,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       }
 
       // Then read all the input summary components.
-      CanonicalName nameRoot = cachedSdkInput.component.root;
+      CanonicalName? nameRoot = cachedSdkInput?.component.root;
       Map<Uri, Uri>? libraryToInputDill;
       if (trackNeededDillLibraries) {
         libraryToInputDill = new Map<Uri, Uri>();

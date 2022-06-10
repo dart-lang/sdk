@@ -60,9 +60,9 @@ export 'compiler_state.dart' show InitializedCompilerState;
 Future<InitializedCompilerState> initializeIncrementalCompiler(
     InitializedCompilerState? oldState,
     Set<String> tags,
-    Uri sdkSummary,
-    Uri packagesFile,
-    Uri librariesSpecificationUri,
+    Uri? sdkSummary,
+    Uri? packagesFile,
+    Uri? librariesSpecificationUri,
     List<Uri> additionalDills,
     Map<Uri, List<int>> workerInputDigests,
     Target target,
@@ -100,9 +100,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
 InitializedCompilerState initializeCompiler(
   InitializedCompilerState? oldState,
-  Uri sdkSummary,
-  Uri librariesSpecificationUri,
-  Uri packagesFile,
+  Uri? sdkSummary,
+  Uri? librariesSpecificationUri,
+  Uri? packagesFile,
   List<Uri> additionalDills,
   Target target,
   FileSystem fileSystem,

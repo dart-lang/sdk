@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
 import 'package:frontend_server/src/strong_components.dart';
 import 'package:kernel/ast.dart';
 import 'package:test/test.dart';
