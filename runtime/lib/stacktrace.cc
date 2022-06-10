@@ -34,8 +34,9 @@ static StackTracePtr CreateStackTraceObject(
   return StackTrace::New(code_array, pc_offset_array);
 }
 
-static StackTracePtr CurrentSyncStackTraceLazy(Thread* thread,
-                                               intptr_t skip_frames = 1) {
+// Gets current stack trace for `thread`.
+static StackTracePtr CurrentStackTrace(Thread* thread,
+                                       intptr_t skip_frames = 1) {
   Zone* zone = thread->zone();
 
   const auto& code_array = GrowableObjectArray::ZoneHandle(
@@ -43,54 +44,19 @@ static StackTracePtr CurrentSyncStackTraceLazy(Thread* thread,
   GrowableArray<uword> pc_offset_array;
 
   // Collect the frames.
-  StackTraceUtils::CollectFramesLazy(thread, code_array, &pc_offset_array,
-                                     skip_frames);
+  StackTraceUtils::CollectFrames(thread, code_array, &pc_offset_array,
+                                 skip_frames);
 
   return CreateStackTraceObject(zone, code_array, pc_offset_array);
 }
 
-static StackTracePtr CurrentSyncStackTrace(Thread* thread,
-                                           intptr_t skip_frames = 1) {
-  Zone* zone = thread->zone();
-  const Function& null_function = Function::ZoneHandle(zone);
-
-  // Determine how big the stack trace is.
-  const intptr_t stack_trace_length =
-      StackTraceUtils::CountFrames(thread, skip_frames, null_function, nullptr);
-
-  // Allocate once.
-  const Array& code_array =
-      Array::ZoneHandle(zone, Array::New(stack_trace_length));
-  const TypedData& pc_offset_array = TypedData::ZoneHandle(
-      zone, TypedData::New(kUintPtrCid, stack_trace_length));
-
-  // Collect the frames.
-  const intptr_t collected_frames_count = StackTraceUtils::CollectFrames(
-      thread, code_array, pc_offset_array, 0, stack_trace_length, skip_frames);
-
-  ASSERT(collected_frames_count == stack_trace_length);
-
-  return StackTrace::New(code_array, pc_offset_array);
-}
-
-// Gets current stack trace for `thread`.
-static StackTracePtr CurrentStackTrace(Thread* thread,
-                                       bool for_async_function,
-                                       intptr_t skip_frames = 1) {
-  if (FLAG_lazy_async_stacks) {
-    return CurrentSyncStackTraceLazy(thread, skip_frames);
-  }
-  // Return the synchronous stack trace.
-  return CurrentSyncStackTrace(thread, skip_frames);
-}
-
 StackTracePtr GetStackTraceForException() {
   Thread* thread = Thread::Current();
-  return CurrentStackTrace(thread, false, 0);
+  return CurrentStackTrace(thread, 0);
 }
 
 DEFINE_NATIVE_ENTRY(StackTrace_current, 0, 0) {
-  return CurrentStackTrace(thread, false);
+  return CurrentStackTrace(thread);
 }
 
 static void AppendFrames(const GrowableObjectArray& code_list,

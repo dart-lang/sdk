@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--async-debugger --verbose-debug --lazy-async-stacks
+// VMOptions=--async-debugger --verbose-debug
 
 import 'dart:developer';
 import 'service_test_common.dart';

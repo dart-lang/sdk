@@ -17,7 +17,7 @@ import 'service_test_common.dart';
 export 'service_test_common.dart' show IsolateTest, VMTest;
 
 /// The extra arguments to use
-const List<String> extraDebuggingArgs = ['--lazy-async-stacks'];
+const List<String> extraDebuggingArgs = [];
 
 /// Will be set to the http address of the VM's service protocol before
 /// any tests are invoked.

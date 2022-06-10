@@ -23,7 +23,7 @@ const String serviceResponseSizesDir =
     const String.fromEnvironment('SERVICE_RESPONSE_SIZES_DIR');
 
 /// The extra arguments to use
-const List<String> extraDebuggingArgs = ['--lazy-async-stacks'];
+const List<String> extraDebuggingArgs = [];
 
 /// Will be set to the http address of the VM's service protocol before
 /// any tests are invoked.
