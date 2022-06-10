@@ -30,8 +30,8 @@ class AvoidTypesAsParameterNames extends LintRule {
   static const LintCode code = LintCode('avoid_types_as_parameter_names',
       "The parameter name '{0}' matches a visible type name.",
       correctionMessage:
-          "Try adding a name for the parameter or changing the parameter name "
-          "to not match an existing type.");
+          'Try adding a name for the parameter or changing the parameter name '
+          'to not match an existing type.');
 
   @override
   LintCode get lintCode => AvoidTypesAsParameterNames.code;
