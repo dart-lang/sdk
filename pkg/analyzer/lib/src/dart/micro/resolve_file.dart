@@ -116,11 +116,11 @@ class FileResolver {
   LibraryContext? libraryContext;
 
   /// List of keys for cache elements that are invalidated. Track elements that
-  /// are invalidated during [changeFile]. Used in [releaseAndClearRemovedIds]
+  /// are invalidated during [changeFiles]. Used in [releaseAndClearRemovedIds]
   /// to release the cache items and is then cleared.
   final Set<String> removedCacheKeys = {};
 
-  /// The cache of file results, cleared on [changeFile].
+  /// The cache of file results, cleared on [changeFiles].
   ///
   /// It is used to allow assists and fixes without resolving the same file
   /// multiple times, as we compute more than one assist, or fixes when there
@@ -160,7 +160,17 @@ class FileResolver {
   /// that directly or indirectly referenced it, is resolved, we used the new
   /// state of the file. Updates [removedCacheKeys] with the ids of the invalidated
   /// items, used in [releaseAndClearRemovedIds] to release the cache items.
+  /// TODO(scheglov) Remove [releaseKeys] when removing [changeFile].
+  @Deprecated('Use changeFiles() instead')
   void changeFile(String path) {
+    changeFiles([path], releaseKeys: false);
+  }
+
+  /// Update the resolver to reflect the fact that the files with the given
+  /// [paths] were changed. For each specified file we need to make sure that
+  /// when the file, of any file that directly or indirectly referenced it,
+  /// is resolved, we use the new state of the file.
+  void changeFiles(List<String> paths, {bool releaseKeys = true}) {
     if (fsState == null) {
       return;
     }
@@ -168,19 +178,23 @@ class FileResolver {
     // Forget all results, anything is potentially affected.
     cachedResults.clear();
 
-    // Remove this file and all files that transitively depend on it.
-    var removedFiles = <FileState>[];
-    fsState!.changeFile(path, removedFiles);
+    // Remove the specified files and files that transitively depend on it.
+    final removedFiles = <FileState>[];
+    for (final path in paths) {
+      fsState!.changeFile(path, removedFiles);
+    }
 
     // Schedule disposing references to cached unlinked data.
-    for (var removedFile in removedFiles) {
+    for (final removedFile in removedFiles) {
       removedCacheKeys.add(removedFile.unlinkedKey);
     }
 
     // Remove libraries represented by removed files.
     // If we need these libraries later, we will relink and reattach them.
-    if (libraryContext != null) {
-      libraryContext!.remove(removedFiles, removedCacheKeys);
+    libraryContext?.remove(removedFiles, removedCacheKeys);
+
+    if (releaseKeys) {
+      releaseAndClearRemovedIds();
     }
   }
 

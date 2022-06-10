@@ -18,13 +18,13 @@ import 'file_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(FileResolver_changeFile_Test);
+    defineReflectiveTests(FileResolver_changeFiles_Test);
     defineReflectiveTests(FileResolverTest);
   });
 }
 
 @reflectiveTest
-class FileResolver_changeFile_Test extends FileResolutionTest {
+class FileResolver_changeFiles_Test extends FileResolutionTest {
   test_changeFile_refreshedFiles() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
 class A {}
@@ -128,8 +128,7 @@ byteStore
     assertStateString(state_1);
 
     // Change a.dart, discard data for a.dart and c.dart, but not b.dart
-    fileResolver.changeFile(a.path);
-    fileResolver.releaseAndClearRemovedIds();
+    fileResolver.changeFiles([a.path]);
     assertStateString(r'''
 files
   /sdk/lib/_internal/internal.dart
@@ -294,7 +293,7 @@ void f(A a, B b) {}
 class A {}
 class B {}
 ''');
-    fileResolver.changeFile(a.path);
+    fileResolver.changeFiles([a.path]);
 
     result = await resolveFile(b.path);
     assertErrorsInResolvedUnit(result, []);
@@ -325,7 +324,7 @@ class A {
   int foo = 0;
 }
 ''');
-    fileResolver.changeFile(a.path);
+    fileResolver.changeFiles([a.path]);
 
     result = await resolveFile(b.path);
     assertErrorsInResolvedUnit(result, []);
@@ -351,7 +350,7 @@ part 'b.dart';
 
 var b = B(1);
 ''');
-    fileResolver.changeFile(a.path);
+    fileResolver.changeFiles([a.path]);
 
     // Update b.dart, but do not notify the resolver.
     // If we try to read it now, it will throw.
@@ -368,7 +367,7 @@ class B {
     }, throwsStateError);
 
     // Notify the resolver about b.dart, it is OK now.
-    fileResolver.changeFile(b.path);
+    fileResolver.changeFiles([b.path]);
     result = await resolveFile(a.path);
     assertErrorsInResolvedUnit(result, []);
   }
@@ -448,8 +447,7 @@ byteStore
 ''');
 
     // Change b.dart, discard both b.dart and a.dart
-    fileResolver.changeFile(b.path);
-    fileResolver.releaseAndClearRemovedIds();
+    fileResolver.changeFiles([b.path]);
     assertStateString(r'''
 files
   /sdk/lib/_internal/internal.dart
@@ -653,8 +651,7 @@ byteStore
 ''');
 
     // Should invalidate a.dart, b.dart, c.dart
-    fileResolver.changeFile(b.path);
-    fileResolver.releaseAndClearRemovedIds();
+    fileResolver.changeFiles([b.path]);
     assertStateString(r'''
 files
   /sdk/lib/_internal/internal.dart
@@ -1007,7 +1004,7 @@ export 'dart:core' show dynamic;
     var dartCorePath = a_result.session.uriConverter.uriToPath(
       Uri.parse('dart:core'),
     )!;
-    fileResolver.changeFile(dartCorePath);
+    fileResolver.changeFiles([dartCorePath]);
 
     // Analyze, this will read the element model for `dart:core`.
     // There was a bug that `root::dart:core::dynamic` had no element set.
@@ -1360,7 +1357,7 @@ var foo = 0;
 
     // Change the file, will be resolved again.
     newFile(testFilePath, 'var a = c;');
-    fileResolver.changeFile(testFile.path);
+    fileResolver.changeFiles([testFile.path]);
     expect((await getTestErrors()).errors, hasLength(1));
     _assertResolvedFiles([testFile]);
   }
@@ -1392,7 +1389,7 @@ var b = a.foo;
     newFile(a.path, r'''
 var a = 4.2;
 ''');
-    fileResolver.changeFile(a.path);
+    fileResolver.changeFiles([a.path]);
     expect((await getTestErrors()).errors, hasLength(1));
     _assertResolvedFiles([testFile]);
   }
@@ -2554,7 +2551,7 @@ void func() {
 
     // Change a file.
     var a_path = convertPath('/workspace/dart/test/lib/a.dart');
-    fileResolver.changeFile(a_path);
+    fileResolver.changeFiles([a_path]);
 
     // The was a change to a file, no matter which, resolve again.
     await resolveFile2(testFile.path);
