@@ -323,9 +323,8 @@ class DefinedFunction extends BaseFunction
   /// The body of the function.
   late final Instructions body;
 
-  DefinedFunction(Module module, int index, FunctionType type,
-      [String? functionName])
-      : super(index, type, functionName) {
+  DefinedFunction(Module module, super.index, super.type,
+      [super.functionName]) {
     for (ValueType paramType in type.inputs) {
       addLocal(paramType);
     }
@@ -439,8 +438,7 @@ class Memory {
 }
 
 class DefinedMemory extends Memory implements Serializable {
-  DefinedMemory(int index, bool shared, int minSize, int? maxSize)
-      : super(index, shared, minSize, maxSize);
+  DefinedMemory(super.index, super.shared, super.minSize, super.maxSize);
 
   @override
   void serialize(Serializer s) => _serializeLimits(s);
@@ -522,10 +520,9 @@ abstract class Global {
 class DefinedGlobal extends Global implements Serializable {
   final Instructions initializer;
 
-  DefinedGlobal(Module module, int index, GlobalType type)
+  DefinedGlobal(Module module, super.index, super.type)
       : initializer =
-            Instructions(module, [type.type], isGlobalInitializer: true),
-        super(index, type);
+            Instructions(module, [type.type], isGlobalInitializer: true);
 
   @override
   void serialize(Serializer s) {
@@ -546,9 +543,8 @@ class ImportedFunction extends BaseFunction implements Import {
   final String module;
   final String name;
 
-  ImportedFunction(this.module, this.name, int index, FunctionType type,
-      [String? functionName])
-      : super(index, type, functionName);
+  ImportedFunction(this.module, this.name, super.index, super.type,
+      [super.functionName]);
 
   @override
   void serialize(Serializer s) {
@@ -567,9 +563,8 @@ class ImportedMemory extends Memory implements Import {
   final String module;
   final String name;
 
-  ImportedMemory(
-      this.module, this.name, int index, bool shared, int minSize, int? maxSize)
-      : super(index, shared, minSize, maxSize);
+  ImportedMemory(this.module, this.name, super.index, super.shared,
+      super.minSize, super.maxSize);
 
   @override
   void serialize(Serializer s) {
@@ -585,8 +580,7 @@ class ImportedGlobal extends Global implements Import {
   final String module;
   final String name;
 
-  ImportedGlobal(this.module, this.name, int index, GlobalType type)
-      : super(index, type);
+  ImportedGlobal(this.module, this.name, super.index, super.type);
 
   @override
   void serialize(Serializer s) {
@@ -606,7 +600,7 @@ abstract class Export implements Serializable {
 class FunctionExport extends Export {
   final BaseFunction function;
 
-  FunctionExport(String name, this.function) : super(name);
+  FunctionExport(super.name, this.function);
 
   @override
   void serialize(Serializer s) {
@@ -619,7 +613,7 @@ class FunctionExport extends Export {
 class GlobalExport extends Export {
   final Global global;
 
-  GlobalExport(String name, this.global) : super(name);
+  GlobalExport(super.name, this.global);
 
   @override
   void serialize(Serializer s) {
@@ -651,7 +645,7 @@ abstract class Section with SerializerMixin implements Serializable {
 }
 
 class TypeSection extends Section {
-  TypeSection(Module module) : super(module);
+  TypeSection(super.module);
 
   @override
   int get id => 1;
@@ -669,7 +663,7 @@ class TypeSection extends Section {
 }
 
 class ImportSection extends Section {
-  ImportSection(Module module) : super(module);
+  ImportSection(super.module);
 
   @override
   int get id => 2;
@@ -684,7 +678,7 @@ class ImportSection extends Section {
 }
 
 class FunctionSection extends Section {
-  FunctionSection(Module module) : super(module);
+  FunctionSection(super.module);
 
   @override
   int get id => 3;
@@ -702,7 +696,7 @@ class FunctionSection extends Section {
 }
 
 class TableSection extends Section {
-  TableSection(Module module) : super(module);
+  TableSection(super.module);
 
   @override
   int get id => 4;
@@ -717,7 +711,7 @@ class TableSection extends Section {
 }
 
 class MemorySection extends Section {
-  MemorySection(Module module) : super(module);
+  MemorySection(super.module);
 
   @override
   int get id => 5;
@@ -732,7 +726,7 @@ class MemorySection extends Section {
 }
 
 class TagSection extends Section {
-  TagSection(Module module) : super(module);
+  TagSection(super.module);
 
   @override
   int get id => 13;
@@ -747,7 +741,7 @@ class TagSection extends Section {
 }
 
 class GlobalSection extends Section {
-  GlobalSection(Module module) : super(module);
+  GlobalSection(super.module);
 
   @override
   int get id => 6;
@@ -762,7 +756,7 @@ class GlobalSection extends Section {
 }
 
 class ExportSection extends Section {
-  ExportSection(Module module) : super(module);
+  ExportSection(super.module);
 
   @override
   int get id => 7;
@@ -777,7 +771,7 @@ class ExportSection extends Section {
 }
 
 class StartSection extends Section {
-  StartSection(Module module) : super(module);
+  StartSection(super.module);
 
   @override
   int get id => 8;
@@ -812,7 +806,7 @@ class _Element implements Serializable {
 }
 
 class ElementSection extends Section {
-  ElementSection(Module module) : super(module);
+  ElementSection(super.module);
 
   @override
   int get id => 9;
@@ -846,7 +840,7 @@ class ElementSection extends Section {
 }
 
 class DataCountSection extends Section {
-  DataCountSection(Module module) : super(module);
+  DataCountSection(super.module);
 
   @override
   int get id => 12;
@@ -861,7 +855,7 @@ class DataCountSection extends Section {
 }
 
 class CodeSection extends Section {
-  CodeSection(Module module) : super(module);
+  CodeSection(super.module);
 
   @override
   int get id => 10;
@@ -876,7 +870,7 @@ class CodeSection extends Section {
 }
 
 class DataSection extends Section {
-  DataSection(Module module) : super(module);
+  DataSection(super.module);
 
   @override
   int get id => 11;
@@ -891,14 +885,14 @@ class DataSection extends Section {
 }
 
 abstract class CustomSection extends Section {
-  CustomSection(Module module) : super(module);
+  CustomSection(super.module);
 
   @override
   int get id => 0;
 }
 
 class NameSection extends CustomSection {
-  NameSection(Module module) : super(module);
+  NameSection(super.module);
 
   @override
   bool get isNotEmpty => module.functionNameCount > 0;
