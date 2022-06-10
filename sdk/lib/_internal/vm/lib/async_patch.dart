@@ -392,14 +392,16 @@ class _SuspendState {
           'returnValue=$returnValue)');
     }
     _Future future;
-    bool isSync = true;
     if (suspendState is _SuspendState) {
       future = unsafeCast<_Future>(suspendState._functionData);
     } else {
       future = unsafeCast<_Future>(suspendState);
-      isSync = false;
     }
-    _completeOnAsyncReturn(future, returnValue, isSync);
+    if (returnValue is Future) {
+      future._asyncCompleteUnchecked(returnValue);
+    } else {
+      future._completeWithValue(returnValue);
+    }
     return future;
   }
 
@@ -412,14 +414,12 @@ class _SuspendState {
           'returnValue=$returnValue)');
     }
     _Future future;
-    bool isSync = true;
     if (suspendState is _SuspendState) {
       future = unsafeCast<_Future>(suspendState._functionData);
     } else {
       future = unsafeCast<_Future>(suspendState);
-      isSync = false;
     }
-    _completeWithNoFutureOnAsyncReturn(future, returnValue, isSync);
+    future._completeWithValue(returnValue);
     return future;
   }
 
