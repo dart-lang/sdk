@@ -1994,39 +1994,179 @@ part of 'a.dart';
   }
 
   test_removeFilesNotNecessaryForAnalysisOf() async {
-    var aPath = convertPath('/workspace/dart/aaa/lib/a.dart');
-    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
-    var cPath = convertPath('/workspace/dart/aaa/lib/c.dart');
-
-    newFile(aPath, r'''
-class A {}
-''');
-
-    newFile(bPath, r'''
-import 'a.dart';
-''');
-
-    newFile(cPath, r'''
-import 'a.dart';
-''');
-
-    await resolveFile(bPath);
-    await resolveFile(cPath);
-    fileResolver.removeFilesNotNecessaryForAnalysisOf([cPath]);
-    _assertRemovedPaths(unorderedEquals([bPath]));
-  }
-
-  test_removeFilesNotNecessaryForAnalysisOf_multiple() async {
-    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
-    var dPath = convertPath('/workspace/dart/aaa/lib/d.dart');
-    var ePath = convertPath('/workspace/dart/aaa/lib/e.dart');
-    var fPath = convertPath('/workspace/dart/aaa/lib/f.dart');
-
     newFile('/workspace/dart/aaa/lib/a.dart', r'''
 class A {}
 ''');
 
-    newFile(bPath, r'''
+    final b = newFile('/workspace/dart/aaa/lib/b.dart', r'''
+import 'a.dart';
+class B {}
+''');
+
+    final c = newFile('/workspace/dart/aaa/lib/c.dart', r'''
+import 'a.dart';
+class C {}
+''');
+
+    await resolveFile(b.path);
+    await resolveFile(c.path);
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/aaa/lib/a.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+  /workspace/dart/aaa/lib/b.dart
+    current
+      unlinkedKey: k06
+    unlinkedGet: []
+    unlinkedPut: [k06]
+  /workspace/dart/aaa/lib/c.dart
+    current
+      unlinkedKey: k07
+    unlinkedGet: []
+    unlinkedPut: [k07]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k08
+    get: []
+    put: [k08]
+  /workspace/dart/aaa/lib/a.dart
+    current
+      key: k09
+    get: []
+    put: [k09]
+  /workspace/dart/aaa/lib/b.dart
+    current
+      key: k10
+    get: []
+    put: [k10]
+  /workspace/dart/aaa/lib/c.dart
+    current
+      key: k11
+    get: []
+    put: [k11]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.aaa/a.dart
+    package:dart.aaa/b.dart
+    package:dart.aaa/c.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
+''');
+
+    fileResolver.removeFilesNotNecessaryForAnalysisOf([c.path]);
+
+    // No data for b.dart anymore.
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/aaa/lib/a.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+  /workspace/dart/aaa/lib/b.dart
+    unlinkedGet: []
+    unlinkedPut: [k06]
+  /workspace/dart/aaa/lib/c.dart
+    current
+      unlinkedKey: k07
+    unlinkedGet: []
+    unlinkedPut: [k07]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k08
+    get: []
+    put: [k08]
+  /workspace/dart/aaa/lib/a.dart
+    current
+      key: k09
+    get: []
+    put: [k09]
+  /workspace/dart/aaa/lib/b.dart
+    get: []
+    put: [k10]
+  /workspace/dart/aaa/lib/c.dart
+    current
+      key: k11
+    get: []
+    put: [k11]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.aaa/a.dart
+    package:dart.aaa/c.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k07, k08, k09, k11]
+''');
+  }
+
+  test_removeFilesNotNecessaryForAnalysisOf_multiple() async {
+    newFile('/workspace/dart/aaa/lib/a.dart', r'''
+class A {}
+''');
+
+    newFile('/workspace/dart/aaa/lib/b.dart', r'''
 class B {}
 ''');
 
@@ -2034,38 +2174,297 @@ class B {}
 class C {}
 ''');
 
-    newFile(dPath, r'''
+    final d = newFile('/workspace/dart/aaa/lib/d.dart', r'''
 import 'a.dart';
 ''');
 
-    newFile(ePath, r'''
+    final e = newFile('/workspace/dart/aaa/lib/e.dart', r'''
 import 'a.dart';
 import 'b.dart';
 ''');
 
-    newFile(fPath, r'''
+    final f = newFile('/workspace/dart/aaa/lib/f.dart', r'''
 import 'c.dart';
  ''');
 
-    await resolveFile(dPath);
-    await resolveFile(ePath);
-    await resolveFile(fPath);
-    fileResolver.removeFilesNotNecessaryForAnalysisOf([dPath, fPath]);
-    _assertRemovedPaths(unorderedEquals([bPath, ePath]));
+    await resolveFile(d.path);
+    await resolveFile(e.path);
+    await resolveFile(f.path);
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/aaa/lib/a.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+  /workspace/dart/aaa/lib/b.dart
+    current
+      unlinkedKey: k06
+    unlinkedGet: []
+    unlinkedPut: [k06]
+  /workspace/dart/aaa/lib/c.dart
+    current
+      unlinkedKey: k07
+    unlinkedGet: []
+    unlinkedPut: [k07]
+  /workspace/dart/aaa/lib/d.dart
+    current
+      unlinkedKey: k08
+    unlinkedGet: []
+    unlinkedPut: [k08]
+  /workspace/dart/aaa/lib/e.dart
+    current
+      unlinkedKey: k09
+    unlinkedGet: []
+    unlinkedPut: [k09]
+  /workspace/dart/aaa/lib/f.dart
+    current
+      unlinkedKey: k10
+    unlinkedGet: []
+    unlinkedPut: [k10]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k11
+    get: []
+    put: [k11]
+  /workspace/dart/aaa/lib/a.dart
+    current
+      key: k12
+    get: []
+    put: [k12]
+  /workspace/dart/aaa/lib/b.dart
+    current
+      key: k13
+    get: []
+    put: [k13]
+  /workspace/dart/aaa/lib/c.dart
+    current
+      key: k14
+    get: []
+    put: [k14]
+  /workspace/dart/aaa/lib/d.dart
+    current
+      key: k15
+    get: []
+    put: [k15]
+  /workspace/dart/aaa/lib/e.dart
+    current
+      key: k16
+    get: []
+    put: [k16]
+  /workspace/dart/aaa/lib/f.dart
+    current
+      key: k17
+    get: []
+    put: [k17]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.aaa/a.dart
+    package:dart.aaa/b.dart
+    package:dart.aaa/c.dart
+    package:dart.aaa/d.dart
+    package:dart.aaa/e.dart
+    package:dart.aaa/f.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11, k12, k13, k14, k15, k16, k17]
+''');
+
+    fileResolver.removeFilesNotNecessaryForAnalysisOf([d.path, f.path]);
+    // No data for b.dart and e.dart anymore.
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/aaa/lib/a.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+  /workspace/dart/aaa/lib/b.dart
+    unlinkedGet: []
+    unlinkedPut: [k06]
+  /workspace/dart/aaa/lib/c.dart
+    current
+      unlinkedKey: k07
+    unlinkedGet: []
+    unlinkedPut: [k07]
+  /workspace/dart/aaa/lib/d.dart
+    current
+      unlinkedKey: k08
+    unlinkedGet: []
+    unlinkedPut: [k08]
+  /workspace/dart/aaa/lib/e.dart
+    unlinkedGet: []
+    unlinkedPut: [k09]
+  /workspace/dart/aaa/lib/f.dart
+    current
+      unlinkedKey: k10
+    unlinkedGet: []
+    unlinkedPut: [k10]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k11
+    get: []
+    put: [k11]
+  /workspace/dart/aaa/lib/a.dart
+    current
+      key: k12
+    get: []
+    put: [k12]
+  /workspace/dart/aaa/lib/b.dart
+    get: []
+    put: [k13]
+  /workspace/dart/aaa/lib/c.dart
+    current
+      key: k14
+    get: []
+    put: [k14]
+  /workspace/dart/aaa/lib/d.dart
+    current
+      key: k15
+    get: []
+    put: [k15]
+  /workspace/dart/aaa/lib/e.dart
+    get: []
+    put: [k16]
+  /workspace/dart/aaa/lib/f.dart
+    current
+      key: k17
+    get: []
+    put: [k17]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.aaa/a.dart
+    package:dart.aaa/c.dart
+    package:dart.aaa/d.dart
+    package:dart.aaa/f.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k07, k08, k10, k11, k12, k14, k15, k17]
+''');
   }
 
   test_removeFilesNotNecessaryForAnalysisOf_unknown() async {
-    var aPath = convertPath('/workspace/dart/aaa/lib/a.dart');
-    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
-
-    newFile(aPath, r'''
+    final a = newFile('/workspace/dart/aaa/lib/a.dart', r'''
 class A {}
 ''');
 
-    await resolveFile(aPath);
+    final b = getFile('/workspace/dart/aaa/lib/b.dart');
 
-    fileResolver.removeFilesNotNecessaryForAnalysisOf([aPath, bPath]);
-    _assertRemovedPaths(isEmpty);
+    await resolveFile(a.path);
+    fileResolver.removeFilesNotNecessaryForAnalysisOf([a.path, b.path]);
+
+    // No b.dart anywhere.
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /sdk/lib/async/async.dart
+    current
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /sdk/lib/async/stream.dart
+    current
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /sdk/lib/core/core.dart
+    current
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /sdk/lib/math/math.dart
+    current
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/aaa/lib/a.dart
+    current
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k06
+    get: []
+    put: [k06]
+  /workspace/dart/aaa/lib/a.dart
+    current
+      key: k07
+    get: []
+    put: [k07]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.aaa/a.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+''');
   }
 
   test_resolve_libraryWithPart_noLibraryDiscovery() async {
@@ -2305,10 +2704,6 @@ import 'foo:bar';
 
   void _assertDiscoveredLibraryForParts(List<String> expected) {
     expect(fileResolver.fsState!.testView.partsDiscoveredLibraries, expected);
-  }
-
-  void _assertRemovedPaths(Matcher matcher) {
-    expect(fileResolver.fsState!.testView.removedPaths, matcher);
   }
 
   void _assertResolvedFiles(

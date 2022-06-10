@@ -158,7 +158,7 @@ class FileResolver {
   /// Update the resolver to reflect the fact that the file with the given
   /// [path] was changed. We need to make sure that when this file, of any file
   /// that directly or indirectly referenced it, is resolved, we used the new
-  /// state of the file. Updates [removedCacheIds] with the ids of the invalidated
+  /// state of the file. Updates [removedCacheKeys] with the ids of the invalidated
   /// items, used in [releaseAndClearRemovedIds] to release the cache items.
   void changeFile(String path) {
     if (fsState == null) {
@@ -445,12 +445,14 @@ class FileResolver {
   /// Remove cached [FileState]'s that were not used in the current analysis
   /// session. The list of files analyzed is used to compute the set of unused
   /// [FileState]'s. Adds the cache id's for the removed [FileState]'s to
-  /// [removedCacheIds].
+  /// [removedCacheKeys].
   void removeFilesNotNecessaryForAnalysisOf(List<String> files) {
     var removedFiles = fsState!.removeUnusedFiles(files);
     for (var removedFile in removedFiles) {
       removedCacheKeys.add(removedFile.unlinkedKey);
     }
+    libraryContext?.remove(removedFiles, removedCacheKeys);
+    releaseAndClearRemovedIds();
   }
 
   /// The [completionLine] and [completionColumn] are zero based.
