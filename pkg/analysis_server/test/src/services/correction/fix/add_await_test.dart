@@ -67,4 +67,35 @@ void f() async {
 }
 ''');
   }
+
+  Future<void> test_nonBoolCondition_futureBool() async {
+    await resolveTestCode('''
+Future<bool> doSomething() async => true;
+
+Future<void> f() async {
+  if (doSomething()) {
+  }
+}
+''');
+    await assertHasFix('''
+Future<bool> doSomething() async => true;
+
+Future<void> f() async {
+  if (await doSomething()) {
+  }
+}
+''');
+  }
+
+  Future<void> test_nonBoolCondition_futureInt() async {
+    await resolveTestCode('''
+Future<int> doSomething() async => 0;
+
+Future<void> f() async {
+  if (doSomething()) {
+  }
+}
+''');
+    await assertNoFix();
+  }
 }

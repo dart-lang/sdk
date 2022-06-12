@@ -4,15 +4,31 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:collection/collection.dart';
 
 class AddAwait extends CorrectionProducer {
-  @override
-  bool get canBeAppliedInBulk => true;
+  /// The kind of correction to be made.
+  final _CorrectionKind _correctionKind;
 
   @override
-  bool get canBeAppliedToFile => true;
+  bool canBeAppliedInBulk;
+
+  @override
+  bool canBeAppliedToFile;
+
+  AddAwait.nonBool()
+      : _correctionKind = _CorrectionKind.nonBool,
+        canBeAppliedInBulk = false,
+        canBeAppliedToFile = false;
+
+  AddAwait.unawaited()
+      : _correctionKind = _CorrectionKind.unawaited,
+        canBeAppliedInBulk = true,
+        canBeAppliedToFile = true;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_AWAIT;
@@ -22,8 +38,34 @@ class AddAwait extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    if (_correctionKind == _CorrectionKind.unawaited) {
+      await _addAwait(builder);
+    } else if (_correctionKind == _CorrectionKind.nonBool) {
+      await _computeNonBool(builder);
+    }
+  }
+
+  Future<void> _addAwait(ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(node.offset, 'await ');
     });
   }
+
+  Future<void> _computeNonBool(ChangeBuilder builder) async {
+    var expr = node;
+    if (expr is! Expression) return;
+    var staticType = expr.staticType;
+    if (staticType is! ParameterizedType) return;
+
+    if (staticType.isDartAsyncFuture &&
+        staticType.typeArguments.firstOrNull?.isDartCoreBool == true) {
+      await _addAwait(builder);
+    }
+  }
+}
+
+/// The kinds of corrections supported by [AddAwait].
+enum _CorrectionKind {
+  unawaited,
+  nonBool,
 }
