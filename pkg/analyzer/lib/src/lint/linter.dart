@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
@@ -636,25 +637,31 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
   void reportLint(AstNode? node,
       {List<Object> arguments = const [],
+      List<DiagnosticMessage>? contextMessages,
       ErrorCode? errorCode,
       bool ignoreSyntheticNodes = true}) {
     if (node != null && (!node.isSynthetic || !ignoreSyntheticNodes)) {
-      reporter.reportErrorForNode(errorCode ?? lintCode, node, arguments);
+      reporter.reportErrorForNode(
+          errorCode ?? lintCode, node, arguments, contextMessages);
     }
   }
 
   void reportLintForOffset(int offset, int length,
-      {List<Object> arguments = const [], ErrorCode? errorCode}) {
+      {List<Object> arguments = const [],
+      List<DiagnosticMessage>? contextMessages,
+      ErrorCode? errorCode}) {
     reporter.reportErrorForOffset(
-        errorCode ?? lintCode, offset, length, arguments);
+        errorCode ?? lintCode, offset, length, arguments, contextMessages);
   }
 
   void reportLintForToken(Token? token,
       {List<Object> arguments = const [],
+      List<DiagnosticMessage>? contextMessages,
       ErrorCode? errorCode,
       bool ignoreSyntheticTokens = true}) {
     if (token != null && (!token.isSynthetic || !ignoreSyntheticTokens)) {
-      reporter.reportErrorForToken(errorCode ?? lintCode, token, arguments);
+      reporter.reportErrorForToken(
+          errorCode ?? lintCode, token, arguments, contextMessages);
     }
   }
 

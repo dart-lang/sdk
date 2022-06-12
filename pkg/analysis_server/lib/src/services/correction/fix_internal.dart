@@ -621,7 +621,7 @@ class FixProcessor extends BaseProcessor {
       RemoveTypeAnnotation.new,
     ],
     LintNames.unawaited_futures: [
-      AddAwait.new,
+      AddAwait.unawaited,
     ],
     LintNames.unnecessary_brace_in_string_interps: [
       RemoveInterpolationBraces.new,
@@ -1010,6 +1010,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.NON_BOOL_CONDITION: [
       AddNeNull.new,
+      AddAwait.nonBool,
     ],
     CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR: [
       AddConst.new,

@@ -54,6 +54,45 @@ class A {
     await assertNoAssistAt('v');
   }
 
+  Future<void> test_generic_instanceCreation_withoutArguments() async {
+    await resolveTestCode('''
+C<int> c = C();
+class C<T> {}
+''');
+    await assertHasAssistAt('c = ', '''
+var c = C<int>();
+class C<T> {}
+''');
+  }
+
+  Future<void> test_generic_listLiteral() async {
+    await resolveTestCode('''
+List<int> l = [];
+''');
+    await assertHasAssistAt('l = ', '''
+var l = <int>[];
+''');
+  }
+
+  Future<void> test_generic_setLiteral_ambiguous() async {
+    await resolveTestCode('''
+Set f() {
+  /*caret*/Set s = {};
+  return s;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_generic_setLiteral_cascade() async {
+    await resolveTestCode('''
+Set<String> s = {}..addAll([]);
+''');
+    await assertHasAssistAt('s = ', '''
+var s = <String>{}..addAll([]);
+''');
+  }
+
   Future<void> test_instanceCreation_freeStanding() async {
     await resolveTestCode('''
 class A {}
