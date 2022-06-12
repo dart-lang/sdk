@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
+import 'package:analyzer_utilities/tools.dart';
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 
@@ -13,6 +16,7 @@ Map<String, Interface> _interfaces = {};
 Map<String, LspEnum> _namespaces = {};
 Map<String, List<String>> _subtypes = {};
 Map<String, TypeAlias> _typeAliases = {};
+var _unionFunctions = SplayTreeMap<String, String>();
 
 /// Whether our enum class allows any value (eg. should always return true
 /// from canParse() for the correct type). This is to allow us to have some
@@ -35,12 +39,17 @@ bool enumClassAllowsAnyValue(String name) {
 }
 
 String generateDartForTypes(List<LspEntity> types) {
+  _unionFunctions.clear();
   final buffer = IndentableStringBuffer();
   _getSortedUnique(types).forEach((t) => _writeType(buffer, t));
+  for (var function in _unionFunctions.values) {
+    buffer.writeln(function);
+  }
+
   final stopwatch = Stopwatch()..start();
   final formattedCode = _formatCode(buffer.toString());
   stopwatch.stop();
-  if (stopwatch.elapsed.inSeconds > 10) {
+  if (stopwatch.elapsed.inSeconds > 3) {
     print('WARN: Formatting took ${stopwatch.elapsed} (${types.length} types)');
   }
   return '${formattedCode.trim()}\n'; // Ensure a single trailing newline.
@@ -627,7 +636,26 @@ void _writeFromJsonCode(
     _writeFromJsonCodeForLiteralUnion(buffer, type, valueCode,
         allowsNull: allowsNull);
   } else if (type is UnionType) {
-    _writeFromJsonCodeForUnion(buffer, type, valueCode, allowsNull: allowsNull);
+    var functionName = type.types.map((t) {
+      if (t is TypeReference) {
+        t = resolveTypeAlias(t);
+      }
+      var dartType =
+          t is UnionType ? t.types.map((e) => e.dartType).join() : t.dartType;
+      return capitalize(dartType);
+    }).join();
+
+    functionName = '_either$functionName';
+
+    if (allowsNull) {
+      buffer.write('$valueCode == null ? null : ');
+    }
+    buffer.write('$functionName($valueCode)');
+    if (!_unionFunctions.containsKey(functionName)) {
+      var temp = IndentableStringBuffer();
+      _writeFromJsonCodeForUnion(temp, type, functionName);
+      _unionFunctions[functionName] = temp.toString();
+    }
   } else {
     buffer.write('$valueCode$cast');
   }
@@ -644,22 +672,19 @@ void _writeFromJsonCodeForLiteralUnion(
   final cast = ' as $valueType${allowsNull ? '?' : ''}';
   buffer.write(
       "const {${allowedValues.join(', ')}}.contains($valueCode) ? $valueCode$cast : "
-      "throw '''\$$valueCode was not one of (${allowedValues.join(', ')})'''");
+      "throw \"\$$valueCode was not one of (${allowedValues.join(', ')})\"");
 }
 
 void _writeFromJsonCodeForUnion(
-    IndentableStringBuffer buffer, UnionType union, String valueCode,
-    {required bool allowsNull}) {
-  // Write a check against each type, eg.:
-  // x is y ? new Either.tx(x) : (...)
-  var hasIncompleteCondition = false;
-  var unclosedParens = 0;
+    IndentableStringBuffer buffer, UnionType union, String functionName) {
+  buffer
+    ..writeln('${union.dartTypeWithTypeArgs} $functionName(Object? value) {')
+    ..indent()
+    ..writeIndented('return ');
 
-  if (allowsNull) {
-    buffer.write('$valueCode == null ? null : (');
-    hasIncompleteCondition = true;
-    unclosedParens++;
-  }
+  // Write a check against each type, eg.:
+  // x is y ? Either.tx(x) : (...)
+  var hasIncompleteCondition = false;
 
   for (var i = 0; i < union.types.length; i++) {
     final type = union.types[i];
@@ -668,15 +693,15 @@ void _writeFromJsonCodeForUnion(
     // "any" matches all type checks, so only emit it if required.
     if (!isAny) {
       _writeTypeCheckCondition(
-          buffer, null, valueCode, type, 'nullLspJsonReporter');
+          buffer, null, 'value', type, 'nullLspJsonReporter');
       buffer.write(' ? ');
     }
 
     // The code to construct a value with this "side" of the union.
-    buffer.write('${union.dartTypeWithTypeArgs}.t${i + 1}(');
+    buffer.write('${union.dartType}.t${i + 1}(');
     // Call recursively as unions may be nested.
     _writeFromJsonCode(
-      buffer, type, valueCode,
+      buffer, type, 'value',
       // null + type checks are already handled above this loop
       allowsNull: false,
       requiresCast: false,
@@ -685,9 +710,8 @@ void _writeFromJsonCodeForUnion(
 
     // If we output the type condition at the top, prepare for the next condition.
     if (!isAny) {
-      buffer.write(' : (');
+      buffer.write(' : ');
       hasIncompleteCondition = true;
-      unclosedParens++;
     } else {
       hasIncompleteCondition = false;
     }
@@ -695,11 +719,13 @@ void _writeFromJsonCodeForUnion(
   // Fill the final parens with a throw because if we fell through all of the
   // cases then the value we had didn't match any of the types in the union.
   if (hasIncompleteCondition) {
-    var interpolation = '\$$valueCode';
     buffer.write(
-        "throw '''$interpolation was not one of (${union.types.map((t) => t.dartTypeWithTypeArgs).join(', ')})'''");
+        "throw '\$value was not one of (${union.types.map((t) => t.dartTypeWithTypeArgs).join(', ')})'");
   }
-  buffer.write(')' * unclosedParens);
+  buffer
+    ..writeln(';')
+    ..outdent()
+    ..writeln('}');
 }
 
 void _writeFromJsonConstructor(
