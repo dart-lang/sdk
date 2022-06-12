@@ -1945,11 +1945,7 @@ class RequestMessage implements IncomingMessage, ToJsonable {
     final clientRequestTimeJson = json['clientRequestTime'];
     final clientRequestTime = clientRequestTimeJson as int?;
     final idJson = json['id'];
-    final id = idJson is int
-        ? Either2<int, String>.t1(idJson)
-        : (idJson is String
-            ? Either2<int, String>.t2(idJson)
-            : (throw '''$idJson was not one of (int, String)'''));
+    final id = _eitherIntString(idJson);
     final jsonrpcJson = json['jsonrpc'];
     final jsonrpc = jsonrpcJson as String;
     final methodJson = json['method'];
@@ -2226,13 +2222,7 @@ class ResponseMessage implements Message, ToJsonable {
         ? ResponseError.fromJson(errorJson as Map<String, Object?>)
         : null;
     final idJson = json['id'];
-    final id = idJson == null
-        ? null
-        : (idJson is int
-            ? Either2<int, String>.t1(idJson)
-            : (idJson is String
-                ? Either2<int, String>.t2(idJson)
-                : (throw '''$idJson was not one of (int, String)''')));
+    final id = idJson == null ? null : _eitherIntString(idJson);
     final jsonrpcJson = json['jsonrpc'];
     final jsonrpc = jsonrpcJson as String;
     final resultJson = json['result'];
@@ -2573,4 +2563,12 @@ class ValidateRefactorResult implements ToJsonable {
 
   @override
   String toString() => jsonEncoder.convert(toJson());
+}
+
+Either2<int, String> _eitherIntString(Object? value) {
+  return value is int
+      ? Either2.t1(value)
+      : value is String
+          ? Either2.t2(value)
+          : throw '$value was not one of (int, String)';
 }

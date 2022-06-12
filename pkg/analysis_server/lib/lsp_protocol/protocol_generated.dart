@@ -714,19 +714,10 @@ class CallHierarchyIncomingCallsParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return CallHierarchyIncomingCallsParams(
       item: item,
       partialResultToken: partialResultToken,
@@ -1275,19 +1266,10 @@ class CallHierarchyOutgoingCallsParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return CallHierarchyOutgoingCallsParams(
       item: item,
       partialResultToken: partialResultToken,
@@ -1412,13 +1394,8 @@ class CallHierarchyPrepareParams
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return CallHierarchyPrepareParams(
       position: position,
       textDocument: textDocument,
@@ -1669,11 +1646,7 @@ class CancelParams implements ToJsonable {
   });
   static CancelParams fromJson(Map<String, Object?> json) {
     final idJson = json['id'];
-    final id = idJson is int
-        ? Either2<int, String>.t1(idJson)
-        : (idJson is String
-            ? Either2<int, String>.t2(idJson)
-            : (throw '''$idJson was not one of (int, String)'''));
+    final id = _eitherIntString(idJson);
     return CancelParams(
       id: id,
     );
@@ -3199,24 +3172,15 @@ class CodeActionParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return CodeActionParams(
       context: context,
       partialResultToken: partialResultToken,
@@ -3921,22 +3885,13 @@ class CodeLensParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return CodeLensParams(
       partialResultToken: partialResultToken,
       textDocument: textDocument,
@@ -4639,24 +4594,15 @@ class ColorPresentationParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return ColorPresentationParams(
       color: color,
       partialResultToken: partialResultToken,
@@ -5749,12 +5695,7 @@ class CompletionItem implements ToJsonable {
     final documentationJson = json['documentation'];
     final documentation = documentationJson == null
         ? null
-        : (MarkupContent.canParse(documentationJson, nullLspJsonReporter)
-            ? Either2<MarkupContent, String>.t1(MarkupContent.fromJson(
-                documentationJson as Map<String, Object?>))
-            : (documentationJson is String
-                ? Either2<MarkupContent, String>.t2(documentationJson)
-                : (throw '''$documentationJson was not one of (MarkupContent, String)''')));
+        : _eitherMarkupContentString(documentationJson);
     final filterTextJson = json['filterText'];
     final filterText = filterTextJson as String?;
     final insertTextJson = json['insertText'];
@@ -5788,14 +5729,7 @@ class CompletionItem implements ToJsonable {
     final textEditJson = json['textEdit'];
     final textEdit = textEditJson == null
         ? null
-        : (InsertReplaceEdit.canParse(textEditJson, nullLspJsonReporter)
-            ? Either2<InsertReplaceEdit, TextEdit>.t1(
-                InsertReplaceEdit.fromJson(
-                    textEditJson as Map<String, Object?>))
-            : (TextEdit.canParse(textEditJson, nullLspJsonReporter)
-                ? Either2<InsertReplaceEdit, TextEdit>.t2(
-                    TextEdit.fromJson(textEditJson as Map<String, Object?>))
-                : (throw '''$textEditJson was not one of (InsertReplaceEdit, TextEdit)''')));
+        : _eitherInsertReplaceEditTextEdit(textEditJson);
     final textEditTextJson = json['textEditText'];
     final textEditText = textEditTextJson as String?;
     return CompletionItem(
@@ -6949,14 +6883,7 @@ class CompletionListItemDefaults implements ToJsonable {
     final editRangeJson = json['editRange'];
     final editRange = editRangeJson == null
         ? null
-        : (CompletionItemEditRange.canParse(editRangeJson, nullLspJsonReporter)
-            ? Either2<CompletionItemEditRange, Range>.t1(
-                CompletionItemEditRange.fromJson(
-                    editRangeJson as Map<String, Object?>))
-            : (Range.canParse(editRangeJson, nullLspJsonReporter)
-                ? Either2<CompletionItemEditRange, Range>.t2(
-                    Range.fromJson(editRangeJson as Map<String, Object?>))
-                : (throw '''$editRangeJson was not one of (CompletionItemEditRange, Range)''')));
+        : _eitherCompletionItemEditRangeRange(editRangeJson);
     final insertTextFormatJson = json['insertTextFormat'];
     final insertTextFormat = insertTextFormatJson != null
         ? InsertTextFormat.fromJson(insertTextFormatJson as int)
@@ -7385,24 +7312,15 @@ class CompletionParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final positionJson = json['position'];
     final position = Position.fromJson(positionJson as Map<String, Object?>);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return CompletionParams(
       context: context,
       partialResultToken: partialResultToken,
@@ -8474,24 +8392,15 @@ class DeclarationParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final positionJson = json['position'];
     final position = Position.fromJson(positionJson as Map<String, Object?>);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return DeclarationParams(
       partialResultToken: partialResultToken,
       position: position,
@@ -8928,24 +8837,15 @@ class DefinitionParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final positionJson = json['position'];
     final position = Position.fromJson(positionJson as Map<String, Object?>);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return DefinitionParams(
       partialResultToken: partialResultToken,
       position: position,
@@ -10803,16 +10703,9 @@ class DidChangeTextDocumentParams implements ToJsonable {
   static DidChangeTextDocumentParams fromJson(Map<String, Object?> json) {
     final contentChangesJson = json['contentChanges'];
     final contentChanges = (contentChangesJson as List<Object?>)
-        .map((item) => TextDocumentContentChangeEvent1.canParse(
-                item, nullLspJsonReporter)
-            ? Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>.t1(
-                TextDocumentContentChangeEvent1.fromJson(
-                    item as Map<String, Object?>))
-            : (TextDocumentContentChangeEvent2.canParse(item, nullLspJsonReporter)
-                ? Either2<TextDocumentContentChangeEvent1,
-                        TextDocumentContentChangeEvent2>.t2(
-                    TextDocumentContentChangeEvent2.fromJson(item as Map<String, Object?>))
-                : (throw '''$item was not one of (TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2)''')))
+        .map((item) =>
+            _eitherTextDocumentContentChangeEvent1TextDocumentContentChangeEvent2(
+                item))
         .toList();
     final textDocumentJson = json['textDocument'];
     final textDocument = VersionedTextDocumentIdentifier.fromJson(
@@ -11913,22 +11806,13 @@ class DocumentColorParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return DocumentColorParams(
       partialResultToken: partialResultToken,
       textDocument: textDocument,
@@ -12184,24 +12068,15 @@ class DocumentDiagnosticParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final previousResultIdJson = json['previousResultId'];
     final previousResultId = previousResultIdJson as String?;
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return DocumentDiagnosticParams(
       identifier: identifier,
       partialResultToken: partialResultToken,
@@ -12361,16 +12236,8 @@ class DocumentDiagnosticReportPartialResult implements ToJsonable {
     final relatedDocuments = (relatedDocumentsJson as Map<Object, Object?>).map(
         (key, value) => MapEntry(
             key as String,
-            FullDocumentDiagnosticReport.canParse(value, nullLspJsonReporter)
-                ? Either2<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>.t1(
-                    FullDocumentDiagnosticReport.fromJson(
-                        value as Map<String, Object?>))
-                : (UnchangedDocumentDiagnosticReport.canParse(
-                        value, nullLspJsonReporter)
-                    ? Either2<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>.t2(
-                        UnchangedDocumentDiagnosticReport.fromJson(
-                            value as Map<String, Object?>))
-                    : (throw '''$value was not one of (FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport)'''))));
+            _eitherFullDocumentDiagnosticReportUnchangedDocumentDiagnosticReport(
+                value)));
     return DocumentDiagnosticReportPartialResult(
       relatedDocuments: relatedDocuments,
     );
@@ -12598,13 +12465,8 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return DocumentFormattingParams(
       options: options,
       textDocument: textDocument,
@@ -13102,24 +12964,15 @@ class DocumentHighlightParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final positionJson = json['position'];
     final position = Position.fromJson(positionJson as Map<String, Object?>);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return DocumentHighlightParams(
       partialResultToken: partialResultToken,
       position: position,
@@ -13688,22 +13541,13 @@ class DocumentLinkParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return DocumentLinkParams(
       partialResultToken: partialResultToken,
       textDocument: textDocument,
@@ -14564,13 +14408,8 @@ class DocumentRangeFormattingParams
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return DocumentRangeFormattingParams(
       options: options,
       range: range,
@@ -15511,22 +15350,13 @@ class DocumentSymbolParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return DocumentSymbolParams(
       partialResultToken: partialResultToken,
       textDocument: textDocument,
@@ -16026,13 +15856,8 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
     final commandJson = json['command'];
     final command = commandJson as String;
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return ExecuteCommandParams(
       arguments: arguments,
       command: command,
@@ -17581,12 +17406,7 @@ class FileSystemWatcher implements ToJsonable {
   });
   static FileSystemWatcher fromJson(Map<String, Object?> json) {
     final globPatternJson = json['globPattern'];
-    final globPattern = globPatternJson is String
-        ? Either2<String, RelativePattern>.t1(globPatternJson)
-        : (RelativePattern.canParse(globPatternJson, nullLspJsonReporter)
-            ? Either2<String, RelativePattern>.t2(RelativePattern.fromJson(
-                globPatternJson as Map<String, Object?>))
-            : (throw '''$globPatternJson was not one of (String, RelativePattern)'''));
+    final globPattern = _eitherStringRelativePattern(globPatternJson);
     final kindJson = json['kind'];
     final kind = kindJson != null ? WatchKind.fromJson(kindJson as int) : null;
     return FileSystemWatcher(
@@ -18305,22 +18125,13 @@ class FoldingRangeParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return FoldingRangeParams(
       partialResultToken: partialResultToken,
       textDocument: textDocument,
@@ -19160,12 +18971,7 @@ class Hover implements ToJsonable {
   });
   static Hover fromJson(Map<String, Object?> json) {
     final contentsJson = json['contents'];
-    final contents = MarkupContent.canParse(contentsJson, nullLspJsonReporter)
-        ? Either2<MarkupContent, String>.t1(
-            MarkupContent.fromJson(contentsJson as Map<String, Object?>))
-        : (contentsJson is String
-            ? Either2<MarkupContent, String>.t2(contentsJson)
-            : (throw '''$contentsJson was not one of (MarkupContent, String)'''));
+    final contents = _eitherMarkupContentString(contentsJson);
     final rangeJson = json['range'];
     final range = rangeJson != null
         ? Range.fromJson(rangeJson as Map<String, Object?>)
@@ -19430,13 +19236,8 @@ class HoverParams
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return HoverParams(
       position: position,
       textDocument: textDocument,
@@ -19823,24 +19624,15 @@ class ImplementationParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final positionJson = json['position'];
     final position = Position.fromJson(positionJson as Map<String, Object?>);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return ImplementationParams(
       partialResultToken: partialResultToken,
       position: position,
@@ -20142,15 +19934,10 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
     final trace = const {null, 'off', 'messages', 'compact', 'verbose'}
             .contains(traceJson)
         ? traceJson as String?
-        : throw '''$traceJson was not one of (null, 'off', 'messages', 'compact', 'verbose')''';
+        : throw "$traceJson was not one of (null, 'off', 'messages', 'compact', 'verbose')";
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     final workspaceFoldersJson = json['workspaceFolders'];
     final workspaceFolders = (workspaceFoldersJson as List<Object?>?)
         ?.map((item) => WorkspaceFolder.fromJson(item as Map<String, Object?>))
@@ -20758,16 +20545,7 @@ class InlayHint implements ToJsonable {
     final kind =
         kindJson != null ? InlayHintKind.fromJson(kindJson as int) : null;
     final labelJson = json['label'];
-    final label = labelJson is List<Object?> &&
-            labelJson.every((item) =>
-                InlayHintLabelPart.canParse(item, nullLspJsonReporter))
-        ? Either2<List<InlayHintLabelPart>, String>.t1(labelJson
-            .map((item) =>
-                InlayHintLabelPart.fromJson(item as Map<String, Object?>))
-            .toList())
-        : (labelJson is String
-            ? Either2<List<InlayHintLabelPart>, String>.t2(labelJson)
-            : (throw '''$labelJson was not one of (List<InlayHintLabelPart>, String)'''));
+    final label = _eitherListString(labelJson);
     final paddingLeftJson = json['paddingLeft'];
     final paddingLeft = paddingLeftJson as bool?;
     final paddingRightJson = json['paddingRight'];
@@ -20779,14 +20557,8 @@ class InlayHint implements ToJsonable {
         ?.map((item) => TextEdit.fromJson(item as Map<String, Object?>))
         .toList();
     final tooltipJson = json['tooltip'];
-    final tooltip = tooltipJson == null
-        ? null
-        : (MarkupContent.canParse(tooltipJson, nullLspJsonReporter)
-            ? Either2<MarkupContent, String>.t1(
-                MarkupContent.fromJson(tooltipJson as Map<String, Object?>))
-            : (tooltipJson is String
-                ? Either2<MarkupContent, String>.t2(tooltipJson)
-                : (throw '''$tooltipJson was not one of (MarkupContent, String)''')));
+    final tooltip =
+        tooltipJson == null ? null : _eitherMarkupContentString(tooltipJson);
     return InlayHint(
       data: data,
       kind: kind,
@@ -21227,14 +20999,8 @@ class InlayHintLabelPart implements ToJsonable {
         ? Location.fromJson(locationJson as Map<String, Object?>)
         : null;
     final tooltipJson = json['tooltip'];
-    final tooltip = tooltipJson == null
-        ? null
-        : (MarkupContent.canParse(tooltipJson, nullLspJsonReporter)
-            ? Either2<MarkupContent, String>.t1(
-                MarkupContent.fromJson(tooltipJson as Map<String, Object?>))
-            : (tooltipJson is String
-                ? Either2<MarkupContent, String>.t2(tooltipJson)
-                : (throw '''$tooltipJson was not one of (MarkupContent, String)''')));
+    final tooltip =
+        tooltipJson == null ? null : _eitherMarkupContentString(tooltipJson);
     final valueJson = json['value'];
     final value = valueJson as String;
     return InlayHintLabelPart(
@@ -21482,13 +21248,8 @@ class InlayHintParams implements WorkDoneProgressParams, ToJsonable {
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return InlayHintParams(
       range: range,
       textDocument: textDocument,
@@ -22181,13 +21942,8 @@ class InlineValueParams implements WorkDoneProgressParams, ToJsonable {
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return InlineValueParams(
       context: context,
       range: range,
@@ -23121,13 +22877,8 @@ class LinkedEditingRangeParams
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return LinkedEditingRangeParams(
       position: position,
       textDocument: textDocument,
@@ -24977,24 +24728,15 @@ class MonikerParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final positionJson = json['position'];
     final position = Position.fromJson(positionJson as Map<String, Object?>);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return MonikerParams(
       partialResultToken: partialResultToken,
       position: position,
@@ -25550,21 +25292,9 @@ class NotebookCellTextDocumentFilter implements ToJsonable {
     final languageJson = json['language'];
     final language = languageJson as String?;
     final notebookJson = json['notebook'];
-    final notebook = NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter) ||
-            NotebookDocumentFilter2.canParse(
-                notebookJson, nullLspJsonReporter) ||
-            NotebookDocumentFilter3.canParse(notebookJson, nullLspJsonReporter)
-        ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t1(
-            NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter)
-                ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(NotebookDocumentFilter1.fromJson(
-                    notebookJson as Map<String, Object?>))
-                : (NotebookDocumentFilter2.canParse(notebookJson, nullLspJsonReporter)
-                    ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t2(NotebookDocumentFilter2.fromJson(
-                        notebookJson as Map<String, Object?>))
-                    : (NotebookDocumentFilter3.canParse(notebookJson, nullLspJsonReporter)
-                        ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookJson as Map<String, Object?>))
-                        : (throw '''$notebookJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
-        : (notebookJson is String ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t2(notebookJson) : (throw '''$notebookJson was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)'''));
+    final notebook =
+        _eitherNotebookDocumentFilter1NotebookDocumentFilter2NotebookDocumentFilter3String(
+            notebookJson);
     return NotebookCellTextDocumentFilter(
       language: language,
       notebook: notebook,
@@ -26194,16 +25924,9 @@ class NotebookDocumentChangeEventCellsTextContent implements ToJsonable {
       Map<String, Object?> json) {
     final changesJson = json['changes'];
     final changes = (changesJson as List<Object?>)
-        .map((item) => TextDocumentContentChangeEvent1.canParse(
-                item, nullLspJsonReporter)
-            ? Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>.t1(
-                TextDocumentContentChangeEvent1.fromJson(
-                    item as Map<String, Object?>))
-            : (TextDocumentContentChangeEvent2.canParse(item, nullLspJsonReporter)
-                ? Either2<TextDocumentContentChangeEvent1,
-                        TextDocumentContentChangeEvent2>.t2(
-                    TextDocumentContentChangeEvent2.fromJson(item as Map<String, Object?>))
-                : (throw '''$item was not one of (TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2)''')))
+        .map((item) =>
+            _eitherTextDocumentContentChangeEvent1TextDocumentContentChangeEvent2(
+                item))
         .toList();
     final documentJson = json['document'];
     final document = VersionedTextDocumentIdentifier.fromJson(
@@ -26918,16 +26641,9 @@ class NotebookDocumentSyncOptions implements ToJsonable {
     }
     final notebookSelectorJson = json['notebookSelector'];
     final notebookSelector = (notebookSelectorJson as List<Object?>)
-        .map((item) => NotebookDocumentSyncOptionsNotebookSelector.canParse(
-                item, nullLspJsonReporter)
-            ? Either2<NotebookDocumentSyncOptionsNotebookSelector, NotebookDocumentSyncOptionsNotebookSelector2>.t1(
-                NotebookDocumentSyncOptionsNotebookSelector.fromJson(
-                    item as Map<String, Object?>))
-            : (NotebookDocumentSyncOptionsNotebookSelector2.canParse(item, nullLspJsonReporter)
-                ? Either2<NotebookDocumentSyncOptionsNotebookSelector,
-                        NotebookDocumentSyncOptionsNotebookSelector2>.t2(
-                    NotebookDocumentSyncOptionsNotebookSelector2.fromJson(item as Map<String, Object?>))
-                : (throw '''$item was not one of (NotebookDocumentSyncOptionsNotebookSelector, NotebookDocumentSyncOptionsNotebookSelector2)''')))
+        .map((item) =>
+            _eitherNotebookDocumentSyncOptionsNotebookSelectorNotebookDocumentSyncOptionsNotebookSelector2(
+                item))
         .toList();
     final saveJson = json['save'];
     final save = saveJson as bool?;
@@ -27045,21 +26761,9 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
                 item as Map<String, Object?>))
         .toList();
     final notebookJson = json['notebook'];
-    final notebook = NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter) ||
-            NotebookDocumentFilter2.canParse(
-                notebookJson, nullLspJsonReporter) ||
-            NotebookDocumentFilter3.canParse(notebookJson, nullLspJsonReporter)
-        ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t1(
-            NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter)
-                ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(NotebookDocumentFilter1.fromJson(
-                    notebookJson as Map<String, Object?>))
-                : (NotebookDocumentFilter2.canParse(notebookJson, nullLspJsonReporter)
-                    ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t2(NotebookDocumentFilter2.fromJson(
-                        notebookJson as Map<String, Object?>))
-                    : (NotebookDocumentFilter3.canParse(notebookJson, nullLspJsonReporter)
-                        ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookJson as Map<String, Object?>))
-                        : (throw '''$notebookJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
-        : (notebookJson is String ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t2(notebookJson) : (throw '''$notebookJson was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)'''));
+    final notebook =
+        _eitherNotebookDocumentFilter1NotebookDocumentFilter2NotebookDocumentFilter3String(
+            notebookJson);
     return NotebookDocumentSyncOptionsNotebookSelector(
       cells: cells,
       notebook: notebook,
@@ -27177,21 +26881,8 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
     final notebookJson = json['notebook'];
     final notebook = notebookJson == null
         ? null
-        : (NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter) ||
-                NotebookDocumentFilter2.canParse(
-                    notebookJson, nullLspJsonReporter) ||
-                NotebookDocumentFilter3.canParse(
-                    notebookJson, nullLspJsonReporter)
-            ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t1(
-                NotebookDocumentFilter1.canParse(notebookJson, nullLspJsonReporter)
-                    ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t1(
-                        NotebookDocumentFilter1.fromJson(
-                            notebookJson as Map<String, Object?>))
-                    : (NotebookDocumentFilter2.canParse(notebookJson, nullLspJsonReporter)
-                        ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t2(
-                            NotebookDocumentFilter2.fromJson(notebookJson as Map<String, Object?>))
-                        : (NotebookDocumentFilter3.canParse(notebookJson, nullLspJsonReporter) ? Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>.t3(NotebookDocumentFilter3.fromJson(notebookJson as Map<String, Object?>)) : (throw '''$notebookJson was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)'''))))
-            : (notebookJson is String ? Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>.t2(notebookJson) : (throw '''$notebookJson was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)''')));
+        : _eitherNotebookDocumentFilter1NotebookDocumentFilter2NotebookDocumentFilter3String(
+            notebookJson);
     return NotebookDocumentSyncOptionsNotebookSelector2(
       cells: cells,
       notebook: notebook,
@@ -27451,16 +27142,9 @@ class NotebookDocumentSyncRegistrationOptions
     final id = idJson as String?;
     final notebookSelectorJson = json['notebookSelector'];
     final notebookSelector = (notebookSelectorJson as List<Object?>)
-        .map((item) => NotebookDocumentSyncOptionsNotebookSelector.canParse(
-                item, nullLspJsonReporter)
-            ? Either2<NotebookDocumentSyncOptionsNotebookSelector, NotebookDocumentSyncOptionsNotebookSelector2>.t1(
-                NotebookDocumentSyncOptionsNotebookSelector.fromJson(
-                    item as Map<String, Object?>))
-            : (NotebookDocumentSyncOptionsNotebookSelector2.canParse(item, nullLspJsonReporter)
-                ? Either2<NotebookDocumentSyncOptionsNotebookSelector,
-                        NotebookDocumentSyncOptionsNotebookSelector2>.t2(
-                    NotebookDocumentSyncOptionsNotebookSelector2.fromJson(item as Map<String, Object?>))
-                : (throw '''$item was not one of (NotebookDocumentSyncOptionsNotebookSelector, NotebookDocumentSyncOptionsNotebookSelector2)''')))
+        .map((item) =>
+            _eitherNotebookDocumentSyncOptionsNotebookSelectorNotebookDocumentSyncOptionsNotebookSelector2(
+                item))
         .toList();
     final saveJson = json['save'];
     final save = saveJson as bool?;
@@ -27704,12 +27388,7 @@ class ParameterInformation implements ToJsonable {
     final documentationJson = json['documentation'];
     final documentation = documentationJson == null
         ? null
-        : (MarkupContent.canParse(documentationJson, nullLspJsonReporter)
-            ? Either2<MarkupContent, String>.t1(MarkupContent.fromJson(
-                documentationJson as Map<String, Object?>))
-            : (documentationJson is String
-                ? Either2<MarkupContent, String>.t2(documentationJson)
-                : (throw '''$documentationJson was not one of (MarkupContent, String)''')));
+        : _eitherMarkupContentString(documentationJson);
     final labelJson = json['label'];
     final label = labelJson as String;
     return ParameterInformation(
@@ -27893,11 +27572,7 @@ class PartialResultParams implements ToJsonable {
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     return PartialResultParams(
       partialResultToken: partialResultToken,
     );
@@ -28241,13 +27916,8 @@ class PrepareRenameParams
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return PrepareRenameParams(
       position: position,
       textDocument: textDocument,
@@ -28563,11 +28233,7 @@ class ProgressParams implements ToJsonable {
   });
   static ProgressParams fromJson(Map<String, Object?> json) {
     final tokenJson = json['token'];
-    final token = tokenJson is int
-        ? Either2<int, String>.t1(tokenJson)
-        : (tokenJson is String
-            ? Either2<int, String>.t2(tokenJson)
-            : (throw '''$tokenJson was not one of (int, String)'''));
+    final token = _eitherIntString(tokenJson);
     final valueJson = json['value'];
     final value = valueJson;
     return ProgressParams(
@@ -29345,24 +29011,15 @@ class ReferenceParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final positionJson = json['position'];
     final position = Position.fromJson(positionJson as Map<String, Object?>);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return ReferenceParams(
       context: context,
       partialResultToken: partialResultToken,
@@ -29934,16 +29591,8 @@ class RelatedFullDocumentDiagnosticReport
     final relatedDocuments = (relatedDocumentsJson as Map<Object, Object?>?)
         ?.map((key, value) => MapEntry(
             key as String,
-            FullDocumentDiagnosticReport.canParse(value, nullLspJsonReporter)
-                ? Either2<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>.t1(
-                    FullDocumentDiagnosticReport.fromJson(
-                        value as Map<String, Object?>))
-                : (UnchangedDocumentDiagnosticReport.canParse(
-                        value, nullLspJsonReporter)
-                    ? Either2<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>.t2(
-                        UnchangedDocumentDiagnosticReport.fromJson(
-                            value as Map<String, Object?>))
-                    : (throw '''$value was not one of (FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport)'''))));
+            _eitherFullDocumentDiagnosticReportUnchangedDocumentDiagnosticReport(
+                value)));
     final resultIdJson = json['resultId'];
     final resultId = resultIdJson as String?;
     return RelatedFullDocumentDiagnosticReport(
@@ -30127,16 +29776,8 @@ class RelatedUnchangedDocumentDiagnosticReport
     final relatedDocuments = (relatedDocumentsJson as Map<Object, Object?>?)
         ?.map((key, value) => MapEntry(
             key as String,
-            FullDocumentDiagnosticReport.canParse(value, nullLspJsonReporter)
-                ? Either2<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>.t1(
-                    FullDocumentDiagnosticReport.fromJson(
-                        value as Map<String, Object?>))
-                : (UnchangedDocumentDiagnosticReport.canParse(
-                        value, nullLspJsonReporter)
-                    ? Either2<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>.t2(
-                        UnchangedDocumentDiagnosticReport.fromJson(
-                            value as Map<String, Object?>))
-                    : (throw '''$value was not one of (FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport)'''))));
+            _eitherFullDocumentDiagnosticReportUnchangedDocumentDiagnosticReport(
+                value)));
     final resultIdJson = json['resultId'];
     final resultId = resultIdJson as String;
     return RelatedUnchangedDocumentDiagnosticReport(
@@ -30290,12 +29931,7 @@ class RelativePattern implements ToJsonable {
   });
   static RelativePattern fromJson(Map<String, Object?> json) {
     final baseUriJson = json['baseUri'];
-    final baseUri = baseUriJson is String
-        ? Either2<String, WorkspaceFolder>.t1(baseUriJson)
-        : (WorkspaceFolder.canParse(baseUriJson, nullLspJsonReporter)
-            ? Either2<String, WorkspaceFolder>.t2(
-                WorkspaceFolder.fromJson(baseUriJson as Map<String, Object?>))
-            : (throw '''$baseUriJson was not one of (String, WorkspaceFolder)'''));
+    final baseUri = _eitherStringWorkspaceFolder(baseUriJson);
     final patternJson = json['pattern'];
     final pattern = patternJson as String;
     return RelativePattern(
@@ -30993,13 +30629,8 @@ class RenameParams implements WorkDoneProgressParams, ToJsonable {
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return RenameParams(
       newName: newName,
       position: position,
@@ -31713,11 +31344,7 @@ class SelectionRangeParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final positionsJson = json['positions'];
     final positions = (positionsJson as List<Object?>)
         .map((item) => Position.fromJson(item as Map<String, Object?>))
@@ -31726,13 +31353,8 @@ class SelectionRangeParams
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return SelectionRangeParams(
       partialResultToken: partialResultToken,
       positions: positions,
@@ -32501,29 +32123,11 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
     final fullJson = json['full'];
     final full = fullJson == null
         ? null
-        : (fullJson is bool
-            ? Either2<bool, SemanticTokensClientCapabilitiesRequestsFull>.t1(
-                fullJson)
-            : (SemanticTokensClientCapabilitiesRequestsFull.canParse(
-                    fullJson, nullLspJsonReporter)
-                ? Either2<bool,
-                        SemanticTokensClientCapabilitiesRequestsFull>.t2(
-                    SemanticTokensClientCapabilitiesRequestsFull.fromJson(
-                        fullJson as Map<String, Object?>))
-                : (throw '''$fullJson was not one of (bool, SemanticTokensClientCapabilitiesRequestsFull)''')));
+        : _eitherBoolSemanticTokensClientCapabilitiesRequestsFull(fullJson);
     final rangeJson = json['range'];
     final range = rangeJson == null
         ? null
-        : (rangeJson is bool
-            ? Either2<bool, SemanticTokensClientCapabilitiesRequestsRange>.t1(
-                rangeJson)
-            : (SemanticTokensClientCapabilitiesRequestsRange.canParse(
-                    rangeJson, nullLspJsonReporter)
-                ? Either2<bool,
-                        SemanticTokensClientCapabilitiesRequestsRange>.t2(
-                    SemanticTokensClientCapabilitiesRequestsRange.fromJson(
-                        rangeJson as Map<String, Object?>))
-                : (throw '''$rangeJson was not one of (bool, SemanticTokensClientCapabilitiesRequestsRange)''')));
+        : _eitherBoolSemanticTokensClientCapabilitiesRequestsRange(rangeJson);
     return SemanticTokensClientCapabilitiesRequests(
       full: full,
       range: range,
@@ -32822,24 +32426,15 @@ class SemanticTokensDeltaParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final previousResultIdJson = json['previousResultId'];
     final previousResultId = previousResultIdJson as String;
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return SemanticTokensDeltaParams(
       partialResultToken: partialResultToken,
       previousResultId: previousResultId,
@@ -33291,27 +32886,14 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
     final fullJson = json['full'];
     final full = fullJson == null
         ? null
-        : (fullJson is bool
-            ? Either2<bool, SemanticTokensOptionsFull>.t1(fullJson)
-            : (SemanticTokensOptionsFull.canParse(fullJson, nullLspJsonReporter)
-                ? Either2<bool, SemanticTokensOptionsFull>.t2(
-                    SemanticTokensOptionsFull.fromJson(
-                        fullJson as Map<String, Object?>))
-                : (throw '''$fullJson was not one of (bool, SemanticTokensOptionsFull)''')));
+        : _eitherBoolSemanticTokensOptionsFull(fullJson);
     final legendJson = json['legend'];
     final legend =
         SemanticTokensLegend.fromJson(legendJson as Map<String, Object?>);
     final rangeJson = json['range'];
     final range = rangeJson == null
         ? null
-        : (rangeJson is bool
-            ? Either2<bool, SemanticTokensOptionsRange>.t1(rangeJson)
-            : (SemanticTokensOptionsRange.canParse(
-                    rangeJson, nullLspJsonReporter)
-                ? Either2<bool, SemanticTokensOptionsRange>.t2(
-                    SemanticTokensOptionsRange.fromJson(
-                        rangeJson as Map<String, Object?>))
-                : (throw '''$rangeJson was not one of (bool, SemanticTokensOptionsRange)''')));
+        : _eitherBoolSemanticTokensOptionsRange(rangeJson);
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return SemanticTokensOptions(
@@ -33549,22 +33131,13 @@ class SemanticTokensParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return SemanticTokensParams(
       partialResultToken: partialResultToken,
       textDocument: textDocument,
@@ -33755,24 +33328,15 @@ class SemanticTokensRangeParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return SemanticTokensRangeParams(
       partialResultToken: partialResultToken,
       range: range,
@@ -33930,13 +33494,7 @@ class SemanticTokensRegistrationOptions
     final fullJson = json['full'];
     final full = fullJson == null
         ? null
-        : (fullJson is bool
-            ? Either2<bool, SemanticTokensOptionsFull>.t1(fullJson)
-            : (SemanticTokensOptionsFull.canParse(fullJson, nullLspJsonReporter)
-                ? Either2<bool, SemanticTokensOptionsFull>.t2(
-                    SemanticTokensOptionsFull.fromJson(
-                        fullJson as Map<String, Object?>))
-                : (throw '''$fullJson was not one of (bool, SemanticTokensOptionsFull)''')));
+        : _eitherBoolSemanticTokensOptionsFull(fullJson);
     final idJson = json['id'];
     final id = idJson as String?;
     final legendJson = json['legend'];
@@ -33945,14 +33503,7 @@ class SemanticTokensRegistrationOptions
     final rangeJson = json['range'];
     final range = rangeJson == null
         ? null
-        : (rangeJson is bool
-            ? Either2<bool, SemanticTokensOptionsRange>.t1(rangeJson)
-            : (SemanticTokensOptionsRange.canParse(
-                    rangeJson, nullLspJsonReporter)
-                ? Either2<bool, SemanticTokensOptionsRange>.t2(
-                    SemanticTokensOptionsRange.fromJson(
-                        rangeJson as Map<String, Object?>))
-                : (throw '''$rangeJson was not one of (bool, SemanticTokensOptionsRange)''')));
+        : _eitherBoolSemanticTokensOptionsRange(rangeJson);
     final workDoneProgressJson = json['workDoneProgress'];
     final workDoneProgress = workDoneProgressJson as bool?;
     return SemanticTokensRegistrationOptions(
@@ -34250,31 +33801,12 @@ class ServerCapabilities implements ToJsonable {
     final callHierarchyProviderJson = json['callHierarchyProvider'];
     final callHierarchyProvider = callHierarchyProviderJson == null
         ? null
-        : (callHierarchyProviderJson is bool
-            ? Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>.t1(
-                callHierarchyProviderJson)
-            : (CallHierarchyOptions.canParse(
-                    callHierarchyProviderJson, nullLspJsonReporter)
-                ? Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>.t2(
-                    CallHierarchyOptions.fromJson(
-                        callHierarchyProviderJson as Map<String, Object?>))
-                : (CallHierarchyRegistrationOptions.canParse(
-                        callHierarchyProviderJson, nullLspJsonReporter)
-                    ? Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>.t3(
-                        CallHierarchyRegistrationOptions.fromJson(
-                            callHierarchyProviderJson as Map<String, Object?>))
-                    : (throw '''$callHierarchyProviderJson was not one of (bool, CallHierarchyOptions, CallHierarchyRegistrationOptions)'''))));
+        : _eitherBoolCallHierarchyOptionsCallHierarchyRegistrationOptions(
+            callHierarchyProviderJson);
     final codeActionProviderJson = json['codeActionProvider'];
     final codeActionProvider = codeActionProviderJson == null
         ? null
-        : (codeActionProviderJson is bool
-            ? Either2<bool, CodeActionOptions>.t1(codeActionProviderJson)
-            : (CodeActionOptions.canParse(
-                    codeActionProviderJson, nullLspJsonReporter)
-                ? Either2<bool, CodeActionOptions>.t2(
-                    CodeActionOptions.fromJson(
-                        codeActionProviderJson as Map<String, Object?>))
-                : (throw '''$codeActionProviderJson was not one of (bool, CodeActionOptions)''')));
+        : _eitherBoolCodeActionOptions(codeActionProviderJson);
     final codeLensProviderJson = json['codeLensProvider'];
     final codeLensProvider = codeLensProviderJson != null
         ? CodeLensOptions.fromJson(codeLensProviderJson as Map<String, Object?>)
@@ -34282,19 +33814,8 @@ class ServerCapabilities implements ToJsonable {
     final colorProviderJson = json['colorProvider'];
     final colorProvider = colorProviderJson == null
         ? null
-        : (colorProviderJson is bool
-            ? Either3<bool, DocumentColorOptions,
-                DocumentColorRegistrationOptions>.t1(colorProviderJson)
-            : (DocumentColorOptions.canParse(colorProviderJson, nullLspJsonReporter)
-                ? Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>.t2(
-                    DocumentColorOptions.fromJson(
-                        colorProviderJson as Map<String, Object?>))
-                : (DocumentColorRegistrationOptions.canParse(
-                        colorProviderJson, nullLspJsonReporter)
-                    ? Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>.t3(
-                        DocumentColorRegistrationOptions.fromJson(
-                            colorProviderJson as Map<String, Object?>))
-                    : (throw '''$colorProviderJson was not one of (bool, DocumentColorOptions, DocumentColorRegistrationOptions)'''))));
+        : _eitherBoolDocumentColorOptionsDocumentColorRegistrationOptions(
+            colorProviderJson);
     final completionProviderJson = json['completionProvider'];
     final completionProvider = completionProviderJson != null
         ? CompletionOptions.fromJson(
@@ -34303,69 +33824,25 @@ class ServerCapabilities implements ToJsonable {
     final declarationProviderJson = json['declarationProvider'];
     final declarationProvider = declarationProviderJson == null
         ? null
-        : (declarationProviderJson is bool
-            ? Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>.t1(
-                declarationProviderJson)
-            : (DeclarationOptions.canParse(
-                    declarationProviderJson, nullLspJsonReporter)
-                ? Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>.t2(
-                    DeclarationOptions.fromJson(
-                        declarationProviderJson as Map<String, Object?>))
-                : (DeclarationRegistrationOptions.canParse(
-                        declarationProviderJson, nullLspJsonReporter)
-                    ? Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>.t3(
-                        DeclarationRegistrationOptions.fromJson(
-                            declarationProviderJson as Map<String, Object?>))
-                    : (throw '''$declarationProviderJson was not one of (bool, DeclarationOptions, DeclarationRegistrationOptions)'''))));
+        : _eitherBoolDeclarationOptionsDeclarationRegistrationOptions(
+            declarationProviderJson);
     final definitionProviderJson = json['definitionProvider'];
     final definitionProvider = definitionProviderJson == null
         ? null
-        : (definitionProviderJson is bool
-            ? Either2<bool, DefinitionOptions>.t1(definitionProviderJson)
-            : (DefinitionOptions.canParse(
-                    definitionProviderJson, nullLspJsonReporter)
-                ? Either2<bool, DefinitionOptions>.t2(
-                    DefinitionOptions.fromJson(
-                        definitionProviderJson as Map<String, Object?>))
-                : (throw '''$definitionProviderJson was not one of (bool, DefinitionOptions)''')));
+        : _eitherBoolDefinitionOptions(definitionProviderJson);
     final diagnosticProviderJson = json['diagnosticProvider'];
     final diagnosticProvider = diagnosticProviderJson == null
         ? null
-        : (DiagnosticOptions.canParse(
-                diagnosticProviderJson, nullLspJsonReporter)
-            ? Either2<DiagnosticOptions, DiagnosticRegistrationOptions>.t1(
-                DiagnosticOptions.fromJson(
-                    diagnosticProviderJson as Map<String, Object?>))
-            : (DiagnosticRegistrationOptions.canParse(
-                    diagnosticProviderJson, nullLspJsonReporter)
-                ? Either2<DiagnosticOptions, DiagnosticRegistrationOptions>.t2(
-                    DiagnosticRegistrationOptions.fromJson(
-                        diagnosticProviderJson as Map<String, Object?>))
-                : (throw '''$diagnosticProviderJson was not one of (DiagnosticOptions, DiagnosticRegistrationOptions)''')));
+        : _eitherDiagnosticOptionsDiagnosticRegistrationOptions(
+            diagnosticProviderJson);
     final documentFormattingProviderJson = json['documentFormattingProvider'];
     final documentFormattingProvider = documentFormattingProviderJson == null
         ? null
-        : (documentFormattingProviderJson is bool
-            ? Either2<bool, DocumentFormattingOptions>.t1(
-                documentFormattingProviderJson)
-            : (DocumentFormattingOptions.canParse(
-                    documentFormattingProviderJson, nullLspJsonReporter)
-                ? Either2<bool, DocumentFormattingOptions>.t2(
-                    DocumentFormattingOptions.fromJson(
-                        documentFormattingProviderJson as Map<String, Object?>))
-                : (throw '''$documentFormattingProviderJson was not one of (bool, DocumentFormattingOptions)''')));
+        : _eitherBoolDocumentFormattingOptions(documentFormattingProviderJson);
     final documentHighlightProviderJson = json['documentHighlightProvider'];
     final documentHighlightProvider = documentHighlightProviderJson == null
         ? null
-        : (documentHighlightProviderJson is bool
-            ? Either2<bool, DocumentHighlightOptions>.t1(
-                documentHighlightProviderJson)
-            : (DocumentHighlightOptions.canParse(
-                    documentHighlightProviderJson, nullLspJsonReporter)
-                ? Either2<bool, DocumentHighlightOptions>.t2(
-                    DocumentHighlightOptions.fromJson(
-                        documentHighlightProviderJson as Map<String, Object?>))
-                : (throw '''$documentHighlightProviderJson was not one of (bool, DocumentHighlightOptions)''')));
+        : _eitherBoolDocumentHighlightOptions(documentHighlightProviderJson);
     final documentLinkProviderJson = json['documentLinkProvider'];
     final documentLinkProvider = documentLinkProviderJson != null
         ? DocumentLinkOptions.fromJson(
@@ -34380,31 +33857,15 @@ class ServerCapabilities implements ToJsonable {
             : null;
     final documentRangeFormattingProviderJson =
         json['documentRangeFormattingProvider'];
-    final documentRangeFormattingProvider = documentRangeFormattingProviderJson ==
-            null
-        ? null
-        : (documentRangeFormattingProviderJson is bool
-            ? Either2<bool, DocumentRangeFormattingOptions>.t1(
-                documentRangeFormattingProviderJson)
-            : (DocumentRangeFormattingOptions.canParse(
-                    documentRangeFormattingProviderJson, nullLspJsonReporter)
-                ? Either2<bool, DocumentRangeFormattingOptions>.t2(
-                    DocumentRangeFormattingOptions.fromJson(
-                        documentRangeFormattingProviderJson
-                            as Map<String, Object?>))
-                : (throw '''$documentRangeFormattingProviderJson was not one of (bool, DocumentRangeFormattingOptions)''')));
+    final documentRangeFormattingProvider =
+        documentRangeFormattingProviderJson == null
+            ? null
+            : _eitherBoolDocumentRangeFormattingOptions(
+                documentRangeFormattingProviderJson);
     final documentSymbolProviderJson = json['documentSymbolProvider'];
     final documentSymbolProvider = documentSymbolProviderJson == null
         ? null
-        : (documentSymbolProviderJson is bool
-            ? Either2<bool, DocumentSymbolOptions>.t1(
-                documentSymbolProviderJson)
-            : (DocumentSymbolOptions.canParse(
-                    documentSymbolProviderJson, nullLspJsonReporter)
-                ? Either2<bool, DocumentSymbolOptions>.t2(
-                    DocumentSymbolOptions.fromJson(
-                        documentSymbolProviderJson as Map<String, Object?>))
-                : (throw '''$documentSymbolProviderJson was not one of (bool, DocumentSymbolOptions)''')));
+        : _eitherBoolDocumentSymbolOptions(documentSymbolProviderJson);
     final executeCommandProviderJson = json['executeCommandProvider'];
     final executeCommandProvider = executeCommandProviderJson != null
         ? ExecuteCommandOptions.fromJson(
@@ -34415,128 +33876,42 @@ class ServerCapabilities implements ToJsonable {
     final foldingRangeProviderJson = json['foldingRangeProvider'];
     final foldingRangeProvider = foldingRangeProviderJson == null
         ? null
-        : (foldingRangeProviderJson is bool
-            ? Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>.t1(
-                foldingRangeProviderJson)
-            : (FoldingRangeOptions.canParse(
-                    foldingRangeProviderJson, nullLspJsonReporter)
-                ? Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>.t2(
-                    FoldingRangeOptions.fromJson(
-                        foldingRangeProviderJson as Map<String, Object?>))
-                : (FoldingRangeRegistrationOptions.canParse(
-                        foldingRangeProviderJson, nullLspJsonReporter)
-                    ? Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>.t3(
-                        FoldingRangeRegistrationOptions.fromJson(
-                            foldingRangeProviderJson as Map<String, Object?>))
-                    : (throw '''$foldingRangeProviderJson was not one of (bool, FoldingRangeOptions, FoldingRangeRegistrationOptions)'''))));
+        : _eitherBoolFoldingRangeOptionsFoldingRangeRegistrationOptions(
+            foldingRangeProviderJson);
     final hoverProviderJson = json['hoverProvider'];
     final hoverProvider = hoverProviderJson == null
         ? null
-        : (hoverProviderJson is bool
-            ? Either2<bool, HoverOptions>.t1(hoverProviderJson)
-            : (HoverOptions.canParse(hoverProviderJson, nullLspJsonReporter)
-                ? Either2<bool, HoverOptions>.t2(HoverOptions.fromJson(
-                    hoverProviderJson as Map<String, Object?>))
-                : (throw '''$hoverProviderJson was not one of (bool, HoverOptions)''')));
+        : _eitherBoolHoverOptions(hoverProviderJson);
     final implementationProviderJson = json['implementationProvider'];
     final implementationProvider = implementationProviderJson == null
         ? null
-        : (implementationProviderJson is bool
-            ? Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>.t1(
-                implementationProviderJson)
-            : (ImplementationOptions.canParse(
-                    implementationProviderJson, nullLspJsonReporter)
-                ? Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>.t2(
-                    ImplementationOptions.fromJson(
-                        implementationProviderJson as Map<String, Object?>))
-                : (ImplementationRegistrationOptions.canParse(
-                        implementationProviderJson, nullLspJsonReporter)
-                    ? Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>.t3(
-                        ImplementationRegistrationOptions.fromJson(
-                            implementationProviderJson as Map<String, Object?>))
-                    : (throw '''$implementationProviderJson was not one of (bool, ImplementationOptions, ImplementationRegistrationOptions)'''))));
+        : _eitherBoolImplementationOptionsImplementationRegistrationOptions(
+            implementationProviderJson);
     final inlayHintProviderJson = json['inlayHintProvider'];
     final inlayHintProvider = inlayHintProviderJson == null
         ? null
-        : (inlayHintProviderJson is bool
-            ? Either3<bool, InlayHintOptions, InlayHintRegistrationOptions>.t1(
-                inlayHintProviderJson)
-            : (InlayHintOptions.canParse(
-                    inlayHintProviderJson, nullLspJsonReporter)
-                ? Either3<bool, InlayHintOptions, InlayHintRegistrationOptions>.t2(
-                    InlayHintOptions.fromJson(
-                        inlayHintProviderJson as Map<String, Object?>))
-                : (InlayHintRegistrationOptions.canParse(
-                        inlayHintProviderJson, nullLspJsonReporter)
-                    ? Either3<bool, InlayHintOptions, InlayHintRegistrationOptions>.t3(
-                        InlayHintRegistrationOptions.fromJson(
-                            inlayHintProviderJson as Map<String, Object?>))
-                    : (throw '''$inlayHintProviderJson was not one of (bool, InlayHintOptions, InlayHintRegistrationOptions)'''))));
+        : _eitherBoolInlayHintOptionsInlayHintRegistrationOptions(
+            inlayHintProviderJson);
     final inlineValueProviderJson = json['inlineValueProvider'];
     final inlineValueProvider = inlineValueProviderJson == null
         ? null
-        : (inlineValueProviderJson is bool
-            ? Either3<bool, InlineValueOptions, InlineValueRegistrationOptions>.t1(
-                inlineValueProviderJson)
-            : (InlineValueOptions.canParse(
-                    inlineValueProviderJson, nullLspJsonReporter)
-                ? Either3<bool, InlineValueOptions, InlineValueRegistrationOptions>.t2(
-                    InlineValueOptions.fromJson(
-                        inlineValueProviderJson as Map<String, Object?>))
-                : (InlineValueRegistrationOptions.canParse(
-                        inlineValueProviderJson, nullLspJsonReporter)
-                    ? Either3<bool, InlineValueOptions, InlineValueRegistrationOptions>.t3(
-                        InlineValueRegistrationOptions.fromJson(
-                            inlineValueProviderJson as Map<String, Object?>))
-                    : (throw '''$inlineValueProviderJson was not one of (bool, InlineValueOptions, InlineValueRegistrationOptions)'''))));
+        : _eitherBoolInlineValueOptionsInlineValueRegistrationOptions(
+            inlineValueProviderJson);
     final linkedEditingRangeProviderJson = json['linkedEditingRangeProvider'];
     final linkedEditingRangeProvider = linkedEditingRangeProviderJson == null
         ? null
-        : (linkedEditingRangeProviderJson is bool
-            ? Either3<bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions>.t1(
-                linkedEditingRangeProviderJson)
-            : (LinkedEditingRangeOptions.canParse(
-                    linkedEditingRangeProviderJson, nullLspJsonReporter)
-                ? Either3<bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions>.t2(
-                    LinkedEditingRangeOptions.fromJson(
-                        linkedEditingRangeProviderJson as Map<String, Object?>))
-                : (LinkedEditingRangeRegistrationOptions.canParse(
-                        linkedEditingRangeProviderJson, nullLspJsonReporter)
-                    ? Either3<bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions>.t3(
-                        LinkedEditingRangeRegistrationOptions.fromJson(
-                            linkedEditingRangeProviderJson as Map<String, Object?>))
-                    : (throw '''$linkedEditingRangeProviderJson was not one of (bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions)'''))));
+        : _eitherBoolLinkedEditingRangeOptionsLinkedEditingRangeRegistrationOptions(
+            linkedEditingRangeProviderJson);
     final monikerProviderJson = json['monikerProvider'];
     final monikerProvider = monikerProviderJson == null
         ? null
-        : (monikerProviderJson is bool
-            ? Either3<bool, MonikerOptions, MonikerRegistrationOptions>.t1(
-                monikerProviderJson)
-            : (MonikerOptions.canParse(monikerProviderJson, nullLspJsonReporter)
-                ? Either3<bool, MonikerOptions, MonikerRegistrationOptions>.t2(
-                    MonikerOptions.fromJson(
-                        monikerProviderJson as Map<String, Object?>))
-                : (MonikerRegistrationOptions.canParse(
-                        monikerProviderJson, nullLspJsonReporter)
-                    ? Either3<bool, MonikerOptions,
-                            MonikerRegistrationOptions>.t3(
-                        MonikerRegistrationOptions.fromJson(
-                            monikerProviderJson as Map<String, Object?>))
-                    : (throw '''$monikerProviderJson was not one of (bool, MonikerOptions, MonikerRegistrationOptions)'''))));
+        : _eitherBoolMonikerOptionsMonikerRegistrationOptions(
+            monikerProviderJson);
     final notebookDocumentSyncJson = json['notebookDocumentSync'];
     final notebookDocumentSync = notebookDocumentSyncJson == null
         ? null
-        : (NotebookDocumentSyncOptions.canParse(notebookDocumentSyncJson, nullLspJsonReporter)
-            ? Either2<NotebookDocumentSyncOptions, NotebookDocumentSyncRegistrationOptions>.t1(
-                NotebookDocumentSyncOptions.fromJson(
-                    notebookDocumentSyncJson as Map<String, Object?>))
-            : (NotebookDocumentSyncRegistrationOptions.canParse(
-                    notebookDocumentSyncJson, nullLspJsonReporter)
-                ? Either2<NotebookDocumentSyncOptions,
-                        NotebookDocumentSyncRegistrationOptions>.t2(
-                    NotebookDocumentSyncRegistrationOptions.fromJson(
-                        notebookDocumentSyncJson as Map<String, Object?>))
-                : (throw '''$notebookDocumentSyncJson was not one of (NotebookDocumentSyncOptions, NotebookDocumentSyncRegistrationOptions)''')));
+        : _eitherNotebookDocumentSyncOptionsNotebookDocumentSyncRegistrationOptions(
+            notebookDocumentSyncJson);
     final positionEncodingJson = json['positionEncoding'];
     final positionEncoding = positionEncodingJson != null
         ? PositionEncodingKind.fromJson(positionEncodingJson as String)
@@ -34544,53 +33919,21 @@ class ServerCapabilities implements ToJsonable {
     final referencesProviderJson = json['referencesProvider'];
     final referencesProvider = referencesProviderJson == null
         ? null
-        : (referencesProviderJson is bool
-            ? Either2<bool, ReferenceOptions>.t1(referencesProviderJson)
-            : (ReferenceOptions.canParse(
-                    referencesProviderJson, nullLspJsonReporter)
-                ? Either2<bool, ReferenceOptions>.t2(ReferenceOptions.fromJson(
-                    referencesProviderJson as Map<String, Object?>))
-                : (throw '''$referencesProviderJson was not one of (bool, ReferenceOptions)''')));
+        : _eitherBoolReferenceOptions(referencesProviderJson);
     final renameProviderJson = json['renameProvider'];
     final renameProvider = renameProviderJson == null
         ? null
-        : (renameProviderJson is bool
-            ? Either2<bool, RenameOptions>.t1(renameProviderJson)
-            : (RenameOptions.canParse(renameProviderJson, nullLspJsonReporter)
-                ? Either2<bool, RenameOptions>.t2(RenameOptions.fromJson(
-                    renameProviderJson as Map<String, Object?>))
-                : (throw '''$renameProviderJson was not one of (bool, RenameOptions)''')));
+        : _eitherBoolRenameOptions(renameProviderJson);
     final selectionRangeProviderJson = json['selectionRangeProvider'];
     final selectionRangeProvider = selectionRangeProviderJson == null
         ? null
-        : (selectionRangeProviderJson is bool
-            ? Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>.t1(
-                selectionRangeProviderJson)
-            : (SelectionRangeOptions.canParse(
-                    selectionRangeProviderJson, nullLspJsonReporter)
-                ? Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>.t2(
-                    SelectionRangeOptions.fromJson(
-                        selectionRangeProviderJson as Map<String, Object?>))
-                : (SelectionRangeRegistrationOptions.canParse(
-                        selectionRangeProviderJson, nullLspJsonReporter)
-                    ? Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>.t3(
-                        SelectionRangeRegistrationOptions.fromJson(
-                            selectionRangeProviderJson as Map<String, Object?>))
-                    : (throw '''$selectionRangeProviderJson was not one of (bool, SelectionRangeOptions, SelectionRangeRegistrationOptions)'''))));
+        : _eitherBoolSelectionRangeOptionsSelectionRangeRegistrationOptions(
+            selectionRangeProviderJson);
     final semanticTokensProviderJson = json['semanticTokensProvider'];
     final semanticTokensProvider = semanticTokensProviderJson == null
         ? null
-        : (SemanticTokensOptions.canParse(
-                semanticTokensProviderJson, nullLspJsonReporter)
-            ? Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>.t1(
-                SemanticTokensOptions.fromJson(
-                    semanticTokensProviderJson as Map<String, Object?>))
-            : (SemanticTokensRegistrationOptions.canParse(
-                    semanticTokensProviderJson, nullLspJsonReporter)
-                ? Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>.t2(
-                    SemanticTokensRegistrationOptions.fromJson(
-                        semanticTokensProviderJson as Map<String, Object?>))
-                : (throw '''$semanticTokensProviderJson was not one of (SemanticTokensOptions, SemanticTokensRegistrationOptions)''')));
+        : _eitherSemanticTokensOptionsSemanticTokensRegistrationOptions(
+            semanticTokensProviderJson);
     final signatureHelpProviderJson = json['signatureHelpProvider'];
     final signatureHelpProvider = signatureHelpProviderJson != null
         ? SignatureHelpOptions.fromJson(
@@ -34599,50 +33942,18 @@ class ServerCapabilities implements ToJsonable {
     final textDocumentSyncJson = json['textDocumentSync'];
     final textDocumentSync = textDocumentSyncJson == null
         ? null
-        : (TextDocumentSyncKind.canParse(
-                textDocumentSyncJson, nullLspJsonReporter)
-            ? Either2<TextDocumentSyncKind, TextDocumentSyncOptions>.t1(
-                TextDocumentSyncKind.fromJson(textDocumentSyncJson as int))
-            : (TextDocumentSyncOptions.canParse(
-                    textDocumentSyncJson, nullLspJsonReporter)
-                ? Either2<TextDocumentSyncKind, TextDocumentSyncOptions>.t2(
-                    TextDocumentSyncOptions.fromJson(
-                        textDocumentSyncJson as Map<String, Object?>))
-                : (throw '''$textDocumentSyncJson was not one of (TextDocumentSyncKind, TextDocumentSyncOptions)''')));
+        : _eitherTextDocumentSyncKindTextDocumentSyncOptions(
+            textDocumentSyncJson);
     final typeDefinitionProviderJson = json['typeDefinitionProvider'];
     final typeDefinitionProvider = typeDefinitionProviderJson == null
         ? null
-        : (typeDefinitionProviderJson is bool
-            ? Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>.t1(
-                typeDefinitionProviderJson)
-            : (TypeDefinitionOptions.canParse(
-                    typeDefinitionProviderJson, nullLspJsonReporter)
-                ? Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>.t2(
-                    TypeDefinitionOptions.fromJson(
-                        typeDefinitionProviderJson as Map<String, Object?>))
-                : (TypeDefinitionRegistrationOptions.canParse(
-                        typeDefinitionProviderJson, nullLspJsonReporter)
-                    ? Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>.t3(
-                        TypeDefinitionRegistrationOptions.fromJson(
-                            typeDefinitionProviderJson as Map<String, Object?>))
-                    : (throw '''$typeDefinitionProviderJson was not one of (bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions)'''))));
+        : _eitherBoolTypeDefinitionOptionsTypeDefinitionRegistrationOptions(
+            typeDefinitionProviderJson);
     final typeHierarchyProviderJson = json['typeHierarchyProvider'];
     final typeHierarchyProvider = typeHierarchyProviderJson == null
         ? null
-        : (typeHierarchyProviderJson is bool
-            ? Either3<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>.t1(
-                typeHierarchyProviderJson)
-            : (TypeHierarchyOptions.canParse(
-                    typeHierarchyProviderJson, nullLspJsonReporter)
-                ? Either3<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>.t2(
-                    TypeHierarchyOptions.fromJson(
-                        typeHierarchyProviderJson as Map<String, Object?>))
-                : (TypeHierarchyRegistrationOptions.canParse(
-                        typeHierarchyProviderJson, nullLspJsonReporter)
-                    ? Either3<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>.t3(
-                        TypeHierarchyRegistrationOptions.fromJson(
-                            typeHierarchyProviderJson as Map<String, Object?>))
-                    : (throw '''$typeHierarchyProviderJson was not one of (bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions)'''))));
+        : _eitherBoolTypeHierarchyOptionsTypeHierarchyRegistrationOptions(
+            typeHierarchyProviderJson);
     final workspaceJson = json['workspace'];
     final workspace = workspaceJson != null
         ? ServerCapabilitiesWorkspace.fromJson(
@@ -34651,15 +33962,7 @@ class ServerCapabilities implements ToJsonable {
     final workspaceSymbolProviderJson = json['workspaceSymbolProvider'];
     final workspaceSymbolProvider = workspaceSymbolProviderJson == null
         ? null
-        : (workspaceSymbolProviderJson is bool
-            ? Either2<bool, WorkspaceSymbolOptions>.t1(
-                workspaceSymbolProviderJson)
-            : (WorkspaceSymbolOptions.canParse(
-                    workspaceSymbolProviderJson, nullLspJsonReporter)
-                ? Either2<bool, WorkspaceSymbolOptions>.t2(
-                    WorkspaceSymbolOptions.fromJson(
-                        workspaceSymbolProviderJson as Map<String, Object?>))
-                : (throw '''$workspaceSymbolProviderJson was not one of (bool, WorkspaceSymbolOptions)''')));
+        : _eitherBoolWorkspaceSymbolOptions(workspaceSymbolProviderJson);
     return ServerCapabilities(
       callHierarchyProvider: callHierarchyProvider,
       codeActionProvider: codeActionProvider,
@@ -37043,13 +36346,8 @@ class SignatureHelpParams
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return SignatureHelpParams(
       context: context,
       position: position,
@@ -37404,12 +36702,7 @@ class SignatureInformation implements ToJsonable {
     final documentationJson = json['documentation'];
     final documentation = documentationJson == null
         ? null
-        : (MarkupContent.canParse(documentationJson, nullLspJsonReporter)
-            ? Either2<MarkupContent, String>.t1(MarkupContent.fromJson(
-                documentationJson as Map<String, Object?>))
-            : (documentationJson is String
-                ? Either2<MarkupContent, String>.t2(documentationJson)
-                : (throw '''$documentationJson was not one of (MarkupContent, String)''')));
+        : _eitherMarkupContentString(documentationJson);
     final labelJson = json['label'];
     final label = labelJson as String;
     final parametersJson = json['parameters'];
@@ -39222,16 +38515,7 @@ class TextDocumentEdit implements ToJsonable {
   static TextDocumentEdit fromJson(Map<String, Object?> json) {
     final editsJson = json['edits'];
     final edits = (editsJson as List<Object?>)
-        .map((item) => AnnotatedTextEdit.canParse(item, nullLspJsonReporter)
-            ? Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>.t1(
-                AnnotatedTextEdit.fromJson(item as Map<String, Object?>))
-            : (SnippetTextEdit.canParse(item, nullLspJsonReporter)
-                ? Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>.t2(
-                    SnippetTextEdit.fromJson(item as Map<String, Object?>))
-                : (TextEdit.canParse(item, nullLspJsonReporter)
-                    ? Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>.t3(
-                        TextEdit.fromJson(item as Map<String, Object?>))
-                    : (throw '''$item was not one of (AnnotatedTextEdit, SnippetTextEdit, TextEdit)'''))))
+        .map((item) => _eitherAnnotatedTextEditSnippetTextEditTextEdit(item))
         .toList();
     final textDocumentJson = json['textDocument'];
     final textDocument = OptionalVersionedTextDocumentIdentifier.fromJson(
@@ -40557,14 +39841,7 @@ class TextDocumentSyncOptions implements ToJsonable {
     final openCloseJson = json['openClose'];
     final openClose = openCloseJson as bool?;
     final saveJson = json['save'];
-    final save = saveJson == null
-        ? null
-        : (saveJson is bool
-            ? Either2<bool, SaveOptions>.t1(saveJson)
-            : (SaveOptions.canParse(saveJson, nullLspJsonReporter)
-                ? Either2<bool, SaveOptions>.t2(
-                    SaveOptions.fromJson(saveJson as Map<String, Object?>))
-                : (throw '''$saveJson was not one of (bool, SaveOptions)''')));
+    final save = saveJson == null ? null : _eitherBoolSaveOptions(saveJson);
     final willSaveJson = json['willSave'];
     final willSave = willSaveJson as bool?;
     final willSaveWaitUntilJson = json['willSaveWaitUntil'];
@@ -41049,24 +40326,15 @@ class TypeDefinitionParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final positionJson = json['position'];
     final position = Position.fromJson(positionJson as Map<String, Object?>);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return TypeDefinitionParams(
       partialResultToken: partialResultToken,
       position: position,
@@ -41731,13 +40999,8 @@ class TypeHierarchyPrepareParams
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return TypeHierarchyPrepareParams(
       position: position,
       textDocument: textDocument,
@@ -41998,19 +41261,10 @@ class TypeHierarchySubtypesParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return TypeHierarchySubtypesParams(
       item: item,
       partialResultToken: partialResultToken,
@@ -42134,19 +41388,10 @@ class TypeHierarchySupertypesParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return TypeHierarchySupertypesParams(
       item: item,
       partialResultToken: partialResultToken,
@@ -43238,11 +42483,7 @@ class WorkDoneProgressCancelParams implements ToJsonable {
   });
   static WorkDoneProgressCancelParams fromJson(Map<String, Object?> json) {
     final tokenJson = json['token'];
-    final token = tokenJson is int
-        ? Either2<int, String>.t1(tokenJson)
-        : (tokenJson is String
-            ? Either2<int, String>.t2(tokenJson)
-            : (throw '''$tokenJson was not one of (int, String)'''));
+    final token = _eitherIntString(tokenJson);
     return WorkDoneProgressCancelParams(
       token: token,
     );
@@ -43310,11 +42551,7 @@ class WorkDoneProgressCreateParams implements ToJsonable {
   });
   static WorkDoneProgressCreateParams fromJson(Map<String, Object?> json) {
     final tokenJson = json['token'];
-    final token = tokenJson is int
-        ? Either2<int, String>.t1(tokenJson)
-        : (tokenJson is String
-            ? Either2<int, String>.t2(tokenJson)
-            : (throw '''$tokenJson was not one of (int, String)'''));
+    final token = _eitherIntString(tokenJson);
     return WorkDoneProgressCreateParams(
       token: token,
     );
@@ -43743,13 +42980,8 @@ class WorkDoneProgressParams implements ToJsonable {
       return TypeHierarchyPrepareParams.fromJson(json);
     }
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return WorkDoneProgressParams(
       workDoneToken: workDoneToken,
     );
@@ -44412,23 +43644,14 @@ class WorkspaceDiagnosticParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final previousResultIdsJson = json['previousResultIds'];
     final previousResultIds = (previousResultIdsJson as List<Object?>)
         .map((item) => PreviousResultId.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return WorkspaceDiagnosticParams(
       identifier: identifier,
       partialResultToken: partialResultToken,
@@ -44570,17 +43793,9 @@ class WorkspaceDiagnosticReport implements ToJsonable {
   static WorkspaceDiagnosticReport fromJson(Map<String, Object?> json) {
     final itemsJson = json['items'];
     final items = (itemsJson as List<Object?>)
-        .map((item) => WorkspaceFullDocumentDiagnosticReport.canParse(
-                item, nullLspJsonReporter)
-            ? Either2<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>.t1(
-                WorkspaceFullDocumentDiagnosticReport.fromJson(
-                    item as Map<String, Object?>))
-            : (WorkspaceUnchangedDocumentDiagnosticReport.canParse(
-                    item, nullLspJsonReporter)
-                ? Either2<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>.t2(
-                    WorkspaceUnchangedDocumentDiagnosticReport.fromJson(
-                        item as Map<String, Object?>))
-                : (throw '''$item was not one of (WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport)''')))
+        .map((item) =>
+            _eitherWorkspaceFullDocumentDiagnosticReportWorkspaceUnchangedDocumentDiagnosticReport(
+                item))
         .toList();
     return WorkspaceDiagnosticReport(
       items: items,
@@ -44670,17 +43885,9 @@ class WorkspaceDiagnosticReportPartialResult implements ToJsonable {
       Map<String, Object?> json) {
     final itemsJson = json['items'];
     final items = (itemsJson as List<Object?>)
-        .map((item) => WorkspaceFullDocumentDiagnosticReport.canParse(
-                item, nullLspJsonReporter)
-            ? Either2<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>.t1(
-                WorkspaceFullDocumentDiagnosticReport.fromJson(
-                    item as Map<String, Object?>))
-            : (WorkspaceUnchangedDocumentDiagnosticReport.canParse(
-                    item, nullLspJsonReporter)
-                ? Either2<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>.t2(
-                    WorkspaceUnchangedDocumentDiagnosticReport.fromJson(
-                        item as Map<String, Object?>))
-                : (throw '''$item was not one of (WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport)''')))
+        .map((item) =>
+            _eitherWorkspaceFullDocumentDiagnosticReportWorkspaceUnchangedDocumentDiagnosticReport(
+                item))
         .toList();
     return WorkspaceDiagnosticReportPartialResult(
       items: items,
@@ -44796,20 +44003,8 @@ class WorkspaceEdit implements ToJsonable {
                 .toList()));
     final documentChangesJson = json['documentChanges'];
     final documentChanges = (documentChangesJson as List<Object?>?)
-        ?.map((item) => CreateFile.canParse(item, nullLspJsonReporter)
-            ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t1(
-                CreateFile.fromJson(item as Map<String, Object?>))
-            : (DeleteFile.canParse(item, nullLspJsonReporter)
-                ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t2(
-                    DeleteFile.fromJson(item as Map<String, Object?>))
-                : (RenameFile.canParse(item, nullLspJsonReporter)
-                    ? Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t3(
-                        RenameFile.fromJson(item as Map<String, Object?>))
-                    : (TextDocumentEdit.canParse(item, nullLspJsonReporter)
-                        ? Either4<CreateFile, DeleteFile, RenameFile,
-                                TextDocumentEdit>.t4(
-                            TextDocumentEdit.fromJson(item as Map<String, Object?>))
-                        : (throw '''$item was not one of (CreateFile, DeleteFile, RenameFile, TextDocumentEdit)''')))))
+        ?.map((item) =>
+            _eitherCreateFileDeleteFileRenameFileTextDocumentEdit(item))
         .toList();
     return WorkspaceEdit(
       changeAnnotations: changeAnnotations,
@@ -45423,11 +44618,7 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
     final changeNotificationsJson = json['changeNotifications'];
     final changeNotifications = changeNotificationsJson == null
         ? null
-        : (changeNotificationsJson is bool
-            ? Either2<bool, String>.t1(changeNotificationsJson)
-            : (changeNotificationsJson is String
-                ? Either2<bool, String>.t2(changeNotificationsJson)
-                : (throw '''$changeNotificationsJson was not one of (bool, String)''')));
+        : _eitherBoolString(changeNotificationsJson);
     final supportedJson = json['supported'];
     final supported = supportedJson as bool?;
     return WorkspaceFoldersServerCapabilities(
@@ -45726,14 +44917,7 @@ class WorkspaceSymbol implements BaseSymbolInformation, ToJsonable {
     final kindJson = json['kind'];
     final kind = SymbolKind.fromJson(kindJson as int);
     final locationJson = json['location'];
-    final location = Location.canParse(locationJson, nullLspJsonReporter)
-        ? Either2<Location, WorkspaceSymbolLocation>.t1(
-            Location.fromJson(locationJson as Map<String, Object?>))
-        : (WorkspaceSymbolLocation.canParse(locationJson, nullLspJsonReporter)
-            ? Either2<Location, WorkspaceSymbolLocation>.t2(
-                WorkspaceSymbolLocation.fromJson(
-                    locationJson as Map<String, Object?>))
-            : (throw '''$locationJson was not one of (Location, WorkspaceSymbolLocation)'''));
+    final location = _eitherLocationWorkspaceSymbolLocation(locationJson);
     final nameJson = json['name'];
     final name = nameJson as String;
     final tagsJson = json['tags'];
@@ -46468,21 +45652,12 @@ class WorkspaceSymbolParams
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
         ? null
-        : (partialResultTokenJson is int
-            ? Either2<int, String>.t1(partialResultTokenJson)
-            : (partialResultTokenJson is String
-                ? Either2<int, String>.t2(partialResultTokenJson)
-                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
+        : _eitherIntString(partialResultTokenJson);
     final queryJson = json['query'];
     final query = queryJson as String;
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken = workDoneTokenJson == null
-        ? null
-        : (workDoneTokenJson is int
-            ? Either2<int, String>.t1(workDoneTokenJson)
-            : (workDoneTokenJson is String
-                ? Either2<int, String>.t2(workDoneTokenJson)
-                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return WorkspaceSymbolParams(
       partialResultToken: partialResultToken,
       query: query,
@@ -46843,4 +46018,554 @@ class WorkspaceUnchangedDocumentDiagnosticReport
 
   @override
   String toString() => jsonEncoder.convert(toJson());
+}
+
+Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>
+    _eitherAnnotatedTextEditSnippetTextEditTextEdit(Object? value) {
+  return AnnotatedTextEdit.canParse(value, nullLspJsonReporter)
+      ? Either3.t1(AnnotatedTextEdit.fromJson(value as Map<String, Object?>))
+      : SnippetTextEdit.canParse(value, nullLspJsonReporter)
+          ? Either3.t2(SnippetTextEdit.fromJson(value as Map<String, Object?>))
+          : TextEdit.canParse(value, nullLspJsonReporter)
+              ? Either3.t3(TextEdit.fromJson(value as Map<String, Object?>))
+              : throw '$value was not one of (AnnotatedTextEdit, SnippetTextEdit, TextEdit)';
+}
+
+Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>
+    _eitherBoolCallHierarchyOptionsCallHierarchyRegistrationOptions(
+        Object? value) {
+  return value is bool
+      ? Either3.t1(value)
+      : CallHierarchyOptions.canParse(value, nullLspJsonReporter)
+          ? Either3.t2(
+              CallHierarchyOptions.fromJson(value as Map<String, Object?>))
+          : CallHierarchyRegistrationOptions.canParse(
+                  value, nullLspJsonReporter)
+              ? Either3.t3(CallHierarchyRegistrationOptions.fromJson(
+                  value as Map<String, Object?>))
+              : throw '$value was not one of (bool, CallHierarchyOptions, CallHierarchyRegistrationOptions)';
+}
+
+Either2<bool, CodeActionOptions> _eitherBoolCodeActionOptions(Object? value) {
+  return value is bool
+      ? Either2.t1(value)
+      : CodeActionOptions.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(
+              CodeActionOptions.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (bool, CodeActionOptions)';
+}
+
+Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>
+    _eitherBoolDeclarationOptionsDeclarationRegistrationOptions(Object? value) {
+  return value is bool
+      ? Either3.t1(value)
+      : DeclarationOptions.canParse(value, nullLspJsonReporter)
+          ? Either3.t2(
+              DeclarationOptions.fromJson(value as Map<String, Object?>))
+          : DeclarationRegistrationOptions.canParse(value, nullLspJsonReporter)
+              ? Either3.t3(DeclarationRegistrationOptions.fromJson(
+                  value as Map<String, Object?>))
+              : throw '$value was not one of (bool, DeclarationOptions, DeclarationRegistrationOptions)';
+}
+
+Either2<bool, DefinitionOptions> _eitherBoolDefinitionOptions(Object? value) {
+  return value is bool
+      ? Either2.t1(value)
+      : DefinitionOptions.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(
+              DefinitionOptions.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (bool, DefinitionOptions)';
+}
+
+Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>
+    _eitherBoolDocumentColorOptionsDocumentColorRegistrationOptions(
+        Object? value) {
+  return value is bool
+      ? Either3.t1(value)
+      : DocumentColorOptions.canParse(value, nullLspJsonReporter)
+          ? Either3.t2(
+              DocumentColorOptions.fromJson(value as Map<String, Object?>))
+          : DocumentColorRegistrationOptions.canParse(
+                  value, nullLspJsonReporter)
+              ? Either3.t3(DocumentColorRegistrationOptions.fromJson(
+                  value as Map<String, Object?>))
+              : throw '$value was not one of (bool, DocumentColorOptions, DocumentColorRegistrationOptions)';
+}
+
+Either2<bool, DocumentFormattingOptions> _eitherBoolDocumentFormattingOptions(
+    Object? value) {
+  return value is bool
+      ? Either2.t1(value)
+      : DocumentFormattingOptions.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(
+              DocumentFormattingOptions.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (bool, DocumentFormattingOptions)';
+}
+
+Either2<bool, DocumentHighlightOptions> _eitherBoolDocumentHighlightOptions(
+    Object? value) {
+  return value is bool
+      ? Either2.t1(value)
+      : DocumentHighlightOptions.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(
+              DocumentHighlightOptions.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (bool, DocumentHighlightOptions)';
+}
+
+Either2<bool, DocumentRangeFormattingOptions>
+    _eitherBoolDocumentRangeFormattingOptions(Object? value) {
+  return value is bool
+      ? Either2.t1(value)
+      : DocumentRangeFormattingOptions.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(DocumentRangeFormattingOptions.fromJson(
+              value as Map<String, Object?>))
+          : throw '$value was not one of (bool, DocumentRangeFormattingOptions)';
+}
+
+Either2<bool, DocumentSymbolOptions> _eitherBoolDocumentSymbolOptions(
+    Object? value) {
+  return value is bool
+      ? Either2.t1(value)
+      : DocumentSymbolOptions.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(
+              DocumentSymbolOptions.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (bool, DocumentSymbolOptions)';
+}
+
+Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>
+    _eitherBoolFoldingRangeOptionsFoldingRangeRegistrationOptions(
+        Object? value) {
+  return value is bool
+      ? Either3.t1(value)
+      : FoldingRangeOptions.canParse(value, nullLspJsonReporter)
+          ? Either3.t2(
+              FoldingRangeOptions.fromJson(value as Map<String, Object?>))
+          : FoldingRangeRegistrationOptions.canParse(value, nullLspJsonReporter)
+              ? Either3.t3(FoldingRangeRegistrationOptions.fromJson(
+                  value as Map<String, Object?>))
+              : throw '$value was not one of (bool, FoldingRangeOptions, FoldingRangeRegistrationOptions)';
+}
+
+Either2<bool, HoverOptions> _eitherBoolHoverOptions(Object? value) {
+  return value is bool
+      ? Either2.t1(value)
+      : HoverOptions.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(HoverOptions.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (bool, HoverOptions)';
+}
+
+Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>
+    _eitherBoolImplementationOptionsImplementationRegistrationOptions(
+        Object? value) {
+  return value is bool
+      ? Either3.t1(value)
+      : ImplementationOptions.canParse(value, nullLspJsonReporter)
+          ? Either3.t2(
+              ImplementationOptions.fromJson(value as Map<String, Object?>))
+          : ImplementationRegistrationOptions.canParse(
+                  value, nullLspJsonReporter)
+              ? Either3.t3(ImplementationRegistrationOptions.fromJson(
+                  value as Map<String, Object?>))
+              : throw '$value was not one of (bool, ImplementationOptions, ImplementationRegistrationOptions)';
+}
+
+Either3<bool, InlayHintOptions, InlayHintRegistrationOptions>
+    _eitherBoolInlayHintOptionsInlayHintRegistrationOptions(Object? value) {
+  return value is bool
+      ? Either3.t1(value)
+      : InlayHintOptions.canParse(value, nullLspJsonReporter)
+          ? Either3.t2(InlayHintOptions.fromJson(value as Map<String, Object?>))
+          : InlayHintRegistrationOptions.canParse(value, nullLspJsonReporter)
+              ? Either3.t3(InlayHintRegistrationOptions.fromJson(
+                  value as Map<String, Object?>))
+              : throw '$value was not one of (bool, InlayHintOptions, InlayHintRegistrationOptions)';
+}
+
+Either3<bool, InlineValueOptions, InlineValueRegistrationOptions>
+    _eitherBoolInlineValueOptionsInlineValueRegistrationOptions(Object? value) {
+  return value is bool
+      ? Either3.t1(value)
+      : InlineValueOptions.canParse(value, nullLspJsonReporter)
+          ? Either3.t2(
+              InlineValueOptions.fromJson(value as Map<String, Object?>))
+          : InlineValueRegistrationOptions.canParse(value, nullLspJsonReporter)
+              ? Either3.t3(InlineValueRegistrationOptions.fromJson(
+                  value as Map<String, Object?>))
+              : throw '$value was not one of (bool, InlineValueOptions, InlineValueRegistrationOptions)';
+}
+
+Either3<bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions>
+    _eitherBoolLinkedEditingRangeOptionsLinkedEditingRangeRegistrationOptions(
+        Object? value) {
+  return value is bool
+      ? Either3.t1(value)
+      : LinkedEditingRangeOptions.canParse(value, nullLspJsonReporter)
+          ? Either3.t2(
+              LinkedEditingRangeOptions.fromJson(value as Map<String, Object?>))
+          : LinkedEditingRangeRegistrationOptions.canParse(
+                  value, nullLspJsonReporter)
+              ? Either3.t3(LinkedEditingRangeRegistrationOptions.fromJson(
+                  value as Map<String, Object?>))
+              : throw '$value was not one of (bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions)';
+}
+
+Either3<bool, MonikerOptions, MonikerRegistrationOptions>
+    _eitherBoolMonikerOptionsMonikerRegistrationOptions(Object? value) {
+  return value is bool
+      ? Either3.t1(value)
+      : MonikerOptions.canParse(value, nullLspJsonReporter)
+          ? Either3.t2(MonikerOptions.fromJson(value as Map<String, Object?>))
+          : MonikerRegistrationOptions.canParse(value, nullLspJsonReporter)
+              ? Either3.t3(MonikerRegistrationOptions.fromJson(
+                  value as Map<String, Object?>))
+              : throw '$value was not one of (bool, MonikerOptions, MonikerRegistrationOptions)';
+}
+
+Either2<bool, ReferenceOptions> _eitherBoolReferenceOptions(Object? value) {
+  return value is bool
+      ? Either2.t1(value)
+      : ReferenceOptions.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(ReferenceOptions.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (bool, ReferenceOptions)';
+}
+
+Either2<bool, RenameOptions> _eitherBoolRenameOptions(Object? value) {
+  return value is bool
+      ? Either2.t1(value)
+      : RenameOptions.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(RenameOptions.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (bool, RenameOptions)';
+}
+
+Either2<bool, SaveOptions> _eitherBoolSaveOptions(Object? value) {
+  return value is bool
+      ? Either2.t1(value)
+      : SaveOptions.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(SaveOptions.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (bool, SaveOptions)';
+}
+
+Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>
+    _eitherBoolSelectionRangeOptionsSelectionRangeRegistrationOptions(
+        Object? value) {
+  return value is bool
+      ? Either3.t1(value)
+      : SelectionRangeOptions.canParse(value, nullLspJsonReporter)
+          ? Either3.t2(
+              SelectionRangeOptions.fromJson(value as Map<String, Object?>))
+          : SelectionRangeRegistrationOptions.canParse(
+                  value, nullLspJsonReporter)
+              ? Either3.t3(SelectionRangeRegistrationOptions.fromJson(
+                  value as Map<String, Object?>))
+              : throw '$value was not one of (bool, SelectionRangeOptions, SelectionRangeRegistrationOptions)';
+}
+
+Either2<bool, SemanticTokensClientCapabilitiesRequestsFull>
+    _eitherBoolSemanticTokensClientCapabilitiesRequestsFull(Object? value) {
+  return value is bool
+      ? Either2.t1(value)
+      : SemanticTokensClientCapabilitiesRequestsFull.canParse(
+              value, nullLspJsonReporter)
+          ? Either2.t2(SemanticTokensClientCapabilitiesRequestsFull.fromJson(
+              value as Map<String, Object?>))
+          : throw '$value was not one of (bool, SemanticTokensClientCapabilitiesRequestsFull)';
+}
+
+Either2<bool, SemanticTokensClientCapabilitiesRequestsRange>
+    _eitherBoolSemanticTokensClientCapabilitiesRequestsRange(Object? value) {
+  return value is bool
+      ? Either2.t1(value)
+      : SemanticTokensClientCapabilitiesRequestsRange.canParse(
+              value, nullLspJsonReporter)
+          ? Either2.t2(SemanticTokensClientCapabilitiesRequestsRange.fromJson(
+              value as Map<String, Object?>))
+          : throw '$value was not one of (bool, SemanticTokensClientCapabilitiesRequestsRange)';
+}
+
+Either2<bool, SemanticTokensOptionsFull> _eitherBoolSemanticTokensOptionsFull(
+    Object? value) {
+  return value is bool
+      ? Either2.t1(value)
+      : SemanticTokensOptionsFull.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(
+              SemanticTokensOptionsFull.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (bool, SemanticTokensOptionsFull)';
+}
+
+Either2<bool, SemanticTokensOptionsRange> _eitherBoolSemanticTokensOptionsRange(
+    Object? value) {
+  return value is bool
+      ? Either2.t1(value)
+      : SemanticTokensOptionsRange.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(SemanticTokensOptionsRange.fromJson(
+              value as Map<String, Object?>))
+          : throw '$value was not one of (bool, SemanticTokensOptionsRange)';
+}
+
+Either2<bool, String> _eitherBoolString(Object? value) {
+  return value is bool
+      ? Either2.t1(value)
+      : value is String
+          ? Either2.t2(value)
+          : throw '$value was not one of (bool, String)';
+}
+
+Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>
+    _eitherBoolTypeDefinitionOptionsTypeDefinitionRegistrationOptions(
+        Object? value) {
+  return value is bool
+      ? Either3.t1(value)
+      : TypeDefinitionOptions.canParse(value, nullLspJsonReporter)
+          ? Either3.t2(
+              TypeDefinitionOptions.fromJson(value as Map<String, Object?>))
+          : TypeDefinitionRegistrationOptions.canParse(
+                  value, nullLspJsonReporter)
+              ? Either3.t3(TypeDefinitionRegistrationOptions.fromJson(
+                  value as Map<String, Object?>))
+              : throw '$value was not one of (bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions)';
+}
+
+Either3<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>
+    _eitherBoolTypeHierarchyOptionsTypeHierarchyRegistrationOptions(
+        Object? value) {
+  return value is bool
+      ? Either3.t1(value)
+      : TypeHierarchyOptions.canParse(value, nullLspJsonReporter)
+          ? Either3.t2(
+              TypeHierarchyOptions.fromJson(value as Map<String, Object?>))
+          : TypeHierarchyRegistrationOptions.canParse(
+                  value, nullLspJsonReporter)
+              ? Either3.t3(TypeHierarchyRegistrationOptions.fromJson(
+                  value as Map<String, Object?>))
+              : throw '$value was not one of (bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions)';
+}
+
+Either2<bool, WorkspaceSymbolOptions> _eitherBoolWorkspaceSymbolOptions(
+    Object? value) {
+  return value is bool
+      ? Either2.t1(value)
+      : WorkspaceSymbolOptions.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(
+              WorkspaceSymbolOptions.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (bool, WorkspaceSymbolOptions)';
+}
+
+Either2<CompletionItemEditRange, Range> _eitherCompletionItemEditRangeRange(
+    Object? value) {
+  return CompletionItemEditRange.canParse(value, nullLspJsonReporter)
+      ? Either2.t1(
+          CompletionItemEditRange.fromJson(value as Map<String, Object?>))
+      : Range.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(Range.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (CompletionItemEditRange, Range)';
+}
+
+Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>
+    _eitherCreateFileDeleteFileRenameFileTextDocumentEdit(Object? value) {
+  return CreateFile.canParse(value, nullLspJsonReporter)
+      ? Either4.t1(CreateFile.fromJson(value as Map<String, Object?>))
+      : DeleteFile.canParse(value, nullLspJsonReporter)
+          ? Either4.t2(DeleteFile.fromJson(value as Map<String, Object?>))
+          : RenameFile.canParse(value, nullLspJsonReporter)
+              ? Either4.t3(RenameFile.fromJson(value as Map<String, Object?>))
+              : TextDocumentEdit.canParse(value, nullLspJsonReporter)
+                  ? Either4.t4(
+                      TextDocumentEdit.fromJson(value as Map<String, Object?>))
+                  : throw '$value was not one of (CreateFile, DeleteFile, RenameFile, TextDocumentEdit)';
+}
+
+Either2<DiagnosticOptions, DiagnosticRegistrationOptions>
+    _eitherDiagnosticOptionsDiagnosticRegistrationOptions(Object? value) {
+  return DiagnosticOptions.canParse(value, nullLspJsonReporter)
+      ? Either2.t1(DiagnosticOptions.fromJson(value as Map<String, Object?>))
+      : DiagnosticRegistrationOptions.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(DiagnosticRegistrationOptions.fromJson(
+              value as Map<String, Object?>))
+          : throw '$value was not one of (DiagnosticOptions, DiagnosticRegistrationOptions)';
+}
+
+Either2<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>
+    _eitherFullDocumentDiagnosticReportUnchangedDocumentDiagnosticReport(
+        Object? value) {
+  return FullDocumentDiagnosticReport.canParse(value, nullLspJsonReporter)
+      ? Either2.t1(
+          FullDocumentDiagnosticReport.fromJson(value as Map<String, Object?>))
+      : UnchangedDocumentDiagnosticReport.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(UnchangedDocumentDiagnosticReport.fromJson(
+              value as Map<String, Object?>))
+          : throw '$value was not one of (FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport)';
+}
+
+Either2<InsertReplaceEdit, TextEdit> _eitherInsertReplaceEditTextEdit(
+    Object? value) {
+  return InsertReplaceEdit.canParse(value, nullLspJsonReporter)
+      ? Either2.t1(InsertReplaceEdit.fromJson(value as Map<String, Object?>))
+      : TextEdit.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(TextEdit.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (InsertReplaceEdit, TextEdit)';
+}
+
+Either2<int, String> _eitherIntString(Object? value) {
+  return value is int
+      ? Either2.t1(value)
+      : value is String
+          ? Either2.t2(value)
+          : throw '$value was not one of (int, String)';
+}
+
+Either2<List<InlayHintLabelPart>, String> _eitherListString(Object? value) {
+  return value is List<Object?> &&
+          value.every(
+              (item) => InlayHintLabelPart.canParse(item, nullLspJsonReporter))
+      ? Either2.t1(value
+          .map((item) =>
+              InlayHintLabelPart.fromJson(item as Map<String, Object?>))
+          .toList())
+      : value is String
+          ? Either2.t2(value)
+          : throw '$value was not one of (List<InlayHintLabelPart>, String)';
+}
+
+Either2<Location, WorkspaceSymbolLocation>
+    _eitherLocationWorkspaceSymbolLocation(Object? value) {
+  return Location.canParse(value, nullLspJsonReporter)
+      ? Either2.t1(Location.fromJson(value as Map<String, Object?>))
+      : WorkspaceSymbolLocation.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(
+              WorkspaceSymbolLocation.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (Location, WorkspaceSymbolLocation)';
+}
+
+Either2<MarkupContent, String> _eitherMarkupContentString(Object? value) {
+  return MarkupContent.canParse(value, nullLspJsonReporter)
+      ? Either2.t1(MarkupContent.fromJson(value as Map<String, Object?>))
+      : value is String
+          ? Either2.t2(value)
+          : throw '$value was not one of (MarkupContent, String)';
+}
+
+Either3<NotebookDocumentFilter1, NotebookDocumentFilter2,
+        NotebookDocumentFilter3>
+    _eitherNotebookDocumentFilter1NotebookDocumentFilter2NotebookDocumentFilter3(
+        Object? value) {
+  return NotebookDocumentFilter1.canParse(value, nullLspJsonReporter)
+      ? Either3.t1(
+          NotebookDocumentFilter1.fromJson(value as Map<String, Object?>))
+      : NotebookDocumentFilter2.canParse(value, nullLspJsonReporter)
+          ? Either3.t2(
+              NotebookDocumentFilter2.fromJson(value as Map<String, Object?>))
+          : NotebookDocumentFilter3.canParse(value, nullLspJsonReporter)
+              ? Either3.t3(NotebookDocumentFilter3.fromJson(
+                  value as Map<String, Object?>))
+              : throw '$value was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)';
+}
+
+Either2<
+        Either3<NotebookDocumentFilter1, NotebookDocumentFilter2,
+            NotebookDocumentFilter3>,
+        String>
+    _eitherNotebookDocumentFilter1NotebookDocumentFilter2NotebookDocumentFilter3String(
+        Object? value) {
+  return NotebookDocumentFilter1.canParse(value, nullLspJsonReporter) ||
+          NotebookDocumentFilter2.canParse(value, nullLspJsonReporter) ||
+          NotebookDocumentFilter3.canParse(value, nullLspJsonReporter)
+      ? Either2.t1(
+          _eitherNotebookDocumentFilter1NotebookDocumentFilter2NotebookDocumentFilter3(
+              value))
+      : value is String
+          ? Either2.t2(value)
+          : throw '$value was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)';
+}
+
+Either2<NotebookDocumentSyncOptions, NotebookDocumentSyncRegistrationOptions>
+    _eitherNotebookDocumentSyncOptionsNotebookDocumentSyncRegistrationOptions(
+        Object? value) {
+  return NotebookDocumentSyncOptions.canParse(value, nullLspJsonReporter)
+      ? Either2.t1(
+          NotebookDocumentSyncOptions.fromJson(value as Map<String, Object?>))
+      : NotebookDocumentSyncRegistrationOptions.canParse(
+              value, nullLspJsonReporter)
+          ? Either2.t2(NotebookDocumentSyncRegistrationOptions.fromJson(
+              value as Map<String, Object?>))
+          : throw '$value was not one of (NotebookDocumentSyncOptions, NotebookDocumentSyncRegistrationOptions)';
+}
+
+Either2<NotebookDocumentSyncOptionsNotebookSelector,
+        NotebookDocumentSyncOptionsNotebookSelector2>
+    _eitherNotebookDocumentSyncOptionsNotebookSelectorNotebookDocumentSyncOptionsNotebookSelector2(
+        Object? value) {
+  return NotebookDocumentSyncOptionsNotebookSelector.canParse(
+          value, nullLspJsonReporter)
+      ? Either2.t1(NotebookDocumentSyncOptionsNotebookSelector.fromJson(
+          value as Map<String, Object?>))
+      : NotebookDocumentSyncOptionsNotebookSelector2.canParse(
+              value, nullLspJsonReporter)
+          ? Either2.t2(NotebookDocumentSyncOptionsNotebookSelector2.fromJson(
+              value as Map<String, Object?>))
+          : throw '$value was not one of (NotebookDocumentSyncOptionsNotebookSelector, NotebookDocumentSyncOptionsNotebookSelector2)';
+}
+
+Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>
+    _eitherSemanticTokensOptionsSemanticTokensRegistrationOptions(
+        Object? value) {
+  return SemanticTokensOptions.canParse(value, nullLspJsonReporter)
+      ? Either2.t1(
+          SemanticTokensOptions.fromJson(value as Map<String, Object?>))
+      : SemanticTokensRegistrationOptions.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(SemanticTokensRegistrationOptions.fromJson(
+              value as Map<String, Object?>))
+          : throw '$value was not one of (SemanticTokensOptions, SemanticTokensRegistrationOptions)';
+}
+
+Either2<String, RelativePattern> _eitherStringRelativePattern(Object? value) {
+  return value is String
+      ? Either2.t1(value)
+      : RelativePattern.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(RelativePattern.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (String, RelativePattern)';
+}
+
+Either2<String, WorkspaceFolder> _eitherStringWorkspaceFolder(Object? value) {
+  return value is String
+      ? Either2.t1(value)
+      : WorkspaceFolder.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(WorkspaceFolder.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (String, WorkspaceFolder)';
+}
+
+Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>
+    _eitherTextDocumentContentChangeEvent1TextDocumentContentChangeEvent2(
+        Object? value) {
+  return TextDocumentContentChangeEvent1.canParse(value, nullLspJsonReporter)
+      ? Either2.t1(TextDocumentContentChangeEvent1.fromJson(
+          value as Map<String, Object?>))
+      : TextDocumentContentChangeEvent2.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(TextDocumentContentChangeEvent2.fromJson(
+              value as Map<String, Object?>))
+          : throw '$value was not one of (TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2)';
+}
+
+Either2<TextDocumentSyncKind, TextDocumentSyncOptions>
+    _eitherTextDocumentSyncKindTextDocumentSyncOptions(Object? value) {
+  return TextDocumentSyncKind.canParse(value, nullLspJsonReporter)
+      ? Either2.t1(TextDocumentSyncKind.fromJson(value as int))
+      : TextDocumentSyncOptions.canParse(value, nullLspJsonReporter)
+          ? Either2.t2(
+              TextDocumentSyncOptions.fromJson(value as Map<String, Object?>))
+          : throw '$value was not one of (TextDocumentSyncKind, TextDocumentSyncOptions)';
+}
+
+Either2<WorkspaceFullDocumentDiagnosticReport,
+        WorkspaceUnchangedDocumentDiagnosticReport>
+    _eitherWorkspaceFullDocumentDiagnosticReportWorkspaceUnchangedDocumentDiagnosticReport(
+        Object? value) {
+  return WorkspaceFullDocumentDiagnosticReport.canParse(
+          value, nullLspJsonReporter)
+      ? Either2.t1(WorkspaceFullDocumentDiagnosticReport.fromJson(
+          value as Map<String, Object?>))
+      : WorkspaceUnchangedDocumentDiagnosticReport.canParse(
+              value, nullLspJsonReporter)
+          ? Either2.t2(WorkspaceUnchangedDocumentDiagnosticReport.fromJson(
+              value as Map<String, Object?>))
+          : throw '$value was not one of (WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport)';
 }
