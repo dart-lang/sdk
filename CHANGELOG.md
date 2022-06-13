@@ -157,6 +157,7 @@ Updated the Linter to `1.25.0`, which includes changes that
   [deprecated](https://github.com/dart-lang/sdk/issues/47431) `.packages` file.
   It can still be created with the `--legacy-packages-file` flag.
 * `dart pub outdated` now shows which of your dependencies are discontinued.
+* `dart pub publish` will now list all the files it is about to publish.
 
 ## 2.17.3 - 2022-06-01
 
