@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library observable;
 
 part 'ChangeEvent.dart';
@@ -22,7 +20,7 @@ abstract class Observable {
   List<ChangeListener> get listeners;
 
   /** The parent observable to notify when this child is changed. */
-  Observable get parent;
+  Observable? get parent;
 
   /**
    * Adds a listener for changes on this observable instance. Returns whether
@@ -43,14 +41,14 @@ class AbstractObservable implements Observable {
   final int uid;
 
   /** The parent observable to notify when this child is changed. */
-  final Observable parent;
+  final Observable? parent;
 
   /** Listeners on this model. */
   List<ChangeListener> listeners;
 
   /** Whether this object is currently observed by listeners or propagators. */
   bool get isObserved {
-    for (Observable obj = this; obj != null; obj = obj.parent) {
+    for (Observable? obj = this; obj != null; obj = obj.parent) {
       if (listeners.length > 0) {
         return true;
       }
@@ -58,9 +56,9 @@ class AbstractObservable implements Observable {
     return false;
   }
 
-  AbstractObservable([Observable this.parent = null])
+  AbstractObservable([this.parent = null])
       : uid = EventBatch.genUid(),
-        listeners = new List<ChangeListener>();
+        listeners = List<ChangeListener>.empty();
 
   bool addChangeListener(ChangeListener listener) {
     if (listeners.indexOf(listener, 0) == -1) {
@@ -82,27 +80,26 @@ class AbstractObservable implements Observable {
   }
 
   void recordPropertyUpdate(String propertyName, newValue, oldValue) {
-    recordEvent(
-        new ChangeEvent.property(this, propertyName, newValue, oldValue));
+    recordEvent(ChangeEvent.property(this, propertyName, newValue, oldValue));
   }
 
   void recordListUpdate(int index, newValue, oldValue) {
-    recordEvent(new ChangeEvent.list(
-        this, ChangeEvent.UPDATE, index, newValue, oldValue));
+    recordEvent(
+        ChangeEvent.list(this, ChangeEvent.UPDATE, index, newValue, oldValue));
   }
 
   void recordListInsert(int index, newValue) {
     recordEvent(
-        new ChangeEvent.list(this, ChangeEvent.INSERT, index, newValue, null));
+        ChangeEvent.list(this, ChangeEvent.INSERT, index, newValue, null));
   }
 
   void recordListRemove(int index, oldValue) {
     recordEvent(
-        new ChangeEvent.list(this, ChangeEvent.REMOVE, index, null, oldValue));
+        ChangeEvent.list(this, ChangeEvent.REMOVE, index, null, oldValue));
   }
 
   void recordGlobalChange() {
-    recordEvent(new ChangeEvent.global(this));
+    recordEvent(ChangeEvent.global(this));
   }
 
   void recordEvent(ChangeEvent event) {
@@ -111,12 +108,13 @@ class AbstractObservable implements Observable {
       return;
     }
 
-    if (EventBatch.current != null) {
+    var current = EventBatch.current;
+    if (current != null) {
       // Already in a batch, so just add it.
-      assert(!EventBatch.current.sealed);
+      assert(!current.sealed);
       // TODO(sigmund): measure the performance implications of this indirection
       // and consider whether caching the summary object in this instance helps.
-      var summary = EventBatch.current.getEvents(this);
+      var summary = current.getEvents(this);
       summary.addEvent(event);
     } else {
       // Not in a batch, so create a one-off one.
@@ -135,8 +133,8 @@ class ObservableList<T> extends AbstractObservable
   // TODO(rnystrom): Make this final if we get list.remove().
   List<T> _internal;
 
-  ObservableList([Observable parent = null])
-      : _internal = new List<T>(),
+  ObservableList([Observable? parent = null])
+      : _internal = List<T>.empty(),
         super(parent);
 
   T operator [](int index) => _internal[index];
@@ -158,7 +156,7 @@ class ObservableList<T> extends AbstractObservable
   int indexWhere(bool test(T element), [int start = 0]) =>
       _internal.indexWhere(test, start);
 
-  int lastIndexWhere(bool test(T element), [int start]) =>
+  int lastIndexWhere(bool test(T element), [int? start]) =>
       _internal.lastIndexWhere(test, start);
 
   void set length(int value) {
@@ -173,7 +171,7 @@ class ObservableList<T> extends AbstractObservable
 
   Iterable<T> get reversed => _internal.reversed;
 
-  void sort([int compare(T a, T b)]) {
+  void sort([int compare(T a, T b)?]) {
     //if (compare == null) compare = (u, v) => Comparable.compare(u, v);
     _internal.sort(compare);
     recordGlobalChange();
@@ -214,11 +212,11 @@ class ObservableList<T> extends AbstractObservable
   }
 
   void insertAll(int index, Iterable<T> iterable) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   void setAll(int index, Iterable<T> iterable) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   T removeLast() {
@@ -233,11 +231,11 @@ class ObservableList<T> extends AbstractObservable
     return result;
   }
 
-  int indexOf(Object element, [int start = 0]) {
+  int indexOf(T element, [int start = 0]) {
     return _internal.indexOf(element, start);
   }
 
-  int lastIndexOf(Object element, [int start]) {
+  int lastIndexOf(T element, [int? start]) {
     if (start == null) start = length - 1;
     return _internal.lastIndexOf(element, start);
   }
@@ -261,7 +259,7 @@ class ObservableList<T> extends AbstractObservable
     return count;
   }
 
-  void copyFrom(List<T> src, int srcStart, int dstStart, int count) {
+  void copyFrom(List<T> src, int? srcStart, int? dstStart, int count) {
     List dst = this;
     if (srcStart == null) srcStart = 0;
     if (dstStart == null) dstStart = 0;
@@ -280,39 +278,39 @@ class ObservableList<T> extends AbstractObservable
   }
 
   void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   void removeRange(int start, int end) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   void replaceRange(int start, int end, Iterable<T> iterable) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
-  void fillRange(int start, int end, [T fillValue]) {
-    throw new UnimplementedError();
+  void fillRange(int start, int end, [T? fillValue]) {
+    throw UnimplementedError();
   }
 
-  List<T> sublist(int start, [int end]) {
-    throw new UnimplementedError();
+  List<T> sublist(int start, [int? end]) {
+    throw UnimplementedError();
   }
 
   Iterable<T> getRange(int start, int end) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
-  bool contains(Object element) {
-    throw new UnimplementedError();
+  bool contains(Object? element) {
+    throw UnimplementedError();
   }
 
   T reduce(T combine(T previousValue, T element)) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   R fold<R>(R initialValue, R combine(R previousValue, T element)) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   // Iterable<T>:
@@ -321,8 +319,8 @@ class ObservableList<T> extends AbstractObservable
   Iterable<T> where(bool f(T element)) => _internal.where(f);
   Iterable<R> map<R>(R f(T element)) => _internal.map(f);
   Iterable<R> expand<R>(Iterable<R> f(T element)) => _internal.expand(f);
-  List<T> skip(int count) => _internal.skip(count);
-  List<T> take(int count) => _internal.take(count);
+  List<T> skip(int count) => _internal.skip(count) as List<T>;
+  List<T> take(int count) => _internal.take(count) as List<T>;
   bool every(bool f(T element)) => _internal.every(f);
   bool any(bool f(T element)) => _internal.any(f);
   void forEach(void f(T element)) {
@@ -330,24 +328,24 @@ class ObservableList<T> extends AbstractObservable
   }
 
   String join([String separator = ""]) => _internal.join(separator);
-  T firstWhere(bool test(T value), {T orElse()}) {
+  T firstWhere(bool test(T value), {T orElse()?}) {
     return _internal.firstWhere(test, orElse: orElse);
   }
 
-  T lastWhere(bool test(T value), {T orElse()}) {
+  T lastWhere(bool test(T value), {T orElse()?}) {
     return _internal.lastWhere(test, orElse: orElse);
   }
 
-  void shuffle([random]) => throw new UnimplementedError();
-  bool remove(Object element) => throw new UnimplementedError();
-  void removeWhere(bool test(T element)) => throw new UnimplementedError();
-  void retainWhere(bool test(T element)) => throw new UnimplementedError();
-  List<T> toList({bool growable: true}) => throw new UnimplementedError();
-  Set<T> toSet() => throw new UnimplementedError();
-  Iterable<T> takeWhile(bool test(T value)) => throw new UnimplementedError();
-  Iterable<T> skipWhile(bool test(T value)) => throw new UnimplementedError();
+  void shuffle([random]) => throw UnimplementedError();
+  bool remove(Object? element) => throw UnimplementedError();
+  void removeWhere(bool test(T element)) => throw UnimplementedError();
+  void retainWhere(bool test(T element)) => throw UnimplementedError();
+  List<T> toList({bool growable: true}) => throw UnimplementedError();
+  Set<T> toSet() => throw UnimplementedError();
+  Iterable<T> takeWhile(bool test(T value)) => throw UnimplementedError();
+  Iterable<T> skipWhile(bool test(T value)) => throw UnimplementedError();
 
-  T singleWhere(bool test(T value), {T orElse()}) {
+  T singleWhere(bool test(T value), {T orElse()?}) {
     return _internal.singleWhere(test, orElse: orElse);
   }
 
@@ -369,10 +367,10 @@ class ObservableList<T> extends AbstractObservable
 // every field effectively boxed, plus having a listeners list is likely too
 // much. Also, making a value observable necessitates adding ".value" to lots
 // of places, and constructing all fields with the verbose
-// "new ObservableValue<DataType>(myValue)".
+// "ObservableValue<DataType>(myValue)".
 /** A wrapper around a single value whose change can be observed. */
 class ObservableValue<T> extends AbstractObservable {
-  ObservableValue(T value, [Observable parent = null])
+  ObservableValue(T value, [Observable? parent = null])
       : _value = value,
         super(parent);
 

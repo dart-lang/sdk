@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of utilslib;
 
 /**
@@ -19,7 +17,7 @@ class SwarmUri {
    */
   // TODO(jmesserly): consolidate with Uri.parse(...)
   static Map<String, List<String>> parseQuery(String queryString) {
-    final queryParams = new Map<String, List<String>>();
+    final queryParams = Map<String, List<String>>();
     if (queryString.startsWith('?')) {
       final params = queryString.substring(1, queryString.length).split('&');
       for (final param in params) {
@@ -30,9 +28,9 @@ class SwarmUri {
           String value = parts[1];
 
           // Create a list of values for this name if not yet done.
-          List values = queryParams[name];
+          var values = queryParams[name];
           if (values == null) {
-            values = new List();
+            values = List.empty();
             queryParams[name] = values;
           }
 
@@ -48,7 +46,7 @@ class SwarmUri {
    */
   // TODO(rnystrom): Get rid of this when the real encodeURIComponent()
   // function is available within Dart.
-  static String encodeComponent(String component) {
+  static String? encodeComponent(String? component) {
     if (component == null) return component;
 
     // TODO(terry): Added b/5096547 to track replace should by default behave
@@ -67,7 +65,7 @@ class SwarmUri {
    * sequences with their original characters.
    */
   // TODO(jmesserly): replace this with a better implementation
-  static String decodeComponent(String component) {
+  static String? decodeComponent(String? component) {
     if (component == null) return component;
 
     return component

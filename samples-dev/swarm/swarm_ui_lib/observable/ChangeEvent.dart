@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of observable;
 
 /** A change to an observable instance. */
@@ -38,13 +36,13 @@ class ChangeEvent {
   final oldValue;
 
   /** Property that changed (null for list changes). */
-  final String propertyName;
+  final String? propertyName;
 
   /**
    * Index of the list operation. Insertions prepend in front of the given
    * index (insert at 0 means an insertion at the beginning of the list).
    */
-  final int index;
+  final int? index;
 
   /** Factory constructor for property change events. */
   ChangeEvent.property(
@@ -73,7 +71,7 @@ class EventSummary {
   // TODO(sigmund): evolve this to track changes per property.
   List<ChangeEvent> events;
 
-  EventSummary(this.target) : events = new List<ChangeEvent>();
+  EventSummary(this.target) : events = List<ChangeEvent>.empty();
 
   void addEvent(ChangeEvent e) {
     events.add(e);
@@ -82,7 +80,7 @@ class EventSummary {
   /** Notify listeners of [target] and parents of [target] about all changes. */
   void notify() {
     if (!events.isEmpty) {
-      for (Observable obj = target; obj != null; obj = obj.parent) {
+      for (Observable? obj = target; obj != null; obj = obj.parent) {
         for (final listener in obj.listeners) {
           listener(this);
         }
