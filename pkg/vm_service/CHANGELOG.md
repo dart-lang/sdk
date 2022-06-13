@@ -1,5 +1,9 @@
 # Changelog
 
+## 9.0.0
+- Update to version `3.58` of the spec.
+- Added optional `local` parameter to `lookupResolvedPackageUris` RPC.
+
 ## 8.3.0
 - Update to version `3.57` of the spec.
 - Added optional `libraryFilters` parameter to `getSourceReport` RPC.
