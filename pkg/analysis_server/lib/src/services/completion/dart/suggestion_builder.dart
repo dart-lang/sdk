@@ -733,6 +733,7 @@ class SuggestionBuilder {
           // Let the user know that we are going to insert a complete statement.
           displayText: 'setState(() {});',
         ),
+        textToMatchOverride: 'setState',
       );
       return;
     }
