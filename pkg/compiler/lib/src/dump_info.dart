@@ -432,7 +432,7 @@ class KernelInfoCollector {
 
     String libname = lib.name;
     if (libname == null || libname.isEmpty) {
-      libname = '<unnamed>';
+      libname = '${lib.importUri}';
     }
 
     LibraryInfo info = LibraryInfo(libname, lib.importUri, null, null);
@@ -740,7 +740,7 @@ class DumpInfoAnnotator {
 
     String libname = environment.getLibraryName(lib);
     if (libname.isEmpty) {
-      libname = '<unnamed>';
+      libname = '${lib.canonicalUri}';
     }
     assert(kLibraryInfo.name == libname);
     kLibraryInfo.size = dumpInfoTask.sizeOf(lib);
@@ -790,7 +790,9 @@ class DumpInfoAnnotator {
     }
 
     final kFieldInfos = kernelInfo.state.info.fields
-        .where((f) => f.name == field.name && f.parent.name == parentName)
+        .where((f) =>
+            f.name == field.name &&
+            fullyResolvedNameForInfo(f.parent) == parentName)
         .toList();
     assert(
         kFieldInfos.length == 1,
@@ -849,7 +851,9 @@ class DumpInfoAnnotator {
   // not always be valid. Check and validate later.
   ClassInfo visitClass(ClassEntity clazz, String parentName) {
     final kClassInfos = kernelInfo.state.info.classes
-        .where((i) => i.name == clazz.name && i.parent.name == parentName)
+        .where((i) =>
+            i.name == clazz.name &&
+            fullyResolvedNameForInfo(i.parent) == parentName)
         .toList();
     assert(
         kClassInfos.length == 1,
@@ -858,16 +862,18 @@ class DumpInfoAnnotator {
     final kClassInfo = kClassInfos.first;
 
     int size = dumpInfoTask.sizeOf(clazz);
+    final disambiguatedMemberName = '$parentName/${clazz.name}';
     environment.forEachLocalClassMember(clazz, (member) {
       if (member.isFunction || member.isGetter || member.isSetter) {
-        FunctionInfo functionInfo = visitFunction(member, clazz.name);
+        FunctionInfo functionInfo =
+            visitFunction(member, disambiguatedMemberName);
         if (functionInfo != null) {
           for (var closureInfo in functionInfo.closures) {
             size += closureInfo.size;
           }
         }
       } else if (member.isField) {
-        FieldInfo fieldInfo = visitField(member, clazz.name);
+        FieldInfo fieldInfo = visitField(member, disambiguatedMemberName);
         if (fieldInfo != null) {
           for (var closureInfo in fieldInfo.closures) {
             size += closureInfo.size;
@@ -878,7 +884,8 @@ class DumpInfoAnnotator {
       }
     });
     environment.forEachConstructor(clazz, (constructor) {
-      FunctionInfo functionInfo = visitFunction(constructor, clazz.name);
+      FunctionInfo functionInfo =
+          visitFunction(constructor, disambiguatedMemberName);
       if (functionInfo != null) {
         for (var closureInfo in functionInfo.closures) {
           size += closureInfo.size;
@@ -916,7 +923,8 @@ class DumpInfoAnnotator {
     FunctionEntity callMethod = closedWorld.elementEnvironment
         .lookupClassMember(element, Identifiers.call);
 
-    final functionInfo = visitFunction(callMethod, disambiguatedElementName);
+    final functionInfo =
+        visitFunction(callMethod, disambiguatedElementName, isClosure: true);
     if (functionInfo == null) return null;
 
     kClosureInfo.treeShakenStatus = TreeShakenStatus.Live;
@@ -925,7 +933,8 @@ class DumpInfoAnnotator {
 
   // TODO(markzipan): [parentName] is used for disambiguation, but this might
   // not always be valid. Check and validate later.
-  FunctionInfo visitFunction(FunctionEntity function, String parentName) {
+  FunctionInfo visitFunction(FunctionEntity function, String parentName,
+      {bool isClosure = false}) {
     int size = dumpInfoTask.sizeOf(function);
     if (size == 0 && !shouldKeep(function)) return null;
 
@@ -941,7 +950,8 @@ class DumpInfoAnnotator {
     final kFunctionInfos = kernelInfo.state.info.functions
         .where((i) =>
             i.name == compareName &&
-            i.parent.name == parentName &&
+            (isClosure ? i.parent.name : fullyResolvedNameForInfo(i.parent)) ==
+                parentName &&
             !(function.isGetter ^ i.modifiers.isGetter) &&
             !(function.isSetter ^ i.modifiers.isSetter))
         .toList();
@@ -1659,4 +1669,15 @@ class TreeShakingInfoVisitor extends InfoVisitor<void> {
   visitClosure(ClosureInfo info) {
     visitFunction(info.function);
   }
+}
+
+/// Returns a fully resolved name for [info] for disambiguation.
+String fullyResolvedNameForInfo(BasicInfo info) {
+  var name = info.name;
+  var currentInfo = info;
+  while (currentInfo.parent != null) {
+    currentInfo = currentInfo.parent;
+    name = '${currentInfo.name}/$name';
+  }
+  return name;
 }

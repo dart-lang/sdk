@@ -49,7 +49,7 @@ Map transformJsonObjectForComparison(Map object) {
     dynamic newValue = value;
     // Ignore type fields since K-World and J-World type strings are
     // non-trivially different (though semantically identical).
-    if (key == 'type' || key == 'returnType') {
+    if (key == 'type' || key == 'returnType' || key == 'name') {
       return;
     }
 
