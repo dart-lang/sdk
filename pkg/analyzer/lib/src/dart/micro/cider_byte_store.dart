@@ -26,18 +26,18 @@ abstract class CiderByteStore {
   /// count.
   ///
   /// Return `null` if the association does not exist.
-  Uint8List? get2(String key);
+  Uint8List? get(String key);
 
   /// Associate [bytes] with [key].
   /// Return an internalized version of [bytes], the reference count is `1`.
   ///
   /// This method will throw an exception if there is already an association
-  /// for the [key]. The client should either use [get2] to access data,
-  /// or first [release2] it.
-  Uint8List putGet2(String key, Uint8List bytes);
+  /// for the [key]. The client should either use [get] to access data,
+  /// or first [release] it.
+  Uint8List putGet(String key, Uint8List bytes);
 
   ///  Decrement the reference count for every key in [keys].
-  void release2(Iterable<String> keys);
+  void release(Iterable<String> keys);
 }
 
 class CiderByteStoreTestView {
@@ -53,7 +53,7 @@ class MemoryCiderByteStore implements CiderByteStore {
   CiderByteStoreTestView? testView;
 
   @override
-  Uint8List? get2(String key) {
+  Uint8List? get(String key) {
     final entry = map[key];
     if (entry == null) {
       return null;
@@ -64,7 +64,7 @@ class MemoryCiderByteStore implements CiderByteStore {
   }
 
   @override
-  Uint8List putGet2(String key, Uint8List bytes) {
+  Uint8List putGet(String key, Uint8List bytes) {
     if (map.containsKey(key)) {
       throw StateError('Overwriting is not allowed: $key');
     }
@@ -75,7 +75,7 @@ class MemoryCiderByteStore implements CiderByteStore {
   }
 
   @override
-  void release2(Iterable<String> keys) {
+  void release(Iterable<String> keys) {
     for (final key in keys) {
       final entry = map[key];
       if (entry != null) {

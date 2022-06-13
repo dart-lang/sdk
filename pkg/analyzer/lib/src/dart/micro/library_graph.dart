@@ -770,7 +770,7 @@ class _FileStateUnlinked {
     // TODO(migration): should not be nullable
     Uint8List? unlinkedBytes;
     {
-      unlinkedBytes = location._fsState._byteStore.get2(unlinkedKey);
+      unlinkedBytes = location._fsState._byteStore.get(unlinkedKey);
 
       if (unlinkedBytes == null || unlinkedBytes.isEmpty) {
         isUnlinkedFromCache = false;
@@ -792,7 +792,7 @@ class _FileStateUnlinked {
           unlinkedBytes = unlinkedUnit.toBytes();
           performance.getDataInt('length').add(unlinkedBytes!.length);
           unlinkedBytes =
-              location._fsState._byteStore.putGet2(unlinkedKey, unlinkedBytes!);
+              location._fsState._byteStore.putGet(unlinkedKey, unlinkedBytes!);
           testData?.unlinkedKeyPut.add(unlinkedKey);
         });
 
