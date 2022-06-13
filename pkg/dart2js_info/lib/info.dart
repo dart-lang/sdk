@@ -410,7 +410,7 @@ class FunctionInfo extends BasicInfo with CodeInfo {
   late final String sideEffects;
 
   /// How many function calls were inlined into this function.
-  late final int inlinedCount;
+  late final int? inlinedCount;
 
   /// The actual generated code.
   late final List<CodeSpan> code;
@@ -472,7 +472,7 @@ class DependencyInfo {
   /// Either a selector mask indicating how this is used, or 'inlined'.
   // TODO(sigmund): split mask into an enum or something more precise to really
   // describe the dependencies in detail.
-  final String mask;
+  final String? mask;
 
   DependencyInfo(this.target, this.mask);
 }

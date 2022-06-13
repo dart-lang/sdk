@@ -19,12 +19,11 @@ abstract class DataSource {
   /// [DataSink.writeValueOrNull].
   E? readValueOrNull<E>(E Function() f);
 
-  /// Reads a list of [E] values from this data source. If [emptyAsNull] is
-  /// `true`, `null` is returned instead of an empty list.
+  /// Reads a list of [E] values from this data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeList].
-  List<E>? readList<E>(E Function() f, {bool emptyAsNull = false});
+  List<E>? readList<E>(E Function() f);
 
   /// Reads a boolean value from this data source.
   bool readBool();
@@ -90,9 +89,8 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<E>? readList<E>(E Function() f, {bool emptyAsNull = false}) {
+  List<E> readList<E>(E Function() f) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
     return List.generate(count, (i) => f());
   }
 
