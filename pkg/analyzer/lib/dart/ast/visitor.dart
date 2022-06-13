@@ -426,6 +426,11 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitLabeledStatement(LabeledStatement node) => visitStatement(node);
 
   @override
+  R? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    return visitUriBasedDirective(node);
+  }
+
+  @override
   R? visitLibraryDirective(LibraryDirective node) => visitDirective(node);
 
   @override
@@ -1113,6 +1118,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitLibraryDirective(LibraryDirective node) {
     node.visitChildren(this);
     return null;
@@ -1683,6 +1694,11 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitLabeledStatement(LabeledStatement node) => null;
 
   @override
+  R? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    return null;
+  }
+
+  @override
   R? visitLibraryDirective(LibraryDirective node) => null;
 
   @override
@@ -2099,6 +2115,11 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitLabeledStatement(LabeledStatement node) => _throw(node);
 
   @override
+  R? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    _throw(node);
+  }
+
+  @override
   R? visitLibraryDirective(LibraryDirective node) => _throw(node);
 
   @override
@@ -2265,7 +2286,7 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitYieldStatement(YieldStatement node) => _throw(node);
 
-  R _throw(AstNode node) {
+  Never _throw(AstNode node) {
     throw Exception('Missing implementation of visit${node.runtimeType}');
   }
 }
@@ -2897,6 +2918,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitLabeledStatement(LabeledStatement node) {
     stopwatch.start();
     T? result = _baseVisitor.visitLabeledStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitLibraryAugmentationDirective(node);
     stopwatch.stop();
     return result;
   }
@@ -3594,6 +3623,11 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitLabeledStatement(LabeledStatement node) => visitNode(node);
+
+  @override
+  R? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    return visitNode(node);
+  }
 
   @override
   R? visitLibraryDirective(LibraryDirective node) => visitNode(node);

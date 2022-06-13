@@ -59,21 +59,11 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
     if ((bytes[1] == 0x8b) || (bytes[1] == 0x3b)) {  // movq, cmpq
       if ((bytes[2] & 0xc7) == (0x80 | (PP & 7))) {  // [r15+disp32]
         intptr_t index = IndexFromPPLoadDisp32(pc + 3);
-        const ObjectPool& pool = ObjectPool::Handle(code.GetObjectPool());
-        if (!pool.IsNull() && (index < pool.Length()) &&
-            (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject)) {
-          *obj = pool.ObjectAt(index);
-          return true;
-        }
+        return ObjectAtPoolIndex(code, index, obj);
       }
       if ((bytes[2] & 0xc7) == (0x40 | (PP & 7))) {  // [r15+disp8]
         intptr_t index = IndexFromPPLoadDisp8(pc + 3);
-        const ObjectPool& pool = ObjectPool::Handle(code.GetObjectPool());
-        if (!pool.IsNull() && (index < pool.Length()) &&
-            (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject)) {
-          *obj = pool.ObjectAt(index);
-          return true;
-        }
+        return ObjectAtPoolIndex(code, index, obj);
       }
     }
   }

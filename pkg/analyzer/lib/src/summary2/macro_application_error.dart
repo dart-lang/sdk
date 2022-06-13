@@ -12,11 +12,10 @@ class ArgumentMacroApplicationError extends MacroApplicationError {
   final String message;
 
   ArgumentMacroApplicationError({
-    required int annotationIndex,
+    required super.annotationIndex,
     required this.argumentIndex,
     required this.message,
   }) : super._(
-          annotationIndex: annotationIndex,
           kind: MacroApplicationErrorKind.argument,
         );
 
@@ -98,11 +97,10 @@ class UnknownMacroApplicationError extends MacroApplicationError {
   final String stackTrace;
 
   UnknownMacroApplicationError({
-    required int annotationIndex,
+    required super.annotationIndex,
     required this.message,
     required this.stackTrace,
   }) : super._(
-          annotationIndex: annotationIndex,
           kind: MacroApplicationErrorKind.unknown,
         );
 

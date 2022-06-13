@@ -21,21 +21,20 @@ import 'package:vm/transformations/ffi/definitions.dart'
 import 'package:vm/transformations/ffi/use_sites.dart' as transformFfiUseSites
     show transformLibraries;
 
-import 'package:dart2wasm/constants_backend.dart';
 import 'package:dart2wasm/transformers.dart' as wasmTrans;
 
 class WasmTarget extends Target {
   Class? _growableList;
   Class? _immutableList;
   Class? _wasmImmutableLinkedHashMap;
-  Class? _unmodifiableSet;
+  Class? _wasmImmutableLinkedHashSet;
   Class? _compactLinkedCustomHashMap;
-  Class? _compactLinkedHashSet;
+  Class? _compactLinkedCustomHashSet;
   Class? _oneByteString;
   Class? _twoByteString;
 
   @override
-  late final ConstantsBackend constantsBackend;
+  ConstantsBackend get constantsBackend => const ConstantsBackend();
 
   @override
   String get name => 'wasm';
@@ -45,12 +44,15 @@ class WasmTarget extends Target {
 
   @override
   List<String> get extraRequiredLibraries => const <String>[
+        'dart:async',
         'dart:ffi',
         'dart:_internal',
         'dart:typed_data',
         'dart:nativewrappers',
         'dart:js_util_wasm',
         'dart:js_wasm',
+        'dart:wasm',
+        'dart:developer',
       ];
 
   @override
@@ -85,7 +87,6 @@ class WasmTarget extends Target {
       DiagnosticReporter diagnosticReporter,
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
-    constantsBackend = WasmConstantsBackend(coreTypes);
     _patchHostEndian(coreTypes);
   }
 
@@ -167,7 +168,7 @@ class WasmTarget extends Target {
   }
 
   @override
-  bool get supportsSetLiterals => false;
+  bool get supportsSetLiterals => true;
 
   @override
   int get enabledLateLowerings => LateLowering.all;
@@ -213,14 +214,14 @@ class WasmTarget extends Target {
 
   @override
   Class concreteSetLiteralClass(CoreTypes coreTypes) {
-    return _compactLinkedHashSet ??=
-        coreTypes.index.getClass('dart:collection', '_CompactLinkedHashSet');
+    return _compactLinkedCustomHashSet ??= coreTypes.index
+        .getClass('dart:collection', '_CompactLinkedCustomHashSet');
   }
 
   @override
   Class concreteConstSetLiteralClass(CoreTypes coreTypes) {
-    return _unmodifiableSet ??=
-        coreTypes.index.getClass('dart:collection', '_UnmodifiableSet');
+    return _wasmImmutableLinkedHashSet ??= coreTypes.index
+        .getClass('dart:collection', '_WasmImmutableLinkedHashSet');
   }
 
   @override

@@ -4,8 +4,7 @@
 
 import 'dart:io';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
@@ -22,7 +21,7 @@ class InitializeMessageHandler
 
   @override
   ErrorOr<InitializeResult> handle(
-      InitializeParams params, CancellationToken token) {
+      InitializeParams params, MessageInfo message, CancellationToken token) {
     server.handleClientConnection(
       params.capabilities,
       params.initializationOptions,

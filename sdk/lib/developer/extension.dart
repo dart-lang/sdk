@@ -27,7 +27,7 @@ class ServiceExtensionResponse {
         errorCode = null,
         errorDetail = null {
     // TODO: When NNBD is complete, delete the following line.
-    ArgumentError.checkNotNull(result, "result");
+    checkNotNullable(result, "result");
   }
 
   /// Creates an error response to a service protocol extension RPC.
@@ -42,7 +42,7 @@ class ServiceExtensionResponse {
         errorDetail = errorDetail {
     _validateErrorCode(errorCode);
     // TODO: When NNBD is complete, delete the following line.
-    ArgumentError.checkNotNull(errorDetail, "errorDetail");
+    checkNotNullable(errorDetail, "errorDetail");
   }
 
   /// Invalid method parameter(s) error code.
@@ -83,7 +83,7 @@ class ServiceExtensionResponse {
 
   static _validateErrorCode(int errorCode) {
     // TODO: When NNBD is complete, delete the following line.
-    ArgumentError.checkNotNull(errorCode, "errorCode");
+    checkNotNullable(errorCode, "errorCode");
     if (errorCode == invalidParams) return;
     if ((errorCode >= extensionErrorMin) && (errorCode <= extensionErrorMax)) {
       return;
@@ -129,7 +129,7 @@ typedef Future<ServiceExtensionResponse> ServiceExtensionHandler(
 /// must always include an 'isolateId' parameter with each RPC.
 void registerExtension(String method, ServiceExtensionHandler handler) {
   // TODO: When NNBD is complete, delete the following line.
-  ArgumentError.checkNotNull(method, 'method');
+  checkNotNullable(method, 'method');
   if (!method.startsWith('ext.')) {
     throw new ArgumentError.value(method, 'method', 'Must begin with ext.');
   }
@@ -137,16 +137,38 @@ void registerExtension(String method, ServiceExtensionHandler handler) {
     throw new ArgumentError('Extension already registered: $method');
   }
   // TODO: When NNBD is complete, delete the following line.
-  ArgumentError.checkNotNull(handler, 'handler');
+  checkNotNullable(handler, 'handler');
   _registerExtension(method, handler);
 }
 
-/// Post an event of [eventKind] with payload of [eventData] to the `Extension`
+/// Whether the "Extension" stream currently has at least one listener.
+///
+/// A client of the VM service can register as a listener
+/// on the extension stream using `listenStream` method.
+/// The extension stream has a listener while at least one such
+/// client has registered as a listener, and has not yet disconnected
+/// again.
+///
+/// Calling [postEvent] while the stream has listeners will attempt to
+/// deliver that event to all current listeners,
+/// although a listener can disconnect before the event is delivered.
+/// Calling [postEvent] when the stream has no listener means that
+/// no-one will receive the event, and the call is effectively a no-op.
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
+external bool get extensionStreamHasListener;
+
+/// Post an event of [eventKind] with payload of [eventData] to the "Extension"
 /// event stream.
+///
+/// If [extensionStreamHasListener] is false, this method is a no-op.
 void postEvent(String eventKind, Map eventData) {
+  if (!extensionStreamHasListener) {
+    return;
+  }
   // TODO: When NNBD is complete, delete the following two lines.
-  ArgumentError.checkNotNull(eventKind, 'eventKind');
-  ArgumentError.checkNotNull(eventData, 'eventData');
+  checkNotNullable(eventKind, 'eventKind');
+  checkNotNullable(eventData, 'eventData');
   String eventDataAsString = json.encode(eventData);
   _postEvent(eventKind, eventDataAsString);
 }

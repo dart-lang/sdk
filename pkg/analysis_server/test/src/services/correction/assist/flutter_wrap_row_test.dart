@@ -32,7 +32,7 @@ class FlutterWrapRowTest extends AssistProcessorTest {
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
-  main() {
+  Widget f() {
     return Column(children: [
       Text('aaa'),
 // start
@@ -48,7 +48,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
-  main() {
+  Widget f() {
     return Column(children: [
       Text('aaa'),
       Row(

@@ -114,4 +114,18 @@ class _Lowering extends Transformer {
     statement.transformChildren(this);
     return statement;
   }
+
+  @override
+  TreeNode visitTryFinally(TryFinally statement) {
+    _asyncLowering?.visitTry();
+    statement.transformChildren(this);
+    return statement;
+  }
+
+  @override
+  TreeNode visitTryCatch(TryCatch statement) {
+    _asyncLowering?.visitTry();
+    statement.transformChildren(this);
+    return statement;
+  }
 }

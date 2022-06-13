@@ -450,6 +450,15 @@ void FlowGraphCompiler::EmitPrologue() {
       Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : EAX;
       __ movl(compiler::Address(EBP, slot_index * kWordSize), value_reg);
     }
+  } else if (parsed_function().suspend_state_var() != nullptr) {
+    // Initialize synthetic :suspend_state variable early
+    // as it may be accessed by GC and exception handling before
+    // InitSuspendableFunction stub is called.
+    const intptr_t slot_index =
+        compiler::target::frame_layout.FrameSlotForVariable(
+            parsed_function().suspend_state_var());
+    __ LoadObject(EAX, Object::null_object());
+    __ movl(compiler::Address(EBP, slot_index * kWordSize), EAX);
   }
 
   EndCodeSourceRange(PrologueSource());
@@ -461,6 +470,14 @@ void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
   } else {
     __ Call(stub);
   }
+  AddStubCallTarget(stub);
+}
+
+void FlowGraphCompiler::EmitJumpToStub(const Code& stub) {
+  ASSERT(!stub.IsNull());
+  __ LoadObject(CODE_REG, stub);
+  __ jmp(compiler::FieldAddress(CODE_REG,
+                                compiler::target::Code::entry_point_offset()));
   AddStubCallTarget(stub);
 }
 
@@ -538,7 +555,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   // Load receiver into EBX.
   __ movl(EBX, compiler::Address(
                    ESP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize));
-  __ LoadObject(ECX, ic_data);
+  __ LoadObject(IC_DATA_REG, ic_data);
   GenerateDartCall(deopt_id, source, stub, UntaggedPcDescriptors::kIcCall, locs,
                    entry_kind);
   __ Drop(ic_data.SizeWithTypeArgs());
@@ -557,7 +574,7 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
   // Load receiver into EBX.
   __ movl(EBX, compiler::Address(
                    ESP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize));
-  __ LoadObject(ECX, ic_data, true);
+  __ LoadObject(IC_DATA_REG, ic_data, true);
   __ LoadObject(CODE_REG, stub, true);
   const intptr_t entry_point_offset =
       entry_kind == Code::EntryKind::kNormal
@@ -585,7 +602,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ Comment("MegamorphicCall");
   // Load receiver into EBX.
   __ movl(EBX, compiler::Address(ESP, (args_desc.Count() - 1) * kWordSize));
-  __ LoadObject(ECX, cache, true);
+  __ LoadObject(IC_DATA_REG, cache, true);
   __ LoadObject(CODE_REG, StubCode::MegamorphicCall(), true);
   __ call(compiler::FieldAddress(
       CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
@@ -625,10 +642,10 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     LocationSummary* locs,
     Code::EntryKind entry_kind) {
   ASSERT(CanCallDart());
-  if (function.HasOptionalParameters() || function.IsGeneric()) {
-    __ LoadObject(EDX, arguments_descriptor);
+  if (function.PrologueNeedsArgumentsDescriptor()) {
+    __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
   } else {
-    __ xorl(EDX, EDX);  // GC safe smi zero because of stub.
+    __ xorl(ARGS_DESC_REG, ARGS_DESC_REG);  // GC safe smi zero because of stub.
   }
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
@@ -793,7 +810,7 @@ void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
   // Load receiver into EAX.
   __ movl(EAX,
           compiler::Address(ESP, (count_without_type_args - 1) * kWordSize));
-  __ LoadObject(EDX, arguments_descriptor);
+  __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
 }
 
 void FlowGraphCompiler::EmitTestAndCallSmiBranch(compiler::Label* label,

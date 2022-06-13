@@ -1045,7 +1045,7 @@ class Elf {
       entry.setName(sectionHeaderStringTable);
       sectionsByName.putIfAbsent(entry.name, () => {}).add(section);
     }
-    void _cacheSymbolNames(String stringTableTag, String symbolTableTag) {
+    void cacheSymbolNames(String stringTableTag, String symbolTableTag) {
       final stringTables = sectionsByName[stringTableTag]?.cast<StringTable>();
       if (stringTables == null) {
         return;
@@ -1068,8 +1068,8 @@ class Elf {
       }
     }
 
-    _cacheSymbolNames('.strtab', '.symtab');
-    _cacheSymbolNames('.dynstr', '.dynsym');
+    cacheSymbolNames('.strtab', '.symtab');
+    cacheSymbolNames('.dynstr', '.dynsym');
     // Set the wordSize and endian of the original reader before returning.
     elfReader.wordSize = reader.wordSize;
     elfReader.endian = reader.endian;

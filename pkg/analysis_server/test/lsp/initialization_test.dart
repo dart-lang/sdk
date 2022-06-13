@@ -4,8 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
@@ -25,6 +24,16 @@ void main() {
 
 @reflectiveTest
 class InitializationTest extends AbstractLspAnalysisServerTest {
+  /// Waits for any in-progress analysis context rebuild.
+  ///
+  /// Pumps the event queue before and after, to ensure any server code that
+  /// runs after the rebuild has had chance to run.
+  Future<void> get contextRebuildComplete async {
+    await pumpEventQueue(times: 5000);
+    await server.analysisContextsRebuilt;
+    await pumpEventQueue(times: 5000);
+  }
+
   TextDocumentRegistrationOptions registrationOptionsFor(
     List<Registration> registrations,
     Method method,
@@ -311,12 +320,12 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // request text document open/close and incremental updates.
     expect(initResult.capabilities.textDocumentSync, isNotNull);
     initResult.capabilities.textDocumentSync!.map(
+      (_) =>
+          throw 'Expected textDocumentSync capabilities to be a TextDocumentSyncOptions',
       (options) {
         expect(options.openClose, isTrue);
         expect(options.change, equals(TextDocumentSyncKind.Incremental));
       },
-      (_) =>
-          throw 'Expected textDocumentSync capabilities to be a $TextDocumentSyncOptions',
     );
     expect(initResult.capabilities.completionProvider, isNotNull);
     expect(initResult.capabilities.hoverProvider, isNotNull);
@@ -482,8 +491,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
             .registrations;
 
     final documentFilterSql =
-        DocumentFilter(scheme: 'file', pattern: '**/*.sql');
-    final documentFilterDart = DocumentFilter(language: 'dart', scheme: 'file');
+        TextDocumentFilterWithScheme(scheme: 'file', pattern: '**/*.sql');
+    final documentFilterDart =
+        TextDocumentFilterWithScheme(language: 'dart', scheme: 'file');
 
     expect(
       registrations,
@@ -561,7 +571,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Opening both files should only add the project folder once.
     await openFile(file1Uri, '');
     await openFile(file2Uri, '');
-    await pumpEventQueue(times: 5000);
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
 
     // Closing only one of the files should not remove the project folder
@@ -576,7 +586,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // the context.
     resetContextBuildCounter();
     await closeFile(file2Uri);
-    await pumpEventQueue(times: 5000);
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([]));
     expect(server.contextManager.driverMap, hasLength(0));
     expectContextBuilds();
@@ -611,7 +621,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     // Opening a file nested within the project should add the project folder.
     await openFile(nestedFileUri, '');
-    await pumpEventQueue(times: 500);
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
 
     // Ensure the file was cached in each driver. This happens as a result of
@@ -687,13 +697,13 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Check some basic capabilities that are unlikely to change.
     expect(result.capabilities.textDocumentSync, isNotNull);
     result.capabilities.textDocumentSync!.map(
+      (_) =>
+          throw 'Expected textDocumentSync capabilities to be a TextDocumentSyncOptions',
       (options) {
         // We'll always request open/closed notifications and incremental updates.
         expect(options.openClose, isTrue);
         expect(options.change, equals(TextDocumentSyncKind.Incremental));
       },
-      (_) =>
-          throw 'Expected textDocumentSync capabilities to be a $TextDocumentSyncOptions',
     );
   }
 
@@ -851,7 +861,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Opening both files should only add the project folder once.
     await openFile(file1Uri, '');
     await openFile(file2Uri, '');
-    await pumpEventQueue(times: 5000);
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
     expect(server.contextManager.driverMap, hasLength(1));
 
@@ -867,7 +877,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // the context.
     resetContextBuildCounter();
     await closeFile(file2Uri);
-    await pumpEventQueue(times: 5000);
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([]));
     expect(server.contextManager.driverMap, hasLength(0));
     expectContextBuilds();
@@ -909,6 +919,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Opening a file nested within the project should cause the project folder
     // to be added
     await openFile(nestedFileUri, '');
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
 
     // Ensure the file was cached in each driver. This happens as a result of

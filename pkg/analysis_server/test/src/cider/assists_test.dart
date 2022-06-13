@@ -66,7 +66,7 @@ void m() {
     await _compute('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   ^Text('a');
 }
 ''');
@@ -74,7 +74,7 @@ main() {
     assertHasAssist(DartAssistKind.FLUTTER_WRAP_STREAM_BUILDER, r'''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   StreamBuilder<Object>(
     stream: null,
     builder: (context, snapshot) {
@@ -87,13 +87,13 @@ main() {
 
   Future<void> test_assignToLocalVariable() async {
     await _compute(r'''
-main() {
+void f() {
   12^345;
 }
 ''');
 
     assertHasAssist(DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE, r'''
-main() {
+void f() {
   var i = 12345;
 }
 ''');

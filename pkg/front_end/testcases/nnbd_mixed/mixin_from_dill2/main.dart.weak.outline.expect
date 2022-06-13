@@ -64,9 +64,9 @@ abstract class RenderObject extends mai::_RenderObject&AbstractNode&Diagnosticab
 abstract class RenderBox extends mai::RenderObject {
   synthetic constructor •() → mai::RenderBox
     ;
-  method hitTest(mai::BoxHitTestResult result, {required mai::Offset position}) → core::bool
+  method hitTest(mai::BoxHitTestResult result, {required mai::Offset position = #C1}) → core::bool
     ;
-  method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position}) → core::bool
+  method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position = #C1}) → core::bool
     ;
 }
 abstract class RenderObjectWithChildMixin<ChildType extends mai::RenderObject> extends mai::RenderObject /*isMixinDeclaration*/  {
@@ -79,8 +79,8 @@ abstract class _RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin<T exten
     ;
 }
 abstract class RenderProxyBoxMixin<T extends mai::RenderBox> extends mai::_RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin<mai::RenderProxyBoxMixin::T> /*isMixinDeclaration*/  {
-  @#C1
-  method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position}) → core::bool
+  @#C2
+  method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position = #C1}) → core::bool
     ;
 }
 abstract class _RenderProxyBox&RenderBox&RenderObjectWithChildMixin extends mai::RenderBox implements mai::RenderObjectWithChildMixin<mai::RenderBox> /*isAnonymousMixin,isEliminatedMixin*/  {
@@ -95,8 +95,8 @@ abstract class _RenderProxyBox&RenderBox&RenderObjectWithChildMixin&RenderProxyB
   synthetic constructor •() → mai::_RenderProxyBox&RenderBox&RenderObjectWithChildMixin&RenderProxyBoxMixin
     : super mai::_RenderProxyBox&RenderBox&RenderObjectWithChildMixin::•()
     ;
-  @#C1
-  method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position}) → core::bool
+  @#C2
+  method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position = #C1}) → core::bool
     ;
 }
 class RenderProxyBox extends mai::_RenderProxyBox&RenderBox&RenderObjectWithChildMixin&RenderProxyBoxMixin {
@@ -105,5 +105,6 @@ class RenderProxyBox extends mai::_RenderProxyBox&RenderBox&RenderObjectWithChil
 }
 
 constants  {
-  #C1 = core::_Override {}
+  #C1 = null
+  #C2 = core::_Override {}
 }

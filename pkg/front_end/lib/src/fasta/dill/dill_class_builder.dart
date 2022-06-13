@@ -134,20 +134,21 @@ class DillClassBuilder extends ClassBuilderImpl {
   int get typeVariablesCount => cls.typeParameters.length;
 
   @override
-  List<DartType> buildTypeArguments(
+  List<DartType> buildAliasedTypeArguments(
       LibraryBuilder library, List<TypeBuilder>? arguments) {
     // For performance reasons, [typeVariables] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
     if (arguments == null) {
+      // TODO(johnniwinther): Use i2b here when needed.
       return new List<DartType>.generate(cls.typeParameters.length,
           (int i) => cls.typeParameters[i].defaultType,
           growable: true);
     }
 
     // [arguments] != null
-    return new List<DartType>.generate(
-        arguments.length, (int i) => arguments[i].build(library),
+    return new List<DartType>.generate(arguments.length,
+        (int i) => arguments[i].buildAliased(library, TypeUse.typeArgument),
         growable: true);
   }
 

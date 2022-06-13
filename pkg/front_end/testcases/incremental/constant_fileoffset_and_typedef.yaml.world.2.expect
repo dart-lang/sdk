@@ -1,0 +1,21 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+
+  typedef td1 = <T extends dart.core::Object? = dynamic>(T%) → T%;
+  static const field dart.core::Type genericFunctionTypeLiteral1 = #C1;
+}
+library from "org-dartlang-test:///lib2.dart" as lib2 {
+
+  typedef td2 = <T extends dart.core::Object? = dynamic>(T%) → T%;
+  typedef td3 = <T1 extends dart.core::Object? = dynamic, T2 extends dart.core::Object? = dynamic>(T2%) → T1%;
+  static const field dart.core::Type genericFunctionTypeLiteral2 = #C1;
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib1.dart";
+  import "org-dartlang-test:///lib2.dart";
+
+}
+constants  {
+  #C1 = TypeLiteralConstant(<T extends dart.core::Object? = dynamic>(T*) →* T*)
+}

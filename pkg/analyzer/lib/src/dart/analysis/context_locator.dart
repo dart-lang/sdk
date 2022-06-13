@@ -372,12 +372,6 @@ class ContextLocatorImpl implements ContextLocator {
       packages = Packages.empty;
     }
 
-    // TODO(scheglov) Can we use Packages instead?
-    var packageMap = <String, List<Folder>>{};
-    for (var package in packages.packages) {
-      packageMap[package.name] = [package.libFolder];
-    }
-
     var rootPath = folder.path;
 
     Workspace? workspace;
@@ -385,9 +379,9 @@ class ContextLocatorImpl implements ContextLocator {
         lookForBuildFileSubstitutes: false);
     workspace ??= GnWorkspace.find(resourceProvider, rootPath);
     workspace ??=
-        PackageBuildWorkspace.find(resourceProvider, packageMap, rootPath);
-    workspace ??= PubWorkspace.find(resourceProvider, packageMap, rootPath);
-    workspace ??= BasicWorkspace.find(resourceProvider, packageMap, rootPath);
+        PackageBuildWorkspace.find(resourceProvider, packages, rootPath);
+    workspace ??= PubWorkspace.find(resourceProvider, packages, rootPath);
+    workspace ??= BasicWorkspace.find(resourceProvider, packages, rootPath);
     return workspace;
   }
 

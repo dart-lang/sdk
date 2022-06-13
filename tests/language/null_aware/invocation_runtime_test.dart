@@ -32,7 +32,11 @@ main() {
   Expect.equals(1, c?.f(() => 1));
   // C?.m(...) is equivalent to C.m(...).
   Expect.equals(1, C?.staticF(() => 1));
+  //                ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   Expect.equals(1, h.C?.staticF(() => 1));
+  //                  ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
   // The static type of o?.m(...) is the same as the static type of
   // o.m(...).
@@ -46,10 +50,14 @@ main() {
   }
   {
     int? i = C?.staticG(() => 1);
+    //        ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(1, i);
   }
   {
     int? i = h.C?.staticG(() => 1);
+    //          ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(1, i);
   }
 }

@@ -270,15 +270,20 @@ const a = 1;
   }
 
   test_annotation_onDirective_partOf() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    final a = newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
 ''');
+
     addTestFile(r'''
 @a
 part of 'a.dart';
 
 const a = 1;
 ''');
+
+    // Make sure that the part knows its library.
+    contextFor(a.path).currentSession.getParsedUnit(a.path);
+
     await resolveTestFile();
 
     var directive = findNode.partOf('a.dart');
@@ -800,11 +805,12 @@ f(A a) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
-    staticElement: a@54
+    staticElement: self::@function::f::@parameter::a
     staticType: A
   operator: >>>
   rightOperand: IntegerLiteral
     literal: 3
+    parameter: self::@class::A::@method::>>>::@parameter::amount
     staticType: int
   staticElement: self::@class::A::@method::>>>
   staticInvokeType: A Function(int)

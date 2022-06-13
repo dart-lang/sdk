@@ -12,12 +12,14 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
@@ -41,25 +43,37 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
-const M = 1024 * 1024 /*1 MiB*/;
-const memoryCacheSize = 200 * M;
+class CiderSearchInfo {
+  final CharacterLocation startPosition;
+  final int length;
+  final MatchKind kind;
+
+  CiderSearchInfo(this.startPosition, this.length, this.kind);
+
+  @override
+  bool operator ==(Object other) =>
+      other is CiderSearchInfo &&
+      startPosition == other.startPosition &&
+      length == other.length &&
+      kind == other.kind;
+}
 
 class CiderSearchMatch {
   final String path;
-  final List<CharacterLocation?> startPositions;
+  final List<CiderSearchInfo> references;
 
-  CiderSearchMatch(this.path, this.startPositions);
+  CiderSearchMatch(this.path, this.references);
 
   @override
   bool operator ==(Object other) =>
       other is CiderSearchMatch &&
       path == other.path &&
-      const ListEquality<CharacterLocation?>()
-          .equals(startPositions, other.startPositions);
+      const ListEquality<CiderSearchInfo>()
+          .equals(references, other.references);
 
   @override
   String toString() {
-    return '($path, $startPositions)';
+    return '($path, $references)';
   }
 }
 
@@ -113,24 +127,22 @@ class FileResolver {
   @visibleForTesting
   final Map<String, ResolvedLibraryResult> cachedResults = {};
 
-  FileResolver(
-    PerformanceLog logger,
-    ResourceProvider resourceProvider,
-    SourceFactory sourceFactory,
-    String Function(String path) getFileDigest,
-    void Function(List<String> paths)? prefetchFiles, {
-    required Workspace workspace,
-    bool Function(String path)? isGenerated,
-  }) : this.from(
-          logger: logger,
-          resourceProvider: resourceProvider,
-          sourceFactory: sourceFactory,
-          getFileDigest: getFileDigest,
-          prefetchFiles: prefetchFiles,
-          workspace: workspace,
-          isGenerated: isGenerated,
-        );
+  /// The cache of error results.
+  final Cache<String, Uint8List> _errorResultsCache =
+      Cache(128 * 1024, (bytes) => bytes.length);
 
+  FileResolver({
+    required this.logger,
+    required this.resourceProvider,
+    required this.sourceFactory,
+    required this.getFileDigest,
+    required this.prefetchFiles,
+    required this.workspace,
+    this.isGenerated,
+    required this.byteStore,
+  });
+
+  @Deprecated('Use the unnamed constructor instead')
   FileResolver.from({
     required this.logger,
     required this.resourceProvider,
@@ -139,8 +151,8 @@ class FileResolver {
     required this.prefetchFiles,
     required this.workspace,
     this.isGenerated,
-    CiderByteStore? byteStore,
-  }) : byteStore = byteStore ?? CiderCachedByteStore(memoryCacheSize);
+    required this.byteStore,
+  });
 
   /// Update the resolver to reflect the fact that the file with the given
   /// [path] was changed. We need to make sure that when this file, of any file
@@ -191,13 +203,16 @@ class FileResolver {
           var resolved = await resolve2(path: path);
           var collector = ReferencesCollector(element);
           resolved.unit.accept(collector);
-          var offsets = collector.offsets;
-          if (offsets.isNotEmpty) {
+          var matches = collector.references;
+          if (matches.isNotEmpty) {
             var lineInfo = resolved.unit.lineInfo;
             references.add(CiderSearchMatch(
                 path,
-                offsets
-                    .map((offset) => lineInfo.getLocation(offset))
+                matches
+                    .map((match) => CiderSearchInfo(
+                        lineInfo.getLocation(match.offset),
+                        match.length,
+                        match.matchKind))
                     .toList()));
           }
         });
@@ -208,6 +223,8 @@ class FileResolver {
       if (element is LocalVariableElement ||
           (element is ParameterElement && !element.isNamed)) {
         await collectReferences2(element.source!.fullName, performance!);
+      } else if (element is ImportElement) {
+        return await _searchReferences_Import(element);
       } else {
         var result = performance!.run('getFilesContaining', (performance) {
           return fsState!.getFilesContaining(element.displayName);
@@ -238,30 +255,28 @@ class FileResolver {
       var errorsSignatureBuilder = ApiSignature();
       errorsSignatureBuilder.addBytes(file.libraryCycle.signature);
       errorsSignatureBuilder.addBytes(file.digest);
-      var errorsSignature = errorsSignatureBuilder.toByteList();
+      final errorsKey = '${errorsSignatureBuilder.toHex()}.errors';
 
-      var errorsKey = '${file.path}.errors';
-      var bytes = byteStore.get(errorsKey, errorsSignature)?.bytes;
-      List<AnalysisError>? errors;
+      final List<AnalysisError> errors;
+      final bytes = _errorResultsCache.get(errorsKey);
       if (bytes != null) {
         var data = CiderUnitErrors.fromBuffer(bytes);
         errors = data.errors.map((error) {
           return ErrorEncoding.decode(file.source, error)!;
         }).toList();
-      }
-
-      if (errors == null) {
+      } else {
         var unitResult = await resolve2(
           path: path,
           performance: performance,
         );
         errors = unitResult.errors;
 
-        bytes = CiderUnitErrorsBuilder(
-          signature: errorsSignature,
-          errors: errors.map(ErrorEncoding.encode).toList(),
-        ).toBuffer();
-        bytes = byteStore.putGet(errorsKey, errorsSignature, bytes).bytes;
+        _errorResultsCache.put(
+          errorsKey,
+          CiderUnitErrorsBuilder(
+            errors: errors.map(ErrorEncoding.encode).toList(),
+          ).toBuffer(),
+        );
       }
 
       return ErrorsResultImpl(
@@ -552,7 +567,7 @@ class FileResolver {
           file.exists,
           file.getContent(),
           file.lineInfo,
-          file.unlinkedUnit.hasPartOfDirective,
+          file.isPart,
           fileResult.unit,
           fileResult.errors,
         );
@@ -742,6 +757,27 @@ class FileResolver {
     }
   }
 
+  Future<List<CiderSearchMatch>> _searchReferences_Import(
+      ImportElement element) async {
+    var results = <CiderSearchMatch>[];
+    LibraryElement libraryElement = element.library;
+    for (CompilationUnitElement unitElement in libraryElement.units) {
+      String unitPath = unitElement.source.fullName;
+      var unitResult = await resolve2(path: unitPath);
+      var visitor = ImportElementReferencesVisitor(element, unitElement);
+      unitResult.unit.accept(visitor);
+      var lineInfo = unitResult.lineInfo;
+      var infos = visitor.results
+          .map((searchResult) => CiderSearchInfo(
+              lineInfo.getLocation(searchResult.offset),
+              searchResult.length,
+              MatchKind.REFERENCE))
+          .toList();
+      results.add(CiderSearchMatch(unitPath, infos));
+    }
+    return results;
+  }
+
   void _throwIfNotAbsoluteNormalizedPath(String path) {
     var pathContext = resourceProvider.pathContext;
     if (pathContext.normalize(path) != path) {
@@ -889,7 +925,17 @@ class _LibraryContext {
         }
         inputsTimer.stop();
 
-        var linkResult = await link(elementFactory, inputLibraries);
+        var linkResult = await performance.runAsync(
+          'link',
+          (performance) async {
+            return await link2(
+              elementFactory: elementFactory,
+              performance: performance,
+              inputLibraries: inputLibraries,
+            );
+          },
+        );
+
         librariesLinked += cycle.libraries.length;
 
         resolutionBytes = linkResult.resolutionBytes;

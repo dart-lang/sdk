@@ -110,7 +110,7 @@ class A {
     await resolveTestCode('''
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A();
   print(a);
 }
@@ -118,7 +118,7 @@ main() {
     await assertHasFix('''
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A(a: null);
   print(a);
 }
@@ -136,7 +136,7 @@ class A {
     await resolveTestCode('''
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A();
   print(a);
 }
@@ -144,7 +144,7 @@ main() {
     await assertHasFix('''
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A(onPressed: () {  });
   print(a);
 }
@@ -162,7 +162,7 @@ class A {
     await resolveTestCode('''
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A();
   print(a);
 }
@@ -170,7 +170,7 @@ main() {
     await assertHasFix('''
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A(callback: (e) {  });
   print(a);
 }
@@ -188,7 +188,7 @@ class A {
     await resolveTestCode('''
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A();
   print(a);
 }
@@ -196,7 +196,7 @@ main() {
     await assertHasFix('''
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A(callback: (a, b, c) {  });
   print(a);
 }
@@ -214,7 +214,7 @@ class A {
     await resolveTestCode('''
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A();
   print(a);
 }
@@ -222,7 +222,7 @@ main() {
     await assertHasFix('''
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A(callback: (int a, String b, c) {  });
   print(a);
 }
@@ -240,7 +240,7 @@ class A {
     await resolveTestCode('''
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A();
   print(a);
 }
@@ -248,7 +248,7 @@ main() {
     await assertHasFix('''
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A(callback: (int? a) {  });
   print(a);
 }
@@ -269,7 +269,7 @@ class A {
     await resolveTestCode('''
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A();
   print(a);
 }
@@ -277,7 +277,7 @@ main() {
     await assertHasFix('''
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A(callback: (int a) {  });
   print(a);
 }
@@ -298,7 +298,7 @@ class A {
 // @dart = 2.8
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A();
   print(a);
 }
@@ -307,7 +307,7 @@ main() {
 // @dart = 2.8
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A(callback: (int a) {  });
   print(a);
 }
@@ -323,7 +323,7 @@ class A {
     await resolveTestCode('''
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A();
   print(a);
 }
@@ -331,7 +331,7 @@ main() {
     await assertHasFix('''
 import 'package:test/a.dart';
 
-main() {
+void f() {
   A a = new A(names: []);
   print(a);
 }
@@ -363,13 +363,13 @@ void f() {
   Future<void> test_multiple() async {
     await resolveTestCode('''
 test({required int a, required int bcd}) {}
-main() {
+void f() {
   test(a: 3);
 }
 ''');
     await assertHasFix('''
 test({required int a, required int bcd}) {}
-main() {
+void f() {
   test(a: 3, bcd: null);
 }
 ''');
@@ -378,13 +378,13 @@ main() {
   Future<void> test_multiple_1of2() async {
     await resolveTestCode('''
 test({required int a, required int bcd}) {}
-main() {
+void f() {
   test();
 }
 ''');
     await assertHasFix('''
 test({required int a, required int bcd}) {}
-main() {
+void f() {
   test(a: null);
 }
 ''', errorFilter: (error) => error.message.contains("'a'"));
@@ -393,13 +393,13 @@ main() {
   Future<void> test_multiple_2of2() async {
     await resolveTestCode('''
 test({required int a, required int bcd}) {}
-main() {
+void f() {
   test();
 }
 ''');
     await assertHasFix('''
 test({required int a, required int bcd}) {}
-main() {
+void f() {
   test(bcd: null);
 }
 ''', errorFilter: (error) => error.message.contains("'bcd'"));
@@ -498,13 +498,13 @@ build() {
   Future<void> test_single() async {
     await resolveTestCode('''
 test({required int abc}) {}
-main() {
+void f() {
   test();
 }
 ''');
     await assertHasFix('''
 test({required int abc}) {}
-main() {
+void f() {
   test(abc: null);
 }
 ''');
@@ -514,13 +514,13 @@ main() {
   Future<void> test_single_normal() async {
     await resolveTestCode('''
 test(String x, {required int abc}) {}
-main() {
+void f() {
   test("foo");
 }
 ''');
     await assertHasFix('''
 test(String x, {required int abc}) {}
-main() {
+void f() {
   test("foo", abc: null);
 }
 ''');

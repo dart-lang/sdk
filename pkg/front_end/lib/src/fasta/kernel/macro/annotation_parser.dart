@@ -39,6 +39,9 @@ List<MacroApplication>? prebuildAnnotations(
       result.add(application);
     }
   }
+  if (result != null && result.length > 1) {
+    result = result.reversed.toList(growable: false);
+  }
   return result;
 }
 
@@ -689,6 +692,17 @@ class _MacroListener implements Listener {
   @override
   void beginLabeledStatement(Token token, int labelCount) {
     _unsupported();
+  }
+
+  @override
+  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
+    _unexpected();
+  }
+
+  @override
+  void endLibraryAugmentation(
+      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+    _unexpected();
   }
 
   @override
@@ -1950,6 +1964,12 @@ class _MacroListener implements Listener {
 
   @override
   void handleSuperExpression(Token token, IdentifierContext context) {
+    _unsupported();
+  }
+
+  @override
+  void handleAugmentSuperExpression(
+      Token augmentToken, Token superToken, IdentifierContext context) {
     _unsupported();
   }
 

@@ -1301,7 +1301,7 @@ DART_EXPORT void Regress216834909_SetAtExit(int64_t install) {
     Regress216834909_hang_at_exit = false;
   }
 }
-#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID) ||     \
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID) ||
         // defined(DART_HOST_OS_MACOS)
 
 }  // namespace dart

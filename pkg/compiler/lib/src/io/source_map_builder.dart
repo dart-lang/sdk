@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.source_map_builder;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
@@ -19,10 +17,10 @@ class SourceMapBuilder {
   final String version;
 
   /// The URI of the source map file.
-  final Uri sourceMapUri;
+  final Uri? sourceMapUri;
 
   /// The URI of the target language file.
-  final Uri targetFileUri;
+  final Uri? targetFileUri;
 
   final LocationProvider locationProvider;
   final List<SourceMapEntry> entries = [];
@@ -70,12 +68,12 @@ class SourceMapBuilder {
       int column = kernelLocation.column - 1;
       lineColumnMap.add(line, column, sourceMapEntry);
 
-      SourceLocation location = sourceMapEntry.sourceLocation;
+      SourceLocation? location = sourceMapEntry.sourceLocation;
       if (location != null) {
         if (location.sourceUri != null) {
           LineColumnMap<SourceMapEntry> sourceLineColumnMap =
               sourceLocationMap.putIfAbsent(
-                  location.sourceUri, () => LineColumnMap<SourceMapEntry>());
+                  location.sourceUri!, () => LineColumnMap<SourceMapEntry>());
           sourceLineColumnMap.add(
               location.line - 1, location.column - 1, sourceMapEntry);
         }
@@ -89,12 +87,12 @@ class SourceMapBuilder {
     IndexMap<Uri> uriMap = IndexMap<Uri>();
     IndexMap<String> nameMap = IndexMap<String>();
 
-    void registerLocation(SourceLocation sourceLocation) {
+    void registerLocation(SourceLocation? sourceLocation) {
       if (sourceLocation != null) {
         if (sourceLocation.sourceUri != null) {
-          uriMap.register(sourceLocation.sourceUri);
+          uriMap.register(sourceLocation.sourceUri!);
           if (sourceLocation.sourceName != null) {
-            nameMap.register(sourceLocation.sourceName);
+            nameMap.register(sourceLocation.sourceName!);
           }
         }
       }
@@ -110,7 +108,7 @@ class SourceMapBuilder {
       for (var frame in entries) {
         registerLocation(frame.pushLocation);
         if (frame.inlinedMethodName != null) {
-          nameMap.register(frame.inlinedMethodName);
+          nameMap.register(frame.inlinedMethodName!);
         }
       }
     }
@@ -124,14 +122,14 @@ class SourceMapBuilder {
     buffer.write('  "engine": "$version",\n');
     if (sourceMapUri != null && targetFileUri != null) {
       buffer.write('  "file": '
-          '"${fe.relativizeUri(sourceMapUri, targetFileUri, false)}",\n');
+          '"${fe.relativizeUri(sourceMapUri!, targetFileUri!, false)}",\n');
     }
     buffer.write('  "sourceRoot": "",\n');
     buffer.write('  "sources": ');
     Iterable<String> relativeSourceUriList = const <String>[];
     if (sourceMapUri != null) {
       relativeSourceUriList =
-          uriMap.elements.map((u) => fe.relativizeUri(sourceMapUri, u, false));
+          uriMap.elements.map((u) => fe.relativizeUri(sourceMapUri!, u, false));
     }
     printStringListOn(relativeSourceUriList, buffer);
     buffer.write(',\n');
@@ -157,7 +155,7 @@ class SourceMapBuilder {
 
   void writeEntries(LineColumnMap<SourceMapEntry> entries, IndexMap<Uri> uriMap,
       IndexMap<String> nameMap, StringBuffer output) {
-    SourceLocation previousSourceLocation;
+    SourceLocation? previousSourceLocation;
     int previousTargetLine = 0;
     DeltaEncoder targetColumnEncoder = DeltaEncoder();
     bool firstEntryInLine = true;
@@ -167,7 +165,7 @@ class SourceMapBuilder {
     DeltaEncoder sourceNameIndexEncoder = DeltaEncoder();
 
     entries.forEach((int targetLine, int targetColumn, SourceMapEntry entry) {
-      SourceLocation sourceLocation = entry.sourceLocation;
+      SourceLocation? sourceLocation = entry.sourceLocation;
       if (sourceLocation == previousSourceLocation) {
         return;
       }
@@ -193,16 +191,16 @@ class SourceMapBuilder {
         return;
       }
 
-      Uri sourceUri = sourceLocation.sourceUri;
+      Uri? sourceUri = sourceLocation.sourceUri;
       if (sourceUri != null) {
-        sourceUriIndexEncoder.encode(output, uriMap[sourceUri]);
+        sourceUriIndexEncoder.encode(output, uriMap[sourceUri]!);
         sourceLineEncoder.encode(output, sourceLocation.line - 1);
         sourceColumnEncoder.encode(output, sourceLocation.column - 1);
       }
 
-      String sourceName = sourceLocation.sourceName;
+      String? sourceName = sourceLocation.sourceName;
       if (sourceName != null) {
-        sourceNameIndexEncoder.encode(output, nameMap[sourceName]);
+        sourceNameIndexEncoder.encode(output, nameMap[sourceName]!);
       }
 
       previousSourceLocation = sourceLocation;
@@ -236,11 +234,11 @@ class SourceMapBuilder {
       for (var entry in entries) {
         offsetEncoder.encode(buffer, offset);
         if (entry.isPush) {
-          SourceLocation location = entry.pushLocation;
-          uriEncoder.encode(buffer, uriMap[location.sourceUri]);
+          SourceLocation location = entry.pushLocation!;
+          uriEncoder.encode(buffer, uriMap[location.sourceUri!]!);
           lineEncoder.encode(buffer, location.line - 1);
           columnEncoder.encode(buffer, location.column - 1);
-          nameEncoder.encode(buffer, nameMap[entry.inlinedMethodName]);
+          nameEncoder.encode(buffer, nameMap[entry.inlinedMethodName!]!);
         } else {
           // ; and , are not used by VLQ so we can distinguish them in the
           // encoding, this is the same reason they are used in the mappings
@@ -254,7 +252,7 @@ class SourceMapBuilder {
 
   /// Returns the source map tag to put at the end a .js file in [fileUri] to
   /// make it point to the source map file in [sourceMapUri].
-  static String generateSourceMapTag(Uri sourceMapUri, Uri fileUri) {
+  static String generateSourceMapTag(Uri? sourceMapUri, Uri? fileUri) {
     if (sourceMapUri != null && fileUri != null) {
       String sourceMapFileName = fe.relativizeUri(fileUri, sourceMapUri, false);
       return '''
@@ -277,7 +275,7 @@ class SourceMapBuilder {
       Map<String, String> minifiedInstanceNames,
       String name,
       Uri sourceMapUri,
-      Uri fileUri,
+      Uri? fileUri,
       api.CompilerOutput compilerOutput) {
     // Create a source file for the compilation output. This allows using
     // [:getLine:] to transform offsets to line numbers in [SourceMapBuilder].
@@ -357,7 +355,7 @@ class DeltaEncoder {
 }
 
 class SourceMapEntry {
-  SourceLocation sourceLocation;
+  SourceLocation? sourceLocation;
   int targetOffset;
 
   SourceMapEntry(this.sourceLocation, this.targetOffset);
@@ -395,8 +393,8 @@ class LineColumnMap<T> {
 
   /// Returns the elements for the first the column in [line] that has
   /// associated elements.
-  List<T> getFirstElementsInLine(int line) {
-    Map<int, List<T>> lineMap = _map[line];
+  List<T>? getFirstElementsInLine(int line) {
+    Map<int, List<T>>? lineMap = _map[line];
     if (lineMap == null) return null;
     List<int> columns = lineMap.keys.toList()..sort();
     return lineMap[columns.first];
@@ -406,11 +404,11 @@ class LineColumnMap<T> {
   ///
   /// [f] is called in increasing column order.
   void forEachColumn(int line, f(int column, List<T> elements)) {
-    Map<int, List<T>> lineMap = _map[line];
+    Map<int, List<T>>? lineMap = _map[line];
     if (lineMap != null) {
       List<int> columns = lineMap.keys.toList()..sort();
       columns.forEach((int column) {
-        f(column, lineMap[column]);
+        f(column, lineMap[column]!);
       });
     }
   }
@@ -421,10 +419,10 @@ class LineColumnMap<T> {
   void forEach(f(int line, int column, T element)) {
     List<int> lines = _map.keys.toList()..sort();
     for (int line in lines) {
-      Map<int, List<T>> lineMap = _map[line];
+      Map<int, List<T>> lineMap = _map[line]!;
       List<int> columns = lineMap.keys.toList()..sort();
       for (int column in columns) {
-        lineMap[column].forEach((e) => f(line, column, e));
+        lineMap[column]!.forEach((e) => f(line, column, e));
       }
     }
   }
@@ -447,7 +445,7 @@ class IndexMap<T> {
   }
 
   /// Returns the index of [element].
-  int operator [](T element) => map[element];
+  int? operator [](T element) => map[element];
 
   /// Returns the indexed elements.
   Iterable<T> get elements => map.keys;

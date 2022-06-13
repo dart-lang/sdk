@@ -131,7 +131,7 @@ class D7 extends self::C7 {
     ;
 }
 class D8 extends syn::C8 {
-  constructor •({core::int? a}) → self::D8
+  constructor •({core::int? a = null}) → self::D8
     ;
 }
 class B9 extends core::Object {
@@ -139,12 +139,12 @@ class B9 extends core::Object {
     ;
 }
 class C9 = syn::A9 with self::B9 {
-  synthetic constructor •([core::int? a]) → self::C9
+  synthetic constructor •([core::int? a = null]) → self::C9
     : super syn::A9::•(a)
     ;
 }
 class D9 extends self::C9 {
-  constructor •([core::int? a]) → self::D9
+  constructor •([core::int? a = null]) → self::D9
     ;
 }
 static method main() → dynamic
@@ -175,7 +175,7 @@ class A7 extends core::Object {
 }
 class A8 extends core::Object {
   final field core::int? a;
-  constructor •({core::int? a}) → syn::A8
+  constructor •({core::int? a = null}) → syn::A8
     ;
 }
 class B8 extends core::Object {
@@ -183,12 +183,12 @@ class B8 extends core::Object {
     ;
 }
 class C8 = syn::A8 with syn::B8 {
-  synthetic constructor •({core::int? a}) → syn::C8
+  synthetic constructor •({core::int? a = null}) → syn::C8
     : super syn::A8::•(a: a)
     ;
 }
 class A9 extends core::Object {
   final field core::int? a;
-  constructor •([core::int? a]) → syn::A9
+  constructor •([core::int? a = null]) → syn::A9
     ;
 }

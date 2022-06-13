@@ -180,7 +180,7 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ rep_movsw();
       break;
     case 4:
-      __ rep_movsl();
+      __ rep_movsd();
       break;
     case 8:
     case 16:
@@ -336,6 +336,13 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(locs()->in(0).IsFpuRegister());
     const FpuRegister result = locs()->in(0).fpu_reg();
     ASSERT(result == CallingConventions::kReturnFpuReg);
+  }
+
+  if (compiler->parsed_function().function().IsSuspendableFunction()) {
+    ASSERT(compiler->flow_graph().graph_entry()->NeedsFrame());
+    const Code& stub = GetReturnStub(compiler);
+    compiler->EmitJumpToStub(stub);
+    return;
   }
 
   if (!compiler->flow_graph().graph_entry()->NeedsFrame()) {
@@ -1301,8 +1308,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Restore the pre-aligned SP.
     __ movq(SPREG, saved_sp);
   } else {
-    // Although PP is a callee-saved register, it may have been moved by the GC.
-    __ LeaveDartFrame(compiler::kRestoreCallerPP);
+    __ LeaveDartFrame();
     // Restore the global object pool after returning from runtime (old space is
     // moving, so the GOP could have been relocated).
     if (FLAG_precompiled_mode) {
@@ -1436,6 +1442,34 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Continue with Dart frame setup.
   FunctionEntryInstr::EmitNativeCode(compiler);
+}
+
+#define R(r) (1 << r)
+
+LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
+                                                 bool is_optimizing) const {
+  constexpr Register saved_fp = CallingConventions::kSecondNonArgumentRegister;
+  return MakeLocationSummaryInternal(zone, (R(saved_fp)));
+}
+
+#undef R
+
+void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register temp0 = TMP;
+
+  // TODO(http://dartbug.com/47778): If we knew whether the stack was aligned
+  // at this point, we could omit having a frame.
+  __ MoveRegister(saved_fp, FPREG);
+
+  const intptr_t frame_space = native_calling_convention_.StackTopInBytes();
+  __ EnterCFrame(frame_space);
+
+  EmitParamMoves(compiler, saved_fp, temp0);
+  const Register target_address = locs()->in(TargetAddressIndex()).reg();
+  __ CallCFunction(target_address);
+
+  __ LeaveCFrame();
 }
 
 static bool CanBeImmediateIndex(Value* index, intptr_t cid) {
@@ -4800,6 +4834,15 @@ DEFINE_EMIT(Float32x4Clamp,
   __ maxps(value, lower);
 }
 
+DEFINE_EMIT(Float64x2Clamp,
+            (SameAsFirstInput,
+             XmmRegister value,
+             XmmRegister lower,
+             XmmRegister upper)) {
+  __ minpd(value, upper);
+  __ maxpd(value, lower);
+}
+
 DEFINE_EMIT(Int32x4FromInts,
             (XmmRegister result, Register, Register, Register, Register)) {
   // TODO(dartbug.com/30949) avoid transfer through memory.
@@ -4947,6 +4990,7 @@ DEFINE_EMIT(Int32x4Select,
   SIMPLE(Float32x4Zero)                                                        \
   SIMPLE(Float64x2Zero)                                                        \
   SIMPLE(Float32x4Clamp)                                                       \
+  SIMPLE(Float64x2Clamp)                                                       \
   CASE(Int32x4GetFlagX)                                                        \
   CASE(Int32x4GetFlagY)                                                        \
   ____(Int32x4GetFlagXorY)                                                     \
@@ -6910,37 +6954,40 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(RAX));  // Function.
+  summary->set_in(0, Location::RegisterLocation(
+                         FLAG_precompiled_mode ? RAX : FUNCTION_REG));
   return MakeCallSummary(zone, this, summary);
 }
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Arguments descriptor is expected in R10.
+  // Arguments descriptor is expected in ARGS_DESC_REG.
   const intptr_t argument_count = ArgumentCount();  // Includes type args.
   const Array& arguments_descriptor =
       Array::ZoneHandle(Z, GetArgumentsDescriptor());
-  __ LoadObject(R10, arguments_descriptor);
+  __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
 
-  ASSERT(locs()->in(0).reg() == RAX);
   if (FLAG_precompiled_mode) {
+    ASSERT(locs()->in(0).reg() == RAX);
     // RAX: Closure with cached entry point.
     __ movq(RCX, compiler::FieldAddress(
                      RAX, compiler::target::Closure::entry_point_offset()));
   } else {
-    // RAX: Function.
+    ASSERT(locs()->in(0).reg() == FUNCTION_REG);
+    // FUNCTION_REG: Function.
     __ LoadCompressed(
-        CODE_REG,
-        compiler::FieldAddress(RAX, compiler::target::Function::code_offset()));
+        CODE_REG, compiler::FieldAddress(
+                      FUNCTION_REG, compiler::target::Function::code_offset()));
     // Closure functions only have one entry point.
     __ movq(RCX, compiler::FieldAddress(
-                     RAX, compiler::target::Function::entry_point_offset()));
+                     FUNCTION_REG,
+                     compiler::target::Function::entry_point_offset()));
   }
 
-  // R10: Arguments descriptor array.
+  // ARGS_DESC_REG: Arguments descriptor array.
   // RCX: instructions entry point.
   if (!FLAG_precompiled_mode) {
     // RBX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
-    __ xorq(RBX, RBX);
+    __ xorq(IC_DATA_REG, IC_DATA_REG);
   }
   __ call(RCX);
   compiler->EmitCallsiteMetadata(source(), deopt_id(),

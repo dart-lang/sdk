@@ -169,12 +169,14 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
   }
 
   List<MacroApplication>? getClassMacroApplications(Class cls) {
-    return getClassMacroApplicationData(cls)?.classApplications;
+    return getClassMacroApplicationData(cls)
+        ?.classApplications
+        ?.macroApplications;
   }
 
   List<MacroApplication>? getMemberMacroApplications(Member member) {
     Class? enclosingClass = member.enclosingClass;
-    Map<MemberBuilder, List<MacroApplication>>? memberApplications;
+    Map<MemberBuilder, ApplicationData>? memberApplications;
     if (enclosingClass != null) {
       memberApplications =
           getClassMacroApplicationData(enclosingClass)?.memberApplications;
@@ -184,10 +186,10 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
               ?.memberApplications;
     }
     if (memberApplications != null) {
-      for (MapEntry<MemberBuilder, List<MacroApplication>> entry
+      for (MapEntry<MemberBuilder, ApplicationData> entry
           in memberApplications.entries) {
         if (entry.key.member == member) {
-          return entry.value;
+          return entry.value.macroApplications;
         }
       }
     }
@@ -198,12 +200,7 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
       Features features, List<MacroApplication>? macroApplications) {
     if (macroApplications != null) {
       for (MacroApplication application in macroApplications) {
-        StringBuffer sb = new StringBuffer();
-        sb.write(application.classBuilder.name);
-        sb.write('.');
-        sb.write(constructorNameToString(application.constructorName));
-        sb.write(application.arguments.toText());
-        features.addElement(Tags.appliedMacros, sb.toString());
+        features.addElement(Tags.appliedMacros, application.toString());
       }
     }
   }

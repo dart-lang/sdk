@@ -22,7 +22,7 @@ class GetTypeHierarchyTest extends AbstractAnalysisServerIntegrationTest {
 
   Future getTypeHierarchy_badTarget() async {
     var text = r'''
-main() {
+void f() {
   if /* target */ (true) {
     print('Hello');
   }

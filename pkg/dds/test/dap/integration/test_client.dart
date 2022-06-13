@@ -582,7 +582,7 @@ extension DapTestClientExtension on DapTestClient {
       null,
     );
 
-    // For convenience, use the ProtocolList to deserialise the custom
+    // For convenience, use the ProtocolList to deserialize the custom
     // response to check if included DDS.
     final protocolList =
         vm.ProtocolList.parse(response.body as Map<String, Object?>?);

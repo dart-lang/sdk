@@ -37,13 +37,13 @@ Stream<String> f() async* {}
 
   Future<void> test_closure() async {
     await resolveTestCode('''
-main() {
+void h() {
   f(() => 123);
 }
 f(g) {}
 ''');
     await assertHasAssistAt('=>', '''
-main() {
+void h() {
   f(() async => 123);
 }
 f(g) {}

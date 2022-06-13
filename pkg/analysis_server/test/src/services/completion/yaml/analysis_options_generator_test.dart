@@ -29,7 +29,62 @@ class AnalysisOptionsGeneratorTest extends YamlGeneratorTest {
 analyzer:
   ^
 ''');
-    assertSuggestion('${AnalyzerOptions.enableExperiment}: ');
+    assertSuggestion('${AnalyzerOptions.enableExperiment}:');
+  }
+
+  void test_analyzer_enableExperiment() {
+    registerLintRules();
+    getCompletions('''
+analyzer:
+  enable-experiment:
+    ^
+''');
+    assertSuggestion('macros');
+    assertNoSuggestion('super-parameters');
+  }
+
+  void test_analyzer_enableExperiment_nonDuplicate() {
+    registerLintRules();
+    getCompletions('''
+analyzer:
+  enable-experiment:
+    - macros
+    ^
+''');
+    assertNoSuggestion('macros');
+  }
+
+  void test_analyzer_errors() {
+    getCompletions('''
+analyzer:
+  errors:
+    ^
+''');
+    assertSuggestion('dead_code: ');
+    assertSuggestion('invalid_assignment: ');
+    assertSuggestion('annotate_overrides: ');
+  }
+
+  void test_analyzer_errors_nonDuplicate() {
+    getCompletions('''
+analyzer:
+  errors:
+    dead_code: info
+    ^
+''');
+    assertNoSuggestion('dead_code');
+  }
+
+  void test_analyzer_errors_severity() {
+    getCompletions('''
+analyzer:
+  errors:
+    dead_code: ^
+''');
+    assertSuggestion('ignore');
+    assertSuggestion('info');
+    assertSuggestion('warning');
+    assertSuggestion('error');
   }
 
   void test_codeStyle() {

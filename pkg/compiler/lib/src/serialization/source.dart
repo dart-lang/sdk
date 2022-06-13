@@ -6,43 +6,18 @@
 
 part of 'serialization.dart';
 
-/// Interface handling [DataSourceReader] low-level data deserialization.
-///
-/// Each implementation of [DataSource] should have a corresponding
-/// [DataSink] for which it deserializes data.
-abstract class DataSource {
-  /// Deserialization of a section begin tag.
-  void begin(String tag);
-
-  /// Deserialization of a section end tag.
-  void end(String tag);
-
-  /// Deserialization of a string value.
-  String readString();
-
-  /// Deserialization of a non-negative integer value.
-  int readInt();
-
-  /// Deserialization of an enum value in [values].
-  E readEnum<E>(List<E> values);
-
-  /// Returns a string representation of the current state of the data source
-  /// useful for debugging in consistencies between serialization and
-  /// deserialization.
-  String get errorContext;
-}
-
 /// Deserialization reader
 ///
 /// To be used with [DataSinkWriter] to read and write serialized data.
 /// Deserialization format is deferred to provided [DataSource].
-class DataSourceReader {
+class DataSourceReader implements migrated.DataSourceReader {
   final DataSource _sourceReader;
 
   static final List<ir.DartType> emptyListOfDartTypes =
       List<ir.DartType>.empty();
 
   final bool useDataKinds;
+  final ValueInterner /*?*/ interner;
   DataSourceIndices importedIndices;
   EntityReader _entityReader = const EntityReader();
   ComponentLookup _componentLookup;
@@ -52,14 +27,14 @@ class DataSourceReader {
 
   IndexedSource<String> _stringIndex;
   IndexedSource<Uri> _uriIndex;
-  IndexedSource<_MemberData> _memberNodeIndex;
+  IndexedSource<MemberData> _memberNodeIndex;
   IndexedSource<ImportEntity> _importIndex;
   IndexedSource<ConstantValue> _constantIndex;
 
   final Map<Type, IndexedSource> _generalCaches = {};
 
   ir.Member _currentMemberContext;
-  _MemberData _currentMemberData;
+  MemberData _currentMemberData;
 
   IndexedSource<T> _createSource<T>() {
     if (importedIndices == null || !importedIndices.caches.containsKey(T)) {
@@ -71,10 +46,10 @@ class DataSourceReader {
   }
 
   DataSourceReader(this._sourceReader,
-      {this.useDataKinds = false, this.importedIndices}) {
+      {this.useDataKinds = false, this.importedIndices, this.interner}) {
     _stringIndex = _createSource<String>();
     _uriIndex = _createSource<Uri>();
-    _memberNodeIndex = _createSource<_MemberData>();
+    _memberNodeIndex = _createSource<MemberData>();
     _importIndex = _createSource<ImportEntity>();
     _constantIndex = _createSource<ConstantValue>();
   }
@@ -88,9 +63,9 @@ class DataSourceReader {
     indices.caches[ImportEntity] = DataSourceTypeIndices(_importIndex.cache);
     // _memberNodeIndex needs two entries depending on if the indices will be
     // consumed by a [DataSource] or [DataSink].
-    indices.caches[_MemberData] = DataSourceTypeIndices(_memberNodeIndex.cache);
-    indices.caches[ir.Member] = DataSourceTypeIndices<ir.Member, _MemberData>(
-        _memberNodeIndex.cache, (_MemberData data) => data?.node);
+    indices.caches[MemberData] = DataSourceTypeIndices(_memberNodeIndex.cache);
+    indices.caches[ir.Member] = DataSourceTypeIndices<ir.Member, MemberData>(
+        _memberNodeIndex.cache, (MemberData data) => data?.node);
     indices.caches[ConstantValue] = DataSourceTypeIndices(_constantIndex.cache);
     _generalCaches.forEach((type, indexedSource) {
       indices.caches[type] = DataSourceTypeIndices(indexedSource.cache);
@@ -102,6 +77,7 @@ class DataSourceReader {
   ///
   /// This is used for debugging to verify that sections are correctly aligned
   /// between serialization and deserialization.
+  @override
   void begin(String tag) {
     if (useDataKinds) _sourceReader.begin(tag);
   }
@@ -110,6 +86,7 @@ class DataSourceReader {
   ///
   /// This is used for debugging to verify that sections are correctly aligned
   /// between serialization and deserialization.
+  @override
   void end(String tag) {
     if (useDataKinds) _sourceReader.end(tag);
   }
@@ -174,9 +151,10 @@ class DataSourceReader {
   /// Invoke [f] in the context of [member]. This sets up support for
   /// deserialization of `ir.TreeNode`s using the `readTreeNode*InContext`
   /// methods.
+  @override
   T inMemberContext<T>(ir.Member context, T f()) {
     ir.Member oldMemberContext = _currentMemberContext;
-    _MemberData oldMemberData = _currentMemberData;
+    MemberData oldMemberData = _currentMemberData;
     _currentMemberContext = context;
     _currentMemberData = null;
     T result = f();
@@ -185,7 +163,7 @@ class DataSourceReader {
     return result;
   }
 
-  _MemberData get currentMemberData {
+  MemberData get currentMemberData {
     assert(_currentMemberContext != null,
         "DataSink has no current member context.");
     return _currentMemberData ??= _getMemberData(_currentMemberContext);
@@ -193,7 +171,17 @@ class DataSourceReader {
 
   /// Reads a reference to an [E] value from this data source. If the value has
   /// not yet been deserialized, [f] is called to deserialize the value itself.
+  @override
   E readCached<E>(E f()) {
+    E /*?*/ value = readCachedOrNull(f);
+    if (value == null) throw StateError("Unexpected 'null' for $E");
+    return value;
+  }
+
+  /// Reads a reference to an [E] value from this data source. If the value has
+  /// not yet been deserialized, [f] is called to deserialize the value itself.
+  @override
+  E /*?*/ readCachedOrNull<E>(E f()) {
     IndexedSource source = _generalCaches[E] ??= _createSource<E>();
     return source.read(f);
   }
@@ -211,21 +199,33 @@ class DataSourceReader {
     return null;
   }
 
-  /// Reads a list of [E] values from this data source. If [emptyAsNull] is
-  /// `true`, `null` is returned instead of an empty list.
+  /// Reads a list of [E] values from this data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeList].
-  List<E> readList<E>(E f(), {bool emptyAsNull = false}) {
+  @override
+  List<E> readList<E>(E f()) {
+    return readListOrNull<E>(f) ?? List<E>.empty();
+  }
+
+  /// Reads a list of [E] values from this data source.
+  /// `null` is returned instead of an empty list.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeList].
+  @override
+  List<E> /*?*/ readListOrNull<E>(E f()) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
-    List<E> list = List<E>.filled(count, null);
-    for (int i = 0; i < count; i++) {
+    if (count == 0) return null;
+    final first = f();
+    List<E> list = List<E>.filled(count, first);
+    for (int i = 1; i < count; i++) {
       list[i] = f();
     }
     return list;
   }
 
+  @override
   bool readBool() {
     _checkDataKind(DataKind.bool);
     return _readBool();
@@ -239,6 +239,7 @@ class DataSourceReader {
   }
 
   /// Reads a non-negative 30 bit integer value from this data source.
+  @override
   int readInt() {
     _checkDataKind(DataKind.uint30);
     return _sourceReader.readInt();
@@ -249,6 +250,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeIntOrNull].
+  @override
   int readIntOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -258,6 +260,7 @@ class DataSourceReader {
   }
 
   /// Reads a string value from this data source.
+  @override
   String readString() {
     _checkDataKind(DataKind.string);
     return _readString();
@@ -271,6 +274,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeStringOrNull].
+  @override
   String readStringOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -284,6 +288,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeStrings].
+  @override
   List<String> readStrings({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -300,6 +305,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeStringMap].
+  @override
   Map<String, V> readStringMap<V>(V f(), {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -321,12 +327,14 @@ class DataSourceReader {
   ///    ...
   ///    Foo foo = source.readEnum(Foo.values);
   ///
+  @override
   E readEnum<E>(List<E> values) {
     _checkDataKind(DataKind.enumValue);
     return _sourceReader.readEnum(values);
   }
 
   /// Reads a URI value from this data source.
+  @override
   Uri readUri() {
     _checkDataKind(DataKind.uri);
     return _readUri();
@@ -346,7 +354,7 @@ class DataSourceReader {
     return _readLibraryData().node;
   }
 
-  _LibraryData _readLibraryData() {
+  LibraryData _readLibraryData() {
     Uri canonicalUri = _readUri();
     return componentLookup.getLibraryDataByUri(canonicalUri);
   }
@@ -357,8 +365,8 @@ class DataSourceReader {
     return _readClassData().node;
   }
 
-  _ClassData _readClassData() {
-    _LibraryData library = _readLibraryData();
+  ClassData _readClassData() {
+    LibraryData library = _readLibraryData();
     String name = _readString();
     return library.lookupClassByName(name);
   }
@@ -370,7 +378,7 @@ class DataSourceReader {
   }
 
   ir.Typedef _readTypedefNode() {
-    _LibraryData library = _readLibraryData();
+    LibraryData library = _readLibraryData();
     String name = _readString();
     return library.lookupTypedef(name);
   }
@@ -381,19 +389,19 @@ class DataSourceReader {
     return _readMemberData().node;
   }
 
-  _MemberData _readMemberData() {
+  MemberData _readMemberData() {
     return _memberNodeIndex.read(_readMemberDataInternal);
   }
 
-  _MemberData _readMemberDataInternal() {
+  MemberData _readMemberDataInternal() {
     MemberContextKind kind = _sourceReader.readEnum(MemberContextKind.values);
     switch (kind) {
       case MemberContextKind.cls:
-        _ClassData cls = _readClassData();
+        ClassData cls = _readClassData();
         String name = _readString();
         return cls.lookupMemberDataByName(name);
       case MemberContextKind.library:
-        _LibraryData library = _readLibraryData();
+        LibraryData library = _readLibraryData();
         String name = _readString();
         return library.lookupMemberDataByName(name);
     }
@@ -461,7 +469,7 @@ class DataSourceReader {
     return _readTreeNode(null);
   }
 
-  ir.TreeNode _readTreeNode(_MemberData memberData) {
+  ir.TreeNode _readTreeNode(MemberData memberData) {
     _TreeNodeKind kind = _sourceReader.readEnum(_TreeNodeKind.values);
     switch (kind) {
       case _TreeNodeKind.cls:
@@ -545,7 +553,7 @@ class DataSourceReader {
     return readTreeNodeInContextInternal(currentMemberData);
   }
 
-  ir.TreeNode readTreeNodeInContextInternal(_MemberData memberData) {
+  ir.TreeNode readTreeNodeInContextInternal(MemberData memberData) {
     _checkDataKind(DataKind.treeNode);
     return _readTreeNode(memberData);
   }
@@ -580,15 +588,26 @@ class DataSourceReader {
 
   /// Reads a map from kernel tree nodes to [V] values in the known [context]
   /// from this data source, calling [f] to read each value from the data
-  /// source. If [emptyAsNull] is `true`, `null` is returned instead of an empty
-  /// map.
+  /// source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeTreeNodeMapInContext].
-  Map<K, V> readTreeNodeMapInContext<K extends ir.TreeNode, V>(V f(),
-      {bool emptyAsNull = false}) {
+  @override
+  Map<K, V> readTreeNodeMapInContext<K extends ir.TreeNode, V>(V f()) {
+    return readTreeNodeMapInContextOrNull<K, V>(f) ?? {};
+  }
+
+  /// Reads a map from kernel tree nodes to [V] values in the known [context]
+  /// from this data source, calling [f] to read each value from the data
+  /// source. `null` is returned for an empty map.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeTreeNodeMapInContext].
+  @override
+  Map<K, V> /*?*/ readTreeNodeMapInContextOrNull<K extends ir.TreeNode, V>(
+      V f()) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
+    if (count == 0) return null;
     Map<K, V> map = {};
     for (int i = 0; i < count; i++) {
       ir.TreeNode node = readTreeNodeInContextInternal(currentMemberData);
@@ -604,7 +623,7 @@ class DataSourceReader {
     return _readTypeParameter(null);
   }
 
-  ir.TypeParameter _readTypeParameter(_MemberData memberData) {
+  ir.TypeParameter _readTypeParameter(MemberData memberData) {
     _TypeParameterKind kind = _sourceReader.readEnum(_TypeParameterKind.values);
     switch (kind) {
       case _TypeParameterKind.cls:
@@ -634,12 +653,15 @@ class DataSourceReader {
   }
 
   /// Reads a type from this data source.
+  @override
   DartType /*!*/ readDartType() {
     _checkDataKind(DataKind.dartType);
-    return DartType.readFromDataSource(this, []);
+    final type = DartType.readFromDataSource(this, []);
+    return interner?.internDartType(type) ?? type;
   }
 
   /// Reads a nullable type from this data source.
+  @override
   DartType /*?*/ readDartTypeOrNull() {
     _checkDataKind(DataKind.dartType);
     return DartType.readFromDataSourceOrNull(this, []);
@@ -649,6 +671,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeDartTypes].
+  @override
   List<DartType> readDartTypes() {
     // Share the list when empty.
     return readDartTypesOrNull() ?? const [];
@@ -659,6 +682,7 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeDartTypes].
+  @override
   List<DartType> /*?*/ readDartTypesOrNull() {
     int count = readInt();
     if (count == 0) return null;
@@ -667,11 +691,21 @@ class DataSourceReader {
 
   /// Reads a kernel type node from this data source. If [allowNull], the
   /// returned type is allowed to be `null`.
-  ir.DartType readDartTypeNode({bool allowNull = false}) {
+  @override
+  ir.DartType /*!*/ readDartTypeNode() {
     _checkDataKind(DataKind.dartTypeNode);
-    ir.DartType type = _readDartTypeNode([]);
-    assert(type != null || allowNull);
+    ir.DartType type = readDartTypeNodeOrNull();
+    if (type == null) throw UnsupportedError('Unexpected `null` DartTypeNode');
     return type;
+  }
+
+  /// Reads a kernel type node from this data source. The returned type is
+  /// allowed to be `null`.
+  @override
+  ir.DartType /*?*/ readDartTypeNodeOrNull() {
+    _checkDataKind(DataKind.dartTypeNode);
+    final type = _readDartTypeNode([]);
+    return interner?.internDartTypeNode(type) ?? type;
   }
 
   ir.DartType _readDartTypeNode(List<ir.TypeParameter> functionTypeVariables) {
@@ -733,13 +767,11 @@ class DataSourceReader {
           namedParameters[index] =
               ir.NamedType(name, type, isRequired: isRequired);
         }
-        ir.TypedefType typedefType = _readDartTypeNode(functionTypeVariables);
         end(functionTypeNodeTag);
         return ir.FunctionType(positionalParameters, returnType, nullability,
             namedParameters: namedParameters,
             typeParameters: typeParameters,
-            requiredParameterCount: requiredParameterCount,
-            typedefType: typedefType);
+            requiredParameterCount: requiredParameterCount);
 
       case DartTypeNodeKind.interfaceType:
         ir.Class cls = readClassNode();
@@ -814,12 +846,14 @@ class DataSourceReader {
   }
 
   /// Reads a reference to an indexed library from this data source.
+  @override
   IndexedLibrary readLibrary() {
     return _entityReader.readLibraryFromDataSource(this, entityLookup);
   }
 
   /// Reads a reference to a potentially `null` indexed library from this data
   /// source.
+  @override
   IndexedLibrary readLibraryOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -849,12 +883,14 @@ class DataSourceReader {
   }
 
   /// Reads a reference to an indexed class from this data source.
+  @override
   IndexedClass readClass() {
     return _entityReader.readClassFromDataSource(this, entityLookup);
   }
 
   /// Reads a reference to a potentially `null` indexed class from this data
   /// source.
+  @override
   IndexedClass readClassOrNull() {
     bool hasClass = readBool();
     if (hasClass) {
@@ -899,7 +935,7 @@ class DataSourceReader {
   }
 
   /// Reads a reference to an indexed member from this data source.
-  IndexedMember readMember() {
+  IndexedMember /*!*/ readMember() {
     return _entityReader.readMemberFromDataSource(this, entityLookup);
   }
 
@@ -914,15 +950,24 @@ class DataSourceReader {
   }
 
   /// Reads a list of references to indexed members from this data source.
-  /// If [emptyAsNull] is `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeMembers].
-  List<E> readMembers<E extends MemberEntity>({bool emptyAsNull = false}) {
+  List<E /*!*/ > readMembers<E extends MemberEntity /*!*/ >() {
+    return readMembersOrNull() ?? List.empty();
+  }
+
+  /// Reads a list of references to indexed members from this data source.
+  /// `null` is returned instead of an empty list.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeMembers].
+  List<E /*!*/ > readMembersOrNull<E extends MemberEntity /*!*/ >() {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
-    List<E> list = List<E>.filled(count, null);
-    for (int i = 0; i < count; i++) {
+    if (count == 0) return null;
+    MemberEntity firstMember = readMember();
+    List<E> list = List<E>.filled(count, firstMember);
+    for (int i = 1; i < count; i++) {
       MemberEntity member = readMember();
       list[i] = member;
     }
@@ -930,15 +975,26 @@ class DataSourceReader {
   }
 
   /// Reads a map from indexed members to [V] values from this data source,
-  /// calling [f] to read each value from the data source. If [emptyAsNull] is
-  /// `true`, `null` is returned instead of an empty map.
+  /// calling [f] to read each value from the data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeMemberMap].
-  Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(MemberEntity member),
-      {bool emptyAsNull = false}) {
+  @override
+  Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(MemberEntity member)) {
+    return readMemberMapOrNull<K, V>(f) ?? {};
+  }
+
+  /// Reads a map from indexed members to [V] values from this data source,
+  /// calling [f] to read each value from the data source.
+  /// `null` is returned instead of an empty map.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeMemberMap].
+  @override
+  Map<K, V> readMemberMapOrNull<K extends MemberEntity, V>(
+      V f(MemberEntity member)) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
+    if (count == 0) return null;
     Map<K, V> map = {};
     for (int i = 0; i < count; i++) {
       MemberEntity member = readMember();
@@ -949,6 +1005,7 @@ class DataSourceReader {
   }
 
   /// Reads a reference to an indexed type variable from this data source.
+  @override
   IndexedTypeVariable readTypeVariable() {
     return _entityReader.readTypeVariableFromDataSource(this, entityLookup);
   }
@@ -1041,6 +1098,7 @@ class DataSourceReader {
   }
 
   /// Reads a constant value from this data source.
+  @override
   ConstantValue readConstant() {
     _checkDataKind(DataKind.constant);
     return _readConstant();
@@ -1305,18 +1363,18 @@ class DataSourceReader {
     return _codegenReader.readTypeRecipe(this);
   }
 
-  _MemberData _getMemberData(ir.Member node) {
-    _LibraryData libraryData =
+  MemberData _getMemberData(ir.Member node) {
+    LibraryData libraryData =
         componentLookup.getLibraryDataByUri(node.enclosingLibrary.importUri);
     if (node.enclosingClass != null) {
-      _ClassData classData = libraryData.lookupClassByNode(node.enclosingClass);
+      ClassData classData = libraryData.lookupClassByNode(node.enclosingClass);
       return classData.lookupMemberDataByNode(node);
     } else {
       return libraryData.lookupMemberDataByNode(node);
     }
   }
 
-  ir.FunctionNode _readFunctionNode(_MemberData memberData) {
+  ir.FunctionNode _readFunctionNode(MemberData memberData) {
     _FunctionNodeKind kind = _sourceReader.readEnum(_FunctionNodeKind.values);
     switch (kind) {
       case _FunctionNodeKind.procedure:

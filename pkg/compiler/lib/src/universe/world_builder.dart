@@ -10,7 +10,7 @@ import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../ir/static_type.dart';
+import '../ir/class_relation.dart';
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../universe/resolution_world_builder.dart' show ResolutionWorldBuilder;
 import '../world.dart' show World;

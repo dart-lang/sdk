@@ -19,8 +19,7 @@ class CompletionRequestOperation extends RequestOperation {
   late Stopwatch stopwatch;
   bool firstNotification = true;
 
-  CompletionRequestOperation(
-      super.converter, super.json);
+  CompletionRequestOperation(super.converter, super.json);
 
   @override
   Future<void>? perform(Driver driver) {

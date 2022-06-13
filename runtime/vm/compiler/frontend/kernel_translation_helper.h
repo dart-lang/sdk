@@ -608,6 +608,7 @@ class ProcedureHelper {
   bool IsAbstract() const { return (flags_ & kAbstract) != 0; }
   bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsConst() const { return (flags_ & kConst) != 0; }
+  bool IsSynthetic() const { return (flags_ & kSyntheticProcedure) != 0; }
   bool IsForwardingStub() const {
     return stub_kind_ == kAbstractForwardingStubKind ||
            stub_kind_ == kConcreteForwardingStubKind;

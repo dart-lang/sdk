@@ -43,7 +43,7 @@ external bool typeAcceptsNull<T>();
 /// Can be used internally in platform library implementations of
 /// data structures, where a value is known to have a type different
 /// from its static type (like knowing that a string is definitely
-/// a "_OneByteString" or that the value stored into a heterogenous
+/// a "_OneByteString" or that the value stored into a heterogeneous
 /// list is really a value of the surrounding map).
 ///
 /// Must only be used for casts which would definitely *succeed*
@@ -53,7 +53,7 @@ external bool typeAcceptsNull<T>();
 external T unsafeCast<T>(dynamic value);
 
 // Powers of 10 up to 10^22 are representable as doubles.
-// Powers of 10 above that are only approximate due to lack of precission.
+// Powers of 10 above that are only approximate due to lack of precision.
 // Used by double-parsing.
 const POWERS_OF_TEN = const [
   1.0, // 0
@@ -136,7 +136,7 @@ int parseHexByte(String source, int index) {
   return digit1 * 16 + digit2 - (digit2 & 256);
 }
 
-/// A resusable `null`-valued future used by `dart:async`.
+/// A reusable `null`-valued future used by `dart:async`.
 ///
 /// **DO NOT USE.**
 ///
@@ -723,7 +723,7 @@ external Object? extractTypeArguments<T>(T instance, Function extract);
 /// If applied to a class method, or parameter of such,
 /// any method implementing that interface method is also annotated.
 /// If multiple `Since` annotations apply to the same declaration or
-/// parameter, the latest version takes precendence.
+/// parameter, the latest version takes precedence.
 ///
 /// Any use of a marked API may trigger a warning if the using code
 /// does not require an SDK version guaranteeing that the API is available,

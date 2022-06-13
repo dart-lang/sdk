@@ -54,7 +54,7 @@ class OptionsPackagesIntegrationTest
     var pathname = sourcePath('test.dart');
     writeFile(pathname, '''
 import 'package:foo/foo.dart';
-void main() {
+void f() {
   my_foo;
 }
 ''');

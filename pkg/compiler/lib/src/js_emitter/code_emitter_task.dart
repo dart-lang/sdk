@@ -68,7 +68,7 @@ class CodeEmitterTask extends CompilerTask {
     return _nativeEmitter;
   }
 
-  Emitter get emitter {
+  Emitter /*!*/ get emitter {
     assert(_emitter != null,
         failedAt(NO_LOCATION_SPANNABLE, "Emitter has not been created yet."));
     return _emitter;

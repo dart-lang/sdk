@@ -1884,7 +1884,7 @@ class OutlineBuilder extends StackListenerImpl {
           List<TypeVariableBuilder> unboundTypeVariables = [];
           thisType = substitute(thisType, substitution,
               unboundTypes: unboundTypes,
-              unboundTypeVariables: unboundTypeVariables)!;
+              unboundTypeVariables: unboundTypeVariables);
           for (NamedTypeBuilder unboundType in unboundTypes) {
             extension.registerUnresolvedNamedType(unboundType);
           }
@@ -1925,7 +1925,6 @@ class OutlineBuilder extends StackListenerImpl {
         libraryBuilder.addConstructor(
             metadata,
             modifiers,
-            returnType,
             name,
             constructorName,
             typeVariables,
@@ -2260,7 +2259,7 @@ class OutlineBuilder extends StackListenerImpl {
           metadata,
           kind,
           modifiers,
-          type,
+          type ?? libraryBuilder.addInferableType(),
           name == null ? FormalParameterBuilder.noNameSentinel : name as String,
           thisKeyword != null,
           superKeyword != null,
@@ -2583,7 +2582,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     push(libraryBuilder.addFunctionType(
-        returnType,
+        returnType ?? libraryBuilder.addInferableType(),
         typeVariables,
         formals,
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
@@ -2604,7 +2603,7 @@ class OutlineBuilder extends StackListenerImpl {
       reportErrorIfNullableType(question);
     }
     push(libraryBuilder.addFunctionType(
-        returnType,
+        returnType ?? libraryBuilder.addInferableType(),
         typeVariables,
         formals,
         libraryBuilder.nullableBuilderIfTrue(question != null),
@@ -2642,8 +2641,13 @@ class OutlineBuilder extends StackListenerImpl {
           TypeParameterScopeKind.functionType, "#function_type",
           hasMembers: false);
       // TODO(cstefantsova): Make sure that RHS of typedefs can't have '?'.
-      aliasedType = libraryBuilder.addFunctionType(returnType, null, formals,
-          const NullabilityBuilder.omitted(), uri, charOffset);
+      aliasedType = libraryBuilder.addFunctionType(
+          returnType ?? libraryBuilder.addInferableType(),
+          null,
+          formals,
+          const NullabilityBuilder.omitted(),
+          uri,
+          charOffset);
     } else {
       Object? type = pop();
       typeVariables = pop() as List<TypeVariableBuilder>?;

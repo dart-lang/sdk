@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide Outline;
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -24,7 +23,8 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
 
   @override
   Future<ErrorOr<Either2<List<DocumentSymbol>, List<SymbolInformation>>?>>
-      handle(DocumentSymbolParams params, CancellationToken token) async {
+      handle(DocumentSymbolParams params, MessageInfo message,
+          CancellationToken token) async {
     final clientCapabilities = server.clientCapabilities;
     if (clientCapabilities == null || !isDartDocument(params.textDocument)) {
       return success(

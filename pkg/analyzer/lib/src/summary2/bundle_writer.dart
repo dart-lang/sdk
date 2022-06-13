@@ -505,14 +505,10 @@ class ResolutionSink extends _SummaryDataWriter {
   final _LocalElementIndexer localElements = _LocalElementIndexer();
 
   ResolutionSink({
-    required ByteSink sink,
-    required StringIndexer stringIndexer,
+    required super.sink,
+    required super.stringIndexer,
     required _BundleWriterReferences references,
-  })  : _references = references,
-        super(
-          sink: sink,
-          stringIndexer: stringIndexer,
-        );
+  }) : _references = references;
 
   /// TODO(scheglov) Triage places where we write elements.
   /// Some of then cannot be members, e.g. type names.

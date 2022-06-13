@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 79;
+  UInt32 formatVersion = 81;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -437,7 +437,7 @@ type Procedure extends Member {
   Byte stubKind; // Index into the ProcedureStubKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst,
               isRedirectingFactory, isExtensionMember,
-              isNonNullableByDefault);
+              isNonNullableByDefault, isSynthetic);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.
@@ -596,6 +596,23 @@ type SpecializedVariableSet extends Expression {
   UInt variableDeclarationPosition;
   Expression value;
   // Equivalent to VariableSet with index N.
+}
+
+type AbstractSuperPropertyGet extends Expression {
+  Byte tag = 22;
+  FileOffset fileOffset;
+  Name name;
+  MemberReference interfaceTarget; // May be NullReference.
+  MemberReference interfaceTargetOrigin; // May be NullReference.
+}
+
+type AbstractSuperPropertySet extends Expression {
+  Byte tag = 23;
+  FileOffset fileOffset;
+  Name name;
+  Expression value;
+  MemberReference interfaceTarget; // May be NullReference.
+  MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
 type SuperPropertyGet extends Expression {
@@ -817,6 +834,15 @@ type EqualsCall extends Expression {
   Expression right;
   DartType functionType;
   MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin; // May be NullReference.
+}
+
+type AbstractSuperMethodInvocation extends Expression {
+  Byte tag = 28;
+  FileOffset fileOffset;
+  Name name;
+  Arguments arguments;
+  MemberReference interfaceTarget; // May be NullReference.
   MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
@@ -1371,7 +1397,7 @@ type TryFinally extends Statement {
 type YieldStatement extends Statement {
   Byte tag = 77;
   FileOffset fileOffset;
-  Byte flags (isYieldStar);
+  Byte flags (isYieldStar, isNative);
   Expression expression;
 }
 
@@ -1463,7 +1489,6 @@ type FunctionType extends DartType {
   UInt totalParameterCount;
   List<DartType> positionalParameters;
   List<NamedDartType> namedParameters;
-  Option<TypedefType> typedef;
   DartType returnType;
 }
 

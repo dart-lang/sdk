@@ -67,61 +67,82 @@ def ToCommandLine(gn_args):
     return [merge(x, y) for x, y in gn_args.items()]
 
 
-# Runs true if the currently executing python interpreter is running under
-# Rosetta. I.e., python3 is an x64 executable and we're on an arm64 Mac.
-def IsRosetta():
-    if platform.system() == 'Darwin':
-        p = subprocess.Popen(['sysctl', '-in', 'sysctl.proc_translated'],
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT)
-        output, _ = p.communicate()
-        return output.decode('utf-8').strip() == '1'
-    return False
-
-
+# The C compiler's host.
 def HostCpuForArch(arch):
-    # Check for Rosetta before checking platform.machine(), as the latter
-    # returns 'x86_64' when running under Rosetta.
-    if IsRosetta():
-        if arch in ['x64', 'x64c']:
-            # Without this case, we would try to build with
-            #   host_cpu="arm64"
-            #   target_cpu="x64"
-            #   dart_target_arch="x64"
-            # Which requires the VM to use an x64 simulator in the host
-            # arm64 binaries, and this simulator is unimplemented.
-            return 'x64'
-        else:
-            return 'arm64'
-
-    m = platform.machine()
-    if m == 'aarch64' or m == 'arm64':
-        return 'arm64'
-    if m == 'armv7l':
-        return 'arm'
-
-    if arch in ['ia32', 'arm', 'simarm', 'simarm_x64', 'riscv32', 'simriscv32']:
-        return 'x86'
-    if arch in [
-            'x64', 'arm64', 'simarm64', 'arm_x64', 'x64c', 'arm64c',
-            'simarm64c', 'riscv64', 'simriscv64'
-    ]:
+    if arch.endswith('_x64'):
         return 'x64'
+    if arch.endswith('_arm64'):
+        return 'arm64'
+    if arch.endswith('_riscv64'):
+        return 'riscv64'
+
+    # For each target architecture, we prefer in descending order
+    # - using the same architecture for the host (supports all architectures)
+    # - using a host architecture with the same word size (supports arm and riscv, which have simulators)
+    # - using a host architecture with a different word size (supports only AOT and only 32-bit target on 64-bit host)
+    if arch in ['ia32']:
+        candidates = ['x86']
+    elif arch in ['x64', 'x64c']:
+        candidates = ['x64']
+    elif arch in ['arm', 'simarm']:
+        candidates = ['arm', 'x86', 'riscv32', 'arm64', 'x64', 'riscv64']
+    elif arch in ['arm64', 'arm64c', 'simarm64', 'simarm64c']:
+        candidates = ['arm64', 'x64', 'riscv64']
+    elif arch in ['riscv32', 'simriscv32']:
+        candidates = ['riscv32', 'arm', 'x86', 'riscv64', 'arm64', 'x64']
+    elif arch in ['riscv64', 'simriscv64']:
+        candidates = ['riscv64', 'arm64', 'x64']
+    else:
+        raise Exception("Unknown Dart architecture: %s" % arch)
+
+    available = utils.HostArchitectures()
+    for candidate in candidates:
+        if candidate in available:
+            return candidate
+
+    raise Exception(
+        "Failed to find a C host architecture for %s. Need one of %s but only %s are available."
+        % (arch, candidates, available))
 
 
 # The C compiler's target.
 def TargetCpuForArch(arch, target_os):
-    if arch in ['ia32', 'simarm', 'simriscv32']:
+    # Real target architectures
+    if arch in ['ia32']:
         return 'x86'
-    if arch in [
-            'x64', 'simarm64', 'simarm_x64', 'simriscv64', 'x64c', 'simarm64c'
-    ]:
+    elif arch in ['x64', 'x64c']:
         return 'x64'
-    if arch == 'arm_x64':
+    elif arch in ['arm', 'arm_x64', 'arm_arm64', 'arm_riscv64']:
         return 'arm'
-    if arch == 'arm64c':
+    elif arch in ['arm64', 'arm64c']:
         return 'arm64'
-    return arch
+    elif arch in ['riscv32', 'riscv32_x64', 'riscv32_arm64', 'riscv32_riscv64']:
+        return 'riscv32'
+    elif arch in ['riscv64']:
+        return 'riscv64'
+
+    # Simulators
+    if arch in ['simarm_x64', 'simriscv32_x64']:
+        return 'x64'
+    elif arch in ['simarm_arm64', 'simriscv32_arm64']:
+        return 'arm64'
+    elif arch in ['simarm_riscv64', 'simriscv32_riscv64']:
+        return 'riscv64'
+    elif arch in ['simarm', 'simriscv32']:
+        candidates = ['arm', 'riscv32', 'x86']
+    elif arch in ['simarm64', 'simarm64c', 'simriscv64']:
+        candidates = ['arm64', 'riscv64', 'x64']
+    else:
+        raise Exception("Unknown Dart architecture: %s" % arch)
+
+    available = utils.HostArchitectures()
+    for candidate in candidates:
+        if candidate in available:
+            return candidate
+
+    raise Exception(
+        "Failed to find a C target architecture for %s. Need one of %s but only %s are available."
+        % (arch, candidates, available))
 
 
 # The Dart compiler's target.
@@ -130,7 +151,10 @@ def DartTargetCpuForArch(arch):
         return 'ia32'
     if arch in ['x64', 'x64c']:
         return 'x64'
-    if arch in ['arm', 'simarm', 'simarm_x64', 'arm_x64']:
+    if arch in [
+            'arm', 'simarm', 'simarm_x64', 'arm_x64', 'simarm_arm64',
+            'arm_arm64'
+    ]:
         return 'arm'
     if arch in ['arm64', 'simarm64', 'arm64c', 'simarm64c']:
         return 'arm64'

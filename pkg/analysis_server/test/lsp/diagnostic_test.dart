@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:linter/src/rules.dart';
@@ -177,7 +177,7 @@ void f() {
     @deprecated
     int? dep;
 
-    void main() => print(dep);
+    void f() => print(dep);
     ''');
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
@@ -196,7 +196,7 @@ void f() {
     @deprecated
     int? dep;
 
-    void main() => print(dep);
+    void f() => print(dep);
     ''');
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
@@ -210,7 +210,7 @@ void f() {
 
   Future<void> test_diagnosticTag_unnecessary() async {
     newFile(mainFilePath, '''
-    void main() {
+    void f() {
       return;
       print('unreachable');
     }
@@ -442,6 +442,31 @@ analyzer:
     await verifyDiagnostics('final dynambar;');
     await verifyDiagnostics('final dynamibar;');
     await verifyDiagnostics('final dynamicbar;');
+  }
+
+  Future<void> test_todos_asWarnings() async {
+    newFile(analysisOptionsPath, '''
+analyzer:
+  errors:
+    # Increase the severity of TODOs.
+    todo: warning
+    fixme: warning
+''');
+
+    const contents = '''
+    // TODO: This
+    // FIXME: This
+    String a = "";
+    ''';
+    newFile(mainFilePath, contents);
+
+    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    // Don't set showTodos in config, because they should show even without this
+    // setting if they are upgraded to warnings/errors.
+    await initialize();
+    final initialDiagnostics = await firstDiagnosticsUpdate;
+    expect(initialDiagnostics, hasLength(2));
+    expect(initialDiagnostics!.map((d) => d.code).toSet(), {'todo', 'fixme'});
   }
 
   Future<void> test_todos_boolean() async {

@@ -5,6 +5,7 @@
 import 'dart:math';
 
 import 'package:analysis_server/src/utilities/strings.dart' show capitalize;
+import 'package:collection/collection.dart';
 
 import 'codegen_dart.dart';
 import 'typescript.dart';
@@ -27,7 +28,11 @@ final _keywords = const <String, TokenType>{
 final _validIdentifierCharacters = RegExp('[a-zA-Z0-9_]');
 
 bool isAnyType(TypeBase t) =>
-    t is Type && (t.name == 'any' || t.name == 'object');
+    t is Type &&
+    (t.name == 'any' ||
+        t.name == 'LSPAny' ||
+        t.name == 'object' ||
+        t.name == 'LSPObject');
 
 bool isLiteralType(TypeBase t) => t is LiteralType;
 
@@ -113,10 +118,10 @@ class Field extends Member {
   Field(
     super.comment,
     this.nameToken,
-    this.type,
-    this.allowsNull,
-    this.allowsUndefined,
-  );
+    this.type, {
+    required this.allowsNull,
+    required this.allowsUndefined,
+  });
 
   @override
   String get name => nameToken.lexeme;
@@ -131,7 +136,8 @@ class FixedValueField extends Field {
     TypeBase type,
     bool allowsNull,
     bool allowsUndefined,
-  ) : super(comment, nameToken, type, allowsNull, allowsUndefined);
+  ) : super(comment, nameToken, type,
+            allowsNull: allowsNull, allowsUndefined: allowsUndefined);
 }
 
 class Indexer extends Member {
@@ -166,7 +172,10 @@ class Interface extends AstNode {
     this.typeArgs,
     this.baseTypes,
     this.members,
-  );
+  ) {
+    baseTypes.sortBy((type) => type.dartTypeWithTypeArgs.toLowerCase());
+    members.sortBy((member) => member.name.toLowerCase());
+  }
 
   @override
   String get name => nameToken.lexeme;
@@ -232,7 +241,9 @@ class Namespace extends AstNode {
     super.comment,
     this.nameToken,
     this.members,
-  );
+  ) {
+    members.sortBy((member) => member.name.toLowerCase());
+  }
 
   @override
   String get name => nameToken.lexeme;
@@ -242,6 +253,10 @@ class Parser {
   final List<Token> _tokens;
   int _current = 0;
   final List<AstNode> _nodes = [];
+
+  /// A set of names already used (or reserved) by nodes.
+  final Set<String> _nodeNames = {};
+
   Parser(this._tokens);
 
   bool get _isAtEnd => _peek().type == TokenType.EOF;
@@ -249,10 +264,19 @@ class Parser {
   List<AstNode> parse() {
     if (_nodes.isEmpty) {
       while (!_isAtEnd) {
-        _nodes.add(_topLevel());
+        _addNode(_topLevel());
+        // Consume any trailing semicolons.
+        _match([TokenType.SEMI_COLON]);
       }
     }
     return _nodes;
+  }
+
+  /// Adds [node] to the current list and prevents its name from being used
+  /// by generated interfaces.
+  void _addNode(AstNode node) {
+    _nodeNames.add(node.name);
+    _nodes.add(node);
   }
 
   /// Returns the current token and moves to the next.
@@ -354,12 +378,6 @@ class Parser {
     type = _type(containerName, name.lexeme,
         includeUndefined: canBeUndefined, improveTypes: true);
 
-    // Overwrite comment if we have an improved one.
-    final improvedComment = getImprovedComment(containerName, name.lexeme);
-    leadingComment = improvedComment != null
-        ? Comment(Token(TokenType.COMMENT, improvedComment))
-        : leadingComment;
-
     // Some fields have weird comments like this in the spec:
     //     {@link MessageType}
     // These seem to be the correct type of the field, while the field is
@@ -408,7 +426,30 @@ class Parser {
       // successful response that has no return value, eg. shutdown).
       canBeNull = true;
     }
-    return Field(leadingComment, name, type, canBeNull, canBeUndefined);
+    return Field(leadingComment, name, type,
+        allowsNull: canBeNull, allowsUndefined: canBeUndefined);
+  }
+
+  /// Gets an available name for a node.
+  ///
+  /// If the computed name is already used, a number will be appended to the
+  /// end.
+  String _getAvailableName(String containerName, String? fieldName) {
+    final name = _joinNames(containerName, fieldName ?? '');
+    final requiresSuffix = fieldName == null;
+    // If the name has already been taken, try appending a number and try
+    // again.
+    String generatedName;
+    var suffixIndex = 1;
+    do {
+      if (suffixIndex > 20) {
+        throw 'Failed to generate an available name for $name';
+      }
+      generatedName =
+          requiresSuffix || suffixIndex > 1 ? '$name$suffixIndex' : name;
+      suffixIndex++;
+    } while (_nodeNames.contains(generatedName));
+    return generatedName;
   }
 
   Indexer _indexer(String containerName, Comment? leadingComment) {
@@ -522,6 +563,18 @@ class Parser {
       return uniqueTypes.firstWhere(isAnyType);
     }
 
+    // Special case to simplify a complex type in the TypeScript spec that is
+    // hard to detect generically and is already simplified in the JSON model.
+    // The first type in the union is fully representable in the second and can
+    // be dropped.
+    // TODO(dantup): Remove this when switching to the JSON model.
+    if (uniqueTypes.length == 2 &&
+        uniqueTypes[0].dartTypeWithTypeArgs == 'List<TextDocumentEdit>' &&
+        uniqueTypes[1].dartTypeWithTypeArgs ==
+            'List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>') {
+      return uniqueTypes[1];
+    }
+
     return uniqueTypes.length == 1
         ? uniqueTypes.single
         : uniqueTypes.every(isLiteralType)
@@ -566,15 +619,14 @@ class Parser {
     if (includeUndefined) {
       types.add(Type.Undefined);
     }
-    var typeIndex = 0;
     while (true) {
-      typeIndex++;
       TypeBase type;
       if (_match([TokenType.LEFT_BRACE])) {
         // Inline interfaces.
+        final generatedName = _getAvailableName(containerName, fieldName);
         final members = <Member>[];
         while (!_check(TokenType.RIGHT_BRACE)) {
-          members.add(_member(containerName));
+          members.add(_member(generatedName));
         }
 
         _consume(TokenType.RIGHT_BRACE, 'Expected }');
@@ -587,13 +639,7 @@ class Parser {
           type = MapType(indexer.indexType, indexer.valueType);
         } else {
           // Add a synthetic interface to the parsers list of nodes to represent this type.
-          // If we have no fieldName to base the synthetic name from, we should use
-          // the index of this type, for example in:
-          //    type Foo = { [..] } | { [...] }
-          // we will generate Foo1 and Foo2 for the types.
-          final nameSuffix = fieldName ?? '$typeIndex';
-          final generatedName = _joinNames(containerName, nameSuffix);
-          _nodes.add(InlineInterface(generatedName, members));
+          _addNode(InlineInterface(generatedName, members));
           // Record the type as a simple type that references this interface.
           type = Type.identifier(generatedName);
         }
@@ -679,6 +725,10 @@ class Parser {
   TypeAlias _typeAlias(Comment? leadingComment) {
     final name = _consume(TokenType.IDENTIFIER, 'Expected identifier');
     _consume(TokenType.EQUAL, 'Expected =');
+    // Reserve the name for this alias before we start reading its type so that
+    // inline/literal types will not try to compute the same name if they do
+    // not have field names.
+    _nodeNames.add(name.lexeme);
     final type = _type(name.lexeme, null);
     if (!_isAtEnd) {
       _consume(TokenType.SEMI_COLON, 'Expected ;');
@@ -1003,7 +1053,11 @@ abstract class TypeBase {
 class UnionType extends TypeBase {
   final List<TypeBase> types;
 
-  UnionType(this.types);
+  UnionType(this.types) {
+    // Ensure types are always sorted alphabetically to simplify sharing code
+    // because `Either2<A, B>` and `Either2<B, A>` are not the same.
+    types.sortBy((type) => type.dartTypeWithTypeArgs.toLowerCase());
+  }
 
   @override
   String get dartType {

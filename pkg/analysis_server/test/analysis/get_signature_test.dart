@@ -51,7 +51,7 @@ class MyClass {
   /// MyClass constructor doc
   MyClass(String name, {int length}) {}
 }
-main() {
+void f() {
   var a = new MyClass("Danny", /*^*/);
 }
 ''');
@@ -78,7 +78,7 @@ class MyClass {
     return new MyClass._();
   }
 }
-main() {
+void f() {
   var a = new MyClass("Danny", /*^*/);
 }
 ''');
@@ -101,7 +101,7 @@ class MyClass {
   /// MyClass.foo constructor doc
   MyClass.foo(String name, {int length}) {}
 }
-main() {
+void f() {
   var a = new MyClass.foo("Danny", /*^*/);
 }
 ''');
@@ -120,7 +120,7 @@ main() {
   Future<void> test_does_not_walk_up_over_closure() async {
     newFile(testFilePath, '''
 one(String name, int length) {}
-main() {
+void f() {
   one("Danny", () {
     /*^*/
   });
@@ -169,7 +169,7 @@ a() {}
     newFile(testFilePath, '''
 /// f doc
 int Function(String) f(String s) => (int i) => int.parse(s) + i;
-main() {
+void f() {
   print(f('3'/*^*/)(2));
 }
 ''');
@@ -187,13 +187,13 @@ main() {
     newFile('$testPackageLibPath/other.dart', '''
 /// one doc
 one(String name, int length) {}
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
     newFile(testFilePath, '''
 import 'other.dart';
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
@@ -215,7 +215,7 @@ main() {
     newFile(testFilePath, '''
 /// one doc
 one(String name, int length) {}
-main() {
+void f() {
   one("Danny", (((1 * 2/*^*/))));
 }
 ''');
@@ -237,7 +237,7 @@ main() {
     newFile(testFilePath, '''
 /// one doc
 one(String name, {int length}) {}
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
@@ -257,7 +257,7 @@ main() {
     newFile(testFilePath, '''
 /// one doc
 one(String name, {int length = 1}) {}
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
@@ -279,7 +279,7 @@ main() {
     newFile(testFilePath, '''
 /// one doc
 one(String name, {String email = "a@b.c"}) {}
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
@@ -304,7 +304,7 @@ main() {
 one(String one) {}
 /// two doc
 String two(String two) { return ""; }
-main() {
+void f() {
   one(two(/*^*/));
 }
 ''');
@@ -325,7 +325,7 @@ main() {
 one(String one) {}
 /// two doc
 String two(String two) { return ""; }
-main() {
+void f() {
   one(two(),/*^*/);
 }
 ''');
@@ -342,7 +342,7 @@ main() {
   Future<void> test_function_no_dart_doc() async {
     newFile(testFilePath, '''
 one(String name, int length) {}
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
@@ -364,7 +364,7 @@ main() {
     newFile(testFilePath, '''
 /// one doc
 one(String name, [int length]) {}
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
@@ -386,7 +386,7 @@ main() {
     newFile(testFilePath, '''
 /// one doc
 one(String name, [int length = 11]) {}
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
@@ -408,7 +408,7 @@ main() {
     newFile(testFilePath, '''
 /// one doc
 one(String name, int length) {}
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
@@ -430,7 +430,7 @@ main() {
     newFile(testFilePath, '''
 /// one doc
 one() {}
-main() {
+void f() {
   one(/*^*/);
 }
 ''');
@@ -471,7 +471,7 @@ class MyClass {
   /// MyClass instance method
   myMethod(String name, {int length}) {}
 }
-main() {
+void f() {
   var a = new MyClass("Danny");
   a.myMethod("Danny", /*^*/);
 }
@@ -497,7 +497,7 @@ class MyClass {
   /// MyClass static method
   static void myStaticMethod(String name, {int length}) {}
 }
-main() {
+void f() {
   MyClass.myStaticMethod("Danny", /*^*/);
 }
 ''');

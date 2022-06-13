@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' as io;
 
-import 'package:process/process.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
@@ -45,15 +44,12 @@ Future setupProcesses() async {
   }
 
   Future<ServiceExtensionResponse> setup(ignored_a, ignored_b) async {
-    final processManager = LocalProcessManager();
     try {
-      process1 = await processManager.start(
-        [io.Platform.resolvedExecutable, ...args],
-      );
-      process2 = await processManager.start([
+      process1 = await io.Process.start(io.Platform.resolvedExecutable, args);
+      process2 = await io.Process.start(
         io.Platform.resolvedExecutable,
-        ...(args..add('foobar')),
-      ]);
+        args..add('foobar'),
+      );
       final codeFilePath = dir.path + io.Platform.pathSeparator + "other_file";
       final codeFile = io.File(codeFilePath);
       await codeFile.writeAsString('''
@@ -63,11 +59,11 @@ Future setupProcesses() async {
             await stdin.drain();
           }
           ''');
-      process3 = await processManager.start(
+      process3 = await io.Process.start(
+        io.Platform.resolvedExecutable,
         [
-          io.Platform.resolvedExecutable,
           ...io.Platform.executableArguments,
-          codeFilePath
+          codeFilePath,
         ],
       );
     } catch (_) {

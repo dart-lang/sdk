@@ -8,6 +8,17 @@ import 'ast.dart';
 import 'core_types.dart';
 import 'src/replacement_visitor.dart';
 
+/// Returns all free type variables in [type].
+///
+/// Returns the set of all [TypeParameter]s that are referred to by a
+/// [TypeParameterType] in [type] that are not bound to an enclosing
+/// [FunctionType].
+Set<TypeParameter> allFreeTypeVariables(DartType type) {
+  _AllFreeTypeVariablesVisitor visitor = new _AllFreeTypeVariablesVisitor();
+  visitor.visit(type);
+  return visitor.freeTypeVariables;
+}
+
 /// Returns a type where all occurrences of the given type parameters have been
 /// replaced with the corresponding types.
 ///
@@ -157,10 +168,7 @@ class FreshTypeParameters {
         substitute(type.returnType), type.nullability,
         namedParameters: type.namedParameters.map(substituteNamed).toList(),
         typeParameters: freshTypeParameters,
-        requiredParameterCount: type.requiredParameterCount,
-        typedefType: type.typedefType == null
-            ? null
-            : substitute(type.typedefType!) as TypedefType);
+        requiredParameterCount: type.requiredParameterCount);
   }
 
   DartType substitute(DartType type) => substitution.substituteType(type);
@@ -276,7 +284,7 @@ abstract class Substitution {
   /// *not* correspond to a sequence of two substitutions. For example,
   /// combining `{T -> List<G>}` with `{G -> String}` does not correspond to
   /// `{T -> List<String>}` because the result from substituting `T` is not
-  /// searched for occurences of `G`.
+  /// searched for occurrences of `G`.
   static Substitution combine(Substitution first, Substitution second) {
     if (first == _NullSubstitution.instance) return second;
     if (second == _NullSubstitution.instance) return first;
@@ -292,6 +300,80 @@ abstract class Substitution {
 
   Supertype substituteSupertype(Supertype node) {
     return new _TopSubstitutor(this, false).visitSupertype(node);
+  }
+}
+
+class _AllFreeTypeVariablesVisitor implements DartTypeVisitor<void> {
+  final Set<TypeParameter> boundVariables = {};
+
+  final Set<TypeParameter> freeTypeVariables = {};
+
+  void visit(DartType node) => node.accept(this);
+
+  @override
+  bool defaultDartType(DartType node) {
+    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
+  }
+
+  @override
+  void visitNeverType(NeverType node) {}
+  @override
+  void visitNullType(NullType node) {}
+  @override
+  void visitInvalidType(InvalidType node) {}
+  @override
+  void visitDynamicType(DynamicType node) {}
+  @override
+  void visitVoidType(VoidType node) {}
+
+  @override
+  void visitInterfaceType(InterfaceType node) {
+    for (DartType typeArgument in node.typeArguments) {
+      typeArgument.accept(this);
+    }
+  }
+
+  @override
+  void visitExtensionType(ExtensionType node) {
+    for (DartType typeArgument in node.typeArguments) {
+      typeArgument.accept(this);
+    }
+  }
+
+  @override
+  void visitFutureOrType(FutureOrType node) {
+    node.typeArgument.accept(this);
+  }
+
+  @override
+  void visitTypedefType(TypedefType node) {
+    for (DartType typeArgument in node.typeArguments) {
+      typeArgument.accept(this);
+    }
+  }
+
+  @override
+  void visitFunctionType(FunctionType node) {
+    boundVariables.addAll(node.typeParameters);
+    for (TypeParameter typeParameter in node.typeParameters) {
+      typeParameter.bound.accept(this);
+      typeParameter.defaultType.accept(this);
+    }
+    for (DartType positionalParameter in node.positionalParameters) {
+      positionalParameter.accept(this);
+    }
+    for (NamedType namedParameter in node.namedParameters) {
+      namedParameter.type.accept(this);
+    }
+    node.returnType.accept(this);
+    boundVariables.removeAll(node.typeParameters);
+  }
+
+  @override
+  void visitTypeParameterType(TypeParameterType node) {
+    if (!boundVariables.contains(node.parameter)) {
+      freeTypeVariables.add(node.parameter);
+    }
   }
 }
 
@@ -684,15 +766,11 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
         : node.namedParameters.map(inner.visitNamedType).toList();
     inner.invertVariance();
     DartType returnType = inner.visit(node.returnType);
-    TypedefType? typedefType = node.typedefType == null
-        ? null
-        : inner.visit(node.typedefType!) as TypedefType;
     if (this.useCounter == before) return node;
     return new FunctionType(positionalParameters, returnType, node.nullability,
         namedParameters: namedParameters,
         typeParameters: typeParameters,
-        requiredParameterCount: node.requiredParameterCount,
-        typedefType: typedefType);
+        requiredParameterCount: node.requiredParameterCount);
   }
 
   void bumpCountersUntil(_TypeSubstitutor target) {
@@ -856,7 +934,7 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   @override
   bool defaultDartType(DartType node) {
-    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
+    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}).");
   }
 
   bool visitNamedType(NamedType node) {

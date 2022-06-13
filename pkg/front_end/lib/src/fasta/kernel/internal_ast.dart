@@ -1226,32 +1226,6 @@ class ExpressionInvocation extends InternalExpression {
   }
 }
 
-/// Concrete shadow object representing a named function expression.
-///
-/// Named function expressions are not legal in Dart, but they are accepted by
-/// the parser and BodyBuilder for error recovery purposes.
-///
-/// A named function expression of the form `f() { ... }` is represented as the
-/// kernel expression:
-///
-///     let f = () { ... } in f
-class NamedFunctionExpressionJudgment extends Let
-    implements ExpressionJudgment {
-  NamedFunctionExpressionJudgment(VariableDeclaration variable)
-      : super(variable, new VariableGet(variable));
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitNamedFunctionExpressionJudgment(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "NamedFunctionExpressionJudgment(${toStringInternal()})";
-  }
-}
-
 /// Internal expression representing a null-aware method invocation.
 ///
 /// A null-aware method invocation of the form `a?.b(...)` is encoded as:
@@ -1589,10 +1563,6 @@ class VariableDeclarationImpl extends VariableDeclaration {
   /// the kernel.
   final bool isImplicitlyTyped;
 
-  // TODO(ahe): Remove this field. We can get rid of it by recording closure
-  // mutation in [BodyBuilder].
-  final int functionNestingLevel;
-
   // TODO(ahe): Remove this field. It's only used locally when compiling a
   // method, and this can thus be tracked in a [Set] (actually, tracking this
   // information in a [List] is probably even faster as the average size will
@@ -1615,7 +1585,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
   /// used.
   bool isStaticLate;
 
-  VariableDeclarationImpl(String? name, this.functionNestingLevel,
+  VariableDeclarationImpl(String? name,
       {this.forSyntheticToken: false,
       bool hasDeclaredInitializer: false,
       Expression? initializer,
@@ -1645,7 +1615,6 @@ class VariableDeclarationImpl extends VariableDeclaration {
 
   VariableDeclarationImpl.forEffect(Expression initializer)
       : forSyntheticToken = false,
-        functionNestingLevel = 0,
         isImplicitlyTyped = false,
         isLocalFunction = false,
         isStaticLate = false,
@@ -1653,7 +1622,6 @@ class VariableDeclarationImpl extends VariableDeclaration {
 
   VariableDeclarationImpl.forValue(Expression initializer)
       : forSyntheticToken = false,
-        functionNestingLevel = 0,
         isImplicitlyTyped = true,
         isLocalFunction = false,
         isStaticLate = false,

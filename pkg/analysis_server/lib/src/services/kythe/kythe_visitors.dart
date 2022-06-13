@@ -1415,45 +1415,47 @@ class SignatureElementVisitor extends GeneralizingElementVisitor<StringBuffer> {
   static SignatureElementVisitor instance = SignatureElementVisitor();
 
   @override
-  StringBuffer visitCompilationUnitElement(CompilationUnitElement e) {
+  StringBuffer visitCompilationUnitElement(CompilationUnitElement element) {
     return StringBuffer();
   }
 
   @override
-  StringBuffer visitElement(Element e) {
-    assert(e is! MultiplyInheritedExecutableElement);
-    var enclosingElt = e.enclosingElement!;
+  StringBuffer visitElement(Element element) {
+    assert(element is! MultiplyInheritedExecutableElement);
+    var enclosingElt = element.enclosingElement!;
     var buffer = enclosingElt.accept(this)!;
     if (buffer.isNotEmpty) {
       buffer.write('#');
     }
-    if (e is MethodElement && e.name == '-' && e.parameters.length == 1) {
+    if (element is MethodElement &&
+        element.name == '-' &&
+        element.parameters.length == 1) {
       buffer.write('unary-');
-    } else if (e is ConstructorElement) {
-      buffer.write(_computeConstructorElementName(e));
+    } else if (element is ConstructorElement) {
+      buffer.write(_computeConstructorElementName(element));
     } else {
-      buffer.write(e.name);
+      buffer.write(element.name);
     }
     if (enclosingElt is ExecutableElement) {
       buffer
         ..write('@')
-        ..write(e.nameOffset - enclosingElt.nameOffset);
+        ..write(element.nameOffset - enclosingElt.nameOffset);
     }
     return buffer;
   }
 
   @override
-  StringBuffer visitLibraryElement(LibraryElement e) {
-    return StringBuffer('library:${e.displayName}');
+  StringBuffer visitLibraryElement(LibraryElement element) {
+    return StringBuffer('library:${element.displayName}');
   }
 
   @override
-  StringBuffer visitTypeParameterElement(TypeParameterElement e) {
+  StringBuffer visitTypeParameterElement(TypeParameterElement element) {
     // It is legal to have a named constructor with the same name as a type
     // parameter.  So we distinguish them by using '.' between the class (or
     // typedef) name and the type parameter name.
-    return e.enclosingElement!.accept(this)!
+    return element.enclosingElement!.accept(this)!
       ..write('.')
-      ..write(e.name);
+      ..write(element.name);
   }
 }

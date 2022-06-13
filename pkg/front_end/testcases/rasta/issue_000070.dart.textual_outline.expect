@@ -1,13 +1,12 @@
-// @dart = 2.9
 import "package:expect/expect.dart";
 
 class A<N, S, U> {
-  final List<U> field;
+  final List<U?>? field;
   A(N n, S s) : field = <U>[] {}
   A.empty() : field = null {}
   factory A.f(S s) {}
-  const A.c(U u, S s) : field = const [null];
-  List<U> get getter {}
+  const A.c(U u, S s) : field = const <Null>[null];
+  List<U?>? get getter {}
   void set setter(S s) {}
 }
 

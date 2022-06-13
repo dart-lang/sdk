@@ -8,6 +8,7 @@ import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -962,7 +963,7 @@ mixin _ContextRoot on ResourceProviderMixin {
     return ContextRootImpl(
       resourceProvider,
       resourceProvider.getFolder(root),
-      BasicWorkspace.find(resourceProvider, {}, root),
+      BasicWorkspace.find(resourceProvider, Packages.empty, root),
     );
   }
 }

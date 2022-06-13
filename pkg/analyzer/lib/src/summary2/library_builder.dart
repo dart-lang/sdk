@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -23,6 +24,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/scope.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 class ImplicitEnumNodes {
   final EnumElementImpl element;
@@ -52,6 +54,23 @@ class LibraryBuilder {
   final Scope exportScope = Scope.top();
 
   final List<Export> exporters = [];
+
+  late final LibraryMacroApplier? _macroApplier = () {
+    if (!element.featureSet.isEnabled(Feature.macros)) {
+      return null;
+    }
+
+    final macroExecutor = linker.macroExecutor;
+    if (macroExecutor == null) {
+      return null;
+    }
+
+    return LibraryMacroApplier(
+      macroExecutor: macroExecutor,
+      declarationBuilder: linker.macroDeclarationBuilder,
+      libraryBuilder: this,
+    );
+  }();
 
   LibraryBuilder._({
     required this.linker,
@@ -177,13 +196,110 @@ class LibraryBuilder {
     }
   }
 
-  Future<void> executeMacroTypesPhase() async {
-    if (!element.featureSet.isEnabled(Feature.macros)) {
+  Future<void> executeMacroDeclarationsPhase() async {
+    final macroApplier = _macroApplier;
+    if (macroApplier == null) {
       return;
     }
 
-    var applier = LibraryMacroApplier(this);
-    var augmentationLibrary = await applier.executeMacroTypesPhase();
+    final augmentationLibrary = await macroApplier.executeDeclarationsPhase();
+    if (augmentationLibrary == null) {
+      return;
+    }
+
+    final parseResult = parseString(
+      content: augmentationLibrary,
+      featureSet: element.featureSet,
+      throwIfDiagnostics: false,
+    );
+    final unitNode = parseResult.unit as ast.CompilationUnitImpl;
+
+    // We don't actually keep this unit, but we need it for now as a container.
+    // Eventually we will use actual augmentation libraries.
+    final unitUri = uri.resolve('_macro_declarations.dart');
+    final unitReference = reference.getChild('@unit').getChild('$unitUri');
+    final unitElement = CompilationUnitElementImpl(
+      source: _sourceFactory.forUri2(unitUri)!,
+      librarySource: element.source,
+      lineInfo: parseResult.lineInfo,
+    )
+      ..enclosingElement = element
+      ..isSynthetic = true
+      ..uri = unitUri.toString();
+
+    final elementBuilder = ElementBuilder(
+      libraryBuilder: this,
+      unitReference: unitReference,
+      unitElement: unitElement,
+    );
+    elementBuilder.buildDeclarationElements(unitNode);
+
+    // We move elements, so they don't have real offsets.
+    unitElement.accept(_FlushElementOffsets());
+
+    final nodesToBuildType = NodesToBuildType();
+    final resolver = ReferenceResolver(linker, nodesToBuildType, element);
+    unitNode.accept(resolver);
+    TypesBuilder(linker).build(nodesToBuildType);
+
+    // Transplant built elements as if the augmentation was applied.
+    final augmentedUnitElement = element.definingCompilationUnit;
+    for (final augmentation in unitElement.classes) {
+      // TODO(scheglov) if augmentation
+      final augmented = element.getType(augmentation.name);
+      if (augmented is ClassElementImpl) {
+        augmented.accessors = [
+          ...augmented.accessors,
+          ...augmentation.accessors,
+        ];
+        augmented.constructors = [
+          ...augmented.constructors,
+          ...augmentation.constructors.where((e) => !e.isSynthetic),
+        ];
+        augmented.fields = [
+          ...augmented.fields,
+          ...augmentation.fields,
+        ];
+        augmented.methods = [
+          ...augmented.methods,
+          ...augmentation.methods,
+        ];
+      }
+    }
+    augmentedUnitElement.accessors = [
+      ...augmentedUnitElement.accessors,
+      ...unitElement.accessors,
+    ];
+    augmentedUnitElement.topLevelVariables = [
+      ...augmentedUnitElement.topLevelVariables,
+      ...unitElement.topLevelVariables,
+    ];
+  }
+
+  Future<void> executeMacroTypesPhase({
+    required OperationPerformanceImpl performance,
+  }) async {
+    final macroApplier = _macroApplier;
+    if (macroApplier == null) {
+      return;
+    }
+
+    await performance.runAsync(
+      'buildApplications',
+      (performance) async {
+        await macroApplier.buildApplications(
+          performance: performance,
+        );
+      },
+    );
+
+    final augmentationLibrary = await performance.runAsync(
+      'executeTypesPhase',
+      (performance) async {
+        return await macroApplier.executeTypesPhase();
+      },
+    );
+
     if (augmentationLibrary == null) {
       return;
     }
@@ -216,6 +332,9 @@ class LibraryBuilder {
       unitReference: unitReference,
       unitElement: unitElement,
     ).buildDeclarationElements(unitNode);
+
+    // We move elements, so they don't have real offsets.
+    unitElement.accept(_FlushElementOffsets());
 
     units.add(
       LinkingUnit(
@@ -388,4 +507,17 @@ class LinkingUnit {
     required this.node,
     required this.element,
   });
+}
+
+class _FlushElementOffsets extends GeneralizingElementVisitor<void> {
+  @override
+  void visitElement(covariant ElementImpl element) {
+    element.isTempAugmentation = true;
+    element.nameOffset = -1;
+    if (element is ConstructorElementImpl) {
+      element.periodOffset = null;
+      element.nameEnd = null;
+    }
+    super.visitElement(element);
+  }
 }

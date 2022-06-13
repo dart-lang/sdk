@@ -69,6 +69,9 @@ void main(List<String> args) async {
         negatable: true)
     ..addFlag('weak-null-safety-errors',
         help: 'Treat weak null safety warnings as errors.', defaultsTo: false)
+    ..addFlag('canary',
+        help: 'Enable all compiler features under active development.',
+        defaultsTo: false)
     ..addFlag('observe',
         help:
             'Run the compiler in the Dart VM with --observe. Implies --debug.',
@@ -128,6 +131,7 @@ void main(List<String> args) async {
   var nonNullAsserts = options['null-assertions'] as bool;
   var nativeNonNullAsserts = options['native-null-assertions'] as bool;
   var weakNullSafetyErrors = options['weak-null-safety-errors'] as bool;
+  var canaryFeatures = options['canary'] as bool;
   var entry = p.canonicalize(options.rest.first);
   var out = (options['out'] as String) ?? p.setExtension(entry, '.js');
   var libRoot = p.dirname(entry);
@@ -240,6 +244,7 @@ void main(List<String> args) async {
       if (soundNullSafety) '--sound-null-safety',
       if (options['packages'] != null) '--packages=${options['packages']}',
       if (emitDebugSymbols) '--emit-debug-symbols',
+      if (canaryFeatures) '--canary',
       '-o',
       out,
       entry

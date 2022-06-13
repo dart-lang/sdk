@@ -60,6 +60,8 @@ args
 arise
 arising
 arity
+arm
+arms
 artifact
 artifacts
 artificial
@@ -248,6 +250,7 @@ configs
 configured
 connectivity
 consideration
+considering
 constness
 constraining
 consult
@@ -258,6 +261,7 @@ continuations
 contra
 contribute
 convention
+conversely
 coordinated
 coordinating
 core
@@ -309,6 +313,7 @@ dec
 decl
 decoupled
 decreases
+dedupe
 deduplication
 deemed
 deepest
@@ -342,6 +347,8 @@ destination
 destinations
 destroy
 destructive
+destructure
+destructuring
 deterministic
 dev
 device
@@ -425,6 +432,7 @@ eof
 eq
 equation
 equivalences
+erase
 erased
 es
 establish
@@ -436,9 +444,12 @@ execute
 executor
 executors
 exhausted
+exhaustively
+exhaustiveness
 existence
 existentially
 exp
+expanded
 expando
 expense
 experimentation
@@ -576,6 +587,7 @@ history
 hit
 hoc
 hopefully
+horizontal
 href
 html
 https
@@ -604,6 +616,7 @@ implying
 importantly
 imprecise
 improperly
+improves
 inapplicable
 inc
 incomparable
@@ -616,10 +629,12 @@ indexer
 indexing
 indirection
 individual
+individually
 inequality
 inequivalence
 inequivalences
 inequivalent
+inferable
 influence
 informative
 infos
@@ -640,6 +655,7 @@ integrate
 intends
 intentionally
 interested
+interfere
 interim
 interior
 interleaved
@@ -648,6 +664,7 @@ internet
 interop
 interpolations
 interrupted
+intersections
 intersects
 interval
 intervals
@@ -715,6 +732,7 @@ lc
 ld
 leafp
 leeway
+left's
 len
 lets
 letting
@@ -763,6 +781,7 @@ macos
 macro
 macros
 maintaining
+malbounded
 mangled
 manipulation
 manner
@@ -853,10 +872,10 @@ observe
 obstruct
 occasionally
 occupied
-occurences
 offending
 ogham
 oked
+omitting
 op
 opens
 opt
@@ -877,6 +896,7 @@ outlined
 outputs
 outputting
 overlap
+overlapping
 overloader
 overlooked
 overshadowed
@@ -890,6 +910,7 @@ par
 parallel
 param
 parameter's
+parameterized
 parametrized
 params
 paren
@@ -964,6 +985,7 @@ processes
 processor
 producers
 product
+profile
 progresses
 promo
 proof
@@ -1112,6 +1134,7 @@ rewrote
 rf
 rhs
 ri
+right's
 rightmost
 risk
 rn
@@ -1154,6 +1177,7 @@ serializable
 serializables
 serializer
 serializers
+series
 serve
 server
 serves
@@ -1260,6 +1284,7 @@ strict
 stringified
 stringify
 structs
+structurally
 structures
 stub
 stubs
@@ -1272,15 +1297,22 @@ subexpression
 subexpression's
 subexpressions
 subgraph
+subname
 subnode
 subnodes
 subscription
 subsection
 subsections
+subspace
+subspaces
 subst
 substed
 substitutes
 substitutor
+subtracted
+subtracting
+subtraction
+subtracts
 suffixing
 suggests
 suite
@@ -1333,7 +1365,6 @@ testers
 tex
 textualize
 textualized
-tflite
 th
 therein
 they'll
@@ -1381,6 +1412,7 @@ ts
 tty
 tuple
 twos
+type's
 typeref
 u
 ufeff
@@ -1398,6 +1430,7 @@ uncommon
 unconditionally
 unconstrained
 undeclare
+undeferred
 undergo
 undermine
 undo
@@ -1417,6 +1450,7 @@ unification
 unifier
 unifies
 unify
+uninhabited
 uninstantiable
 uninstantiated
 unintentionally
@@ -1429,6 +1463,7 @@ unmark
 unneeded
 unordered
 unpaired
+unparenthesized
 unparsed
 unpleasant
 unqualified
@@ -1441,6 +1476,7 @@ unset
 unshadowed
 unsortable
 unsound
+unsubstituted
 untouched
 unwrapper
 unwraps

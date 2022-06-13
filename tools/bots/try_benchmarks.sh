@@ -137,8 +137,6 @@ for command; do
     tar -czf linux-ia32.tar.gz \
       --exclude .git \
       --exclude .gitignore \
-      --exclude pkg/analysis_server/language_model \
-      --exclude out/ReleaseIA32/dart-sdk/bin/model \
       --exclude pkg/front_end/testcases \
       -- \
       out/ReleaseIA32/dart2js_platform.dill \
@@ -280,8 +278,6 @@ EOF
     tar -czf linux-x64.tar.gz \
       --exclude .git \
       --exclude .gitignore \
-      --exclude pkg/analysis_server/language_model \
-      --exclude out/ReleaseX64/dart-sdk/bin/model \
       --exclude pkg/front_end/testcases \
       -- \
       out/ReleaseX64/dart2js_platform.dill \
@@ -331,6 +327,7 @@ EOF
     out/ReleaseX64/dart-sdk/bin/dart compile js --sound-null-safety --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseX64/dart-sdk/bin/dart compile js --out=out.js -m hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart --print_metrics compile js --out=out.js -m hello.dart
     LD_LIBRARY_PATH=third_party/firefox_jsshell/ third_party/firefox_jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
     out/ReleaseX64/dart-sdk/bin/dart compile js --sound-null-safety --out=out.js -m hello.dart
     LD_LIBRARY_PATH=third_party/firefox_jsshell/ third_party/firefox_jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js

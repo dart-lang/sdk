@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_byte_stream_channel.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';

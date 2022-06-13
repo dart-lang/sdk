@@ -43,9 +43,9 @@ class E<S extends core::Object* = dynamic, T extends core::Object* = dynamic> ex
     ;
 }
 class F<S extends core::Object* = dynamic, T extends core::Object* = dynamic> extends self::A<self::F::S*, self::F::T*> {
-  constructor •(self::F::S* x, self::F::T* y, {core::List<self::F::S*>* a, core::List<self::F::T*>* b}) → self::F<self::F::S*, self::F::T*>*
+  constructor •(self::F::S* x, self::F::T* y, {core::List<self::F::S*>* a = null, core::List<self::F::T*>* b = null}) → self::F<self::F::S*, self::F::T*>*
     ;
-  constructor named(self::F::S* x, self::F::T* y, [self::F::S* a, self::F::T* b]) → self::F<self::F::S*, self::F::T*>*
+  constructor named(self::F::S* x, self::F::T* y, [self::F::S* a = null, self::F::T* b = null]) → self::F<self::F::S*, self::F::T*>*
     ;
 }
 static method test() → void

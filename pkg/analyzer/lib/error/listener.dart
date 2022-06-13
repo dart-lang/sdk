@@ -11,6 +11,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
 /// An object that listen for [AnalysisError]s being produced by the analysis
@@ -50,6 +51,11 @@ class ErrorReporter {
 
   /// The source to be used when reporting errors.
   final Source _source;
+
+  /// The lock level, if greater than zero, no errors will be reported.
+  /// This is used to prevent reporting errors inside comments.
+  @internal
+  int lockLevel = 0;
 
   /// Initialize a newly created error reporter that will report errors to the
   /// given [_errorListener]. Errors will be reported against the
@@ -101,6 +107,10 @@ class ErrorReporter {
   /// of the error is specified by the given [offset] and [length].
   void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
       [List<Object>? arguments, List<DiagnosticMessage>? messages]) {
+    if (lockLevel != 0) {
+      return;
+    }
+
     _convertElements(arguments);
     messages ??= [];
     messages.addAll(_convertTypeNames(arguments));

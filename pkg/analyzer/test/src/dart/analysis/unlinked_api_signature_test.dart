@@ -1010,6 +1010,16 @@ int foo() => 2;
 ''');
   }
 
+  test_executable_body_block_to_native() {
+    _assertNotSameSignature_executable(r'''
+int foo() {
+  return 0;
+}
+''', r'''
+int foo() native;
+''');
+  }
+
   test_executable_body_expression() {
     _assertSameSignature_executable(r'''
 int foo() => 1;
@@ -1025,6 +1035,32 @@ int foo() => 1;
 int foo() {
   return 2;
 }
+''');
+  }
+
+  test_executable_body_expression_to_native() {
+    _assertNotSameSignature_executable(r'''
+int foo() => 0;
+''', r'''
+int foo() native;
+''');
+  }
+
+  test_executable_body_native_to_block() {
+    _assertNotSameSignature_executable(r'''
+int foo() native;
+''', r'''
+int foo() {
+  return 0;
+}
+''');
+  }
+
+  test_executable_body_native_to_expression() {
+    _assertNotSameSignature_executable(r'''
+int foo() native;
+''', r'''
+int foo() => 0;
 ''');
   }
 

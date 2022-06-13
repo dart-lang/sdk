@@ -1,10 +1,9 @@
-// @dart = 2.9
 library test;
 
 typedef void F<T>(T x);
 
 class C<T> {
-  F<T> f1() {}
+  F<T> f1() => throw '';
   List<F<T>> f2() {}
 }
 

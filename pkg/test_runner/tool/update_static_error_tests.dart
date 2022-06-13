@@ -7,11 +7,9 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:file/file.dart' as pkg_file;
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
-
 import 'package:test_runner/src/command_output.dart';
 import 'package:test_runner/src/feature.dart' show Feature;
 import 'package:test_runner/src/path.dart';
@@ -123,16 +121,17 @@ Future<void> main(List<String> args) async {
     // or relative to the current directory.
     var root = result.startsWith("tests") ? "." : "tests";
     var glob = Glob(result, recursive: true);
-    for (var entry in glob.listSync(root: root)) {
-      if (!entry.path.endsWith(".dart")) continue;
-
-      if (entry is pkg_file.File) {
-        await _processFile(entry,
-            dryRun: dryRun,
-            includeContext: includeContext,
-            remove: removeSources,
-            insert: insertSources);
-      }
+    for (var entry in glob
+        .listSync(root: root)
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.dart'))) {
+      await _processFile(
+        entry,
+        dryRun: dryRun,
+        includeContext: includeContext,
+        remove: removeSources,
+        insert: insertSources,
+      );
     }
   }
 }

@@ -147,7 +147,7 @@ abstract class C1 extends core::Object {
 abstract class C2 extends core::Object {
   synthetic constructor •() → mai::C2
     ;
-  abstract method method2([core::String a]) → dynamic;
+  abstract method method2([core::String a = #C2]) → dynamic;
 }
 abstract class C3 extends core::Object implements mai::C1, mai::C2 {
   synthetic constructor •() → mai::C3
@@ -157,7 +157,7 @@ abstract class C3 extends core::Object implements mai::C1, mai::C2 {
 abstract class C4 extends core::Object {
   synthetic constructor •() → mai::C4
     ;
-  abstract method method2([covariant-by-declaration core::String a]) → dynamic;
+  abstract method method2([covariant-by-declaration core::String a = #C2]) → dynamic;
 }
 abstract class C5 extends mai::C3 implements mai::C4 {
   synthetic constructor •() → mai::C5
@@ -167,9 +167,10 @@ abstract class C5 extends mai::C3 implements mai::C4 {
 abstract class C7 extends core::Object {
   synthetic constructor •() → mai::C7
     ;
-  abstract method method2([core::String a, core::num b]) → dynamic;
+  abstract method method2([core::String a = #C2, core::num b = #C2]) → dynamic;
 }
 
 constants  {
   #C1 = "hello"
+  #C2 = null
 }

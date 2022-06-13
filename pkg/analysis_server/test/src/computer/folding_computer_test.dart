@@ -38,7 +38,7 @@ class FoldingComputerTest extends AbstractContextTest {
   "this",
   "is a test"
 )/*1:EXC:ANNOTATIONS*/
-main() {}
+void f() {}
 
 @noFoldNecessary
 main2() {}
@@ -98,7 +98,7 @@ class C {/*1:INC*/
 
   Future<void> test_assertStatement() async {
     var content = '''
-main() {/*1:INC*/
+void f() {/*1:INC*/
   assert(/*2:INC*/
     true,
     ''
@@ -134,7 +134,7 @@ class Person {/*1:INC*/
     var content = """
 // This is not the file header/*1:EXC*/
 // It's just a comment/*1:INC:COMMENT*/
-main() {}
+void f() {}
 """;
 
     // Since there are no region comment markers above
@@ -145,7 +145,7 @@ main() {}
 
   Future<void> test_comment_multiline() async {
     var content = '''
-main() {
+void f() {
 /*/*1:EXC*/
  * comment 1
  *//*1:EXC:COMMENT*/
@@ -162,7 +162,7 @@ main() {
 
   Future<void> test_comment_singleFollowedByBlankLine() async {
     var content = '''
-main() {
+void f() {
 // this is/*1:EXC*/
 // a comment/*1:INC:COMMENT*/
 /// this is not part of it
@@ -175,7 +175,7 @@ main() {
 
   Future<void> test_comment_singleFollowedByMulti() async {
     var content = '''
-main() {
+void f() {
   // this is/*1:EXC*/
   // a comment/*1:INC:COMMENT*/
   /* this is not part of it */
@@ -189,7 +189,7 @@ main() {
 
   Future<void> test_comment_singleFollowedByTripleSlash() async {
     var content = '''
-main() {
+void f() {
 // this is/*1:EXC*/
 // a comment/*1:INC:COMMENT*/
 /// this is not part of it
@@ -204,7 +204,7 @@ main() {
     var content = '''
 // Content before
 
-main() {/*1:INC*/
+void f() {/*1:INC*/
   return new Text(/*2:INC*/
     "Hello, world!",
   /*2:INC:INVOCATION*/);
@@ -224,7 +224,7 @@ main() {/*1:INC*/
 
 // This is not the file header
 // It's just a comment
-main() {}
+void f() {}
 """;
 
     final regions = await _computeRegions(content);
@@ -239,7 +239,7 @@ main() {}
  */
 /* This shouldn't be part of the file header */
 
-main() {}
+void f() {}
 """;
 
     final regions = await _computeRegions(content);
@@ -251,7 +251,7 @@ main() {}
 // Copyright some year by some people/*1:EXC*/
 // See LICENCE etc./*1:INC:FILE_HEADER*/
 
-main() {}
+void f() {}
 ''';
 
     final regions = await _computeRegions(content);
@@ -264,7 +264,7 @@ main() {}
 // See LICENCE etc./*1:INC:FILE_HEADER*/
 /* This shouldn't be part of the file header */
 
-main() {}
+void f() {}
 """;
 
     final regions = await _computeRegions(content);
@@ -279,7 +279,7 @@ main() {}
 
 // This is not the file header
 // It's just a comment
-main() {}
+void f() {}
 """;
 
     final regions = await _computeRegions(content);
@@ -292,7 +292,7 @@ main() {}
 // a file header/*1:INC:FILE_HEADER*/
 
 // this is not part of it
-main() {}
+void f() {}
 ''';
 
     final regions = await _computeRegions(content);
@@ -303,7 +303,7 @@ main() {}
     var content = '''
 // Content before
 
-main() {/*1:INC*/
+void f() {/*1:INC*/
   print("Hello, world!");
 /*1:INC:FUNCTION_BODY*/}
 
@@ -342,7 +342,7 @@ main2() {/*2:INC*/
 
 /// This is a doc comment/*1:EXC*/
 /// that spans lines/*1:INC:DOCUMENTATION_COMMENT*/
-main() {/*2:INC*/
+void f() {/*2:INC*/
   print("Hello, world!");
 /*2:INC:FUNCTION_BODY*/}
 
@@ -357,7 +357,7 @@ main() {/*2:INC*/
     var content = '''
 // Content before
 
-main() {/*1:INC*/
+void f() {/*1:INC*/
   print(/*2:INC*/
     "Hello, world!",
   /*2:INC:INVOCATION*/);
@@ -374,7 +374,7 @@ main() {/*1:INC*/
     var content = '''
 // Content before
 
-main() {/*1:INC*/
+void f() {/*1:INC*/
   final List<String> things = <String>[/*2:INC*/
     "one",
     "two"
@@ -433,7 +433,7 @@ import 'package:b/c.dart';
 
 export '../a.dart';/*1:EXC:DIRECTIVES*/
 
-main() {}
+void f() {}
 """;
 
     final regions = await _computeRegions(content);
@@ -450,7 +450,7 @@ import 'package:b/c.dart';
 
 import '../a.dart';/*1:EXC:DIRECTIVES*/
 
-main() {}
+void f() {}
 """;
 
     final regions = await _computeRegions(content);
@@ -461,7 +461,7 @@ main() {}
     var content = '''
 // Content before
 
-main() {/*1:INC*/
+void f() {/*1:INC*/
   doPrint() {/*2:INC*/
     print("Hello, world!");
   /*2:INC:FUNCTION_BODY*/}
@@ -479,7 +479,7 @@ main() {/*1:INC*/
     var content = '''
 // Content before
 
-main() {/*1:INC*/
+void f() {/*1:INC*/
   a(/*2:INC*/
     b(/*3:INC*/
       c(/*4:INC*/
@@ -525,7 +525,7 @@ class C {/*1:INC*/
     var content = """
 import 'dart:async';
 
-main() {}
+void f() {}
 """;
 
     // Since there are no region comment markers above

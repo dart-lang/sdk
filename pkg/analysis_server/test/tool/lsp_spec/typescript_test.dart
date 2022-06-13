@@ -334,9 +334,9 @@ enum Foo {
       expect(output.first, const TypeMatcher<Namespace>());
       final enum_ = output.first as Namespace;
       expect(enum_.members, hasLength(3));
-      expect(enum_.members[0].name, equals('namespace'));
-      expect(enum_.members[1].name, equals('class'));
-      expect(enum_.members[2].name, equals('enum'));
+      expect(enum_.members[0].name, equals('class'));
+      expect(enum_.members[1].name, equals('enum'));
+      expect(enum_.members[2].name, equals('namespace'));
     });
 
     test('parses a tuple in an array', () {
@@ -356,8 +356,8 @@ interface SomeInformation {
       expect(field.type, const TypeMatcher<UnionType>());
       final union = field.type as UnionType;
       expect(union.types, hasLength(2));
-      expect(union.types[0], isSimpleType('string'));
-      expect(union.types[1], isArrayOf(isSimpleType('number')));
+      expect(union.types[0], isArrayOf(isSimpleType('number')));
+      expect(union.types[1], isSimpleType('string'));
     });
 
     test('parses an union including Object into a single type', () {

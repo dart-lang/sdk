@@ -2,23 +2,23 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/rasta/switch_fall_through.dart:7:5: Error: Switch case may fall through to the next case.
+// pkg/front_end/testcases/rasta/switch_fall_through.dart:9:5: Error: Switch case may fall through to the next case.
 //     case 1:
 //     ^
 //
-// pkg/front_end/testcases/rasta/switch_fall_through.dart:13:5: Error: Switch case may fall through to the next case.
+// pkg/front_end/testcases/rasta/switch_fall_through.dart:15:5: Error: Switch case may fall through to the next case.
 //     case 2:
 //     ^
 //
-// pkg/front_end/testcases/rasta/switch_fall_through.dart:20:5: Error: Switch case may fall through to the next case.
+// pkg/front_end/testcases/rasta/switch_fall_through.dart:22:5: Error: Switch case may fall through to the next case.
 //     case 3:
 //     ^
 //
-// pkg/front_end/testcases/rasta/switch_fall_through.dart:26:5: Error: Switch case may fall through to the next case.
+// pkg/front_end/testcases/rasta/switch_fall_through.dart:28:5: Error: Switch case may fall through to the next case.
 //     case 4:
 //     ^
 //
-// pkg/front_end/testcases/rasta/switch_fall_through.dart:31:5: Error: Switch case may fall through to the next case.
+// pkg/front_end/testcases/rasta/switch_fall_through.dart:33:5: Error: Switch case may fall through to the next case.
 //     case 5:
 //     ^
 //
@@ -36,7 +36,7 @@ static method main() → dynamic {
           break #L1;
           ;
         }
-        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 7);
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 9);
       }
     #L3:
     case #C2:
@@ -47,7 +47,7 @@ static method main() → dynamic {
             break #L1;
           }
         }
-        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 13);
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 15);
       }
     #L4:
     case #C3:
@@ -58,7 +58,7 @@ static method main() → dynamic {
         finally {
           break #L1;
         }
-        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 20);
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 22);
       }
     #L5:
     case #C4:
@@ -69,7 +69,7 @@ static method main() → dynamic {
         }
         finally {
         }
-        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 26);
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 28);
       }
     #L6:
     case #C5:
@@ -79,7 +79,7 @@ static method main() → dynamic {
         }
         finally {
         }
-        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 31);
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 33);
       }
     #L7:
     case #C6:

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -15,6 +16,28 @@ main() {
 
 @reflectiveTest
 class FfiNativeTest extends PubPackageResolutionTest {
+  test_annotation_FfiNative_noArguments() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@FfiNative
+external int foo();
+''', [
+      error(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, 20, 10),
+    ]);
+  }
+
+  test_annotation_FfiNative_noTypeArguments() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@FfiNative()
+external int foo();
+''', [
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 30, 2),
+    ]);
+  }
+
   test_FfiNativeCanUseHandles() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';

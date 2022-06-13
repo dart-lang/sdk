@@ -1579,6 +1579,23 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) {
+    writeByte(Tag.AbstractSuperPropertyGet);
+    writeOffset(node.fileOffset);
+    writeName(node.name);
+    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
+  }
+
+  @override
+  void visitAbstractSuperPropertySet(AbstractSuperPropertySet node) {
+    writeByte(Tag.AbstractSuperPropertySet);
+    writeOffset(node.fileOffset);
+    writeName(node.name);
+    writeNode(node.value);
+    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
+  }
+
+  @override
   void visitSuperPropertyGet(SuperPropertyGet node) {
     writeByte(Tag.SuperPropertyGet);
     writeOffset(node.fileOffset);
@@ -1715,6 +1732,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeUInt30(index);
     writeArgumentsNode(node.arguments);
     writeDartType(node.functionType);
+  }
+
+  @override
+  void visitAbstractSuperMethodInvocation(AbstractSuperMethodInvocation node) {
+    writeByte(Tag.AbstractSuperMethodInvocation);
+    writeOffset(node.fileOffset);
+    writeName(node.name);
+    writeArgumentsNode(node.arguments);
+    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
   }
 
   @override
@@ -2390,8 +2416,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitFunctionType(FunctionType node) {
     if (node.requiredParameterCount == node.positionalParameters.length &&
         node.typeParameters.isEmpty &&
-        node.namedParameters.isEmpty &&
-        node.typedefType == null) {
+        node.namedParameters.isEmpty) {
       writeByte(Tag.SimpleFunctionType);
       writeByte(node.nullability.index);
       writeNodeList(node.positionalParameters);
@@ -2406,7 +2431,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
           node.positionalParameters.length + node.namedParameters.length);
       writeNodeList(node.positionalParameters);
       writeNodeList(node.namedParameters);
-      writeOptionalNode(node.typedefType);
       writeNode(node.returnType);
       leaveScope(typeParameters: node.typeParameters);
     }

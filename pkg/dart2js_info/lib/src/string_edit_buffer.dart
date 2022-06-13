@@ -22,7 +22,7 @@ class StringEditBuffer {
 
   /// Edit the original text, replacing text on the range [begin] and
   /// exclusive [end] with the [replacement] string.
-  void replace(int begin, int end, String replacement, [int sortId]) {
+  void replace(int begin, int end, String replacement, [int? sortId]) {
     _edits.add(_StringEdit(begin, end, replacement, sortId));
   }
 
@@ -95,7 +95,7 @@ class _StringEdit implements Comparable<_StringEdit> {
   // String to insert
   final String string;
 
-  _StringEdit(this.begin, this.end, this.string, [int sortId])
+  _StringEdit(this.begin, this.end, this.string, [int? sortId])
       : sortId = sortId ?? begin;
 
   int get length => end - begin;

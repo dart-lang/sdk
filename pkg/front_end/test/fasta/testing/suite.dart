@@ -68,20 +68,25 @@ import 'package:kernel/ast.dart'
     show
         AwaitExpression,
         BasicLiteral,
+        Class,
         Component,
         Constant,
         ConstantExpression,
         Expression,
         FileUriExpression,
         FileUriNode,
+        InstanceInvocation,
+        InstanceSet,
         InvalidExpression,
         Library,
         LibraryPart,
         Member,
         Node,
         NonNullableByDefaultCompiledMode,
+        Reference,
         TreeNode,
         UnevaluatedConstant,
+        VariableDeclaration,
         Version,
         Visitor,
         VisitorVoidMixin;
@@ -91,6 +96,15 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart'
     show RecursiveResultVisitor, loadComponentFromBytes;
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
+
+import 'package:kernel/src/equivalence.dart'
+    show
+        EquivalenceResult,
+        EquivalenceStrategy,
+        EquivalenceVisitor,
+        ReferenceName,
+        checkEquivalence;
+
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart'
@@ -103,6 +117,7 @@ import 'package:kernel/target/targets.dart'
         TestTargetFlags,
         TestTargetMixin,
         TestTargetWrapper;
+
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, TypeEnvironment;
 import 'package:testing/testing.dart'
@@ -406,9 +421,7 @@ class FastaContext extends ChainContext with MatchContext {
         }
       }
       steps.add(const EnsureNoErrors());
-      if (!skipVm) {
-        steps.add(const WriteDill());
-      }
+      steps.add(new WriteDill(skipVm: skipVm));
       if (semiFuzz) {
         steps.add(const FuzzCompiles());
       }
@@ -522,7 +535,7 @@ class FastaContext extends ChainContext with MatchContext {
     UriTranslator? uriTranslator = _uriTranslators[uriConfiguration];
     if (uriTranslator == null) {
       Uri sdk = Uri.base.resolve("sdk/");
-      Uri packages = Uri.base.resolve(".packages");
+      Uri packages = Uri.base.resolve(".dart_tool/package_config.json");
       FolderOptions folderOptions = computeFolderOptions(description);
       CompilerOptions compilerOptions = new CompilerOptions()
         ..onDiagnostic = (DiagnosticMessage message) {
@@ -811,52 +824,60 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
   @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
-    FolderOptions folderOptions =
-        context.computeFolderOptions(result.description);
-    Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
-        .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
-    switch (folderOptions.target) {
-      case "vm":
-        if (context._platforms.isEmpty) {
-          throw "Executed `Run` step before initializing the context.";
-        }
-        File generated = new File.fromUri(result.outputUri!);
-        StdioProcess process;
-        try {
-          var args = <String>[];
+    Uri? outputUri = result.outputUri;
+    if (outputUri == null) {
+      return pass(result);
+    }
+
+    File generated = new File.fromUri(result.outputUri!);
+    try {
+      FolderOptions folderOptions =
+          context.computeFolderOptions(result.description);
+      Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
+          .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
+      switch (folderOptions.target) {
+        case "vm":
+          if (context._platforms.isEmpty) {
+            throw "Executed `Run` step before initializing the context.";
+          }
+          List<String> args = <String>[];
           if (experimentalFlags[ExperimentalFlag.nonNullable] == true) {
             if (context.soundNullSafety) {
               args.add("--sound-null-safety");
             }
           }
           args.add(generated.path);
-          process = await StdioProcess.run(context.vm.toFilePath(), args);
+          StdioProcess process =
+              await StdioProcess.run(context.vm.toFilePath(), args);
           print(process.output);
-        } finally {
-          await generated.parent.delete(recursive: true);
-        }
-        Result<int> runResult = process.toResult();
-        if (result.component.mode == NonNullableByDefaultCompiledMode.Invalid) {
-          // In this case we expect and want a runtime error.
-          if (runResult.outcome == ExpectationSet.Default["RuntimeError"]) {
-            // We convert this to pass because that's exactly what we'd expect.
-            return pass(result);
-          } else {
-            // Different outcome - that's a failure!
-            return new Result<ComponentResult>(result,
-                ExpectationSet.Default["MissingRuntimeError"], runResult.error);
+          Result<int> runResult = process.toResult();
+          if (result.component.mode ==
+              NonNullableByDefaultCompiledMode.Invalid) {
+            // In this case we expect and want a runtime error.
+            if (runResult.outcome == ExpectationSet.Default["RuntimeError"]) {
+              // We convert this to pass because that's exactly what we'd expect.
+              return pass(result);
+            } else {
+              // Different outcome - that's a failure!
+              return new Result<ComponentResult>(
+                  result,
+                  ExpectationSet.Default["MissingRuntimeError"],
+                  runResult.error);
+            }
           }
-        }
-        return new Result<ComponentResult>(
-            result, runResult.outcome, runResult.error);
-      case "none":
-      case "dart2js":
-      case "dartdevc":
-        // TODO(johnniwinther): Support running dart2js and/or dartdevc.
-        return pass(result);
-      default:
-        throw new ArgumentError(
-            "Unsupported run target '${folderOptions.target}'.");
+          return new Result<ComponentResult>(
+              result, runResult.outcome, runResult.error);
+        case "none":
+        case "dart2js":
+        case "dartdevc":
+          // TODO(johnniwinther): Support running dart2js and/or dartdevc.
+          return pass(result);
+        default:
+          throw new ArgumentError(
+              "Unsupported run target '${folderOptions.target}'.");
+      }
+    } finally {
+      await generated.parent.delete(recursive: true);
     }
   }
 }
@@ -1371,9 +1392,37 @@ class FuzzCompiles
             "${newUserLibraries.map((e) => e.toString()).join("\n")}\n\n"
             "${originalCompileString}");
       }
+
+      if (!compareComponents(component, newComponent)) {
+        return new Result<ComponentResult>(originalCompilationResult,
+            semiFuzzFailure, "Fuzzed component changed in an unexpected way.");
+      }
     }
 
     return null;
+  }
+
+  bool compareComponents(Component a, Component b) {
+    if (a.libraries.length != b.libraries.length) {
+      print("Not the same number of libraries.");
+      return false;
+    }
+    a.libraries.sort((l1, l2) {
+      return "${l1.importUri}".compareTo("${l2.importUri}");
+    });
+    b.libraries.sort((l1, l2) {
+      return "${l1.importUri}".compareTo("${l2.importUri}");
+    });
+    for (int i = 0; i < a.libraries.length; i++) {
+      EquivalenceResult result = checkEquivalence(
+          a.libraries[i], b.libraries[i],
+          strategy: const Strategy());
+      if (!result.isEquivalent) {
+        print(result.toString());
+        return false;
+      }
+    }
+    return true;
   }
 
   bool canSerialize(Component component) {
@@ -1576,6 +1625,7 @@ class FuzzCompiles
     }
 
     List<Uri> originalUris = List<Uri>.of(fs.data.keys);
+    uriLoop:
     for (Uri uri in originalUris) {
       print("Work on $uri");
       LibraryBuilder? builder = builders[uri];
@@ -1599,14 +1649,21 @@ class FuzzCompiles
 
       // Put each chunk into its own file.
       StringBuffer headerSb = new StringBuffer();
+      StringBuffer orgFileOnlyHeaderSb = new StringBuffer();
       List<FuzzAstVisitorSorterChunk> nonHeaderChunks = [];
 
+      print("Found ${fuzzAstVisitorSorter.chunks.length} chunks...");
+
       for (FuzzAstVisitorSorterChunk chunk in fuzzAstVisitorSorter.chunks) {
-        if (chunk.originalType == FuzzOriginalType.Import ||
+        if (chunk.originalType == FuzzOriginalType.PartOf) {
+          print("Skipping part...");
+          continue uriLoop;
+        } else if (chunk.originalType == FuzzOriginalType.Part) {
+          // The part declaration should only be in the "main" file.
+          orgFileOnlyHeaderSb.writeln(chunk.getSource());
+        } else if (chunk.originalType == FuzzOriginalType.Import ||
             chunk.originalType == FuzzOriginalType.Export ||
             chunk.originalType == FuzzOriginalType.LibraryName ||
-            chunk.originalType == FuzzOriginalType.Part ||
-            chunk.originalType == FuzzOriginalType.PartOf ||
             chunk.originalType == FuzzOriginalType.LanguageVersion) {
           headerSb.writeln(chunk.getSource());
         } else {
@@ -1625,14 +1682,12 @@ class FuzzCompiles
         // exports, etc.
         StringBuffer sb = new StringBuffer();
         sb.writeln(headerSb.toString());
-        for (int i = 0; i < totalSubFiles; i++) {
-          if (i == currentSubFile) continue;
-          sb.writeln("import '${getUriForChunk(i)}';");
-          sb.writeln("export '${getUriForChunk(i)}';");
-        }
+        sb.writeln("import '${uri.pathSegments.last}';");
         sb.writeln(chunk.getSource());
         fs.data[getUriForChunk(currentSubFile)] =
             utf8.encode(sb.toString()) as Uint8List;
+        print(" => Split into ${getUriForChunk(currentSubFile)}:\n"
+            "${sb.toString()}\n-------------\n");
         currentSubFile++;
       }
 
@@ -1640,9 +1695,11 @@ class FuzzCompiles
       StringBuffer sb = new StringBuffer();
       sb.writeln(headerSb.toString());
       for (int i = 0; i < totalSubFiles; i++) {
-        sb.writeln("import '${getUriForChunk(i)}';");
-        sb.writeln("export '${getUriForChunk(i)}';");
+        sb.writeln("import '${getUriForChunk(i).pathSegments.last}';");
+        sb.writeln("export '${getUriForChunk(i).pathSegments.last}';");
       }
+      sb.writeln(orgFileOnlyHeaderSb.toString());
+      print(" => Main file becomes:\n${sb.toString()}\n-------------\n");
       fs.data[uri] = utf8.encode(sb.toString()) as Uint8List;
     }
 
@@ -1659,6 +1716,83 @@ class FuzzCompiles
     compilationSetup.options.clearFileSystemCache();
     compilationSetup.compilerOptions.fileSystem = orgFileSystem;
     return null;
+  }
+}
+
+class Strategy extends EquivalenceStrategy {
+  const Strategy();
+
+  @override
+  bool checkLibrary_procedures(
+      EquivalenceVisitor visitor, Library node, Library other) {
+    return visitor.checkSets(node.procedures.toSet(), other.procedures.toSet(),
+        visitor.matchNamedNodes, visitor.checkNodes, 'procedures');
+  }
+
+  @override
+  bool checkClass_procedures(
+      EquivalenceVisitor visitor, Class node, Class other) {
+    return visitor.checkSets(node.procedures.toSet(), other.procedures.toSet(),
+        visitor.matchNamedNodes, visitor.checkNodes, 'procedures');
+  }
+
+  @override
+  bool checkLibrary_additionalExports(
+      EquivalenceVisitor visitor, Library node, Library other) {
+    return visitor.checkSets(
+        node.additionalExports.toSet(),
+        other.additionalExports.toSet(),
+        visitor.matchReferences,
+        visitor.checkReferences,
+        'additionalExports');
+  }
+
+  @override
+  bool checkVariableDeclaration_binaryOffsetNoTag(EquivalenceVisitor visitor,
+      VariableDeclaration node, VariableDeclaration other) {
+    return true;
+  }
+
+  /// Allow assuming references like
+  /// "_Class&Superclass&Mixin::@methods::method4" and
+  /// "Mixin::@methods::method4" are equal (an interfaceTargetReference change
+  /// that often occur on recompile in regards to mixins).
+  ///
+  /// Copied from incremental_dart2js_load_from_dill_test.dart
+  bool _isMixinOrCloneReference(EquivalenceVisitor visitor, Reference? a,
+      Reference? b, String propertyName) {
+    if (a != null && b != null) {
+      ReferenceName thisName = ReferenceName.fromReference(a)!;
+      ReferenceName otherName = ReferenceName.fromReference(b)!;
+      if (thisName.isMember &&
+          otherName.isMember &&
+          thisName.memberName == otherName.memberName) {
+        String? thisClassName = thisName.declarationName;
+        String? otherClassName = otherName.declarationName;
+        if (thisClassName != null &&
+            otherClassName != null &&
+            thisClassName.contains('&${otherClassName}')) {
+          visitor.assumeReferences(a, b);
+        }
+      }
+    }
+    return visitor.checkReferences(a, b, propertyName);
+  }
+
+  @override
+  bool checkInstanceInvocation_interfaceTargetReference(
+      EquivalenceVisitor visitor,
+      InstanceInvocation node,
+      InstanceInvocation other) {
+    return _isMixinOrCloneReference(visitor, node.interfaceTargetReference,
+        other.interfaceTargetReference, 'interfaceTargetReference');
+  }
+
+  @override
+  bool checkInstanceSet_interfaceTargetReference(
+      EquivalenceVisitor visitor, InstanceSet node, InstanceSet other) {
+    return _isMixinOrCloneReference(visitor, node.interfaceTargetReference,
+        other.interfaceTargetReference, 'interfaceTargetReference');
   }
 }
 
@@ -1715,6 +1849,13 @@ class FuzzAstVisitorSorter extends ParserAstVisitor {
         enableExtensionMethods: true,
         enableNonNullable: nnbd);
     accept(ast);
+
+    if (metadataStart == null &&
+        ast.token.precedingComments != null &&
+        chunks.isEmpty) {
+      _chunkOutLanguageVersionComment(ast.token);
+    }
+
     if (metadataStart != null) {
       String metadata = asString.substring(
           metadataStart!.charOffset, metadataEndInclusive!.charEnd);

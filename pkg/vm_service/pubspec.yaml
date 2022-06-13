@@ -1,8 +1,9 @@
 name: vm_service
-version: 8.2.2+1
+version: 8.3.0
 description: >-
   A library to communicate with a service implementing the Dart VM
   service protocol.
+
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/vm_service
 
 environment:
@@ -10,15 +11,17 @@ environment:
 
 dependencies:
 
+# We use 'any' version constraints here as we get our package versions from
+# the dart-lang/sdk repo's DEPS file. Note that this is a special case; the
+# best practice for packages is to specify their compatible version ranges.
+# See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
-  async: ^2.5.0
+  async: any
   expect: any
   lints: any
-  markdown: ^4.0.0
+  markdown: any
   mockito: any
-  path: ^1.8.0
-  process: ^4.0.0
-  pub_semver: ^2.0.0
-  test: ^1.16.0
-  test_package:
-    path: 'test/test_package'
+  path: any
+  pub_semver: any
+  test_package: any
+  test: any

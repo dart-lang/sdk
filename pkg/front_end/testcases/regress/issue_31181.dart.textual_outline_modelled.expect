@@ -1,4 +1,3 @@
-// @dart = 2.9
-Foo x;
+Foo x = throw '';
 main() {}
 typedef Foo<T> = T Function<T>(T a);

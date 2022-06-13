@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.56
+# Dart VM Service Protocol 3.58
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.56_ of the Dart VM Service Protocol. This
+This document describes of _version 3.58_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -1065,7 +1065,8 @@ SourceReport|Sentinel getSourceReport(string isolateId,
                                       int tokenPos [optional],
                                       int endTokenPos [optional],
                                       bool forceCompile [optional],
-                                      bool reportLines [optional])
+                                      bool reportLines [optional],
+                                      string[] libraryFilters [optional])
 ```
 
 The _getSourceReport_ RPC is used to generate a set of reports tied to
@@ -1106,6 +1107,11 @@ _SourceReportRange.possibleBreakpoints_ and _SourceReportCoverage_ to be line
 numbers. This is designed to reduce the number of RPCs that need to be performed
 in the case that the client is only interested in line numbers. If this
 parameter is not provided, it is considered to have the value _false_.
+
+The _libraryFilters_ parameter is intended to be used when gathering coverage
+for the whole isolate. If it is provided, the _SourceReport_ will only contain
+results from scripts with URIs that start with one of the filter strings. For
+example, pass `["package:foo/"]` to only include scripts from the foo package.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
@@ -1214,7 +1220,7 @@ See [Success](#success).
 ### lookupResolvedPackageUris
 
 ```
-UriList lookupResolvedPackageUris(string isolateId, string[] uris)
+UriList lookupResolvedPackageUris(string isolateId, string[] uris, bool local [optional])
 ```
 
 The _lookupResolvedPackageUris_ RPC is used to convert a list of URIs to their
@@ -1227,6 +1233,8 @@ the following ways:
 
 If a URI is not known, the corresponding entry in the [UriList] response will be
 `null`.
+
+If `local` is true, the VM will attempt to return local file paths instead of relative paths, but this is not guaranteed.
 
 See [UriList](#urilist).
 
@@ -4362,5 +4370,7 @@ version | comments
 3.54 | Added `CpuSamplesEvent`, updated `cpuSamples` property on `Event` to have type `CpuSamplesEvent`.
 3.55 | Added `streamCpuSamplesWithUserTag` RPC.
 3.56 | Added optional `line` and `column` properties to `SourceLocation`. Added a new `SourceReportKind`, `BranchCoverage`, which reports branch level coverage information.
+3.57 | Added optional `libraryFilters` parameter to `getSourceReport` RPC.
+3.58 | Added optional `local` parameter to `lookupResolvedPackageUris` RPC.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

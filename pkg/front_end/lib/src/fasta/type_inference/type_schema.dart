@@ -13,6 +13,7 @@ import 'package:kernel/ast.dart'
         NamedType,
         Nullability,
         TypedefType,
+        TypeParameter,
         Visitor;
 import 'package:kernel/src/assumptions.dart';
 import 'package:kernel/src/printer.dart';
@@ -122,8 +123,9 @@ class _IsKnownVisitor extends DartTypeVisitor<bool> {
     for (NamedType namedParameterType in node.namedParameters) {
       if (!namedParameterType.type.accept(this)) return false;
     }
-    if (node.typedefType != null && !node.typedefType!.accept(this)) {
-      return false;
+    for (TypeParameter typeParameter in node.typeParameters) {
+      if (!typeParameter.bound.accept(this)) return false;
+      if (!typeParameter.defaultType.accept(this)) return false;
     }
     return true;
   }

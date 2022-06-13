@@ -195,10 +195,13 @@ class LspResourceClientConfiguration {
   int? get lineLength =>
       _settings['lineLength'] as int? ?? _fallback?.lineLength;
 
-  /// Maximum number of CompletionItems per completion request.
+  /// Requested maximum number of CompletionItems per completion request.
   ///
-  /// If more than this are available, the list is truncated and isIncomplete
-  /// is set to true.
+  /// If more than this are available, ranked items in the list will be
+  /// truncated and `isIncomplete` is set to `true`.
+  ///
+  /// Unranked items are never truncated so it's still possible that more than
+  /// this number of items will be returned.
   int get maxCompletionItems =>
       _settings['maxCompletionItems'] as int? ??
       _fallback?.maxCompletionItems ??

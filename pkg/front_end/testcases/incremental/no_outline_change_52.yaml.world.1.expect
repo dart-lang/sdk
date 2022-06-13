@@ -1,0 +1,36 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  import "org-dartlang-test:///main.dart";
+
+  abstract class _Bar&Object&Foo extends dart.core::Object implements main::Foo /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+    const synthetic constructor •() → lib::_Bar&Object&Foo
+      : super dart.core::Object::•()
+      ;
+    method /* from org-dartlang-test:///part.dart */ method() → dynamic {
+      dart.core::print("A");
+    }
+  }
+  class Bar extends lib::_Bar&Object&Foo {
+    synthetic constructor •() → lib::Bar
+      : super lib::_Bar&Object&Foo::•()
+      ;
+    method method2() → dynamic {
+      this.{lib::_Bar&Object&Foo::method}(){() → dynamic};
+    }
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+  part part.dart;
+  class Foo extends dart.core::Object { // from org-dartlang-test:///part.dart
+    synthetic constructor •() → main::Foo
+      : super dart.core::Object::•()
+      ;
+    method method() → dynamic {
+      dart.core::print("A");
+    }
+  }
+}

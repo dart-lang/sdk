@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/fix_all.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/organize_imports.dart';
@@ -19,6 +18,7 @@ import 'package:analysis_server/src/lsp/progress.dart';
 class ExecuteCommandHandler
     extends MessageHandler<ExecuteCommandParams, Object?> {
   final Map<String, CommandHandler> commandHandlers;
+
   ExecuteCommandHandler(super.server)
       : commandHandlers = {
           Commands.sortMembers: SortMembersCommandHandler(server),
@@ -37,8 +37,8 @@ class ExecuteCommandHandler
       ExecuteCommandParams.jsonHandler;
 
   @override
-  Future<ErrorOr<Object?>> handle(
-      ExecuteCommandParams params, CancellationToken cancellationToken) async {
+  Future<ErrorOr<Object?>> handle(ExecuteCommandParams params,
+      MessageInfo message, CancellationToken token) async {
     final handler = commandHandlers[params.command];
     if (handler == null) {
       return error(ServerErrorCodes.UnknownCommand,
@@ -51,6 +51,6 @@ class ExecuteCommandHandler
         : server.clientCapabilities?.workDoneProgress ?? false
             ? ProgressReporter.serverCreated(server)
             : ProgressReporter.noop;
-    return handler.handle(params.arguments, progress, cancellationToken);
+    return handler.handle(params.arguments, progress, token);
   }
 }

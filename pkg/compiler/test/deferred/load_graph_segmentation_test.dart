@@ -10,7 +10,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/deferred_load/output_unit.dart';
+import 'package:compiler/src/deferred_load/output_unit.dart' show OutputUnit;
 import 'package:compiler/src/js_emitter/startup_emitter/fragment_merger.dart';
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';

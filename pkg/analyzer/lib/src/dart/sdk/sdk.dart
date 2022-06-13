@@ -146,6 +146,32 @@ abstract class AbstractDartSdk implements DartSdk {
 
   /// TODO(scheglov) This name is misleading, returns `dart:foo/bar.dart`.
   String? _getPath(File file) {
+    // TODO(scheglov) Ideally, all `SdkLibrary` should have `File`, with
+    // an absolute path, not a relative `path`. For now, we do this only
+    // for building SDK summary with `dart:ui`, included from outside
+    // of the SDK root.
+    for (final library in libraryMap.sdkLibraries) {
+      final pathContext = resourceProvider.pathContext;
+      if (pathContext.isAbsolute(library.path)) {
+        if (library.path == file.path) {
+          return library.shortName;
+        }
+      }
+    }
+    for (final library in libraryMap.sdkLibraries) {
+      final pathContext = resourceProvider.pathContext;
+      if (pathContext.isAbsolute(library.path)) {
+        final libraryFile = resourceProvider.getFile(library.path);
+        final libraryFolder = libraryFile.parent;
+        if (libraryFolder.contains(file.path)) {
+          final relPath = pathContext
+              .relative(file.path, from: libraryFolder.path)
+              .replaceAll(separator, '/');
+          return '${library.shortName}/$relPath';
+        }
+      }
+    }
+
     List<SdkLibrary> libraries = libraryMap.sdkLibraries;
     int length = libraries.length;
     String? filePath = getRelativePathFromFile(file);

@@ -925,11 +925,7 @@ class StandardTestSuite extends TestSuite {
             _createUrlPathFromFile(Path('$compilationTempDir/$nameNoExt.js'));
         content = dart2jsHtml(testFile.path.toNativePath(), scriptPath);
       } else {
-        var packageRoot = packagesArgument(configuration.packages);
-        packageRoot =
-            packageRoot == null ? nameNoExt : packageRoot.split("=").last;
-        var nameFromModuleRoot =
-            testFile.path.relativeTo(Path(packageRoot).directoryPath);
+        var nameFromModuleRoot = testFile.path.relativeTo(Repository.dir);
         var nameFromModuleRootNoExt =
             "${nameFromModuleRoot.directoryPath}/$nameNoExt";
         var jsDir =

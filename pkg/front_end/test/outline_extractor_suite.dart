@@ -106,7 +106,6 @@ class OutlineExtractorStep
     }
     Map<Uri, String> result =
         await extractOutline([description.uri], packages: packages);
-
     StringBuffer sb = new StringBuffer();
     Uri uri = description.uri;
     Uri base = uri.resolve(".");

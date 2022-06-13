@@ -467,8 +467,8 @@ void main(List<String> args) async {
     test('print messages with Dart interpolation', () async {
       await _testLogPoint(
         dap,
-        r'This is a test message in ${DateTime.now().year}',
-        'This is a test message in ${DateTime.now().year}',
+        r'This is a test message in ${DateTime(2000, 1, 1).year}',
+        'This is a test message in ${DateTime(2000, 1, 1).year}',
       );
     });
 
@@ -478,8 +478,8 @@ void main(List<String> args) async {
         // The DAP spec says "Expressions within {} are interpolated" so in the DA
         // we just prefix them with $ and treat them like other Dart interpolation
         // expressions.
-        r'This is a test message in {DateTime.now().year}',
-        'This is a test message in ${DateTime.now().year}',
+        r'This is a test message in {DateTime(2000, 1, 1).year}',
+        'This is a test message in ${DateTime(2000, 1, 1).year}',
       );
     });
 

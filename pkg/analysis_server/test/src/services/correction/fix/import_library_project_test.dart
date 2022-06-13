@@ -30,7 +30,7 @@ class B {}
 ''');
     await resolveTestCode('''
 import 'lib.dart' show A;
-main() {
+void f() {
   A? a;
   B? b;
   print('\$a \$b');
@@ -314,7 +314,7 @@ dependencies:
 ''');
 
     await resolveTestCode('''
-main() {
+void f() {
   Test test = null;
   print(test);
 }
@@ -323,7 +323,7 @@ main() {
     await assertHasFix('''
 import 'package:my_pkg/a.dart';
 
-main() {
+void f() {
   Test test = null;
   print(test);
 }
@@ -377,7 +377,7 @@ dependencies:
   my_pkg: any
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   Test test = null;
   print(test);
 }
@@ -390,7 +390,7 @@ main() {
 class Test {}
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   Test t;
   print(t);
 }
@@ -403,12 +403,12 @@ main() {
 class Foo {}
 ''');
     await resolveTestCode('''
-main() { new Foo(); }
+void f() { new Foo(); }
 ''');
     await assertHasFix('''
 import 'a.dart';
 
-main() { new Foo(); }
+void f() { new Foo(); }
 ''',
         expectedNumberOfFixesForKind: 2,
         matchFixMessage: "Import library 'a.dart'");
@@ -425,12 +425,12 @@ main() { new Foo(); }
 class Foo {}
 ''');
     await resolveTestCode('''
-main() { new Foo(); }
+void f() { new Foo(); }
 ''');
     await assertHasFix('''
 import 'dir/a.dart';
 
-main() { new Foo(); }
+void f() { new Foo(); }
 ''',
         expectedNumberOfFixesForKind: 2,
         matchFixMessage: "Import library 'dir/a.dart'");
@@ -442,12 +442,12 @@ main() { new Foo(); }
 class Foo {}
 ''');
     await resolveTestCode('''
-main() { new Foo(); }
+void f() { new Foo(); }
 ''');
     await assertHasFix('''
 import 'a.dart';
 
-main() { new Foo(); }
+void f() { new Foo(); }
 ''',
         expectedNumberOfFixesForKind: 2,
         matchFixMessage: "Import library 'a.dart'");
@@ -465,12 +465,12 @@ class Foo {}
 ''');
     testFile = convertPath('$testPackageLibPath/dir/test.dart');
     await resolveTestCode('''
-main() { new Foo(); }
+void f() { new Foo(); }
 ''');
     await assertHasFix('''
 import '../a.dart';
 
-main() { new Foo(); }
+void f() { new Foo(); }
 ''',
         expectedNumberOfFixesForKind: 2,
         matchFixMessage: "Import library '../a.dart'");
@@ -485,14 +485,14 @@ class Test {
 ''');
     await resolveTestCode('''
 @Test(0)
-main() {
+void f() {
 }
 ''');
     await assertHasFix('''
 import 'package:test/lib.dart';
 
 @Test(0)
-main() {
+void f() {
 }
 ''');
   }
@@ -557,7 +557,7 @@ library lib;
 class Test {}
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   Test t = null;
   print(t);
 }
@@ -565,7 +565,7 @@ main() {
     await assertHasFix('''
 import '../lib.dart';
 
-main() {
+void f() {
   Test t = null;
   print(t);
 }
@@ -579,7 +579,7 @@ library lib;
 class Test {}
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   Test t = null;
   print(t);
 }
@@ -587,7 +587,7 @@ main() {
     await assertHasFix('''
 import '../tool/sub/folder/lib.dart';
 
-main() {
+void f() {
   Test t = null;
   print(t);
 }
@@ -601,7 +601,7 @@ library lib;
 class Test {}
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   Test t = null;
   print(t);
 }
@@ -609,7 +609,7 @@ main() {
     await assertHasFix('''
 import 'lib.dart';
 
-main() {
+void f() {
   Test t = null;
   print(t);
 }
@@ -623,14 +623,14 @@ class Test {
 }
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   return const Test();
 }
 ''');
     await assertHasFix('''
 import 'package:test/lib.dart';
 
-main() {
+void f() {
   return const Test();
 }
 ''');
@@ -643,14 +643,14 @@ class Test {
 }
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   const Test.named();
 }
 ''');
     await assertHasFix('''
 import 'package:test/lib.dart';
 
-main() {
+void f() {
   const Test.named();
 }
 ''');
@@ -663,14 +663,14 @@ class Test {
 }
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   return Test();
 }
 ''');
     await assertHasFix('''
 import 'package:test/lib.dart';
 
-main() {
+void f() {
   return Test();
 }
 ''');
@@ -683,14 +683,14 @@ class Test {
 }
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   return new Test();
 }
 ''');
     await assertHasFix('''
 import 'package:test/lib.dart';
 
-main() {
+void f() {
   return new Test();
 }
 ''');
@@ -703,14 +703,14 @@ class Test {
 }
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   new Test.named();
 }
 ''');
     await assertHasFix('''
 import 'package:test/lib.dart';
 
-main() {
+void f() {
   new Test.named();
 }
 ''');
@@ -940,14 +940,14 @@ library lib;
 myFunction() {}
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   myFunction();
 }
 ''');
     await assertHasFix('''
 import 'package:test/lib.dart';
 
-main() {
+void f() {
   myFunction();
 }
 ''');
@@ -958,14 +958,14 @@ main() {
 var myFunction = () {};
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   myFunction();
 }
 ''');
     await assertHasFix('''
 import 'package:test/lib.dart';
 
-main() {
+void f() {
   myFunction();
 }
 ''');
@@ -976,14 +976,14 @@ main() {
 var myFunction = () {};
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   myFunction;
 }
 ''');
     await assertHasFix('''
 import 'package:test/lib.dart';
 
-main() {
+void f() {
   myFunction;
 }
 ''');
@@ -995,14 +995,14 @@ library lib;
 myFunction() {}
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   myFunction;
 }
 ''');
     await assertHasFix('''
 import 'package:test/lib.dart';
 
-main() {
+void f() {
   myFunction;
 }
 ''');
@@ -1014,7 +1014,7 @@ main() {
 int zero = 0;
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   zero();
 }
 ''');
@@ -1028,7 +1028,7 @@ myFunction() {}
 ''');
     await resolveTestCode('''
 class A {
-  main() {
+  void f() {
     myFunction();
   }
 }
@@ -1037,7 +1037,7 @@ class A {
 import 'package:test/lib.dart';
 
 class A {
-  main() {
+  void f() {
     myFunction();
   }
 }
@@ -1050,7 +1050,7 @@ library lib;
 typedef MyFunction();
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   MyFunction t = null;
   print(t);
 }
@@ -1058,7 +1058,7 @@ main() {
     await assertHasFix('''
 import 'package:test/lib.dart';
 
-main() {
+void f() {
   MyFunction t = null;
   print(t);
 }
@@ -1242,7 +1242,7 @@ dependencies:
   my_pkg: any
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   Test test = null;
   print(test);
 }
@@ -1250,7 +1250,7 @@ main() {
     await assertHasFix('''
 import 'package:my_pkg/a.dart';
 
-main() {
+void f() {
   Test test = null;
   print(test);
 }
@@ -1275,7 +1275,7 @@ dependencies:
   my_pkg: any
 ''');
     await resolveTestCode('''
-main() {
+void f() {
   Test test = null;
   print(test);
 }
@@ -1283,7 +1283,7 @@ main() {
     await assertHasFix('''
 import 'package:my_pkg/a.dart';
 
-main() {
+void f() {
   Test test = null;
   print(test);
 }

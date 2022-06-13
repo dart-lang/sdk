@@ -201,10 +201,6 @@ class RefType extends ValueType {
   const RefType.i31({bool nullable = I31HeapType.defaultNullability})
       : this._(HeapType.i31, nullable);
 
-  /// A (possibly nullable) reference to the `extern` heap type.
-  const RefType.extern({bool nullable = ExternHeapType.defaultNullability})
-      : this._(HeapType.extern, nullable);
-
   /// A (possibly nullable) reference to a custom heap type.
   RefType.def(DefType defType, {required bool nullable})
       : this(defType, nullable: nullable);
@@ -266,9 +262,6 @@ abstract class HeapType implements Serializable {
   /// The `i31` heap type.
   static const i31 = I31HeapType._();
 
-  /// The `extern` heap type.
-  static const extern = ExternHeapType._();
-
   /// Whether this heap type is nullable by default, i.e. when written with the
   /// -`ref` shorthand. A `null` value here means the heap type has no default
   /// nullability, so the nullability of a reference has to be specified
@@ -295,7 +288,7 @@ class AnyHeapType extends HeapType {
   bool isSubtypeOf(HeapType other) => other == HeapType.any;
 
   @override
-  void serialize(Serializer s) => s.writeByte(0x6E);
+  void serialize(Serializer s) => s.writeByte(0x6F);
 
   @override
   String toString() => "any";
@@ -379,26 +372,6 @@ class I31HeapType extends HeapType {
 
   @override
   String toString() => "i31";
-}
-
-/// The `extern` heap type.
-class ExternHeapType extends HeapType {
-  const ExternHeapType._();
-
-  static const defaultNullability = true;
-
-  @override
-  bool? get nullableByDefault => defaultNullability;
-
-  @override
-  bool isSubtypeOf(HeapType other) =>
-      other == HeapType.any || other == HeapType.extern;
-
-  @override
-  void serialize(Serializer s) => s.writeByte(0x6F);
-
-  @override
-  String toString() => "extern";
 }
 
 /// A custom heap type.

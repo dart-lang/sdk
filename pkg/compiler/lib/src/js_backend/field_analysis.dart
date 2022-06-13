@@ -371,10 +371,7 @@ class JFieldAnalysis {
               assert(value != null);
               if (!memberUsage.hasWrite && canBeElided(kField)) {
                 isEffectivelyConstant = true;
-              } else if (value.isNull ||
-                  value.isInt ||
-                  value.isBool ||
-                  value.isString ||
+              } else if (value is PrimitiveConstantValue ||
                   value is LateSentinelConstantValue) {
                 // TODO(johnniwinther,sra): Support non-primitive constants in
                 // allocators when it does cause allocators to deoptimized
@@ -614,7 +611,7 @@ class FieldAnalysisData {
     bool isEager = source.readBool();
     int eagerCreationIndex = source.readIntOrNull();
     List<FieldEntity> eagerFieldDependencies =
-        source.readMembers<FieldEntity>(emptyAsNull: true);
+        source.readMembersOrNull<FieldEntity>();
     source.end(tag);
     return FieldAnalysisData(
         initialValue: initialValue,

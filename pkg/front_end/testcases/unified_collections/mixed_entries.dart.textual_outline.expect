@@ -1,4 +1,3 @@
-// @dart = 2.9
 bool b = false;
 var list = [];
 var map0 = {};

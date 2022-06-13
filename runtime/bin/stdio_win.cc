@@ -56,6 +56,19 @@ bool Stdin::SetEchoMode(intptr_t fd, bool enabled) {
   return SetConsoleMode(h, mode);
 }
 
+bool Stdin::GetEchoNewlineMode(intptr_t fd, bool* enabled) {
+  *enabled = false;
+  return true;
+}
+
+bool Stdin::SetEchoNewlineMode(intptr_t fd, bool enabled) {
+  if (enabled) {
+    SetLastError(ERROR_NOT_CAPABLE);
+    return false;
+  }
+  return true;
+}
+
 bool Stdin::GetLineMode(intptr_t fd, bool* enabled) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   DWORD mode;

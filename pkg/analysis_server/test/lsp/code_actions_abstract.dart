@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
@@ -101,7 +100,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     ApplyWorkspaceEditParams? editParams;
 
     final commandResponse = await handleExpectedRequest<Object?,
-        ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
+        ApplyWorkspaceEditParams, ApplyWorkspaceEditResult>(
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams.fromJson,
       () => executeCommand(command, workDoneToken: workDoneToken),
@@ -109,7 +108,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).
         editParams = edit;
-        return ApplyWorkspaceEditResponse(applied: true);
+        return ApplyWorkspaceEditResult(applied: true);
       },
     );
     // Successful edits return an empty success() response.

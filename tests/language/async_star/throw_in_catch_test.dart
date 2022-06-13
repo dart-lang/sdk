@@ -115,7 +115,7 @@ runTest(test, expectedTrace, expectedError, shouldCancel) {
 test() async {
   // TODO(sigurdm): These tests are too dependent on scheduling, and buffering
   // behavior.
-  await runTest(foo1, "abcYdgC", null, true);
+  await runTest(foo1, "abcYgC", null, true);
   await runTest(foo2, "abcX", "Error", false);
   await runTest(foo3, "abcYX", "Error", false);
   await runTest(foo4, "abcYdYefX", "Error2", false);

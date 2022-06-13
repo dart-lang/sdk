@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 // TODO(jmesserly): import from its own package
 import '../js_ast/js_ast.dart';
 import 'js_names.dart' show TemporaryId;
@@ -27,7 +25,6 @@ import 'shared_compiler.dart' show YieldFinder;
 /// Because this deals with JS AST nodes, it is not aware of any Dart semantics
 /// around statelessness (such as `final` variables). [variables] should not
 /// be created for these Dart expressions.
-///
 class MetaLet extends Expression {
   /// Creates a temporary to contain the value of [expr]. The temporary can be
   /// used multiple times in the resulting expression. For example:
@@ -49,7 +46,7 @@ class MetaLet extends Expression {
   /// We run [toExpression] implicitly when the JS AST is visited, to get the
   /// transformation to happen before the tree is printed.
   /// This happens multiple times, so ensure the expression form is cached.
-  Expression _expression;
+  Expression? _expression;
 
   MetaLet(this.variables, this.body, {this.statelessResult = false});
 
@@ -68,7 +65,7 @@ class MetaLet extends Expression {
   }
 
   @override
-  Expression toAssignExpression(Expression left, [String op]) {
+  Expression toAssignExpression(Expression left, [String? op]) {
     if (left is Identifier) {
       return _simplifyAssignment(left, op: op) ?? _toAssign(left, op);
     } else if (left is PropertyAccess &&
@@ -79,7 +76,7 @@ class MetaLet extends Expression {
     return super.toAssignExpression(left, op);
   }
 
-  Expression _toAssign(Expression left, [String op]) {
+  Expression _toAssign(Expression left, [String? op]) {
     var exprs = body.toList();
     exprs.add(exprs.removeLast().toAssignExpression(left, op));
     return MetaLet(variables, exprs);
@@ -111,11 +108,11 @@ class MetaLet extends Expression {
   }
 
   Expression toExpression() {
-    if (_expression != null) return _expression;
+    if (_expression != null) return _expression!;
     var block = toReturn();
     var s = block.statements;
     if (s.length == 1 && s.first is Return) {
-      return _expression = (s.first as Return).value;
+      return (_expression = (s.first as Return).value)!;
     }
     // Wrap it in an immediately called function to get in expression context.
     return _expression = _toInvokedFunction(block);
@@ -148,8 +145,8 @@ class MetaLet extends Expression {
 
   @override
   T accept<T>(NodeVisitor<T> visitor) {
-    // TODO(jmesserly): we special case vistors from js_ast.Template, because it
-    // doesn't know about MetaLet. Should we integrate directly?
+    // TODO(jmesserly): we special case visitors from js_ast.Template, because
+    // it doesn't know about MetaLet. Should we integrate directly?
     NodeVisitor v = visitor;
     if (v is InstantiatorGeneratorVisitor) {
       return _templateVisitMetaLet(v) as T;
@@ -162,8 +159,8 @@ class MetaLet extends Expression {
 
   @override
   void visitChildren(NodeVisitor visitor) {
-    // TODO(jmesserly): we special case vistors from js_ast.Template, because it
-    // doesn't know about MetaLet. Should we integrate directly?
+    // TODO(jmesserly): we special case visitors from js_ast.Template, because
+    // it doesn't know about MetaLet. Should we integrate directly?
     if (visitor is InterpolatedNodeAnalysis ||
         visitor is InstantiatorGeneratorVisitor) {
       variables.values.forEach((v) => v.accept(visitor));
@@ -236,7 +233,7 @@ class MetaLet extends Expression {
       var first = initializers[0];
       node = Block([
         initializers.length == 1
-            ? first.value.toVariableDeclaration(first.declaration)
+            ? first.value!.toVariableDeclaration(first.declaration)
             : VariableDeclarationList('let', initializers).toStatement(),
         node
       ]);
@@ -257,8 +254,8 @@ class MetaLet extends Expression {
   ///
   ///     result = ((_) => _.addAll(result), _.add(2), _)([])
   ///
-  MetaLet _simplifyAssignment(Identifier left,
-      {String op, bool isDeclaration = false}) {
+  MetaLet? _simplifyAssignment(Identifier left,
+      {String? op, bool isDeclaration = false}) {
     // See if the result value is a let* temporary variable.
     var result = body.last;
     if (result is MetaLetVariable && variables.containsKey(result)) {
@@ -267,7 +264,7 @@ class MetaLet extends Expression {
       if (!isDeclaration && _IdentFinder.foundIn(left.name, body)) return null;
 
       var vars = Map<MetaLetVariable, Expression>.from(variables);
-      var value = vars.remove(result);
+      var value = vars.remove(result)!;
       Expression assign;
       if (isDeclaration) {
         // Technically, putting one of these in a comma expression is not

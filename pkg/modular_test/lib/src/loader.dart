@@ -32,8 +32,8 @@ Future<ModularTest> loadTest(Uri uri) async {
   Set<String> defaultPackages = defaultTestSpecification.packages.keys.toSet();
   Module sdkModule = await _createSdkModule(root);
   Map<String, Module> modules = {'sdk': sdkModule};
-  String specString;
-  Module mainModule;
+  String? specString;
+  Module? mainModule;
   var entries = folder.listSync(recursive: false).toList()
     // Sort to avoid dependency on file system order.
     ..sort(_compareFileSystemEntity);
@@ -54,7 +54,7 @@ Future<ModularTest> loadTest(Uri uri) async {
               "that is provided by default.");
         }
         if (modules.containsKey(moduleName)) {
-          return _moduleConflict(fileName, modules[moduleName], testUri);
+          return _moduleConflict(fileName, modules[moduleName]!, testUri);
         }
         var relativeUri = Uri.parse(fileName);
         var isMain = moduleName == 'main';
@@ -82,7 +82,7 @@ Future<ModularTest> loadTest(Uri uri) async {
             "that is provided by default.");
       }
       if (modules.containsKey(moduleName)) {
-        return _moduleConflict(moduleName, modules[moduleName], testUri);
+        return _moduleConflict(moduleName, modules[moduleName]!, testUri);
       }
       var sources = await _listModuleSources(entryUri);
       modules[moduleName] = Module(moduleName, [], testUri, sources,
@@ -133,7 +133,7 @@ Future<List<Uri>> _listModuleSources(Uri root) async {
 void _attachDependencies(
     Map<String, List<String>> dependencies, Map<String, Module> modules) {
   dependencies.forEach((name, moduleDependencies) {
-    var module = modules[name];
+    final module = modules[name];
     if (module == null) {
       _invalidTest(
           "declared dependencies for a non existing module named '$name'");
@@ -142,7 +142,7 @@ void _attachDependencies(
       _invalidTest("Module dependencies have already been declared on $name.");
     }
     moduleDependencies.forEach((dependencyName) {
-      var moduleDependency = modules[dependencyName];
+      final moduleDependency = modules[dependencyName];
       if (moduleDependency == null) {
         _invalidTest("'$name' declares a dependency on a non existing module "
             "named '$dependencyName'");
@@ -169,7 +169,7 @@ Future<void> _addModulePerPackage(Map<String, String> packages, Uri configRoot,
     if (module != null) {
       module.isPackage = true;
     } else {
-      var packageLibUri = configRoot.resolve(packages[packageName]);
+      var packageLibUri = configRoot.resolve(packages[packageName]!);
       var packageRootUri = Directory.fromUri(packageLibUri).parent.uri;
       var sources = await _listModuleSources(packageLibUri);
       // TODO(sigmund): validate that we don't use a different alias for a
@@ -254,7 +254,7 @@ _moduleConflict(String name, Module existing, Uri root) {
   var entryType = isFile ? 'file' : 'folder';
 
   var existingIsFile =
-      existing.packageBase.path == './' && existing.sources.length == 1;
+      existing.packageBase!.path == './' && existing.sources.length == 1;
   var existingEntryType = existingIsFile ? 'file' : 'folder';
 
   var existingName = existingIsFile
@@ -266,7 +266,7 @@ _moduleConflict(String name, Module existing, Uri root) {
       "'$existingName'.");
 }
 
-_invalidTest(String message) {
+Never _invalidTest(String message) {
   throw new InvalidTestError(message);
 }
 

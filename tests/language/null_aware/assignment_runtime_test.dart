@@ -52,10 +52,18 @@ main() {
   // C?.v = e2 is equivalent to C.v = e2.
   C.staticInt = 1;
   Expect.equals(2, C?.staticInt = 2);
+  //               ^
+  // [cfe] The class 'C' cannot be null.
+  //                ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   Expect.equals(2, C.staticInt);
 
   h.C.staticInt = 1;
   Expect.equals(2, h.C?.staticInt = 2);
+  //                 ^
+  // [cfe] The class 'C' cannot be null.
+  //                  ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   Expect.equals(2, h.C.staticInt);
 
   // The static type of e1?.v = e2 is the static type of e2.
@@ -70,12 +78,20 @@ main() {
     D.staticE = new E();
     G g = new G();
     F? f = (D?.staticE = g);
+    //      ^
+    // [cfe] The class 'D' cannot be null.
+    //       ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(f, g);
   }
 
   h.D.staticE = new h.E();
   h.G g = new h.G();
   h.F? f = (h.D?.staticE = g);
+  //          ^
+  // [cfe] The class 'D' cannot be null.
+  //           ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   Expect.identical(f, g);
 
   // Exactly the same errors that would be caused by e1.v = e2 are
@@ -92,7 +108,15 @@ main() {
   // C?.v op= e2 is equivalent to C.v op= e2.
   C.staticInt = 1;
   Expect.equals(3, C?.staticInt += 2);
+  //               ^
+  // [cfe] The class 'C' cannot be null.
+  //                ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   Expect.equals(3, C?.staticInt);
+  //               ^
+  // [cfe] The class 'C' cannot be null.
+  //                ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
   // The static type of e1?.v op= e2 is the static type of e1.v op e2.
   {
@@ -104,12 +128,20 @@ main() {
   {
     D.staticE = new E();
     F? f = (D?.staticE += 1);
+    //      ^
+    // [cfe] The class 'D' cannot be null.
+    //       ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(D.staticE, f);
   }
 
   {
     h.D.staticE = new h.E();
     h.F? f = (h.D?.staticE += 1);
+    //          ^
+    // [cfe] The class 'D' cannot be null.
+    //           ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(h.D.staticE, f);
   }
 }

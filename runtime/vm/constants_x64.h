@@ -120,8 +120,11 @@ const Register TMP2 = kNoRegister;  // No second assembler scratch register.
 const Register PP = R15;
 const Register SPREG = RSP;          // Stack pointer register.
 const Register FPREG = RBP;          // Frame pointer register.
+const Register IC_DATA_REG = RBX;    // ICData/MegamorphicCache register.
 const Register ARGS_DESC_REG = R10;  // Arguments descriptor register.
 const Register CODE_REG = R12;
+// Set when calling Dart functions in JIT mode, used by LazyCompileStub.
+const Register FUNCTION_REG = RAX;
 const Register THR = R14;  // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = RBX;
 
@@ -146,6 +149,7 @@ struct InstantiationABI {
   static const Register kFunctionTypeArgumentsReg = RCX;
   static const Register kResultTypeArgumentsReg = RAX;
   static const Register kResultTypeReg = RAX;
+  static const Register kScratchReg = R9;
 };
 
 // Registers in addition to those listed in TypeTestABI used inside the
@@ -234,7 +238,6 @@ struct InitStaticFieldABI {
 
 // Registers used inside the implementation of InitLateStaticFieldStub.
 struct InitLateStaticFieldInternalRegs {
-  static const Register kFunctionReg = RAX;
   static const Register kAddressReg = RCX;
   static const Register kScratchReg = RSI;
 };
@@ -248,7 +251,6 @@ struct InitInstanceFieldABI {
 
 // Registers used inside the implementation of InitLateInstanceFieldStub.
 struct InitLateInstanceFieldInternalRegs {
-  static const Register kFunctionReg = RAX;
   static const Register kAddressReg = RCX;
   static const Register kScratchReg = RSI;
 };
@@ -334,6 +336,53 @@ struct DoubleToIntegerStubABI {
   static const Register kResultReg = RAX;
 };
 
+// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub).
+struct SuspendStubABI {
+  static const Register kArgumentReg = RAX;
+  static const Register kTempReg = RDX;
+  static const Register kFrameSizeReg = RCX;
+  static const Register kSuspendStateReg = RBX;
+  static const Register kFunctionDataReg = R8;
+  static const Register kSrcFrameReg = RSI;
+  static const Register kDstFrameReg = RDI;
+
+  // Number of bytes to skip after
+  // suspend stub return address in order to resume.
+  // X64: mov rsp, rbp; pop rbp; ret
+  static const intptr_t kResumePcDistance = 5;
+};
+
+// ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub).
+struct InitSuspendableFunctionStubABI {
+  static const Register kTypeArgsReg = RAX;
+};
+
+// ABI for ResumeStub
+struct ResumeStubABI {
+  static const Register kSuspendStateReg = RBX;
+  static const Register kTempReg = RDX;
+  // Registers for the frame copying (the 1st part).
+  static const Register kFrameSizeReg = RCX;
+  static const Register kSrcFrameReg = RSI;
+  static const Register kDstFrameReg = RDI;
+  // Registers for control transfer.
+  // (the 2nd part, can reuse registers from the 1st part)
+  static const Register kResumePcReg = RCX;
+  static const Register kExceptionReg = RSI;
+  static const Register kStackTraceReg = RDI;
+};
+
+// ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,
+// ReturnAsyncStarStub).
+struct ReturnStubABI {
+  static const Register kSuspendStateReg = RBX;
+};
+
+// ABI for AsyncExceptionHandlerStub.
+struct AsyncExceptionHandlerStubABI {
+  static const Register kSuspendStateReg = RBX;
+};
+
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch
 // table calls (though normal functions will not expect or use this
 // register). This ABI is added to distinguish memory corruption errors from
@@ -354,6 +403,8 @@ const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
 constexpr int kNumberOfDartAvailableCpuRegs =
     kNumberOfCpuRegisters - kNumberOfReservedCpuRegisters;
+// Low numbered registers sometimes require fewer prefixes.
+constexpr int kRegisterAllocationBias = 0;
 constexpr int kStoreBufferWrapperSize = 13;
 
 #if defined(DART_TARGET_OS_WINDOWS)

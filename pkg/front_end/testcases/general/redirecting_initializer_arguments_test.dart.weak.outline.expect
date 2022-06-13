@@ -6,7 +6,7 @@ class Foo<T extends core::Object? = dynamic> extends core::Object {
   covariant-by-class field self::Foo::T% x;
   constructor from(core::String _init) → self::Foo<self::Foo::T%>
     ;
-  constructor _internal({required self::Foo::T% x}) → self::Foo<self::Foo::T%>
+  constructor _internal({required self::Foo::T% x = null}) → self::Foo<self::Foo::T%>
     ;
 }
 static method main() → void

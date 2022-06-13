@@ -113,7 +113,9 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
           fieldBuilder.charOffset,
           fieldBuilder.name.length,
           fieldBuilder.fileUri);
-      return fieldBuilder.fieldType = const InvalidType();
+      DartType type = const InvalidType();
+      fieldBuilder.type.registerInferredType(type);
+      return type;
     }
     isStarted = true;
     DartType? inferredType;

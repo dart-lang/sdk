@@ -26,15 +26,15 @@ Future<void> runSuite(Uri suiteFolder, String suiteName, Options options,
 
   await generic.runSuite(
       entries,
-      new generic.RunnerOptions()
-        ..suiteName = suiteName
-        ..configurationName = options.configurationName
-        ..filter = options.filter
-        ..logDir = options.outputDirectory
-        ..shard = options.shard
-        ..shards = options.shards
-        ..verbose = options.verbose
-        ..reproTemplate = '%executable %script --verbose --filter %name');
+      new generic.RunnerOptions(
+          suiteName: suiteName,
+          configurationName: options.configurationName,
+          filter: options.filter,
+          logDir: options.outputDirectory,
+          shard: options.shard,
+          shards: options.shards,
+          verbose: options.verbose,
+          reproTemplate: '%executable %script --verbose --filter %name'));
   await pipeline.cleanup();
 }
 
@@ -59,11 +59,11 @@ class _PipelineTest implements generic.Test {
 class Options {
   bool showSkipped = false;
   bool verbose = false;
-  String filter = null;
+  String? filter;
   int shards = 1;
   int shard = 1;
-  String configurationName;
-  Uri outputDirectory;
+  String? configurationName;
+  Uri? outputDirectory;
   bool useSdk = false;
 
   static Options parse(List<String> args) {
@@ -92,7 +92,7 @@ class Options {
           help: 'configuration name to use for emitting jsonl result files.');
     ArgResults argResults = parser.parse(args);
     int shards = int.tryParse(argResults['shards']) ?? 1;
-    int shard;
+    int shard = 1;
     if (shards > 1) {
       shard = int.tryParse(argResults['shard']) ?? 1;
       if (shard <= 0 || shard >= shards) {
@@ -101,7 +101,7 @@ class Options {
         exit(1);
       }
     }
-    Uri toUri(s) => s == null ? null : Uri.base.resolveUri(Uri.file(s));
+    Uri? toUri(s) => s == null ? null : Uri.base.resolveUri(Uri.file(s));
     return Options()
       ..showSkipped = argResults['show-skipped']
       ..verbose = argResults['verbose']

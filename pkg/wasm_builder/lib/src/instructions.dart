@@ -114,6 +114,11 @@ class Instructions with SerializerMixin {
   /// Column width for the instructions.
   int instructionColumnWidth = 50;
 
+  /// The maximum number of stack slots for which to print the types after each
+  /// instruction. When the stack is higher than this, some elements in the
+  /// middle of the stack are left out.
+  int maxStackShown = 10;
+
   int _indent = 1;
   final List<String> _traceLines = [];
 
@@ -149,7 +154,16 @@ class Instructions with SerializerMixin {
       instr = instr.length > instructionColumnWidth - 2
           ? instr.substring(0, instructionColumnWidth - 4) + "... "
           : instr.padRight(instructionColumnWidth);
-      final String stack = reachableAfter ? _stackTypes.join(', ') : "-";
+      final int stackHeight = _stackTypes.length;
+      final String stack = reachableAfter
+          ? stackHeight <= maxStackShown
+              ? _stackTypes.join(', ')
+              : [
+                  ..._stackTypes.sublist(0, maxStackShown ~/ 2),
+                  "... ${stackHeight - maxStackShown} omitted ...",
+                  ..._stackTypes.sublist(stackHeight - (maxStackShown + 1) ~/ 2)
+                ].join(', ')
+          : "-";
       final String line = "$byteOffset$instr$stack\n";
       _indent += indentAfter;
 

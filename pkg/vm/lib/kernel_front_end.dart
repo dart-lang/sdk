@@ -202,7 +202,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final String? manifestFilename = options['manifest'];
   final String? dataDir = options['component-name'] ?? options['data-dir'];
   final bool? supportMirrors = options['support-mirrors'];
-  final bool compactAsync = options['compact-async'] ?? false /*aot*/;
+  final bool compactAsync = options['compact-async'] ?? aot;
 
   final bool minimalKernel = options['minimal-kernel'];
   final bool treeShakeWriteOnlyFields = options['tree-shake-write-only-fields'];

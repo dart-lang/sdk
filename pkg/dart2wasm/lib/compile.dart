@@ -10,12 +10,14 @@ import 'package:front_end/src/api_unstable/vm.dart'
         CompilerResult,
         DiagnosticMessage,
         kernelForProgram,
+        NnbdMode,
         Severity;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:kernel/verifier.dart';
 
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
@@ -31,6 +33,7 @@ import 'package:dart2wasm/translator.dart';
 Future<Uint8List?> compileToModule(
     Uri mainUri,
     Uri sdkRoot,
+    Uri? platformDill,
     TranslatorOptions options,
     void Function(DiagnosticMessage) handleDiagnosticMessage) async {
   var succeeded = true;
@@ -44,11 +47,17 @@ Future<Uint8List?> compileToModule(
   Target target = WasmTarget();
   CompilerOptions compilerOptions = CompilerOptions()
     ..target = target
-    ..compileSdk = true
     ..sdkRoot = sdkRoot
     ..environmentDefines = {}
     ..verbose = false
-    ..onDiagnostic = diagnosticMessageHandler;
+    ..onDiagnostic = diagnosticMessageHandler
+    ..nnbdMode = NnbdMode.Strong;
+
+  if (platformDill != null) {
+    compilerOptions.sdkSummary = platformDill;
+  } else {
+    compilerOptions.compileSdk = true;
+  }
 
   CompilerResult? compilerResult =
       await kernelForProgram(mainUri, compilerOptions);
@@ -62,6 +71,12 @@ Future<Uint8List?> compileToModule(
       treeShakeSignatures: true,
       treeShakeWriteOnlyFields: true,
       useRapidTypeAnalysis: false);
+
+  assert(() {
+    verifyComponent(component,
+        afterConst: true, constantsAreAlwaysInlined: true);
+    return true;
+  }());
 
   var translator = Translator(component, coreTypes,
       TypeEnvironment(coreTypes, compilerResult.classHierarchy!), options);

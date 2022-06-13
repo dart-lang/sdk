@@ -91,7 +91,7 @@ class TestingServers {
         ? Repository.uri
         : Uri.base.resolveUri(Uri.directory(dartDirectory));
     var packagesUri = packages == null
-        ? dartDirectoryUri.resolve('.packages')
+        ? dartDirectoryUri.resolve('.dart_tool/package_config.json')
         : Uri.file(packages);
     return TestingServers._(useContentSecurityPolicy, buildDirectoryUri,
         dartDirectoryUri, packagesUri, runtime);

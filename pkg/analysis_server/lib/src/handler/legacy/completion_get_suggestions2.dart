@@ -7,10 +7,10 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/fuzzy_filter_sort.dart';
@@ -24,10 +24,9 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:collection/collection.dart';
 
 /// The handler for the `completion.getSuggestions2` request.
-class CompletionGetSuggestions2Handler extends LegacyHandler
+class CompletionGetSuggestions2Handler extends CompletionHandler
     with RequestHandlerMixin<AnalysisServer> {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
@@ -107,6 +106,11 @@ class CompletionGetSuggestions2Handler extends LegacyHandler
 
   @override
   Future<void> handle() async {
+    if (completionIsDisabled) {
+      return;
+    }
+
+    var requestLatency = request.timeSinceRequest;
     var params = CompletionGetSuggestions2Params.fromRequest(request);
     var file = params.file;
     var offset = params.offset;
@@ -171,16 +175,16 @@ class CompletionGetSuggestions2Handler extends LegacyHandler
         }
 
         final completionPerformance = CompletionPerformance(
-          operation: performance,
+          performance: performance,
           path: file,
+          requestLatency: requestLatency,
           content: resolvedUnit.content,
           offset: offset,
         );
-        server.completionState.performanceList.add(completionPerformance);
+        server.recentPerformance.completion.add(completionPerformance);
 
         var analysisSession = resolvedUnit.analysisSession;
-        var enclosingNode =
-            resolvedUnit.resolvedNodes.lastOrNull ?? resolvedUnit.parsedUnit;
+        var enclosingNode = resolvedUnit.parsedUnit;
 
         var completionRequest = DartCompletionRequest(
           analysisSession: analysisSession,

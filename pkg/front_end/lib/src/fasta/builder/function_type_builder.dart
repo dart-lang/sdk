@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart'
         NamedType,
         Supertype,
         TypeParameter;
+import 'package:kernel/src/unaliasing.dart';
 
 import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
 
@@ -21,11 +22,12 @@ import 'formal_parameter_builder.dart';
 import 'library_builder.dart';
 import 'named_type_builder.dart';
 import 'nullability_builder.dart';
+import 'omitted_type_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
 
 class FunctionTypeBuilder extends TypeBuilder {
-  final TypeBuilder? returnType;
+  final TypeBuilder returnType;
   final List<TypeVariableBuilder>? typeVariables;
   final List<ParameterBuilder>? formals;
   @override
@@ -79,24 +81,34 @@ class FunctionTypeBuilder extends TypeBuilder {
     buffer.write(") ->");
     nullabilityBuilder.writeNullabilityOn(buffer);
     buffer.write(" ");
-    buffer.write(returnType?.fullNameForErrors);
+    buffer.write(returnType.fullNameForErrors);
     return buffer;
   }
 
   @override
-  FunctionType build(LibraryBuilder library) {
-    return _type ??= _buildInternal(library);
+  FunctionType build(LibraryBuilder library, TypeUse typeUse) {
+    return _type ??= _buildInternal(library, typeUse) as FunctionType;
   }
 
-  FunctionType _buildInternal(LibraryBuilder library) {
-    DartType builtReturnType =
-        returnType?.build(library) ?? const DynamicType();
+  DartType _buildInternal(LibraryBuilder library, TypeUse typeUse) {
+    DartType aliasedType = buildAliased(library, typeUse);
+    return unalias(aliasedType,
+        legacyEraseAliases: !library.isNonNullableByDefault);
+  }
+
+  @override
+  DartType buildAliased(LibraryBuilder library, TypeUse typeUse) {
+    DartType builtReturnType = returnType is OmittedTypeBuilder
+        ? const DynamicType()
+        : returnType.buildAliased(library, TypeUse.returnType);
     List<DartType> positionalParameters = <DartType>[];
     List<NamedType>? namedParameters;
     int requiredParameterCount = 0;
     if (formals != null) {
       for (ParameterBuilder formal in formals!) {
-        DartType type = formal.type?.build(library) ?? const DynamicType();
+        DartType type = formal.type is OmittedTypeBuilder
+            ? const DynamicType()
+            : formal.type.buildAliased(library, TypeUse.parameterType);
         if (formal.isPositional) {
           positionalParameters.add(type);
           if (formal.isRequiredPositional) requiredParameterCount++;
@@ -116,7 +128,7 @@ class FunctionTypeBuilder extends TypeBuilder {
       for (TypeVariableBuilder t in typeVariables!) {
         typeParameters.add(t.parameter);
         // Build the bound to detect cycles in typedefs.
-        t.bound?.build(library);
+        t.bound?.build(library, TypeUse.typeParameterBound);
       }
     }
     return new FunctionType(positionalParameters, builtReturnType,
@@ -158,7 +170,7 @@ class FunctionTypeBuilder extends TypeBuilder {
       }, growable: false);
     }
     return new FunctionTypeBuilder(
-        returnType?.clone(newTypes, contextLibrary, contextDeclaration),
+        returnType.clone(newTypes, contextLibrary, contextDeclaration),
         clonedTypeVariables,
         clonedFormals,
         nullabilityBuilder,

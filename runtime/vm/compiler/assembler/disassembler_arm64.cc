@@ -552,7 +552,11 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
       ASSERT(STRING_STARTS_WITH(format, "opc"));
       if (instr->Bit(26) == 0) {
         if (instr->Bit(31) == 0) {
-          Print("w");
+          if (instr->Bit(30) == 1) {
+            Print("sw");
+          } else {
+            Print("w");
+          }
         } else {
           // 64-bit width is most commonly used, no need to print "x".
         }
@@ -1081,7 +1085,7 @@ void ARM64Decoder::DecodeLoadStore(Instr* instr) {
 void ARM64Decoder::DecodeAddSubShiftExt(Instr* instr) {
   switch (instr->Bit(30)) {
     case 0: {
-      if ((instr->RdField() == R31) && (instr->SFField())) {
+      if (instr->RdField() == R31) {
         Format(instr, "cmn'sf 'rn, 'shift_op");
       } else {
         Format(instr, "add'sf's 'rd, 'rn, 'shift_op");
@@ -1089,7 +1093,7 @@ void ARM64Decoder::DecodeAddSubShiftExt(Instr* instr) {
       break;
     }
     case 1: {
-      if ((instr->RdField() == R31) && (instr->SFField())) {
+      if (instr->RdField() == R31) {
         Format(instr, "cmp'sf 'rn, 'shift_op");
       } else {
         if (instr->RnField() == R31) {
@@ -1154,7 +1158,11 @@ void ARM64Decoder::DecodeLogicalShift(Instr* instr) {
       Format(instr, "eon'sf 'rd, 'rn, 'shift_op");
       break;
     case 6:
-      Format(instr, "and'sfs 'rd, 'rn, 'shift_op");
+      if (instr->RdField() == R31) {
+        Format(instr, "tst'sf 'rn, 'shift_op");
+      } else {
+        Format(instr, "and'sfs 'rd, 'rn, 'shift_op");
+      }
       break;
     case 7:
       Format(instr, "bic'sfs 'rd, 'rn, 'shift_op");

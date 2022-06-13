@@ -110,6 +110,30 @@ test() {
         _isEnabled ? 'List<int>' : 'List<dynamic>');
   }
 
+  test_horizontal_inference_necessary_due_to_wrong_explicit_parameter_type() async {
+    // In this example, horizontal type inference is needed because although the
+    // type of `y` is explicit, it's actually `x` that would have needed to be
+    // explicit.
+    await assertErrorsInCode('''
+test(List<int> list) {
+  var a = list.fold(0, (x, int y) => x + y);
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      if (!_isEnabled)
+        error(
+            CompileTimeErrorCode
+                .UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+            62,
+            1),
+    ]);
+    assertType(findElement.localVar('a').type, _isEnabled ? 'int' : 'dynamic');
+    assertType(findElement.parameter('x').type, _isEnabled ? 'int' : 'Object?');
+    assertType(findElement.parameter('y').type, 'int');
+    expect(findNode.binary('+ y').staticElement?.enclosingElement.name,
+        _isEnabled ? 'num' : null);
+  }
+
   test_horizontal_inference_propagate_to_earlier_closure() async {
     await assertErrorsInCode('''
 U f<T, U>(U Function(T) g, T Function() h) => throw '';
@@ -355,5 +379,35 @@ void f({required void Function() g, Object? x}) {}
     // At (2), after the call to `f`, the write capture has taken place
     // regardless of whether the experiment is enabled.
     assertType(findNode.simple('i; // (2)'), 'int?');
+  }
+
+  test_write_capture_deferred_redirecting_constructor() async {
+    await assertNoErrorsInCode('''
+class C {
+  C(int? i) : this.other(i!, () { i = null; }, i);
+  C.other(Object? x, void Function() g, Object? y);
+}
+''');
+    // With the feature enabled, analysis of the closure is deferred until after
+    // all the other arguments to `this.other`, so the `i` passed to `y` is not
+    // yet write captured and retains its promoted value.  With the experiment
+    // disabled, it is write captured immediately.
+    assertType(findNode.simple('i);'), _isEnabled ? 'int' : 'int?');
+  }
+
+  test_write_capture_deferred_super_constructor() async {
+    await assertNoErrorsInCode('''
+class B {
+  B(Object? x, void Function() g, Object? y);
+}
+class C extends B {
+  C(int? i) : super(i!, () { i = null; }, i);
+}
+''');
+    // With the feature enabled, analysis of the closure is deferred until after
+    // all the other arguments to `this.other`, so the `i` passed to `y` is not
+    // yet write captured and retains its promoted value.  With the experiment
+    // disabled, it is write captured immediately.
+    assertType(findNode.simple('i);'), _isEnabled ? 'int' : 'int?');
   }
 }

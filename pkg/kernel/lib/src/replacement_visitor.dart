@@ -83,17 +83,9 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
         newNamedParameters[i] = newNamedType;
       }
     }
-    TypedefType? newTypedefType =
-        visitType(node.typedefType, variance) as TypedefType?;
 
-    return createFunctionType(
-        node,
-        newNullability,
-        newTypeParameters,
-        newReturnType,
-        newPositionalParameters,
-        newNamedParameters,
-        newTypedefType);
+    return createFunctionType(node, newNullability, newTypeParameters,
+        newReturnType, newPositionalParameters, newNamedParameters);
   }
 
   NamedType? createNamedType(NamedType node, DartType? newType) {
@@ -110,13 +102,11 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
       List<TypeParameter>? newTypeParameters,
       DartType? newReturnType,
       List<DartType>? newPositionalParameters,
-      List<NamedType>? newNamedParameters,
-      TypedefType? newTypedefType) {
+      List<NamedType>? newNamedParameters) {
     if (newNullability == null &&
         newReturnType == null &&
         newPositionalParameters == null &&
-        newNamedParameters == null &&
-        newTypedefType == null) {
+        newNamedParameters == null) {
       // No nullability or types had to be substituted.
       return null;
     } else {
@@ -126,8 +116,7 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
           newNullability ?? node.nullability,
           namedParameters: newNamedParameters ?? node.namedParameters,
           typeParameters: newTypeParameters ?? node.typeParameters,
-          requiredParameterCount: node.requiredParameterCount,
-          typedefType: newTypedefType ?? node.typedefType);
+          requiredParameterCount: node.requiredParameterCount);
     }
   }
 

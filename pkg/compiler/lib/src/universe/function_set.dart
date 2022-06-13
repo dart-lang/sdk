@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library universe.function_set;
 
 import '../common/names.dart' show Identifiers, Selectors;
@@ -21,7 +19,7 @@ class FunctionSet {
   factory FunctionSet(Iterable<MemberEntity> liveInstanceMembers) {
     Map<String, FunctionSetNode> nodes = {};
     for (MemberEntity member in liveInstanceMembers) {
-      String name = member.name;
+      String name = member.name!;
       (nodes[name] ??= FunctionSetNode(name)).add(member);
     }
     return FunctionSet.internal(nodes);
@@ -32,8 +30,8 @@ class FunctionSet {
   bool contains(MemberEntity element) {
     assert(element.isInstanceMember);
     assert(!element.isAbstract);
-    String name = element.name;
-    FunctionSetNode node = _nodes[name];
+    String name = element.name!;
+    FunctionSetNode? node = _nodes[name];
     return (node != null) ? node.contains(element) : false;
   }
 
@@ -58,7 +56,7 @@ class FunctionSet {
   }
 
   SelectorMask _createSelectorMask(
-      Selector selector, AbstractValue receiver, AbstractValueDomain domain) {
+      Selector selector, AbstractValue? receiver, AbstractValueDomain domain) {
     return receiver != null
         ? SelectorMask(selector, receiver)
         : SelectorMask(selector, domain.dynamicType);
@@ -73,8 +71,8 @@ class FunctionSet {
     SelectorMask selectorMask = _createSelectorMask(selector, receiver, domain);
     SelectorMask noSuchMethodMask =
         SelectorMask(Selectors.noSuchMethod_, selectorMask.receiver);
-    FunctionSetNode node = _nodes[name];
-    FunctionSetNode noSuchMethods = _nodes[Identifiers.noSuchMethod_];
+    FunctionSetNode? node = _nodes[name];
+    FunctionSetNode? noSuchMethods = _nodes[Identifiers.noSuchMethod_];
     if (node != null) {
       return node.query(selectorMask, domain, noSuchMethods, noSuchMethodMask);
     }
@@ -103,9 +101,7 @@ class SelectorMask {
 
   SelectorMask(this.selector, this.receiver)
       : this.hashCode =
-            Hashing.mixHashCodeBits(selector.hashCode, receiver.hashCode) {
-    assert(receiver != null);
-  }
+            Hashing.mixHashCodeBits(selector.hashCode, receiver.hashCode);
 
   String get name => selector.name;
 
@@ -160,10 +156,10 @@ class FunctionSetNode {
         isList = false;
       }
       if (isList) {
-        List<MemberEntity> list = elements;
+        final list = elements as List<MemberEntity>;
         list.add(element);
       } else {
-        Set<MemberEntity> set = elements;
+        final set = elements as Set<MemberEntity>;
         set.add(element);
       }
       if (!cache.isEmpty) cache.clear();
@@ -173,7 +169,7 @@ class FunctionSetNode {
   void remove(MemberEntity element) {
     assert(element.name == name);
     if (isList) {
-      List<MemberEntity> list = elements;
+      final list = elements as List<MemberEntity>;
       int index = list.indexOf(element);
       if (index < 0) return;
       MemberEntity last = list.removeLast();
@@ -182,7 +178,7 @@ class FunctionSetNode {
       }
       if (!cache.isEmpty) cache.clear();
     } else {
-      Set<MemberEntity> set = elements;
+      final set = elements as List<MemberEntity>;
       if (set.remove(element)) {
         // To avoid wobbling between the two representations, we do
         // not transition back to the list representation even if we
@@ -204,12 +200,12 @@ class FunctionSetNode {
   /// Returns the set of functions that can be the target of [selectorMask]
   /// including no such method handling where applicable.
   FunctionSetQuery query(SelectorMask selectorMask, AbstractValueDomain domain,
-      [FunctionSetNode noSuchMethods, SelectorMask noSuchMethodMask]) {
+      [FunctionSetNode? noSuchMethods, SelectorMask? noSuchMethodMask]) {
     assert(selectorMask.name == name);
-    FunctionSetQuery result = cache[selectorMask];
+    FunctionSetQuery? result = cache[selectorMask];
     if (result != null) return result;
 
-    Setlet<MemberEntity> functions;
+    Setlet<MemberEntity>? functions;
     for (MemberEntity element in elements) {
       if (selectorMask.applies(element, domain)) {
         // Defer the allocation of the functions set until we are
@@ -225,8 +221,10 @@ class FunctionSetNode {
     // potential targets.
     if (noSuchMethods != null &&
         selectorMask.needsNoSuchMethodHandling(domain)) {
+      // If [noSuchMethods] was provided then [noSuchMethodMask] should also
+      // have been provided.
       FunctionSetQuery noSuchMethodQuery =
-          noSuchMethods.query(noSuchMethodMask, domain);
+          noSuchMethods.query(noSuchMethodMask!, domain);
       if (!noSuchMethodQuery.functions.isEmpty) {
         functions ??= Setlet();
         functions.addAll(noSuchMethodQuery.functions);
@@ -282,7 +280,7 @@ class FullFunctionSetQuery implements FunctionSetQuery {
   @override
   final Iterable<MemberEntity> functions;
 
-  AbstractValue _receiver;
+  AbstractValue? _receiver;
 
   FullFunctionSetQuery(this.functions);
 

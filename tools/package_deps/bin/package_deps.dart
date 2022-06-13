@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
-import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart' as yaml;
@@ -233,9 +232,9 @@ class Package implements Comparable<Package> {
 
     var extraDevDeclarations = Set<String>.from(_declaredDevDependencies)
       ..removeAll(devdeps);
-    // Remove package:pedantic and package:lints as they are often declared as
-    // dev dependencies in order to bring in their analysis_options.yaml files.
-    extraDevDeclarations.removeAll(['lints', 'pedantic']);
+    // Remove package:lints - it's often declared as a dev dependency in order
+    // to bring in analysis_options configuration files.
+    extraDevDeclarations.removeAll(['lints']);
     if (extraDevDeclarations.isNotEmpty) {
       out('  ${_printSet(extraDevDeclarations)} declared in '
           "'dev_dependencies:' but not used in dev dirs.");
@@ -252,43 +251,47 @@ class Package implements Comparable<Package> {
       fail = true;
     }
 
-    // Validate that we don't have relative deps into third_party.
-    // TODO(devoncarew): This is currently just enforced for publishable
-    // packages.
     if (publishable) {
-      for (PubDep dep in [..._declaredPubDeps, ..._declaredDevPubDeps]) {
-        if (dep is PathPubDep) {
-          var path = dep.path;
-
-          if (path.contains('third_party/pkg_tested/') ||
-              path.contains('third_party/pkg/')) {
-            out('  Prefer a semver dependency for packages brought in via DEPS:');
-            out('    $dep');
-            fail = true;
-          }
-        }
-      }
-    }
-
-    // Validate that published packages don't use path deps.
-    if (publishable) {
+      // Validate that deps for published packages use semver (but not any).
       for (PubDep dep in _declaredPubDeps) {
-        if (dep is PathPubDep) {
-          out('  Published packages should use semver deps:');
-          out('    $dep');
-          fail = true;
-        }
+        if (dep is SemverPubDep) continue;
+
+        out('  Published packages should use semver deps:');
+        out('    $dep');
+        fail = true;
+      }
+
+      // Validate that dev deps for published packages use an 'any' constraint.
+      for (PubDep dep in _declaredDevPubDeps) {
+        if (dep is AnyPubDep) continue;
+
+        out('  Prefer an `any` constraint for dev dependencies');
+        out('    $dep');
+        fail = true;
+      }
+    } else {
+      // Validate that non-publishable packages use an 'any' constraint.
+      for (PubDep dep in [..._declaredPubDeps, ..._declaredDevPubDeps]) {
+        if (dep is AnyPubDep) continue;
+
+        out('  Prefer an `any` constraint for unpublished packages');
+        out('    $dep');
+        fail = true;
       }
     }
 
     // Validate that the version of any package dep'd in works with our declared
     // version ranges.
     for (PubDep dep in [..._declaredPubDeps, ..._declaredDevPubDeps]) {
-      if (dep is! SemverPubDep) {
+      if (dep is! SemverPubDep) continue;
+
+      ResolvedDep? resolvedDep = sdkDeps.resolve(dep.name);
+      if (resolvedDep == null) {
+        out('  Unresolved reference: package:${dep.name}');
+        fail = true;
         continue;
       }
 
-      ResolvedDep resolvedDep = sdkDeps.resolve(dep.name)!;
       if (resolvedDep.isMonoRepoPackage) {
         continue;
       }
@@ -314,25 +317,6 @@ class Package implements Comparable<Package> {
             '${dep.value}, but the version of ${resolvedDep.packageName} '
             'in the repo is ${resolvedDep.version}.');
         fail = true;
-      }
-    }
-
-    // Validate that non-published packages use relative a (relative) path dep
-    // for pkg/ packages.
-    if (!publishable) {
-      for (PubDep dep in [..._declaredPubDeps, ..._declaredDevPubDeps]) {
-        if (pkgPackages.contains(dep.name) && dep is! PathPubDep) {
-          // check to see if there is a dependency_override to a path dependency
-          final override = _declaredOverridePubDeps
-              .singleWhereOrNull((element) => element.name == dep.name);
-          if (override != null && override is PathPubDep) {
-            continue;
-          }
-
-          out('  Prefer a relative path dep for pkg/ packages:');
-          out('    $dep');
-          fail = true;
-        }
       }
     }
 
@@ -478,6 +462,8 @@ class SdkDeps {
     _findPackages(Directory('pkg'));
     _findPackages(Directory(path.join('third_party', 'devtools')));
     _findPackages(Directory(path.join('third_party', 'pkg')));
+    _findPackages(
+        Directory(path.join('third_party', 'pkg', 'file', 'packages')));
     _findPackages(Directory(path.join('third_party', 'pkg_tested')));
 
     if (verbose) {
@@ -522,7 +508,7 @@ abstract class PubDep {
 
   static PubDep parse(String name, Object dep) {
     if (dep is String) {
-      return SemverPubDep(name, dep);
+      return (dep == 'any') ? AnyPubDep(name) : SemverPubDep(name, dep);
     } else if (dep is Map) {
       if (dep.containsKey('path')) {
         return PathPubDep(name, dep['path']);
@@ -533,6 +519,13 @@ abstract class PubDep {
       return UnhandledPubDep(name);
     }
   }
+}
+
+class AnyPubDep extends PubDep {
+  AnyPubDep(String name) : super(name);
+
+  @override
+  String toString() => '$name: any';
 }
 
 class SemverPubDep extends PubDep {

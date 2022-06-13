@@ -222,6 +222,7 @@ downstream
 draw
 dry
 dsemi
+dskip
 dumping
 dumps
 dupe
@@ -322,6 +323,7 @@ hkt
 home
 hoo
 hook
+horizontally
 hosted
 hosting
 hot
@@ -340,6 +342,7 @@ implemen
 implementor
 implementors
 imprecision
+improvement
 inclosure
 inconsistencies
 increasing
@@ -441,6 +444,7 @@ noted
 nottest
 null'ed
 numerator
+nums
 ob
 obool
 observable
@@ -604,6 +608,7 @@ stat
 stats
 stay
 std
+stopwatches
 stress
 stringy
 strip
@@ -712,6 +717,7 @@ y's
 year
 yxxx
 yy
+zeroth
 zipf's
 zyx
 zz

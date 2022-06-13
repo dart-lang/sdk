@@ -37,13 +37,13 @@ class A {
   Future<void> test_closure() async {
     await resolveTestCode('''
 setup(x) {}
-main() {
+void f() {
   setup(() => 42);
 }
 ''');
     await assertHasAssistAt('() => 42', '''
 setup(x) {}
-main() {
+void f() {
   setup(() {
     return 42;
   });
@@ -55,13 +55,13 @@ main() {
   Future<void> test_closure_voidExpression() async {
     await resolveTestCode('''
 setup(x) {}
-main() {
+void f() {
   setup(() => print('done'));
 }
 ''');
     await assertHasAssistAt('() => print', '''
 setup(x) {}
-main() {
+void f() {
   setup(() {
     print('done');
   });
@@ -91,7 +91,7 @@ class A {
 
   Future<void> test_inExpression() async {
     await resolveTestCode('''
-main() => 123;
+void f() => 123;
 ''');
     await assertNoAssistAt('123;');
   }

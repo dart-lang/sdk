@@ -1,0 +1,69 @@
+name: Request a cherry-pick.
+description: You would like to request that a feature be cherry-picked into a release.
+title: '[CP] <title>'
+labels: ['cherry-pick-review']
+assignees:
+  - mit-mit
+  - whesse
+  - athomas
+  - vsmenon
+  - itsjustkevin
+body:
+  - type: input
+    id: commit_hash
+    attributes:
+      label: Commit(s) to merge
+      description: What are the shortened commit hash(es) that have been merged to main?
+    validations:
+      required: true
+  - type: input
+    id: target
+    attributes:
+      label: Target
+      description: Should this be cherry-picked to beta, stable or both??
+    validations:
+      required: true
+  - type: textarea
+    id: issue_description
+    attributes:
+      label: Issue Description
+      description: Brief description of the issue.  What is the issue? What platforms are the problems occuring on?
+    validations:
+      required: true
+  - type: textarea
+    id: fix
+    attributes:
+      label: What is the fix
+      description: Brief description of the fix.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why cherry-pick
+      description: Describe the reasons, impacted users and functional issues to explain why this should be cherry-picked.
+    validations:
+      required: true
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risk
+      description: What is the risk level of this cherry-pick?
+      options:
+        - low
+        - medium
+        - high
+    validations:
+      required: true
+  - type: input
+    id: original_issue
+    attributes:
+      label: Issue link(s)
+      description: Add links to the original issues fixed by this cp
+    validations:
+      required: true
+  - type: textarea
+    id: extra_info
+    attributes:
+      label: Extra Info
+      description: Is there anything else we need to know about this cherry-pick?

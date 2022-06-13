@@ -11,6 +11,7 @@ import '../common.dart';
 import '../common/elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
+import '../diagnostics/spannable_with_entity.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
@@ -105,6 +106,9 @@ abstract class HVisitor<R> {
   R visitPrimitiveCheck(HPrimitiveCheck node);
   R visitBoolConversion(HBoolConversion node);
   R visitNullCheck(HNullCheck node);
+  R visitLateReadCheck(HLateReadCheck node);
+  R visitLateWriteOnceCheck(HLateWriteOnceCheck node);
+  R visitLateInitializeOnceCheck(HLateInitializeOnceCheck node);
   R visitTypeKnown(HTypeKnown node);
   R visitYield(HYield node);
 
@@ -591,6 +595,13 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   @override
   visitNullCheck(HNullCheck node) => visitCheck(node);
   @override
+  visitLateReadCheck(HLateReadCheck node) => visitCheck(node);
+  @override
+  visitLateWriteOnceCheck(HLateWriteOnceCheck node) => visitCheck(node);
+  @override
+  visitLateInitializeOnceCheck(HLateInitializeOnceCheck node) =>
+      visitCheck(node);
+  @override
   visitPrimitiveCheck(HPrimitiveCheck node) => visitCheck(node);
   @override
   visitTypeKnown(HTypeKnown node) => visitCheck(node);
@@ -1027,7 +1038,7 @@ class HBasicBlock extends HInstructionList {
   toString() => 'HBasicBlock($id)';
 }
 
-abstract class HInstruction implements Spannable {
+abstract class HInstruction implements SpannableWithEntity {
   Entity sourceElement;
   SourceInformation sourceInformation;
 
@@ -1101,9 +1112,19 @@ abstract class HInstruction implements Spannable {
   static const int STRING_CONCAT_TYPECODE = 59;
   static const int STRINGIFY_TYPECODE = 60;
 
+  static const int LATE_READ_CHECK_TYPECODE = 61;
+  static const int LATE_WRITE_ONCE_CHECK_TYPECODE = 62;
+  static const int LATE_INITIALIZE_ONCE_CHECK_TYPECODE = 63;
+
   HInstruction(this.inputs, this.instructionType) {
     assert(inputs.every((e) => e != null), "inputs: $inputs");
   }
+
+  @override
+  Entity /*?*/ get sourceEntity => sourceElement;
+
+  @override
+  SourceSpan /*?*/ get sourceSpan => sourceInformation?.sourceSpan;
 
   @override
   int get hashCode => id;
@@ -1221,7 +1242,7 @@ abstract class HInstruction implements Spannable {
       domain.isPrimitiveOrNull(instructionType);
 
   /// Type of the instruction.
-  AbstractValue instructionType;
+  AbstractValue /*!*/ instructionType;
 
   HInstruction getDartReceiver(JClosedWorld closedWorld) => null;
   bool onlyThrowsNSM() => false;
@@ -2913,7 +2934,7 @@ class HLoopBranch extends HConditionalBranch {
 }
 
 class HConstant extends HInstruction {
-  final ConstantValue constant;
+  final ConstantValue /*!*/ constant;
   HConstant.internal(this.constant, AbstractValue constantType)
       : super([], constantType);
 
@@ -2925,26 +2946,27 @@ class HConstant extends HInstruction {
   @override
   bool isConstant() => true;
   @override
-  bool isConstantBoolean() => constant.isBool;
+  bool isConstantBoolean() => constant is BoolConstantValue;
   @override
-  bool isConstantNull() => constant.isNull;
+  bool isConstantNull() => constant is NullConstantValue;
   @override
-  bool isConstantNumber() => constant.isNum;
+  bool isConstantNumber() => constant is NumConstantValue;
   @override
-  bool isConstantInteger() => constant.isInt;
+  bool isConstantInteger() => constant is IntConstantValue;
   @override
-  bool isConstantString() => constant.isString;
+  bool isConstantString() => constant is StringConstantValue;
   @override
-  bool isConstantList() => constant.isList;
+  bool isConstantList() => constant is ListConstantValue;
   @override
-  bool isConstantMap() => constant.isMap;
+  bool isConstantMap() => constant is MapConstantValue;
   @override
-  bool isConstantFalse() => constant.isFalse;
+  bool isConstantFalse() => constant is FalseConstantValue;
   @override
-  bool isConstantTrue() => constant.isTrue;
+  bool isConstantTrue() => constant is TrueConstantValue;
 
   @override
-  bool isInterceptor(JClosedWorld closedWorld) => constant.isInterceptor;
+  bool isInterceptor(JClosedWorld closedWorld) =>
+      constant is InterceptorConstantValue;
 
   // Maybe avoid this if the literal is big?
   @override
@@ -3677,6 +3699,124 @@ class HNullCheck extends HCheck {
   }
 }
 
+/// A check for a late sentinel to determine if a late field may be read from or
+/// written to.
+abstract class HLateCheck extends HCheck {
+  HLateCheck(HInstruction input, HInstruction /*?*/ name, AbstractValue type)
+      : super([input, if (name != null) name], type);
+
+  bool get hasName => inputs.length > 1;
+
+  HInstruction get name {
+    if (hasName) return inputs[1];
+    throw StateError('HLateCheck.name: no name');
+  }
+
+  @override
+  bool isControlFlow() => true;
+
+  @override
+  bool isCodeMotionInvariant() => false;
+}
+
+/// A check that a late field has been initialized and can therefore be read.
+class HLateReadCheck extends HLateCheck {
+  HLateReadCheck(HInstruction input, HInstruction name, AbstractValue type)
+      : super(input, name, type);
+
+  @override
+  accept(HVisitor visitor) => visitor.visitLateReadCheck(this);
+
+  @override
+  int typeCode() => HInstruction.LATE_READ_CHECK_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HLateReadCheck;
+
+  @override
+  bool dataEquals(HLateReadCheck other) => true;
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain.isLateSentinel(inputType).isDefinitelyFalse;
+  }
+
+  @override
+  String toString() {
+    return 'HLateReadCheck($checkedInput)';
+  }
+}
+
+/// A check that a late final field has not been initialized yet and can
+/// therefore be written to.
+///
+/// The difference between [HLateWriteOnceCheck] and [HLateInitializeOnceCheck]
+/// is that the latter occurs on writes performed as part of the initializer
+/// expression.
+class HLateWriteOnceCheck extends HLateCheck {
+  HLateWriteOnceCheck(HInstruction input, HInstruction name, AbstractValue type)
+      : super(input, name, type);
+
+  @override
+  accept(HVisitor visitor) => visitor.visitLateWriteOnceCheck(this);
+
+  @override
+  int typeCode() => HInstruction.LATE_WRITE_ONCE_CHECK_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HLateWriteOnceCheck;
+
+  @override
+  bool dataEquals(HLateWriteOnceCheck other) => true;
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain.isLateSentinel(inputType).isDefinitelyTrue;
+  }
+
+  @override
+  String toString() {
+    return 'HLateWriteOnceCheck($checkedInput)';
+  }
+}
+
+/// A check that a late final field has not been initialized yet and can
+/// therefore be initialized.
+///
+/// The difference between [HLateWriteOnceCheck] and [HLateInitializeOnceCheck]
+/// is that the latter occurs on writes performed as part of the initializer
+/// expression.
+class HLateInitializeOnceCheck extends HLateCheck {
+  HLateInitializeOnceCheck(
+      HInstruction input, HInstruction name, AbstractValue type)
+      : super(input, name, type);
+
+  @override
+  accept(HVisitor visitor) => visitor.visitLateInitializeOnceCheck(this);
+
+  @override
+  int typeCode() => HInstruction.LATE_INITIALIZE_ONCE_CHECK_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HLateInitializeOnceCheck;
+
+  @override
+  bool dataEquals(HLateInitializeOnceCheck other) => true;
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain.isLateSentinel(inputType).isDefinitelyTrue;
+  }
+
+  @override
+  String toString() {
+    return 'HLateInitializeOnceCheck($checkedInput)';
+  }
+}
+
 /// The [HTypeKnown] instruction marks a value with a refined type.
 class HTypeKnown extends HCheck {
   AbstractValue knownType;
@@ -4185,7 +4325,7 @@ AbstractBool _typeTest(
   AbstractValue supersetType = checkedAbstractValue.abstractValue;
   AbstractBool expressionIsNull = expression.isNull(abstractValueDomain);
 
-  bool _nullIs(DartType type) =>
+  bool _nullIs(DartType /*!*/ type) =>
       dartTypes.isStrongTopType(type) ||
       type is LegacyType &&
           (type.baseType.isObject || type.baseType is NeverType) ||

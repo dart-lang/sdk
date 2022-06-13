@@ -342,7 +342,8 @@
         "uri": "js/_js_annotations.dart"
       },
       "js_util": {
-        "uri": "js_util/js_util.dart"
+        "uri": "js_util/js_util.dart",
+        "patches": "_internal/js_shared/lib/js_util_patch.dart"
       },
       "math": {
         "uri": "math/math.dart",
@@ -369,7 +370,7 @@
         "uri": "_internal/js_runtime/lib/late_helper.dart"
       },
       "_rti": {
-        "uri": "_internal/js_runtime/lib/rti.dart"
+        "uri": "_internal/js_shared/lib/rti.dart"
       },
       "_interceptors": {
         "uri": "_internal/js_runtime/lib/interceptors.dart"
@@ -384,13 +385,16 @@
         "uri": "_internal/js_runtime/lib/js_primitives.dart"
       },
       "_js_embedded_names": {
-        "uri": "_internal/js_runtime/lib/shared/embedded_names.dart"
+        "uri": "_internal/js_runtime/lib/synced/embedded_names.dart"
+      },
+      "_js_shared_embedded_names": {
+        "uri": "_internal/js_shared/lib/synced/embedded_names.dart"
       },
       "_async_await_error_codes": {
-        "uri": "_internal/js_runtime/lib/shared/async_await_error_codes.dart"
+        "uri": "_internal/js_runtime/lib/synced/async_await_error_codes.dart"
       },
       "_recipe_syntax": {
-        "uri": "_internal/js_runtime/lib/shared/recipe_syntax.dart"
+        "uri": "_internal/js_shared/lib/synced/recipe_syntax.dart"
       }
     }
   },
@@ -421,8 +425,14 @@
       "_js_annotations": {
         "uri": "js/_js_annotations.dart"
       },
+      "_js_shared_embedded_names": {
+        "uri": "_internal/js_shared/lib/synced/embedded_names.dart"
+      },
       "_js_helper": {
         "uri": "_internal/js_dev_runtime/private/js_helper.dart"
+      },
+      "_js_names": {
+        "uri": "_internal/js_dev_runtime/private/js_names.dart"
       },
       "_js_primitives": {
         "uri": "_internal/js_dev_runtime/private/js_primitives.dart"
@@ -432,6 +442,15 @@
       },
       "_native_typed_data": {
         "uri": "_internal/js_dev_runtime/private/native_typed_data.dart"
+      },
+      "_dart2js_runtime_metrics": {
+        "uri": "_internal/js_dev_runtime/private/runtime_metrics.dart"
+      },
+      "_rti": {
+        "uri": "_internal/js_shared/lib/rti.dart"
+      },
+      "_recipe_syntax": {
+        "uri": "_internal/js_shared/lib/synced/recipe_syntax.dart"
       },
       "async": {
         "uri": "async/async.dart",
@@ -485,7 +504,8 @@
         "patches": "_internal/js_dev_runtime/patch/js_patch.dart"
       },
       "js_util": {
-        "uri": "js_util/js_util.dart"
+        "uri": "js_util/js_util.dart",
+        "patches": "_internal/js_shared/lib/js_util_patch.dart"
       },
       "svg": {
         "uri": "svg/dart2js/svg_dart2js.dart"

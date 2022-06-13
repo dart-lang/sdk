@@ -28,9 +28,17 @@ main() {
   // C?.id is equivalent to C.id.
   C.staticInt = 1;
   Expect.equals(1, C?.staticInt);
+  //               ^
+  // [cfe] The class 'C' cannot be null.
+  //                ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
   h.C.staticInt = 1;
   Expect.equals(1, h.C?.staticInt);
+  //                 ^
+  // [cfe] The class 'C' cannot be null.
+  //                  ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
   // The static type of e1?.id is the static type of e1.id.
   {
@@ -41,12 +49,20 @@ main() {
   {
     C.staticInt = 1;
     int? i = C?.staticInt;
+    //       ^
+    // [cfe] The class 'C' cannot be null.
+    //        ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(1, i);
   }
 
   {
     h.C.staticInt = 1;
     int? i = h.C?.staticInt;
+    //         ^
+    // [cfe] The class 'C' cannot be null.
+    //          ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(1, i);
   }
 }

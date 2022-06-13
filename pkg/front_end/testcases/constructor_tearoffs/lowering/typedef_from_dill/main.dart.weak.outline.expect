@@ -37,7 +37,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor •() → mai::A<mai::A::T%>
     ;
-  constructor named(mai::A::T% a, [core::int? b]) → mai::A<mai::A::T%>
+  constructor named(mai::A::T% a, [core::int? b = #C2]) → mai::A<mai::A::T%>
     ;
   static method _#new#tearOff<T extends core::Object? = dynamic>() → mai::A<mai::A::_#new#tearOff::T%>
     return new mai::A::•<mai::A::_#new#tearOff::T%>();
@@ -79,4 +79,5 @@ static method _#G#redirect#tearOff<unrelated X extends core::Object? = dynamic, 
 
 constants  {
   #C1 = constructor-tearoff mai::A::redirect
+  #C2 = null
 }

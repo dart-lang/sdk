@@ -6,11 +6,12 @@ publish_to: none
 environment:
   sdk: ^2.13.0
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
-  args: ^2.1.1
-  analyzer:
-    path: ../analyzer
-  path: ^1.7.0
+  analyzer: any
+  args: any
+  path: any
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   lints: any

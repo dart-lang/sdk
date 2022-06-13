@@ -1,0 +1,29 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  const constructor •(core::int x, {core::String? y = #C2}) → self::A
+    : super core::Object::•()
+    ;
+  static factory redir(core::int x, {core::String? y = #C2}) → self::A
+    return new self::A::•(x, y: y);
+}
+static method test1() → dynamic
+  return #C3;
+static method test2() → dynamic
+  return #C3;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::A::redir
+  #C2 = null
+  #C3 = self::A {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue49087.dart:
+- A. (from org-dartlang-testcase:///issue49087.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

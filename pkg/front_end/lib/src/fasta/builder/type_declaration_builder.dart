@@ -33,22 +33,32 @@ abstract class TypeDeclarationBuilder implements ModifierBuilder {
 
   /// Creates the [DartType] corresponding to this declaration applied with
   /// [arguments] in [library] with the syntactical nullability defined by
-  /// [nullabilityBuilder].
+  /// [nullabilityBuilder]. The created type will contain [TypedefType] instead
+  /// of their unaliased type.
   ///
   /// For instance, if this declaration is a class declaration `C`, then
   /// an occurrence of `C<int>?` in a null safe library `lib1` would call
   /// `buildType(<lib1>, <?>, [<int>])` to create `C<int>?`, or `C<int>` in a
   /// legacy library `lib2` call `buildType(<lib2>, <> [<int>]` to create
   /// `C<int*>*`.
-  DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments);
-
-  DartType buildTypeLiteralType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments);
+  DartType buildAliasedType(
+      LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder,
+      List<TypeBuilder>? arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      {required bool hasExplicitTypeArguments});
 
   /// [arguments] have already been built.
-  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
-      Nullability nullability, List<DartType> arguments);
+  DartType buildAliasedTypeWithBuiltArguments(
+      LibraryBuilder library,
+      Nullability nullability,
+      List<DartType> arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      {required bool hasExplicitTypeArguments});
 }
 
 abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
@@ -85,10 +95,4 @@ abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
 
   @override
   int get typeVariablesCount => 0;
-
-  @override
-  DartType buildTypeLiteralType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
-    return buildType(library, nullabilityBuilder, arguments);
-  }
 }

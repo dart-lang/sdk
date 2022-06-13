@@ -539,8 +539,8 @@ abstract class KClassData {
 
   InterfaceType get thisType;
   InterfaceType get jsInteropType;
-  InterfaceType get rawType;
-  InterfaceType get instantiationToBounds;
+  InterfaceType /*?*/ get rawType;
+  InterfaceType /*?*/ get instantiationToBounds;
   InterfaceType get supertype;
   InterfaceType get mixedInType;
   List<InterfaceType> get interfaces;
@@ -668,7 +668,7 @@ abstract class KFunctionDataMixin implements KFunctionData {
   List<TypeVariableType> _typeVariables;
 
   @override
-  List<TypeVariableType> getFunctionTypeVariables(
+  List<TypeVariableType> /*!*/ getFunctionTypeVariables(
       covariant KernelToElementMap elementMap) {
     if (_typeVariables == null) {
       if (functionNode.typeParameters.isEmpty) {

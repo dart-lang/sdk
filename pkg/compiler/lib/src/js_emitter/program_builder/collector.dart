@@ -123,7 +123,7 @@ class Collector {
     for (ConstantValue constant in constants) {
       if (_emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
 
-      if (constant.isList) outputContainsConstantList = true;
+      if (constant is ListConstantValue) outputContainsConstantList = true;
 
       OutputUnit constantUnit = _outputUnitData.outputUnitForConstant(constant);
       if (constantUnit == null) {

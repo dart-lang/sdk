@@ -1,0 +1,46 @@
+# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Recompiling with no change shouldn't change the initializer.
+# In fact, this woukd (currently) print `[null]` when compiled once,
+# but `[a1]` if recompiling main.dart first.
+# http://dartbug.com/48895
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        // @dart=2.9
+        import 'lib.dart';
+        class C extends C3 implements C4 {
+          void noSuchMethod(Invocation invocation) {
+            print(invocation.positionalArguments);
+          }
+        }
+        main() {
+          C c = new C();
+          c.m();
+        }
+      lib.dart: |
+        abstract class C1 {
+          m();
+        }
+        abstract class C2 {
+          m([String a = "a1"]);
+        }
+        abstract class C3 implements C1, C2 {}
+        abstract class C4 {
+          m([covariant String a = "a2"]);
+        }
+
+    expectedLibraryCount: 2
+
+  - entry: main.dart
+    worldType: updated
+    compareToPrevious: true
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 2

@@ -18,7 +18,7 @@ import '../../base/instrumentation.dart'
 import '../fasta_codes.dart';
 import '../names.dart';
 import '../problems.dart' show unhandled;
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../source/source_library_builder.dart';
 import '../type_inference/type_constraint_gatherer.dart';
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
@@ -108,7 +108,19 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitBlockExpression(
       BlockExpression node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
+    // This is only used for error cases. The spec doesn't use this and
+    // therefore doesn't specify the type context for the subterms.
+    if (!inferrer.isTopLevel) {
+      StatementInferenceResult bodyResult = inferrer.inferStatement(node.body);
+      if (bodyResult.hasChanged) {
+        node.body = (bodyResult.statement as Block)..parent = node;
+      }
+    }
+    ExpressionInferenceResult valueResult = inferrer.inferExpression(
+        node.value, const UnknownType(), true,
+        isVoidAllowed: true);
+    node.value = valueResult.expression..parent = node;
+    return new ExpressionInferenceResult(valueResult.inferredType, node);
   }
 
   @override
@@ -274,8 +286,7 @@ class InferenceVisitor
         resultType.returnType, resultType.declaredNullability,
         namedParameters: resultType.namedParameters,
         typeParameters: freshTypeParameters.freshTypeParameters,
-        requiredParameterCount: resultType.requiredParameterCount,
-        typedefType: null);
+        requiredParameterCount: resultType.requiredParameterCount);
     ExpressionInferenceResult inferredResult =
         inferrer.instantiateTearOff(resultType, typeContext, node);
     return inferrer.ensureAssignableResult(typeContext, inferredResult);
@@ -1197,6 +1208,8 @@ class InferenceVisitor
       return new LocalForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is PropertySet) {
       return new PropertyForInVariable(syntheticAssignment);
+    } else if (syntheticAssignment is AbstractSuperPropertySet) {
+      return new AbstractSuperPropertyForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is SuperPropertySet) {
       return new SuperPropertyForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is StaticSet) {
@@ -1397,8 +1410,6 @@ class InferenceVisitor
       inferrer.dataForTesting!.typeInferenceResult.inferredVariableTypes[node] =
           inferredType.returnType;
     }
-    inferrer.libraryBuilder.checkBoundsInFunctionNode(node.function,
-        inferrer.typeSchemaEnvironment, inferrer.libraryBuilder.fileUri);
     node.variable.type = inferredType;
     inferrer.flowAnalysis.functionExpression_end();
     return const StatementInferenceResult();
@@ -1414,11 +1425,6 @@ class InferenceVisitor
       inferrer.dataForTesting!.typeInferenceResult.inferredVariableTypes[node] =
           inferredType.returnType;
     }
-    // In anonymous functions the return type isn't declared, so
-    // it shouldn't be checked.
-    inferrer.libraryBuilder.checkBoundsInFunctionNode(node.function,
-        inferrer.typeSchemaEnvironment, inferrer.libraryBuilder.fileUri,
-        skipReturnType: true);
     inferrer.flowAnalysis.functionExpression_end();
     return new ExpressionInferenceResult(inferredType, node);
   }
@@ -2030,23 +2036,15 @@ class InferenceVisitor
     }
     TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
-      inferredTypes = [const UnknownType()];
       gatherer = inferrer.typeSchemaEnvironment.setupGenericTypeInference(
           listType,
           listClass.typeParameters,
           typeContext,
           inferrer.libraryBuilder.library,
           isConst: node.isConst);
-      inferrer.typeSchemaEnvironment.downwardsInfer(
-          gatherer,
-          listClass.typeParameters,
-          inferredTypes,
-          inferrer.libraryBuilder.library);
+      inferredTypes = inferrer.typeSchemaEnvironment.partialInfer(gatherer,
+          listClass.typeParameters, null, inferrer.libraryBuilder.library);
       inferredTypeArgument = inferredTypes[0];
-      if (inferrer.dataForTesting != null) {
-        inferrer.dataForTesting!.typeInferenceResult
-            .inferredTypeArguments[node] = inferredTypes;
-      }
     } else {
       inferredTypeArgument = node.typeArgument;
     }
@@ -2068,11 +2066,15 @@ class InferenceVisitor
     }
     if (inferenceNeeded) {
       gatherer!.constrainArguments(formalTypes!, actualTypes!);
-      inferrer.typeSchemaEnvironment.upwardsInfer(
+      inferredTypes = inferrer.typeSchemaEnvironment.upwardsInfer(
           gatherer,
           listClass.typeParameters,
           inferredTypes!,
           inferrer.libraryBuilder.library);
+      if (inferrer.dataForTesting != null) {
+        inferrer.dataForTesting!.typeInferenceResult
+            .inferredTypeArguments[node] = inferredTypes;
+      }
       inferredTypeArgument = inferredTypes[0];
       inferrer.instrumentation?.record(
           inferrer.uriForInstrumentation,
@@ -2092,9 +2094,10 @@ class InferenceVisitor
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.libraryBuilder;
       if (inferenceNeeded) {
-        library.checkBoundsInListLiteral(
-            node, inferrer.typeSchemaEnvironment, inferrer.helper!.uri,
-            inferred: true);
+        if (!library.libraryFeatures.genericMetadata.isEnabled) {
+          inferrer.checkGenericFunctionTypeArgument(
+              node.typeArgument, node.fileOffset);
+        }
       }
     }
 
@@ -2715,24 +2718,16 @@ class InferenceVisitor
     }
     TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
-      inferredTypes = [noInferredType, noInferredType];
       gatherer = inferrer.typeSchemaEnvironment.setupGenericTypeInference(
           mapType,
           mapClass.typeParameters,
           typeContext,
           inferrer.libraryBuilder.library,
           isConst: node.isConst);
-      inferrer.typeSchemaEnvironment.downwardsInfer(
-          gatherer,
-          mapClass.typeParameters,
-          inferredTypes,
-          inferrer.libraryBuilder.library);
+      inferredTypes = inferrer.typeSchemaEnvironment.partialInfer(gatherer,
+          mapClass.typeParameters, null, inferrer.libraryBuilder.library);
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
-      if (inferrer.dataForTesting != null) {
-        inferrer.dataForTesting!.typeInferenceResult
-            .inferredTypeArguments[node] = inferredTypes;
-      }
     } else {
       inferredKeyType = node.keyType;
       inferredValueType = node.valueType;
@@ -2796,7 +2791,6 @@ class InferenceVisitor
           formalTypesForSet.add(setType.typeArguments[0]);
         }
 
-        List<DartType> inferredTypesForSet = <DartType>[noInferredType];
         // Note: we don't use the previously created gatherer because it was set
         // up presuming that the literal would be a map; we now know that it
         // needs to be a set.
@@ -2807,13 +2801,11 @@ class InferenceVisitor
                 typeContext,
                 inferrer.libraryBuilder.library,
                 isConst: node.isConst);
-        inferrer.typeSchemaEnvironment.downwardsInfer(
-            gatherer,
-            inferrer.coreTypes.setClass.typeParameters,
-            inferredTypesForSet,
-            inferrer.libraryBuilder.library);
+        List<DartType> inferredTypesForSet = inferrer.typeSchemaEnvironment
+            .partialInfer(gatherer, inferrer.coreTypes.setClass.typeParameters,
+                null, inferrer.libraryBuilder.library);
         gatherer.constrainArguments(formalTypesForSet, actualTypesForSet!);
-        inferrer.typeSchemaEnvironment.upwardsInfer(
+        inferredTypesForSet = inferrer.typeSchemaEnvironment.upwardsInfer(
             gatherer,
             inferrer.coreTypes.setClass.typeParameters,
             inferredTypesForSet,
@@ -2864,11 +2856,15 @@ class InferenceVisitor
             replacement);
       }
       gatherer!.constrainArguments(formalTypes!, actualTypes!);
-      inferrer.typeSchemaEnvironment.upwardsInfer(
+      inferredTypes = inferrer.typeSchemaEnvironment.upwardsInfer(
           gatherer,
           mapClass.typeParameters,
           inferredTypes!,
           inferrer.libraryBuilder.library);
+      if (inferrer.dataForTesting != null) {
+        inferrer.dataForTesting!.typeInferenceResult
+            .inferredTypeArguments[node] = inferredTypes;
+      }
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
       inferrer.instrumentation?.record(
@@ -2896,9 +2892,12 @@ class InferenceVisitor
       // Either both [_declaredKeyType] and [_declaredValueType] are omitted or
       // none of them, so we may just check one.
       if (inferenceNeeded) {
-        library.checkBoundsInMapLiteral(
-            node, inferrer.typeSchemaEnvironment, inferrer.helper!.uri,
-            inferred: true);
+        if (!library.libraryFeatures.genericMetadata.isEnabled) {
+          inferrer.checkGenericFunctionTypeArgument(
+              node.keyType, node.fileOffset);
+          inferrer.checkGenericFunctionTypeArgument(
+              node.valueType, node.fileOffset);
+        }
       }
     }
     return new ExpressionInferenceResult(inferredType, node);
@@ -2941,16 +2940,6 @@ class InferenceVisitor
         typeContext,
         isExpressionInvocation: true,
         isImplicitCall: true);
-  }
-
-  ExpressionInferenceResult visitNamedFunctionExpressionJudgment(
-      NamedFunctionExpressionJudgment node, DartType typeContext) {
-    ExpressionInferenceResult initializerResult =
-        inferrer.inferExpression(node.variable.initializer!, typeContext, true);
-    node.variable.initializer = initializerResult.expression
-      ..parent = node.variable;
-    node.variable.type = initializerResult.inferredType;
-    return new ExpressionInferenceResult(initializerResult.inferredType, node);
   }
 
   @override
@@ -5985,23 +5974,15 @@ class InferenceVisitor
     }
     TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
-      inferredTypes = [const UnknownType()];
       gatherer = inferrer.typeSchemaEnvironment.setupGenericTypeInference(
           setType,
           setClass.typeParameters,
           typeContext,
           inferrer.libraryBuilder.library,
           isConst: node.isConst);
-      inferrer.typeSchemaEnvironment.downwardsInfer(
-          gatherer,
-          setClass.typeParameters,
-          inferredTypes,
-          inferrer.libraryBuilder.library);
+      inferredTypes = inferrer.typeSchemaEnvironment.partialInfer(gatherer,
+          setClass.typeParameters, null, inferrer.libraryBuilder.library);
       inferredTypeArgument = inferredTypes[0];
-      if (inferrer.dataForTesting != null) {
-        inferrer.dataForTesting!.typeInferenceResult
-            .inferredTypeArguments[node] = inferredTypes;
-      }
     } else {
       inferredTypeArgument = node.typeArgument;
     }
@@ -6023,11 +6004,15 @@ class InferenceVisitor
     }
     if (inferenceNeeded) {
       gatherer!.constrainArguments(formalTypes!, actualTypes!);
-      inferrer.typeSchemaEnvironment.upwardsInfer(
+      inferredTypes = inferrer.typeSchemaEnvironment.upwardsInfer(
           gatherer,
           setClass.typeParameters,
           inferredTypes!,
           inferrer.libraryBuilder.library);
+      if (inferrer.dataForTesting != null) {
+        inferrer.dataForTesting!.typeInferenceResult
+            .inferredTypeArguments[node] = inferredTypes;
+      }
       inferredTypeArgument = inferredTypes[0];
       inferrer.instrumentation?.record(
           inferrer.uriForInstrumentation,
@@ -6047,9 +6032,10 @@ class InferenceVisitor
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.libraryBuilder;
       if (inferenceNeeded) {
-        library.checkBoundsInSetLiteral(
-            node, inferrer.typeSchemaEnvironment, inferrer.helper!.uri,
-            inferred: true);
+        if (!library.libraryFeatures.genericMetadata.isEnabled) {
+          inferrer.checkGenericFunctionTypeArgument(
+              node.typeArgument, node.fileOffset);
+        }
       }
 
       if (!library.loader.target.backendTarget.supportsSetLiterals) {
@@ -6167,6 +6153,21 @@ class InferenceVisitor
   }
 
   @override
+  ExpressionInferenceResult visitAbstractSuperMethodInvocation(
+      AbstractSuperMethodInvocation node, DartType typeContext) {
+    if (node.interfaceTarget != null) {
+      inferrer.instrumentation?.record(
+          inferrer.uriForInstrumentation,
+          node.fileOffset,
+          'target',
+          new InstrumentationValueForMember(node.interfaceTarget!));
+    }
+    assert(node.interfaceTarget == null || node.interfaceTarget is Procedure);
+    return inferrer.inferSuperMethodInvocation(node, node.name,
+        node.arguments as ArgumentsImpl, typeContext, node.interfaceTarget);
+  }
+
+  @override
   ExpressionInferenceResult visitSuperMethodInvocation(
       SuperMethodInvocation node, DartType typeContext) {
     if (node.interfaceTarget != null) {
@@ -6177,8 +6178,22 @@ class InferenceVisitor
           new InstrumentationValueForMember(node.interfaceTarget!));
     }
     assert(node.interfaceTarget == null || node.interfaceTarget is Procedure);
-    return inferrer.inferSuperMethodInvocation(
-        node, typeContext, node.interfaceTarget);
+    return inferrer.inferSuperMethodInvocation(node, node.name,
+        node.arguments as ArgumentsImpl, typeContext, node.interfaceTarget);
+  }
+
+  @override
+  ExpressionInferenceResult visitAbstractSuperPropertyGet(
+      AbstractSuperPropertyGet node, DartType typeContext) {
+    if (node.interfaceTarget != null) {
+      inferrer.instrumentation?.record(
+          inferrer.uriForInstrumentation,
+          node.fileOffset,
+          'target',
+          new InstrumentationValueForMember(node.interfaceTarget!));
+    }
+    return inferrer.inferSuperPropertyGet(
+        node, node.name, typeContext, node.interfaceTarget);
   }
 
   @override
@@ -6192,7 +6207,33 @@ class InferenceVisitor
           new InstrumentationValueForMember(node.interfaceTarget!));
     }
     return inferrer.inferSuperPropertyGet(
-        node, typeContext, node.interfaceTarget);
+        node, node.name, typeContext, node.interfaceTarget);
+  }
+
+  @override
+  ExpressionInferenceResult visitAbstractSuperPropertySet(
+      AbstractSuperPropertySet node, DartType typeContext) {
+    DartType receiverType = inferrer.classHierarchy.getTypeAsInstanceOf(
+        inferrer.thisType!,
+        inferrer.thisType!.classNode.supertype!.classNode,
+        inferrer.libraryBuilder.library)!;
+
+    ObjectAccessTarget writeTarget = node.interfaceTarget != null
+        ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget!,
+            isPotentiallyNullable: false)
+        : const ObjectAccessTarget.missing();
+    DartType writeContext = inferrer.getSetterType(writeTarget, receiverType);
+    if (node.interfaceTarget != null) {
+      writeContext = inferrer.computeTypeFromSuperClass(
+          node.interfaceTarget!.enclosingClass!, writeContext);
+    }
+    ExpressionInferenceResult rhsResult = inferrer
+        .inferExpression(node.value, writeContext, true, isVoidAllowed: true);
+    rhsResult = inferrer.ensureAssignableResult(writeContext, rhsResult,
+        fileOffset: node.fileOffset, isVoidAllowed: writeContext is VoidType);
+    Expression rhs = rhsResult.expression;
+    node.value = rhs..parent = node;
+    return new ExpressionInferenceResult(rhsResult.inferredType, node);
   }
 
   @override
@@ -6468,13 +6509,6 @@ class InferenceVisitor
       TypeLiteral node, DartType typeContext) {
     DartType inferredType =
         inferrer.coreTypes.typeRawType(inferrer.libraryBuilder.nonNullable);
-    if (inferrer.libraryFeatures.constructorTearoffs.isEnabled) {
-      inferrer.libraryBuilder.checkBoundsInType(
-          node.type,
-          inferrer.typeSchemaEnvironment,
-          inferrer.libraryBuilder.fileUri,
-          node.fileOffset);
-    }
     return new ExpressionInferenceResult(inferredType, node);
   }
 
@@ -6606,14 +6640,6 @@ class InferenceVisitor
           fileOffset: node.fileOffset, isVoidAllowed: node.type is VoidType);
       Expression initializer = initializerResult.expression;
       node.initializer = initializer..parent = node;
-    }
-    if (!inferrer.isTopLevel) {
-      SourceLibraryBuilder library = inferrer.libraryBuilder;
-      if (node.isImplicitlyTyped) {
-        library.checkBoundsInVariableDeclaration(
-            node, inferrer.typeSchemaEnvironment, inferrer.helper!.uri,
-            inferred: true);
-      }
     }
     if (node.isLate &&
         inferrer.libraryBuilder.loader.target.backendTarget
@@ -7186,6 +7212,46 @@ class PropertyForInVariable implements ForInVariable {
     propertySet.value = rhs..parent = propertySet;
     ExpressionInferenceResult result = inferrer.inferExpression(
         propertySet, const UnknownType(), !inferrer.isTopLevel,
+        isVoidAllowed: true);
+    return result.expression;
+  }
+}
+
+class AbstractSuperPropertyForInVariable implements ForInVariable {
+  final AbstractSuperPropertySet superPropertySet;
+
+  DartType? _writeType;
+
+  AbstractSuperPropertyForInVariable(this.superPropertySet);
+
+  @override
+  DartType computeElementType(TypeInferrerImpl inferrer) {
+    DartType receiverType = inferrer.thisType!;
+    ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
+        receiverType, superPropertySet.name, superPropertySet.fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
+        instrumented: true);
+    if (writeTarget.isInstanceMember || writeTarget.isObjectMember) {
+      superPropertySet.interfaceTarget = writeTarget.member;
+    }
+    return _writeType = inferrer.getSetterType(writeTarget, receiverType);
+  }
+
+  @override
+  Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
+    Expression rhs = inferrer.ensureAssignable(
+        inferrer.computeGreatestClosure(_writeType!),
+        rhsType,
+        superPropertySet.value,
+        errorTemplate: templateForInLoopElementTypeNotAssignable,
+        nullabilityErrorTemplate:
+            templateForInLoopElementTypeNotAssignableNullability,
+        nullabilityPartErrorTemplate:
+            templateForInLoopElementTypeNotAssignablePartNullability,
+        isVoidAllowed: true);
+    superPropertySet.value = rhs..parent = superPropertySet;
+    ExpressionInferenceResult result = inferrer.inferExpression(
+        superPropertySet, const UnknownType(), !inferrer.isTopLevel,
         isVoidAllowed: true);
     return result.expression;
   }

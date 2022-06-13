@@ -28,12 +28,14 @@ class ResolveForCompletionTest extends PubPackageResolutionTest {
     var result = await _resolveTestCode(r'''
 class A {
   var f1 = 0;
-  doub^ f2 = null;
+  dou^ f2 = null;
   var f3 = 1;
 }
 ''');
 
-    result.assertResolvedNodes([]);
+    result.assertResolvedNodes([
+      'dou f2 = null;',
+    ]);
   }
 
   test_class__fieldDeclaration_type_namedType_typeArgument_name() async {
@@ -46,6 +48,19 @@ class A {
 ''');
 
     result.assertResolvedNodes([]);
+  }
+
+  test_class_body_identifier_beforeFieldDeclaration() async {
+    var result = await _resolveTestCode(r'''
+class A {
+  foo^
+  int bar = 0;
+}
+''');
+
+    result.assertResolvedNodes([
+      'foo int;',
+    ]);
   }
 
   test_class_extends_name() async {
@@ -128,6 +143,22 @@ class A with foo^ {}
 ''');
 
     result.assertResolvedNodes([]);
+  }
+
+  test_classDeclaration_body_identifier() async {
+    var result = await _resolveTestCode(r'''
+class A {}
+
+class B {
+  void foo() {}
+
+  bar^
+}
+''');
+
+    result.assertResolvedNodes([
+      'bar;',
+    ]);
   }
 
   test_constructorDeclaration_body() async {

@@ -8,6 +8,8 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 
+import 'protocol_custom_generated.dart';
+
 const jsonRpcVersion = '2.0';
 
 const NullJsonHandler = LspJsonHandler<Null>(_alwaysTrue, _alwaysNull);
@@ -68,6 +70,7 @@ class Either2<T1, T2> {
   const Either2.t1(T1 this._t1)
       : _t2 = null,
         _which = 1;
+
   const Either2.t2(T2 this._t2)
       : _t1 = null,
         _which = 2;
@@ -76,8 +79,10 @@ class Either2<T1, T2> {
   int get hashCode => map(lspHashCode, lspHashCode);
 
   @override
-  bool operator ==(o) =>
-      o is Either2<T1, T2> && lspEquals(o._t1, _t1) && lspEquals(o._t2, _t2);
+  bool operator ==(other) =>
+      other is Either2<T1, T2> &&
+      lspEquals(other._t1, _t1) &&
+      lspEquals(other._t2, _t2);
 
   T map<T>(T Function(T1) f1, T Function(T2) f2) {
     return _which == 1 ? f1(_t1 as T1) : f2(_t2 as T2);
@@ -102,10 +107,12 @@ class Either3<T1, T2, T3> {
       : _t2 = null,
         _t3 = null,
         _which = 1;
+
   Either3.t2(this._t2)
       : _t1 = null,
         _t3 = null,
         _which = 2;
+
   Either3.t3(this._t3)
       : _t1 = null,
         _t2 = null,
@@ -115,11 +122,11 @@ class Either3<T1, T2, T3> {
   int get hashCode => map(lspHashCode, lspHashCode, lspHashCode);
 
   @override
-  bool operator ==(o) =>
-      o is Either3<T1, T2, T3> &&
-      lspEquals(o._t1, _t1) &&
-      lspEquals(o._t2, _t2) &&
-      lspEquals(o._t3, _t3);
+  bool operator ==(other) =>
+      other is Either3<T1, T2, T3> &&
+      lspEquals(other._t1, _t1) &&
+      lspEquals(other._t2, _t2) &&
+      lspEquals(other._t3, _t3);
 
   T map<T>(T Function(T1) f1, T Function(T2) f2, T Function(T3) f3) {
     switch (_which) {
@@ -159,16 +166,19 @@ class Either4<T1, T2, T3, T4> {
         _t3 = null,
         _t4 = null,
         _which = 1;
+
   Either4.t2(this._t2)
       : _t1 = null,
         _t3 = null,
         _t4 = null,
         _which = 2;
+
   Either4.t3(this._t3)
       : _t1 = null,
         _t2 = null,
         _t4 = null,
         _which = 3;
+
   Either4.t4(this._t4)
       : _t1 = null,
         _t2 = null,
@@ -179,12 +189,12 @@ class Either4<T1, T2, T3, T4> {
   int get hashCode => map(lspHashCode, lspHashCode, lspHashCode, lspHashCode);
 
   @override
-  bool operator ==(o) =>
-      o is Either4<T1, T2, T3, T4> &&
-      lspEquals(o._t1, _t1) &&
-      lspEquals(o._t2, _t2) &&
-      lspEquals(o._t3, _t3) &&
-      lspEquals(o._t4, _t4);
+  bool operator ==(other) =>
+      other is Either4<T1, T2, T3, T4> &&
+      lspEquals(other._t1, _t1) &&
+      lspEquals(other._t2, _t2) &&
+      lspEquals(other._t3, _t3) &&
+      lspEquals(other._t4, _t4);
 
   T map<T>(T Function(T1) f1, T Function(T2) f2, T Function(T3) f3,
       T Function(T4) f4) {
@@ -219,6 +229,7 @@ class Either4<T1, T2, T3, T4> {
 
 class ErrorOr<T> extends Either2<ResponseError, T> {
   ErrorOr.error(super.error) : super.t1();
+
   ErrorOr.success(super.result) : super.t2();
 
   /// Returns the error or throws if object is not an error. Check [isError]
@@ -264,13 +275,6 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
   }
 }
 
-/// A base class containing the fields common to RequestMessage and
-/// NotificationMessage to simplify handling.
-abstract class IncomingMessage {
-  Method get method;
-  dynamic get params;
-}
-
 /// A helper to allow handlers to declare both a JSON validation function and
 /// parse function.
 class LspJsonHandler<T> {
@@ -283,4 +287,15 @@ class LspJsonHandler<T> {
 
 abstract class ToJsonable {
   Object toJson();
+}
+
+extension IncomingMessageExtension on IncomingMessage {
+  /// Returns the amount of time (in milliseconds) since the client sent this
+  /// request or `null` if the client did not provide [clientRequestTime].
+  int? get timeSinceRequest {
+    var clientRequestTime = this.clientRequestTime;
+    return clientRequestTime != null
+        ? DateTime.now().millisecondsSinceEpoch - clientRequestTime
+        : null;
+  }
 }

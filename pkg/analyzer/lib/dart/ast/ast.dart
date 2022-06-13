@@ -39,6 +39,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
+import 'package:meta/meta.dart';
 
 /// Two or more string literals that are implicitly concatenated because of
 /// being adjacent (separated only by whitespace).
@@ -503,6 +504,8 @@ abstract class AstVisitor<R> {
   R? visitLabel(Label node);
 
   R? visitLabeledStatement(LabeledStatement node);
+
+  R? visitLibraryAugmentationDirective(LibraryAugmentationDirective node);
 
   R? visitLibraryDirective(LibraryDirective node);
 
@@ -2730,6 +2733,7 @@ abstract class ImplicitCallReference implements MethodReferenceExpression {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ImportDirective implements NamespaceDirective {
+  @Deprecated('This kind of syntactic equality is rarely useful')
   static Comparator<ImportDirective> COMPARATOR =
       (ImportDirective import1, ImportDirective import2) {
     //
@@ -3109,6 +3113,24 @@ abstract class LabeledStatement implements Statement {
 
   /// Return the statement with which the labels are being associated.
   Statement get statement;
+}
+
+/// A library augmentation directive.
+///
+///    libraryAugmentationDirective ::=
+///        [metadata] 'library' 'augment' [StringLiteral] ';'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class LibraryAugmentationDirective implements UriBasedDirective {
+  /// Return the token representing the 'augment' keyword.
+  Token get augmentKeyword;
+
+  /// Return the token representing the 'library' keyword.
+  Token get libraryKeyword;
+
+  /// Return the semicolon terminating the directive.
+  Token get semicolon;
 }
 
 /// A library directive.
@@ -4473,6 +4495,7 @@ abstract class TypeParameterList implements AstNode {
 /// A directive that references a URI.
 ///
 ///    uriBasedDirective ::=
+///        [LibraryAugmentationDirective]
 ///        [ExportDirective]
 ///      | [ImportDirective]
 ///      | [PartDirective]

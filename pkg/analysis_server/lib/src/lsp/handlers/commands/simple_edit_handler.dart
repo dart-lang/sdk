@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -71,7 +70,7 @@ abstract class SimpleEditCommandHandler
     // sent - and may have failed to apply - was related to this command
     // execution).
     // We need to fromJson to convert the JSON map to the real types.
-    final editResponseResult = ApplyWorkspaceEditResponse.fromJson(
+    final editResponseResult = ApplyWorkspaceEditResult.fromJson(
         editResponse.result as Map<String, Object?>);
     if (editResponseResult.applied) {
       return success(null);

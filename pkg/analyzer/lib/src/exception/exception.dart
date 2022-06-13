@@ -11,8 +11,8 @@ class CaughtExceptionWithFiles extends CaughtException {
   final Map<String, String> fileContentMap;
 
   CaughtExceptionWithFiles(
-    Object exception,
-    StackTrace stackTrace,
+    super.exception,
+    super.stackTrace,
     this.fileContentMap,
-  ) : super(exception, stackTrace);
+  );
 }

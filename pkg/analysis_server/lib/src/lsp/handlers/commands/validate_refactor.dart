@@ -4,8 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/abstract_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/progress.dart';

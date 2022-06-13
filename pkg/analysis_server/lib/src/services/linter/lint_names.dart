@@ -6,6 +6,8 @@
 class LintNames {
   static const String always_declare_return_types =
       'always_declare_return_types';
+  static const String always_put_control_body_on_new_line =
+      'always_put_control_body_on_new_line';
   static const String always_require_non_null_named_parameters =
       'always_require_non_null_named_parameters';
   static const String always_specify_types = 'always_specify_types';

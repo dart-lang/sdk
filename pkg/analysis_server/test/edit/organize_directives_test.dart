@@ -43,7 +43,7 @@ class OrganizeDirectivesTest extends PubPackageAnalysisServerTest {
     addTestFile('''
 import 'dart:async'
 
-main() {}
+void f() {}
 ''');
     var request = EditOrganizeDirectivesParams(testFile.path).toRequest('0');
     var response = await handleRequest(request);
@@ -111,7 +111,7 @@ library lib;
 import 'dart:async' as async;
 import 'dart:async' as async;
 
-main() {
+void f() {
   async.Future f;
 }
 ''');
@@ -120,7 +120,7 @@ library lib;
 
 import 'dart:async' as async;
 
-main() {
+void f() {
   async.Future f;
 }
 ''');
@@ -135,7 +135,7 @@ import 'dart:math';
 import 'dart:convert';
 import 'dart:collection';
 
-main() {
+void f() {
   print(pi);
   new HashMap();
 }
@@ -146,7 +146,7 @@ library lib;
 import 'dart:collection';
 import 'dart:math';
 
-main() {
+void f() {
   print(pi);
   new HashMap();
 }

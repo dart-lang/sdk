@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.11
+
 /// Converters and codecs for converting between Protobuf and [Info] classes.
 import 'dart:convert';
 
@@ -41,7 +43,7 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
     int id;
     if (info is ConstantInfo) {
       // No name and no parent, so `longName` isn't helpful
-      assert(info.name == null);
+      assert(info.name.isEmpty);
       assert(info.parent == null);
       assert(info.code != null);
       // Instead, use the content of the code.

@@ -6,7 +6,7 @@
 
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
-import 'package:js_runtime/shared/embedded_names.dart';
+import 'package:js_shared/synced/embedded_names.dart' show JsGetName;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -161,12 +161,12 @@ class KernelToElementMap implements IrToElementMap {
       } else if (spannable is JLocal) {
         return getSourceSpan(spannable.memberContext, currentElement);
       }
-      return null;
+      return SourceSpan.unknown();
     }
 
     SourceSpan sourceSpan = fromSpannable(spannable);
-    sourceSpan ??= fromSpannable(currentElement);
-    return sourceSpan;
+    if (sourceSpan.isKnown) return sourceSpan;
+    return fromSpannable(currentElement);
   }
 
   LibraryEntity lookupLibrary(Uri uri) {
@@ -673,7 +673,8 @@ class KernelToElementMap implements IrToElementMap {
     return data.getFunctionType(this);
   }
 
-  List<TypeVariableType> _getFunctionTypeVariables(IndexedFunction function) {
+  List<TypeVariableType> /*!*/ _getFunctionTypeVariables(
+      IndexedFunction function) {
     assert(checkFamily(function));
     KFunctionData data = members.getData(function);
     return data.getFunctionTypeVariables(this);
@@ -786,7 +787,7 @@ class KernelToElementMap implements IrToElementMap {
   }
 
   @override
-  OrderedTypeSet getOrderedTypeSet(IndexedClass cls) {
+  OrderedTypeSet /*!*/ getOrderedTypeSet(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
@@ -808,10 +809,11 @@ class KernelToElementMap implements IrToElementMap {
   }
 
   @override
-  Iterable<InterfaceType> getInterfaces(IndexedClass cls) {
+  Iterable<InterfaceType> /*!*/ getInterfaces(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
+    assert(data.interfaces != null);
     return data.interfaces;
   }
 
@@ -1142,7 +1144,8 @@ class KernelToElementMap implements IrToElementMap {
       }
       return NullConstantValue();
     }
-    ir.Constant constant = constantEvaluator.evaluate(staticTypeContext, node,
+    ir.Constant constant = constantEvaluator.evaluateOrNull(
+        staticTypeContext, node,
         requireConstant: requireConstant);
     if (constant == null) {
       if (requireConstant) {
@@ -1164,7 +1167,7 @@ class KernelToElementMap implements IrToElementMap {
   List<ConstantValue> getMetadata(
       ir.StaticTypeContext staticTypeContext, List<ir.Expression> annotations) {
     if (annotations.isEmpty) return const <ConstantValue>[];
-    List<ConstantValue> metadata = <ConstantValue>[];
+    List<ConstantValue /*!*/ > metadata = <ConstantValue>[];
     annotations.forEach((ir.Expression node) {
       // We skip the implicit cast checks for metadata to avoid circular
       // dependencies in the js-interop class registration.

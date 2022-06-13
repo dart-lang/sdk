@@ -23,7 +23,7 @@ class ConvertToInitializingFormalTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_initializing_formals;
 
-  Future<void> test_assignment_different_type() async {
+  Future<void> test_assignment_differentType() async {
     await resolveTestCode('''
 class C {
   Object a = '';
@@ -59,6 +59,23 @@ class C {
 ''');
   }
 
+  Future<void> test_assignment_named() async {
+    await resolveTestCode('''
+class C {
+  int? a;
+  C({int? a = 1}) {
+    this.a = a;
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  int? a;
+  C({this.a = 1});
+}
+''');
+  }
+
   Future<void> test_assignment_notEmptyAfterRemoval() async {
     await resolveTestCode('''
 class C {
@@ -79,7 +96,24 @@ class C {
 ''');
   }
 
-  Future<void> test_initializer_different_type() async {
+  Future<void> test_assignment_positional_differentType() async {
+    await resolveTestCode('''
+class C {
+  Object? a;
+  C([String? a]) {
+    this.a = a;
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Object? a;
+  C([String? this.a]);
+}
+''');
+  }
+
+  Future<void> test_initializer_differentType() async {
     await resolveTestCode('''
 class C {
   final Object name;
@@ -109,6 +143,21 @@ class C {
 ''');
   }
 
+  Future<void> test_initializer_named_differentType() async {
+    await resolveTestCode('''
+class C {
+  Object? a;
+  C({String? a}) : a = a;
+}
+''');
+    await assertHasFix('''
+class C {
+  Object? a;
+  C({String? this.a});
+}
+''');
+  }
+
   Future<void> test_initializer_notEmptyAfterRemoval() async {
     await resolveTestCode('''
 class C {
@@ -122,6 +171,21 @@ class C {
   int a;
   int b;
   C(this.a) : this.b = 2;
+}
+''');
+  }
+
+  Future<void> test_initializer_positional() async {
+    await resolveTestCode('''
+class C {
+  int? a;
+  C([int? a = 1]): a = a;
+}
+''');
+    await assertHasFix('''
+class C {
+  int? a;
+  C([this.a = 1]);
 }
 ''');
   }

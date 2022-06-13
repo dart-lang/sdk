@@ -13,6 +13,7 @@ import 'package:dart2wasm/translator.dart';
 
 final Map<String, void Function(TranslatorOptions, bool)> boolOptionMap = {
   "export-all": (o, value) => o.exportAll = value,
+  "import-shared-memory": (o, value) => o.importSharedMemory = value,
   "inlining": (o, value) => o.inlining = value,
   "lazy-constants": (o, value) => o.lazyConstants = value,
   "local-nullability": (o, value) => o.localNullability = value,
@@ -27,6 +28,7 @@ final Map<String, void Function(TranslatorOptions, bool)> boolOptionMap = {
   "string-data-segments": (o, value) => o.stringDataSegments = value,
 };
 final Map<String, void Function(TranslatorOptions, int)> intOptionMap = {
+  "shared-memory-max-pages": (o, value) => o.sharedMemoryMaxPages = value,
   "watch": (o, value) => (o.watchPoints ??= []).add(value),
 };
 
@@ -38,6 +40,7 @@ Never usage(String message) {
   print("");
   print("Options:");
   print("  --dart-sdk=<path>");
+  print("  --platform=<path>");
   print("");
   for (String option in boolOptionMap.keys) {
     print("  --[no-]$option");
@@ -53,6 +56,7 @@ Never usage(String message) {
 
 Future<int> main(List<String> args) async {
   Uri sdkPath = Platform.script.resolve("../../../sdk");
+  Uri? platformPath = null;
   TranslatorOptions options = TranslatorOptions();
   List<String> nonOptions = [];
   void Function(TranslatorOptions, int)? intOptionFun = null;
@@ -63,6 +67,9 @@ Future<int> main(List<String> args) async {
     } else if (arg.startsWith("--dart-sdk=")) {
       String path = arg.substring("--dart-sdk=".length);
       sdkPath = Uri.file(Directory(path).absolute.path);
+    } else if (arg.startsWith("--platform=")) {
+      String path = arg.substring("--platform=".length);
+      platformPath = Uri.file(Directory(path).absolute.path);
     } else if (arg.startsWith("--no-")) {
       var optionFun = boolOptionMap[arg.substring(5)];
       if (optionFun == null) usage("Unknown option $arg");
@@ -83,13 +90,18 @@ Future<int> main(List<String> args) async {
     usage("Missing argument to ${args.last}");
   }
 
+  if (options.importSharedMemory && options.sharedMemoryMaxPages == null) {
+    usage("--shared-memory-max-pages must be "
+        "specified if --import-shared-memory is used.");
+  }
+
   if (nonOptions.length != 2) usage("Requires two file arguments");
   String input = nonOptions[0];
   String output = nonOptions[1];
   Uri mainUri = resolveInputUri(input);
 
-  Uint8List? module = await compileToModule(mainUri, sdkPath, options,
-      (message) => printDiagnosticMessage(message, print));
+  Uint8List? module = await compileToModule(mainUri, sdkPath, platformPath,
+      options, (message) => printDiagnosticMessage(message, print));
 
   if (module == null) {
     exitCode = 1;

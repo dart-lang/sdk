@@ -59,12 +59,8 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   int get typeVariablesCount => typedef.typeParameters.length;
 
   @override
-  TypeBuilder? get type {
-    if (_type == null && typedef.type is! InvalidType) {
-      _type = libraryBuilder.loader.computeTypeBuilder(typedef.type!);
-    }
-    // TODO(johnniwinther): Support TypeBuilder for InvalidType.
-    return _type;
+  TypeBuilder get type {
+    return _type ??= libraryBuilder.loader.computeTypeBuilder(typedef.type!);
   }
 
   @override
@@ -73,12 +69,13 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   @override
-  List<DartType> buildTypeArguments(
+  List<DartType> buildAliasedTypeArguments(
       LibraryBuilder library, List<TypeBuilder>? arguments) {
     // For performance reasons, [typeVariables] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
     if (arguments == null) {
+      // TODO(johnniwinther): Use i2b here when needed.
       List<DartType> result =
           new List<DartType>.generate(typedef.typeParameters.length, (int i) {
         return typedef.typeParameters[i].defaultType;
@@ -89,7 +86,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
     // [arguments] != null
     List<DartType> result =
         new List<DartType>.generate(arguments.length, (int i) {
-      return arguments[i].build(library);
+      return arguments[i].buildAliased(library, TypeUse.typeArgument);
     }, growable: true);
     return result;
   }

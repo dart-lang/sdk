@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
@@ -21,10 +19,10 @@ class DoesNotCompleteType extends ir.NeverType {
 /// has precision of a this-expression.
 class ThisInterfaceType extends ir.InterfaceType {
   ThisInterfaceType(ir.Class classNode, ir.Nullability nullability,
-      [List<ir.DartType> typeArguments])
+      [List<ir.DartType>? typeArguments])
       : super(classNode, nullability, typeArguments);
 
-  factory ThisInterfaceType.from(ir.InterfaceType type) => type != null
+  static from(ir.InterfaceType? type) => type != null
       ? ThisInterfaceType(type.classNode, type.nullability, type.typeArguments)
       : null;
 
@@ -36,10 +34,10 @@ class ThisInterfaceType extends ir.InterfaceType {
 /// is exact, i.e. the runtime type is not a subtype or subclass of the type.
 class ExactInterfaceType extends ir.InterfaceType {
   ExactInterfaceType(ir.Class classNode, ir.Nullability nullability,
-      [List<ir.DartType> typeArguments])
+      [List<ir.DartType>? typeArguments])
       : super(classNode, nullability, typeArguments);
 
-  factory ExactInterfaceType.from(ir.InterfaceType type) => type != null
+  static from(ir.InterfaceType? type) => type != null
       ? ExactInterfaceType(type.classNode, type.nullability, type.typeArguments)
       : null;
 
@@ -57,7 +55,7 @@ class ExactInterfaceType extends ir.InterfaceType {
 /// expression kind. For instance method invocations whose static type depend
 /// on the static types of the receiver and type arguments and the signature
 /// of the targeted procedure.
-abstract class StaticTypeBase extends ir.Visitor<ir.DartType>
+abstract class StaticTypeBase extends ir.Visitor<ir.DartType?>
     with ir.VisitorNullMixin<ir.DartType> {
   final ir.TypeEnvironment _typeEnvironment;
 
@@ -72,11 +70,11 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType>
   ThisInterfaceType get thisType;
 
   @override
-  ir.DartType defaultNode(ir.Node node) {
+  ir.DartType? defaultNode(ir.Node node) {
     return null;
   }
 
-  ir.DartType visitNode(ir.Node node) {
+  ir.DartType? visitNode(ir.Node? node) {
     return node?.accept(this);
   }
 
@@ -98,7 +96,7 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType>
 
   @override
   ir.DartType visitAwaitExpression(ir.AwaitExpression node) {
-    return typeEnvironment.flatten(visitNode(node.operand));
+    return typeEnvironment.flatten(visitNode(node.operand)!);
   }
 
   @override
@@ -152,7 +150,7 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType>
   }
 
   @override
-  ir.DartType visitVariableSet(ir.VariableSet node) {
+  ir.DartType? visitVariableSet(ir.VariableSet node) {
     return visitNode(node.value);
   }
 
@@ -163,12 +161,12 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType>
   ir.DartType visitStaticGet(ir.StaticGet node) => node.target.getterType;
 
   @override
-  ir.DartType visitStaticSet(ir.StaticSet node) {
+  ir.DartType? visitStaticSet(ir.StaticSet node) {
     return visitNode(node.value);
   }
 
   @override
-  ir.DartType visitSuperPropertySet(ir.SuperPropertySet node) {
+  ir.DartType? visitSuperPropertySet(ir.SuperPropertySet node) {
     return visitNode(node.value);
   }
 
@@ -207,12 +205,12 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType>
   }
 
   @override
-  ir.DartType visitLet(ir.Let node) {
+  ir.DartType? visitLet(ir.Let node) {
     return visitNode(node.body);
   }
 
   @override
-  ir.DartType visitBlockExpression(ir.BlockExpression node) {
+  ir.DartType? visitBlockExpression(ir.BlockExpression node) {
     return visitNode(node.value);
   }
 

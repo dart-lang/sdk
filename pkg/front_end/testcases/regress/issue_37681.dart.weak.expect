@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -19,20 +19,20 @@ import "dart:core" as core;
 import "dart:async" as asy;
 
 static method main() → dynamic async /* futureValueType= dynamic */ {
-  function f_async() → core::int* async /* futureValueType= core::int* */ {
+  function f_async() → core::int async /* futureValueType= core::Object? */ {
     return 42;
   }
-  core::print(await f_async(){() →* core::int*});
-  function f_async_star() → core::int* async* {
+  core::print(await f_async(){() → core::int});
+  function f_async_star() → core::int async* {
     yield 42;
   }
-  await for (dynamic x in (f_async_star(){() →* core::int*} as dynamic) as{TypeError,ForDynamic} asy::Stream<dynamic>*) {
+  await for (dynamic x in (f_async_star(){() → core::int} as{ForNonNullableByDefault} dynamic) as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<dynamic>) {
     core::print(x);
   }
-  function f_sync_star() → core::int* sync* {
+  function f_sync_star() → core::int sync* {
     yield 42;
   }
-  for (dynamic x in (f_sync_star(){() →* core::int*} as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+  for (dynamic x in (f_sync_star(){() → core::int} as{ForNonNullableByDefault} dynamic) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
     core::print(x);
   }
 }

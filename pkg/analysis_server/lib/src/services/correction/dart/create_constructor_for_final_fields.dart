@@ -86,7 +86,7 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
 
   Future<void> _withoutSuperParameters(
       ChangeBuilder builder,
-      ClassMemberLocation targetLocation,
+      InsertionLocation targetLocation,
       String className,
       ClassElement keyClass,
       List<VariableDeclarationList> variableLists) async {
@@ -117,7 +117,7 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
 
   Future<void> _withSuperParameters(
       ChangeBuilder builder,
-      ClassMemberLocation targetLocation,
+      InsertionLocation targetLocation,
       String className,
       List<VariableDeclarationList> variableLists) async {
     await builder.addDartFileEdit(file, (builder) {

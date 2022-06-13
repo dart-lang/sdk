@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Foo {
   static const staticConstant = 42;
   static var staticField = 42;

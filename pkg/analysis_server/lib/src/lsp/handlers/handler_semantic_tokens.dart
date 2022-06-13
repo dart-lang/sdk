@@ -4,8 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -122,8 +121,8 @@ class SemanticTokensFullHandler
       SemanticTokensParams.jsonHandler;
 
   @override
-  Future<ErrorOr<SemanticTokens?>> handle(
-          SemanticTokensParams params, CancellationToken token) =>
+  Future<ErrorOr<SemanticTokens?>> handle(SemanticTokensParams params,
+          MessageInfo message, CancellationToken token) =>
       _handleImpl(params.textDocument, token);
 }
 
@@ -139,7 +138,7 @@ class SemanticTokensRangeHandler
       SemanticTokensRangeParams.jsonHandler;
 
   @override
-  Future<ErrorOr<SemanticTokens?>> handle(
-          SemanticTokensRangeParams params, CancellationToken token) =>
+  Future<ErrorOr<SemanticTokens?>> handle(SemanticTokensRangeParams params,
+          MessageInfo message, CancellationToken token) =>
       _handleImpl(params.textDocument, token, range: params.range);
 }

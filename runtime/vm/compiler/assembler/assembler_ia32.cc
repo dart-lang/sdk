@@ -9,6 +9,7 @@
 
 #include "vm/class_id.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/tags.h"
@@ -320,7 +321,7 @@ void Assembler::rep_movsw() {
   EmitUint8(0xA5);
 }
 
-void Assembler::rep_movsl() {
+void Assembler::rep_movsd() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);
   EmitUint8(0xA5);
@@ -1873,6 +1874,12 @@ void Assembler::PopRegister(Register r) {
   popl(r);
 }
 
+void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
+  for (Register reg : regs) {
+    PushRegister(reg);
+  }
+}
+
 void Assembler::AddImmediate(Register reg, const Immediate& imm) {
   const intptr_t value = imm.value();
   if (value == 0) {
@@ -1887,6 +1894,18 @@ void Assembler::AddImmediate(Register reg, const Immediate& imm) {
   } else {
     SubImmediate(reg, Immediate(-value));
   }
+}
+
+void Assembler::AddImmediate(Register dest, Register src, int32_t value) {
+  if (dest == src) {
+    AddImmediate(dest, value);
+    return;
+  }
+  if (value == 0) {
+    MoveRegister(dest, src);
+    return;
+  }
+  leal(dest, Address(src, value));
 }
 
 void Assembler::SubImmediate(Register reg, const Immediate& imm) {
@@ -2598,8 +2617,8 @@ void Assembler::MoveMemoryToMemory(Address dst, Address src, Register tmp) {
 
 #ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(intptr_t cid,
-                                     Register temp_reg,
                                      Label* trace,
+                                     Register temp_reg,
                                      JumpDistance distance) {
   ASSERT(cid > 0);
   Address state_address(kNoRegister, 0);
@@ -2636,7 +2655,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure, distance));
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, temp_reg, distance));
     movl(instance_reg, Address(THR, target::Thread::top_offset()));
     addl(instance_reg, Immediate(instance_size));
     // instance_reg: potential next object start.
@@ -2669,7 +2688,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure, distance));
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, temp_reg, distance));
     movl(instance, Address(THR, target::Thread::top_offset()));
     movl(end_address, instance);
 
@@ -2696,6 +2715,17 @@ void Assembler::TryAllocateArray(intptr_t cid,
   }
 }
 
+void Assembler::CopyMemoryWords(Register src,
+                                Register dst,
+                                Register size,
+                                Register temp) {
+  RELEASE_ASSERT(src == ESI);
+  RELEASE_ASSERT(dst == EDI);
+  RELEASE_ASSERT(size == ECX);
+  shrl(size, Immediate(target::kWordSizeLog2));
+  rep_movsd();
+}
+
 void Assembler::PushCodeObject() {
   ASSERT(IsNotTemporaryScopedHandle(code_));
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2711,6 +2741,10 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   if (frame_size != 0) {
     subl(ESP, Immediate(frame_size));
   }
+}
+
+void Assembler::LeaveDartFrame() {
+  LeaveFrame();
 }
 
 // On entry to a function compiled for OSR, the caller's frame pointer, the
@@ -2734,7 +2768,7 @@ void Assembler::EnterStubFrame() {
 }
 
 void Assembler::LeaveStubFrame() {
-  LeaveFrame();
+  LeaveDartFrame();
 }
 
 void Assembler::EnterCFrame(intptr_t frame_space) {

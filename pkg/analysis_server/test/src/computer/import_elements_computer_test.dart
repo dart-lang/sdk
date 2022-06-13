@@ -63,7 +63,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
 
   Future<void> test_createEdits_addImport_noDirectives() async {
     await createBuilder('''
-main() {
+void f() {
   // paste here
 }
 ''');
@@ -74,7 +74,7 @@ main() {
     assertChanges('''
 import 'dart:math';
 
-main() {
+void f() {
   // paste here
 }
 ''');

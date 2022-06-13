@@ -28,16 +28,16 @@ class GetTypeHierarchyTest extends PubPackageAnalysisServerTest {
 
   Future<void> test_bad_function() async {
     addTestFile('''
-main() {
+void f() {
 }
 ''');
-    var items = await _getTypeHierarchyOrNull('main() {');
+    var items = await _getTypeHierarchyOrNull('f() {');
     expect(items, isNull);
   }
 
   Future<void> test_bad_noElement() async {
     addTestFile('''
-main() {
+void f() {
   /* target */
 }
 ''');

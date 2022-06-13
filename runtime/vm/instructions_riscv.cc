@@ -231,12 +231,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
           return false;  // Being used as argument register A5.
         }
         intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
-        const ObjectPool& pool = ObjectPool::Handle(code.GetObjectPool());
-        if (!pool.IsNull() && (index < pool.Length()) &&
-            (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject)) {
-          *obj = pool.ObjectAt(index);
-          return true;
-        }
+        return ObjectAtPoolIndex(code, index, obj);
       } else if (instr.rs1p() == THR) {
         return Thread::ObjectAtOffset(offset, obj);
       }
@@ -255,12 +250,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
           return false;  // Being used as argument register A5.
         }
         intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
-        const ObjectPool& pool = ObjectPool::Handle(code.GetObjectPool());
-        if (!pool.IsNull() && (index < pool.Length()) &&
-            (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject)) {
-          *obj = pool.ObjectAt(index);
-          return true;
-        }
+        return ObjectAtPoolIndex(code, index, obj);
       } else if (instr.rs1() == THR) {
         return Thread::ObjectAtOffset(offset, obj);
       }
@@ -428,16 +418,16 @@ bool PcRelativeTrampolineJumpPattern::IsValid() const {
 
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   // Calls to the type testing stubs look like:
-  //   lx s3, ...
+  //   lx s4, ...
   //   lx Rn, idx(pp)
-  //   jalr s3
+  //   jalr s4
   // where Rn = TypeTestABI::kSubtypeTestCacheReg.
 
   // Ensure the caller of the type testing stub (whose return address is [pc_])
   // branched via `blr R9` or a pc-relative call.
-  if (*reinterpret_cast<uint16_t*>(pc_ - 2) == 0x9982) {  // jalr s3
+  if (*reinterpret_cast<uint16_t*>(pc_ - 2) == 0x9a02) {  // jalr s4
     // indirect call
-    //     xxxx c.jalr s3
+    //     xxxx c.jalr s4
     Register reg;
     intptr_t pool_index = -1;
     InstructionPattern::DecodeLoadWordFromPool(pc_ - 2, &reg, &pool_index);

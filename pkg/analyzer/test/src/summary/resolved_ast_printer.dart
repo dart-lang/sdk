@@ -29,6 +29,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   /// TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/48380
   final bool withCheckingLinking;
 
+  /// If `true`, [Expression.staticParameterElement] should be printed.
+  final bool withParameterElements;
+
   /// If `true`, selected tokens and nodes should be printed with offsets.
   final bool _withOffsets;
 
@@ -43,6 +46,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     required String indent,
     this.skipArgumentList = false,
     this.withCheckingLinking = false,
+    this.withParameterElements = true,
     bool withOffsets = false,
     bool withResolution = true,
   })  : _selfUriStr = selfUriStr,
@@ -56,6 +60,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('AdjacentStrings');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
       _writeRaw('stringValue', node.stringValue);
     });
@@ -83,6 +88,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('AsExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -108,6 +114,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('AssignmentExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeElement('readElement', node.readElement);
       _writeType('readType', node.readType);
       _writeElement('writeElement', node.writeElement);
@@ -122,6 +129,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('AwaitExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -131,6 +139,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('BinaryExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeElement('staticElement', node.staticElement);
       _writeType('staticInvokeType', node.staticInvokeType);
       _writeType('staticType', node.staticType);
@@ -158,6 +167,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('BooleanLiteral');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -175,6 +185,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('CascadeExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -218,6 +229,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitCommentReference(CommentReference node) {
+    _writeln('CommentReference');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitCompilationUnit(CompilationUnit node) {
     _writeln('CompilationUnit');
     _withIndent(() {
@@ -230,6 +249,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ConditionalExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -267,6 +287,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ConstructorReference');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -324,6 +345,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('DoubleLiteral');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -518,6 +540,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       if (_withResolution) {
         _writeElement('declaredElement', node.declaredElement);
       }
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -539,6 +562,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('FunctionReference');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
       _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
     });
@@ -630,6 +654,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ImplicitCallReference');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeElement('staticElement', node.staticElement);
       _writeType('staticType', node.staticType);
       _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
@@ -655,6 +680,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('IndexExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeElement('staticElement', node.staticElement);
       _writeType('staticType', node.staticType);
     });
@@ -665,6 +691,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('InstanceCreationExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -674,6 +701,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('IntegerLiteral');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -699,6 +727,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('IsExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -708,6 +737,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('Label');
     _withIndent(() {
       _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    _writeln('LibraryAugmentationDirective');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      // TODO(scheglov) Implement.
+      // _writeElement('element', node.element);
+      // _writeRaw('uriContent', node.uriContent);
+      // _writeElement('uriElement', node.uriElement);
+      // _writeSource('uriSource', node.uriSource);
     });
   }
 
@@ -735,6 +777,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ListLiteral');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -764,6 +807,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('MethodInvocation');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticInvokeType', node.staticInvokeType);
       _writeType('staticType', node.staticType);
       _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
@@ -803,6 +847,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('NullLiteral');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -820,6 +865,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ParenthesizedExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -850,6 +896,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('PostfixExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       if (node.operator.type.isIncrementOperator) {
         _writeElement('readElement', node.readElement);
         _writeType('readType', node.readType);
@@ -866,6 +913,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('PrefixedIdentifier');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeElement('staticElement', node.staticElement);
       _writeType('staticType', node.staticType);
     });
@@ -876,6 +924,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('PrefixExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       if (node.operator.type.isIncrementOperator) {
         _writeElement('readElement', node.readElement);
         _writeType('readType', node.readType);
@@ -892,6 +941,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('PropertyAccess');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -921,6 +971,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       _writeRaw('isMap', node.isMap);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -950,6 +1001,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('SimpleIdentifier');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeElement('staticElement', node.staticElement);
       _writeType('staticType', node.staticType);
       _writeTypeList(
@@ -980,6 +1032,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('StringInterpolation');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
       _writeRaw('stringValue', node.stringValue);
     });
@@ -1047,6 +1100,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('SymbolLiteral');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
     });
   }
 
@@ -1055,6 +1109,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ThisExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -1064,6 +1119,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ThrowExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -1100,6 +1156,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('TypeLiteral');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -1225,6 +1282,24 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
   }
 
+  String _elementToReferenceString(Element element) {
+    final enclosingElement = element.enclosingElement;
+    final reference = (element as ElementImpl).reference;
+    if (reference != null) {
+      return _referenceToString(reference);
+    } else if (element is ParameterElement &&
+        enclosingElement is! GenericFunctionTypeElement) {
+      // Positional parameters don't have actual references.
+      // But we fabricate one to make the output better.
+      final enclosingStr = enclosingElement != null
+          ? _elementToReferenceString(enclosingElement)
+          : 'root';
+      return '$enclosingStr::@parameter::${element.name}';
+    } else {
+      return '${element.name}@${element.nameOffset}';
+    }
+  }
+
   String _referenceToString(Reference reference) {
     var parent = reference.parent!;
     if (parent.parent == null) {
@@ -1301,13 +1376,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     } else if (element is MultiplyDefinedElement) {
       _sink.writeln('<null>');
     } else {
-      var reference = (element as ElementImpl).reference;
-      if (reference != null) {
-        var referenceStr = _referenceToString(reference);
-        _sink.writeln(referenceStr);
-      } else {
-        _sink.writeln('${element.name}@${element.nameOffset}');
-      }
+      final referenceStr = _elementToReferenceString(element);
+      _sink.writeln(referenceStr);
     }
   }
 
@@ -1381,6 +1451,21 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   void _writeOffset(String name, int offset) {
     _writelnWithIndent('$name: $offset');
+  }
+
+  /// If [node] is at a position where it is an argument for an invocation,
+  /// writes the corresponding parameter element.
+  void _writeParameterElement(Expression node) {
+    if (withParameterElements) {
+      final parent = node.parent;
+      if (parent is ArgumentList ||
+          parent is AssignmentExpression && parent.rightHandSide == node ||
+          parent is BinaryExpression && parent.rightOperand == node ||
+          parent is IndexExpression && parent.index == node ||
+          parent is NamedExpression && parent.expression == node) {
+        _writeElement('parameter', node.staticParameterElement);
+      }
+    }
   }
 
   void _writeParameterElements(List<ParameterElement> parameters) {

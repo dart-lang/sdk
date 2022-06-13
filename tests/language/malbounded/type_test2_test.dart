@@ -9,7 +9,7 @@ class A<T extends num> {}
 class B<T> {
   test() {
     new A() is A
-    //      ^
+    //         ^
     // [cfe] Type argument 'T' doesn't conform to the bound 'num' of the type variable 'T' on 'A'.
         <T>
 //       ^

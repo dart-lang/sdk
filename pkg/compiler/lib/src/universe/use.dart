@@ -22,7 +22,6 @@ import '../common.dart';
 import '../constants/values.dart';
 import '../elements/types.dart';
 import '../elements/entities.dart';
-import '../elements/entities_parameter_structure_methods.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../serialization/serialization.dart';
 import '../js_model/closure.dart';
@@ -900,7 +899,7 @@ class TypeUse {
 class ConstantUse {
   static const String tag = 'constant-use';
 
-  final ConstantValue value;
+  final ConstantValue /*!*/ value;
 
   ConstantUse._(this.value);
 
@@ -923,7 +922,7 @@ class ConstantUse {
   }
 
   /// Constant used as the initial value of a field.
-  ConstantUse.init(ConstantValue value) : this._(value);
+  ConstantUse.init(ConstantValue /*!*/ value) : this._(value);
 
   /// Type constant used for registration of custom elements.
   ConstantUse.customElements(TypeConstantValue value) : this._(value);

@@ -1819,7 +1819,7 @@ static void TryAllocateString(Assembler* assembler,
   // negative length: call to runtime to produce error.
   __ tbnz(failure, length_reg, compiler::target::kBitsPerWord - 1);
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R0, failure));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, R0));
   __ mov(R6, length_reg);  // Save the length register.
   if (cid == kOneByteStringCid) {
     // Untag length.
@@ -2105,17 +2105,19 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
 #else
   __ add(R1, R2, Operand(R1, LSL, target::kWordSizeLog2 - 1));
 #endif
-  __ LoadCompressed(R0, FieldAddress(R1, target::RegExp::function_offset(
-                                             kOneByteStringCid, sticky)));
+  __ LoadCompressed(FUNCTION_REG,
+                    FieldAddress(R1, target::RegExp::function_offset(
+                                         kOneByteStringCid, sticky)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in R0, the argument descriptor in R4, and IC-Data in R5.
   __ eor(R5, R5, Operand(R5));
 
   // Tail-call the function.
-  __ LoadCompressed(CODE_REG,
-                    FieldAddress(R0, target::Function::code_offset()));
-  __ ldr(R1, FieldAddress(R0, target::Function::entry_point_offset()));
+  __ LoadCompressed(
+      CODE_REG, FieldAddress(FUNCTION_REG, target::Function::code_offset()));
+  __ ldr(R1,
+         FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
   __ br(R1);
 }
 

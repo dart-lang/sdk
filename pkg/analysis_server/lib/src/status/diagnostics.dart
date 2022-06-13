@@ -10,11 +10,11 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
-import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
     show LspAnalysisServer;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
+import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
@@ -139,6 +139,10 @@ td.pre {
 .footer strong {
   color: #333;
 }
+
+.subtle {
+  color: #333;
+}
 ''';
 
 String get _sdkVersion {
@@ -151,73 +155,6 @@ String get _sdkVersion {
 
 String writeOption(String name, dynamic value) {
   return '$name: <code>$value</code><br> ';
-}
-
-abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
-  AbstractCompletionPage(DiagnosticsSite site)
-      : super(site, 'completion', 'Code Completion',
-            description: 'Latency statistics for code completion.');
-
-  path.Context get pathContext;
-
-  List<CompletionPerformance> get performanceItems;
-
-  @override
-  Future generateContent(Map<String, String> params) async {
-    var completions = performanceItems;
-
-    if (completions.isEmpty) {
-      blankslate('No completions recorded.');
-      return;
-    }
-
-    var fastCount =
-        completions.where((c) => c.elapsedInMilliseconds <= 100).length;
-    p('${completions.length} results; ${printPercentage(fastCount / completions.length)} within 100ms.');
-
-    // draw a chart
-    buf.writeln(
-        '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
-    var rowData = StringBuffer();
-    for (var i = completions.length - 1; i >= 0; i--) {
-      // [' ', 101.5]
-      if (rowData.isNotEmpty) {
-        rowData.write(',');
-      }
-      rowData.write("[' ', ${completions[i].elapsedInMilliseconds}]");
-    }
-    buf.writeln('''
-      <script type="text/javascript">
-      google.charts.load('current', {'packages':['bar']});
-      google.charts.setOnLoadCallback(drawChart);
-      function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-          ['Completions', 'Time'],
-          $rowData
-        ]);
-        var options = { bars: 'vertical', vAxis: {format: 'decimal'}, height: 300 };
-        var chart = new google.charts.Bar(document.getElementById('chart-div'));
-        chart.draw(data, google.charts.Bar.convertOptions(options));
-      }
-      </script>
-''');
-
-    // emit the data as a table
-    buf.writeln('<table>');
-    buf.writeln(
-        '<tr><th>Time</th><th>Computed Results</th><th>Transmitted Results</th><th>Source</th><th>Snippet</th></tr>');
-    for (var completion in completions) {
-      var shortName = pathContext.basename(completion.path);
-      buf.writeln('<tr>'
-          '<td class="pre right">${printMilliseconds(completion.elapsedInMilliseconds)}</td>'
-          '<td class="right">${completion.computedSuggestionCountStr}</td>'
-          '<td class="right">${completion.transmittedSuggestionCountStr}</td>'
-          '<td>${escape(shortName)}</td>'
-          '<td><code>${escape(completion.snippet)}</code></td>'
-          '</tr>');
-    }
-    buf.writeln('</table>');
-  }
 }
 
 class AstPage extends DiagnosticPageWithNav {
@@ -350,23 +287,66 @@ class CommunicationsPage extends DiagnosticPageWithNav {
   }
 }
 
-class CompletionPage extends AbstractCompletionPage {
-  @override
-  AnalysisServer server;
+class CompletionPage extends DiagnosticPageWithNav with PerformanceChartMixin {
+  CompletionPage(DiagnosticsSite site)
+      : super(site, 'completion', 'Code Completion',
+            description: 'Latency statistics for code completion.');
 
-  CompletionPage(super.site, this.server);
+  path.Context get pathContext => server.resourceProvider.pathContext;
 
-  CompletionDomainHandler get completionDomain => server.handlers
-          .firstWhere((handler) => handler is CompletionDomainHandler)
-      as CompletionDomainHandler;
-
-  @override
-  path.Context get pathContext =>
-      completionDomain.server.resourceProvider.pathContext;
-
-  @override
   List<CompletionPerformance> get performanceItems =>
-      server.completionState.performanceList.items.toList();
+      server.recentPerformance.completion.items.toList();
+
+  @override
+  Future generateContent(Map<String, String> params) async {
+    var completions = performanceItems;
+
+    if (completions.isEmpty) {
+      blankslate('No completions recorded.');
+      return;
+    }
+
+    var fastCount =
+        completions.where((c) => c.elapsedInMilliseconds <= 100).length;
+    p('${completions.length} results; ${printPercentage(fastCount / completions.length)} within 100ms.');
+
+    drawChart(completions);
+
+    // emit the data as a table
+    buf.writeln('<table>');
+    buf.writeln(
+        '<tr><th>Time</th><th>Computed Results</th><th>Transmitted Results</th><th>Source</th><th>Snippet</th></tr>');
+    for (var completion in completions) {
+      var shortName = pathContext.basename(completion.path);
+      buf.writeln(
+        '<tr>'
+        '<td class="pre right"><a href="/timing?id=${completion.id}&kind=completion">'
+        '${_formatTiming(completion)}'
+        '</a></td>'
+        '<td class="right">${completion.computedSuggestionCountStr}</td>'
+        '<td class="right">${completion.transmittedSuggestionCountStr}</td>'
+        '<td>${escape(shortName)}</td>'
+        '<td><code>${escape(completion.snippet)}</code></td>'
+        '</tr>',
+      );
+    }
+    buf.writeln('</table>');
+  }
+
+  String _formatTiming(CompletionPerformance completion) {
+    var buffer = StringBuffer();
+    buffer.write(printMilliseconds(completion.elapsedInMilliseconds));
+
+    var latency = completion.requestLatency;
+    if (latency != null) {
+      buffer
+        ..write(' <small class="subtle" title="client-to-server latency">(+ ')
+        ..write(printMilliseconds(latency))
+        ..write(')</small>');
+    }
+
+    return buffer.toString();
+  }
 }
 
 class ContentsPage extends DiagnosticPageWithNav {
@@ -769,13 +749,13 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     if (server != null) {
       pages.add(PluginsPage(this, server));
     }
+    pages.add(CompletionPage(this));
     if (server is AnalysisServer) {
-      pages.add(CompletionPage(this, server));
       pages.add(SubscriptionsPage(this, server));
     } else if (server is LspAnalysisServer) {
-      pages.add(LspCompletionPage(this, server));
       pages.add(LspCapabilitiesPage(this, server));
     }
+    pages.add(TimingPage(this));
 
     var profiler = ProcessProfiler.getProfilerForPlatform();
     if (profiler != null) {
@@ -1033,20 +1013,6 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
 //   }
 // }
 
-class LspCompletionPage extends AbstractCompletionPage {
-  @override
-  LspAnalysisServer server;
-
-  LspCompletionPage(super.site, this.server);
-
-  @override
-  path.Context get pathContext => server.resourceProvider.pathContext;
-
-  @override
-  List<CompletionPerformance> get performanceItems =>
-      server.performanceStats.completion.items.toList();
-}
-
 class MemoryAndCpuPage extends DiagnosticPageWithNav {
   final ProcessProfiler profiler;
 
@@ -1164,11 +1130,11 @@ class PluginsPage extends DiagnosticPageWithNav {
             var requestName = entry.key;
             var data = entry.value;
             // TODO(brianwilkerson) Consider displaying these times as a graph,
-            //  similar to the one in AbstractCompletionPage.generateContent.
+            //  similar to the one in CompletionPage.generateContent.
             var buffer = StringBuffer();
             buffer.write(requestName);
             buffer.write(' ');
-            buffer.write(data);
+            buffer.write(data.toAnalyticsString());
             p(buffer.toString());
           }
         }
@@ -1263,5 +1229,86 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
         buf.write('$service (no subscriptions)');
       }
     });
+  }
+}
+
+class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
+  TimingPage(DiagnosticsSite site)
+      : super(site, 'timing', 'Timing', description: 'Timing statistics.');
+
+  @override
+  Future generateContent(Map<String, String> params) async {
+    var kind = params['kind'];
+
+    List<RequestPerformance> items;
+    if (kind == 'completion') {
+      items = server.recentPerformance.completion.items.toList();
+    } else {
+      items = server.recentPerformance.requests.items.toList();
+    }
+
+    var id = int.tryParse(params['id'] ?? '');
+    if (id == null) {
+      return _generateList(items);
+    } else {
+      return _generateDetails(id, items);
+    }
+  }
+
+  String _formatTiming(RequestPerformance item) {
+    var buffer = StringBuffer();
+    buffer.write(printMilliseconds(item.performance.elapsed.inMilliseconds));
+
+    var latency = item.requestLatency;
+    if (latency != null) {
+      buffer
+        ..write(' <small class="subtle" title="client-to-server latency">(+ ')
+        ..write(printMilliseconds(latency))
+        ..write(')</small>');
+    }
+
+    return buffer.toString();
+  }
+
+  void _generateDetails(int id, List<RequestPerformance> items) {
+    var item = items.firstWhereOrNull((info) => info.id == id);
+
+    if (item == null) {
+      blankslate('Unable to find data for $id. '
+          'Perhaps newer requests have pushed it out of the buffer?');
+      return;
+    }
+
+    var buffer = StringBuffer();
+    item.performance.write(buffer: buffer);
+    pre(() {
+      buf.write('<code>');
+      buf.write(escape('$buffer'));
+      buf.writeln('</code>');
+    });
+  }
+
+  void _generateList(List<RequestPerformance> items) {
+    if (items.isEmpty) {
+      blankslate('No requests recorded.');
+      return;
+    }
+
+    drawChart(items);
+
+    // emit the data as a table
+    buf.writeln('<table>');
+    buf.writeln('<tr><th>Time</th><th>Request</th></tr>');
+    for (var item in items) {
+      buf.writeln(
+        '<tr>'
+        '<td class="pre right"><a href="/timing?id=${item.id}">'
+        '${_formatTiming(item)}'
+        '</a></td>'
+        '<td>${escape(item.operation)}</td>'
+        '</tr>',
+      );
+    }
+    buf.writeln('</table>');
   }
 }

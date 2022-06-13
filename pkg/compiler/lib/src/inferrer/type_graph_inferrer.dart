@@ -18,7 +18,7 @@ import '../js_model/elements.dart' show JClosureCallMethod;
 import '../js_model/locals.dart';
 import '../world.dart';
 import 'abstract_value_domain.dart';
-import 'inferrer_engine.dart';
+import 'engine.dart';
 import 'type_graph_nodes.dart';
 import 'types.dart';
 

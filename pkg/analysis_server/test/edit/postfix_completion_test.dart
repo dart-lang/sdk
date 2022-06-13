@@ -28,14 +28,14 @@ class PostfixCompletionTest extends PubPackageAnalysisServerTest {
 
   Future<void> test_for() async {
     addTestFile('''
-main() {
+void f() {
   [].for
 }
 ''');
     await waitForTasksFinished();
     await _prepareCompletion('.for');
     _assertHasChange('Expand .for', '''
-main() {
+void f() {
   for (var value in []) {
     /*caret*/
   }

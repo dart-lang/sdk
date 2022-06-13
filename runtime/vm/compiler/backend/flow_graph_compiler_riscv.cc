@@ -252,10 +252,10 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
                                  ->object_store()
                                  ->build_nongeneric_method_extractor_code());
 
-  const intptr_t stub_index = __ object_pool_builder().AddObject(
-      build_method_extractor, ObjectPool::Patchability::kNotPatchable);
-  const intptr_t function_index = __ object_pool_builder().AddObject(
-      extracted_method, ObjectPool::Patchability::kNotPatchable);
+  const intptr_t stub_index =
+      __ object_pool_builder().FindObject(build_method_extractor);
+  const intptr_t function_index =
+      __ object_pool_builder().FindObject(extracted_method);
 
   // We use a custom pool register to preserve caller PP.
   Register kPoolReg = A1;
@@ -346,15 +346,25 @@ void FlowGraphCompiler::EmitPrologue() {
     }
 
     __ Comment("Initialize spill slots");
+    const intptr_t fp_to_sp_delta =
+        num_locals + compiler::target::frame_layout.dart_fixed_frame_size;
     for (intptr_t i = 0; i < num_locals; ++i) {
       const intptr_t slot_index =
           compiler::target::frame_layout.FrameSlotForVariableIndex(-i);
       Register value_reg =
           slot_index == args_desc_slot ? ARGS_DESC_REG : NULL_REG;
-      __ StoreToOffset(value_reg, FP, slot_index * kWordSize);
-      // TODO(riscv): Using an SP-relative address instead of an FP-relative
-      // address would allow for compressed instructions.
+      // SP-relative addresses allow for compressed instructions.
+      __ StoreToOffset(value_reg, SP,
+                       (slot_index + fp_to_sp_delta) * kWordSize);
     }
+  } else if (parsed_function().suspend_state_var() != nullptr) {
+    // Initialize synthetic :suspend_state variable early
+    // as it may be accessed by GC and exception handling before
+    // InitSuspendableFunction stub is called.
+    const intptr_t slot_index =
+        compiler::target::frame_layout.FrameSlotForVariable(
+            parsed_function().suspend_state_var());
+    __ StoreToOffset(NULL_REG, FP, slot_index * kWordSize);
   }
 
   EndCodeSourceRange(PrologueSource());
@@ -371,10 +381,26 @@ void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
   }
 }
 
+void FlowGraphCompiler::EmitJumpToStub(const Code& stub) {
+  ASSERT(!stub.IsNull());
+  if (CanPcRelativeCall(stub)) {
+    __ GenerateUnRelocatedPcRelativeTailCall();
+    AddPcRelativeTailCallStubTarget(stub);
+  } else {
+    __ LoadObject(CODE_REG, stub);
+    __ lx(TMP, compiler::FieldAddress(
+                   CODE_REG, compiler::target::Code::entry_point_offset()));
+    __ jr(TMP);
+    AddStubCallTarget(stub);
+  }
+}
+
 void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
   ASSERT(!stub.IsNull());
   if (CanPcRelativeCall(stub)) {
-    __ LeaveDartFrame();
+    if (flow_graph().graph_entry()->NeedsFrame()) {
+      __ LeaveDartFrame();
+    }
     __ GenerateUnRelocatedPcRelativeTailCall();
     AddPcRelativeTailCallStubTarget(stub);
 #if defined(DEBUG)
@@ -382,7 +408,9 @@ void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
 #endif
   } else {
     __ LoadObject(CODE_REG, stub);
-    __ LeaveDartFrame();
+    if (flow_graph().graph_entry()->NeedsFrame()) {
+      __ LeaveDartFrame();
+    }
     __ lx(TMP, compiler::FieldAddress(
                    CODE_REG, compiler::target::Code::entry_point_offset()));
     __ jr(TMP);
@@ -614,7 +642,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     Code::EntryKind entry_kind) {
   ASSERT(CanCallDart());
   ASSERT(!function.IsClosureFunction());
-  if (function.HasOptionalParameters() || function.IsGeneric()) {
+  if (function.PrologueNeedsArgumentsDescriptor()) {
     __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
   } else {
     if (!FLAG_precompiled_mode) {
@@ -665,11 +693,15 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     __ LoadObject(TMP, obj);
     __ PushRegisterPair(TMP, reg);
     if (is_optimizing()) {
-      __ JumpAndLinkPatchable(StubCode::OptimizedIdenticalWithNumberCheck());
+      // No breakpoints in optimized code.
+      __ JumpAndLink(StubCode::OptimizedIdenticalWithNumberCheck());
+      AddCurrentDescriptor(UntaggedPcDescriptors::kOther, deopt_id, source);
     } else {
+      // Patchable to support breakpoints.
       __ JumpAndLinkPatchable(StubCode::UnoptimizedIdenticalWithNumberCheck());
+      AddCurrentDescriptor(UntaggedPcDescriptors::kRuntimeCall, deopt_id,
+                           source);
     }
-    AddCurrentDescriptor(UntaggedPcDescriptors::kRuntimeCall, deopt_id, source);
     __ PopRegisterPair(ZR, reg);
     // RISC-V has no condition flags, so the result is instead returned as
     // TMP zero if equal, non-zero if non-equal.
@@ -690,7 +722,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(
   if (needs_number_check) {
     __ PushRegisterPair(right, left);
     if (is_optimizing()) {
-      __ JumpAndLinkPatchable(StubCode::OptimizedIdenticalWithNumberCheck());
+      __ JumpAndLink(StubCode::OptimizedIdenticalWithNumberCheck());
     } else {
       __ JumpAndLinkPatchable(StubCode::UnoptimizedIdenticalWithNumberCheck());
     }
@@ -791,7 +823,7 @@ void FlowGraphCompiler::EmitMove(Location destination,
     } else if (destination.IsFpuRegister()) {
       const intptr_t src_offset = source.ToStackSlotOffset();
       FRegister dst = destination.fpu_reg();
-      __ fld(dst, compiler::Address(source.base_reg(), src_offset));
+      __ LoadDFromOffset(dst, source.base_reg(), src_offset);
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t source_offset = source.ToStackSlotOffset();
@@ -809,7 +841,7 @@ void FlowGraphCompiler::EmitMove(Location destination,
           destination.IsDoubleStackSlot()) {
         const intptr_t dest_offset = destination.ToStackSlotOffset();
         FRegister src = source.fpu_reg();
-        __ fsd(src, compiler::Address(destination.base_reg(), dest_offset));
+        __ StoreDToOffset(src, destination.base_reg(), dest_offset);
       } else {
         ASSERT(destination.IsQuadStackSlot());
         UNIMPLEMENTED();
@@ -819,14 +851,14 @@ void FlowGraphCompiler::EmitMove(Location destination,
     if (destination.IsFpuRegister()) {
       const intptr_t source_offset = source.ToStackSlotOffset();
       const FRegister dst = destination.fpu_reg();
-      __ fld(dst, compiler::Address(source.base_reg(), source_offset));
+      __ LoadDFromOffset(dst, source.base_reg(), source_offset);
     } else {
       ASSERT(destination.IsDoubleStackSlot() ||
              destination.IsStackSlot() /*32-bit float*/);
       const intptr_t source_offset = source.ToStackSlotOffset();
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ fld(FTMP, compiler::Address(source.base_reg(), source_offset));
-      __ fsd(FTMP, compiler::Address(destination.base_reg(), dest_offset));
+      __ LoadDFromOffset(FTMP, source.base_reg(), source_offset);
+      __ StoreDToOffset(FTMP, destination.base_reg(), dest_offset);
     }
   } else if (source.IsQuadStackSlot()) {
     UNIMPLEMENTED();

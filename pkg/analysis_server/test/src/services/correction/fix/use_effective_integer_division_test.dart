@@ -19,14 +19,14 @@ void main() {
 class UseEffectiveIntegerDivisionMultiTest extends BulkFixProcessorTest {
   Future<void> test_singleFile() async {
     await resolveTestCode('''
-main() {
+void f() {
   var a = 5;
   var b = 2;
   print((a / ((a / b).toInt())).toInt());
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   var a = 5;
   var b = 2;
   print(a ~/ (a ~/ b));
@@ -42,14 +42,14 @@ class UseEffectiveIntegerDivisionTest extends FixProcessorTest {
 
   Future<void> test_normalDivision() async {
     await resolveTestCode('''
-main() {
+void f() {
   var a = 5;
   var b = 2;
   print((a / b).toInt());
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   var a = 5;
   var b = 2;
   print(a ~/ b);

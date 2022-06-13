@@ -1,0 +1,11 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  #C1;
+}
+
+constants  {
+  #C1 = static-tearoff core::BigInt::_#from#tearOff
+}

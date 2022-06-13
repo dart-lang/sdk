@@ -362,7 +362,7 @@ import 'http://aaa.com';
 part 'bbb/bbb.dart';
 part 'aaa/aaa.dart';
 
-main() {
+void f() {
 }
 ''');
     // validate change
@@ -396,7 +396,7 @@ export 'bbb/bbb.dart';
 part 'aaa/aaa.dart';
 part 'bbb/bbb.dart';
 
-main() {
+void f() {
 }
 ''');
   }
@@ -1350,12 +1350,12 @@ class C {}
 aaa() {}
 get bbb() {}
 class A {}
-main() {}
+void main() {}
 class B {}
 ''');
     // validate change
     _assertSort(r'''
-main() {}
+void main() {}
 get bbb() {}
 aaa() {}
 class A {}

@@ -13,11 +13,12 @@ dependencies:
   path: ^1.8.0
   pub_semver: ^2.0.0
 
+# We use 'any' version constraints here as we get our package versions from
+# the dart-lang/sdk repo's DEPS file. Note that this is a special case; the
+# best practice for packages is to specify their compatible version ranges.
+# See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
-  analyzer:
-    path: ../analyzer
-  analysis_server:
-    path: ../analysis_server
-  analyzer_utilities:
-    path: ../analyzer_utilities
-  test: ^1.14.2
+  analyzer: any
+  analysis_server: any
+  analyzer_utilities: any
+  test: any

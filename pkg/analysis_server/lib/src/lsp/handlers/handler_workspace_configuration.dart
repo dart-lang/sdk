@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 class WorkspaceDidChangeConfigurationMessageHandler
@@ -18,8 +17,8 @@ class WorkspaceDidChangeConfigurationMessageHandler
       DidChangeConfigurationParams.jsonHandler;
 
   @override
-  Future<ErrorOr<void>> handle(
-      DidChangeConfigurationParams params, CancellationToken token) async {
+  Future<ErrorOr<void>> handle(DidChangeConfigurationParams params,
+      MessageInfo message, CancellationToken token) async {
     // In LSP, the `settings` field no longer contains changed settings because
     // they can be resource-scoped, so this is used only as a notification and
     // to keep settings up-to-date we must re-request them from the client

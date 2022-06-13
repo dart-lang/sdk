@@ -35,7 +35,7 @@ class Class3 extends core::Object {
 }
 class Class4 extends core::Object {
   final field core::int? field;
-  constructor _([core::int? field]) → self::Class4
+  constructor _([core::int? field = null]) → self::Class4
     ;
   static method _#_#tearOff([core::int? field]) → self::Class4
     return new self::Class4::_(field);
@@ -47,7 +47,7 @@ class Class4 extends core::Object {
 class Class5 extends core::Object {
   final field core::int field1;
   final field core::int? field2;
-  constructor _(core::int field1, [core::int? field2]) → self::Class5
+  constructor _(core::int field1, [core::int? field2 = null]) → self::Class5
     ;
   static method _#_#tearOff(core::int field1, [core::int? field2]) → self::Class5
     return new self::Class5::_(field1, field2);
@@ -60,7 +60,7 @@ class Class6 extends core::Object {
   final field core::int field1;
   final field core::int? field2;
   final field core::int field3;
-  constructor _(core::int field1, {core::int? field2, required core::int field3}) → self::Class6
+  constructor _(core::int field1, {core::int? field2 = null, required core::int field3 = null}) → self::Class6
     ;
   static method _#_#tearOff(core::int field1, {core::int? field2, required core::int field3}) → self::Class6
     return new self::Class6::_(field1, field2: field2, field3: field3);

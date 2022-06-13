@@ -19,7 +19,7 @@ class UpdateContentTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_updateContent() async {
     var path = sourcePath('test.dart');
     var goodText = r'''
-main() {
+void f() {
   print("Hello, world!");
 }''';
 
@@ -67,7 +67,7 @@ class Person {
   String get name => this._name;
   String toString() => "Name: ${name}";
 }
-void main() {
+void f() {
   var p = new Person("Skeletor");
   p.xname = "Faker";
   print(p);
@@ -88,7 +88,7 @@ class Person {
   String get name => this._name;
   String toString() => "Name: ${name}";
 }
-void main() {
+void f() {
   var p = new Person("Skeletor");
   p.name = "Faker";
   print(p);

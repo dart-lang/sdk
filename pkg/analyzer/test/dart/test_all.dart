@@ -7,11 +7,13 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'analysis/test_all.dart' as analysis;
 import 'ast/test_all.dart' as ast;
 import 'element/test_all.dart' as element;
+import 'sdk/test_all.dart' as sdk;
 
 main() {
   defineReflectiveSuite(() {
     analysis.main();
     ast.main();
     element.main();
+    sdk.main();
   }, name: 'dart');
 }

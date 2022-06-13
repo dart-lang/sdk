@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'dart:convert';
 
 import 'nodes.dart';
@@ -35,12 +33,13 @@ class Parser {
   /// Reads a program split constraints json file string and returns a [Nodes]
   /// object reflecting the parsed constraints.
   ConstraintData read(String programSplitJson) {
-    List<dynamic> doc = json.decode(programSplitJson);
+    List<dynamic> allConstraints = json.decode(programSplitJson);
     List<Map<String, dynamic>> referenceConstraints = [];
     List<Map<String, dynamic>> combinerConstraints = [];
     List<Map<String, dynamic>> fuseConstraints = [];
     List<Map<String, dynamic>> relativeOrderConstraints = [];
-    for (Map<String, dynamic> constraint in doc) {
+    for (final c in allConstraints) {
+      final constraint = c as Map<String, dynamic>;
       switch (constraint['type']) {
         case 'reference':
           referenceConstraints.add(constraint);

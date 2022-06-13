@@ -1,10 +1,9 @@
 name: meta
 # Note, because version `2.0.0` was mistakenly released, the next major version must be `3.x.y`.
-version: 1.7.1-dev
+version: 1.8.0
 description: >-
- Annotations that developers can use to express the intentions that otherwise
- can't be deduced by statically analyzing the source code. These annotations
- are intended to be used by tools to provide a better user experience.
+ Annotations used to express developer intentions that can't otherwise be
+ deduced by statically analyzing source code.
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/meta
 
 environment:

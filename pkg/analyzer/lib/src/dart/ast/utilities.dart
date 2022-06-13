@@ -822,6 +822,18 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool? visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    final other = _other as LibraryAugmentationDirective;
+    return isEqualNodes(
+            node.documentationComment, other.documentationComment) &&
+        _isEqualNodeLists(node.metadata, other.metadata) &&
+        isEqualTokens(node.libraryKeyword, other.libraryKeyword) &&
+        isEqualTokens(node.augmentKeyword, other.augmentKeyword) &&
+        isEqualNodes(node.uri, other.uri) &&
+        isEqualTokens(node.semicolon, other.semicolon);
+  }
+
+  @override
   bool visitLibraryDirective(LibraryDirective node) {
     LibraryDirective other = _other as LibraryDirective;
     return isEqualNodes(
@@ -1372,7 +1384,10 @@ class LinterExceptionHandler {
 
   /// A method that can be passed to the `LinterVisitor` constructor to handle
   /// exceptions that occur during linting.
-  void logException(
+  ///
+  /// Returns `true` if the exception was fully handled, and `false` if the
+  /// exception should be rethrown.
+  bool logException(
       AstNode node, Object visitor, dynamic exception, StackTrace stackTrace) {
     StringBuffer buffer = StringBuffer();
     buffer.write('Exception while using a ${visitor.runtimeType} to visit a ');
@@ -1390,9 +1405,7 @@ class LinterExceptionHandler {
     // TODO(39284): should this exception be silent?
     AnalysisEngine.instance.instrumentationService.logException(
         SilentException(buffer.toString(), exception, stackTrace));
-    if (propagateExceptions) {
-      throw exception;
-    }
+    return !propagateExceptions;
   }
 }
 
@@ -2500,6 +2513,13 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     }
     return visitNode(node);
+  }
+
+  @override
+  bool? visitLibraryAugmentationDirective(
+    covariant LibraryAugmentationDirectiveImpl node,
+  ) {
+    return visitUriBasedDirective(node);
   }
 
   @override

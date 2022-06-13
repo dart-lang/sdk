@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -29,7 +29,7 @@ static method main() → dynamic {
   for (var x, y in []) {}
        ^^^";
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t1 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -65,7 +65,7 @@ static method main() → dynamic {
   }
   try {
   }
-  on core::NoSuchMethodError* catch(no-exception-var) {
+  on core::NoSuchMethodError catch(no-exception-var) {
   }
 }
 

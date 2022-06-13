@@ -30,6 +30,10 @@ class AddTrailingComma extends CorrectionProducer {
       await _insertComma(builder, node.parameters.last);
     } else if (node is Assertion) {
       await _insertComma(builder, node.message ?? node.condition);
+    } else if (node is ListLiteral) {
+      await _insertComma(builder, node.elements.last);
+    } else if (node is SetOrMapLiteral) {
+      await _insertComma(builder, node.elements.last);
     }
   }
 

@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -56,8 +56,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static field core::int* y = 42;
-static field core::bool* z = true;
+static field core::int y = 42;
+static field core::bool z = true;
 static method x() → dynamic {}
 static method foo() → void {
   if(!(invalid-expression "pkg/front_end/testcases/regress/ambiguous_builder_01.dart:8:7: Error: Can't use 'x' because it is declared more than once.

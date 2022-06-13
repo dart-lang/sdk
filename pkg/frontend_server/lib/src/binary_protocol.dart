@@ -141,7 +141,7 @@ class _Client {
       filter: (library) {
         return !library.importUri.isScheme('dart');
       },
-      includeSources: false,
+      includeSources: true,
     );
   }
 }

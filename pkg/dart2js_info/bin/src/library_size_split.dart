@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.11
+
 /// Command-line tool to show the size distribution of generated code among
 /// libraries. Libraries can be grouped using regular expressions. You can
 /// specify what regular expressions to use by providing a `grouping.yaml` file.
@@ -87,9 +89,6 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
     var args = argResults.rest;
     if (args.isEmpty) {
       usageException('Missing argument: info.data');
-      print('usage: dart tool/library_size_split.dart '
-          'path-to-info.json [grouping.yaml]');
-      exit(1);
     }
 
     var info = await infoFromFile(args.first);
@@ -131,12 +130,12 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
     var realTotal = info.program.size;
     var longest = 0;
     var rows = <_Row>[];
-    _addRow(String label, int value) {
+    addRow(String label, int value) {
       rows.add(_Row(label, value));
       longest = max(longest, label.length);
     }
 
-    _printRow(_Row row) {
+    printRow(_Row row) {
       if (row is _Divider) {
         print(' ${'-' * (longest + 18)}');
         return;
@@ -157,14 +156,14 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
         lastCluster = entry.cluster;
       }
       var size = entry.size;
-      _addRow(name, size);
+      addRow(name, size);
     }
     rows.add(const _Divider());
-    _addRow("All libraries (excludes preambles, statics & consts)", allLibs);
-    _addRow("Shared consts", allConstants);
-    _addRow("Total accounted", allLibs + allConstants);
-    _addRow("Program Size", realTotal);
-    rows.forEach(_printRow);
+    addRow("All libraries (excludes preambles, statics & consts)", allLibs);
+    addRow("Shared consts", allConstants);
+    addRow("Total accounted", allLibs + allConstants);
+    addRow("Program Size", realTotal);
+    rows.forEach(printRow);
   }
 }
 

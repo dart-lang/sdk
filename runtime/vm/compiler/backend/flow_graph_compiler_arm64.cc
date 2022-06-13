@@ -263,10 +263,10 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
                                  ->object_store()
                                  ->build_nongeneric_method_extractor_code());
 
-  const intptr_t stub_index = __ object_pool_builder().AddObject(
-      build_method_extractor, ObjectPool::Patchability::kNotPatchable);
-  const intptr_t function_index = __ object_pool_builder().AddObject(
-      extracted_method, ObjectPool::Patchability::kNotPatchable);
+  const intptr_t stub_index =
+      __ object_pool_builder().FindObject(build_method_extractor);
+  const intptr_t function_index =
+      __ object_pool_builder().FindObject(extracted_method);
 
   // We use a custom pool register to preserve caller PP.
   Register kPoolReg = R0;
@@ -363,6 +363,14 @@ void FlowGraphCompiler::EmitPrologue() {
           slot_index == args_desc_slot ? ARGS_DESC_REG : NULL_REG;
       __ StoreToOffset(value_reg, FP, slot_index * kWordSize);
     }
+  } else if (parsed_function().suspend_state_var() != nullptr) {
+    // Initialize synthetic :suspend_state variable early
+    // as it may be accessed by GC and exception handling before
+    // InitSuspendableFunction stub is called.
+    const intptr_t slot_index =
+        compiler::target::frame_layout.FrameSlotForVariable(
+            parsed_function().suspend_state_var());
+    __ StoreToOffset(NULL_REG, FP, slot_index * kWordSize);
   }
 
   EndCodeSourceRange(PrologueSource());
@@ -379,10 +387,26 @@ void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
   }
 }
 
+void FlowGraphCompiler::EmitJumpToStub(const Code& stub) {
+  ASSERT(!stub.IsNull());
+  if (CanPcRelativeCall(stub)) {
+    __ GenerateUnRelocatedPcRelativeTailCall();
+    AddPcRelativeTailCallStubTarget(stub);
+  } else {
+    __ LoadObject(CODE_REG, stub);
+    __ ldr(TMP, compiler::FieldAddress(
+                    CODE_REG, compiler::target::Code::entry_point_offset()));
+    __ br(TMP);
+    AddStubCallTarget(stub);
+  }
+}
+
 void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
   ASSERT(!stub.IsNull());
   if (CanPcRelativeCall(stub)) {
-    __ LeaveDartFrame();
+    if (flow_graph().graph_entry()->NeedsFrame()) {
+      __ LeaveDartFrame();
+    }
     __ GenerateUnRelocatedPcRelativeTailCall();
     AddPcRelativeTailCallStubTarget(stub);
 #if defined(DEBUG)
@@ -390,7 +414,9 @@ void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
 #endif
   } else {
     __ LoadObject(CODE_REG, stub);
-    __ LeaveDartFrame();
+    if (flow_graph().graph_entry()->NeedsFrame()) {
+      __ LeaveDartFrame();
+    }
     __ ldr(TMP, compiler::FieldAddress(
                     CODE_REG, compiler::target::Code::entry_point_offset()));
     __ br(TMP);
@@ -479,7 +505,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
 
   __ LoadObject(R6, parsed_function().function());
   __ LoadFromOffset(R0, SP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize);
-  __ LoadUniqueObject(R5, ic_data);
+  __ LoadUniqueObject(IC_DATA_REG, ic_data);
   GenerateDartCall(deopt_id, source, stub, UntaggedPcDescriptors::kIcCall, locs,
                    entry_kind);
   __ Drop(ic_data.SizeWithTypeArgs());
@@ -503,7 +529,7 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
   const intptr_t stub_index =
       op.AddObject(stub, ObjectPool::Patchability::kPatchable);
   ASSERT((ic_data_index + 1) == stub_index);
-  __ LoadDoubleWordFromPoolIndex(R5, CODE_REG, ic_data_index);
+  __ LoadDoubleWordFromPoolIndex(IC_DATA_REG, CODE_REG, ic_data_index);
   const intptr_t entry_point_offset =
       entry_kind == Code::EntryKind::kNormal
           ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
@@ -541,9 +567,9 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   if (FLAG_precompiled_mode) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see app_snapshot.cc.
-    CLOBBERS_LR(__ LoadDoubleWordFromPoolIndex(R5, LR, data_index));
+    CLOBBERS_LR(__ LoadDoubleWordFromPoolIndex(IC_DATA_REG, LR, data_index));
   } else {
-    __ LoadDoubleWordFromPoolIndex(R5, CODE_REG, data_index);
+    __ LoadDoubleWordFromPoolIndex(IC_DATA_REG, CODE_REG, data_index);
     CLOBBERS_LR(__ ldr(LR, compiler::FieldAddress(
                                CODE_REG, Code::entry_point_offset(
                                              Code::EntryKind::kMonomorphic))));
@@ -646,11 +672,11 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     Code::EntryKind entry_kind) {
   ASSERT(CanCallDart());
   ASSERT(!function.IsClosureFunction());
-  if (function.HasOptionalParameters() || function.IsGeneric()) {
-    __ LoadObject(R4, arguments_descriptor);
+  if (function.PrologueNeedsArgumentsDescriptor()) {
+    __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
   } else {
     if (!FLAG_precompiled_mode) {
-      __ LoadImmediate(R4, 0);  // GC safe smi zero because of stub.
+      __ LoadImmediate(ARGS_DESC_REG, 0);  // GC safe smi zero because of stub.
     }
   }
   // Do not use the code from the function, but let the code be patched so that
@@ -691,11 +717,15 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     __ LoadObject(TMP, obj);
     __ PushPair(TMP, reg);
     if (is_optimizing()) {
-      __ BranchLinkPatchable(StubCode::OptimizedIdenticalWithNumberCheck());
+      // No breakpoints in optimized code.
+      __ BranchLink(StubCode::OptimizedIdenticalWithNumberCheck());
+      AddCurrentDescriptor(UntaggedPcDescriptors::kOther, deopt_id, source);
     } else {
+      // Patchable to support breakpoints.
       __ BranchLinkPatchable(StubCode::UnoptimizedIdenticalWithNumberCheck());
+      AddCurrentDescriptor(UntaggedPcDescriptors::kRuntimeCall, deopt_id,
+                           source);
     }
-    AddCurrentDescriptor(UntaggedPcDescriptors::kRuntimeCall, deopt_id, source);
     // Stub returns result in flags (result of a cmp, we need Z computed).
     // Discard constant.
     // Restore 'reg'.
@@ -715,7 +745,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(
   if (needs_number_check) {
     __ PushPair(right, left);
     if (is_optimizing()) {
-      __ BranchLinkPatchable(StubCode::OptimizedIdenticalWithNumberCheck());
+      __ BranchLink(StubCode::OptimizedIdenticalWithNumberCheck());
     } else {
       __ BranchLinkPatchable(StubCode::UnoptimizedIdenticalWithNumberCheck());
     }
@@ -797,7 +827,7 @@ void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
   __ Comment("EmitTestAndCall");
   // Load receiver into R0.
   __ LoadFromOffset(R0, SP, (count_without_type_args - 1) * kWordSize);
-  __ LoadObject(R4, arguments_descriptor);
+  __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
 }
 
 void FlowGraphCompiler::EmitTestAndCallSmiBranch(compiler::Label* label,
@@ -1208,11 +1238,11 @@ void ParallelMoveResolver::RestoreScratch(Register reg) {
 }
 
 void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
-  __ PushDouble(reg);
+  __ PushQuad(reg);
 }
 
 void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
-  __ PopDouble(reg);
+  __ PopQuad(reg);
 }
 
 #undef __

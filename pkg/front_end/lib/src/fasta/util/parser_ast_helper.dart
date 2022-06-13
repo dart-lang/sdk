@@ -1249,6 +1249,25 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
+    LibraryAugmentationBegin data = new LibraryAugmentationBegin(
+        ParserAstType.BEGIN,
+        libraryKeyword: libraryKeyword,
+        augmentKeyword: augmentKeyword);
+    seen(data);
+  }
+
+  @override
+  void endLibraryAugmentation(
+      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+    LibraryAugmentationEnd data = new LibraryAugmentationEnd(ParserAstType.END,
+        libraryKeyword: libraryKeyword,
+        augmentKeyword: augmentKeyword,
+        semicolon: semicolon);
+    seen(data);
+  }
+
+  @override
   void beginLibraryName(Token token) {
     LibraryNameBegin data =
         new LibraryNameBegin(ParserAstType.BEGIN, token: token);
@@ -2388,6 +2407,17 @@ abstract class AbstractParserAstListener implements Listener {
   void handleSuperExpression(Token token, IdentifierContext context) {
     SuperExpressionHandle data = new SuperExpressionHandle(ParserAstType.HANDLE,
         token: token, context: context);
+    seen(data);
+  }
+
+  @override
+  void handleAugmentSuperExpression(
+      Token augmentToken, Token superToken, IdentifierContext context) {
+    AugmentSuperExpressionHandle data = new AugmentSuperExpressionHandle(
+        ParserAstType.HANDLE,
+        augmentToken: augmentToken,
+        superToken: superToken,
+        context: context);
     seen(data);
   }
 
@@ -4812,6 +4842,40 @@ class LabeledStatementEnd extends ParserAstNode {
       };
 }
 
+class LibraryAugmentationBegin extends ParserAstNode {
+  final Token libraryKeyword;
+  final Token augmentKeyword;
+
+  LibraryAugmentationBegin(ParserAstType type,
+      {required this.libraryKeyword, required this.augmentKeyword})
+      : super("LibraryAugmentation", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "libraryKeyword": libraryKeyword,
+        "augmentKeyword": augmentKeyword,
+      };
+}
+
+class LibraryAugmentationEnd extends ParserAstNode {
+  final Token libraryKeyword;
+  final Token augmentKeyword;
+  final Token semicolon;
+
+  LibraryAugmentationEnd(ParserAstType type,
+      {required this.libraryKeyword,
+      required this.augmentKeyword,
+      required this.semicolon})
+      : super("LibraryAugmentation", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "libraryKeyword": libraryKeyword,
+        "augmentKeyword": augmentKeyword,
+        "semicolon": semicolon,
+      };
+}
+
 class LibraryNameBegin extends ParserAstNode {
   final Token token;
 
@@ -6869,6 +6933,25 @@ class SuperExpressionHandle extends ParserAstNode {
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
+        "context": context,
+      };
+}
+
+class AugmentSuperExpressionHandle extends ParserAstNode {
+  final Token augmentToken;
+  final Token superToken;
+  final IdentifierContext context;
+
+  AugmentSuperExpressionHandle(ParserAstType type,
+      {required this.augmentToken,
+      required this.superToken,
+      required this.context})
+      : super("AugmentSuperExpression", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "augmentToken": augmentToken,
+        "superToken": superToken,
         "context": context,
       };
 }

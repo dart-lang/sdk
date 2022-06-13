@@ -271,7 +271,7 @@ void f() {}
 class A {
 }
 @A()
-main() {
+void f() {
 }
 ''');
     await prepareNavigation();
@@ -291,7 +291,7 @@ class MyAnnotation {
 import 'my_annotation.dart' as man;
 @man.MyAnnotation()
 @man.MyAnnotation.named()
-main() {
+void f() {
 }
 ''');
     await prepareNavigation();
@@ -314,7 +314,7 @@ class A {
   const A.named(p);
 }
 @A.named(0)
-main() {
+void f() {
 }
 ''');
     await prepareNavigation();
@@ -334,7 +334,7 @@ class A {
   const A();
 }
 @A()
-main() {
+void f() {
 }
 ''');
     await prepareNavigation();
@@ -346,7 +346,7 @@ main() {
     addTestFile('''
 const myan = new Object();
 @myan // ref
-main() {
+void f() {
 }
 ''');
     await prepareNavigation();
@@ -362,7 +362,7 @@ const myan = new Object();
     addTestFile('''
 import 'mayn.dart' as man;
 @man.myan // ref
-main() {
+void f() {
 }
 ''');
     await prepareNavigation();
@@ -583,18 +583,51 @@ class A {
     // don't check regions, but there should be no exceptions
   }
 
-  Future<void> test_class_fieldFormalParameter() async {
+  Future<void> test_class_fieldFormalParameter_requiredNamed() async {
     addTestFile('''
-class AAA {
-  int fff = 123;
-  AAA(this.fff);
+class A {
+  final int f;
+  A({required this.f}) : assert(f > 0);
 }
 ''');
     await prepareNavigation();
-    assertHasRegionTarget('fff);', 'fff = 123');
+    assertHasRegionTarget('this.f', 'f;');
+    assertHasRegionTarget('f}) :', 'f;');
+    assertHasRegionTarget('f > 0', 'f}) :');
   }
 
-  Future<void> test_class_fieldFormalParameter_unresolved() async {
+  Future<void> test_class_fieldFormalParameter_requiredPositional() async {
+    addTestFile('''
+class A {
+  final int f;
+  A(this.f) : assert(f > 0);
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('this.f', 'f;');
+    assertHasRegionTarget('f) :', 'f;');
+    assertHasRegionTarget('f > 0', 'f) :');
+  }
+
+  Future<void>
+      test_class_fieldFormalParameter_requiredPositional_functionTyped() async {
+    addTestFile('''
+class B {
+  final Object f;
+  B(int this.f<T>(T a)) : assert(f is Object);
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('f<T>', 'f;');
+    assertHasRegion('int ');
+    assertHasRegionTarget('T>', 'T>');
+    assertHasRegionTarget('T a', 'T>');
+    assertHasRegionTarget('a))', 'a))');
+    assertHasRegionTarget('f is', 'f<T>');
+  }
+
+  Future<void>
+      test_class_fieldFormalParameter_requiredPositional_unresolved() async {
     addTestFile('''
 class AAA {
   AAA(this.fff);
@@ -888,7 +921,7 @@ class A {
   Future<void> test_identifier_resolved() async {
     addTestFile('''
 class AAA {}
-main() {
+void f() {
   AAA aaa = null;
   print(aaa);
 }
@@ -896,12 +929,12 @@ main() {
     await prepareNavigation();
     assertHasRegionTarget('AAA aaa', 'AAA {}');
     assertHasRegionTarget('aaa);', 'aaa = null');
-    assertHasRegionTarget('main() {', 'main() {');
+    assertHasRegionTarget('f() {', 'f() {');
   }
 
   Future<void> test_identifier_unresolved() async {
     addTestFile('''
-main() {
+void f() {
   print(vvv);
 }
 ''');
@@ -911,7 +944,7 @@ main() {
 
   Future<void> test_identifier_whenStrayImportDirective() async {
     addTestFile('''
-main() {
+void f() {
   int aaa = 42;
   print(aaa);
 }
@@ -942,7 +975,7 @@ class SecondClass {
     addTestFile('''
 class A {
 }
-main() {
+void f() {
   new A();
 }
 ''');
@@ -955,7 +988,7 @@ main() {
     addTestFile('''
 class A {}
 class B<T> {}
-main() {
+void f() {
   new B<A>();
 }
 ''');
@@ -975,7 +1008,7 @@ main() {
 class A {
   A.named() {}
 }
-main() {
+void f() {
   new A.named();
 }
 ''');
@@ -996,7 +1029,7 @@ class A {}
 class B<T> {
   B.named() {}
 }
-main() {
+void f() {
   new B<A>.named();
 }
 ''');
@@ -1020,7 +1053,7 @@ main() {
 class A {
   A() {}
 }
-main() {
+void f() {
   new A();
 }
 ''');
@@ -1035,7 +1068,7 @@ class A {}
 class B<T> {
   B() {}
 }
-main() {
+void f() {
   new B<A>();
 }
 ''');
@@ -1053,7 +1086,7 @@ main() {
   Future<void> test_instanceCreation_withImportPrefix_named() async {
     addTestFile('''
 import 'dart:async' as ppp;
-main() {
+void f() {
   new ppp.Future.value(42);
 }
 ''');
@@ -1081,7 +1114,7 @@ library my.lib;
     addTestFile('''
 import 'libA.dart';
 import 'libB.dart';
-main() {
+void f() {
   TEST;
 }
 ''');
@@ -1111,7 +1144,7 @@ class A {
   A operator *(other) => null;
   A operator /(other) => null;
 }
-main() {
+void f() {
   var a = new A();
   a - 1;
   a + 2;
@@ -1149,7 +1182,7 @@ class B {
   A operator [](index) => null;
   operator []=(index, A value) {}
 }
-main() {
+void f() {
   var b = new B();
   b[0] // [];
   b[1] = 1; // []=;
@@ -1343,28 +1376,30 @@ class B extends A {
   Future<void> test_superFormalParameter_requiredNamed() async {
     addTestFile('''
 class A {
-  A({required int a}); // 0
+  A({required int a});
 }
 class B extends A {
-  B({required super.a}); // 1
+  B({required super.a}) : assert(a > 0);
 }
 ''');
     await prepareNavigation();
-    assertHasRegionTarget('a}); // 1', 'a}); // 0');
+    assertHasRegionTarget('a}) :', 'a});');
+    assertHasRegionTarget('a > 0', 'a}) :');
   }
 
   Future<void> test_superFormalParameter_requiredPositional() async {
     addTestFile('''
 class A {
-  A(int a); // 0
+  A(int a);
 }
 class B extends A {
-  B(super.a); // 1
+  B(super.a) : assert(a > 0);
 }
 ''');
     await prepareNavigation();
-    assertHasRegionTarget('super.a', 'a); // 0');
-    assertHasRegionTarget('a); // 1', 'a); // 0');
+    assertHasRegionTarget('super.a', 'a);');
+    assertHasRegionTarget('a) :', 'a);');
+    assertHasRegionTarget('a > 0', 'a) :');
   }
 
   Future<void>
@@ -1374,7 +1409,7 @@ class A {
   A(Object a); // 0
 }
 class B extends A {
-  B(int super.a<T>(T b)); // 1
+  B(int super.a<T>(T b)) : assert(a is Object);
 }
 ''');
     await prepareNavigation();
@@ -1383,6 +1418,8 @@ class B extends A {
     assertHasRegionTarget('T>', 'T>');
     assertHasRegionTarget('T b', 'T>');
     assertHasRegionTarget('b))', 'b))');
+    assertHasRegionTarget('b))', 'b))');
+    assertHasRegionTarget('a is', 'a<T>');
   }
 
   Future<void> test_superFormalParameter_requiredPositional_unresolved() async {
@@ -1399,7 +1436,7 @@ class B extends A {
   Future<void> test_targetElement() async {
     addTestFile('''
 class AAA {}
-main() {
+void f() {
   AAA aaa = null;
 }
 ''');
@@ -1432,7 +1469,7 @@ void f(A a) {}
 
   Future<void> test_type_dynamic() async {
     addTestFile('''
-main() {
+void f() {
   dynamic v = null;
 }
 ''');
@@ -1442,7 +1479,7 @@ main() {
 
   Future<void> test_type_void() async {
     addTestFile('''
-void main() {
+void f() {
 }
 ''');
     await prepareNavigation();

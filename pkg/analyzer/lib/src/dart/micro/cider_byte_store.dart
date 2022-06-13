@@ -54,7 +54,7 @@ class CiderCachedByteStore implements CiderByteStore {
 
   @override
   CacheData? get(String key, Uint8List signature) {
-    var entry = _cache.get(key, () => null);
+    final entry = _cache.get(key);
 
     if (entry != null &&
         const ListEquality<int>().equals(entry.signature, signature)) {

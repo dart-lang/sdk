@@ -37,7 +37,7 @@ FunctionReference
       expression: AsExpression
         expression: SimpleIdentifier
           token: f
-          staticElement: f@43
+          staticElement: self::@function::foo::@parameter::f
           staticType: void Function<T>(T)
         asOperator: as
         type: NamedType
@@ -113,7 +113,8 @@ FunctionReference
     operator: =
     rightHandSide: SimpleIdentifier
       token: f
-      staticElement: f@71
+      parameter: self::@setter::g::@parameter::_g
+      staticElement: self::@function::foo::@parameter::f
       staticType: void Function<T>(T)
     readElement: <null>
     readType: null
@@ -145,15 +146,16 @@ FunctionReference
   function: AssignmentExpression
     leftHandSide: SimpleIdentifier
       token: f
-      staticElement: f@144
+      staticElement: self::@function::foo::@parameter::f
       staticType: null
     operator: +=
     rightHandSide: IntegerLiteral
       literal: 1
+      parameter: self::@extension::0::@method::+::@parameter::i
       staticType: int
-    readElement: f@144
+    readElement: self::@function::foo::@parameter::f
     readType: void Function<T>(T)
-    writeElement: f@144
+    writeElement: self::@function::foo::@parameter::f
     writeType: void Function<T>(T)
     staticElement: self::@extension::0::@method::+
     staticType: void Function<T>(T)
@@ -176,7 +178,7 @@ FunctionReference
     awaitKeyword: await
     expression: SimpleIdentifier
       token: f
-      staticElement: f@59
+      staticElement: self::@function::foo::@parameter::f
       staticType: Future<void Function<T>(T)>
     staticType: void Function<T>(T)
   staticType: void Function(int)
@@ -203,11 +205,12 @@ FunctionReference
   function: BinaryExpression
     leftOperand: SimpleIdentifier
       token: c
-      staticElement: c@108
+      staticElement: self::@function::foo::@parameter::c
       staticType: C
     operator: +
     rightOperand: IntegerLiteral
       literal: 1
+      parameter: self::@class::C::@method::+::@parameter::i
       staticType: int
     staticElement: self::@class::C::@method::+
     staticInvokeType: void Function<T>(T) Function(int)
@@ -229,7 +232,7 @@ void Function(int) foo(void Function<T>(T) f) {
 FunctionReference
   function: SimpleIdentifier
     token: f
-    staticElement: f@43
+    staticElement: self::@function::foo::@parameter::f
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
@@ -301,9 +304,9 @@ FunctionReference
           type: T
         identifier: SimpleIdentifier
           token: a
-          staticElement: a@42
+          staticElement: @36::@parameter::a
           staticType: null
-        declaredElement: a@42
+        declaredElement: @36::@parameter::a
         declaredElementType: T
       rightParenthesis: )
     body: BlockFunctionBody
@@ -332,7 +335,7 @@ FunctionReference
       leftParenthesis: (
       expression: SimpleIdentifier
         token: f
-        staticElement: f@54
+        staticElement: self::@function::foo::@parameter::f
         staticType: void Function<T>(T) Function()
       rightParenthesis: )
       staticType: void Function<T>(T) Function()
@@ -361,7 +364,7 @@ void Function(int) foo(Fn f) {
 FunctionReference
   function: SimpleIdentifier
     token: f
-    staticElement: f@61
+    staticElement: self::@function::foo::@parameter::f
     staticType: void Function<U>(U)
       alias: self::@typeAlias::Fn
   staticType: void Function(int)
@@ -397,11 +400,14 @@ FunctionReference
   function: IndexExpression
     target: SimpleIdentifier
       token: f
-      staticElement: f@49
+      staticElement: self::@function::foo::@parameter::f
       staticType: List<void Function<T>(T)>
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: ParameterMember
+        base: dart:core::@class::List::@method::[]::@parameter::index
+        substitution: {E: void Function<T>(T)}
       staticType: int
     rightBracket: ]
     staticElement: MethodMember
@@ -431,7 +437,7 @@ FunctionReference
   function: MethodInvocation
     target: SimpleIdentifier
       token: c
-      staticElement: c@100
+      staticElement: self::@function::foo::@parameter::c
       staticType: C
     operator: .
     methodName: SimpleIdentifier
@@ -467,12 +473,12 @@ FunctionReference
   function: PostfixExpression
     operand: SimpleIdentifier
       token: f
-      staticElement: f@144
+      staticElement: self::@function::foo::@parameter::f
       staticType: null
     operator: ++
-    readElement: f@144
+    readElement: self::@function::foo::@parameter::f
     readType: void Function<T>(T)
-    writeElement: f@144
+    writeElement: self::@function::foo::@parameter::f
     writeType: void Function<T>(T)
     staticElement: self::@extension::0::@method::+
     staticType: void Function<T>(T)
@@ -498,7 +504,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: c
-      staticElement: c@68
+      staticElement: self::@function::foo::@parameter::c
       staticType: C
     period: .
     identifier: SimpleIdentifier
@@ -532,11 +538,11 @@ FunctionReference
     operator: ++
     operand: SimpleIdentifier
       token: f
-      staticElement: f@144
+      staticElement: self::@function::foo::@parameter::f
       staticType: null
-    readElement: f@144
+    readElement: self::@function::foo::@parameter::f
     readType: void Function<T>(T)
-    writeElement: f@144
+    writeElement: self::@function::foo::@parameter::f
     writeType: void Function<T>(T)
     staticElement: self::@extension::0::@method::+
     staticType: void Function<T>(T)
@@ -564,7 +570,7 @@ FunctionReference
       leftParenthesis: (
       expression: SimpleIdentifier
         token: c
-        staticElement: c@68
+        staticElement: self::@function::foo::@parameter::c
         staticType: C
       rightParenthesis: )
       staticType: C
@@ -591,7 +597,7 @@ void Function(int) foo(void Function<T>(T) f) {
 FunctionReference
   function: SimpleIdentifier
     token: f
-    staticElement: f@43
+    staticElement: self::@function::foo::@parameter::f
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
@@ -1089,7 +1095,8 @@ FunctionReference
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@60
+            parameter: <null>
+            staticElement: self::@function::bar::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -1221,7 +1228,8 @@ FunctionReference
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@78
+            parameter: <null>
+            staticElement: self::@function::bar::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -1321,7 +1329,8 @@ FunctionReference
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@69
+            parameter: <null>
+            staticElement: self::@function::bar::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -1374,7 +1383,8 @@ FunctionReference
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@39
+            parameter: <null>
+            staticElement: self::@function::bar::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -1932,7 +1942,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@51
+      staticElement: self::@function::bar::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -2126,7 +2136,7 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: c
-        staticElement: c@46
+        staticElement: self::@function::bar::@parameter::c
         staticType: C
       period: .
       identifier: SimpleIdentifier
@@ -2223,7 +2233,7 @@ FunctionReference
       leftParenthesis: (
       expression: SimpleIdentifier
         token: a
-        staticElement: a@42
+        staticElement: self::@function::f::@parameter::a
         staticType: A
       rightParenthesis: )
       staticType: A
@@ -2267,12 +2277,13 @@ FunctionReference
       expression: BinaryExpression
         leftOperand: SimpleIdentifier
           token: a
-          staticElement: a@45
+          staticElement: self::@function::f::@parameter::a
           staticType: A?
         operator: ??
         rightOperand: SimpleIdentifier
           token: b
-          staticElement: b@50
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::b
           staticType: A
         staticElement: <null>
         staticInvokeType: null
@@ -2487,7 +2498,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@81
+      staticElement: self::@function::bar::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -2757,7 +2768,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@41
+      staticElement: self::@function::bar::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -2968,7 +2979,7 @@ void bar(void Function<T>(T a) foo) {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: foo@31
+    staticElement: self::@function::bar::@parameter::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3090,7 +3101,7 @@ void bar<T extends Function>(T foo) {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: foo@31
+    staticElement: self::@function::bar::@parameter::foo
     staticType: T
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3118,7 +3129,7 @@ void bar<T extends void Function<U>(U)>(T foo) {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: foo@42
+    staticElement: self::@function::bar::@parameter::foo
     staticType: T
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3151,7 +3162,7 @@ void bar<T>(T foo) {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: foo@14
+    staticElement: self::@function::bar::@parameter::foo
     staticType: T
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3280,7 +3291,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@12
+      staticElement: self::@function::bar::@parameter::a
       staticType: dynamic
     period: .
     identifier: SimpleIdentifier
@@ -4111,7 +4122,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@30
+      staticElement: self::@class::B::@method::bar::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -4195,7 +4206,7 @@ void bar(void Function<T>(T a) foo) {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: foo@31
+    staticElement: self::@function::bar::@parameter::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <

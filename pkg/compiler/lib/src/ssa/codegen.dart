@@ -729,7 +729,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           instruction is HAsCheck ||
           instruction is HAsCheckSimple ||
           instruction is HBoolConversion ||
-          instruction is HNullCheck) {
+          instruction is HNullCheck ||
+          instruction is HLateReadCheck) {
         String inputName = variableNames.getName(instruction.checkedInput);
         if (variableNames.getName(instruction) == inputName) {
           needsAssignment = false;
@@ -1825,7 +1826,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     if (condition.isConstant()) {
       HConstant constant = condition;
-      if (constant.constant.isTrue) {
+      if (constant.constant is TrueConstantValue) {
         generateStatements(info.thenGraph);
       } else {
         generateStatements(info.elseGraph);
@@ -1886,7 +1887,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     List<js.Expression> arguments = visitArguments(node.inputs);
     MemberEntity target = node.element;
 
-    // TODO(herhut): The namer should return the appropriate backendname here.
+    // TODO(herhut): The namer should return the appropriate backend name here.
     if (target != null && !node.isInterceptedCall) {
       if (target == _commonElements.jsArrayAdd) {
         methodName = 'push';
@@ -2119,7 +2120,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (_commonElements.isCheckConcurrentModificationError(element)) {
       // Manually inline the [checkConcurrentModificationError] function.  This
       // function is only called from a for-loop update.  Ideally we would just
-      // generate the conditionalcontrol flow in the builder but it adds basic
+      // generate the conditional control flow in the builder but it adds basic
       // blocks in the loop update that interfere with other optimizations and
       // confuses loop recognition.
 
@@ -2383,16 +2384,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       if (target.isStatic || target.isTopLevel) {
         var arguments = visitArguments(inputs, start: 0);
-        js.Expression targeExpression =
+        js.Expression targetExpression =
             js.js.uncachedExpressionTemplate(targetName).instantiate([]);
         js.Expression expression;
         if (target.isGetter) {
-          expression = targeExpression;
+          expression = targetExpression;
         } else if (target.isSetter) {
-          expression = js.js('# = #', [targeExpression, inputs.single]);
+          expression = js.js('# = #', [targetExpression, inputs.single]);
         } else {
           assert(target.isFunction);
-          expression = js.js('#(#)', [targeExpression, arguments]);
+          expression = js.js('#(#)', [targetExpression, arguments]);
         }
         push(expression.withSourceInformation(node.sourceInformation));
         _registry.registerNativeMethod(target);
@@ -2490,10 +2491,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     generateConstant(node.constant, node.sourceInformation);
 
     _registry.registerConstantUse(ConstantUse.literal(node.constant));
-    if (node.constant.isType) {
-      TypeConstantValue typeConstant = node.constant;
-      _registry.registerTypeUse(
-          TypeUse.constTypeLiteral(typeConstant.representedType));
+    ConstantValue constant = node.constant;
+    if (constant is TypeConstantValue) {
+      _registry
+          .registerTypeUse(TypeUse.constTypeLiteral(constant.representedType));
     }
   }
 
@@ -3017,6 +3018,94 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   @override
+  void visitLateReadCheck(HLateReadCheck node) {
+    // We generate code roughly equivalent to invoking:
+    //
+    // T _lateReadCheck<T>(T value, String name) {
+    //   if (isSentinel(value)) throw LateError.fieldNI(name);
+    //   return value;
+    // }
+
+    assert(!node.isRedundant(_closedWorld));
+
+    final sourceInformation = node.sourceInformation;
+
+    _emitIsLateSentinel(node.checkedInput, sourceInformation);
+    final condition = pop();
+
+    if (node.hasName) {
+      use(node.name);
+      _pushCallStatic(
+          _commonElements.throwLateFieldNI, [pop()], sourceInformation);
+    } else {
+      _pushCallStatic(
+          _commonElements.throwUnnamedLateFieldNI, const [], sourceInformation);
+    }
+
+    final lateError =
+        pop().toStatement().withSourceInformation(sourceInformation);
+    pushStatement(js.If.noElse(condition, lateError)
+        .withSourceInformation(sourceInformation));
+  }
+
+  @override
+  void visitLateWriteOnceCheck(HLateWriteOnceCheck node) {
+    // We generate code roughly equivalent to invoking:
+    //
+    // void _lateWriteOnceCheck(Object? value, String name) {
+    //   if (!isSentinel(value)) throw LateError.fieldAI(name);
+    // }
+
+    assert(!node.isRedundant(_closedWorld));
+
+    final sourceInformation = node.sourceInformation;
+    _emitIsLateSentinel(node.checkedInput, sourceInformation, inverse: true);
+    final condition = pop();
+
+    if (node.hasName) {
+      use(node.name);
+      _pushCallStatic(
+          _commonElements.throwLateFieldAI, [pop()], sourceInformation);
+    } else {
+      _pushCallStatic(
+          _commonElements.throwUnnamedLateFieldAI, [], sourceInformation);
+    }
+    final lateError =
+        pop().toStatement().withSourceInformation(sourceInformation);
+    pushStatement(js.If.noElse(condition, lateError)
+        .withSourceInformation(sourceInformation));
+  }
+
+  @override
+  void visitLateInitializeOnceCheck(HLateInitializeOnceCheck node) {
+    // We generate code roughly equivalent to invoking:
+    //
+    // void _lateInitializeOnceCheck(Object? value, String name) {
+    //   if (!isSentinel(value)) throw LateError.fieldADI(name);
+    // }
+
+    assert(!node.isRedundant(_closedWorld));
+
+    final sourceInformation = node.sourceInformation;
+    _emitIsLateSentinel(node.checkedInput, sourceInformation, inverse: true);
+    final condition = pop();
+
+    if (node.hasName) {
+      use(node.name);
+      _pushCallStatic(
+          _commonElements.throwLateFieldADI, [pop()], sourceInformation);
+    } else {
+      _pushCallStatic(
+          _commonElements.throwUnnamedLateFieldADI, [], sourceInformation);
+    }
+
+    final lateError =
+        pop().toStatement().withSourceInformation(sourceInformation);
+    pushStatement(js.If.noElse(condition, lateError)
+        .withSourceInformation(sourceInformation));
+  }
+
+  @override
   void visitTypeKnown(HTypeKnown node) {
     // [HTypeKnown] instructions are removed before generating code.
     assert(false);
@@ -3097,7 +3186,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
       case IsTestSpecialization.instanceof:
         DartType dartType = node.dartType;
-        // We don't generate instancof specializations for Never* and Object*.
+        // We don't generate instanceof specializations for Never* and Object*.
         assert(dartType is InterfaceType ||
             (dartType is LegacyType &&
                 !dartType.baseType.isObject &&
@@ -3299,9 +3388,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         StaticUse.directInvoke(method, selector.callStructure, null));
   }
 
-  _emitIsLateSentinel(HIsLateSentinel node, SourceInformation sourceInformation,
+  _emitIsLateSentinel(HInstruction input, SourceInformation sourceInformation,
       {inverse = false}) {
-    use(node.inputs[0]);
+    use(input);
     js.Expression value = pop();
     js.Expression sentinel =
         _emitter.constantReference(LateSentinelConstantValue());
@@ -3311,5 +3400,5 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitIsLateSentinel(HIsLateSentinel node) =>
-      _emitIsLateSentinel(node, node.sourceInformation);
+      _emitIsLateSentinel(node.inputs.single, node.sourceInformation);
 }

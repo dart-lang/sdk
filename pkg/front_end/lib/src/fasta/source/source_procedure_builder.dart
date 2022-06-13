@@ -16,6 +16,7 @@ import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
+import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../source/name_scheme.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
@@ -32,6 +33,9 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   @override
   final bool isExtensionInstanceMember;
+
+  @override
+  final TypeBuilder returnType;
 
   late Procedure _procedure;
 
@@ -59,7 +63,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   SourceProcedureBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
-      TypeBuilder? returnType,
+      this.returnType,
       String name,
       List<TypeVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
@@ -75,21 +79,23 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       NameScheme nameScheme,
       {required bool isExtensionMember,
       required bool isInstanceMember,
-      String? nativeMethodName})
+      String? nativeMethodName,
+      bool isSynthetic: false})
       // ignore: unnecessary_null_comparison
       : assert(isExtensionMember != null),
         // ignore: unnecessary_null_comparison
         assert(isInstanceMember != null),
         assert(kind != ProcedureKind.Factory),
         this.isExtensionInstanceMember = isInstanceMember && isExtensionMember,
-        super(metadata, modifiers, returnType, name, typeVariables, formals,
-            libraryBuilder, charOffset, nativeMethodName) {
+        super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
+            charOffset, nativeMethodName) {
     _procedure = new Procedure(
         nameScheme.getProcedureName(kind, name),
         isExtensionInstanceMember ? ProcedureKind.Method : kind,
         new FunctionNode(null),
         fileUri: libraryBuilder.fileUri,
-        reference: procedureReference)
+        reference: procedureReference,
+        isSynthetic: isSynthetic)
       ..startFileOffset = startCharOffset
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
@@ -125,18 +131,6 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     actualAsyncModifier = newModifier;
     function.asyncMarker = actualAsyncModifier;
     function.dartAsyncMarker = actualAsyncModifier;
-  }
-
-  bool get isEligibleForTopLevelInference {
-    if (isDeclarationInstanceMember) {
-      if (returnType == null) return true;
-      if (formals != null) {
-        for (FormalParameterBuilder formal in formals!) {
-          if (formal.type == null) return true;
-        }
-      }
-    }
-    return false;
   }
 
   bool get isExtensionMethod {
@@ -470,20 +464,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   int finishPatch() {
     if (!isPatch) return 0;
 
-    // TODO(ahe): restore file-offset once we track both origin and patch file
-    // URIs. See https://github.com/dart-lang/sdk/issues/31579
-    origin.procedure.fileUri = fileUri;
-    origin.procedure.startFileOffset = _procedure.startFileOffset;
-    origin.procedure.fileOffset = _procedure.fileOffset;
-    origin.procedure.fileEndOffset = _procedure.fileEndOffset;
-    origin.procedure.annotations
-        .forEach((m) => m.fileOffset = _procedure.fileOffset);
-
-    origin.procedure.isAbstract = _procedure.isAbstract;
-    origin.procedure.isExternal = _procedure.isExternal;
-    origin.procedure.function = _procedure.function;
-    origin.procedure.function.parent = origin.procedure;
-    origin.procedure.isRedirectingFactory = _procedure.isRedirectingFactory;
+    finishProcedurePatch(origin.procedure, _procedure);
     return 1;
   }
 

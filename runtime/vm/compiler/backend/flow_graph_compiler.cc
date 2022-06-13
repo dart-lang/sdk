@@ -208,7 +208,8 @@ void FlowGraphCompiler::InitCompiler() {
       new (zone()) CompressedStackMapsBuilder(zone());
   pc_descriptors_list_ = new (zone()) DescriptorList(
       zone(), &code_source_map_builder_->inline_id_to_function());
-  exception_handlers_list_ = new (zone()) ExceptionHandlerList();
+  exception_handlers_list_ =
+      new (zone()) ExceptionHandlerList(parsed_function().function());
 #if defined(DART_PRECOMPILER)
   catch_entry_moves_maps_builder_ = new (zone()) CatchEntryMovesMapBuilder();
 #endif
@@ -1220,7 +1221,7 @@ ArrayPtr FlowGraphCompiler::CreateDeoptInfo(compiler::Assembler* assembler) {
   // to spill slots. The deoptimization environment does not track them.
   const Function& function = parsed_function().function();
   const intptr_t incoming_arg_count =
-      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
+      function.MakesCopyOfParameters() ? 0 : function.num_fixed_parameters();
   DeoptInfoBuilder builder(zone(), incoming_arg_count, assembler);
 
   intptr_t deopt_info_table_size = DeoptTable::SizeFor(deopt_infos_.length());
@@ -1584,7 +1585,8 @@ bool FlowGraphCompiler::NeedsEdgeCounter(BlockEntryInstr* block) {
 
 // Allocate a register that is not explictly blocked.
 static Register AllocateFreeRegister(bool* blocked_registers) {
-  for (intptr_t regno = 0; regno < kNumberOfCpuRegisters; regno++) {
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+    intptr_t regno = (i + kRegisterAllocationBias) % kNumberOfCpuRegisters;
     if (!blocked_registers[regno]) {
       blocked_registers[regno] = true;
       return static_cast<Register>(regno);
@@ -1614,22 +1616,6 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
 
   bool blocked_registers[kNumberOfCpuRegisters];
   bool blocked_fpu_registers[kNumberOfFpuRegisters];
-
-  // Connect input with peephole output for some special cases. All other
-  // cases are handled by simply allocating registers and generating code.
-  if (top_of_stack_ != nullptr) {
-    const intptr_t p = locs->input_count() - 1;
-    Location peephole = top_of_stack_->locs()->out(0);
-    if ((instr->RequiredInputRepresentation(p) == kTagged) &&
-        (locs->in(p).IsUnallocated() || locs->in(p).IsConstant())) {
-      // If input is unallocated, match with an output register, if set. Also,
-      // if input is a direct constant, but the peephole output is a register,
-      // use that register to avoid wasting the already generated code.
-      if (peephole.IsRegister()) {
-        locs->set_in(p, Location::RegisterLocation(peephole.reg()));
-      }
-    }
-  }
 
   // Block all registers globally reserved by the assembler, etc and mark
   // the rest as free.
@@ -1668,6 +1654,23 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
       ASSERT((fpu_reg >= 0) && (fpu_reg < kNumberOfFpuRegisters));
       ASSERT(!blocked_fpu_registers[fpu_reg]);
       blocked_fpu_registers[fpu_reg] = true;
+    }
+  }
+
+  // Connect input with peephole output for some special cases. All other
+  // cases are handled by simply allocating registers and generating code.
+  if (top_of_stack_ != nullptr) {
+    const intptr_t p = locs->input_count() - 1;
+    Location peephole = top_of_stack_->locs()->out(0);
+    if ((instr->RequiredInputRepresentation(p) == kTagged) &&
+        (locs->in(p).IsUnallocated() || locs->in(p).IsConstant())) {
+      // If input is unallocated, match with an output register, if set. Also,
+      // if input is a direct constant, but the peephole output is a register,
+      // use that register to avoid wasting the already generated code.
+      if (peephole.IsRegister() && !blocked_registers[peephole.reg()]) {
+        locs->set_in(p, Location::RegisterLocation(peephole.reg()));
+        blocked_registers[peephole.reg()] = true;
+      }
     }
   }
 
@@ -3602,7 +3605,6 @@ void FlowGraphCompiler::EmitMoveFromNative(
     EmitNativeMove(dest, src, temp);
   }
 }
-
 
 // The assignment to loading units here must match that in
 // AssignLoadingUnitsCodeVisitor, which runs after compilation is done.

@@ -6,13 +6,14 @@ publish_to: none
 environment:
   sdk: '>=2.12.0 <3.0.0'
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
-  http: ^0.13.0
-  meta:
-    path: ../meta
-  path: ^1.4.0
-  stack_trace: ^1.7.0
-  usage: ^4.0.0
+  http: any
+  meta: any
+  path: any
+  stack_trace: any
+  usage: any
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
-  test: ^1.0.0
+  test: any

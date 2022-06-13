@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
 class AddKeyToConstructors extends CorrectionProducer {
@@ -35,7 +36,12 @@ class AddKeyToConstructors extends CorrectionProducer {
         return;
       }
       var className = node.name;
-      var canBeConst = _canBeConst(parent.declaredElement);
+      var constructors = parent.declaredElement?.supertype?.constructors;
+      if (constructors == null) {
+        return;
+      }
+
+      var canBeConst = _canBeConst(parent, constructors);
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(targetLocation.offset, (builder) {
           builder.write(targetLocation.prefix);
@@ -44,8 +50,12 @@ class AddKeyToConstructors extends CorrectionProducer {
           }
           builder.write(className);
           builder.write('({');
-          builder.writeType(keyType);
-          builder.write(' key}) : super(key: key);');
+          if (libraryElement.featureSet.isEnabled(Feature.super_parameters)) {
+            builder.write('super.key});');
+          } else {
+            builder.writeType(keyType);
+            builder.write(' key}) : super(key: key);');
+          }
           builder.write(targetLocation.suffix);
         });
       });
@@ -56,6 +66,18 @@ class AddKeyToConstructors extends CorrectionProducer {
       if (keyType == null) {
         return;
       }
+      var superParameters =
+          libraryElement.featureSet.isEnabled(Feature.super_parameters);
+
+      void writeKey(DartEditBuilder builder) {
+        if (superParameters) {
+          builder.write('super.key');
+        } else {
+          builder.writeType(keyType);
+          builder.write(' key');
+        }
+      }
+
       var parameterList = parent.parameters;
       var parameters = parameterList.parameters;
       if (parameters.isEmpty) {
@@ -63,10 +85,10 @@ class AddKeyToConstructors extends CorrectionProducer {
         await builder.addDartFileEdit(file, (builder) {
           builder.addInsertion(parameterList.leftParenthesis.end, (builder) {
             builder.write('{');
-            builder.writeType(keyType);
-            builder.write(' key}');
+            writeKey(builder);
+            builder.write('}');
           });
-          _updateSuper(builder, parent);
+          _updateSuper(builder, parent, superParameters);
         });
         return;
       }
@@ -76,34 +98,46 @@ class AddKeyToConstructors extends CorrectionProducer {
         await builder.addDartFileEdit(file, (builder) {
           builder.addInsertion(parameters.last.end, (builder) {
             builder.write(', {');
-            builder.writeType(keyType);
-            builder.write(' key}');
+            writeKey(builder);
+            builder.write('}');
           });
-          _updateSuper(builder, parent);
+          _updateSuper(builder, parent, superParameters);
         });
       } else if (leftDelimiter.type == TokenType.OPEN_CURLY_BRACKET) {
         // There are other named parameters, so add the new named parameter.
         await builder.addDartFileEdit(file, (builder) {
           builder.addInsertion(leftDelimiter.end, (builder) {
-            builder.writeType(keyType);
-            builder.write(' key, ');
+            writeKey(builder);
+            builder.write(', ');
           });
-          _updateSuper(builder, parent);
+          _updateSuper(builder, parent, superParameters);
         });
       }
     }
   }
 
-  /// Return `true` if the [classElement] can be instantiated as a `const`.
-  bool _canBeConst(ClassElement? classElement) {
-    var currentClass = classElement;
-    while (currentClass != null && !currentClass.isDartCoreObject) {
-      for (var field in currentClass.fields) {
-        if (!field.isSynthetic && !field.isFinal) {
+  /// Return `true` if the [classDeclaration] can be instantiated as a `const`.
+  bool _canBeConst(ClassDeclaration classDeclaration,
+      List<ConstructorElement> constructors) {
+    for (var constructor in constructors) {
+      if (constructor.isDefaultConstructor && !constructor.isConst) {
+        return false;
+      }
+    }
+
+    for (var member in classDeclaration.members) {
+      if (member is FieldDeclaration && !member.isStatic) {
+        if (!member.fields.isFinal) {
           return false;
         }
+        for (var variableDeclaration in member.fields.variables) {
+          var initializer = variableDeclaration.initializer;
+          if (initializer is InstanceCreationExpression &&
+              !initializer.isConst) {
+            return false;
+          }
+        }
       }
-      currentClass = currentClass.supertype?.element;
     }
     return true;
   }
@@ -123,8 +157,8 @@ class AddKeyToConstructors extends CorrectionProducer {
     );
   }
 
-  void _updateSuper(
-      DartFileEditBuilder builder, ConstructorDeclaration constructor) {
+  void _updateSuper(DartFileEditBuilder builder,
+      ConstructorDeclaration constructor, bool superParameters) {
     if (constructor.factoryKeyword != null ||
         constructor.redirectedConstructor != null) {
       // Can't have a super constructor invocation.
@@ -142,6 +176,16 @@ class AddKeyToConstructors extends CorrectionProducer {
         return;
       }
     }
+    if (superParameters) {
+      if (invocation != null && invocation.argumentList.arguments.isEmpty) {
+        var previous = initializers.length == 1
+            ? constructor.parameters
+            : initializers[initializers.indexOf(invocation) - 1];
+        builder.addDeletion(range.endStart(previous, constructor.body));
+      }
+      return;
+    }
+
     if (invocation == null) {
       // There is no super constructor invocation, so add one.
       if (initializers.isEmpty) {
@@ -158,15 +202,26 @@ class AddKeyToConstructors extends CorrectionProducer {
           argument is NamedExpression && argument.name.label.name == 'key');
       if (existing == null) {
         // There is no 'key' argument, so add it.
-        if (arguments.isEmpty) {
-          builder.addSimpleInsertion(
-              argumentList.leftParenthesis.end, 'key: key');
-        } else {
-          // This case should never happen because 'key' is the only parameter
-          // in the constructors for both `StatelessWidget` and `StatefulWidget`.
-          builder.addSimpleInsertion(
-              argumentList.leftParenthesis.end, 'key: key, ');
-        }
+        var namedArguments = arguments.whereType<NamedExpression>();
+        var firstNamed = namedArguments.firstOrNull;
+        var token = firstNamed?.beginToken ?? argumentList.endToken;
+        var comma = token.previous?.type == TokenType.COMMA;
+
+        builder.addInsertion(token.offset, (builder) {
+          if (arguments.length != namedArguments.length) {
+            // there are unnamed arguments
+            if (!comma) {
+              builder.write(',');
+            }
+            builder.write(' ');
+          }
+          builder.write('key: key');
+          if (firstNamed != null) {
+            builder.write(', ');
+          } else if (comma) {
+            builder.write(',');
+          }
+        });
       } else {
         // There is an existing 'key' argument, so we leave it alone.
       }

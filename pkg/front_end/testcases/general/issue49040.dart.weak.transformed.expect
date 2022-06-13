@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue49040.dart:6:5: Error: The method 'foo' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing method, or defining a method named 'foo'.
+//   i.foo(a: 0, 1);
+//     ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method bar(core::int i) → dynamic {
+  let final core::int #t1 = 0 in invalid-expression "pkg/front_end/testcases/general/issue49040.dart:6:5: Error: The method 'foo' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing method, or defining a method named 'foo'.
+  i.foo(a: 0, 1);
+    ^^^" in i{<unresolved>}.foo(1, a: #t1);
+}
+static method main() → dynamic {}

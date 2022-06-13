@@ -1,10 +1,9 @@
-// @dart = 2.9
 library test;
 
 typedef void F<T>(T x);
 
 class C<T> {
-  F<T> operator [](int i) => null;
+  F<T> operator [](int i) => throw '';
 }
 
 F<num> test(C<num> c) {}

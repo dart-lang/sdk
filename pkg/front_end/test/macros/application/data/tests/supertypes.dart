@@ -3,6 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
+Definition Order:
+ A:SupertypesMacro.new()
+ B:SupertypesMacro.new()
+ M:SupertypesMacro.new()
+ C:SupertypesMacro.new()
 Definitions:
 import 'dart:core' as prefix0;
 
@@ -25,8 +30,7 @@ augment class C {
 augment prefix0.String getSuperClass() {
     return "A";
   }
-}
-*/
+}*/
 
 import 'package:macro/macro.dart';
 

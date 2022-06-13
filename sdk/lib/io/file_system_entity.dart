@@ -16,12 +16,20 @@ class FileSystemEntityType {
 
   static const link = const FileSystemEntityType._internal(2);
 
-  static const notFound = const FileSystemEntityType._internal(3);
+  static const unixDomainSock = const FileSystemEntityType._internal(3);
+
+  static const pipe = const FileSystemEntityType._internal(4);
+
+  static const notFound = const FileSystemEntityType._internal(5);
+  @Deprecated("Use notFound instead")
+  static const NOT_FOUND = notFound;
 
   static const _typeList = const [
     FileSystemEntityType.file,
     FileSystemEntityType.directory,
     FileSystemEntityType.link,
+    FileSystemEntityType.unixDomainSock,
+    FileSystemEntityType.pipe,
     FileSystemEntityType.notFound,
   ];
   final int _type;
@@ -29,7 +37,14 @@ class FileSystemEntityType {
   const FileSystemEntityType._internal(this._type);
 
   static FileSystemEntityType _lookup(int type) => _typeList[type];
-  String toString() => const ['file', 'directory', 'link', 'notFound'][_type];
+  String toString() => const [
+        'file',
+        'directory',
+        'link',
+        'unixDomainSock',
+        'pipe',
+        'notFound'
+      ][_type];
 }
 
 /// The result of calling the POSIX `stat()` function on a file system object.
@@ -792,7 +807,7 @@ abstract class FileSystemEntity {
       return _getTypeSyncHelper(rawPath, followLinks);
     }
     return overrides.fseGetTypeSync(
-        utf8.decode(rawPath, allowMalformed: true), followLinks);
+        _toStringFromUtf8Array(rawPath), followLinks);
   }
 
   static Future<FileSystemEntityType> _getTypeRequest(
@@ -813,8 +828,7 @@ abstract class FileSystemEntity {
     if (overrides == null) {
       return _getTypeRequest(rawPath, followLinks);
     }
-    return overrides.fseGetType(
-        utf8.decode(rawPath, allowMalformed: true), followLinks);
+    return overrides.fseGetType(_toStringFromUtf8Array(rawPath), followLinks);
   }
 
   static _throwIfError(Object result, String msg, [String? path]) {

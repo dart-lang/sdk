@@ -24,7 +24,7 @@ class RemoveLeadingUnderscoreBulkTest extends BulkFixProcessorTest {
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
-main() {
+void f() {
   int _foo = 42;
   print(_foo);
   [0, 1, 2].forEach((_bar) {
@@ -33,7 +33,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   int foo = 42;
   print(foo);
   [0, 1, 2].forEach((bar) {

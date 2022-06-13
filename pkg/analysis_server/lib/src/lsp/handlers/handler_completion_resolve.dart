@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
-    hide Element;
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -36,17 +33,18 @@ class CompletionResolveHandler
 
   @override
   Future<ErrorOr<CompletionItem>> handle(
-    CompletionItem item,
+    CompletionItem params,
+    MessageInfo message,
     CancellationToken token,
   ) async {
-    final resolutionInfo = item.data;
+    final resolutionInfo = params.data;
 
     if (resolutionInfo is DartSuggestionSetCompletionItemResolutionInfo) {
-      return resolveDartSuggestionSetCompletion(item, resolutionInfo, token);
+      return resolveDartSuggestionSetCompletion(params, resolutionInfo, token);
     } else if (resolutionInfo is PubPackageCompletionItemResolutionInfo) {
-      return resolvePubPackageCompletion(item, resolutionInfo, token);
+      return resolvePubPackageCompletion(params, resolutionInfo, token);
     } else {
-      return success(item);
+      return success(params);
     }
   }
 
@@ -122,7 +120,7 @@ class CompletionResolveHandler
         final dartDoc =
             analyzer.getDartDocPlainText(element.documentationComment);
         final documentation =
-            dartDoc != null ? asStringOrMarkupContent(formats, dartDoc) : null;
+            dartDoc != null ? asMarkupContentOrString(formats, dartDoc) : null;
         final supportsInsertReplace =
             clientCapabilities.insertReplaceCompletionRanges;
 
@@ -154,14 +152,14 @@ class CompletionResolveHandler
           insertText: newInsertText,
           insertTextFormat: item.insertTextFormat,
           textEdit: supportsInsertReplace && insertionRange != replacementRange
-              ? Either2<TextEdit, InsertReplaceEdit>.t2(
+              ? Either2<InsertReplaceEdit, TextEdit>.t1(
                   InsertReplaceEdit(
                     insert: insertionRange,
                     replace: replacementRange,
                     newText: newInsertText,
                   ),
                 )
-              : Either2<TextEdit, InsertReplaceEdit>.t1(
+              : Either2<InsertReplaceEdit, TextEdit>.t2(
                   TextEdit(
                     range: replacementRange,
                     newText: newInsertText,
@@ -255,7 +253,7 @@ class CompletionResolveHandler
       tags: item.tags,
       detail: item.detail,
       documentation: description != null
-          ? Either2<String, MarkupContent>.t1(description)
+          ? Either2<MarkupContent, String>.t2(description)
           : null,
       deprecated: item.deprecated,
       preselect: item.preselect,

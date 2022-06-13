@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.11
+
 import 'package:args/command_runner.dart';
 
 import 'package:dart2js_info/info.dart';
@@ -31,7 +33,6 @@ class DiffCommand extends Command<void> with PrintUsageException {
     if (args.length < 2) {
       usageException(
           'Missing arguments, expected two dump-info files to compare');
-      return;
     }
 
     var oldInfo = await infoFromFile(args[0]);

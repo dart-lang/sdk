@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 abstract class C extends B implements I {}

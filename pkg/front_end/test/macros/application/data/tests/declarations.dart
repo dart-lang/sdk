@@ -2,6 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/*library: 
+Declarations Order:
+ Class1.instanceMethod1:MethodDeclarationsMacro1.new()
+ Class1.instanceGetter1:MethodDeclarationsMacro1.new()
+ Class1.[]:MethodDeclarationsMacro1.new()
+ Class1.instanceField1:FieldDeclarationsMacro1.new()
+ Class1.instanceField2:FieldDeclarationsMacro1.new()
+ Class1.instanceField3:FieldDeclarationsMacro1.new()
+ Class1.instanceSetter1:MethodDeclarationsMacro1.new()
+ Class1.:ConstructorDeclarationsMacro1.new()
+ Class1.redirect:ConstructorDeclarationsMacro1.new()
+ Class1.fact:ConstructorDeclarationsMacro1.new()
+ Class1:ClassDeclarationsMacro2.new()
+ Class1:ClassDeclarationsMacro1.new()
+ Class2.instanceMethod1:MethodDeclarationsMacro1.new()
+ Class2.instanceField1:FieldDeclarationsMacro1.new()
+ Class2:ClassDeclarationsMacro2.new()
+ Class2:ClassDeclarationsMacro1.new()
+ topLevelFunction1:FunctionDeclarationsMacro1.new()
+ topLevelFunction2:FunctionDeclarationsMacro1.new()
+ topLevelField1:VariableDeclarationsMacro1.new()
+ topLevelField2:VariableDeclarationsMacro1.new()
+ topLevelField3:VariableDeclarationsMacro1.new()
+ topLevelField4:VariableDeclarationsMacro1.new()
+ topLevelGetter1:FunctionDeclarationsMacro1.new()
+ topLevelSetter1:FunctionDeclarationsMacro1.new()*/
+
 import 'package:macro/macro.dart';
 
 /*member: topLevelFunction1:
@@ -53,13 +80,13 @@ void topLevelSetter1GeneratedMethod_s() {}
 void set topLevelSetter1(int? value) {}
 
 /*class: Class1:
-void Class1GeneratedMethod_() {}
-
 void Class1Introspection() {
   print("constructors='','redirect','fact'");
   print("fields='instanceField1','instanceField2','instanceField3'");
-  print("methods='instanceMethod1','instanceGetter1','[]','instanceSetter1'");
+  print("methods='instanceMethod1','instanceGetter1','[]','Class1_GeneratedMethod_','Class1_redirectGeneratedMethod_f','Class1_factGeneratedMethod_f','instanceSetter1','Class1_GeneratedMethod_','Class1_redirectGeneratedMethod_f','Class1_factGeneratedMethod_f'");
 }
+
+void Class1GeneratedMethod_() {}
 */
 @ClassDeclarationsMacro1()
 @ClassDeclarationsMacro2()
@@ -132,13 +159,13 @@ void Class1_instanceField3GeneratedMethod_fl() {}
 }
 
 /*class: Class2:
-void Class2GeneratedMethod_a() {}
-
 void Class2Introspection() {
   print("constructors=");
   print("fields='instanceField1'");
   print("methods='instanceMethod1'");
 }
+
+void Class2GeneratedMethod_a() {}
 */
 @ClassDeclarationsMacro1()
 @ClassDeclarationsMacro2()

@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -36,12 +37,13 @@ class CiderServiceTest with ResourceProviderMixin {
     )!;
 
     fileResolver = FileResolver(
-      logger,
-      resourceProvider,
-      workspace.createSourceFactory(sdk, null),
-      (String path) => _getDigest(path),
-      null,
+      logger: logger,
+      resourceProvider: resourceProvider,
+      sourceFactory: workspace.createSourceFactory(sdk, null),
+      getFileDigest: (String path) => _getDigest(path),
+      prefetchFiles: null,
       workspace: workspace,
+      byteStore: CiderCachedByteStore(20 * 1024 * 1024 /* 20 MB */),
     );
     fileResolver.testView = FileResolverTestView();
   }

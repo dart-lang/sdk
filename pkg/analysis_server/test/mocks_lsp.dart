@@ -5,12 +5,8 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
+import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
-
-const _jsonEncoder = JsonEncoder.withIndent('    ');
 
 /// A mock [LspServerCommunicationChannel] for testing [LspAnalysisServer].
 class MockLspServerChannel implements LspServerCommunicationChannel {
@@ -40,12 +36,12 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     // `window/showMessage`.
     _serverToClient.stream.listen((message) {
       if (message is lsp.NotificationMessage &&
-          message.method == Method.window_showMessage) {
+          message.method == lsp.Method.window_showMessage) {
         final params = message.params;
         if (params is lsp.ShowMessageParams) {
-          if (params.type == MessageType.Error) {
+          if (params.type == lsp.MessageType.Error) {
             shownErrors.add(params);
-          } else if (params.type == MessageType.Warning) {
+          } else if (params.type == lsp.MessageType.Warning) {
             shownWarnings.add(params);
           }
         }
@@ -162,28 +158,14 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   /// received response. The returned future will throw an exception if a server
   /// error is reported before the response has been received.
   ///
-  /// Unlike [sendLspRequest], this method assumes that the [request] has
+  /// Unlike [sendRequestToServer], this method assumes that the [request] has
   /// already been sent to the server.
   Future<lsp.ResponseMessage> waitForResponse(
-    lsp.RequestMessage request, {
-    bool throwOnError = true,
-  }) async {
+      lsp.RequestMessage request) async {
     final response = await _serverToClient.stream.firstWhere((message) =>
-        (message is lsp.ResponseMessage && message.id == request.id) ||
-        (throwOnError &&
-            message is lsp.NotificationMessage &&
-            message.method == Method.window_showMessage &&
-            lsp.ShowMessageParams.fromJson(
-                        message.params as Map<String, Object?>)
-                    .type ==
-                MessageType.Error));
+        message is lsp.ResponseMessage && message.id == request.id);
 
-    if (response is lsp.ResponseMessage) {
-      return response;
-    } else {
-      throw 'An error occurred while waiting for a response to ${request.method}: '
-          '${_jsonEncoder.convert(response.toJson())}';
-    }
+    return response as lsp.ResponseMessage;
   }
 
   /// Round trips the object to JSON and back to ensure it behaves the same as

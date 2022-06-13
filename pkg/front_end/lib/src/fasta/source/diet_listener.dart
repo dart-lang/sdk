@@ -974,7 +974,8 @@ class DietListener extends StackListenerImpl {
         BodyBuilder bodyBuilder =
             createFunctionListener(defaultConstructorBuilder);
         bodyBuilder.finishConstructor(
-            defaultConstructorBuilder, AsyncMarker.Sync, new EmptyStatement());
+            defaultConstructorBuilder, AsyncMarker.Sync, new EmptyStatement(),
+            superParametersAsArguments: null);
       }
     }
 

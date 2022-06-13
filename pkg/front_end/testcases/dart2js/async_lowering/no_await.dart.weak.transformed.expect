@@ -6,7 +6,7 @@ import "dart:core" as core;
 static method foo1() → asy::Future<core::int> /* futureValueType= core::int */ /* originally async */ 
   return asy::Future::sync<core::int>(() → FutureOr<core::int> {
     final core::int c = 3;
-    return c;
+    return asy::Future::value<core::int>(c);
   });
 static method foo2() → asy::Future<void> /* futureValueType= void */ /* originally async */ 
   return asy::Future::sync<void>(() → FutureOr<void>? {
@@ -14,21 +14,21 @@ static method foo2() → asy::Future<void> /* futureValueType= void */ /* origin
   });
 static method foo3() → dynamic /* futureValueType= dynamic */ /* originally async */ 
   return asy::Future::sync<dynamic>(() → FutureOr<dynamic>? {
-    return 234;
+    return asy::Future::value<dynamic>(234);
   });
 static method bar(() → asy::Future<core::int> func) → void {
   func(){() → asy::Future<core::int>};
 }
 static method foo4() → asy::Future<core::bool> async /* futureValueType= core::bool */ {
   await asy::Future::value<core::int>(2);
-  self::bar(() → asy::Future<core::int> /* futureValueType= core::int */ /* originally async */ => asy::Future::sync<core::int>(() → FutureOr<core::int> => 3));
+  self::bar(() → asy::Future<core::int> /* futureValueType= core::int */ /* originally async */ => asy::Future::sync<core::int>(() → FutureOr<core::int> => asy::Future::value<core::int>(3)));
   return true;
 }
 static method foo5(core::bool x) → asy::Future<core::int> /* futureValueType= core::int */ /* originally async */ 
   return asy::Future::sync<core::int>(() → FutureOr<core::int> {
     if(x)
-      return 123;
-    return 234;
+      return asy::Future::value<core::int>(123);
+    return asy::Future::value<core::int>(234);
   });
 static method main() → void {
   self::foo1();

@@ -5,6 +5,7 @@
 #include "platform/globals.h"
 
 #include "include/dart_tools_api.h"
+#include "platform/utils.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
@@ -23,7 +24,7 @@ static void TestPrinter(const char* buffer) {
     free(const_cast<char*>(test_output_));
     test_output_ = NULL;
   }
-  test_output_ = strdup(buffer);
+  test_output_ = Utils::StrDup(buffer);
 
   // Also print to stdout to see the overall result.
   OS::PrintErr("%s", test_output_);

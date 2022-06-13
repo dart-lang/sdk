@@ -11,13 +11,15 @@ import '../closure.dart';
 import '../common.dart';
 import '../common/elements.dart' show JCommonElements, JElementEnvironment;
 import '../common/names.dart';
-import '../deferred_load/output_unit.dart';
+import '../deferred_load/output_unit.dart'
+    show LateOutputUnitDataBuilder, OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
 import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/abstract_value_strategy.dart';
 import '../js_emitter/sorter.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/field_analysis.dart';

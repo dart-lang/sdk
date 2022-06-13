@@ -40,7 +40,14 @@ class SourceReport {
 
   // report_set is a bitvector indicating which reports to generate
   // (e.g. kCallSites | kCoverage).
+  //
+  // If library_filters is not null, then the report will only include libraries
+  // whose URIs start with one of the filter strings.
   explicit SourceReport(intptr_t report_set,
+                        CompileMode compile = kNoCompile,
+                        bool report_lines = false);
+  explicit SourceReport(intptr_t report_set,
+                        const GrowableObjectArray& library_filters,
                         CompileMode compile = kNoCompile,
                         bool report_lines = false);
   ~SourceReport();
@@ -69,10 +76,11 @@ class SourceReport {
   bool ShouldSkipFunction(const Function& func);
   bool ShouldSkipField(const Field& field);
   bool ShouldCoverageSkipCallSite(const ICData* ic_data);
-  intptr_t GetScriptIndex(const Script& script);
+  intptr_t GetScriptIndex(const Script& script, bool bypass_filters = false);
   bool ScriptIsLoadedByLibrary(const Script& script, const Library& lib);
   intptr_t GetTokenPosOrLine(const Script& script,
                              const TokenPosition& token_pos);
+  bool LibraryMatchesFilters(const Library& lib);
 
   void PrintCallSitesData(JSONObject* jsobj,
                           const Function& func,
@@ -135,6 +143,7 @@ class SourceReport {
   intptr_t report_set_;
   CompileMode compile_mode_;
   bool report_lines_;
+  const GrowableObjectArray& library_filters_;
   Thread* thread_;
   const Script* script_;
   TokenPosition start_pos_;

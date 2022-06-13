@@ -269,7 +269,7 @@ environment:
   }
 
   static Future<DapTestSession> setUp({List<String>? additionalArgs}) async {
-    final server = await _startServer(additionalArgs: additionalArgs);
+    final server = await startServer(additionalArgs: additionalArgs);
     final client = await DapTestClient.connect(
       server,
       captureVmServiceTraffic: verboseLogging,
@@ -279,17 +279,20 @@ environment:
   }
 
   /// Starts a DAP server that can be shared across tests.
-  static Future<DapTestServer> _startServer({
+  static Future<DapTestServer> startServer({
     Logger? logger,
+    Function? onError,
     List<String>? additionalArgs,
   }) async {
     return useInProcessDap
         ? await InProcessDapTestServer.create(
             logger: logger,
+            onError: onError,
             additionalArgs: additionalArgs,
           )
         : await OutOfProcessDapTestServer.create(
             logger: logger,
+            onError: onError,
             additionalArgs: additionalArgs,
           );
   }

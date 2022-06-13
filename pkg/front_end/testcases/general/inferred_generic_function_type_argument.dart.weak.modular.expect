@@ -1,0 +1,47 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/inferred_generic_function_type_argument.dart:12:7: Error: Generic function type 'void Function<T>()' inferred as a type argument.
+// Try providing a non-generic function type explicitly.
+//   f = method();
+//       ^
+//
+// pkg/front_end/testcases/general/inferred_generic_function_type_argument.dart:13:14: Error: Generic function type 'void Function<T>()' inferred as a type argument.
+// Try providing a non-generic function type explicitly.
+//   var list = [f];
+//              ^
+//
+// pkg/front_end/testcases/general/inferred_generic_function_type_argument.dart:14:13: Error: Generic function type 'void Function<T>()' inferred as a type argument.
+// Try providing a non-generic function type explicitly.
+//   var set = {f};
+//             ^
+//
+// pkg/front_end/testcases/general/inferred_generic_function_type_argument.dart:15:14: Error: Generic function type 'void Function<T>()' inferred as a type argument.
+// Try providing a non-generic function type explicitly.
+//   var map1 = {f: 1};
+//              ^
+//
+// pkg/front_end/testcases/general/inferred_generic_function_type_argument.dart:16:14: Error: Generic function type 'void Function<T>()' inferred as a type argument.
+// Try providing a non-generic function type explicitly.
+//   var map2 = {1: f};
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+typedef F = <T extends core::Object? = dynamic>() → void;
+static method method<T extends core::Object? = dynamic>() → self::method::T%
+  return throw "";
+static method test(<T extends core::Object? = dynamic>() → void f) → dynamic {
+  f = self::method<<T extends core::Object? = dynamic>() → void>();
+  core::List<<T extends core::Object? = dynamic>() → void> list = <<T extends core::Object? = dynamic>() → void>[f];
+  core::Set<<T extends core::Object? = dynamic>() → void> set = block {
+    final core::Set<<T extends core::Object? = dynamic>() → void> #t1 = col::LinkedHashSet::•<<T extends core::Object? = dynamic>() → void>();
+    #t1.{core::Set::add}{Invariant}(f){(<T extends core::Object? = dynamic>() → void) → core::bool};
+  } =>#t1;
+  core::Map<<T extends core::Object? = dynamic>() → void, core::int> map1 = <<T extends core::Object? = dynamic>() → void, core::int>{f: 1};
+  core::Map<core::int, <T extends core::Object? = dynamic>() → void> map2 = <core::int, <T extends core::Object? = dynamic>() → void>{1: f};
+}
+static method main() → dynamic {}

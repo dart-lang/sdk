@@ -4,12 +4,10 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
-import 'package:analysis_server/src/collections.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/context_manager.dart';
@@ -30,9 +28,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
-import 'package:analysis_server/src/services/completion/completion_performance.dart'
-    show CompletionPerformance;
-import 'package:analysis_server/src/services/completion/completion_state.dart';
+import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
@@ -47,6 +43,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
@@ -99,8 +96,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   ServerCapabilities? capabilities;
   late ServerCapabilitiesComputer capabilitiesComputer;
 
-  LspPerformance performanceStats = LspPerformance();
-
   /// Whether or not the server is controlling the shutdown and will exit
   /// automatically.
   bool willExit = false;
@@ -132,6 +127,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ResourceProvider baseResourceProvider,
     AnalysisServerOptions options,
     DartSdkManager sdkManager,
+    AnalyticsManager analyticsManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService, {
     http.Client? httpClient,
@@ -143,6 +139,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           options,
           sdkManager,
           diagnosticServer,
+          analyticsManager,
           crashReportingAttachmentsBuilder,
           baseResourceProvider,
           instrumentationService,
@@ -349,26 +346,38 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   /// Handle a [message] that was read from the communication channel.
   void handleMessage(Message message) {
-    performance.logRequestTiming(null);
+    var startTime = DateTime.now();
+    performance.logRequestTiming(message.clientRequestTime);
     runZonedGuarded(() async {
       try {
         if (message is ResponseMessage) {
           handleClientResponse(message);
-        } else if (message is RequestMessage) {
-          final result = await messageHandler.handleMessage(message);
-          if (result.isError) {
-            sendErrorResponse(message, result.error);
-          } else {
-            channel.sendResponse(ResponseMessage(
-                id: message.id,
-                result: result.result,
-                jsonrpc: jsonRpcVersion));
-          }
-        } else if (message is NotificationMessage) {
-          final result = await messageHandler.handleMessage(message);
-          if (result.isError) {
-            sendErrorResponse(message, result.error);
-          }
+        } else if (message is IncomingMessage) {
+          // Record performance information for the request.
+          final performance = OperationPerformanceImpl('<root>');
+          await performance.runAsync('request', (performance) async {
+            final requestPerformance = RequestPerformance(
+              operation: message.method.toString(),
+              performance: performance,
+              requestLatency: message.timeSinceRequest,
+            );
+            recentPerformance.requests.add(requestPerformance);
+
+            final messageInfo = MessageInfo(
+              performance: performance,
+              timeSinceRequest: message.timeSinceRequest,
+            );
+
+            if (message is RequestMessage) {
+              analyticsManager.startedRequestMessage(
+                  request: message, startTime: startTime);
+              await _handleRequestMessage(message, messageInfo);
+            } else if (message is NotificationMessage) {
+              await _handleNotificationMessage(message, messageInfo);
+            } else {
+              showErrorMessageToUser('Unknown incoming message type');
+            }
+          });
         } else {
           showErrorMessageToUser('Unknown message type');
         }
@@ -562,7 +571,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void sendErrorResponse(Message message, ResponseError error) {
     if (message is RequestMessage) {
-      channel.sendResponse(ResponseMessage(
+      sendResponse(ResponseMessage(
           id: message.id, error: error, jsonrpc: jsonRpcVersion));
     } else if (message is ResponseMessage) {
       // For bad response messages where we can't respond with an error, send it
@@ -613,6 +622,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Send the given [response] to the client.
   void sendResponse(ResponseMessage response) {
     channel.sendResponse(response);
+    analyticsManager.sentResponseMessage(response: response);
   }
 
   @override
@@ -777,6 +787,32 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ];
   }
 
+  Future<void> _handleNotificationMessage(
+    NotificationMessage message,
+    MessageInfo messageInfo,
+  ) async {
+    final result = await messageHandler.handleMessage(message, messageInfo);
+    if (result.isError) {
+      sendErrorResponse(message, result.error);
+    }
+  }
+
+  Future<void> _handleRequestMessage(
+    RequestMessage message,
+    MessageInfo messageInfo,
+  ) async {
+    final result = await messageHandler.handleMessage(message, messageInfo);
+    if (result.isError) {
+      sendErrorResponse(message, result.error);
+    } else {
+      sendResponse(ResponseMessage(
+        id: message.id,
+        result: result.result,
+        jsonrpc: jsonRpcVersion,
+      ));
+    }
+  }
+
   void _onPluginsChanged() {
     capabilitiesComputer.performDynamicRegistration();
   }
@@ -857,14 +893,6 @@ class LspInitializationOptions {
         flutterOutline = options != null && options['flutterOutline'] == true;
 }
 
-class LspPerformance {
-  /// A list of code completion performance measurements for the latest
-  /// completion operation up to [performanceListMaxLength] measurements.
-  final RecentBuffer<CompletionPerformance> completion =
-      RecentBuffer<CompletionPerformance>(
-          CompletionState.performanceListMaxLength);
-}
-
 class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   // TODO(dantup): Lots of copy/paste from the Analysis Server one here.
 
@@ -911,34 +939,33 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  void listenAnalysisDriver(analysis.AnalysisDriver analysisDriver) {
+  void listenAnalysisDriver(analysis.AnalysisDriver driver) {
     // TODO(dantup): Is this required, or covered by
     // addContextsToDeclarationsTracker? The original server does not appear to
     // have an equivalent call.
-    final analysisContext = analysisDriver.analysisContext;
+    final analysisContext = driver.analysisContext;
     if (analysisContext != null) {
       analysisServer.declarationsTracker?.addContext(analysisContext);
     }
 
-    analysisDriver.results.listen((result) {
+    driver.results.listen((result) {
       if (result is FileResult) {
         _handleFileResult(result);
       }
     });
-    analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
-    analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
+    driver.exceptions.listen(analysisServer.logExceptionResult);
+    driver.priorityFiles = analysisServer.priorityFiles.toList();
   }
 
   @override
-  void pubspecChanged(String pubspecPath) {
-    analysisServer.pubPackageService.fetchPackageVersionsViaPubOutdated(
-        pubspecPath,
-        pubspecWasModified: true);
+  void pubspecChanged(String path) {
+    analysisServer.pubPackageService
+        .fetchPackageVersionsViaPubOutdated(path, pubspecWasModified: true);
   }
 
   @override
-  void pubspecRemoved(String pubspecPath) {
-    analysisServer.pubPackageService.flushPackageCaches(pubspecPath);
+  void pubspecRemoved(String path) {
+    analysisServer.pubPackageService.flushPackageCaches(path);
   }
 
   @override
@@ -995,9 +1022,18 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   bool _shouldSendError(protocol.AnalysisError error) {
+    // Non-TODOs are always shown.
     if (error.type.name != ErrorType.TODO.name) {
       return true;
     }
+
+    // TODOs that are upgraded from INFO are always shown.
+    if (error.severity.name != ErrorSeverity.INFO.name) {
+      return true;
+    }
+
+    // Otherwise, show TODOs based on client configuration (either showing all,
+    // or specific types of TODOs).
     if (analysisServer.clientConfiguration.global.showAllTodos) {
       return true;
     }

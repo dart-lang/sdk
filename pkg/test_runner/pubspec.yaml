@@ -5,35 +5,23 @@
 name: test_runner
 # This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
+
 environment:
-  sdk: "^2.3.0"
+  sdk: "^2.9.0"
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   args: any
-  dart2js_tools:
-    path: ../dart2js_tools
-  package_config:
-    path: ../../third_party/pkg_tested/package_config
+  dart2js_tools: any
+  package_config: any
   path: any
   pool: any
-  smith:
-    path: ../smith
-  status_file:
-    path: ../status_file
+  smith: any
+  status_file: any
+  webdriver: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
-  analyzer:
-    path: ../../pkg/analyzer
-  expect:
-    path: ../expect
-  file: any
+  analyzer: any
+  expect: any
   glob: any
-dependency_overrides:
-  # Other packages in the dependency graph have normal hosted dependencies on
-  # this, so just override it to force the local one.
-  analyzer:
-    path: ../../pkg/analyzer
-  args:
-    path: ../../third_party/pkg/args
-  file:
-    path: ../../third_party/pkg/file/packages/file
-  glob:
-    path: ../../third_party/pkg/glob

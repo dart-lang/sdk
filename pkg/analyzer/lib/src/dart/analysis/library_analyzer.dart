@@ -35,7 +35,7 @@ import 'package:analyzer/src/error/override_verifier.dart';
 import 'package:analyzer/src/error/todo_finder.dart';
 import 'package:analyzer/src/error/unicode_text_verifier.dart';
 import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
-import 'package:analyzer/src/generated/declaration_resolver.dart';
+import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/ffi_verifier.dart';
@@ -52,13 +52,6 @@ import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/uri.dart';
 
-var timerLibraryAnalyzer = Stopwatch();
-var timerLibraryAnalyzerConst = Stopwatch();
-var timerLibraryAnalyzerFreshUnit = Stopwatch();
-var timerLibraryAnalyzerResolve = Stopwatch();
-var timerLibraryAnalyzerSplicer = Stopwatch();
-var timerLibraryAnalyzerVerify = Stopwatch();
-
 class AnalysisForCompletionResult {
   final CompilationUnit parsedUnit;
   final List<AstNode> resolvedNodes;
@@ -74,7 +67,7 @@ class LibraryAnalyzer {
   final AnalysisOptionsImpl _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final SourceFactory _sourceFactory;
-  final FileState _library;
+  final LibraryFileStateKind _library;
   final InheritanceManager3 _inheritance;
 
   final LibraryElementImpl _libraryElement;
@@ -112,7 +105,6 @@ class LibraryAnalyzer {
       errors = _filterIgnoredErrors(file, errors);
       results.add(UnitAnalysisResult(file, unit, errors));
     });
-    timerLibraryAnalyzer.stop();
     return results;
   }
 
@@ -151,7 +143,7 @@ class LibraryAnalyzer {
           nameScope: _libraryElement.scope,
           elementWalker: ElementWalker.forCompilationUnit(
             unitElement,
-            libraryFilePath: _library.path,
+            libraryFilePath: _library.file.path,
             unitFilePath: file.path,
           ),
         ),
@@ -230,7 +222,7 @@ class LibraryAnalyzer {
             shouldReport = true;
           }
           if (shouldReport) {
-            _getErrorReporter(_library).reportErrorForNode(
+            _getErrorReporter(_library.file).reportErrorForNode(
               CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
               directive.uri,
             );
@@ -258,7 +250,6 @@ class LibraryAnalyzer {
   /// Compute diagnostics in [units], including errors and warnings, hints,
   /// lints, and a few other cases.
   void _computeDiagnostics(Map<FileState, CompilationUnitImpl> units) {
-    timerLibraryAnalyzerVerify.start();
     units.forEach((file, unit) {
       _computeVerifyErrors(file, unit);
     });
@@ -289,11 +280,11 @@ class LibraryAnalyzer {
     }
 
     if (_analysisOptions.lint) {
-      var allUnits = _library.libraryFiles
+      var allUnits = _library.file.libraryFiles
           .map((file) => LinterContextUnit(file.content, units[file]!))
           .toList();
       for (int i = 0; i < allUnits.length; i++) {
-        _computeLints(_library.libraryFiles[i], allUnits[i], allUnits,
+        _computeLints(_library.file.libraryFiles[i], allUnits[i], allUnits,
             analysisOptions: _analysisOptions);
       }
     }
@@ -304,7 +295,7 @@ class LibraryAnalyzer {
 
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
-    for (var file in _library.libraryFiles) {
+    for (var file in _library.file.libraryFiles) {
       IgnoreValidator(
         _getErrorReporter(file),
         _getErrorListener(file).errors,
@@ -313,7 +304,6 @@ class LibraryAnalyzer {
         _analysisOptions.unignorableNames,
       ).reportErrors();
     }
-    timerLibraryAnalyzerVerify.stop();
   }
 
   void _computeHints(
@@ -349,7 +339,7 @@ class LibraryAnalyzer {
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
         analysisOptions: _analysisOptions,
-        workspacePackage: _library.workspacePackage,
+        workspacePackage: _library.file.workspacePackage,
       ),
     );
 
@@ -552,13 +542,13 @@ class LibraryAnalyzer {
     if (source is InSummarySource) {
       return true;
     }
-    for (var file in _library.directReferencedFiles) {
+    for (var file in _library.file.directReferencedFiles) {
       if (file.uri == source.uri) {
         return file.exists;
       }
     }
     // A library can refer to itself with an empty URI.
-    return source == _library.source;
+    return source == _library.file.source;
   }
 
   /// Return a new parsed unresolved [CompilationUnit].
@@ -575,48 +565,40 @@ class LibraryAnalyzer {
 
   /// Parse and resolve all files in [_library].
   Map<FileState, CompilationUnitImpl> _parseAndResolve() {
-    timerLibraryAnalyzer.start();
     var units = <FileState, CompilationUnitImpl>{};
 
     // Parse all files.
-    timerLibraryAnalyzerFreshUnit.start();
-    for (FileState file in _library.libraryFiles) {
+    for (FileState file in _library.file.libraryFiles) {
       units[file] = _parse(file);
     }
-    timerLibraryAnalyzerFreshUnit.stop();
 
     // Resolve URIs in directives to corresponding sources.
-    FeatureSet featureSet = units[_library]!.featureSet;
+    FeatureSet featureSet = units[_library.file]!.featureSet;
     units.forEach((file, unit) {
       _validateFeatureSet(unit, featureSet);
       _resolveUriBasedDirectives(file, unit);
     });
 
-    timerLibraryAnalyzerResolve.start();
     _resolveDirectives(units);
 
     units.forEach((file, unit) {
       _resolveFile(file, unit);
     });
-    timerLibraryAnalyzerResolve.stop();
-
-    timerLibraryAnalyzerConst.start();
 
     _computeConstants(units.values);
-    timerLibraryAnalyzerConst.stop();
 
     return units;
   }
 
   void _resolveDirectives(Map<FileState, CompilationUnitImpl> units) {
-    var definingCompilationUnit = units[_library]!;
+    var definingCompilationUnit = units[_library.file]!;
     definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
 
     bool matchNodeElement(Directive node, Element element) {
       return node.keyword.offset == element.nameOffset;
     }
 
-    ErrorReporter libraryErrorReporter = _getErrorReporter(_library);
+    ErrorReporter libraryErrorReporter = _getErrorReporter(_library.file);
 
     LibraryIdentifier? libraryNameNode;
     var seenPartSources = <Source>{};
@@ -669,7 +651,7 @@ class LibraryAnalyzer {
       } else if (directive is PartDirectiveImpl) {
         StringLiteral partUri = directive.uri;
 
-        var partFile = _library.partedFiles[partDirectiveIndex++];
+        var partFile = _library.file.partedFiles[partDirectiveIndex++];
         if (partFile == null) {
           continue;
         }
@@ -720,11 +702,11 @@ class LibraryAnalyzer {
               }
             } else {
               Source source = nameOrSource.source!;
-              if (source != _library.source) {
+              if (source != _library.file.source) {
                 libraryErrorReporter.reportErrorForNode(
                     CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
                     partUri,
-                    [_library.uriStr, source.uri]);
+                    [_library.file.uriStr, source.uri]);
               }
             }
           }
@@ -757,7 +739,7 @@ class LibraryAnalyzer {
         nameScope: _libraryElement.scope,
         elementWalker: ElementWalker.forCompilationUnit(
           unitElement,
-          libraryFilePath: _library.path,
+          libraryFilePath: _library.file.path,
           unitFilePath: file.path,
         ),
       ),
@@ -789,7 +771,7 @@ class LibraryAnalyzer {
       return null;
     }
 
-    var absoluteUri = resolveRelativeUri(_library.uri, relativeUri);
+    var absoluteUri = resolveRelativeUri(_library.file.uri, relativeUri);
     return rewriteToCanonicalUri(_sourceFactory, absoluteUri);
   }
 
@@ -980,8 +962,12 @@ class LibraryAnalyzer {
       // The name of a NamedType does not provide any context.
       // So, we don't need to resolve anything.
       if (parent is NamedType) {
-        // `{foo^ print(0);}` looks as `foo print; (0);`.
         var parent3 = parent.parent?.parent;
+        // `class A {foo^ int bar = 0;}` looks as `class A {foo int; bar = 0;}`.
+        if (parent3 is FieldDeclaration) {
+          return false;
+        }
+        // `{foo^ print(0);}` looks as `foo print; (0);`.
         if (parent3 is VariableDeclarationStatement &&
             parent3.semicolon.isSynthetic) {
           return false;
@@ -995,6 +981,15 @@ class LibraryAnalyzer {
 
       // We have a contributor that looks at the type, but it is syntactic.
       if (parent is VariableDeclaration && parent.name == node) {
+        final parent2 = parent.parent;
+        final parent3 = parent2?.parent;
+        // `class A { foo^ }` looks like `class A { <noType> foo; }`.
+        if (parent2 is VariableDeclarationList &&
+            parent2.type == null &&
+            parent3 is FieldDeclaration &&
+            parent3.semicolon.isSynthetic) {
+          return false;
+        }
         return true;
       }
     }

@@ -24,7 +24,7 @@ enum MyEnum {
 }
 ''');
     addTestFile(r'''
-main() {} // ref
+void f() {} // ref
 ''');
 
     var set = await waitForSetWithUri('package:test/a.dart');
@@ -40,7 +40,7 @@ main() {} // ref
     _assertTestFileChange(result.change!, r'''
 import 'package:test/a.dart';
 
-main() {} // ref
+void f() {} // ref
 ''');
   }
 
@@ -48,7 +48,7 @@ main() {} // ref
     addTestFile(r'''
 import 'dart:math';
 
-main() {} // ref
+void f() {} // ref
 ''');
 
     var mathSet = await waitForSetWithUri('dart:math');
@@ -68,7 +68,7 @@ main() {} // ref
     addTestFile(r'''
 import 'dart:math' as math;
 
-main() {} // ref
+void f() {} // ref
 ''');
 
     var mathSet = await waitForSetWithUri('dart:math');
@@ -99,7 +99,7 @@ main() {} // ref
 
   Future<void> test_newImport() async {
     addTestFile(r'''
-main() {} // ref
+void f() {} // ref
 ''');
 
     var mathSet = await waitForSetWithUri('dart:math');
@@ -115,7 +115,7 @@ main() {} // ref
     _assertTestFileChange(result.change!, r'''
 import 'dart:math';
 
-main() {} // ref
+void f() {} // ref
 ''');
   }
 
@@ -128,7 +128,7 @@ library foo;
 @myAnnotation
 import 'package:zzz';
 
-main() {} // ref
+void f() {} // ref
 ''');
 
     var mathSet = await waitForSetWithUri('dart:math');
@@ -149,7 +149,7 @@ import 'dart:math';
 @myAnnotation
 import 'package:zzz';
 
-main() {} // ref
+void f() {} // ref
 ''');
   }
 
@@ -162,7 +162,7 @@ main() {} // ref
 
 import 'package:zzz';
 
-main() {} // ref
+void f() {} // ref
 ''');
 
     var mathSet = await waitForSetWithUri('dart:math');
@@ -182,7 +182,7 @@ import 'dart:math';
 
 import 'package:zzz';
 
-main() {} // ref
+void f() {} // ref
 ''');
   }
 
@@ -194,7 +194,7 @@ import 'dart:async';
 @myAnnotation
 import 'package:zzz';
 
-main() {} // ref
+void f() {} // ref
 ''');
 
     var mathSet = await waitForSetWithUri('dart:math');
@@ -213,7 +213,7 @@ import 'dart:math';
 @myAnnotation
 import 'package:zzz';
 
-main() {} // ref
+void f() {} // ref
 ''');
   }
 
@@ -221,7 +221,7 @@ main() {} // ref
     var partCode = r'''
 part of 'test.dart';
 
-main() {} // ref
+void f() {} // ref
 ''';
     var partFile = newFile('/home/test/lib/a.dart', partCode);
     addTestFile(r'''

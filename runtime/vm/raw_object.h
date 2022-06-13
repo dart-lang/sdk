@@ -1325,7 +1325,14 @@ class UntaggedFunction : public UntaggedObject {
   VISIT_TO(unoptimized_code);
 
   UnboxedParameterBitmap unboxed_parameters_info_;
+#endif
+
+#if !defined(DART_PRECOMPILED_RUNTIME) ||                                      \
+    (defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT))
   TokenPosition token_pos_;
+#endif
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   TokenPosition end_token_pos_;
 #endif
 
@@ -1346,14 +1353,13 @@ class UntaggedFunction : public UntaggedObject {
   JIT_FUNCTION_COUNTERS(DECLARE)
 #undef DECLARE
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   AtomicBitFieldContainer<uint8_t> packed_fields_;
 
   static constexpr intptr_t kMaxOptimizableBits = 1;
 
   using PackedOptimizable =
       BitField<decltype(packed_fields_), bool, 0, kMaxOptimizableBits>;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
 class UntaggedClosureData : public UntaggedObject {
@@ -2249,16 +2255,30 @@ class UntaggedExceptionHandlers : public UntaggedObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers);
 
-  // Number of exception handler entries.
-  int32_t num_entries_;
+  // Number of exception handler entries and
+  // async handler.
+  uint32_t packed_fields_;
 
-  // Array with [num_entries_] entries. Each entry is an array of all handled
+  // Async handler is used in the async/async* functions.
+  // It's an implicit exception handler (stub) which runs when
+  // exception is not handled within the function.
+  using AsyncHandlerBit = BitField<decltype(packed_fields_), bool, 0, 1>;
+  using NumEntriesBits = BitField<decltype(packed_fields_),
+                                  uint32_t,
+                                  AsyncHandlerBit::kNextBit,
+                                  31>;
+
+  intptr_t num_entries() const {
+    return NumEntriesBits::decode(packed_fields_);
+  }
+
+  // Array with [num_entries] entries. Each entry is an array of all handled
   // exception types.
   COMPRESSED_POINTER_FIELD(ArrayPtr, handled_types_data)
   VISIT_FROM(handled_types_data)
   VISIT_TO(handled_types_data)
 
-  // Exception handler info of length [num_entries_].
+  // Exception handler info of length [num_entries].
   const ExceptionHandlerInfo* data() const {
     OPEN_ARRAY_START(ExceptionHandlerInfo, intptr_t);
   }
@@ -2883,6 +2903,13 @@ class UntaggedPointerBase : public UntaggedInstance {
   uint8_t* data_;
 
  private:
+  template <typename T>
+  friend void CopyTypedDataBaseWithSafepointChecks(
+      Thread*,
+      const T&,
+      const T&,
+      intptr_t);  // Access _data for memmove with safepoint checkins.
+
   RAW_HEAP_OBJECT_IMPLEMENTATION(PointerBase);
 };
 
@@ -2905,6 +2932,11 @@ class UntaggedTypedDataBase : public UntaggedPointerBase {
       intptr_t,
       ExternalTypedDataPtr,
       ExternalTypedDataPtr);  // initialize fields.
+  friend void InitializeExternalTypedDataWithSafepointChecks(
+      Thread*,
+      intptr_t,
+      const ExternalTypedData&,
+      const ExternalTypedData&);  // initialize fields.
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypedDataBase);
 };
@@ -3270,6 +3302,35 @@ class UntaggedStackTrace : public UntaggedInstance {
   // synchronous start to an asynchronous function. In this case, we omit the
   // <asynchronous suspension> marker when concatenating the stacks.
   bool skip_sync_start_in_parent_stack;
+};
+
+class UntaggedSuspendState : public UntaggedInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(SuspendState);
+
+  intptr_t frame_size_;
+  uword pc_;
+
+  // Holds function-specific object which is returned from
+  // SuspendState.init* method.
+  // For async functions: _Future instance.
+  // For async* functions: _AsyncStarStreamController instance.
+  COMPRESSED_POINTER_FIELD(InstancePtr, function_data)
+
+  COMPRESSED_POINTER_FIELD(ClosurePtr, then_callback)
+  COMPRESSED_POINTER_FIELD(ClosurePtr, error_callback)
+  VISIT_FROM(function_data)
+  VISIT_TO(error_callback)
+
+ public:
+  uword pc() const { return pc_; }
+
+  static intptr_t payload_offset() {
+    return OFFSET_OF_RETURNED_VALUE(UntaggedSuspendState, payload);
+  }
+
+  // Variable length payload follows here.
+  uint8_t* payload() { OPEN_ARRAY_START(uint8_t, uint8_t); }
+  const uint8_t* payload() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
 };
 
 // VM type for capturing JS regular expressions.

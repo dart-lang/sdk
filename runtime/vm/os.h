@@ -63,6 +63,9 @@ class OS {
   // NOTE: This function will return -1 on OSs that are not supported.
   static int64_t GetCurrentThreadCPUMicros();
 
+  // If the tracing/timeline configuration on takes timestamps as input, returns
+  // the same value as |GetCurrentMonotonicMicros|. Otherwise, returns -1.
+  static int64_t GetCurrentMonotonicMicrosForTimeline();
   // If the tracing/timeline configuration on the current OS supports thread
   // timestamps, returns the same value as |GetCurrentThreadCPUMicros|.
   // Otherwise, returns -1.

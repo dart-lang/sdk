@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.11
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -20,11 +22,11 @@ main() {
       final proto = AllInfoProtoCodec().encode(decoded);
 
       expect(proto.program.entrypointId, isNotNull);
-      expect(proto.program.size, 91189);
+      expect(proto.program.size, 90362);
       expect(proto.program.compilationMoment.toInt(),
-          DateTime.parse("2022-04-19 11:35:28.623405").microsecondsSinceEpoch);
+          DateTime.parse("2022-05-26 21:08:43.608041").microsecondsSinceEpoch);
       expect(proto.program.toProtoDuration.toInt(),
-          Duration(milliseconds: 2).inMicroseconds);
+          Duration(milliseconds: 3).inMicroseconds);
       expect(proto.program.dumpInfoDuration.toInt(),
           Duration(milliseconds: 0).inMicroseconds);
       expect(proto.program.noSuchMethodEnabled, isFalse);

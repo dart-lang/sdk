@@ -29,8 +29,13 @@ Future<void> main(List<String> arguments) async {
   Directory(outFolder).createSync();
 
   // Collect definitions for types in the spec and our custom extensions.
-  final specTypes = await getSpecClasses(args);
-  final customTypes = getCustomClasses();
+  var specTypes = await getSpecClasses(args);
+  var customTypes = getCustomClasses();
+
+  // Handle some renames of types where we generate names that might not be
+  // ideal.
+  specTypes = renameTypes(specTypes).toList();
+  customTypes = renameTypes(customTypes).toList();
 
   // Record both sets of types in dictionaries for faster lookups, but also so
   // they can reference each other and we can find the definitions during
@@ -69,7 +74,7 @@ final Uri specLicenseUri = Uri.parse(
 /// The URI of the version of the spec to generate from. This should be periodically updated as
 /// there's no longer a stable URI for the latest published version.
 final Uri specUri = Uri.parse(
-    'https://raw.githubusercontent.com/microsoft/language-server-protocol/gh-pages/_specifications/specification-3-16.md');
+    'https://raw.githubusercontent.com/microsoft/language-server-protocol/gh-pages/_specifications/lsp/3.17/specification.md');
 
 /// Pattern to extract inline types from the `result: {xx, yy }` notes in the spec.
 /// Doesn't parse past full stops as some of these have english sentences tagged on
@@ -90,7 +95,7 @@ To regenerate the generated code, run the script in
 download the latest version of the specification before regenerating the
 code, run the same script with an argument of "--download".''',
     licenseResp.body,
-    specResp.body
+    await _fetchIncludes(specResp.body, specUri),
   ];
   await File(localSpecPath).writeAsString(text.join('\n\n---\n\n'));
 }
@@ -161,11 +166,6 @@ String generatedFileHeader(int year, {bool importCustom = false}) => '''
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
-// ignore_for_file: annotate_overrides
-// ignore_for_file: no_leading_underscores_for_local_identifiers
-// ignore_for_file: prefer_is_not_operator
-// ignore_for_file: unnecessary_parenthesis
-
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
 import 'dart:convert' show JsonEncoder;
@@ -191,18 +191,102 @@ List<AstNode> getCustomClasses() {
 
   Field field(
     String name, {
+    String? comment,
     required String type,
     bool array = false,
     bool canBeUndefined = false,
   }) {
-    var fieldType =
+    final fieldType =
         array ? ArrayType(Type.identifier(type)) : Type.identifier(type);
+    final commentNode =
+        comment != null ? Comment(Token(TokenType.COMMENT, comment)) : null;
 
     return Field(
-        null, Token.identifier(name), fieldType, false, canBeUndefined);
+      commentNode,
+      Token.identifier(name),
+      fieldType,
+      allowsNull: false,
+      allowsUndefined: canBeUndefined,
+    );
   }
 
   final customTypes = <AstNode>[
+    TypeAlias(
+      null,
+      Token.identifier('LSPAny'),
+      Type.Any,
+    ),
+    TypeAlias(
+      null,
+      Token.identifier('LSPObject'),
+      Type.Any,
+    ),
+    interface('Message', [
+      field('jsonrpc', type: 'string'),
+      field('clientRequestTime', type: 'int', canBeUndefined: true),
+    ]),
+    interface(
+      'IncomingMessage',
+      [
+        field('method', type: 'Method'),
+        field('params', type: 'LSPAny', canBeUndefined: true),
+      ],
+      baseType: 'Message',
+    ),
+    interface(
+      'RequestMessage',
+      [
+        Field(
+          null,
+          Token.identifier('id'),
+          UnionType([Type.identifier('int'), Type.identifier('string')]),
+          allowsNull: false,
+          allowsUndefined: false,
+        )
+      ],
+      baseType: 'IncomingMessage',
+    ),
+    interface(
+      'NotificationMessage',
+      [],
+      baseType: 'IncomingMessage',
+    ),
+    interface(
+      'ResponseMessage',
+      [
+        Field(
+          null,
+          Token.identifier('id'),
+          UnionType([Type.identifier('int'), Type.identifier('string')]),
+          allowsNull: true,
+          allowsUndefined: false,
+        ),
+        field('result', type: 'LSPAny', canBeUndefined: true),
+        field('error', type: 'ResponseError', canBeUndefined: true),
+      ],
+      baseType: 'Message',
+    ),
+    interface(
+      'ResponseError',
+      [
+        field('code', type: 'ErrorCodes'),
+        field('message', type: 'string'),
+        // This is Object? normally, but since this class can be serialized
+        // we will crash if it data is set to something that can't be converted to
+        // JSON (for ex. Uri) so this forces anyone setting this to convert to a
+        // String.
+        field(
+          'data',
+          type: 'string',
+          canBeUndefined: true,
+          comment:
+              'A string that contains additional information about the error. '
+              'Can be omitted.',
+        ),
+      ],
+    ),
+    TypeAlias(null, Token.identifier('DocumentUri'), Type.identifier('string')),
+
     interface('DartDiagnosticServer', [field('port', type: 'int')]),
     interface('AnalyzerStatusParams', [field('isAnalyzing', type: 'boolean')]),
     interface('PublishClosingLabelsParams', [
@@ -328,7 +412,7 @@ Future<List<AstNode>> getSpecClasses(ArgResults args) async {
   // Generate an enum for all of the request methods to avoid strings.
   types.add(extractMethodsEnum(spec));
 
-  // Extract additional inline types that are specificed online in the `results`
+  // Extract additional inline types that are specified online in the `results`
   // section of the doc.
   types.addAll(extractResultsInlineTypes(spec));
   return types;
@@ -341,7 +425,12 @@ bool shouldIncludeScriptBlock(String input) {
   // Skip over some typescript blocks that are known sample code and not part
   // of the LSP spec.
   if (input.trim() == r"export const EOL: string[] = ['\n', '\r\n', '\r'];" ||
-      input.startsWith('textDocument.codeAction.resolveSupport =')) {
+      input.startsWith('textDocument.codeAction.resolveSupport =') ||
+      input.startsWith('textDocument.inlayHint.resolveSupport =') ||
+      // These two are example definitions, the real definitions start "export"
+      // and contain some base classes.
+      input.startsWith('interface HoverParams {') ||
+      input.startsWith('interface HoverResult {')) {
     return false;
   }
 
@@ -366,4 +455,24 @@ bool shouldIncludeScriptBlock(String input) {
   }
 
   return true;
+}
+
+/// Fetches and in-lines any includes that appear in [spec] in the form
+/// `{% include_relative types/uri.md %}`.
+Future<String> _fetchIncludes(String spec, Uri baseUri) async {
+  final pattern = RegExp(r'{% include_relative ([\w\-.\/]+.md) %}');
+  final includeStrings = <String, String>{};
+  for (final match in pattern.allMatches(spec)) {
+    final relativeUri = match.group(1)!;
+    final fullUri = baseUri.resolve(relativeUri);
+    final response = await http.get(fullUri);
+    if (response.statusCode != 200) {
+      throw 'Failed to fetch $fullUri (${response.statusCode} ${response.reasonPhrase})';
+    }
+    includeStrings[relativeUri] = response.body;
+  }
+  return spec.replaceAllMapped(
+    pattern,
+    (match) => includeStrings[match.group(1)!]!,
+  );
 }

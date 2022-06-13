@@ -14,7 +14,7 @@ main() {
   // Test with the replaced string at the end.
   Expect.equals("toABtoCDtoEto", "fromABtoCDtoEto".replaceFirst("from", "to"));
 
-  // Test when there are no occurence of the string to replace.
+  // Test when there are no occurrence of the string to replace.
   Expect.equals("ABC", "ABC".replaceFirst("from", "to"));
 
   // Test when the string to change is the empty string.
@@ -84,7 +84,7 @@ main() {
   Expect.equals("toABtoCDtoEto",
       "fromABtoCDtoEto".replaceFirstMapped("from", (_) => "to"));
 
-  // Test when there are no occurence of the string to replace.
+  // Test when there are no occurrence of the string to replace.
   Expect.equals("ABC", "ABC".replaceFirstMapped("from", (_) => "to"));
 
   // Test when the string to change is the empty string.

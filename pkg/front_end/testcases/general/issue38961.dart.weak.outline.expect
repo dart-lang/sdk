@@ -9,6 +9,10 @@ library /*isNonNullableByDefault*/;
 //   dynamic x = this;
 //           ^
 //
+// pkg/front_end/testcases/general/issue38961.dart:7:11: Error: Can't access 'this' in a field initializer.
+//   var x = this;
+//           ^^^^
+//
 import self as self;
 import "dart:core" as core;
 

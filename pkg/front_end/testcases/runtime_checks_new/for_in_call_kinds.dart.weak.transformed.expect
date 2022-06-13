@@ -1,11 +1,11 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
   static field dynamic staticField = null;
   field dynamic instanceField = null;
-  synthetic constructor •() → self::C*
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   static set staticSetter(dynamic x) → void {}
@@ -13,7 +13,7 @@ class C extends core::Object {
   method test() → void {
     dynamic localVar;
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t1 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -22,7 +22,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t2 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -31,7 +31,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t3 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -40,7 +40,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t4 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -49,7 +49,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t5 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -58,7 +58,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t6 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -67,7 +67,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t7 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -76,16 +76,6 @@ class C extends core::Object {
       }
     }
   }
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static field dynamic topLevel;
 static set topLevelSetter(dynamic x) → void {}

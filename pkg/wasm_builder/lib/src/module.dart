@@ -130,9 +130,9 @@ class Module with SerializerMixin {
   }
 
   /// Add a new memory to the module.
-  DefinedMemory addMemory(int minSize, [int? maxSize]) {
+  DefinedMemory addMemory(bool shared, int minSize, [int? maxSize]) {
     anyMemoriesDefined = true;
-    final memory = DefinedMemory(memories.length, minSize, maxSize);
+    final memory = DefinedMemory(memories.length, shared, minSize, maxSize);
     memories.add(memory);
     return memory;
   }
@@ -195,13 +195,14 @@ class Module with SerializerMixin {
   ///
   /// All imported memories must be specified before any memories are declared
   /// using [Module.addMemory].
-  ImportedMemory importMemory(String module, String name, int minSize,
+  ImportedMemory importMemory(
+      String module, String name, bool shared, int minSize,
       [int? maxSize]) {
     if (anyMemoriesDefined) {
       throw "All memory imports must be specified before any definitions.";
     }
     final memory =
-        ImportedMemory(module, name, memories.length, minSize, maxSize);
+        ImportedMemory(module, name, memories.length, shared, minSize, maxSize);
     memories.add(memory);
     return memory;
   }
@@ -410,13 +411,23 @@ class Table implements Serializable {
 /// A memory in a module.
 class Memory {
   final int index;
+  final bool shared;
   final int minSize;
   final int? maxSize;
 
-  Memory(this.index, this.minSize, [this.maxSize]);
+  Memory(this.index, this.shared, this.minSize, [this.maxSize]) {
+    if (shared && maxSize == null) {
+      throw "Shared memory must specify a maximum size.";
+    }
+  }
 
   void _serializeLimits(Serializer s) {
-    if (maxSize == null) {
+    if (shared) {
+      assert(maxSize != null);
+      s.writeByte(0x03);
+      s.writeUnsigned(minSize);
+      s.writeUnsigned(maxSize!);
+    } else if (maxSize == null) {
       s.writeByte(0x00);
       s.writeUnsigned(minSize);
     } else {
@@ -428,8 +439,8 @@ class Memory {
 }
 
 class DefinedMemory extends Memory implements Serializable {
-  DefinedMemory(int index, int minSize, int? maxSize)
-      : super(index, minSize, maxSize);
+  DefinedMemory(int index, bool shared, int minSize, int? maxSize)
+      : super(index, shared, minSize, maxSize);
 
   @override
   void serialize(Serializer s) => _serializeLimits(s);
@@ -556,8 +567,9 @@ class ImportedMemory extends Memory implements Import {
   final String module;
   final String name;
 
-  ImportedMemory(this.module, this.name, int index, int minSize, int? maxSize)
-      : super(index, minSize, maxSize);
+  ImportedMemory(
+      this.module, this.name, int index, bool shared, int minSize, int? maxSize)
+      : super(index, shared, minSize, maxSize);
 
   @override
   void serialize(Serializer s) {

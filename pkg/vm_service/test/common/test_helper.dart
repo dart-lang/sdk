@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 
-import 'package:process/process.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
@@ -170,11 +169,9 @@ class _ServiceTesteeLauncher {
       arguments.insert(0, '-D$k=$v');
     });
     print('** Launching $bashEnvironment$executable ${arguments.join(' ')}');
-    return LocalProcessManager().start(
-      [
-        executable,
-        ...arguments,
-      ],
+    return io.Process.start(
+      executable,
+      arguments,
       environment: environment,
     );
   }

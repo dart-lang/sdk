@@ -313,6 +313,19 @@ void GCCompactor::Compact(OldPage* pages,
     ForwardStackPointers();
   }
 
+  {
+    TIMELINE_FUNCTION_GC_DURATION(thread(),
+                                  "ForwardPostponedSuspendStatePointers");
+    // After heap sliding is complete and ObjectStore pointers are forwarded
+    // it is finally safe to visit SuspendState objects with copied frames.
+    can_visit_stack_frames_ = true;
+    const intptr_t length = postponed_suspend_states_.length();
+    for (intptr_t i = 0; i < length; ++i) {
+      auto suspend_state = postponed_suspend_states_[i];
+      suspend_state->untag()->VisitPointers(this);
+    }
+  }
+
   heap_->old_space()->VisitRoots(this);
 
   {
@@ -739,6 +752,21 @@ void GCCompactor::VisitCompressedPointers(uword heap_base,
   for (CompressedObjectPtr* ptr = first; ptr <= last; ptr++) {
     ForwardCompressedPointer(heap_base, ptr);
   }
+}
+
+bool GCCompactor::CanVisitSuspendStatePointers(SuspendStatePtr suspend_state) {
+  if ((suspend_state->untag()->pc() != 0) && !can_visit_stack_frames_) {
+    // Visiting pointers of SuspendState objects with copied stack frame
+    // needs to query stack map, which can touch other Dart objects
+    // (such as GrowableObjectArray of InstructionsTable).
+    // Those objects may have an inconsistent state during compaction,
+    // so processing of SuspendState objects is postponed to the later
+    // stage of compaction.
+    MutexLocker ml(&postponed_suspend_states_mutex_);
+    postponed_suspend_states_.Add(suspend_state);
+    return false;
+  }
+  return true;
 }
 
 void GCCompactor::VisitHandle(uword addr) {

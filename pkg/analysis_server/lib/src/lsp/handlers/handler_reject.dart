@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 /// A [MessageHandler] that rejects specific tpyes of messages with a given
@@ -13,6 +12,7 @@ class RejectMessageHandler extends MessageHandler<Object?, void> {
   final Method handlesMessage;
   final ErrorCodes errorCode;
   final String errorMessage;
+
   RejectMessageHandler(
       super.server, this.handlesMessage, this.errorCode, this.errorMessage);
 
@@ -20,7 +20,8 @@ class RejectMessageHandler extends MessageHandler<Object?, void> {
   LspJsonHandler<void> get jsonHandler => NullJsonHandler;
 
   @override
-  ErrorOr<void> handle(Object? _, CancellationToken token) {
+  ErrorOr<void> handle(
+      Object? params, MessageInfo message, CancellationToken token) {
     return error(errorCode, errorMessage, null);
   }
 }

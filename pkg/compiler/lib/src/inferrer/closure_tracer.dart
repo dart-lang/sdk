@@ -10,7 +10,7 @@ import '../common/names.dart' show Identifiers, Names;
 import '../elements/entities.dart';
 import '../universe/selector.dart' show Selector;
 import 'debug.dart' as debug;
-import 'inferrer_engine.dart';
+import 'engine.dart';
 import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
 

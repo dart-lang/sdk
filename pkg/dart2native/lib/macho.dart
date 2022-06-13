@@ -6,6 +6,8 @@
 // part of the Apple system headers. All comments, which detail the format of
 // Mach-O files, have been reproduced from the orginal header.
 
+// ignore_for_file: non_constant_identifier_names, constant_identifier_names
+
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -87,6 +89,7 @@ class Uint64 extends IntLike {
     return _data > other;
   }
 
+  @override
   bool operator ==(other) {
     if (other is Uint64) {
       return _data == other._data;
@@ -94,6 +97,9 @@ class Uint64 extends IntLike {
       return false;
     }
   }
+
+  @override
+  int get hashCode => _data.hashCode;
 }
 
 class Int32 extends IntLike {
@@ -103,6 +109,7 @@ class Int32 extends IntLike {
     return Int32(_data | other._data);
   }
 
+  @override
   bool operator ==(other) {
     if (other is Int32) {
       return _data == other._data;
@@ -110,6 +117,9 @@ class Int32 extends IntLike {
       return false;
     }
   }
+
+  @override
+  int get hashCode => _data.hashCode;
 }
 
 class Uint16 extends IntLike {
@@ -147,6 +157,7 @@ class Uint32 extends IntLike {
     return _data >= other;
   }
 
+  @override
   bool operator ==(other) {
     if (other is Uint32) {
       return _data == other._data;
@@ -154,6 +165,9 @@ class Uint32 extends IntLike {
       return false;
     }
   }
+
+  @override
+  int get hashCode => _data.hashCode;
 
   Uint64 asUint64() {
     return Uint64(_data);
@@ -420,9 +434,9 @@ class MachOSegmentCommand64 extends IMachOLoadCommand<MachOSegmentCommand64> {
     stream.writeUint32(nsects);
     stream.writeUint32(flags);
 
-    sections.forEach((section) {
+    for (final section in sections) {
       section.writeContentsSync(stream);
-    });
+    }
   }
 }
 
@@ -1176,7 +1190,7 @@ class MachODysymtabCommand extends IMachOLoadCommand<MachODysymtabCommand> {
      * this requires the r_address field to be something other than a section
      * offset to identify the item to be relocated.  In this case r_address is
      * set to the offset from the vmaddr of the first LC_SEGMENT command.
-     * For MH_SPLIT_SEGS images r_address is set to the the offset from the
+     * For MH_SPLIT_SEGS images r_address is set to the offset from the
      * vmaddr of the first read-write LC_SEGMENT command.
      *
      * The relocation entries are grouped by module and the module table
@@ -1412,7 +1426,7 @@ class MachOTwolevelHintsCommand
  * isub_image field is an index into the sub-images (sub-frameworks and
  * sub-umbrellas list) that made up the two-level image that the undefined
  * symbol was found in when it was built by the static link editor.  If
- * isub-image is 0 the the symbol is expected to be defined in library and not
+ * isub-image is 0 the symbol is expected to be defined in library and not
  * in the sub-images.  If isub-image is non-zero it is an index into the array
  * of sub-images for the umbrella with the first index in the sub-images being
  * 1. The array of sub-images is the ordered list of sub-images of the umbrella

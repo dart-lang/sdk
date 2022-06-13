@@ -110,9 +110,8 @@ class ModularEmitterImpl extends ModularEmitterBase {
 
   @override
   js.Expression constantReference(ConstantValue constant) {
-    if (constant.isFunction) {
-      FunctionConstantValue function = constant;
-      return staticClosureAccess(function.element);
+    if (constant is FunctionConstantValue) {
+      return staticClosureAccess(constant.element);
     }
     js.Expression expression = _constantEmitter.generate(constant);
     if (expression != null) {

@@ -27,12 +27,12 @@ class AddCurlyBracesTest extends FixProcessorLintTest {
 
   Future<void> test_do_block() async {
     await resolveTestCode('''
-main() {
+void f() {
   do print(0); while (true);
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   do {
     print(0);
   } while (true);

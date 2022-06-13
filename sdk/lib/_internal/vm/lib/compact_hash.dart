@@ -695,10 +695,8 @@ class _CompactIterator<E> implements Iterator<E> {
   final int _checkSum;
   E? _current;
 
-  _CompactIterator(
-      _HashBase table, this._data, this._len, this._offset, this._step)
-      : _table = table,
-        _checkSum = table._checkSum;
+  _CompactIterator(this._table, this._data, this._len, this._offset, this._step)
+      : _checkSum = _table._checkSum;
 
   bool moveNext() {
     if (_table._isModifiedSince(_data, _checkSum)) {
@@ -720,7 +718,9 @@ class _CompactIterator<E> implements Iterator<E> {
 }
 
 // Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
-// and checks for concurrent modification.
+//
+// Does not check for concurrent modification since the table
+// is known to be immutable.
 class _CompactIterableImmutable<E> extends Iterable<E> {
   // _HashBase with _HashVMImmutableBase.
   final _HashBase _table;
@@ -749,13 +749,10 @@ class _CompactIteratorImmutable<E> implements Iterator<E> {
   final int _len;
   int _offset;
   final int _step;
-  final int _checkSum;
   E? _current;
 
   _CompactIteratorImmutable(
-      _HashBase table, this._data, this._len, this._offset, this._step)
-      : _table = table,
-        _checkSum = table._checkSum;
+      this._table, this._data, this._len, this._offset, this._step);
 
   bool moveNext() {
     _offset += _step;
@@ -1095,6 +1092,9 @@ class _CompactLinkedCustomHashSet<E> extends _HashFieldBase
   bool contains(Object? o) => _validKey(o) ? super.contains(o) : false;
   E? lookup(Object? o) => _validKey(o) ? super.lookup(o) : null;
   bool remove(Object? o) => _validKey(o) ? super.remove(o) : false;
+
+  @pragma("wasm:entry-point")
+  bool add(E key);
 
   _CompactLinkedCustomHashSet(this._equality, this._hasher, validKey)
       : _validKey = (validKey != null) ? validKey : new _TypeTest<E>().test;

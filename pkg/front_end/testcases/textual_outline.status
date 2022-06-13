@@ -88,6 +88,7 @@ general/incomplete_field_formal_parameter: FormatterCrash
 general/invalid_operator2: FormatterCrash
 general/invalid_operator: FormatterCrash
 general/invalid_super_initializer: FormatterCrash
+general/issue41842: FormatterCrash
 general/issue42997: FormatterCrash
 general/issue43363: FormatterCrash
 general/issue45490: FormatterCrash
@@ -97,6 +98,7 @@ general/issue47728_3: FormatterCrash
 general/issue47922: FormatterCrash
 general/issue48487: FormatterCrash
 general/issue48487b: FormatterCrash
+general/issue48919: FormatterCrash
 general/issue_46886: FormatterCrash
 general/macro_class: FormatterCrash
 general/many_errors2: FormatterCrash
@@ -151,6 +153,7 @@ late_lowering/override_getter_setter: FormatterCrash
 late_lowering/skip_late_final_uninitialized_instance_fields/main: FormatterCrash
 late_lowering/uninitialized_non_nullable_late_fields: FormatterCrash
 macros/augment_class: FormatterCrash
+macros/augment_super: FormatterCrash
 macros/class_members: FormatterCrash
 macros/inject_constructor: FormatterCrash
 macros/macro_class: FormatterCrash

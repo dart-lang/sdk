@@ -4,7 +4,12 @@
 
 library dart2js_runtime_metrics;
 
-import 'dart:_js_helper' show fillLiteralMap, rawStartupMetrics;
+import 'dart:_js_helper'
+    show
+        copyAndStringifyProperties,
+        fillLiteralMap,
+        rawRuntimeMetrics,
+        rawStartupMetrics;
 
 /// A collection of metrics for events that happen before `main()` is entered.
 ///
@@ -33,5 +38,25 @@ Map<String, Object> get startupMetrics {
   final Map<String, Object> result = {'runtime': 'dart2js'};
   final raw = rawStartupMetrics();
   fillLiteralMap(raw, result);
+  return result;
+}
+
+/// A collection of metrics collected during the runtime of a Dart app.
+///
+/// The contents of the map depend on the platform. The map values are simple
+/// objects (strings, numbers, Booleans). There is always an entry for the key
+/// `'runtime'` with a [String] value.
+///
+/// This implementation for dart2js has the content (subject to change):
+///
+/// - `runtime`: `'dart2js'`
+///
+/// - `allocations`: A string representation of a Json Map<String, Object>,
+///   which holds every class or closure created at runtime. The key contains
+///   a resolved path of the class or closure. The value is currently unused.
+Map<String, Object> get runtimeMetrics {
+  final Map<String, Object> result = {'runtime': 'dart2js'};
+  final raw = rawRuntimeMetrics();
+  copyAndStringifyProperties(raw, result);
   return result;
 }

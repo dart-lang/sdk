@@ -5,7 +5,9 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/yaml/producer.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/options.dart';
 
@@ -17,10 +19,10 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
   // TODO(brianwilkerson) We need to support multiple valid formats.
   //  For example, the lint rules can either be a list or a map, but we only
   //  suggest list items.
-  static const MapProducer analysisOptionsProducer = MapProducer({
+  static MapProducer analysisOptionsProducer = MapProducer({
     AnalyzerOptions.analyzer: MapProducer({
-      AnalyzerOptions.enableExperiment: EmptyProducer(),
-      AnalyzerOptions.errors: EmptyProducer(),
+      AnalyzerOptions.enableExperiment: ListProducer(_ExperimentProducer()),
+      AnalyzerOptions.errors: _ErrorProducer(),
       AnalyzerOptions.exclude: EmptyProducer(),
       AnalyzerOptions.language: MapProducer({
         AnalyzerOptions.strictCasts: EmptyProducer(),
@@ -45,7 +47,7 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
     AnalyzerOptions.include: EmptyProducer(),
     // TODO(brianwilkerson) Create constants for 'linter' and 'rules'.
     'linter': MapProducer({
-      'rules': ListProducer(LintRuleProducer()),
+      'rules': ListProducer(_LintRuleProducer()),
     }),
   });
 
@@ -58,10 +60,49 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
   Producer get topLevelProducer => analysisOptionsProducer;
 }
 
-class LintRuleProducer extends Producer {
+class _ErrorProducer extends KeyValueProducer {
+  static const enumProducer = EnumProducer([
+    'ignore',
+    'info',
+    'warning',
+    'error',
+  ]);
+
+  @override
+  Producer? producerForKey(String key) => enumProducer;
+
+  @override
+  Iterable<CompletionSuggestion> suggestions(
+      YamlCompletionRequest request) sync* {
+    for (var error in errorCodeValues) {
+      yield identifier('${error.name.toLowerCase()}: ');
+    }
+    for (var rule in Registry.ruleRegistry.rules) {
+      yield identifier('${rule.name}: ');
+    }
+  }
+}
+
+class _ExperimentProducer extends Producer {
+  /// Initialize a location whose valid values are the names of the known
+  /// experimental features.
+  const _ExperimentProducer();
+
+  @override
+  Iterable<CompletionSuggestion> suggestions(
+      YamlCompletionRequest request) sync* {
+    for (var feature in ExperimentStatus.knownFeatures.values) {
+      if (!feature.isEnabledByDefault) {
+        yield identifier(feature.enableString);
+      }
+    }
+  }
+}
+
+class _LintRuleProducer extends Producer {
   /// Initialize a location whose valid values are the names of the registered
   /// lint rules.
-  const LintRuleProducer();
+  const _LintRuleProducer();
 
   @override
   Iterable<CompletionSuggestion> suggestions(

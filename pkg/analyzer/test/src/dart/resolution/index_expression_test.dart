@@ -20,6 +20,7 @@ class IndexExpressionTest extends PubPackageResolutionTest {
 void f({a = b?[0]}) {}
 ''');
 
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/49101
     assertResolvedNodeText(findNode.index('[0]'), r'''
 IndexExpression
   target: SimpleIdentifier
@@ -29,6 +30,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: <null>
     staticType: int
   rightBracket: ]
   staticElement: <null>
@@ -50,6 +52,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: <null>
     staticType: int
   rightBracket: ]
   staticElement: <null>
@@ -75,11 +78,12 @@ void f(A a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    staticElement: a@61
+    staticElement: self::@function::f::@parameter::a
     staticType: A
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: self::@class::A::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@class::A::@method::[]
@@ -108,6 +112,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: self::@class::A::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@class::A::@method::[]
@@ -120,6 +125,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 1
+    parameter: self::@class::A::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@class::A::@method::[]
@@ -147,11 +153,14 @@ void f(A<double> a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    staticElement: a@72
+    staticElement: self::@function::f::@parameter::a
     staticType: A<double>
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: self::@class::A::@method::[]::@parameter::index
+      substitution: {T: double}
     staticType: int
   rightBracket: ]
   staticElement: MethodMember
@@ -184,11 +193,12 @@ void f(A? a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    staticElement: a@62
+    staticElement: self::@function::f::@parameter::a
     staticType: A?
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: self::@class::A::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@class::A::@method::[]
@@ -208,7 +218,6 @@ void f(A a) {
 }
 ''');
 
-    var indexElement = findElement.method('[]');
     var indexEqElement = findElement.method('[]=');
     var numPlusElement = numElement.getMethod('+')!;
 
@@ -219,18 +228,34 @@ void f(A a) {
     );
 
     var assignment = indexExpression.parent as AssignmentExpression;
-    assertAssignment(
-      assignment,
-      readElement: indexElement,
-      readType: 'num',
-      writeElement: indexEqElement,
-      writeType: 'num',
-      operatorElement: elementMatcher(
-        numPlusElement,
-        isLegacy: isLegacyLibrary,
-      ),
-      type: typeStringByNullability(nullable: 'double', legacy: 'num'),
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: DoubleLiteral
+    literal: 1.2
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: double
+  readElement: self::@class::A::@method::[]
+  readType: num
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: double
+''');
+
     assertParameterElement(
       assignment.rightHandSide,
       numPlusElement.parameters[0],
@@ -249,7 +274,6 @@ void f(A<double> a) {
 }
 ''');
 
-    var indexElement = findElement.method('[]');
     var indexEqElement = findElement.method('[]=');
     var doublePlusElement = doubleElement.getMethod('+')!;
 
@@ -263,24 +287,41 @@ void f(A<double> a) {
     );
 
     var assignment = indexExpression.parent as AssignmentExpression;
-    assertAssignment(
-      assignment,
-      readElement: elementMatcher(
-        indexElement,
-        substitution: {'T': 'double'},
-      ),
-      readType: 'double',
-      writeElement: elementMatcher(
-        indexEqElement,
-        substitution: {'T': 'double'},
-      ),
-      writeType: 'double',
-      operatorElement: elementMatcher(
-        doublePlusElement,
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'double',
-    );
+
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A<double>
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      parameter: ParameterMember
+        base: self::@class::A::@method::[]=::@parameter::index
+        substitution: {T: double}
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: DoubleLiteral
+    literal: 1.2
+    parameter: dart:core::@class::double::@method::+::@parameter::other
+    staticType: double
+  readElement: MethodMember
+    base: self::@class::A::@method::[]
+    substitution: {T: double}
+  readType: double
+  writeElement: MethodMember
+    base: self::@class::A::@method::[]=
+    substitution: {T: double}
+  writeType: double
+  staticElement: dart:core::@class::double::@method::+
+  staticType: double
+''');
+
     assertParameterElement(
       assignment.rightHandSide,
       doublePlusElement.parameters[0],
@@ -299,7 +340,6 @@ void f(A? a) {
 }
 ''');
 
-    var indexElement = findElement.method('[]');
     var indexEqElement = findElement.method('[]=');
     var numPlusElement = numElement.getMethod('+')!;
 
@@ -310,15 +350,35 @@ void f(A? a) {
     );
 
     var assignment = indexExpression.parent as AssignmentExpression;
-    assertAssignment(
-      assignment,
-      readElement: indexElement,
-      readType: 'num',
-      writeElement: indexEqElement,
-      writeType: 'num',
-      operatorElement: numPlusElement,
-      type: 'double?',
-    );
+
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: DoubleLiteral
+    literal: 1.2
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: double
+  readElement: self::@class::A::@method::[]
+  readType: num
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: dart:core::@class::num::@method::+
+  staticType: double?
+''');
+
     assertParameterElement(
       assignment.rightHandSide,
       numPlusElement.parameters[0],
@@ -345,15 +405,35 @@ void f(A a) {
     );
 
     var assignment = indexExpression.parent as AssignmentExpression;
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: indexEqElement,
-      writeType: 'num',
-      operatorElement: null,
-      type: 'double',
-    );
+
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: DoubleLiteral
+    literal: 1.2
+    parameter: self::@class::A::@method::[]=::@parameter::value
+    staticType: double
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: <null>
+  staticType: double
+''');
+
     assertParameterElement(
       assignment.rightHandSide,
       indexEqElement.parameters[1],
@@ -371,27 +451,62 @@ void f(A? a) {
 }
 ''');
 
-    assertAssignment(
-      findNode.assignment('[0]'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.method('[]='),
-      writeType: 'A',
-      operatorElement: null,
-      type: 'A',
-    );
-
-    assertAssignment(
-      findNode.assignment('[1]'),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.method('[]='),
-      writeType: 'A',
-      operatorElement: null,
-      type: 'A',
-    );
-
-    assertType(findNode.cascade('a?'), 'A?');
+    var node = findNode.cascade('a?..');
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A?
+  cascadeSections
+    AssignmentExpression
+      leftHandSide: IndexExpression
+        period: ?..
+        leftBracket: [
+        index: IntegerLiteral
+          literal: 0
+          parameter: self::@class::A::@method::[]=::@parameter::index
+          staticType: int
+        rightBracket: ]
+        staticElement: <null>
+        staticType: null
+      operator: =
+      rightHandSide: SimpleIdentifier
+        token: a
+        parameter: self::@class::A::@method::[]=::@parameter::a
+        staticElement: self::@function::f::@parameter::a
+        staticType: A
+      readElement: <null>
+      readType: null
+      writeElement: self::@class::A::@method::[]=
+      writeType: A
+      staticElement: <null>
+      staticType: A
+    AssignmentExpression
+      leftHandSide: IndexExpression
+        period: ..
+        leftBracket: [
+        index: IntegerLiteral
+          literal: 1
+          parameter: self::@class::A::@method::[]=::@parameter::index
+          staticType: int
+        rightBracket: ]
+        staticElement: <null>
+        staticType: null
+      operator: =
+      rightHandSide: SimpleIdentifier
+        token: a
+        parameter: self::@class::A::@method::[]=::@parameter::a
+        staticElement: self::@function::f::@parameter::a
+        staticType: A
+      readElement: <null>
+      readType: null
+      writeElement: self::@class::A::@method::[]=
+      writeType: A
+      staticElement: <null>
+      staticType: A
+  staticType: A?
+''');
   }
 
   test_write_generic() async {
@@ -416,19 +531,42 @@ void f(A<double> a) {
       ),
     );
 
-    var assignment = indexExpression.parent as AssignmentExpression;
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: elementMatcher(
-        indexEqElement,
-        substitution: {'T': 'double'},
-      ),
-      writeType: 'double',
-      operatorElement: null,
-      type: 'double',
-    );
+    var assignment = findNode.assignment('a[0]');
+
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A<double>
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      parameter: ParameterMember
+        base: self::@class::A::@method::[]=::@parameter::index
+        substitution: {T: double}
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: DoubleLiteral
+    literal: 1.2
+    parameter: ParameterMember
+      base: self::@class::A::@method::[]=::@parameter::value
+      substitution: {T: double}
+    staticType: double
+  readElement: <null>
+  readType: null
+  writeElement: MethodMember
+    base: self::@class::A::@method::[]=
+    substitution: {T: double}
+  writeType: double
+  staticElement: <null>
+  staticType: double
+''');
+
     assertParameterElement(
       assignment.rightHandSide,
       elementMatcher(
@@ -457,16 +595,36 @@ void f(A? a) {
       indexEqElement.parameters[0],
     );
 
-    var assignment = indexExpression.parent as AssignmentExpression;
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: indexEqElement,
-      writeType: 'num',
-      operatorElement: null,
-      type: 'double?',
-    );
+    var assignment = findNode.assignment('a?[0]');
+
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: DoubleLiteral
+    literal: 1.2
+    parameter: self::@class::A::@method::[]=::@parameter::value
+    staticType: double
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@method::[]=
+  writeType: num
+  staticElement: <null>
+  staticType: double?
+''');
+
     assertParameterElement(
       assignment.rightHandSide,
       indexEqElement.parameters[1],

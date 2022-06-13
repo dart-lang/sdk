@@ -104,8 +104,7 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
     var result = name;
     if (result.startsWith('new ')) result = result.substring(4);
     if (result.startsWith('Object.')) result = result.substring(7);
-    var inputName =
-        INPUT_FILE_NAME.substring(0, INPUT_FILE_NAME.indexOf('.') + 1);
+    var inputName = inputFileName.substring(0, inputFileName.indexOf('.') + 1);
     if (result.startsWith(inputName)) {
       result = result.substring(inputName.length);
     }

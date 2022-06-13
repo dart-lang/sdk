@@ -11,7 +11,7 @@ import 'package:kernel/text/indentation.dart' show Indentation;
 import '../compiler_api.dart' as api;
 import 'options.dart' show CompilerOptions;
 import 'ssa/nodes.dart' as ssa show HGraph;
-import 'ssa/ssa_tracer.dart' show HTracer;
+import 'ssa/tracer.dart' show HTracer;
 import 'world.dart' show JClosedWorld;
 
 String TRACE_FILTER_PATTERN_FOR_TEST;

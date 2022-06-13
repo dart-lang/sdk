@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
@@ -111,20 +112,15 @@ class MustCallSuperVerifier {
     var classElement = element.enclosingElement as ClassElement;
     String name = element.name;
 
-    bool isConcrete(ClassElement element) =>
-        element.lookUpConcreteMethod(name, element.library) != null;
-
-    if (classElement.mixins.map((i) => i.element).any(isConcrete)) {
-      return true;
-    }
-    if (classElement.superclassConstraints
-        .map((i) => i.element)
-        .any(isConcrete)) {
+    if (classElement.supertype.isConcrete(name)) {
       return true;
     }
 
-    var supertype = classElement.supertype;
-    if (supertype != null && isConcrete(supertype.element)) {
+    if (classElement.mixins.any((m) => m.isConcrete(name))) {
+      return true;
+    }
+
+    if (classElement.superclassConstraints.any((c) => c.isConcrete(name))) {
       return true;
     }
 
@@ -141,5 +137,14 @@ class MustCallSuperVerifier {
           HintCode.MUST_CALL_SUPER, node.name, [overriddenEnclosingName!]);
     }
     return;
+  }
+}
+
+extension on InterfaceType? {
+  bool isConcrete(String name) {
+    var self = this;
+    if (self == null) return false;
+    var element = self.element;
+    return element.lookUpConcreteMethod(name, element.library) != null;
   }
 }

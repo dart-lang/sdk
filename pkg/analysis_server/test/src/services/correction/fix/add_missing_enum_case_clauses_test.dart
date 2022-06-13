@@ -89,6 +89,43 @@ void f(E e) {
 ''');
   }
 
+  Future<void> test_final() async {
+    await resolveTestCode('''
+enum E {
+  a(0),
+  b(1);
+
+  final int f;
+  const E(this.f);
+}
+
+void f(E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+enum E {
+  a(0),
+  b(1);
+
+  final int f;
+  const E(this.f);
+}
+
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
   Future<void> test_incomplete_switchStatement() async {
     await resolveTestCode(r'''
 enum E {a, b, c}
@@ -119,6 +156,76 @@ void f(E e) {
       // TODO: Handle this case.
       break;
     case E.c:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  Future<void> test_static() async {
+    await resolveTestCode('''
+enum E {
+  a,
+  b;
+
+  static int s = 1;
+}
+
+void f(E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+enum E {
+  a,
+  b;
+
+  static int s = 1;
+}
+
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  Future<void> test_static_const() async {
+    await resolveTestCode('''
+enum E {
+  a,
+  b;
+
+  static const int s = 1;
+}
+
+void f(E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+enum E {
+  a,
+  b;
+
+  static const int s = 1;
+}
+
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      break;
+    case E.b:
       // TODO: Handle this case.
       break;
   }

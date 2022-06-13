@@ -64,7 +64,6 @@ void main() {
     _testInternalPropertyGet();
     _testInternalPropertySet();
     _testExpressionInvocation();
-    _testNamedFunctionExpressionJudgment();
     _testNullAwareMethodInvocation();
     _testNullAwarePropertyGet();
     _testNullAwarePropertySet();
@@ -516,8 +515,8 @@ const library test:dummy::Typedef<void>.foo(0, bar: 1)''');
 
 void _testFunctionDeclarationImpl() {
   testStatement(
-      new FunctionDeclarationImpl(new VariableDeclarationImpl('foo', 0),
-          new FunctionNode(new Block([]))),
+      new FunctionDeclarationImpl(
+          new VariableDeclarationImpl('foo'), new FunctionNode(new Block([]))),
       '''
 dynamic foo() {}''');
 }
@@ -587,15 +586,6 @@ void _testExpressionInvocation() {
           ])),
       '''
 0<void, dynamic>(1, foo: 2, bar: 3)''');
-}
-
-void _testNamedFunctionExpressionJudgment() {
-  testExpression(
-      new NamedFunctionExpressionJudgment(new VariableDeclarationImpl('foo', 0,
-          initializer:
-              new FunctionExpression(new FunctionNode(new Block([]))))),
-      '''
-let dynamic foo = dynamic () {} in foo''');
 }
 
 void _testNullAwareMethodInvocation() {
@@ -687,13 +677,13 @@ return 0;''');
 }
 
 void _testVariableDeclarationImpl() {
-  testStatement(new VariableDeclarationImpl('foo', 0), '''
+  testStatement(new VariableDeclarationImpl('foo'), '''
 dynamic foo;''');
   testStatement(
-      new VariableDeclarationImpl('foo', 0, initializer: new IntLiteral(0)), '''
+      new VariableDeclarationImpl('foo', initializer: new IntLiteral(0)), '''
 dynamic foo = 0;''');
   testStatement(
-      new VariableDeclarationImpl('foo', 0,
+      new VariableDeclarationImpl('foo',
           type: const VoidType(),
           initializer: new IntLiteral(0),
           isFinal: true,
@@ -701,20 +691,20 @@ dynamic foo = 0;''');
       '''
 required final void foo;''');
   testStatement(
-      new VariableDeclarationImpl('foo', 0,
+      new VariableDeclarationImpl('foo',
           type: const VoidType(), initializer: new IntLiteral(0), isLate: true),
       '''
 late void foo = 0;''');
   testStatement(
-      new VariableDeclarationImpl('foo', 0,
+      new VariableDeclarationImpl('foo',
           type: const VoidType(), initializer: new IntLiteral(0))
-        ..lateGetter = new VariableDeclarationImpl('foo#getter', 0),
+        ..lateGetter = new VariableDeclarationImpl('foo#getter'),
       '''
 late void foo = 0;''');
   testStatement(
-      new VariableDeclarationImpl('foo', 0,
+      new VariableDeclarationImpl('foo',
           type: const VoidType(), initializer: new IntLiteral(0))
-        ..lateGetter = new VariableDeclarationImpl('foo#getter', 0)
+        ..lateGetter = new VariableDeclarationImpl('foo#getter')
         ..lateType = const DynamicType(),
       '''
 late dynamic foo = 0;''');

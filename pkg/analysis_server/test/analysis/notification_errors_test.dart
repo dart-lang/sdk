@@ -347,7 +347,7 @@ linter:
     var otherFile = newFile('/other.dart', 'UnknownType V;');
     addTestFile('''
 import '/other.dart';
-main() {
+void f() {
   print(V);
 }
 ''');

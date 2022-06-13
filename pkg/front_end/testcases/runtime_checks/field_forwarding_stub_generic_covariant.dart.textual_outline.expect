@@ -1,12 +1,11 @@
-// @dart = 2.9
 library test;
 
 class B<T> {
-  T x;
+  T? x;
 }
 
 class C {
-  num x;
+  num? x;
 }
 
 class D extends C implements B<num> {}

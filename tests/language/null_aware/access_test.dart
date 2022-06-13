@@ -35,6 +35,8 @@ main() {
   {
     C.staticInt = 1;
     Expect.equals(1, C?.staticInt);
+    //                ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //               ^
     // [cfe] The class 'C' cannot be null.
   }
@@ -43,6 +45,8 @@ main() {
     Expect.equals(1, h.C?.staticInt);
     //                 ^
     // [cfe] The class 'C' cannot be null.
+    //                  ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   }
 
   // The static type of e1?.d is the static type of e1.id.
@@ -70,6 +74,8 @@ main() {
     int? i = C?.staticInt;
     //       ^
     // [cfe] The class 'C' cannot be null.
+    //        ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(1, i);
   }
   {
@@ -77,6 +83,8 @@ main() {
     int? i = h.C?.staticInt;
     //         ^
     // [cfe] The class 'C' cannot be null.
+    //          ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(1, i);
   }
   {
@@ -87,6 +95,8 @@ main() {
     // [cfe] The class 'C' cannot be null.
     //             ^
     // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
+    //           ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(null, s);
   }
   {
@@ -94,6 +104,8 @@ main() {
     String? s = h.C?.staticNullable;
     //          ^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+    //             ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //            ^
     // [cfe] The class 'C' cannot be null.
     //               ^
@@ -125,10 +137,14 @@ main() {
 
   // Nor can it be used to access the hashCode getter on the class Type.
   Expect.throwsNoSuchMethodError(() => C?.hashCode);
+  //                                    ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //                                      ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] Member not found: 'hashCode'.
   Expect.throwsNoSuchMethodError(() => h.C?.hashCode);
+  //                                      ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //                                        ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] Member not found: 'hashCode'.

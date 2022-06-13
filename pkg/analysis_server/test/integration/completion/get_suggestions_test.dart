@@ -42,7 +42,7 @@ class GetSuggestionsTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_getSuggestions() async {
     setTestSource('test.dart', r'''
 String test = '';
-main() {
+void f() {
   test.^
 }
 ''');
@@ -63,7 +63,7 @@ main() {
   Future<void> test_getSuggestions_onlyOverlay() async {
     setTestSource('test.dart', r'''
 String test = '';
-main() {
+void f() {
   test.^
 }
 ''');
@@ -86,7 +86,7 @@ main() {
   Future<void> test_getSuggestions_onlyOverlay_noWait() async {
     setTestSource('test.dart', r'''
 String test = '';
-main() {
+void f() {
   test.^
 }
 ''');

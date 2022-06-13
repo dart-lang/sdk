@@ -82,7 +82,7 @@ extension ElementExtension on Element {
     }
 
     return ancestor is CompilationUnitElement &&
-        ancestor.enclosingElement.hasDoNotStore;
+        ancestor.enclosingElement2.hasDoNotStore;
   }
 
   /// Return `true` if this element is an instance member of a class or mixin.

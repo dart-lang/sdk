@@ -1,0 +1,5 @@
+// @dart = 2.12
+typedef F = void Function<T>();
+T method<T>() => throw '';
+test(F f) {}
+main() {}

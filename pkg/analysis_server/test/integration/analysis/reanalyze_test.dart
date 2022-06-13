@@ -18,7 +18,7 @@ void main() {
 class ReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_reanalyze() {
     var pathname = sourcePath('test.dart');
-    var text = 'main() {}';
+    var text = 'void f() {}';
     writeFile(pathname, text);
     standardAnalysisSetup();
     return analysisFinished.then((_) {

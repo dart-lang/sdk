@@ -176,12 +176,12 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
           }
         });
       } else {
-        String _formatError(AnalysisError e) {
+        String formatError(AnalysisError e) {
           var locationInfo = result.unit.lineInfo.getLocation(e.offset);
           return '$locationInfo: ${e.errorCode}: ${e.message}';
         }
 
-        onFailure('Errors found:\n  ${errors.map(_formatError).join('\n  ')}');
+        onFailure('Errors found:\n  ${errors.map(formatError).join('\n  ')}');
         return TestResult<T>.erroneous();
       }
     }

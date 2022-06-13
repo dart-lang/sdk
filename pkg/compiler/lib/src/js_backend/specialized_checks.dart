@@ -5,7 +5,7 @@
 // @dart = 2.10
 
 import '../common/elements.dart' show ElementEnvironment, JCommonElements;
-import '../deferred_load/output_unit.dart';
+import '../deferred_load/output_unit.dart' show OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/interceptor_data.dart' show InterceptorData;

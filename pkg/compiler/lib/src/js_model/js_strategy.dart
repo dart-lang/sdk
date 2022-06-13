@@ -14,7 +14,8 @@ import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../common/tasks.dart';
 import '../common/work.dart';
 import '../compiler.dart';
-import '../deferred_load/output_unit.dart';
+import '../deferred_load/output_unit.dart'
+    show LateOutputUnitDataBuilder, OutputUnitData;
 import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../enqueue.dart';
@@ -47,7 +48,7 @@ import '../native/behavior.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
-import '../ssa/builder_kernel.dart';
+import '../ssa/builder.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
 import '../ssa/types.dart';

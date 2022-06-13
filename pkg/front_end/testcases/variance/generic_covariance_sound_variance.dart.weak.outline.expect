@@ -18,7 +18,7 @@ class A<contravariant T extends core::Object? = dynamic, U extends core::Object?
     ;
   method method(self::A::T% t, (self::A::U%) → void u, covariant-by-class self::A::V% v) → void
     ;
-  method method2(self::A::T% x, [self::A::T? y]) → void
+  method method2(self::A::T% x, [self::A::T? y = null]) → void
     ;
   set x(self::A::T% t) → void
     ;
@@ -44,7 +44,7 @@ class C<contravariant T extends core::Object? = dynamic> extends core::Object {
   final field (self::C::T%) →? void field;
   synthetic constructor •() → self::C<self::C::T%>
     ;
-  method method(self::C::T% x, [self::C::T? y]) → void
+  method method(self::C::T% x, [self::C::T? y = null]) → void
     ;
   set x(self::C::T% t) → void
     ;

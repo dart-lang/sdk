@@ -151,8 +151,19 @@ void AsmIntrinsifier::Integer_equal(Assembler* assembler,
 
 void AsmIntrinsifier::Smi_bitLength(Assembler* assembler,
                                     Label* normal_ir_body) {
-  // TODO(riscv)
-  __ Bind(normal_ir_body);
+  __ lx(A0, Address(SP, 0 * target::kWordSize));
+  __ SmiUntag(A0);
+
+  // XOR with sign bit to complement bits if value is negative.
+  __ srai(A1, A0, XLEN - 1);
+  __ xor_(A0, A0, A1);
+
+  __ CountLeadingZeroes(A0, A0);
+
+  __ li(TMP, XLEN);
+  __ sub(A0, TMP, A0);
+  __ SmiTag(A0);
+  __ ret();
 }
 
 void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
@@ -234,11 +245,12 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ andi(T5, T2, target::kBitsPerWord - 1);  // T5 = bit shift
   __ li(T6, target::kBitsPerWord);
   __ sub(T6, T6, T5);  // T6 = carry bit shift
+  __ sub(T1, T1, T4);  // T1 = words to process
 
   __ slli(TMP, T4, target::kWordSizeLog2);
   __ add(T0, T0, TMP);  // T0 = &src_digits[word_shift]
 
-  __ li(T2, 0);  // carry
+  // T2 = carry
   __ lx(T2, FieldAddress(T0, target::TypedData::payload_offset()));
   __ srl(T2, T2, T5);
   __ addi(T0, T0, target::kWordSize);
@@ -1510,7 +1522,7 @@ static void TryAllocateString(Assembler* assembler,
   // negative length: call to runtime to produce error.
   __ bltz(length_reg, failure);
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, TMP, failure));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, TMP));
   __ mv(T0, length_reg);  // Save the length register.
   if (cid == kOneByteStringCid) {
     // Untag length.
@@ -1770,16 +1782,16 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ AddImmediate(T1, -kOneByteStringCid);
   __ slli(T1, T1, target::kWordSizeLog2);
   __ add(T1, T1, T2);
-  __ lx(T0, FieldAddress(T1, target::RegExp::function_offset(kOneByteStringCid,
-                                                             sticky)));
+  __ lx(FUNCTION_REG, FieldAddress(T1, target::RegExp::function_offset(
+                                           kOneByteStringCid, sticky)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in T0, the argument descriptor in S4, and IC-Data in S5.
   __ li(S5, 0);
 
   // Tail-call the function.
-  __ lx(CODE_REG, FieldAddress(T0, target::Function::code_offset()));
-  __ lx(T1, FieldAddress(T0, target::Function::entry_point_offset()));
+  __ lx(CODE_REG, FieldAddress(FUNCTION_REG, target::Function::code_offset()));
+  __ lx(T1, FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
   __ jr(T1);
 }
 

@@ -591,8 +591,6 @@ class AssemblerBuffer : public ValueObject {
   friend class AssemblerFixup;
 };
 
-enum RestorePP { kRestoreCallerPP, kKeepCalleePP };
-
 class AssemblerBase : public StackResource {
  public:
   explicit AssemblerBase(ObjectPoolBuilder* object_pool_builder)

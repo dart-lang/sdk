@@ -19,9 +19,29 @@ import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
+final JsonEncoder encoder = const JsonEncoder();
+final JsonEncoder indentedEncoder = const JsonEncoder.withIndent('  ');
+
+String jsonEncode(Map object, {bool indent = true}) {
+  var jsonEncoder = indent ? indentedEncoder : encoder;
+  // Filter block comments since they interfere with ID test comments.
+  var json =
+      jsonEncoder.convert(object).replaceAll('/*', '').replaceAll('*/', '');
+  return json;
+}
+
+Map filteredJsonObject(Map object, Set<String> filteredFields) {
+  Map filteredObject = {};
+  object.forEach((key, value) {
+    if (filteredFields.contains(key)) return;
+    filteredObject[key] = value;
+  });
+  return filteredObject;
+}
+
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
     print('Testing output of dump-info');
     print('==================================================================');
     await checkTests(dataDir, const DumpInfoDataComputer(),
@@ -33,6 +53,7 @@ class Tags {
   static const String library = 'library';
   static const String clazz = 'class';
   static const String classType = 'classType';
+  static const String closure = 'closure';
   static const String function = 'function';
   static const String typeDef = 'typedef';
   static const String field = 'field';
@@ -46,38 +67,118 @@ class Tags {
 class DumpInfoDataComputer extends DataComputer<Features> {
   const DumpInfoDataComputer();
 
-  final JsonEncoder encoder = const JsonEncoder();
-  final JsonEncoder indentedEncoder = const JsonEncoder.withIndent('  ');
-
   static const String wildcard = '%';
+
+  @override
+  void computeLibraryData(Compiler compiler, LibraryEntity library,
+      Map<Id, ActualData<Features>> actualMap,
+      {bool verbose}) {
+    final converter = info.AllInfoToJsonConverter(
+        isBackwardCompatible: true, filterTreeshaken: false);
+    DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
+
+    final features = Features();
+    final libraryInfo = dumpInfoState.entityToInfo[library];
+    if (libraryInfo == null) return;
+
+    features.addElement(
+        Tags.library, jsonEncode(libraryInfo.accept(converter)));
+
+    // Store program-wide information on the main library.
+    var name = '${library.canonicalUri.pathSegments.last}';
+    if (name.startsWith('main')) {
+      for (final constantInfo in dumpInfoState.info.constants) {
+        features.addElement(
+            Tags.constant, jsonEncode(constantInfo.accept(converter)));
+      }
+      features.addElement(
+          Tags.dependencies, jsonEncode(dumpInfoState.info.dependencies));
+      for (final outputUnit in dumpInfoState.info.outputUnits) {
+        var outputUnitJsonObject = outputUnit.accept(converter);
+        // Remove the size from the main output unit due to high noise ratio.
+        if (outputUnit.name == 'main') {
+          outputUnitJsonObject =
+              filteredJsonObject(outputUnitJsonObject, {'size'});
+        }
+        features.addElement(Tags.outputUnits, jsonEncode(outputUnitJsonObject));
+      }
+      features.addElement(
+          Tags.deferredFiles, jsonEncode(dumpInfoState.info.deferredFiles));
+    }
+
+    final id = LibraryId(library.canonicalUri);
+    actualMap[id] =
+        ActualData<Features>(id, features, library.canonicalUri, -1, library);
+  }
+
+  @override
+  void computeClassData(Compiler compiler, ClassEntity cls,
+      Map<Id, ActualData<Features>> actualMap,
+      {bool verbose: false}) {
+    final converter = info.AllInfoToJsonConverter(
+        isBackwardCompatible: true, filterTreeshaken: false);
+    DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
+
+    final features = Features();
+    final classInfo = dumpInfoState.entityToInfo[cls];
+    if (classInfo == null) return;
+
+    features.addElement(Tags.clazz, jsonEncode(classInfo.accept(converter)));
+    final classTypeInfos =
+        dumpInfoState.info.classTypes.where((i) => i.name == classInfo.name);
+    assert(
+        classTypeInfos.length < 2,
+        'Ambiguous class type info resolution. '
+        'Expected 0 or 1 elements, found: $classTypeInfos');
+    if (classTypeInfos.length == 1) {
+      features.addElement(
+          Tags.classType, jsonEncode(classTypeInfos.first.accept(converter)));
+    }
+
+    JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JsToElementMap elementMap = closedWorld.elementMap;
+    ir.Class node = elementMap.getClassDefinition(cls).node;
+    ClassId id = ClassId(node.name);
+    ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
+    actualMap[id] = ActualData<Features>(id, features,
+        nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset, cls);
+  }
 
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
-    var converter = info.AllInfoToJsonConverter(
+    final converter = info.AllInfoToJsonConverter(
         isBackwardCompatible: true, filterTreeshaken: false);
     DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
 
-    Features features = new Features();
-    var functionInfo = dumpInfoState.entityToInfo[member];
+    final features = Features();
+    final functionInfo = dumpInfoState.entityToInfo[member];
     if (functionInfo == null) return;
 
     if (functionInfo is info.FunctionInfo) {
-      features.addElement(Tags.function,
-          indentedEncoder.convert(functionInfo.accept(converter)));
-      for (var use in functionInfo.uses) {
+      features.addElement(
+          Tags.function, jsonEncode(functionInfo.accept(converter)));
+      for (final use in functionInfo.uses) {
+        features.addElement(Tags.holding,
+            jsonEncode(converter.visitDependencyInfo(use), indent: false));
+      }
+      for (var closure in functionInfo.closures) {
         features.addElement(
-            Tags.holding, encoder.convert(converter.visitDependencyInfo(use)));
+            Tags.closure, jsonEncode(closure.accept(converter)));
       }
     }
 
     if (functionInfo is info.FieldInfo) {
-      features.addElement(Tags.function,
-          indentedEncoder.convert(functionInfo.accept(converter)));
-      for (var use in functionInfo.uses) {
+      features.addElement(
+          Tags.function, jsonEncode(functionInfo.accept(converter)));
+      for (final use in functionInfo.uses) {
+        features.addElement(Tags.holding,
+            jsonEncode(converter.visitDependencyInfo(use), indent: false));
+      }
+      for (var closure in functionInfo.closures) {
         features.addElement(
-            Tags.holding, encoder.convert(converter.visitDependencyInfo(use)));
+            Tags.closure, jsonEncode(closure.accept(converter)));
       }
     }
 
@@ -86,7 +187,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
     ir.Member node = elementMap.getMemberDefinition(member).node;
     Id id = computeMemberId(node);
     ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
-    actualMap[id] = new ActualData<Features>(id, features,
+    actualMap[id] = ActualData<Features>(id, features,
         nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset, member);
   }
 
@@ -114,7 +215,7 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
     } else {
       List<String> errorsFound = [];
       Features expectedFeatures = Features.fromText(expectedData);
-      Set<String> validatedFeatures = new Set<String>();
+      Set<String> validatedFeatures = Set<String>();
       expectedFeatures.forEach((String key, Object expectedValue) {
         validatedFeatures.add(key);
         Object actualValue = actualFeatures[key];
@@ -130,7 +231,8 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
           if (actualValue is List) {
             List actualList = actualValue.toList();
             for (Object expectedObject in expectedValue) {
-              String expectedText = encoder.convert(jsonDecode(expectedObject));
+              String expectedText =
+                  jsonEncode(jsonDecode(expectedObject), indent: false);
               bool matchFound = false;
               if (wildcard != null && expectedText.endsWith(wildcard)) {
                 // Wildcard matcher.
@@ -138,8 +240,8 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
                     expectedText.substring(0, expectedText.indexOf(wildcard));
                 List matches = [];
                 for (Object actualObject in actualList) {
-                  var formattedActualObject =
-                      encoder.convert(jsonDecode(actualObject));
+                  final formattedActualObject =
+                      jsonEncode(jsonDecode(actualObject), indent: false);
                   if (formattedActualObject.startsWith(prefix)) {
                     matches.add(actualObject);
                     matchFound = true;
@@ -150,8 +252,8 @@ class JsonFeaturesDataInterpreter implements DataInterpreter<Features> {
                 }
               } else {
                 for (Object actualObject in actualList) {
-                  var formattedActualObject =
-                      encoder.convert(jsonDecode(actualObject));
+                  final formattedActualObject =
+                      jsonEncode(jsonDecode(actualObject), indent: false);
                   if (expectedText == formattedActualObject) {
                     actualList.remove(actualObject);
                     matchFound = true;

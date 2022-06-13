@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -41,7 +41,7 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_localVariable() => _testMarkedContent('''
-    main() {
+    void f() {
       var [[f^oo]] = 1;
       print([[foo]]);
       [[foo]] = 2;
@@ -60,19 +60,19 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_noResult() => _testMarkedContent('''
-    main() {
+    void f() {
       // This one is in a ^ comment!
     }
     ''');
 
   Future<void> test_onlySelf() => _testMarkedContent('''
-    main() {
+    void f() {
       [[prin^t]]();
     }
     ''');
 
   Future<void> test_shadow_inner() => _testMarkedContent('''
-    main() {
+    void f() {
       var foo = 1;
       func() {
         var [[fo^o]] = 2;
@@ -82,7 +82,7 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
     ''');
 
   Future<void> test_shadow_outer() => _testMarkedContent('''
-    main() {
+    void f() {
       var [[foo]] = 1;
       func() {
         var foo = 2;
@@ -94,7 +94,7 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_topLevelVariable() => _testMarkedContent('''
     String [[foo]] = 'bar';
-    main() {
+    void f() {
       print([[foo]]);
       [[fo^o]] = 2;
     }

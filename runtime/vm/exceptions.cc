@@ -149,7 +149,9 @@ class ExceptionHandlerFinder : public StackResource {
             handler_pc = temp_handler_pc;
             handler_sp = frame->sp();
             handler_fp = frame->fp();
-            if (is_optimized) {
+            if (is_optimized &&
+                (handler_pc !=
+                 StubCode::AsyncExceptionHandler().EntryPoint())) {
               pc_ = frame->pc();
               code_ = &Code::Handle(frame->LookupDartCode());
               CatchEntryMovesRefPtr* cached_catch_entry_moves =

@@ -4,8 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -140,7 +139,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler {
 
   @override
   Future<ErrorOr<void>> handle(List<Object?>? arguments,
-      ProgressReporter reporter, CancellationToken cancellationToken) async {
+      ProgressReporter progress, CancellationToken cancellationToken) async {
     if (arguments == null ||
         arguments.length != 6 ||
         arguments[0] is! String || // kind
@@ -170,7 +169,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler {
     final options = arguments[5] as Map<String, Object?>?;
 
     return execute(path, kind, offset, length, options, cancellationToken,
-        reporter, docVersion);
+        progress, docVersion);
   }
 }
 

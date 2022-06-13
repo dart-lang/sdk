@@ -1,0 +1,33 @@
+main = main::main;
+library from "org-dartlang-test:///a.dart" as a {
+
+  class A extends dart.core::Object /*hasConstConstructor*/  {
+    const constructor •() → a::A
+      : super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///b.dart" as b {
+
+  class B<E extends dart.core::Object? = dynamic> extends dart.core::Object /*hasConstConstructor*/  {
+    const constructor •() → b::B<b::B::E%>
+      : super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///a.dart";
+  import "org-dartlang-test:///b.dart";
+
+  static const field dart.core::String s1 = #C1;
+  static const field dart.core::String s2 = #C2;
+  static method main() → dynamic {
+    dart.core::print(#C1);
+    dart.core::print(#C2);
+  }
+}
+constants  {
+  #C1 = "Instance of 'A'"
+  #C2 = "Instance of 'B'"
+}

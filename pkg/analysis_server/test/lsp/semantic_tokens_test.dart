@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
@@ -21,39 +21,6 @@ void main() {
 
 @reflectiveTest
 class SemanticTokensTest extends AbstractLspAnalysisServerTest {
-  /// Decode tokens according to the LSP spec and pair with relevant file contents.
-  List<_Token> decodeSemanticTokens(String content, SemanticTokens tokens) {
-    final contentLines = content.split('\n').map((line) => '$line\n').toList();
-    final results = <_Token>[];
-
-    var lastLine = 0;
-    var lastColumn = 0;
-    for (var i = 0; i < tokens.data.length; i += 5) {
-      final lineDelta = tokens.data[i];
-      final columnDelta = tokens.data[i + 1];
-      final length = tokens.data[i + 2];
-      final tokenTypeIndex = tokens.data[i + 3];
-      final modifierBitmask = tokens.data[i + 4];
-
-      // Calculate the actual line/col from the deltas.
-      final line = lastLine + lineDelta;
-      final column = lineDelta == 0 ? lastColumn + columnDelta : columnDelta;
-
-      final tokenContent =
-          contentLines[line].substring(column, column + length);
-      results.add(_Token(
-        tokenContent,
-        semanticTokenLegend.typeForIndex(tokenTypeIndex),
-        semanticTokenLegend.modifiersForBitmask(modifierBitmask),
-      ));
-
-      lastLine = line;
-      lastColumn = column;
-    }
-
-    return results;
-  }
-
   Future<void> test_annotation() async {
     final content = '''
     import 'other_file.dart' as other;
@@ -152,7 +119,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     await openFile(otherFileUri, withoutMarkers(otherContent));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(
       // Only check the first expectedStart.length items since the test code
       // is mostly unrelated to the annotations.
@@ -185,7 +152,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -255,7 +222,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -268,7 +235,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       static String myStaticField = 'StaticFieldVal';
     }
 
-    main() {
+    void f() {
       final a = MyClass();
       print(a.myField);
       MyClass.myStaticField = 'a';
@@ -293,7 +260,9 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('myStaticField', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token("'StaticFieldVal'", SemanticTokenTypes.string),
-      _Token('main', SemanticTokenTypes.function,
+      _Token(
+          'void', SemanticTokenTypes.keyword, [SemanticTokenModifiers('void')]),
+      _Token('f', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('final', SemanticTokenTypes.keyword),
       _Token('a', SemanticTokenTypes.variable,
@@ -314,7 +283,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -331,7 +300,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       static set myStaticSetter(String staticV) {};
     }
 
-    main() {
+    void f() {
       final a = MyClass();
       print(a.myGetter);
       a.mySetter = 'a';
@@ -377,7 +346,9 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('String', SemanticTokenTypes.class_),
       _Token('staticV', SemanticTokenTypes.parameter,
           [SemanticTokenModifiers.declaration]),
-      _Token('main', SemanticTokenTypes.function,
+      _Token(
+          'void', SemanticTokenTypes.keyword, [SemanticTokenModifiers('void')]),
+      _Token('f', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('final', SemanticTokenTypes.keyword),
       _Token('a', SemanticTokenTypes.variable,
@@ -398,7 +369,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -414,7 +385,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       }
     }
 
-    main() {
+    void f() {
       final a = MyClass();
       a.myMethod();
       MyClass.myStaticMethod();
@@ -445,7 +416,9 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('myStaticMethod', SemanticTokenTypes.method,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('// static method comment', SemanticTokenTypes.comment),
-      _Token('main', SemanticTokenTypes.function,
+      _Token(
+          'void', SemanticTokenTypes.keyword, [SemanticTokenModifiers('void')]),
+      _Token('f', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('final', SemanticTokenTypes.keyword),
       _Token('a', SemanticTokenTypes.variable,
@@ -476,7 +449,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -524,7 +497,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -566,7 +539,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -586,7 +559,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -617,7 +590,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     configureTestPlugin(notification: pluginResult.toNotification());
 
     final tokens = await getSemanticTokens(pluginAnalyzedFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -658,7 +631,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
 
     // Remove the tokens between the two expected sets.
     decoded.removeRange(expected1.length, decoded.length - expected2.length);
@@ -670,7 +643,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     // "control" keywords should be tagged with a modifier so the client
     // can color them differently to other keywords.
     final content = r'''
-    void main() async {
+    void f() async {
       var a = new Object();
       await null;
       if (false) {
@@ -683,7 +656,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     final expected = [
       _Token('void', SemanticTokenTypes.keyword,
           [CustomSemanticTokenModifiers.void_]),
-      _Token('main', SemanticTokenTypes.function,
+      _Token('f', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('async', SemanticTokenTypes.keyword,
           [CustomSemanticTokenModifiers.control]),
@@ -714,7 +687,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -731,7 +704,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -746,7 +719,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -768,20 +741,22 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
   Future<void> test_local() async {
     final content = '''
-    main() {
+    void f() {
       func(String a) => print(a);
       final funcTearOff = func;
     }
     ''';
 
     final expected = [
-      _Token('main', SemanticTokenTypes.function,
+      _Token(
+          'void', SemanticTokenTypes.keyword, [SemanticTokenModifiers('void')]),
+      _Token('f', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('func', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration]),
@@ -800,7 +775,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -857,7 +832,7 @@ class MyTestClass {
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -895,7 +870,7 @@ import 'dart:async';
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -931,7 +906,7 @@ class MyClass {}
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -958,7 +933,7 @@ class MyClass {}
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -983,7 +958,7 @@ class MyClass {}
 
     final tokens =
         await getSemanticTokensRange(mainFileUri, rangeFromMarkers(content));
-    final decoded = decodeSemanticTokens(withoutMarkers(content), tokens);
+    final decoded = _decodeSemanticTokens(withoutMarkers(content), tokens);
     expect(decoded, equals(expected));
   }
 
@@ -1012,7 +987,7 @@ class MyClass {}
 
     final tokens =
         await getSemanticTokensRange(mainFileUri, rangeFromMarkers(content));
-    final decoded = decodeSemanticTokens(withoutMarkers(content), tokens);
+    final decoded = _decodeSemanticTokens(withoutMarkers(content), tokens);
     expect(decoded, equals(expected));
   }
 
@@ -1042,7 +1017,7 @@ class MyClass {}
 
     final tokens =
         await getSemanticTokensRange(mainFileUri, rangeFromMarkers(content));
-    final decoded = decodeSemanticTokens(withoutMarkers(content), tokens);
+    final decoded = _decodeSemanticTokens(withoutMarkers(content), tokens);
     expect(decoded, equals(expected));
   }
 
@@ -1114,7 +1089,7 @@ multi
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -1170,7 +1145,7 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -1187,7 +1162,7 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
 
     final funcTearOff = func;
 
-    void main() {
+    void f() {
       strings;
       func;
       abc;
@@ -1228,7 +1203,7 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
       _Token('func', SemanticTokenTypes.function),
       _Token('void', SemanticTokenTypes.keyword,
           [CustomSemanticTokenModifiers.void_]),
-      _Token('main', SemanticTokenTypes.function,
+      _Token('f', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('strings', SemanticTokenTypes.property),
       _Token('func', SemanticTokenTypes.function),
@@ -1240,7 +1215,7 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
   }
 
@@ -1250,7 +1225,7 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
     // clients other grammars would show through, losing the benefit from having
     // resolved the code).
     final content = '''
-    main() {
+    void f() {
       int a;
       a.foo().bar.baz();
 
@@ -1260,7 +1235,9 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
     ''';
 
     final expected = [
-      _Token('main', SemanticTokenTypes.function,
+      _Token(
+          'void', SemanticTokenTypes.keyword, [SemanticTokenModifiers('void')]),
+      _Token('f', SemanticTokenTypes.function,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token('int', SemanticTokenTypes.class_),
       _Token('a', SemanticTokenTypes.variable,
@@ -1282,8 +1259,41 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
     await openFile(mainFileUri, withoutMarkers(content));
 
     final tokens = await getSemanticTokens(mainFileUri);
-    final decoded = decodeSemanticTokens(content, tokens);
+    final decoded = _decodeSemanticTokens(content, tokens);
     expect(decoded, equals(expected));
+  }
+
+  /// Decode tokens according to the LSP spec and pair with relevant file contents.
+  List<_Token> _decodeSemanticTokens(String content, SemanticTokens tokens) {
+    final contentLines = content.split('\n').map((line) => '$line\n').toList();
+    final results = <_Token>[];
+
+    var lastLine = 0;
+    var lastColumn = 0;
+    for (var i = 0; i < tokens.data.length; i += 5) {
+      final lineDelta = tokens.data[i];
+      final columnDelta = tokens.data[i + 1];
+      final length = tokens.data[i + 2];
+      final tokenTypeIndex = tokens.data[i + 3];
+      final modifierBitmask = tokens.data[i + 4];
+
+      // Calculate the actual line/col from the deltas.
+      final line = lastLine + lineDelta;
+      final column = lineDelta == 0 ? lastColumn + columnDelta : columnDelta;
+
+      final tokenContent =
+          contentLines[line].substring(column, column + length);
+      results.add(_Token(
+        tokenContent,
+        semanticTokenLegend.typeForIndex(tokenTypeIndex),
+        semanticTokenLegend.modifiersForBitmask(modifierBitmask),
+      ));
+
+      lastLine = line;
+      lastColumn = column;
+    }
+
+    return results;
   }
 }
 

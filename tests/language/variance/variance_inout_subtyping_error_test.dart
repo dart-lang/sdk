@@ -58,10 +58,10 @@ class D<out T extends Invariant<Middle>> {}
 
 class E {
   D<Invariant<Upper>> method1() {
+//^
+// [cfe] Type argument 'Invariant<Upper>' doesn't conform to the bound 'Invariant<Middle>' of the type variable 'T' on 'D'.
   //^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  //                         ^
-  // [cfe] Type argument 'Invariant<Upper>' doesn't conform to the bound 'Invariant<Middle>' of the type variable 'T' on 'D' in the return type.
     return D<Invariant<Upper>>();
     //     ^
     // [cfe] Type argument 'Invariant<Upper>' doesn't conform to the bound 'Invariant<Middle>' of the type variable 'T' on 'D'.
@@ -70,10 +70,10 @@ class E {
   }
 
   D<Invariant<Lower>> method2() {
+//^
+// [cfe] Type argument 'Invariant<Lower>' doesn't conform to the bound 'Invariant<Middle>' of the type variable 'T' on 'D'.
   //^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  //                         ^
-  // [cfe] Type argument 'Invariant<Lower>' doesn't conform to the bound 'Invariant<Middle>' of the type variable 'T' on 'D' in the return type.
     return D<Invariant<Lower>>();
     //     ^
     // [cfe] Type argument 'Invariant<Lower>' doesn't conform to the bound 'Invariant<Middle>' of the type variable 'T' on 'D'.
@@ -86,19 +86,19 @@ void testCall<T>(Iterable<Invariant<T>> x) {}
 
 main() {
   D<Invariant<Upper>> dUpper = new D<Invariant<Upper>>();
+//^
+// [cfe] Type argument 'Invariant<Upper>' doesn't conform to the bound 'Invariant<Middle>' of the type variable 'T' on 'D'.
   //^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  //                  ^
-  // [cfe] Type argument 'Invariant<Upper>' doesn't conform to the bound 'Invariant<Middle>' of the type variable 'T' on 'D'.
   //                               ^
   // [cfe] Type argument 'Invariant<Upper>' doesn't conform to the bound 'Invariant<Middle>' of the type variable 'T' on 'D'.
   //                                 ^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   D<Invariant<Lower>> dLower = new D<Invariant<Lower>>();
+//^
+// [cfe] Type argument 'Invariant<Lower>' doesn't conform to the bound 'Invariant<Middle>' of the type variable 'T' on 'D'.
   //^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  //                  ^
-  // [cfe] Type argument 'Invariant<Lower>' doesn't conform to the bound 'Invariant<Middle>' of the type variable 'T' on 'D'.
   //                               ^
   // [cfe] Type argument 'Invariant<Lower>' doesn't conform to the bound 'Invariant<Middle>' of the type variable 'T' on 'D'.
   //                                 ^^^^^^^^^^^^^^^^

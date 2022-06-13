@@ -9,7 +9,7 @@ import 'package:analysis_server/src/domains/completion/available_suggestions.dar
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 
 /// The handler for the `completion.setSubscriptions` request.
-class CompletionSetSubscriptionsHandler extends LegacyHandler {
+class CompletionSetSubscriptionsHandler extends CompletionHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   CompletionSetSubscriptionsHandler(
@@ -17,6 +17,10 @@ class CompletionSetSubscriptionsHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
+    if (completionIsDisabled) {
+      return;
+    }
+
     var params = CompletionSetSubscriptionsParams.fromRequest(request);
 
     var subscriptions = server.completionState.subscriptions;

@@ -1,8 +1,7 @@
-// @dart = 2.9
 library test;
 
 class B {
-  Object _x;
+  Object? _x;
   void f([num x = 10]) {}
   void g({num x = 20}) {}
   void check(Object expectedValue) {}

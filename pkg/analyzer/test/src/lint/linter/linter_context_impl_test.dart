@@ -154,6 +154,29 @@ class CanBeConstInstanceCreationTest extends AbstractLinterContextTest {
     expect(context.canBeConst(node), expectedResult);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3389')
+  void test_deferred_argument() async {
+    await resolveFileCode('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+
+const aa = A();
+''');
+    await resolve(r'''
+import 'a.dart' deferred as a;
+
+class B {
+  const B(Object a);
+}
+
+main() {
+  print(B(a.aa));
+}
+''');
+    assertCanBeConst('B(a.aa)', false);
+  }
+
   void test_false_argument_invocation() async {
     await resolve('''
 class A {}

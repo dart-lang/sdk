@@ -54,7 +54,7 @@ void f(Random r) {}
     await indexTestUnit('''
 import 'dart:async';
 import 'dart:math' show Random, min hide max;
-main() {
+void f() {
   Future f;
   Random r;
   min(1, 2);
@@ -68,7 +68,7 @@ main() {
     return assertSuccessfulRefactoring('''
 import 'dart:async';
 import 'dart:math' as newName show Random, min hide max;
-main() {
+void f() {
   Future f;
   newName.Random r;
   newName.min(1, 2);
@@ -80,7 +80,7 @@ main() {
       test_createChange_add_interpolationExpression_hasCurlyBrackets() async {
     await indexTestUnit(r'''
 import 'dart:async';
-main() {
+void f() {
   Future f;
   print('Future type: ${Future}');
 }
@@ -92,7 +92,7 @@ main() {
     // validate change
     return assertSuccessfulRefactoring(r'''
 import 'dart:async' as newName;
-main() {
+void f() {
   newName.Future f;
   print('Future type: ${newName.Future}');
 }
@@ -103,7 +103,7 @@ main() {
       test_createChange_add_interpolationExpression_noCurlyBrackets() async {
     await indexTestUnit(r'''
 import 'dart:async';
-main() {
+void f() {
   Future f;
   print('Future type: $Future');
 }
@@ -115,7 +115,7 @@ main() {
     // validate change
     return assertSuccessfulRefactoring(r'''
 import 'dart:async' as newName;
-main() {
+void f() {
   newName.Future f;
   print('Future type: ${newName.Future}');
 }
@@ -126,7 +126,7 @@ main() {
     await indexTestUnit('''
 import 'dart:math' as test;
 import 'dart:async' as test;
-main() {
+void f() {
   test.Future f;
 }
 ''');
@@ -139,7 +139,7 @@ main() {
     return assertSuccessfulRefactoring('''
 import 'dart:math' as test;
 import 'dart:async' as newName;
-main() {
+void f() {
   newName.Future f;
 }
 ''');
@@ -149,7 +149,7 @@ main() {
     await indexTestUnit('''
 import 'dart:math' as test;
 import 'dart:async' as test;
-main() {
+void f() {
   test.max(1, 2);
   test.Future f;
 }
@@ -163,7 +163,7 @@ main() {
     return assertSuccessfulRefactoring('''
 import 'dart:math' as newName;
 import 'dart:async' as test;
-main() {
+void f() {
   newName.max(1, 2);
   test.Future f;
 }
@@ -174,7 +174,7 @@ main() {
     await indexTestUnit('''
 import 'dart:async' as test;
 import 'dart:math' as test;
-main() {
+void f() {
   test.Future f;
   test.pi;
   test.e;
@@ -189,7 +189,7 @@ main() {
     return assertSuccessfulRefactoring('''
 import 'dart:async' as test;
 import 'dart:math' as newName;
-main() {
+void f() {
   test.Future f;
   newName.pi;
   newName.e;
@@ -201,7 +201,7 @@ main() {
     await indexTestUnit('''
 import 'dart:math' as test;
 import 'dart:async' as test;
-main() {
+void f() {
   test.Future f;
 }
 ''');
@@ -214,7 +214,7 @@ main() {
     return assertSuccessfulRefactoring('''
 import 'dart:math' as test;
 import 'dart:async';
-main() {
+void f() {
   Future f;
 }
 ''');
@@ -224,7 +224,7 @@ main() {
     await indexTestUnit('''
 import 'dart:math';
 import 'dart:async';
-main() {
+void f() {
   Future f;
 }
 ''');

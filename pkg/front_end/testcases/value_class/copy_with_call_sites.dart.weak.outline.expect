@@ -20,7 +20,7 @@ import "org-dartlang-testcase:///value_class_support_lib.dart";
 
 class Animal extends core::Object {
   final field core::int? numberOfLegs;
-  constructor •({required core::int? numberOfLegs}) → self::Animal
+  constructor •({required core::int? numberOfLegs = null}) → self::Animal
     ;
 }
 @val::valueClass
@@ -32,9 +32,9 @@ class Cat extends self::Animal {
 class Foo extends core::Object {
   field core::int? bar;
   field core::int? bar2;
-  constructor •({core::int? bar, core::int? bar2}) → self::Foo
+  constructor •({core::int? bar = null, core::int? bar2 = null}) → self::Foo
     ;
-  method copyWith({core::int bar, core::int bar2}) → self::Foo
+  method copyWith({core::int bar = null, core::int bar2 = null}) → self::Foo
     ;
 }
 @val::valueClass

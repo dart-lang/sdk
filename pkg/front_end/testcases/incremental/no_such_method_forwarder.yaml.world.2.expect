@@ -1,0 +1,36 @@
+main = main::main;
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+
+  class X extends dart.core::Object {
+    synthetic constructor •() → lib1::X
+      : super dart.core::Object::•()
+      ;
+    method foo() → void
+      return dart.core::print("foo");
+  }
+  class Y extends dart.core::Object implements lib1::X {
+    synthetic constructor •() → lib1::Y
+      : super dart.core::Object::•()
+      ;
+    method noSuchMethod(dart.core::Invocation _) → void {
+      dart.core::print("Hello from noSuchMethod");
+    }
+    no-such-method-forwarder method foo() → void
+      return this.{lib1::Y::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C4))){(dart.core::Invocation) → void};
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib1.dart";
+
+  static method main() → dynamic {
+    lib1::Y y = new lib1::Y::•();
+    y.{lib1::Y::foo}(){() → void};
+  }
+}
+constants  {
+  #C1 = #foo
+  #C2 = <dart.core::Type*>[]
+  #C3 = <dynamic>[]
+  #C4 = <dart.core::Symbol*, dynamic>{)
+}

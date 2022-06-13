@@ -26,10 +26,6 @@ class _HasPromotedTypeVariableVisitor extends DartTypeVisitor<bool> {
     for (NamedType namedParameterType in node.namedParameters) {
       if (namedParameterType.type.accept(this)) return true;
     }
-    TypedefType? typedefType = node.typedefType;
-    if (typedefType != null && typedefType.accept(this)) {
-      return true;
-    }
     return false;
   }
 

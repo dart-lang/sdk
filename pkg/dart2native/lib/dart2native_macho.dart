@@ -265,6 +265,32 @@ Future<int> pipeStream(RandomAccessFile from, RandomAccessFile to,
   return numWritten;
 }
 
+class _MacOSVersion {
+  final int? _major;
+  final int? _minor;
+
+  static final _regexp = RegExp(r'Version (?<major>\d+).(?<minor>\d+)');
+  static const _parseFailure = 'Could not determine macOS version';
+
+  const _MacOSVersion._internal(this._major, this._minor);
+
+  static const _unknown = _MacOSVersion._internal(null, null);
+
+  factory _MacOSVersion() {
+    if (!Platform.isMacOS) return _unknown;
+    final match =
+        _regexp.matchAsPrefix(Platform.operatingSystemVersion) as RegExpMatch?;
+    if (match == null) return _unknown;
+    final minor = int.tryParse(match.namedGroup('minor')!);
+    final major = int.tryParse(match.namedGroup('major')!);
+    return _MacOSVersion._internal(major, minor);
+  }
+
+  bool get isValid => _major != null;
+  int get major => _major ?? (throw _parseFailure);
+  int get minor => _minor ?? (throw _parseFailure);
+}
+
 // Writes an "appended" dart runtime + script snapshot file in a format
 // compatible with MachO executables.
 Future writeAppendedMachOExecutable(
@@ -312,17 +338,39 @@ Future writeAppendedMachOExecutable(
   await stream.close();
 
   if (machOFile.hasCodeSignature) {
+    if (!Platform.isMacOS) {
+      throw 'Cannot sign MachO binary on non-macOS platform';
+    }
+
     // After writing the modified file, we perform ad-hoc signing (no identity)
-    // similar to the linker (the linker-signed option flag) to ensure that any
-    // LC_CODE_SIGNATURE block has the correct CD hashes. This is necessary for
-    // platforms where signature verification is always on (e.g., OS X on M1).
+    // to ensure that any LC_CODE_SIGNATURE block has the correct CD hashes.
+    // This is necessary for platforms where signature verification is always on
+    // (e.g., OS X on M1).
     //
     // We use the `-f` flag to force signature overwriting as the official
     // Dart binaries (including dartaotruntime) are fully signed.
-    final signingProcess = await Process.run(
-        'codesign', ['-f', '-o', 'linker-signed', '-s', '-', outputPath]);
+    final args = ['-f', '-s', '-', outputPath];
+
+    // If running on macOS >=11.0, then the linker-signed option flag can be
+    // used to create a signature that does not need to be force overridden.
+    final version = _MacOSVersion();
+    if (version.isValid && version.major >= 11) {
+      final signingProcess =
+          await Process.run('codesign', ['-o', 'linker-signed', ...args]);
+      if (signingProcess.exitCode == 0) {
+        return;
+      }
+      print('Failed to add a linker signed signature, '
+          'adding a regular signature instead.');
+    }
+
+    // If that fails or we're running on an older or undetermined version of
+    // macOS, we fall back to signing without the linker-signed option flag.
+    // Thus, to sign the binary, the developer must force signature overwriting.
+    final signingProcess = await Process.run('codesign', args);
     if (signingProcess.exitCode != 0) {
-      print('Subcommand terminated with exit code ${signingProcess.exitCode}.');
+      print('Failed to replace the dartaotruntime signature, ');
+      print('subcommand terminated with exit code ${signingProcess.exitCode}.');
       if (signingProcess.stdout.isNotEmpty) {
         print('Subcommand stdout:');
         print(signingProcess.stdout);

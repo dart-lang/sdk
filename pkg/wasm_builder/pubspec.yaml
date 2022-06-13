@@ -5,5 +5,3 @@ description: Generate binary Wasm modules
 
 environment:
   sdk: '>=2.12.0'
-
-dependencies:

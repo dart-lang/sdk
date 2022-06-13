@@ -36,7 +36,7 @@ void func(int param) {
   topLevelVar.add(localVar);
 }
 
-main() {
+void f() {
   // comment
   func(35);
 }

@@ -276,6 +276,8 @@ class CompletionDriver with ExpectMixin {
     } else if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = AnalysisErrorsParams.fromNotification(notification);
       filesErrors[decoded.file] = decoded.errors;
+    } else if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
+      // Ignored.
     } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
       throw Exception('server error: ${notification.toJson()}');
     } else if (notification.event == SERVER_NOTIFICATION_CONNECTED) {

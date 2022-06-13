@@ -2848,7 +2848,7 @@ class ArrayMessageDeserializationCluster
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       intptr_t length = d->ReadUnsigned();
-      d->AssignRef(Array::New(cid_, length));
+      d->AssignRef(Array::NewUninitialized(cid_, length));
     }
   }
 
@@ -3241,6 +3241,7 @@ void MessageSerializer::Trace(Object* object) {
     ILLEGAL(MirrorReference)
     ILLEGAL(ReceivePort)
     ILLEGAL(StackTrace)
+    ILLEGAL(SuspendState)
     ILLEGAL(UserTag)
 
     // From "dart:ffi" we handle only Pointer/DynamicLibrary specially, since

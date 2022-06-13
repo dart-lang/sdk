@@ -171,8 +171,9 @@ class TestConfiguration {
   String _packages;
 
   String get packages {
-    // If the .packages file path wasn't given, find it.
-    _packages ??= Repository.uri.resolve('.packages').toFilePath();
+    // If the package config file path wasn't given, find it.
+    _packages ??=
+        Repository.uri.resolve('.dart_tool/package_config.json').toFilePath();
 
     return _packages;
   }
@@ -297,9 +298,6 @@ class TestConfiguration {
       case Runtime.firefox:
         location = firefoxPath;
         break;
-      case Runtime.safari:
-        location = safariPath;
-        break;
     }
 
     if (location != null) return location;
@@ -307,7 +305,7 @@ class TestConfiguration {
     const locations = {
       Runtime.firefox: {
         System.win: 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe',
-        System.linux: 'firefox',
+        System.linux: '/usr/bin/firefox',
         System.mac: '/Applications/Firefox.app/Contents/MacOS/firefox'
       },
       Runtime.chrome: {
@@ -315,10 +313,7 @@ class TestConfiguration {
             'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
         System.mac:
             '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-        System.linux: 'google-chrome'
-      },
-      Runtime.safari: {
-        System.mac: '/Applications/Safari.app/Contents/MacOS/Safari'
+        System.linux: '/usr/bin/google-chrome'
       },
       Runtime.ie9: {
         System.win: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
@@ -455,7 +450,7 @@ class TestConfiguration {
   /// We allow our code to have been cross compiled, i.e., that there is an X
   /// in front of the arch. We don't allow both a cross compiled and a normal
   /// version to be present (except if you specifically pass in the
-  /// build_directory).
+  /// build-directory).
   String _calculateDirectory() {
     // Capitalize the mode name.
     var result =

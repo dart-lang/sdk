@@ -50,7 +50,7 @@ class AssistsTest extends PubPackageAnalysisServerTest {
     var change = plugin.PrioritizedSourceChange(
         5,
         SourceChange(message, edits: <SourceFileEdit>[
-          SourceFileEdit('', 0, edits: <SourceEdit>[SourceEdit(0, 0, 'x')])
+          SourceFileEdit('', 5, edits: <SourceEdit>[SourceEdit(5, 0, 'x')])
         ]));
     var result =
         plugin.EditGetAssistsResult(<plugin.PrioritizedSourceChange>[change]);
@@ -58,10 +58,10 @@ class AssistsTest extends PubPackageAnalysisServerTest {
       info: Future.value(result.toResponse('-', 1))
     };
 
-    addTestFile('main() {}');
+    addTestFile('void f() {}');
     await waitForTasksFinished();
-    await prepareAssists('in(');
-    _assertHasChange(message, 'xmain() {}');
+    await prepareAssists('f(');
+    _assertHasChange(message, 'void xf() {}');
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
@@ -88,14 +88,14 @@ class AssistsTest extends PubPackageAnalysisServerTest {
 
   Future<void> test_removeTypeAnnotation() async {
     addTestFile('''
-main() {
+void f() {
   int v = 1;
 }
 ''');
     await waitForTasksFinished();
     await prepareAssists('v =');
     _assertHasChange('Remove type annotation', '''
-main() {
+void f() {
   var v = 1;
 }
 ''');
@@ -103,14 +103,14 @@ main() {
 
   Future<void> test_splitVariableDeclaration() async {
     addTestFile('''
-main() {
+void f() {
   int v = 1;
 }
 ''');
     await waitForTasksFinished();
     await prepareAssists('v =');
     _assertHasChange('Split variable declaration', '''
-main() {
+void f() {
   int v;
   v = 1;
 }
@@ -119,7 +119,7 @@ main() {
 
   Future<void> test_surroundWithIf() async {
     addTestFile('''
-main() {
+void f() {
   print(1);
   print(2);
 }
@@ -129,7 +129,7 @@ main() {
     var length = findOffset('}') - offset;
     await prepareAssistsAt(offset, length);
     _assertHasChange("Surround with 'if'", '''
-main() {
+void f() {
   if (condition) {
     print(1);
     print(2);

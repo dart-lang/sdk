@@ -49,11 +49,11 @@ Future<void> main() async {
   Ticker ticker = new Ticker(isVerbose: false);
   CompilerOptions compilerOptions = getOptions();
 
-  Uri dotPackagesUri = repoDir.resolve(".packages");
-  if (!new File.fromUri(dotPackagesUri).existsSync()) {
-    throw "Couldn't find .packages";
+  Uri packageConfigUri = repoDir.resolve(".dart_tool/package_config.json");
+  if (!new File.fromUri(packageConfigUri).existsSync()) {
+    throw "Couldn't find .dart_tool/package_config.json";
   }
-  compilerOptions.packagesFileUri = dotPackagesUri;
+  compilerOptions.packagesFileUri = packageConfigUri;
 
   ProcessedOptions options = new ProcessedOptions(options: compilerOptions);
 
@@ -123,7 +123,7 @@ Future<void> main() async {
   // * Everything else is an error.
 
   // Remove white-listed non-dart files.
-  otherNonDartUris.remove(dotPackagesUri);
+  otherNonDartUris.remove(packageConfigUri);
   otherNonDartUris.remove(repoDir.resolve("sdk/lib/libraries.json"));
   otherNonDartUris.remove(repoDir.resolve(".dart_tool/package_config.json"));
 

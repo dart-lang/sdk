@@ -5,10 +5,7 @@
 import 'dart:io';
 
 import 'package:analyzer/src/lint/util.dart';
-import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
-
-final dartMatcher = Glob('**.dart');
 
 /// Shared IO sink for standard error reporting.
 /// Visible for testing

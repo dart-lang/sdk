@@ -49,12 +49,20 @@ final nonCopyableClosures = <dynamic>[
   })(),
 ];
 
+Uint8List initializeUint8List(Uint8List l) {
+  for (int i = 0; i < l.length; ++i) {
+    l[i] = i % 256;
+  }
+  return l;
+}
+
 final Uint8List largeExternalTypedData =
-    File(Platform.resolvedExecutable).readAsBytesSync()..[0] = 42;
-final Uint8List largeInternalTypedData = Uint8List(20 * 1024 * 1024)..[0] = 42;
+    initializeUint8List(File(Platform.resolvedExecutable).readAsBytesSync());
+final Uint8List largeInternalTypedData =
+    initializeUint8List(Uint8List(20 * 1024 * 1024));
 
 final Uint8List smallExternalTypedData =
-    File(Platform.script.toFilePath()).readAsBytesSync()..[0] = 21;
+    initializeUint8List(File(Platform.script.toFilePath()).readAsBytesSync());
 final Uint8List smallExternalTypedDataView =
     Uint8List.view(smallExternalTypedData.buffer, 1, 1);
 
@@ -319,7 +327,7 @@ class SendReceiveTest extends SendReceiveTestBase {
     for (int i = 0; i < 10; ++i) {
       final result = await sendReceive(graph);
       final etd = result[1];
-      Expect.equals(42, etd[0]);
+      expectGraphsMatch(largeExternalTypedData, etd);
     }
   }
 
@@ -331,8 +339,8 @@ class SendReceiveTest extends SendReceiveTestBase {
     ];
     for (int i = 0; i < 10; ++i) {
       final result = await sendReceive(graph);
-      final etd = result[1];
-      Expect.equals(42, etd[0]);
+      final etd = result[0];
+      expectGraphsMatch(largeExternalTypedData, etd);
     }
   }
 
@@ -359,7 +367,7 @@ class SendReceiveTest extends SendReceiveTestBase {
     print('testExternalTypedData5');
     for (int i = 0; i < 10; ++i) {
       final etd = await sendReceive(largeExternalTypedData);
-      Expect.equals(42, etd[0]);
+      expectGraphsMatch(largeExternalTypedData, etd);
     }
   }
 
@@ -369,8 +377,8 @@ class SendReceiveTest extends SendReceiveTestBase {
       smallExternalTypedData,
       largeExternalTypedData,
     ]);
-    Expect.equals(21, etd[0][0]);
-    Expect.equals(42, etd[1][0]);
+    expectGraphsMatch(smallExternalTypedData, etd[0]);
+    expectGraphsMatch(largeExternalTypedData, etd[1]);
   }
 
   Future testInternalTypedDataView() async {

@@ -53,6 +53,9 @@ class ModifyParameters extends Change<_Data> {
       : assert(modifications.isNotEmpty);
 
   @override
+  // The private type of the [data] parameter is dictated by the signature of
+  // the super-method and the class's super-class.
+  // ignore: library_private_types_in_public_api
   void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
     var argumentList = data.argumentList;
     var invocation = argumentList.parent;
@@ -229,6 +232,9 @@ class ModifyParameters extends Change<_Data> {
   }
 
   @override
+  // The private return type is dictated by the signature of the super-method
+  // and the class's super-class.
+  // ignore: library_private_types_in_public_api
   _Data? validate(DataDrivenFix fix) {
     var node = fix.node;
     var parent = node.parent;

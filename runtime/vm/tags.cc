@@ -4,6 +4,7 @@
 
 #include "vm/tags.h"
 
+#include "platform/utils.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/native_entry.h"
@@ -159,7 +160,7 @@ void UserTags::AddStreamableTagName(const char* tag) {
       return;
     }
   }
-  subscribed_tags_.Add(strdup(tag));
+  subscribed_tags_.Add(Utils::StrDup(tag));
 }
 
 void UserTags::RemoveStreamableTagName(const char* tag) {

@@ -1,0 +1,34 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///augment_super.dart";
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  method instanceMethod() → void
+    ;
+  method instanceMethodErrors() → void
+    ;
+  get instanceProperty() → core::int
+    ;
+  set instanceProperty(core::int value) → void
+    ;
+  method /* from org-dartlang-testcase:///augment_super_lib.dart */ injectedInstanceMethod() → void
+    ;
+}
+static method topLevelMethod() → void
+  ;
+static method topLevelMethodErrors() → void
+  ;
+static get topLevelProperty() → core::List<core::int>
+  ;
+static set topLevelProperty(core::List<core::int> value) → void
+  ;
+static method main() → dynamic
+  ;
+static method /* from org-dartlang-testcase:///augment_super_lib.dart */ topLevelMethodError() → void
+  ;
+static method /* from org-dartlang-testcase:///augment_super_lib.dart */ injectedTopLevelMethod() → void
+  ;

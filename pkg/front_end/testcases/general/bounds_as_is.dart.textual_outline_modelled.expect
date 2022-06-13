@@ -1,0 +1,40 @@
+class Class<T> {}
+
+class ConcreteClass implements Class<ConcreteClass> {}
+
+class G<X extends Class<X>> {}
+
+main() {}
+s1a(o) => o as G;
+s1b(o) => o is G;
+s2a(o) => o as G<dynamic>;
+s2b(o) => o is G<dynamic>;
+s3a(o) => o as G<Class>;
+s3b(o) => o is G<Class>;
+s4a(o) => o as G<Class<dynamic>>;
+s4b(o) => o is G<Class<dynamic>>;
+s5a(o) => o as G<ConcreteClass>;
+s5b(o) => o is G<ConcreteClass>;
+s6a(o) => o as G<Class<ConcreteClass>>;
+s6b(o) => o is G<Class<ConcreteClass>>;
+s7a(o) => o as G<Object>;
+s7b(o) => o is G<Object>;
+s8a(o) => o as G<int>;
+s8b(o) => o is G<int>;
+t1a(o) => o as F;
+t1b(o) => o is F;
+t2a(o) => o as F<dynamic>;
+t2b(o) => o is F<dynamic>;
+t3a(o) => o as F<Class>;
+t3b(o) => o is F<Class>;
+t4a(o) => o as F<Class<dynamic>>;
+t4b(o) => o is F<Class<dynamic>>;
+t5a(o) => o as F<ConcreteClass>;
+t5b(o) => o is F<ConcreteClass>;
+t6a(o) => o as F<Class<ConcreteClass>>;
+t6b(o) => o is F<Class<ConcreteClass>>;
+t7a(o) => o as F<Object>;
+t7b(o) => o is F<Object>;
+t8a(o) => o as F<int>;
+t8b(o) => o is F<int>;
+typedef F<X extends Class<X>> = X;

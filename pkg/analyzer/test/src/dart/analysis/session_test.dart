@@ -124,6 +124,64 @@ class AnalysisSessionImpl_BazelWorkspaceTest
 
 @reflectiveTest
 class AnalysisSessionImplTest extends PubPackageResolutionTest {
+  test_applyPendingFileChanges_getFile() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+    final analysisContext = contextFor(a.path);
+
+    int lineCount_in_a() {
+      final result = analysisContext.currentSession.getFileValid(a.path);
+      return result.lineInfo.lineCount;
+    }
+
+    expect(lineCount_in_a(), 1);
+
+    newFile(a.path, '\n');
+    analysisContext.changeFile(a.path);
+    await analysisContext.applyPendingFileChanges();
+
+    // The file must be re-read after `applyPendingFileChanges()`.
+    expect(lineCount_in_a(), 2);
+  }
+
+  test_applyPendingFileChanges_getParsedLibrary() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+    final analysisContext = contextFor(a.path);
+
+    int lineCount_in_a() {
+      final analysisSession = analysisContext.currentSession;
+      final result = analysisSession.getParsedLibraryValid(a.path);
+      return result.units.first.lineInfo.lineCount;
+    }
+
+    expect(lineCount_in_a(), 1);
+
+    newFile(a.path, '\n');
+    analysisContext.changeFile(a.path);
+    await analysisContext.applyPendingFileChanges();
+
+    // The file must be re-read after `applyPendingFileChanges()`.
+    expect(lineCount_in_a(), 2);
+  }
+
+  test_applyPendingFileChanges_getParsedUnit() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+    final analysisContext = contextFor(a.path);
+
+    int lineCount_in_a() {
+      final result = analysisContext.currentSession.getParsedUnitValid(a.path);
+      return result.lineInfo.lineCount;
+    }
+
+    expect(lineCount_in_a(), 1);
+
+    newFile(a.path, '\n');
+    analysisContext.changeFile(a.path);
+    await analysisContext.applyPendingFileChanges();
+
+    // The file must be re-read after `applyPendingFileChanges()`.
+    expect(lineCount_in_a(), 2);
+  }
+
   test_getErrors() async {
     var test = newFile(testFilePath, 'class C {');
 
@@ -208,6 +266,26 @@ class B {}
       () => session.getLibraryByUriValid('package:test/test.dart'),
       throwsA(isA<InconsistentAnalysisException>()),
     );
+  }
+
+  test_getLibraryByUri_notLibrary_augmentation() async {
+    newFile(testFilePath, r'''
+library augment 'a.dart';
+''');
+
+    final session = contextFor(testFilePath).currentSession;
+    final result = await session.getLibraryByUri('package:test/test.dart');
+    expect(result, isA<NotLibraryButAugmentationResult>());
+  }
+
+  test_getLibraryByUri_notLibrary_part() async {
+    newFile(testFilePath, r'''
+part of 'a.dart';
+''');
+
+    final session = contextFor(testFilePath).currentSession;
+    final result = await session.getLibraryByUri('package:test/test.dart');
+    expect(result, isA<NotLibraryButPartResult>());
   }
 
   test_getLibraryByUri_unresolvedUri() async {
@@ -342,6 +420,16 @@ part 'c.dart';
     var test = newFile(testFilePath, 'part of "a.dart";');
     var session = contextFor(testFilePath).currentSession;
     expect(session.getParsedLibrary(test.path), isA<NotLibraryButPartResult>());
+  }
+
+  test_getParsedLibrary_notLibrary_augmentation() async {
+    newFile(testFilePath, r'''
+library augment 'a.dart';
+''');
+
+    final session = contextFor(testFilePath).currentSession;
+    final result = session.getParsedLibrary(testFile.path);
+    expect(result, isA<NotLibraryButAugmentationResult>());
   }
 
   test_getParsedLibrary_parts() async {
@@ -603,7 +691,17 @@ part 'c.dart';
     expect(result, isA<InvalidPathResult>());
   }
 
-  test_getResolvedLibrary_notLibrary() async {
+  test_getResolvedLibrary_notLibrary_augmentation() async {
+    newFile(testFilePath, r'''
+library augment of 'a.dart';
+''');
+
+    final session = contextFor(testFilePath).currentSession;
+    final result = await session.getResolvedLibrary(testFile.path);
+    expect(result, isA<NotLibraryButAugmentationResult>());
+  }
+
+  test_getResolvedLibrary_notLibrary_part() async {
     var test = newFile(testFilePath, 'part of "a.dart";');
 
     var session = contextFor(testFilePath).currentSession;

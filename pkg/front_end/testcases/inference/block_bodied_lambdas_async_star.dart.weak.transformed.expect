@@ -2,6 +2,7 @@ library test;
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 import "dart:async";
 
@@ -25,10 +26,10 @@ static method test() → dynamic {
             else
               [yield] null;
             asy::Stream<core::double*>* s;
-            if(:controller.{asy::_AsyncStarStreamController::addStream}(s){(asy::Stream<core::num*>) → core::bool})
+            :controller.{asy::_AsyncStarStreamController::addStream}(s){(asy::Stream<core::num*>) → void};
+            [yield] null;
+            if(_in::unsafeCast<core::bool>(:result_or_exception))
               return null;
-            else
-              [yield] null;
           }
           return;
         }

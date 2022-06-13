@@ -126,7 +126,7 @@ ${processResult.stderr}''');
 withTempDir(Future fun(String dir)) async {
   final Directory tempDir = Directory.systemTemp.createTempSync();
   try {
-    await fun(tempDir.path);
+    return await fun(tempDir.path);
   } finally {
     tempDir.deleteSync(recursive: true);
   }

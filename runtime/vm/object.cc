@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "compiler/method_recognizer.h"
 #include "include/dart_api.h"
 #include "lib/stacktrace.h"
 #include "platform/assert.h"
@@ -54,6 +55,7 @@
 #include "vm/regexp.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
+#include "vm/reverse_pc_lookup_cache.h"
 #include "vm/runtime_entry.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
@@ -948,6 +950,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
                                       RTN::Array::type_arguments_offset());
   cls.set_num_type_arguments_unsafe(1);
+  // In order to be able to canonicalize arguments descriptors early.
+  cls.set_is_prefinalized();
   cls =
       Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(isolate_group);
   isolate_group->object_store()->set_growable_object_array_class(cls);
@@ -1089,8 +1093,24 @@ void Object::Init(IsolateGroup* isolate_group) {
         empty_exception_handlers_,
         static_cast<ExceptionHandlersPtr>(address + kHeapObjectTag));
     empty_exception_handlers_->StoreNonPointer(
-        &empty_exception_handlers_->untag()->num_entries_, 0);
+        &empty_exception_handlers_->untag()->packed_fields_, 0);
     empty_exception_handlers_->SetCanonical();
+  }
+
+  // Empty exception handlers for async/async* functions.
+  {
+    uword address =
+        heap->Allocate(thread, ExceptionHandlers::InstanceSize(0), Heap::kOld);
+    InitializeObject(address, kExceptionHandlersCid,
+                     ExceptionHandlers::InstanceSize(0),
+                     ExceptionHandlers::ContainsCompressedPointers());
+    ExceptionHandlers::initializeHandle(
+        empty_async_exception_handlers_,
+        static_cast<ExceptionHandlersPtr>(address + kHeapObjectTag));
+    empty_async_exception_handlers_->StoreNonPointer(
+        &empty_async_exception_handlers_->untag()->packed_fields_,
+        UntaggedExceptionHandlers::AsyncHandlerBit::update(true, 0));
+    empty_async_exception_handlers_->SetCanonical();
   }
 
   // Allocate and initialize the canonical empty type arguments object.
@@ -1238,6 +1258,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(empty_var_descriptors_->IsLocalVarDescriptors());
   ASSERT(!empty_exception_handlers_->IsSmi());
   ASSERT(empty_exception_handlers_->IsExceptionHandlers());
+  ASSERT(!empty_async_exception_handlers_->IsSmi());
+  ASSERT(empty_async_exception_handlers_->IsExceptionHandlers());
   ASSERT(!sentinel_->IsSmi());
   ASSERT(sentinel_->IsSentinel());
   ASSERT(!transition_sentinel_->IsSmi());
@@ -2038,6 +2060,10 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     RegisterClass(cls, Symbols::FutureOr(), lib);
     pending_classes.Add(cls);
 
+    cls = Class::New<SuspendState, RTN::SuspendState>(isolate_group);
+    RegisterPrivateClass(cls, Symbols::_SuspendState(), lib);
+    pending_classes.Add(cls);
+
     // Pre-register the developer library so we can place the vm class
     // UserTag there rather than the core library.
     lib = Library::LookupLibrary(thread, Symbols::DartDeveloper());
@@ -2541,6 +2567,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<ReceivePort, RTN::ReceivePort>(isolate_group);
     cls = Class::New<SendPort, RTN::SendPort>(isolate_group);
     cls = Class::New<StackTrace, RTN::StackTrace>(isolate_group);
+    cls = Class::New<SuspendState, RTN::SuspendState>(isolate_group);
     cls = Class::New<RegExp, RTN::RegExp>(isolate_group);
     cls = Class::New<Number, RTN::Number>(isolate_group);
 
@@ -2601,12 +2628,8 @@ void Object::InitializeObject(uword address,
       // If the size is greater than both kNewAllocatableSize and
       // kAllocatablePageSize, the object must have been allocated to a new
       // large page, which must already have been zero initialized by the OS.
-#if defined(DART_COMPRESSED_POINTERS)
-      needs_init = true;
-#else
       needs_init = Heap::IsAllocatableInNewSpace(size) ||
                    Heap::IsAllocatableViaFreeLists(size);
-#endif
     } else {
       initial_value = static_cast<uword>(null_);
 #if defined(DART_COMPRESSED_POINTERS)
@@ -2615,7 +2638,21 @@ void Object::InitializeObject(uword address,
         initial_value |= initial_value << 32;
       }
 #endif
-      needs_init = true;
+      if (class_id == kArrayCid) {
+        // If the size is greater than both kNewAllocatableSize and
+        // kAllocatablePageSize, the object must have been allocated to a new
+        // large page, which must already have been zero initialized by the OS.
+        // Zero is a GC-safe value. The caller will initialize the fields to
+        // null with safepoint checks to avoid blocking for the full duration of
+        // initializing this array.
+        needs_init = Heap::IsAllocatableInNewSpace(size) ||
+                     Heap::IsAllocatableViaFreeLists(size);
+        if (!needs_init) {
+          initial_value = 0;  // For ASSERT below.
+        }
+      } else {
+        needs_init = true;
+      }
     }
     if (needs_init) {
       while (cur < end) {
@@ -3363,8 +3400,11 @@ intptr_t Class::ComputeNumTypeArguments() const {
     for (; i < num_overlapping_type_args; i++) {
       sup_type_arg = sup_type_args.TypeAt(sup_type_args_length -
                                           num_overlapping_type_args + i);
-      ASSERT(!sup_type_arg.IsNull());
-      if (!sup_type_arg.IsTypeParameter()) break;
+      // 'sup_type_arg' can be null if type arguments are currently being
+      // finalized in ClassFinalizer::ExpandAndFinalizeTypeArguments.
+      // Type arguments which are not filled yet do not correspond to
+      // the type parameters and cannot be reused.
+      if (sup_type_arg.IsNull() || !sup_type_arg.IsTypeParameter()) break;
       // The only type parameters appearing in the type arguments of the super
       // type are those declared by this class. Their finalized indices depend
       // on the number of type arguments being computed here. Therefore, they
@@ -3588,10 +3628,21 @@ void Class::AddInvocationDispatcher(const String& target_name,
   auto& cache = Array::Handle(zone, invocation_dispatcher_cache());
   InvocationDispatcherTable dispatchers(cache);
   intptr_t i = 0;
-  for (auto dispatcher : dispatchers) {
-    if (dispatcher.Get<kInvocationDispatcherName>() == String::null()) {
+#if defined(DEBUG)
+  auto& function = Function::Handle();
+#endif
+  for (auto entry : dispatchers) {
+    if (entry.Get<kInvocationDispatcherName>() == String::null()) {
       break;
     }
+
+#if defined(DEBUG)
+    // Check for duplicate entries in the cache.
+    function = entry.Get<kInvocationDispatcherFunction>();
+    ASSERT(entry.Get<kInvocationDispatcherName>() != target_name.ptr() ||
+           function.kind() != dispatcher.kind() ||
+           entry.Get<kInvocationDispatcherArgsDesc>() != args_desc.ptr());
+#endif  // defined(DEBUG)
     i++;
   }
   if (i == dispatchers.Length()) {
@@ -3969,8 +4020,12 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
 
   const bool needs_dyn_forwarder =
       kernel::NeedsDynamicInvocationForwarder(*this);
+  if (!needs_dyn_forwarder) {
+    return ptr();
+  }
+
   if (!allow_add) {
-    return needs_dyn_forwarder ? Function::null() : ptr();
+    return Function::null();
   }
 
   // If we failed to find it and possibly need to create it, use a write lock.
@@ -3984,10 +4039,8 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
   if (!result.IsNull()) return result.ptr();
 
   // Otherwise create it & add it.
-  result = needs_dyn_forwarder ? CreateDynamicInvocationForwarder(mangled_name)
-                               : ptr();
+  result = CreateDynamicInvocationForwarder(mangled_name);
   owner.AddInvocationDispatcher(mangled_name, Array::null_array(), result);
-
   return result.ptr();
 }
 
@@ -5355,7 +5408,7 @@ void Class::DisableAllocationStub() const {
   }
   ASSERT(!existing_stub.IsDisabled());
   // Change the stub so that the next caller will regenerate the stub.
-  existing_stub.DisableStubCode();
+  existing_stub.DisableStubCode(NumTypeParameters() > 0);
   // Disassociate the existing stub from class.
   untag()->set_allocation_stub(Code::null());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -5906,51 +5959,6 @@ static uword Hash64To32(uint64_t v) {
   return static_cast<uint32_t>(v);
 }
 
-class CanonicalInstanceKey {
- public:
-  explicit CanonicalInstanceKey(const Instance& key) : key_(key) {
-    ASSERT(!(key.IsString() || key.IsAbstractType()));
-  }
-  bool Matches(const Instance& obj) const {
-    ASSERT(!(obj.IsString() || obj.IsAbstractType()));
-    if (key_.CanonicalizeEquals(obj)) {
-      ASSERT(obj.IsCanonical());
-      return true;
-    }
-    return false;
-  }
-  uword Hash() const { return key_.CanonicalizeHash(); }
-  const Instance& key_;
-
- private:
-  DISALLOW_ALLOCATION();
-};
-
-// Traits for looking up Canonical Instances based on a hash of the fields.
-class CanonicalInstanceTraits {
- public:
-  static const char* Name() { return "CanonicalInstanceTraits"; }
-  static bool ReportStats() { return false; }
-
-  // Called when growing the table.
-  static bool IsMatch(const Object& a, const Object& b) {
-    ASSERT(!(a.IsString() || a.IsAbstractType()));
-    ASSERT(!(b.IsString() || b.IsAbstractType()));
-    return a.ptr() == b.ptr();
-  }
-  static bool IsMatch(const CanonicalInstanceKey& a, const Object& b) {
-    return a.Matches(Instance::Cast(b));
-  }
-  static uword Hash(const Object& key) {
-    ASSERT(!(key.IsString() || key.IsAbstractType()));
-    ASSERT(key.IsInstance());
-    return Instance::Cast(key).CanonicalizeHash();
-  }
-  static uword Hash(const CanonicalInstanceKey& key) { return key.Hash(); }
-  static ObjectPtr NewKey(const CanonicalInstanceKey& obj) {
-    return obj.key_.ptr();
-  }
-};
 typedef UnorderedHashSet<CanonicalInstanceTraits> CanonicalInstancesSet;
 
 InstancePtr Class::LookupCanonicalInstance(Zone* zone,
@@ -8066,7 +8074,11 @@ void Function::set_kind_tag(uint32_t value) const {
 }
 
 void Function::set_packed_fields(uint32_t packed_fields) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   StoreNonPointer(&untag()->packed_fields_, packed_fields);
+#endif
 }
 
 bool Function::IsOptimizable() const {
@@ -8097,31 +8109,66 @@ void Function::SetIsOptimizable(bool value) const {
 }
 
 bool Function::ForceOptimize() const {
-  return IsFfiFromAddress() || IsFfiGetAddress() || IsFfiLoad() ||
-         IsFfiStore() || IsFfiTrampoline() || IsFfiAsExternalTypedData() ||
-         IsTypedDataViewFactory() || IsUtf8Scan() || IsGetNativeField() ||
-         IsFinalizerForceOptimized();
+  return RecognizedKindForceOptimize() || IsFfiTrampoline() ||
+         IsTypedDataViewFactory();
 }
 
-bool Function::IsFinalizerForceOptimized() const {
-  // Either because of unboxed/untagged data, or because we don't want the GC
-  // to trigger in between.
+bool Function::RecognizedKindForceOptimize() const {
   switch (recognized_kind()) {
+    // Uses unboxed/untagged data not supported in unoptimized.
     case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
     case MethodRecognizer::kFinalizerBase_setIsolate:
     case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
     case MethodRecognizer::kFinalizerEntry_getExternalSize:
-      // Unboxed/untagged representation not supported in unoptimized.
-      return true;
+    case MethodRecognizer::kExtensionStreamHasListener:
+    case MethodRecognizer::kFfiLoadInt8:
+    case MethodRecognizer::kFfiLoadInt16:
+    case MethodRecognizer::kFfiLoadInt32:
+    case MethodRecognizer::kFfiLoadInt64:
+    case MethodRecognizer::kFfiLoadUint8:
+    case MethodRecognizer::kFfiLoadUint16:
+    case MethodRecognizer::kFfiLoadUint32:
+    case MethodRecognizer::kFfiLoadUint64:
+    case MethodRecognizer::kFfiLoadFloat:
+    case MethodRecognizer::kFfiLoadFloatUnaligned:
+    case MethodRecognizer::kFfiLoadDouble:
+    case MethodRecognizer::kFfiLoadDoubleUnaligned:
+    case MethodRecognizer::kFfiLoadPointer:
+    case MethodRecognizer::kFfiStoreInt8:
+    case MethodRecognizer::kFfiStoreInt16:
+    case MethodRecognizer::kFfiStoreInt32:
+    case MethodRecognizer::kFfiStoreInt64:
+    case MethodRecognizer::kFfiStoreUint8:
+    case MethodRecognizer::kFfiStoreUint16:
+    case MethodRecognizer::kFfiStoreUint32:
+    case MethodRecognizer::kFfiStoreUint64:
+    case MethodRecognizer::kFfiStoreFloat:
+    case MethodRecognizer::kFfiStoreFloatUnaligned:
+    case MethodRecognizer::kFfiStoreDouble:
+    case MethodRecognizer::kFfiStoreDoubleUnaligned:
+    case MethodRecognizer::kFfiStorePointer:
+    case MethodRecognizer::kFfiFromAddress:
+    case MethodRecognizer::kFfiGetAddress:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt8:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt16:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt32:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt64:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint8:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint16:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint32:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint64:
+    case MethodRecognizer::kFfiAsExternalTypedDataFloat:
+    case MethodRecognizer::kFfiAsExternalTypedDataDouble:
+    case MethodRecognizer::kGetNativeField:
+    case MethodRecognizer::kUtf8DecoderScan:
+    // Prevent the GC from running so that the operation is atomic from
+    // a GC point of view. Always double check implementation in
+    // kernel_to_il.cc that no GC can happen in between the relevant IL
+    // instructions.
+    // TODO(https://dartbug.com/48527): Support inlining.
     case MethodRecognizer::kFinalizerBase_exchangeEntriesCollectedWithNull:
-      // Prevent the GC from running so that the operation is atomic from
-      // a GC point of view. Always double check implementation in
-      // kernel_to_il.cc that no GC can happen in between the relevant IL
-      // instructions.
-      // TODO(https://dartbug.com/48527): Support inlining.
-      return true;
+    // Both unboxed/untagged data and atomic-to-GC operation.
     case MethodRecognizer::kFinalizerEntry_allocate:
-      // Both of the above reasons.
       return true;
     default:
       return false;
@@ -9646,7 +9693,7 @@ ScriptPtr Function::script() const {
   }
   if (IsImplicitGetterOrSetter()) {
     const auto& field = Field::Handle(accessor_field());
-    return field.Script();
+    return field.IsNull() ? Script::null() : field.Script();
   }
   Object& data = Object::Handle(this->data());
   if (data.IsArray()) {
@@ -9669,9 +9716,7 @@ ScriptPtr Function::script() const {
   }
   if (IsClosureFunction()) {
     const Function& function = Function::Handle(parent_function());
-#if defined(DART_PRECOMPILED_RUNTIME)
     if (function.IsNull()) return Script::null();
-#endif
     return function.script();
   }
   ASSERT(obj.IsClass());
@@ -13221,6 +13266,10 @@ void Library::DropDependenciesAndCaches() const {
   untag()->set_exported_names(Array::null());
   untag()->set_loaded_scripts(Array::null());
   untag()->set_dependencies(Array::null());
+#if defined(PRODUCT)
+  // used_scripts is only used by vm-service.
+  untag()->set_used_scripts(GrowableObjectArray::null());
+#endif
 }
 
 void Library::AddImport(const Namespace& ns) const {
@@ -14538,6 +14587,7 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::FfiLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::NativeWrappersLibrary()));
+  all_libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
   INTERNAL_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
   OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS_OTHER);
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
@@ -14829,7 +14879,11 @@ ObjectPoolPtr ObjectPool::NewFromBuilder(
     if (type == EntryType::kTaggedObject) {
       result.SetObjectAt(i, *entry.obj_);
     } else {
-      result.SetRawValueAt(i, entry.raw_value_);
+#if defined(TARGET_ARCH_IS_32_BIT)
+      ASSERT(type != EntryType::kImmediate64);
+#endif
+      ASSERT(type != EntryType::kImmediate128);
+      result.SetRawValueAt(i, entry.imm_);
     }
   }
   return result.ptr();
@@ -14869,11 +14923,19 @@ const char* ObjectPool::ToCString() const {
 void ObjectPool::DebugPrint() const {
   THR_Print("ObjectPool len:%" Pd " {\n", Length());
   for (intptr_t i = 0; i < Length(); i++) {
-    intptr_t offset = OffsetFromIndex(i);
-#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
-    THR_Print("  %" Pd "(pp) ", offset + kHeapObjectTag);
+#if defined(DART_PRECOMPILED_RUNTIME)
+    intptr_t offset = ObjectPool::element_offset(i);
 #else
-    THR_Print("  [pp+0x%" Px "] ", offset);
+    intptr_t offset = compiler::target::ObjectPool::element_offset(i);
+#endif
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+    THR_Print("  %" Pd "(pp) ", offset);  // PP is untagged
+#elif defined(TARGET_ARCH_ARM64)
+    THR_Print("  [pp, #%" Pd "] ", offset);  // PP is untagged
+#elif defined(TARGET_ARCH_ARM32)
+    THR_Print("  [pp, #%" Pd "] ", offset - kHeapObjectTag);  // PP is tagged
+#else
+    THR_Print("  [pp+0x%" Px "] ", offset - kHeapObjectTag);  // PP is tagged
 #endif
     if (TypeAt(i) == EntryType::kTaggedObject) {
       const Object& obj = Object::Handle(ObjectAt(i));
@@ -15301,7 +15363,18 @@ intptr_t LocalVarDescriptors::Length() const {
 }
 
 intptr_t ExceptionHandlers::num_entries() const {
-  return untag()->num_entries_;
+  return untag()->num_entries();
+}
+
+bool ExceptionHandlers::has_async_handler() const {
+  return UntaggedExceptionHandlers::AsyncHandlerBit::decode(
+      untag()->packed_fields_);
+}
+
+void ExceptionHandlers::set_has_async_handler(bool value) const {
+  StoreNonPointer(&untag()->packed_fields_,
+                  UntaggedExceptionHandlers::AsyncHandlerBit::update(
+                      value, untag()->packed_fields_));
 }
 
 void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
@@ -15393,7 +15466,9 @@ ExceptionHandlersPtr ExceptionHandlers::New(intptr_t num_handlers) {
                          ExceptionHandlers::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.StoreNonPointer(&result.untag()->num_entries_, num_handlers);
+    result.StoreNonPointer(
+        &result.untag()->packed_fields_,
+        UntaggedExceptionHandlers::NumEntriesBits::update(num_handlers, 0));
   }
   const Array& handled_types_data =
       (num_handlers == 0) ? Object::empty_array()
@@ -15419,7 +15494,9 @@ ExceptionHandlersPtr ExceptionHandlers::New(const Array& handled_types_data) {
                          ExceptionHandlers::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.StoreNonPointer(&result.untag()->num_entries_, num_handlers);
+    result.StoreNonPointer(
+        &result.untag()->packed_fields_,
+        UntaggedExceptionHandlers::NumEntriesBits::update(num_handlers, 0));
   }
   result.set_handled_types_data(handled_types_data);
   return result.ptr();
@@ -15428,8 +15505,11 @@ ExceptionHandlersPtr ExceptionHandlers::New(const Array& handled_types_data) {
 const char* ExceptionHandlers::ToCString() const {
 #define FORMAT1 "%" Pd " => %#x  (%" Pd " types) (outer %d)%s%s\n"
 #define FORMAT2 "  %d. %s\n"
+#define FORMAT3 "<async handler>\n"
   if (num_entries() == 0) {
-    return "empty ExceptionHandlers\n";
+    return has_async_handler()
+               ? "empty ExceptionHandlers (with <async handler>)\n"
+               : "empty ExceptionHandlers\n";
   }
   auto& handled_types = Array::Handle();
   auto& type = AbstractType::Handle();
@@ -15452,6 +15532,9 @@ const char* ExceptionHandlers::ToCString() const {
       len += Utils::SNPrint(NULL, 0, FORMAT2, k, type.ToCString());
     }
   }
+  if (has_async_handler()) {
+    len += Utils::SNPrint(NULL, 0, FORMAT3);
+  }
   // Allocate the buffer.
   char* buffer = Thread::Current()->zone()->Alloc<char>(len);
   // Layout the fields in the buffer.
@@ -15472,9 +15555,14 @@ const char* ExceptionHandlers::ToCString() const {
                                   FORMAT2, k, type.ToCString());
     }
   }
+  if (has_async_handler()) {
+    num_chars +=
+        Utils::SNPrint((buffer + num_chars), (len - num_chars), FORMAT3);
+  }
   return buffer;
 #undef FORMAT1
 #undef FORMAT2
+#undef FORMAT3
 }
 
 void SingleTargetCache::set_target(const Code& value) const {
@@ -15811,7 +15899,7 @@ void ICData::AssertInvariantsAreSatisfied() const {
     ASSERT(array.At(sentinel_start + entry_length - 1) ==
            smi_illegal_cid().ptr());
     ASSERT(ICData::CachedEmptyICDataArray(num_args, is_tracking_exactness()) ==
-           entries());
+           array.ptr());
   } else {
     ASSERT(array.At(sentinel_start + entry_length - 1) == ptr());
   }
@@ -17573,11 +17661,13 @@ void Code::DisableDartCode() const {
                         new_code.UncheckedEntryPointOffset());
 }
 
-void Code::DisableStubCode() const {
+void Code::DisableStubCode(bool is_cls_parameterized) const {
   GcSafepointOperationScope safepoint(Thread::Current());
   ASSERT(IsAllocationStubCode());
   ASSERT(instructions() == active_instructions());
-  const Code& new_code = StubCode::FixAllocationStubTarget();
+  const Code& new_code = is_cls_parameterized
+                             ? StubCode::FixParameterizedAllocationStubTarget()
+                             : StubCode::FixAllocationStubTarget();
   SetActiveInstructions(Instructions::Handle(new_code.instructions()),
                         new_code.UncheckedEntryPointOffset());
 }
@@ -24243,17 +24333,6 @@ uint32_t Array::CanonicalizeHash() const {
   return hash;
 }
 
-ArrayPtr Array::New(intptr_t len, Heap::Space space) {
-  ASSERT(IsolateGroup::Current()->object_store()->array_class() !=
-         Class::null());
-  ArrayPtr result = New(kClassId, len, space);
-  if (UseCardMarkingForAllocation(len)) {
-    ASSERT(result->IsOldObject());
-    result->untag()->SetCardRememberedBitUnsynchronized();
-  }
-  return result;
-}
-
 ArrayPtr Array::New(intptr_t len,
                     const AbstractType& element_type,
                     Heap::Space space) {
@@ -24267,7 +24346,9 @@ ArrayPtr Array::New(intptr_t len,
   return result.ptr();
 }
 
-ArrayPtr Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
+ArrayPtr Array::NewUninitialized(intptr_t class_id,
+                                 intptr_t len,
+                                 Heap::Space space) {
   if (!IsValidLength(len)) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in Array::New: invalid len %" Pd "\n", len);
@@ -24278,23 +24359,56 @@ ArrayPtr Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
                          Array::ContainsCompressedPointers()));
     NoSafepointScope no_safepoint;
     raw->untag()->set_length(Smi::New(len));
+    if (UseCardMarkingForAllocation(len)) {
+      ASSERT(raw->IsOldObject());
+      raw->untag()->SetCardRememberedBitUnsynchronized();
+    }
     return raw;
   }
+}
+
+ArrayPtr Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
+  if (!UseCardMarkingForAllocation(len)) {
+    return NewUninitialized(class_id, len, space);
+  }
+
+  Thread* thread = Thread::Current();
+  Array& result =
+      Array::Handle(thread->zone(), NewUninitialized(class_id, len, space));
+  result.SetTypeArguments(Object::null_type_arguments());
+  for (intptr_t i = 0; i < len; i++) {
+    result.SetAt(i, Object::null_object(), thread);
+    if (((i + 1) % KB) == 0) {
+      thread->CheckForSafepoint();
+    }
+  }
+  return result.ptr();
 }
 
 ArrayPtr Array::Slice(intptr_t start,
                       intptr_t count,
                       bool with_type_argument) const {
-  // TODO(vegorov) introduce an array allocation method that fills newly
-  // allocated array with values from the given source array instead of
-  // null-initializing all elements.
-  Array& dest = Array::Handle(Array::New(count));
-  dest.StoreArrayPointers(dest.ObjectAddr(0), ObjectAddr(start), count);
-
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Array& dest = Array::Handle(zone, Array::NewUninitialized(count));
   if (with_type_argument) {
-    dest.SetTypeArguments(TypeArguments::Handle(GetTypeArguments()));
+    dest.SetTypeArguments(TypeArguments::Handle(zone, GetTypeArguments()));
+  } else {
+    dest.SetTypeArguments(Object::null_type_arguments());
   }
-
+  if (!UseCardMarkingForAllocation(count)) {
+    NoSafepointScope no_safepoint(thread);
+    for (int i = 0; i < count; i++) {
+      dest.untag()->set_element(i, untag()->element(i + start), thread);
+    }
+  } else {
+    for (int i = 0; i < count; i++) {
+      dest.untag()->set_element(i, untag()->element(i + start), thread);
+      if (((i + 1) % KB) == 0) {
+        thread->CheckForSafepoint();
+      }
+    }
+  }
   return dest.ptr();
 }
 
@@ -24319,19 +24433,30 @@ ArrayPtr Array::Grow(const Array& source,
                      Heap::Space space) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  const Array& result = Array::Handle(zone, Array::New(new_length, space));
+  const Array& result =
+      Array::Handle(zone, Array::NewUninitialized(new_length, space));
   intptr_t len = 0;
   if (!source.IsNull()) {
     len = source.Length();
     result.SetTypeArguments(
         TypeArguments::Handle(zone, source.GetTypeArguments()));
+  } else {
+    result.SetTypeArguments(Object::null_type_arguments());
   }
   ASSERT(new_length >= len);  // Cannot copy 'source' into new array.
   ASSERT(new_length != len);  // Unnecessary copying of array.
-  PassiveObject& obj = PassiveObject::Handle(zone);
-  for (int i = 0; i < len; i++) {
-    obj = source.At(i);
-    result.SetAt(i, obj, thread);
+  if (!UseCardMarkingForAllocation(len)) {
+    NoSafepointScope no_safepoint(thread);
+    for (int i = 0; i < len; i++) {
+      result.untag()->set_element(i, source.untag()->element(i), thread);
+    }
+  } else {
+    for (int i = 0; i < len; i++) {
+      result.untag()->set_element(i, source.untag()->element(i), thread);
+      if (((i + 1) % KB) == 0) {
+        thread->CheckForSafepoint();
+      }
+    }
   }
   return result.ptr();
 }
@@ -25925,6 +26050,54 @@ DEFINE_FLAG_HANDLER(DwarfStackTracesHandler,
                     dwarf_stack_traces,
                     "Omit CodeSourceMaps in precompiled snapshots and don't "
                     "symbolize stack traces in the precompiled runtime.");
+
+SuspendStatePtr SuspendState::New(intptr_t frame_size,
+                                  const Instance& function_data,
+                                  Heap::Space space) {
+  SuspendState& result = SuspendState::Handle();
+  {
+    ObjectPtr raw = Object::Allocate(
+        SuspendState::kClassId, SuspendState::InstanceSize(frame_size), space,
+        SuspendState::ContainsCompressedPointers());
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.set_frame_size(frame_size);
+    result.set_pc(0);
+    result.set_function_data(function_data);
+  }
+  return result.ptr();
+}
+
+void SuspendState::set_frame_size(intptr_t frame_size) const {
+  ASSERT(frame_size >= 0);
+  StoreNonPointer(&untag()->frame_size_, frame_size);
+}
+
+void SuspendState::set_pc(uword pc) const {
+  StoreNonPointer(&untag()->pc_, pc);
+}
+
+void SuspendState::set_function_data(const Instance& function_data) const {
+  untag()->set_function_data(function_data.ptr());
+}
+
+const char* SuspendState::ToCString() const {
+  return "SuspendState";
+}
+
+CodePtr SuspendState::GetCodeObject() const {
+  ASSERT(pc() != 0);
+#if defined(DART_PRECOMPILED_RUNTIME)
+  NoSafepointScope no_safepoint;
+  CodePtr code = ReversePc::Lookup(IsolateGroup::Current(), pc(),
+                                   /*is_return_address=*/true);
+  ASSERT(code != Code::null());
+  return code;
+#else
+  UNIMPLEMENTED();
+  return Code::null();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
 
 void RegExp::set_pattern(const String& pattern) const {
   untag()->set_pattern(pattern.ptr());

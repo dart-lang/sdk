@@ -6,8 +6,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:html/parser.dart' show parse;
-import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
 /// Generate or update corpus data.
@@ -63,7 +61,6 @@ final updateExistingClones = false;
 
 final _appDir =
     path.join(_homeDir, 'completion_metrics', 'third_party', 'apps');
-final _client = http.Client();
 
 final _homeDir = Platform.isWindows
     ? Platform.environment['LOCALAPPDATA']!
@@ -89,12 +86,6 @@ Future<CloneResult> _clone(String repo) async {
   }
   return CloneResult(result.exitCode, cloneDir, msg: result.stderr as String);
 }
-
-Future<String> _getBody(String url) async => (await _getResponse(url)).body;
-
-Future<http.Response> _getResponse(String url) async =>
-    _client.get(Uri.parse(url),
-        headers: const {'User-Agent': 'dart.pkg.completion_metrics'});
 
 bool _hasPubspec(FileSystemEntity f) =>
     f is Directory &&
@@ -129,39 +120,4 @@ class CloneResult {
   final int exitCode;
   final String msg;
   CloneResult(this.exitCode, this.directory, {this.msg = ''});
-}
-
-class RepoList {
-  static const itsallwidgetsRssFeed = 'https://itsallwidgets.com/app/feed';
-
-  // (Re) generate the list of github repos on itsallwidgets.com
-  static Future<List<String>> fromItsAllWidgetsRssFeed() async {
-    final repos = <String>{};
-
-    final body = await _getBody(itsallwidgetsRssFeed);
-    final doc = parse(body);
-    final entries = doc.querySelectorAll('entry');
-    for (var entry in entries) {
-      final link = entry.querySelector('link');
-      if (link == null) {
-        continue;
-      }
-      final href = link.attributes['href'];
-      if (href == null) {
-        continue;
-      }
-      final body = await _getBody(href);
-      final doc = parse(body);
-      final links = doc.querySelectorAll('a');
-      for (var link in links) {
-        final href = link.attributes['href'];
-        if (href != null && href.startsWith('https://github.com/')) {
-          print(href);
-          repos.add(href);
-          continue;
-        }
-      }
-    }
-    return repos.toList();
-  }
 }

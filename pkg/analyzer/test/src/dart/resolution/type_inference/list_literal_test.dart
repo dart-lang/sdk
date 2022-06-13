@@ -38,6 +38,9 @@ MethodInvocation
     arguments
       NullLiteral
         literal: null
+        parameter: ParameterMember
+          base: root::@parameter::t
+          substitution: {T: Iterable<int>?}
         staticType: Null
     rightParenthesis: )
   staticInvokeType: Iterable<int>? Function(Iterable<int>?)

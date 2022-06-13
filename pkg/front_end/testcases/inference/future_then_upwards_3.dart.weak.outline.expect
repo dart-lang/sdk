@@ -12,7 +12,7 @@ class MyFuture<T extends core::Object* = dynamic> extends core::Object implement
     ;
   method noSuchMethod(core::Invocation* invocation) → dynamic
     ;
-  method then<S extends core::Object* = dynamic>((self::MyFuture::T*) →* FutureOr<self::MyFuture::then::S*>* f, {core::Function* onError}) → self::MyFuture<self::MyFuture::then::S*>*
+  method then<S extends core::Object* = dynamic>((self::MyFuture::T*) →* FutureOr<self::MyFuture::then::S*>* f, {core::Function* onError = null}) → self::MyFuture<self::MyFuture::then::S*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

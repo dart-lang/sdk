@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 
 class StaticTypeCache {
   static const String tag = 'static-type-cache';
 
   final Map<ir.Expression, ir.DartType> _expressionTypes;
-  final Map<ir.ForInStatement, ir.DartType> _forInIteratorTypes;
+  final Map<ir.ForInStatement, ir.DartType>? _forInIteratorTypes;
 
   const StaticTypeCache(
       [this._expressionTypes = const {}, this._forInIteratorTypes]);
@@ -23,8 +21,8 @@ class StaticTypeCache {
       source.begin(tag);
       Map<ir.Expression, ir.DartType> expressionTypes =
           source.readTreeNodeMapInContext(source.readDartTypeNode);
-      Map<ir.ForInStatement, ir.DartType> forInIteratorTypes = source
-          .readTreeNodeMapInContext(source.readDartTypeNode, emptyAsNull: true);
+      Map<ir.ForInStatement, ir.DartType>? forInIteratorTypes =
+          source.readTreeNodeMapInContextOrNull(source.readDartTypeNode);
       source.end(tag);
       return StaticTypeCache(expressionTypes, forInIteratorTypes);
     });
@@ -41,9 +39,9 @@ class StaticTypeCache {
     });
   }
 
-  ir.DartType operator [](ir.Expression node) => _expressionTypes[node];
+  ir.DartType? operator [](ir.Expression node) => _expressionTypes[node];
 
-  ir.DartType getForInIteratorType(ir.ForInStatement node) {
-    return _forInIteratorTypes != null ? _forInIteratorTypes[node] : null;
+  ir.DartType? getForInIteratorType(ir.ForInStatement node) {
+    return _forInIteratorTypes?[node];
   }
 }

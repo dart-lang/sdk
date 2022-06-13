@@ -4,8 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:test/test.dart';
@@ -35,14 +34,14 @@ class ConvertGetterToMethodCodeActionsTest extends AbstractCodeActionsTest {
   Future<void> test_refactor() async {
     const content = '''
 int get ^test => 42;
-main() {
+void f() {
   var a = test;
   var b = test;
 }
 ''';
     const expectedContent = '''
 int test() => 42;
-main() {
+void f() {
   var a = test();
   var b = test();
 }
@@ -67,14 +66,14 @@ class ConvertMethodToGetterCodeActionsTest extends AbstractCodeActionsTest {
   Future<void> test_refactor() async {
     const content = '''
 int ^test() => 42;
-main() {
+void f() {
   var a = test();
   var b = test();
 }
 ''';
     const expectedContent = '''
 int get test => 42;
-main() {
+void f() {
   var a = test;
   var b = test;
 }
@@ -132,13 +131,13 @@ class ExtractMethodRefactorCodeActionsTest extends AbstractCodeActionsTest {
 
   Future<void> test_appliesCorrectEdits() async {
     const content = '''
-main() {
+void f() {
   print('Test!');
   [[print('Test!');]]
 }
     ''';
     const expectedContent = '''
-main() {
+void f() {
   print('Test!');
   newMethod();
 }
@@ -161,13 +160,13 @@ void newMethod() {
 
   Future<void> test_cancelsInProgress() async {
     const content = '''
-main() {
+void f() {
   print('Test!');
   [[print('Test!');]]
 }
     ''';
     const expectedContent = '''
-main() {
+void f() {
   print('Test!');
   newMethod();
 }
@@ -192,7 +191,7 @@ void newMethod() {
         final params = ApplyWorkspaceEditParams.fromJson(
             request.params as Map<String, Object?>);
         edit = params.edit;
-        respondTo(request, ApplyWorkspaceEditResponse(applied: true));
+        respondTo(request, ApplyWorkspaceEditResult(applied: true));
       }
     });
 
@@ -215,7 +214,7 @@ void newMethod() {
 
   Future<void> test_contentModified() async {
     const content = '''
-main() {
+void f() {
   print('Test!');
   [[print('Test!');]]
 }
@@ -239,7 +238,7 @@ main() {
 
   Future<void> test_filtersCorrectly() async {
     const content = '''
-main() {
+void f() {
   print('Test!');
   [[print('Test!');]]
 }
@@ -287,7 +286,7 @@ main() {
 
   Future<void> test_generatesNames() async {
     const content = '''
-Object main() {
+Object F() {
   return Container([[Text('Test!')]]);
 }
 
@@ -295,7 +294,7 @@ Object Container(Object text) => null;
 Object Text(Object text) => null;
     ''';
     const expectedContent = '''
-Object main() {
+Object F() {
   return Container(text());
 }
 
@@ -320,7 +319,7 @@ Object Text(Object text) => null;
     const content = '''
 import 'dart:convert';
 ^
-main() {}
+void f() {}
     ''';
     newFile(mainFilePath, content);
     await initialize();
@@ -333,13 +332,13 @@ main() {}
 
   Future<void> test_progress_clientProvided() async {
     const content = '''
-main() {
+void f() {
   print('Test!');
   [[print('Test!');]]
 }
     ''';
     const expectedContent = '''
-main() {
+void f() {
   print('Test!');
   newMethod();
 }
@@ -369,13 +368,13 @@ void newMethod() {
 
   Future<void> test_progress_notSupported() async {
     const content = '''
-main() {
+void f() {
   print('Test!');
   [[print('Test!');]]
 }
     ''';
     const expectedContent = '''
-main() {
+void f() {
   print('Test!');
   newMethod();
 }
@@ -405,13 +404,13 @@ void newMethod() {
 
   Future<void> test_progress_serverGenerated() async {
     const content = '''
-main() {
+void f() {
   print('Test!');
   [[print('Test!');]]
 }
     ''';
     const expectedContent = '''
-main() {
+void f() {
   print('Test!');
   newMethod();
 }
@@ -476,6 +475,52 @@ void doFoo(void Function() a) => a();
     expect(response.message, contains('Cannot extract closure as method'));
   }
 
+  /// Test if the client does not call refactor.validate it still gets a
+  /// sensible `showMessage` call and not a failed request.
+  Future<void> test_validLocation_failsInitialValidation_noValidation() async {
+    const content = '''
+f() {
+  var a = 0;
+  doFoo([[() => print(a)]]);
+  print(a);
+}
+
+void doFoo(void Function() a) => a();
+
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize(
+      // We expect an error notification so don't fail on it.
+      failTestOnAnyErrorNotification: false,
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
+
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command!,
+    );
+
+    // Call the refactor without any validation and expected an error message
+    // without a request failure.
+    final errorNotification = await expectErrorNotification(() async {
+      final response = await executeCommand(
+        Command(
+            title: command.title,
+            command: command.command,
+            arguments: command.arguments),
+      );
+      expect(response, isNull);
+    });
+    expect(
+      errorNotification.message,
+      contains('Cannot extract closure as method'),
+    );
+  }
+
   Future<void> test_validLocation_passesInitialValidation() async {
     const content = '''
 f() {
@@ -520,14 +565,14 @@ class ExtractVariableRefactorCodeActionsTest extends AbstractCodeActionsTest {
 
   Future<void> test_appliesCorrectEdits() async {
     const content = '''
-main() {
+void f() {
   foo([[1 + 2]]);
 }
 
 void foo(int arg) {}
     ''';
     const expectedContent = '''
-main() {
+void f() {
   var arg = 1 + 2;
   foo(arg);
 }
@@ -548,7 +593,7 @@ void foo(int arg) {}
 
   Future<void> test_doesNotCreateNameConflicts() async {
     const content = '''
-main() {
+void f() {
   var arg = "test";
   foo([[1 + 2]]);
 }
@@ -556,7 +601,7 @@ main() {
 void foo(int arg) {}
     ''';
     const expectedContent = '''
-main() {
+void f() {
   var arg = "test";
   var arg2 = 1 + 2;
   foo(arg2);
@@ -663,7 +708,7 @@ class NewWidget extends StatelessWidget {
     const content = '''
 import 'dart:convert';
 ^
-main() {}
+void f() {}
     ''';
     newFile(mainFilePath, content);
     await initialize();
@@ -692,7 +737,7 @@ class InlineLocalVariableRefactorCodeActionsTest
 
   Future<void> test_appliesCorrectEdits() async {
     const content = '''
-void main() {
+void f() {
   var a^ = 1;
   print(a);
   print(a);
@@ -700,7 +745,7 @@ void main() {
 }
     ''';
     const expectedContent = '''
-void main() {
+void f() {
   print(1);
   print(1);
   print(1);

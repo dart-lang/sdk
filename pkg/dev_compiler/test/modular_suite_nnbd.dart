@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Test the modular compilation pipeline of ddc.
 ///
 /// This is a shell that runs multiple tests, one per folder under `data/`.
@@ -18,9 +16,9 @@ import 'package:modular_test/src/suite.dart';
 String packageConfigJsonPath = '.dart_tool/package_config.json';
 Uri sdkRoot = Platform.script.resolve('../../../');
 Uri packageConfigUri = sdkRoot.resolve(packageConfigJsonPath);
-Options _options;
-String _dartdevcScript;
-String _kernelWorkerScript;
+late Options _options;
+late String _dartdevcScript;
+late String _kernelWorkerScript;
 
 void main(List<String> args) async {
   _options = Options.parse(args);
@@ -120,10 +118,7 @@ class SourceToSummaryDillStep implements IOModularStep {
           .where((m) => !m.isSdk)
           .expand((m) => ['--input-summary', '${toUri(m, dillId)}']),
       ...sources.expand((String uri) => ['--source', uri]),
-      // TODO(40266) After unfork of dart:_runtime only need experiment when
-      // compiling SDK. For now always use the Null Safety experiment.
-      '--enable-experiment',
-      'non-nullable',
+      '--sound-null-safety',
       ...flags.expand((String flag) => ['--enable-experiment', flag]),
     ];
 
@@ -206,10 +201,7 @@ class DDCStep implements IOModularStep {
       rootScheme,
       ...sources,
       ...extraArgs,
-      // TODO(40266) After unfork of dart:_runtime only need experiment when
-      // compiling SDK. For now always use the Null Safety experiment.
-      '--enable-experiment',
-      'non-nullable',
+      '--sound-null-safety',
       for (String flag in flags) '--enable-experiment=$flag',
       ...transitiveDependencies
           .where((m) => !m.isSdk)
@@ -323,7 +315,7 @@ String get _d8executable {
 
 String _sourceToImportUri(Module module, String rootScheme, Uri relativeUri) {
   if (module.isPackage) {
-    var basePath = module.packageBase.path;
+    var basePath = module.packageBase!.path;
     var packageRelativePath = basePath == './'
         ? relativeUri.path
         : relativeUri.path.substring(basePath.length);

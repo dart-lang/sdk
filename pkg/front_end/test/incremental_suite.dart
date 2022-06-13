@@ -4,6 +4,8 @@
 
 import 'dart:developer' show debugger;
 
+import 'dart:convert' show jsonDecode;
+
 import 'dart:io' show Directory, File;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
@@ -59,6 +61,13 @@ import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy, ForTestingClassInfo;
 
+import 'package:kernel/src/equivalence.dart'
+    show
+        EquivalenceResult,
+        EquivalenceStrategy,
+        EquivalenceVisitor,
+        checkEquivalence;
+
 import 'package:kernel/target/targets.dart'
     show
         LateLowering,
@@ -72,7 +81,15 @@ import 'package:kernel/text/ast_to_text.dart'
     show NameSystem, Printer, componentToString;
 
 import "package:testing/testing.dart"
-    show Chain, ChainContext, Expectation, Result, Step, TestDescription, runMe;
+    show
+        Chain,
+        ChainContext,
+        Expectation,
+        ExpectationSet,
+        Result,
+        Step,
+        TestDescription,
+        runMe;
 
 import "package:vm/target/vm.dart" show VmTarget;
 
@@ -82,56 +99,165 @@ import 'binary_md_dill_reader.dart' show DillComparer;
 
 import "incremental_utils.dart" as util;
 
+import 'testing_utils.dart' show checkEnvironment;
+
 import 'utils/io_utils.dart' show computeRepoDir;
 
 void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
-const Expectation ExpectationFileMismatch =
-    const Expectation.fail("ExpectationFileMismatch");
-const Expectation ExpectationFileMissing =
-    const Expectation.fail("ExpectationFileMissing");
-const Expectation MissingErrors = const Expectation.fail("MissingErrors");
-const Expectation UnexpectedErrors = const Expectation.fail("UnexpectedErrors");
-const Expectation MissingWarnings = const Expectation.fail("MissingWarnings");
-const Expectation UnexpectedWarnings =
-    const Expectation.fail("UnexpectedWarnings");
-const Expectation ClassHierarchyError =
-    const Expectation.fail("ClassHierarchyError");
-const Expectation NeededDillMismatch =
-    const Expectation.fail("NeededDillMismatch");
-const Expectation IncrementalSerializationError =
-    const Expectation.fail("IncrementalSerializationError");
-const Expectation ContentDataMismatch =
-    const Expectation.fail("ContentDataMismatch");
-const Expectation MissingInitializationError =
-    const Expectation.fail("MissingInitializationError");
-const Expectation UnexpectedInitializationError =
-    const Expectation.fail("UnexpectedInitializationError");
-const Expectation ReachableLibrariesError =
-    const Expectation.fail("ReachableLibrariesError");
-const Expectation UriToSourceError = const Expectation.fail("UriToSourceError");
-const Expectation MissingPlatformLibraries =
-    const Expectation.fail("MissingPlatformLibraries");
-const Expectation UnexpectedPlatformLibraries =
-    const Expectation.fail("UnexpectedPlatformLibraries");
-const Expectation UnexpectedRebuildBodiesOnly =
-    const Expectation.fail("UnexpectedRebuildBodiesOnly");
-const Expectation UnexpectedEntryToLibraryCount =
-    const Expectation.fail("UnexpectedEntryToLibraryCount");
-const Expectation LibraryCountMismatch =
-    const Expectation.fail("LibraryCountMismatch");
-const Expectation InitializedFromDillMismatch =
-    const Expectation.fail("InitializedFromDillMismatch");
-const Expectation NNBDModeMismatch = const Expectation.fail("NNBDModeMismatch");
+final ExpectationSet staticExpectationSet =
+    new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
+
+const String EXPECTATIONS = '''
+[
+  {
+    "name": "ExpectationFileMismatch",
+    "group": "Fail"
+  },
+  {
+    "name": "ExpectationFileMissing",
+    "group": "Fail"
+  },
+  {
+    "name": "MissingErrors",
+    "group": "Fail"
+  },
+  {
+    "name": "UnexpectedErrors",
+    "group": "Fail"
+  },
+  {
+    "name": "MissingWarnings",
+    "group": "Fail"
+  },
+  {
+    "name": "UnexpectedWarnings",
+    "group": "Fail"
+  },
+  {
+    "name": "ClassHierarchyError",
+    "group": "Fail"
+  },
+  {
+    "name": "NeededDillMismatch",
+    "group": "Fail"
+  },
+  {
+    "name": "IncrementalSerializationError",
+    "group": "Fail"
+  },
+  {
+    "name": "ContentDataMismatch",
+    "group": "Fail"
+  },
+  {
+    "name": "MissingInitializationError",
+    "group": "Fail"
+  },
+  {
+    "name": "UnexpectedInitializationError",
+    "group": "Fail"
+  },
+  {
+    "name": "ReachableLibrariesError",
+    "group": "Fail"
+  },
+  {
+    "name": "EquivalenceError",
+    "group": "Fail"
+  },
+  {
+    "name": "UriToSourceError",
+    "group": "Fail"
+  },
+  {
+    "name": "MissingPlatformLibraries",
+    "group": "Fail"
+  },
+  {
+    "name": "UnexpectedPlatformLibraries",
+    "group": "Fail"
+  },
+  {
+    "name": "UnexpectedRebuildBodiesOnly",
+    "group": "Fail"
+  },
+  {
+    "name": "UnexpectedEntryToLibraryCount",
+    "group": "Fail"
+  },
+  {
+    "name": "LibraryCountMismatch",
+    "group": "Fail"
+  },
+  {
+    "name": "InitializedFromDillMismatch",
+    "group": "Fail"
+  },
+  {
+    "name": "NNBDModeMismatch",
+    "group": "Fail"
+  }
+]
+''';
+
+final Expectation ExpectationFileMismatch =
+    staticExpectationSet["ExpectationFileMismatch"];
+final Expectation ExpectationFileMissing =
+    staticExpectationSet["ExpectationFileMissing"];
+final Expectation MissingErrors = staticExpectationSet["MissingErrors"];
+final Expectation UnexpectedErrors = staticExpectationSet["UnexpectedErrors"];
+final Expectation MissingWarnings = staticExpectationSet["MissingWarnings"];
+final Expectation UnexpectedWarnings =
+    staticExpectationSet["UnexpectedWarnings"];
+final Expectation ClassHierarchyError =
+    staticExpectationSet["ClassHierarchyError"];
+final Expectation NeededDillMismatch =
+    staticExpectationSet["NeededDillMismatch"];
+final Expectation IncrementalSerializationError =
+    staticExpectationSet["IncrementalSerializationError"];
+final Expectation ContentDataMismatch =
+    staticExpectationSet["ContentDataMismatch"];
+final Expectation MissingInitializationError =
+    staticExpectationSet["MissingInitializationError"];
+final Expectation UnexpectedInitializationError =
+    staticExpectationSet["UnexpectedInitializationError"];
+final Expectation ReachableLibrariesError =
+    staticExpectationSet["ReachableLibrariesError"];
+final Expectation EquivalenceError = staticExpectationSet["EquivalenceError"];
+final Expectation UriToSourceError = staticExpectationSet["UriToSourceError"];
+final Expectation MissingPlatformLibraries =
+    staticExpectationSet["MissingPlatformLibraries"];
+final Expectation UnexpectedPlatformLibraries =
+    staticExpectationSet["UnexpectedPlatformLibraries"];
+final Expectation UnexpectedRebuildBodiesOnly =
+    staticExpectationSet["UnexpectedRebuildBodiesOnly"];
+final Expectation UnexpectedEntryToLibraryCount =
+    staticExpectationSet["UnexpectedEntryToLibraryCount"];
+final Expectation LibraryCountMismatch =
+    staticExpectationSet["LibraryCountMismatch"];
+final Expectation InitializedFromDillMismatch =
+    staticExpectationSet["InitializedFromDillMismatch"];
+final Expectation NNBDModeMismatch = staticExpectationSet["NNBDModeMismatch"];
 
 Future<Context> createContext(Chain suite, Map<String, String> environment) {
+  const Set<String> knownEnvironmentKeys = {
+    "updateExpectations",
+    "addDebugBreaks",
+    "skipTests",
+  };
+  checkEnvironment(environment, knownEnvironmentKeys);
+
   // Disable colors to ensure that expectation files are the same across
   // platforms and independent of stdin/stderr.
   colors.enableColors = false;
+  Set<String> skipTests = environment["skipTests"]?.split(",").toSet() ?? {};
   return new Future.value(new Context(
-      environment["updateExpectations"] == "true",
-      environment["addDebugBreaks"] == "true"));
+    environment["updateExpectations"] == "true",
+    environment["addDebugBreaks"] == "true",
+    skipTests,
+  ));
 }
 
 class Context extends ChainContext {
@@ -147,13 +273,32 @@ class Context extends ChainContext {
   /// iteration (or 'world run') when doing a "new world test".
   final bool breakBetween;
 
-  Context(this.updateExpectations, this.breakBetween);
+  final Set<String> skipTests;
+
+  Context(this.updateExpectations, this.breakBetween, this.skipTests);
+
+  @override
+  Stream<TestDescription> list(Chain suite) {
+    if (skipTests.isEmpty) return super.list(suite);
+    return filterSkipped(super.list(suite));
+  }
+
+  Stream<TestDescription> filterSkipped(Stream<TestDescription> all) async* {
+    await for (TestDescription testDescription in all) {
+      if (!skipTests.contains(testDescription.shortName)) {
+        yield testDescription;
+      }
+    }
+  }
 
   @override
   Future<void> cleanUp(TestDescription description, Result result) async {
     await cleanupHelper?.outDir?.delete(recursive: true);
     cleanupHelper?.outDir = null;
   }
+
+  @override
+  final ExpectationSet expectationSet = staticExpectationSet;
 
   TestData? cleanupHelper;
 }
@@ -761,11 +906,25 @@ class NewWorldTest {
         }
       }
 
-      newestWholeComponentData = util.postProcess(component!);
-      newestWholeComponent = component;
+      util.postProcessComponent(component!);
       String actualSerialized = componentToStringSdkFiltered(component!);
       print("*****\n\ncomponent:\n"
           "${actualSerialized}\n\n\n");
+      result = checkExpectFile(data, worldNum, "", context, actualSerialized);
+      if (result != null) return result;
+
+      if (world["compareToPrevious"] == true && newestWholeComponent != null) {
+        EquivalenceResult result = checkEquivalence(
+            newestWholeComponent!, component!,
+            strategy: const Strategy());
+        if (!result.isEquivalent) {
+          return new Result<TestData>(
+              data, EquivalenceError, result.toString());
+        }
+      }
+
+      newestWholeComponentData = util.postProcess(component!);
+      newestWholeComponent = component;
 
       if (world["uriToSourcesDoesntInclude"] != null) {
         for (String filename in world["uriToSourcesDoesntInclude"]) {
@@ -800,8 +959,6 @@ class NewWorldTest {
         }
       }
 
-      result = checkExpectFile(data, worldNum, "", context, actualSerialized);
-      if (result != null) return result;
       if (world["skipClassHierarchyTest"] != true) {
         result = checkClassHierarchy(compilerResult, data, worldNum, context);
         if (result != null) return result;
@@ -1132,6 +1289,31 @@ class NewWorldTest {
       }
     }
     return new Result<TestData>.pass(data);
+  }
+}
+
+class Strategy extends EquivalenceStrategy {
+  const Strategy();
+
+  @override
+  bool checkComponent_libraries(
+      EquivalenceVisitor visitor, Component node, Component other) {
+    return visitor.checkSets(node.libraries.toSet(), other.libraries.toSet(),
+        visitor.matchNamedNodes, visitor.checkNodes, 'libraries');
+  }
+
+  @override
+  bool checkClass_procedures(
+      EquivalenceVisitor visitor, Class node, Class other) {
+    // Check procedures as a set instead of a list to allow for reordering.
+    return visitor.checkSets(node.procedures.toSet(), other.procedures.toSet(),
+        visitor.matchNamedNodes, visitor.checkNodes, 'procedures');
+  }
+
+  @override
+  bool checkVariableDeclaration_binaryOffsetNoTag(EquivalenceVisitor visitor,
+      VariableDeclaration node, VariableDeclaration other) {
+    return true;
   }
 }
 

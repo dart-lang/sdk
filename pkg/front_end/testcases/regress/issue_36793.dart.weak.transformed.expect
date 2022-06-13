@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -12,9 +12,9 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static const field core::int* y = #C1;
+static const field core::int y = #C1;
 @#C1
-static field core::int* x;
+static field core::int x;
 static method main() → dynamic {
   core::print(#C1);
 }

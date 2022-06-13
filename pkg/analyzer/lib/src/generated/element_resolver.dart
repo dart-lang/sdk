@@ -341,7 +341,7 @@ class ElementResolver {
     var superName = name?.name;
     var element = superType.lookUpConstructor(superName, _definingLibrary);
     element = _resolver.toLegacyElement(element);
-    if (element == null || !element.isAccessibleIn(_definingLibrary)) {
+    if (element == null || !element.isAccessibleIn2(_definingLibrary)) {
       if (name != null) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,

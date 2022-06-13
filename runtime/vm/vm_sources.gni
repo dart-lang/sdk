@@ -126,6 +126,7 @@ vm_sources = [
   "hash_table.h",
   "image_snapshot.cc",
   "image_snapshot.h",
+  "instructions.cc",
   "instructions.h",
   "instructions_arm.cc",
   "instructions_arm.h",

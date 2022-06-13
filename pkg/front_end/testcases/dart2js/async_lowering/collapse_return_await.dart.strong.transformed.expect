@@ -8,19 +8,19 @@ static method bar() → asy::Future<core::int> {
 }
 static method foo1() → asy::Future<core::int> /* futureValueType= core::int */ /* originally async */ 
   return asy::Future::sync<core::int>(() → FutureOr<core::int> {
-    return self::bar();
+    return asy::Future::value<core::int>(self::bar());
   });
 static method foo2(core::bool x) → asy::Future<core::int> /* futureValueType= core::int */ /* originally async */ 
   return asy::Future::sync<core::int>(() → FutureOr<core::int> {
     if(x)
-      return asy::Future::value<core::int>(345);
-    return self::bar();
+      return asy::Future::value<core::int>(asy::Future::value<core::int>(345));
+    return asy::Future::value<core::int>(self::bar());
   });
 static method foo3(core::bool x) → asy::Future<core::int> /* futureValueType= core::int */ /* originally async */ 
   return asy::Future::sync<core::int>(() → FutureOr<core::int> {
     if(x)
-      return 234;
-    return asy::Future::value<core::int>(123);
+      return asy::Future::value<core::int>(234);
+    return asy::Future::value<core::int>(asy::Future::value<core::int>(123));
   });
 static method main() → void {
   self::foo1();

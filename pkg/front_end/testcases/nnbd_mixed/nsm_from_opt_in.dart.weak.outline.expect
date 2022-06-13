@@ -48,7 +48,7 @@ abstract class B2 extends nsm::A implements self::C2 {
 abstract class C2 extends core::Object {
   synthetic constructor •() → self::C2*
     ;
-  abstract method method(core::int* i, {dynamic optional}) → core::int*;
+  abstract method method(core::int* i, {dynamic optional = null}) → core::int*;
   abstract method genericMethod1<T extends core::Object* = dynamic>(self::C2::genericMethod1::T* t) → self::C2::genericMethod1::T*;
   abstract method genericMethod2<T extends core::Object*>(self::C2::genericMethod2::T* t) → self::C2::genericMethod2::T*;
   abstract method genericMethod3<T extends core::Object*>(self::C2::genericMethod3::T* t) → self::C2::genericMethod3::T*;
@@ -93,7 +93,7 @@ abstract class B1 extends nsm::A implements nsm::C1 {
 abstract class C1 extends core::Object {
   synthetic constructor •() → nsm::C1
     ;
-  abstract method method(core::int? i, {dynamic optional}) → core::int;
+  abstract method method(core::int? i, {dynamic optional = null}) → core::int;
   abstract method genericMethod1<T extends core::Object? = dynamic>(nsm::C1::genericMethod1::T% t) → nsm::C1::genericMethod1::T%;
   abstract method genericMethod2<T extends core::Object?>(nsm::C1::genericMethod2::T% t) → nsm::C1::genericMethod2::T%;
   abstract method genericMethod3<T extends core::Object>(nsm::C1::genericMethod3::T t) → nsm::C1::genericMethod3::T;

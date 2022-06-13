@@ -14,7 +14,7 @@ import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import '../diagnostics/diagnostic_listener.dart';
 import '../environment.dart';
-import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/abstract_value_strategy.dart';
 import '../inferrer/types.dart';
 import '../js_model/js_world.dart';
 import '../options.dart';

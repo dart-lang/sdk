@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A {
   A(bool this.v1, num this.v2);
   bool v1;

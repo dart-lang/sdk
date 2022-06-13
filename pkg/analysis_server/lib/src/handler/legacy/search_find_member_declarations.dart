@@ -4,9 +4,8 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
-import 'package:analysis_server/src/search/search_domain.dart';
+import 'package:analysis_server/src/protocol_server.dart' as protocol;
 
 /// The handler for the `search.findMemberDeclarations` request.
 class SearchFindMemberDeclarationsHandler extends LegacyHandler {
@@ -26,7 +25,7 @@ class SearchFindMemberDeclarationsHandler extends LegacyHandler {
     sendResult(protocol.SearchFindMemberDeclarationsResult(searchId));
     // search
     var matches = await searchEngine.searchMemberDeclarations(params.name);
-    sendSearchResults(protocol.SearchResultsParams(
-        searchId, matches.map(SearchDomainHandler.toResult).toList(), true));
+    sendSearchResults(protocol.SearchResultsParams(searchId,
+        matches.map(protocol.newSearchResult_fromMatch).toList(), true));
   }
 }

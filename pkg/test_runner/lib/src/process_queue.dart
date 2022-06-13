@@ -787,7 +787,7 @@ class CommandExecutorImpl implements CommandExecutor {
   }
 
   Future<CommandOutput> _startBrowserControllerTest(
-      BrowserTestCommand browserCommand, int timeout) {
+      BrowserTestCommand browserCommand, int timeout) async {
     var completer = Completer<CommandOutput>();
 
     callback(BrowserTestOutput output) {
@@ -795,11 +795,16 @@ class CommandExecutorImpl implements CommandExecutor {
     }
 
     var browserTest = BrowserTest(browserCommand.url, callback, timeout);
-    _getBrowserTestRunner(browserCommand.configuration).then((testRunner) {
-      testRunner.enqueueTest(browserTest);
-    });
-
-    return completer.future;
+    for (var failures = 0; failures < 10; failures++) {
+      var testRunner =
+          await _getBrowserTestRunner(browserCommand.configuration);
+      if (testRunner != null) {
+        testRunner.enqueueTest(browserTest);
+        return completer.future;
+      }
+    }
+    print('FATAL: Failed to get a browser test runner 10 times in a row.');
+    io.exit(1);
   }
 
   Future<BrowserTestRunner> _getBrowserTestRunner(
@@ -811,7 +816,11 @@ class CommandExecutorImpl implements CommandExecutor {
         testRunner.logger = DebugLogger.info;
       }
       _browserTestRunners[configuration] = testRunner;
-      await testRunner.start();
+      if (!await testRunner.start()) {
+        DebugLogger.error('Failed to start browser test runner.');
+        _browserTestRunners.remove(configuration);
+        await testRunner.terminate();
+      }
     }
     return _browserTestRunners[configuration];
   }

@@ -233,13 +233,6 @@ class BinaryExpressionResolver {
         contextType: contextType);
   }
 
-  /// If the given [type] is a type parameter, resolve it to the type that should
-  /// be used when looking up members. Otherwise, return the original type.
-  ///
-  /// TODO(scheglov) this is duplicate
-  DartType _resolveTypeParameter(DartType type) =>
-      type.resolveToBound(_typeProvider.objectType);
-
   void _resolveUnsupportedOperator(BinaryExpressionImpl node,
       {required DartType? contextType}) {
     node.leftOperand.accept(_resolver);
@@ -304,7 +297,7 @@ class BinaryExpressionResolver {
     }
 
     var leftType = leftOperand.typeOrThrow;
-    leftType = _resolveTypeParameter(leftType);
+    leftType = _typeSystem.resolveToBound(leftType);
 
     if (identical(leftType, NeverTypeImpl.instance)) {
       _resolver.errorReporter.reportErrorForNode(
@@ -354,7 +347,7 @@ class BinaryExpressionResolver {
       leftType = leftOperand.extendedType!;
     } else {
       leftType = leftOperand.typeOrThrow;
-      leftType = _resolveTypeParameter(leftType);
+      leftType = _typeSystem.resolveToBound(leftType);
     }
 
     if (identical(leftType, NeverTypeImpl.instance)) {

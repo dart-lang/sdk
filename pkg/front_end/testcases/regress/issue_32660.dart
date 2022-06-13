@@ -1,13 +1,13 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 class A {
   foo(int x) => x;
 }
 
 class B {
-  foo(int x, {int y}) => y;
+  foo(int x, {int? y}) => y;
 }
 
 class C extends A implements B {
@@ -22,7 +22,7 @@ class D {
 }
 
 class E extends D {
-  foo(int x, {int y});
+  foo(int x, {int? y});
 
   noSuchMethod(i) {
     print(i.namedArguments);

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -33,8 +32,11 @@ class TypeDefinitionHandler
       TypeDefinitionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<_LocationsOrLinks>> handle(
-      TypeDefinitionParams params, CancellationToken token) async {
+  // The private type in the return type is dictated by the signature of the
+  // super-method and the class's super-class.
+  // ignore: library_private_types_in_public_api
+  Future<ErrorOr<_LocationsOrLinks>> handle(TypeDefinitionParams params,
+      MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(_emptyResult);
     }

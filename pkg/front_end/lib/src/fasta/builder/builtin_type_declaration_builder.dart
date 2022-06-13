@@ -25,14 +25,26 @@ abstract class BuiltinTypeDeclarationBuilder
         super(null, 0, name, compilationUnit, charOffset);
 
   @override
-  DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
+  DartType buildAliasedType(
+      LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder,
+      List<TypeBuilder>? arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      {required bool hasExplicitTypeArguments}) {
     return type.withDeclaredNullability(nullabilityBuilder.build(library));
   }
 
   @override
-  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
-      Nullability nullability, List<DartType> arguments) {
+  DartType buildAliasedTypeWithBuiltArguments(
+      LibraryBuilder library,
+      Nullability nullability,
+      List<DartType> arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      {required bool hasExplicitTypeArguments}) {
     return type.withDeclaredNullability(nullability);
   }
 

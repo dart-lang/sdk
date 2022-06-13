@@ -23,6 +23,7 @@ class DefaultValueResolver {
     for (var unitElement in _libraryElement.units.impl) {
       _UnitContext(unitElement)
         ..forEach(unitElement.classes, _class)
+        ..forEach(unitElement.enums, _class)
         ..forEach(unitElement.extensions, _extension)
         ..forEach(unitElement.functions, _executable)
         ..forEach(unitElement.mixins, _class);

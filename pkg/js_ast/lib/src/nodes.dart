@@ -642,6 +642,18 @@ class Program extends Node {
 }
 
 abstract class Statement extends Node {
+  // Override for refined return type.
+  @override
+  Statement _clone();
+
+  // Override for refined return type.
+  @override
+  Statement withSourceInformation(
+      JavaScriptNodeSourceInformation? sourceInformation) {
+    if (sourceInformation == _sourceInformation) return this;
+    return _clone().._sourceInformation = sourceInformation;
+  }
+
   @override
   Statement toStatement() => this;
 }
@@ -1277,6 +1289,18 @@ abstract class Expression extends Node {
   // have precedence depending on how the deferred node is resolved.
   int get precedenceLevel;
 
+  // Override for refined return type.
+  @override
+  Expression _clone();
+
+  // Override for refined return type.
+  @override
+  Expression withSourceInformation(
+      JavaScriptNodeSourceInformation? sourceInformation) {
+    if (sourceInformation == _sourceInformation) return this;
+    return _clone().._sourceInformation = sourceInformation;
+  }
+
   @override
   Statement toStatement() => ExpressionStatement(this);
 }
@@ -1638,6 +1662,8 @@ class Binary extends Expression {
   int get precedenceLevel {
     // TODO(floitsch): switch to constant map.
     switch (op) {
+      case '**':
+        return EXPONENTIATION;
       case '*':
       case '/':
       case '%':

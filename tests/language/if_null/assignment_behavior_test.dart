@@ -257,6 +257,8 @@ main() {
   // C?.v ??= e2 is equivalent to C.v ??= e2.
   C.xGetValue = 1;
   check(1, () => C?.x ??= bad(), ['C.x']);
+  //              ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //             ^
   // [cfe] The class 'C' cannot be null.
   h.C.xgetValue = 1;
@@ -269,10 +271,14 @@ main() {
   // [cfe] Undefined name 'c'.
   yGetValue = 1;
   check(1, () => C?.x ??= y, ['C.x', 'y', 'C.x=1']);
+  //              ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //             ^
   // [cfe] The class 'C' cannot be null.
   yGetValue = 1;
   check(1, () => h.C?.x ??= y, ['h.C.x', 'y', 'h.C.x=1']);
+  //                ^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //               ^
   // [cfe] The class 'C' cannot be null.
 }

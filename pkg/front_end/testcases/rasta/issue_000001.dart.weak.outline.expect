@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 
 static method test0(dynamic x) → dynamic

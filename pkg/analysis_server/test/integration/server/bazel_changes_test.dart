@@ -121,7 +121,7 @@ class BazelChangesTest extends AbstractAnalysisServerIntegrationTest {
 
     writeFile(testFile, r'''
 import 'generated.dart';
-void main() { my_fun(); }
+void f() { my_fun(); }
 ''');
     standardAnalysisSetup();
 

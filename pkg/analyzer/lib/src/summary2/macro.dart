@@ -5,7 +5,6 @@
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
@@ -53,24 +52,47 @@ class BundleMacroExecutor {
     }
   }
 
-  Future<MacroClassInstance> instantiate({
+  /// Any macro must be instantiated using this method to guarantee that
+  /// the corresponding kernel was registered first. Although as it is now,
+  /// it is still possible to request an unrelated [libraryUri].
+  Future<macro.MacroInstanceIdentifier> instantiate({
     required Uri libraryUri,
     required String className,
     required String constructorName,
     required macro.Arguments arguments,
-    required macro.Declaration declaration,
-    required macro.IdentifierResolver identifierResolver,
   }) async {
-    var instanceIdentifier = await macroExecutor.instantiateMacro(
+    return await macroExecutor.instantiateMacro(
         libraryUri, className, constructorName, arguments);
-    return MacroClassInstance._(
-        this, identifierResolver, declaration, instanceIdentifier);
   }
 }
 
-/// Implementation of [MacroKernelBuilder] using `frontend_server`.
-class FrontEndServerMacroKernelBuilder implements MacroKernelBuilder {
-  @override
+class MacroClass {
+  final String name;
+  final List<String> constructors;
+
+  MacroClass({
+    required this.name,
+    required this.constructors,
+  });
+}
+
+abstract class MacroFileEntry {
+  String get content;
+
+  /// When CFE searches for `package_config.json` we need to check this.
+  bool get exists;
+}
+
+abstract class MacroFileSystem {
+  /// Used to convert `file:` URIs into paths.
+  package_path.Context get pathContext;
+
+  MacroFileEntry getFile(String path);
+}
+
+class MacroKernelBuilder {
+  const MacroKernelBuilder();
+
   Future<Uint8List> build({
     required MacroFileSystem fileSystem,
     required List<MacroLibrary> libraries,
@@ -94,57 +116,6 @@ class FrontEndServerMacroKernelBuilder implements MacroKernelBuilder {
       path: macroMainPath,
     );
   }
-}
-
-class MacroClass {
-  final String name;
-  final List<String> constructors;
-
-  MacroClass({
-    required this.name,
-    required this.constructors,
-  });
-}
-
-class MacroClassInstance {
-  final BundleMacroExecutor _bundleExecutor;
-  final macro.IdentifierResolver _identifierResolver;
-  final macro.Declaration _declaration;
-  final macro.MacroInstanceIdentifier _instanceIdentifier;
-
-  MacroClassInstance._(
-    this._bundleExecutor,
-    this._identifierResolver,
-    this._declaration,
-    this._instanceIdentifier,
-  );
-
-  Future<macro.MacroExecutionResult> executeTypesPhase() async {
-    macro.MacroExecutor executor = _bundleExecutor.macroExecutor;
-    return await executor.executeTypesPhase(
-        _instanceIdentifier, _declaration, _identifierResolver);
-  }
-}
-
-abstract class MacroFileEntry {
-  String get content;
-
-  /// When CFE searches for `package_config.json` we need to check this.
-  bool get exists;
-}
-
-abstract class MacroFileSystem {
-  /// Used to convert `file:` URIs into paths.
-  package_path.Context get pathContext;
-
-  MacroFileEntry getFile(String path);
-}
-
-abstract class MacroKernelBuilder {
-  Future<Uint8List> build({
-    required MacroFileSystem fileSystem,
-    required List<MacroLibrary> libraries,
-  });
 }
 
 class MacroLibrary {

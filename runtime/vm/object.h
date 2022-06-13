@@ -447,6 +447,7 @@ class Object {
   V(PcDescriptors, empty_descriptors)                                          \
   V(LocalVarDescriptors, empty_var_descriptors)                                \
   V(ExceptionHandlers, empty_exception_handlers)                               \
+  V(ExceptionHandlers, empty_async_exception_handlers)                         \
   V(Array, extractor_parameter_types)                                          \
   V(Array, extractor_parameter_names)                                          \
   V(Sentinel, sentinel)                                                        \
@@ -2891,7 +2892,12 @@ class Function : public Object {
 
   static intptr_t code_offset() { return OFFSET_OF(UntaggedFunction, code_); }
 
-  uword entry_point() const { return untag()->entry_point_; }
+  uword entry_point() const {
+    return EntryPointOf(ptr());
+  }
+  static uword EntryPointOf(const FunctionPtr function) {
+    return function->untag()->entry_point_;
+  }
 
   static intptr_t entry_point_offset(
       CodeEntryKind entry_kind = CodeEntryKind::kNormal) {
@@ -3132,14 +3138,28 @@ class Function : public Object {
 #endif
   }
 
+#if !defined(PRODUCT) &&                                                       \
+    (defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME))
+  int32_t line() const {
+    return untag()->token_pos_.Serialize();
+  }
+
+  void set_line(int32_t line) const {
+    StoreNonPointer(&untag()->token_pos_, TokenPosition::Deserialize(line));
+  }
+#endif
+
   // Returns the size of the source for this function.
   intptr_t SourceSize() const;
 
-  uint32_t packed_fields() const { return untag()->packed_fields_; }
-  void set_packed_fields(uint32_t packed_fields) const;
-  static intptr_t packed_fields_offset() {
-    return OFFSET_OF(UntaggedFunction, packed_fields_);
+  uint32_t packed_fields() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    return untag()->packed_fields_;
+#endif
   }
+  void set_packed_fields(uint32_t packed_fields) const;
 
   // Returns the number of required positional parameters.
   intptr_t num_fixed_parameters() const;
@@ -3161,6 +3181,12 @@ class Function : public Object {
   intptr_t NumParameters() const;
   // Returns the number of implicit parameters, e.g., this for instance methods.
   intptr_t NumImplicitParameters() const;
+
+  // Returns true if parameters of this function are copied into the frame
+  // in the function prologue.
+  bool MakesCopyOfParameters() const {
+    return HasOptionalParameters() || IsSuspendableFunction();
+  }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 #define DEFINE_GETTERS_AND_SETTERS(return_type, type, name)                    \
@@ -3240,7 +3266,8 @@ class Function : public Object {
   // run.
   bool ForceOptimize() const;
 
-  bool IsFinalizerForceOptimized() const;
+  // Whether this function's |recognized_kind| requires optimization.
+  bool RecognizedKindForceOptimize() const;
 
   bool CanBeInlined() const;
 
@@ -3549,50 +3576,31 @@ class Function : public Object {
            UntaggedFunction::kFfiTrampoline;
   }
 
-  bool IsFfiLoad() const {
-    const auto kind = recognized_kind();
-    return MethodRecognizer::kFfiLoadInt8 <= kind &&
-           kind <= MethodRecognizer::kFfiLoadPointer;
-  }
-
-  bool IsFfiStore() const {
-    const auto kind = recognized_kind();
-    return MethodRecognizer::kFfiStoreInt8 <= kind &&
-           kind <= MethodRecognizer::kFfiStorePointer;
-  }
-
-  bool IsFfiFromAddress() const {
-    const auto kind = recognized_kind();
-    return kind == MethodRecognizer::kFfiFromAddress;
-  }
-
-  bool IsFfiGetAddress() const {
-    const auto kind = recognized_kind();
-    return kind == MethodRecognizer::kFfiGetAddress;
-  }
-
-  bool IsFfiAsExternalTypedData() const {
-    const auto kind = recognized_kind();
-    return MethodRecognizer::kFfiAsExternalTypedDataInt8 <= kind &&
-           kind <= MethodRecognizer::kFfiAsExternalTypedDataDouble;
-  }
-
-  bool IsGetNativeField() const {
-    const auto kind = recognized_kind();
-    return kind == MethodRecognizer::kGetNativeField;
-  }
-
-  bool IsUtf8Scan() const {
-    const auto kind = recognized_kind();
-    return kind == MethodRecognizer::kUtf8DecoderScan;
-  }
-
   // Recognise async functions like:
   //   user_func async {
   //     // ...
   //   }
   bool IsAsyncFunction() const {
     return modifier() == UntaggedFunction::kAsync;
+  }
+
+  // TODO(dartbug.com/48378): replace this predicate with IsAsyncFunction()
+  // after old async functions are removed.
+  bool IsCompactAsyncFunction() const {
+    return IsAsyncFunction() && is_debuggable();
+  }
+
+  // TODO(dartbug.com/48378): replace this predicate with IsAsyncGenerator()
+  // after old async* functions are removed.
+  bool IsCompactAsyncStarFunction() const {
+    return IsAsyncGenerator() && is_debuggable();
+  }
+
+  // Returns true for functions which execution can be suspended
+  // using Suspend/Resume stubs. Such functions have an artificial
+  // :suspend_state local variable at the fixed location of the frame.
+  bool IsSuspendableFunction() const {
+    return IsCompactAsyncFunction() || IsCompactAsyncStarFunction();
   }
 
   // Recognise synthetic sync-yielding functions like the inner-most:
@@ -3887,11 +3895,19 @@ class Function : public Object {
   //              some functions known to be execute infrequently and functions
   //              which have been de-optimized too many times.
   bool is_optimizable() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     return untag()->packed_fields_.Read<UntaggedFunction::PackedOptimizable>();
+#endif
   }
   void set_is_optimizable(bool value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     untag()->packed_fields_.UpdateBool<UntaggedFunction::PackedOptimizable>(
         value);
+#endif
   }
 
   enum KindTagBits {
@@ -6257,6 +6273,9 @@ class ExceptionHandlers : public Object {
 
   intptr_t num_entries() const;
 
+  bool has_async_handler() const;
+  void set_has_async_handler(bool value) const;
+
   void GetHandlerInfo(intptr_t try_index, ExceptionHandlerInfo* info) const;
 
   uword HandlerPCOffset(intptr_t try_index) const;
@@ -6849,7 +6868,7 @@ class Code : public Object {
 
   void DisableDartCode() const;
 
-  void DisableStubCode() const;
+  void DisableStubCode(bool is_cls_parameterized) const;
 
   void Enable() const {
     if (!IsDisabled()) return;
@@ -9276,11 +9295,6 @@ class Smi : public Integer {
     return raw_smi;
   }
 
-  static SmiPtr FromAlignedAddress(uword address) {
-    ASSERT((address & kSmiTagMask) == kSmiTag);
-    return static_cast<SmiPtr>(address);
-  }
-
   static ClassPtr Class();
 
   static intptr_t Value(const SmiPtr raw_smi) { return RawSmiValue(raw_smi); }
@@ -10416,7 +10430,15 @@ class Array : public Instance {
   // to ImmutableArray.
   void MakeImmutable() const;
 
-  static ArrayPtr New(intptr_t len, Heap::Space space = Heap::kNew);
+  static ArrayPtr New(intptr_t len, Heap::Space space = Heap::kNew) {
+    return New(kArrayCid, len, space);
+  }
+  // The result's type arguments and elements are GC-safe but not initialized to
+  // null.
+  static ArrayPtr NewUninitialized(intptr_t len,
+                                   Heap::Space space = Heap::kNew) {
+    return NewUninitialized(kArrayCid, len, space);
+  }
   static ArrayPtr New(intptr_t len,
                       const AbstractType& element_type,
                       Heap::Space space = Heap::kNew);
@@ -10454,6 +10476,9 @@ class Array : public Instance {
   static ArrayPtr New(intptr_t class_id,
                       intptr_t len,
                       Heap::Space space = Heap::kNew);
+  static ArrayPtr NewUninitialized(intptr_t class_id,
+                                   intptr_t len,
+                                   Heap::Space space = Heap::kNew);
 
  private:
   CompressedObjectPtr const* ObjectAddr(intptr_t index) const {
@@ -10472,25 +10497,6 @@ class Array : public Instance {
             typename value_type>
   void StoreArrayPointer(type const* addr, value_type value) const {
     ptr()->untag()->StoreArrayPointer<type, order, value_type>(addr, value);
-  }
-
-  // Store a range of pointers [from, from + count) into [to, to + count).
-  // TODO(koda): Use this to fix Object::Clone's broken store buffer logic.
-  void StoreArrayPointers(CompressedObjectPtr const* to,
-                          CompressedObjectPtr const* from,
-                          intptr_t count) {
-    ASSERT(Contains(reinterpret_cast<uword>(to)));
-    if (ptr()->IsNewObject()) {
-      memmove(const_cast<CompressedObjectPtr*>(to), from,
-              count * kBytesPerElement);
-    } else {
-      Thread* thread = Thread::Current();
-      const uword heap_base = ptr()->heap_base();
-      for (intptr_t i = 0; i < count; ++i) {
-        untag()->StoreArrayPointer(&to[i], from[i].Decompress(heap_base),
-                                   thread);
-      }
-    }
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Array, Instance);
@@ -11798,6 +11804,63 @@ class StackTrace : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(StackTrace, Instance);
   friend class Class;
   friend class DebuggerStackTrace;
+};
+
+class SuspendState : public Instance {
+ public:
+  // :suspend_state local variable index
+  static constexpr intptr_t kSuspendStateVarIndex = 0;
+
+  static intptr_t HeaderSize() { return sizeof(UntaggedSuspendState); }
+  static intptr_t UnroundedSize(SuspendStatePtr ptr) {
+    return UnroundedSize(ptr->untag()->frame_size_);
+  }
+  static intptr_t UnroundedSize(intptr_t frame_size) {
+    return HeaderSize() + frame_size;
+  }
+  static intptr_t InstanceSize() {
+    ASSERT_EQUAL(sizeof(UntaggedSuspendState),
+                 OFFSET_OF_RETURNED_VALUE(UntaggedSuspendState, payload));
+    return 0;
+  }
+  static intptr_t InstanceSize(intptr_t frame_size) {
+    return RoundedAllocationSize(UnroundedSize(frame_size));
+  }
+
+  static intptr_t frame_size_offset() {
+    return OFFSET_OF(UntaggedSuspendState, frame_size_);
+  }
+  static intptr_t pc_offset() { return OFFSET_OF(UntaggedSuspendState, pc_); }
+  static intptr_t function_data_offset() {
+    return OFFSET_OF(UntaggedSuspendState, function_data_);
+  }
+  static intptr_t then_callback_offset() {
+    return OFFSET_OF(UntaggedSuspendState, then_callback_);
+  }
+  static intptr_t error_callback_offset() {
+    return OFFSET_OF(UntaggedSuspendState, error_callback_);
+  }
+  static intptr_t payload_offset() {
+    return UntaggedSuspendState::payload_offset();
+  }
+
+  static SuspendStatePtr New(intptr_t frame_size,
+                             const Instance& function_data,
+                             Heap::Space space = Heap::kNew);
+
+  InstancePtr function_data() const { return untag()->function_data(); }
+  uword pc() const { return untag()->pc_; }
+
+  // Returns Code object corresponding to the suspended function.
+  CodePtr GetCodeObject() const;
+
+ private:
+  void set_frame_size(intptr_t frame_size) const;
+  void set_pc(uword pc) const;
+  void set_function_data(const Instance& function_data) const;
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(SuspendState, Instance);
+  friend class Class;
 };
 
 class RegExpFlags {

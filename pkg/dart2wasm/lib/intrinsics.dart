@@ -168,7 +168,7 @@ class Intrinsifier {
     }
 
     // _HashAbstractImmutableBase._indexNullable
-    if (target == translator.immutableMapIndexNullable) {
+    if (target == translator.hashImmutableIndexNullable) {
       ClassInfo info = translator.classInfo[translator.hashFieldBaseClass]!;
       codeGen.wrap(receiver, info.nullableType);
       b.struct_get(info.struct, FieldIndex.hashBaseIndex);
@@ -639,6 +639,8 @@ class Intrinsifier {
           codeGen.wrap(stackTrace, stackTraceType);
           b.throw_(translator.exceptionTag);
           return codeGen.voidMarker;
+        case "_getSubtypeMap":
+          return translator.types.makeSubtypeMap(b);
       }
     }
 
@@ -971,15 +973,20 @@ class Intrinsifier {
     }
 
     // Object.runtimeType
+    // TODO(joshualitt): Implement this correctly for [FunctionType] and
+    // [InterfaceType].
     if (member.enclosingClass == translator.coreTypes.objectClass &&
         name == "runtimeType") {
       w.Local receiver = paramLocals[0];
-      ClassInfo info = translator.classInfo[translator.typeClass]!;
+      ClassInfo info = translator.classInfo[translator.interfaceTypeClass]!;
       translator.functions.allocateClass(info.classId);
-      w.ValueType typeListExpectedType = info.struct.fields[3].type.unpacked;
+      w.ValueType typeListExpectedType = info
+          .struct.fields[FieldIndex.interfaceTypeTypeArguments].type.unpacked;
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
+      // Runtime types are never nullable.
+      b.i32_const(0);
       b.local_get(receiver);
       b.struct_get(translator.topInfo.struct, FieldIndex.classId);
       b.i64_extend_i32_u();

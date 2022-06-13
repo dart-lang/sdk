@@ -16,6 +16,7 @@ import '../../builder/nullability_builder.dart';
 import '../../builder/type_alias_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/type_declaration_builder.dart';
+import '../../uris.dart';
 import 'macro.dart';
 
 abstract class IdentifierImpl extends macro.IdentifierImpl {
@@ -41,7 +42,7 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
       } else if (typeDeclarationBuilder is TypeAliasBuilder) {
         uri = typeDeclarationBuilder.libraryBuilder.importUri;
       } else if (name == 'dynamic') {
-        uri = Uri.parse('dart:core');
+        uri = dartCore;
       }
       return new macro.ResolvedIdentifier(
           kind: macro.IdentifierKind.topLevelMember,
@@ -88,8 +89,16 @@ class TypeBuilderIdentifier extends IdentifierImpl {
   @override
   DartType buildType(
       NullabilityBuilder nullabilityBuilder, List<DartType> typeArguments) {
-    return typeBuilder.declaration!.buildTypeWithBuiltArguments(libraryBuilder,
-        nullabilityBuilder.build(libraryBuilder), typeArguments);
+    return typeBuilder.declaration!.buildAliasedTypeWithBuiltArguments(
+        libraryBuilder,
+        nullabilityBuilder.build(libraryBuilder),
+        typeArguments,
+        TypeUse.macroTypeArgument,
+        // TODO(johnniwinther): How should handle malbounded types here? Should
+        // we report an error on the annotation?
+        missingUri,
+        TreeNode.noOffset,
+        hasExplicitTypeArguments: true);
   }
 
   @override
@@ -124,8 +133,16 @@ class TypeDeclarationBuilderIdentifier extends IdentifierImpl {
   @override
   DartType buildType(
       NullabilityBuilder nullabilityBuilder, List<DartType> typeArguments) {
-    return typeDeclarationBuilder.buildTypeWithBuiltArguments(libraryBuilder,
-        nullabilityBuilder.build(libraryBuilder), typeArguments);
+    return typeDeclarationBuilder.buildAliasedTypeWithBuiltArguments(
+        libraryBuilder,
+        nullabilityBuilder.build(libraryBuilder),
+        typeArguments,
+        TypeUse.macroTypeArgument,
+        // TODO(johnniwinther): How should handle malbounded types here? Should
+        // we report an error on the annotation?
+        missingUri,
+        TreeNode.noOffset,
+        hasExplicitTypeArguments: true);
   }
 }
 
@@ -219,7 +236,7 @@ class OmittedTypeIdentifier extends IdentifierImpl {
         kind: macro.IdentifierKind.topLevelMember,
         name: name,
         staticScope: null,
-        uri: Uri.parse('dart:core'));
+        uri: dartCore);
   }
 
   @override

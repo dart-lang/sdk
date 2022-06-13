@@ -5,7 +5,7 @@ import "dart:core" as core;
 abstract class C<E extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::E*>*
     ;
-  method sort([(self::C::E*, self::C::E*) →* core::int* compare]) → void
+  method sort([(self::C::E*, self::C::E*) →* core::int* compare = null]) → void
     ;
   static method _compareAny(dynamic a, dynamic b) → core::int*
     ;

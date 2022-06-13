@@ -20,7 +20,7 @@ abstract class I extends core::Object {
 class C extends core::Object implements self::I {
   synthetic constructor •() → self::C*
     ;
-  method call([core::int* x]) → void
+  method call([core::int* x = null]) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

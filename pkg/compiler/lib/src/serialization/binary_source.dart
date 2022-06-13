@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
-part of 'serialization.dart';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'data_source.dart';
+import 'serialization_interfaces.dart' show StringInterner;
 
 /// [DataSource] that reads data from a sequence of bytes.
 ///
@@ -12,10 +13,12 @@ part of 'serialization.dart';
 class BinaryDataSource implements DataSource {
   int _byteOffset = 0;
   final List<int> _bytes;
-  final StringInterner _stringInterner;
+  final StringInterner? _stringInterner;
 
-  BinaryDataSource(this._bytes, {StringInterner stringInterner})
-      : _stringInterner = stringInterner;
+  BinaryDataSource(this._bytes, {StringInterner? stringInterner})
+      : _stringInterner = stringInterner {
+    assert((_bytes as dynamic) != null); // TODO(48820): Remove when sound.
+  }
 
   @override
   void begin(String tag) {}
@@ -33,7 +36,7 @@ class BinaryDataSource implements DataSource {
     _byteOffset += bytes.length;
     String string = utf8.decode(bytes);
     if (_stringInterner == null) return string;
-    return _stringInterner.internString(string);
+    return _stringInterner!.internString(string);
   }
 
   @override

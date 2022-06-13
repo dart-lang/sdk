@@ -13,6 +13,7 @@ import 'package:dart2wasm/functions.dart';
 import 'package:dart2wasm/globals.dart';
 import 'package:dart2wasm/param_info.dart';
 import 'package:dart2wasm/reference_extensions.dart';
+import 'package:dart2wasm/types.dart';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
@@ -27,6 +28,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 /// Options controlling the translation.
 class TranslatorOptions {
   bool exportAll = false;
+  bool importSharedMemory = false;
   bool inlining = false;
   int inliningLimit = 3;
   bool lazyConstants = false;
@@ -38,6 +40,7 @@ class TranslatorOptions {
   bool printKernel = false;
   bool printWasm = false;
   bool runtimeTypes = false;
+  int? sharedMemoryMaxPages;
   bool stringDataSegments = false;
   List<int>? watchPoints = null;
 
@@ -80,11 +83,21 @@ class Translator {
   late final Class growableListClass;
   late final Class immutableListClass;
   late final Class immutableMapClass;
+  late final Class immutableSetClass;
   late final Class hashFieldBaseClass;
   late final Class stringBaseClass;
   late final Class oneByteStringClass;
   late final Class twoByteStringClass;
   late final Class typeClass;
+  late final Class neverTypeClass;
+  late final Class dynamicTypeClass;
+  late final Class voidTypeClass;
+  late final Class nullTypeClass;
+  late final Class futureOrTypeClass;
+  late final Class interfaceTypeClass;
+  late final Class functionTypeClass;
+  late final Class genericFunctionTypeClass;
+  late final Class namedParameterClass;
   late final Class stackTraceClass;
   late final Class ffiCompoundClass;
   late final Class ffiPointerClass;
@@ -93,6 +106,7 @@ class Translator {
   late final Class typedListViewClass;
   late final Class byteDataViewClass;
   late final Class typeErrorClass;
+  late final Class typeUniverseClass;
   late final Procedure wasmFunctionCall;
   late final Procedure stackTraceCurrent;
   late final Procedure stringEquals;
@@ -102,7 +116,11 @@ class Translator {
   late final Procedure throwWasmRefError;
   late final Procedure mapFactory;
   late final Procedure mapPut;
-  late final Procedure immutableMapIndexNullable;
+  late final Procedure setFactory;
+  late final Procedure setAdd;
+  late final Procedure hashImmutableIndexNullable;
+  // TODO(joshualitt): Wire up runtime type checks.
+  late final Procedure isSubtype;
   late final Map<Class, w.StorageType> builtinTypes;
   late final Map<w.ValueType, Class> boxedClasses;
 
@@ -111,6 +129,7 @@ class Translator {
   late final DispatchTable dispatchTable;
   late final Globals globals;
   late final Constants constants;
+  late final Types types;
   late final FunctionCollector functions;
 
   // Information about the program used and updated by the various phases.
@@ -127,7 +146,8 @@ class Translator {
   // Lazily create exception tag if used.
   late final w.Tag exceptionTag = createExceptionTag();
   // Lazily import FFI memory if used.
-  late final w.Memory ffiMemory = m.importMemory("ffi", "memory", 0);
+  late final w.Memory ffiMemory = m.importMemory("ffi", "memory",
+      options.importSharedMemory, 0, options.sharedMemoryMaxPages);
 
   // Caches for when identical source constructs need a common representation.
   final Map<w.StorageType, w.ArrayType> arrayTypeCache = {};
@@ -149,6 +169,7 @@ class Translator {
     classInfoCollector = ClassInfoCollector(this);
     dispatchTable = DispatchTable(this);
     functions = FunctionCollector(this);
+    types = Types(this);
 
     Class Function(String) makeLookup(String libraryName) {
       Library library =
@@ -178,12 +199,23 @@ class Translator {
     growableListClass = lookupCore("_GrowableList");
     immutableListClass = lookupCore("_ImmutableList");
     immutableMapClass = lookupCollection("_WasmImmutableLinkedHashMap");
+    immutableSetClass = lookupCollection("_WasmImmutableLinkedHashSet");
     hashFieldBaseClass = lookupCollection("_HashFieldBase");
     stringBaseClass = lookupCore("_StringBase");
     oneByteStringClass = lookupCore("_OneByteString");
     twoByteStringClass = lookupCore("_TwoByteString");
     typeClass = lookupCore("_Type");
+    neverTypeClass = lookupCore("_NeverType");
+    dynamicTypeClass = lookupCore("_DynamicType");
+    voidTypeClass = lookupCore("_VoidType");
+    nullTypeClass = lookupCore("_NullType");
+    futureOrTypeClass = lookupCore("_FutureOrType");
+    interfaceTypeClass = lookupCore("_InterfaceType");
+    functionTypeClass = lookupCore("_FunctionType");
+    genericFunctionTypeClass = lookupCore("_GenericFunctionType");
+    namedParameterClass = lookupCore("_NamedParameter");
     stackTraceClass = lookupCore("StackTrace");
+    typeUniverseClass = lookupCore("_TypeUniverse");
     ffiCompoundClass = lookupFfi("_Compound");
     ffiPointerClass = lookupFfi("Pointer");
     typeErrorClass = lookupCore("_TypeError");
@@ -211,9 +243,19 @@ class Translator {
         .superclass! // _LinkedHashMapMixin<K, V>
         .procedures
         .firstWhere((p) => p.name.text == "[]=");
-    immutableMapIndexNullable = lookupCollection("_HashAbstractImmutableBase")
+    setFactory = lookupCollection("LinkedHashSet").procedures.firstWhere(
+        (p) => p.kind == ProcedureKind.Factory && p.name.text == "_default");
+    setAdd = lookupCollection("_CompactLinkedCustomHashSet")
+        .superclass! // _LinkedHashSetMixin<K, V>
+        .procedures
+        .firstWhere((p) => p.name.text == "add");
+    hashImmutableIndexNullable = lookupCollection("_HashAbstractImmutableBase")
         .procedures
         .firstWhere((p) => p.name.text == "_indexNullable");
+    isSubtype = component.libraries
+        .firstWhere((l) => l.name == "dart.core")
+        .procedures
+        .firstWhere((p) => p.name.text == "_isSubtype");
     builtinTypes = {
       coreTypes.boolClass: w.NumType.i32,
       coreTypes.intClass: w.NumType.i64,

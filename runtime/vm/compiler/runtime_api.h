@@ -63,7 +63,7 @@ namespace compiler {
 // constants and introduce compilation errors when used.
 //
 // target::kWordSize and target::ObjectAlignment give access to
-// word size and object aligment offsets for the target.
+// word size and object alignment offsets for the target.
 //
 // Similarly kHostWordSize gives access to the host word size.
 class InvalidClass {};
@@ -120,7 +120,8 @@ const Class& Float32x4Class();
 const Class& Float64x2Class();
 const Class& Int32x4Class();
 const Class& ClosureClass();
-const Array& OneArgArgumentsDescriptor();
+const Array& ArgumentsDescriptorBoxed(intptr_t type_args_len,
+                                      intptr_t num_arguments);
 
 template <typename To, typename From>
 const To& CastHandle(const From& from) {
@@ -372,6 +373,9 @@ word ToRawSmi(intptr_t value);
 
 word SmiValue(const dart::Object& a);
 
+bool IsDouble(const dart::Object& a);
+double DoubleValue(const dart::Object& a);
+
 // If the given object can be loaded from the thread on the target then
 // return true and set offset (if provided) to the offset from the
 // thread pointer to a field that contains the object.
@@ -507,7 +511,6 @@ class Function : public AllStatic {
   static word data_offset();
   static word entry_point_offset(CodeEntryKind kind = CodeEntryKind::kNormal);
   static word kind_tag_offset();
-  static word packed_fields_offset();
   static word signature_offset();
   static word usage_counter_offset();
   static word InstanceSize();
@@ -667,6 +670,7 @@ class ArgumentsDescriptor : public AllStatic {
 class LocalHandle : public AllStatic {
  public:
   static word ptr_offset();
+  static word InstanceSize();
 };
 
 class Pointer : public AllStatic {
@@ -987,6 +991,21 @@ class StackTrace : public AllStatic {
   FINAL_CLASS();
 };
 
+class SuspendState : public AllStatic {
+ public:
+  static word frame_size_offset();
+  static word pc_offset();
+  static word function_data_offset();
+  static word then_callback_offset();
+  static word error_callback_offset();
+  static word payload_offset();
+
+  static word HeaderSize();
+  static word InstanceSize();
+  static word InstanceSize(word payload_size);
+  FINAL_CLASS();
+};
+
 class Integer : public AllStatic {
  public:
   static word InstanceSize();
@@ -1068,6 +1087,11 @@ class TimelineStream : public AllStatic {
   static word enabled_offset();
 };
 
+class StreamInfo : public AllStatic {
+ public:
+  static word enabled_offset();
+};
+
 class VMHandles : public AllStatic {
  public:
   static constexpr intptr_t kOffsetOfRawPtrInHandle = kWordSize;
@@ -1099,6 +1123,7 @@ class Thread : public AllStatic {
   static uword exit_through_runtime_call();
   static uword exit_through_ffi();
   static word dart_stream_offset();
+  static word service_extension_stream_offset();
   static word predefined_symbols_address_offset();
   static word optimize_entry_offset();
   static word deoptimize_entry_offset();
@@ -1215,6 +1240,17 @@ class Thread : public AllStatic {
 #undef DECLARE_CONSTANT_OFFSET_GETTER
 
   static word random_offset();
+
+  static word suspend_state_init_async_entry_point_offset();
+  static word suspend_state_await_entry_point_offset();
+  static word suspend_state_return_async_entry_point_offset();
+  static word suspend_state_return_async_not_future_entry_point_offset();
+
+  static word suspend_state_init_async_star_entry_point_offset();
+  static word suspend_state_yield_async_star_entry_point_offset();
+  static word suspend_state_return_async_star_entry_point_offset();
+
+  static word suspend_state_handle_exception_entry_point_offset();
 
   static word OffsetFromThread(const dart::Object& object);
   static intptr_t OffsetFromThread(const dart::RuntimeEntry* runtime_entry);

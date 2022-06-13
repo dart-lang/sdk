@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
@@ -26,14 +27,8 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:path/src/context.dart';
-
-var counterLinkedLibraries = 0;
-var counterLoadedLibraries = 0;
-var timerBundleToBytes = Stopwatch(); // TODO(scheglov) use
-var timerInputLibraries = Stopwatch();
-var timerLinking = Stopwatch();
-var timerLoad = Stopwatch();
 
 /// Context information necessary to analyze one or more libraries within an
 /// [AnalysisDriver].
@@ -87,13 +82,16 @@ class LibraryContext {
   }
 
   /// Computes a [CompilationUnitElement] for the given library/unit pair.
-  CompilationUnitElement computeUnitElement(FileState library, FileState unit) {
+  CompilationUnitElementImpl computeUnitElement(
+    LibraryFileStateKind library,
+    FileState unit,
+  ) {
     var reference = elementFactory.rootReference
-        .getChild(library.uriStr)
+        .getChild(library.file.uriStr)
         .getChild('@unit')
         .getChild(unit.uriStr);
     var element = elementFactory.elementOfReference(reference);
-    return element as CompilationUnitElement;
+    return element as CompilationUnitElementImpl;
   }
 
   void dispose() {
@@ -112,8 +110,7 @@ class LibraryContext {
   }
 
   /// Load data required to access elements of the given [targetLibrary].
-  Future<void> load(FileState targetLibrary) async {
-    timerLoad.start();
+  Future<void> load(LibraryFileStateKind targetLibrary) async {
     var librariesTotal = 0;
     var librariesLoaded = 0;
     var librariesLinked = 0;
@@ -160,7 +157,7 @@ class LibraryContext {
         }
       }
 
-      var resolutionKey = '${cycle.transitiveSignature}.linked_bundle';
+      var resolutionKey = '${cycle.apiSignature}.linked_bundle';
       var resolutionBytes = byteStore.get(resolutionKey);
 
       if (resolutionBytes == null) {
@@ -170,7 +167,6 @@ class LibraryContext {
           cycle.libraries.map((e) => e.path).toSet(),
         );
 
-        timerInputLibraries.start();
         inputsTimer.start();
         var inputLibraries = <LinkInputLibrary>[];
         for (var libraryFile in cycle.libraries) {
@@ -209,16 +205,16 @@ class LibraryContext {
           );
         }
         inputsTimer.stop();
-        timerInputLibraries.stop();
 
         LinkResult linkResult;
         try {
-          timerLinking.start();
-          linkResult = await link(elementFactory, inputLibraries,
-              macroExecutor: macroExecutor);
+          linkResult = await link2(
+            elementFactory: elementFactory,
+            performance: OperationPerformanceImpl('link'),
+            inputLibraries: inputLibraries,
+            macroExecutor: macroExecutor,
+          );
           librariesLinked += cycle.libraries.length;
-          counterLinkedLibraries += inputLibraries.length;
-          timerLinking.stop();
         } catch (exception, stackTrace) {
           _throwLibraryCycleLinkException(cycle, exception, stackTrace);
         }
@@ -226,7 +222,6 @@ class LibraryContext {
         resolutionBytes = linkResult.resolutionBytes;
         byteStore.put(resolutionKey, resolutionBytes);
         bytesPut += resolutionBytes.length;
-        counterUnlinkedLinkedBytes += resolutionBytes.length;
 
         librariesLinkedTimer.stop();
       } else {
@@ -244,7 +239,7 @@ class LibraryContext {
 
       final macroKernelBuilder = this.macroKernelBuilder;
       if (macroKernelBuilder != null && macroLibraries.isNotEmpty) {
-        var macroKernelKey = '${cycle.transitiveSignature}.macro_kernel';
+        var macroKernelKey = '${cycle.implSignature}.macro_kernel';
         var macroKernelBytes = byteStore.get(macroKernelKey);
         if (macroKernelBytes == null) {
           macroKernelBytes = await macroKernelBuilder.build(
@@ -274,7 +269,7 @@ class LibraryContext {
     }
 
     await logger.runAsync('Prepare linked bundles', () async {
-      var libraryCycle = targetLibrary.libraryCycle;
+      var libraryCycle = targetLibrary.file.libraryCycle;
       await loadBundle(libraryCycle);
       logger.writeln(
         '[librariesTotal: $librariesTotal]'
@@ -290,8 +285,6 @@ class LibraryContext {
     // already include the [targetLibrary]. When this happens, [loadBundle]
     // exists without doing any work. But the type provider must be created.
     _createElementFactoryTypeProvider();
-
-    timerLoad.stop();
   }
 
   /// Ensure that type provider is created.

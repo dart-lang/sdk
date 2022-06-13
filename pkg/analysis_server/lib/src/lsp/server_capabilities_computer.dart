@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -138,12 +137,13 @@ class ServerCapabilitiesComputer {
   Set<Registration> currentRegistrations = {};
   var _lastRegistrationId = 0;
 
-  final dartFiles = DocumentFilter(language: 'dart', scheme: 'file');
-  final pubspecFile = DocumentFilter(
+  final dartFiles =
+      TextDocumentFilterWithScheme(language: 'dart', scheme: 'file');
+  final pubspecFile = TextDocumentFilterWithScheme(
       language: 'yaml', scheme: 'file', pattern: '**/pubspec.yaml');
-  final analysisOptionsFile = DocumentFilter(
+  final analysisOptionsFile = TextDocumentFilterWithScheme(
       language: 'yaml', scheme: 'file', pattern: '**/analysis_options.yaml');
-  final fixDataFile = DocumentFilter(
+  final fixDataFile = TextDocumentFilterWithScheme(
       language: 'yaml', scheme: 'file', pattern: '**/lib/fix_data.yaml');
 
   ServerCapabilitiesComputer(this._server);
@@ -168,7 +168,7 @@ class ServerCapabilitiesComputer {
     return ServerCapabilities(
       textDocumentSync: dynamicRegistrations.textSync
           ? null
-          : Either2<TextDocumentSyncOptions, TextDocumentSyncKind>.t1(
+          : Either2<TextDocumentSyncKind, TextDocumentSyncOptions>.t2(
               TextDocumentSyncOptions(
               // The open/close and sync kind flags are registered dynamically if the
               // client supports them, so these static registrations are based on whether
@@ -280,11 +280,11 @@ class ServerCapabilitiesComputer {
       workspace: ServerCapabilitiesWorkspace(
         workspaceFolders: WorkspaceFoldersServerCapabilities(
           supported: true,
-          changeNotifications: Either2<String, bool>.t2(true),
+          changeNotifications: Either2<bool, String>.t1(true),
         ),
         fileOperations: dynamicRegistrations.fileOperations
             ? null
-            : ServerCapabilitiesFileOperations(
+            : FileOperationOptions(
                 willRename: fileOperationRegistrationOptions,
               ),
       ),
@@ -304,7 +304,8 @@ class ServerCapabilitiesComputer {
         // All published plugins use something like `*.extension` as
         // interestingFiles. Prefix a `**/` so that the glob matches nested
         // folders as well.
-        .map((glob) => DocumentFilter(scheme: 'file', pattern: '**/$glob'));
+        .map((glob) =>
+            TextDocumentFilterWithScheme(scheme: 'file', pattern: '**/$glob'));
     final pluginTypesExcludingDart =
         pluginTypes.where((filter) => filter.pattern != '**/*.dart');
 
@@ -522,14 +523,14 @@ class ServerCapabilitiesComputer {
     // the hashcode of their registration options to allow for multiple
     // registrations of a single method.
 
-    String _registrationHash(Registration registration) =>
+    String registrationHash(Registration registration) =>
         '${registration.method}${registration.registerOptions.hashCode}';
 
     final newRegistrationsMap = Map.fromEntries(
-        newRegistrations.map((r) => MapEntry(r, _registrationHash(r))));
+        newRegistrations.map((r) => MapEntry(r, registrationHash(r))));
     final newRegistrationsJsons = newRegistrationsMap.values.toSet();
     final currentRegistrationsMap = Map.fromEntries(
-        currentRegistrations.map((r) => MapEntry(r, _registrationHash(r))));
+        currentRegistrations.map((r) => MapEntry(r, registrationHash(r))));
     final currentRegistrationJsons = currentRegistrationsMap.values.toSet();
 
     final registrationsToAdd = newRegistrationsMap.entries

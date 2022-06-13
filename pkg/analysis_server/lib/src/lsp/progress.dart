@@ -5,8 +5,7 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 /// Reports progress of long-running operations to the LSP client.

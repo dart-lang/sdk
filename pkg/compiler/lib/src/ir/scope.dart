@@ -2,29 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 import 'closure.dart';
+import 'constants.dart' show Dart2jsConstantEvaluator;
 import 'scope_visitor.dart';
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 
 class ScopeModel {
-  final ClosureScopeModel closureScopeModel;
-  final VariableScopeModel variableScopeModel;
+  final ClosureScopeModel? closureScopeModel;
+  final VariableScopeModel? variableScopeModel;
   final EvaluationComplexity initializerComplexity;
 
   const ScopeModel(
       {this.closureScopeModel,
       this.variableScopeModel,
-      this.initializerComplexity})
-      : assert(initializerComplexity != null);
+      required this.initializerComplexity});
 
   /// Inspect members and mark if those members capture any state that needs to
   /// be marked as free variables.
   factory ScopeModel.from(
       ir.Member node, ir.ConstantEvaluator constantEvaluator) {
-    ScopeModelBuilder builder = ScopeModelBuilder(constantEvaluator);
+    ScopeModelBuilder builder =
+        ScopeModelBuilder(constantEvaluator as Dart2jsConstantEvaluator);
     return builder.computeModel(node);
   }
 }
@@ -36,21 +35,20 @@ abstract class VariableScopeModel {
 }
 
 class VariableScopeModelImpl implements VariableScopeModel {
-  final Map<ir.TreeNode, VariableScope> _scopeMap = {};
-  Set<ir.VariableDeclaration> _assignedVariables;
+  final Map<ir.TreeNode, VariableScopeImpl> _scopeMap = {};
+  Set<ir.VariableDeclaration>? _assignedVariables;
 
-  VariableScope createScopeFor(ir.TreeNode node) {
+  VariableScopeImpl createScopeFor(ir.TreeNode node) {
     return _scopeMap[node] ??= VariableScopeImpl();
   }
 
   void registerAssignedVariable(ir.VariableDeclaration node) {
-    _assignedVariables ??= Set<ir.VariableDeclaration>();
-    _assignedVariables.add(node);
+    (_assignedVariables ??= {}).add(node);
   }
 
   @override
   VariableScope getScopeFor(ir.TreeNode node) {
-    return _scopeMap[node];
+    return _scopeMap[node]!;
   }
 
   @override
@@ -59,7 +57,7 @@ class VariableScopeModelImpl implements VariableScopeModel {
 
   @override
   bool isEffectivelyFinal(ir.VariableDeclaration node) {
-    return _assignedVariables == null || !_assignedVariables.contains(node);
+    return _assignedVariables == null || !_assignedVariables!.contains(node);
   }
 }
 
@@ -74,28 +72,28 @@ abstract class VariableScope {
 }
 
 class VariableScopeImpl implements VariableScope {
-  List<VariableScope> _subScopes;
-  Set<ir.VariableDeclaration> _assignedVariables;
+  List<VariableScope>? _subScopes;
+  Set<ir.VariableDeclaration>? _assignedVariables;
   @override
   bool hasContinueSwitch = false;
 
   void addSubScope(VariableScope scope) {
     _subScopes ??= <VariableScope>[];
-    _subScopes.add(scope);
+    _subScopes!.add(scope);
   }
 
   void registerAssignedVariable(ir.VariableDeclaration variable) {
     _assignedVariables ??= Set<ir.VariableDeclaration>();
-    _assignedVariables.add(variable);
+    _assignedVariables!.add(variable);
   }
 
   @override
   Iterable<ir.VariableDeclaration> get assignedVariables sync* {
     if (_assignedVariables != null) {
-      yield* _assignedVariables;
+      yield* _assignedVariables!;
     }
     if (_subScopes != null) {
-      for (VariableScope subScope in _subScopes) {
+      for (VariableScope subScope in _subScopes!) {
         yield* subScope.assignedVariables;
       }
     }
@@ -103,13 +101,14 @@ class VariableScopeImpl implements VariableScope {
 }
 
 abstract class VariableCollectorMixin {
-  VariableScopeImpl currentVariableScope;
+  VariableScopeImpl? currentVariableScope;
   VariableScopeModelImpl variableScopeModel = VariableScopeModelImpl();
 
   void visitInVariableScope(ir.TreeNode root, void f()) {
-    VariableScopeImpl oldScope = currentVariableScope;
-    currentVariableScope = variableScopeModel.createScopeFor(root);
-    oldScope?.addSubScope(currentVariableScope);
+    VariableScopeImpl? oldScope = currentVariableScope;
+    final newScope =
+        currentVariableScope = variableScopeModel.createScopeFor(root);
+    oldScope?.addSubScope(newScope);
     f();
     currentVariableScope = oldScope;
   }

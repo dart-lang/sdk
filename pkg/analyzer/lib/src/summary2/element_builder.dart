@@ -262,12 +262,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
                 )
               : null,
         ),
-        astFactory.argumentList(
-          Tokens.openParenthesis(),
-          [
+        ArgumentListImpl(
+          leftParenthesis: Tokens.openParenthesis(),
+          arguments: [
             ...?constant.arguments?.argumentList.arguments,
           ],
-          Tokens.closeParenthesis(),
+          rightParenthesis: Tokens.closeParenthesis(),
         ),
       );
 

@@ -55,7 +55,7 @@ void test() {
   } catch (e) {
     exceptionThrown = true;
   }
-  // This check is running in the target process so we can't used package:test.
+  // This check is running in the target process so we can't use package:test.
   Expect.isTrue(exceptionThrown);
 }
 

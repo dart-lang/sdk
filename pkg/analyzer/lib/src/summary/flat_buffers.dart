@@ -719,7 +719,7 @@ class _FbBoolList with ListMixin<bool> implements List<bool> {
 
 /// The list backed by 64-bit values - Uint64 length and Float64.
 class _FbFloat64List extends _FbList<double> {
-  _FbFloat64List(BufferContext bc, int offset) : super(bc, offset);
+  _FbFloat64List(super.bc, super.offset);
 
   @override
   double operator [](int i) {
@@ -771,7 +771,7 @@ abstract class _FbList<E> with ListMixin<E> implements List<E> {
 
 /// List backed by 32-bit unsigned integers.
 class _FbUint32List extends _FbList<int> {
-  _FbUint32List(BufferContext bc, int offset) : super(bc, offset);
+  _FbUint32List(super.bc, super.offset);
 
   @override
   int operator [](int i) {
@@ -781,7 +781,7 @@ class _FbUint32List extends _FbList<int> {
 
 /// List backed by 8-bit unsigned integers.
 class _FbUint8List extends _FbList<int> {
-  _FbUint8List(BufferContext bc, int offset) : super(bc, offset);
+  _FbUint8List(super.bc, super.offset);
 
   @override
   int operator [](int i) {

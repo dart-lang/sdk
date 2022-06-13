@@ -9,7 +9,7 @@ library js_backend.namer;
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show $0, $9, $A, $Z, $_, $a, $g, $s, $z;
 
-import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
+import 'package:js_shared/synced/embedded_names.dart' show JsGetName;
 
 import '../closure.dart';
 import '../common.dart';
@@ -514,7 +514,7 @@ class Namer extends ModularNamer {
   }
 
   Map<String, String> createMinifiedGlobalNameMap() {
-    var map = <String, String>{};
+    var map = <String, String /*!*/ >{};
     userGlobals.forEach((entity, jsName) {
       _registerName(map, jsName, entity.name);
     });
@@ -611,7 +611,7 @@ class Namer extends ModularNamer {
     // In the current implementation it doesn't make sense to give names to
     // function constants since the function-implementation itself serves as
     // constant and can be accessed directly.
-    assert(!constant.isFunction);
+    assert(constant is! FunctionConstantValue);
     jsAst.Name result = _constantNames[constant];
     if (result == null) {
       String longName = constantLongName(constant);
@@ -817,11 +817,11 @@ class Namer extends ModularNamer {
   }
 
   @override
-  jsAst.Name globalPropertyNameForMember(MemberEntity element) =>
+  jsAst.Name globalPropertyNameForMember(MemberEntity /*!*/ element) =>
       _disambiguateGlobalMember(element);
 
   @override
-  jsAst.Name globalPropertyNameForClass(ClassEntity element) =>
+  jsAst.Name globalPropertyNameForClass(ClassEntity /*!*/ element) =>
       _disambiguateGlobalType(element);
 
   @override
@@ -1707,7 +1707,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
 
   @override
   void visitBool(BoolConstantValue constant, [_]) {
-    add(constant.isTrue ? 'true' : 'false');
+    add(constant is TrueConstantValue ? 'true' : 'false');
   }
 
   @override
@@ -1882,7 +1882,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitBool(BoolConstantValue constant, [_]) {
-    return constant.isTrue ? 2 : 3;
+    return constant is TrueConstantValue ? 2 : 3;
   }
 
   @override

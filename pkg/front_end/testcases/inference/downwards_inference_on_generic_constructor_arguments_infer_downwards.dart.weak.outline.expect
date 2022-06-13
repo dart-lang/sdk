@@ -17,7 +17,7 @@ class F0<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class F1<T extends core::Object* = dynamic> extends core::Object {
-  constructor •({core::List<self::F1::T*>* a}) → self::F1<self::F1::T*>*
+  constructor •({core::List<self::F1::T*>* a = null}) → self::F1<self::F1::T*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -59,7 +59,7 @@ class F3<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class F4<T extends core::Object* = dynamic> extends core::Object {
-  constructor •({core::Iterable<core::Iterable<self::F4::T*>*>* a}) → self::F4<self::F4::T*>*
+  constructor •({core::Iterable<core::Iterable<self::F4::T*>*>* a = null}) → self::F4<self::F4::T*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

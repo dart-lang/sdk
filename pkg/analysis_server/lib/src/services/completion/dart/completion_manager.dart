@@ -220,10 +220,8 @@ class DartCompletionManager {
         kinds.add(protocol.ElementKind.CONSTRUCTOR);
         kinds.add(protocol.ElementKind.ENUM_CONSTANT);
         kinds.add(protocol.ElementKind.EXTENSION);
-        // Static fields.
-        kinds.add(protocol.ElementKind.FIELD);
         kinds.add(protocol.ElementKind.FUNCTION);
-        // Static and top-level properties.
+        // Top-level properties.
         kinds.add(protocol.ElementKind.GETTER);
         kinds.add(protocol.ElementKind.SETTER);
         kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
@@ -472,6 +470,19 @@ class DartCompletionRequest {
       var prev = entity.previous;
       if (prev != null && prev.end == offset && prev.isKeywordOrIdentifier) {
         return prev.lexeme;
+      }
+    }
+
+    if (entity is Token &&
+        entity.type == TokenType.STRING &&
+        entity.offset < offset &&
+        offset < entity.end) {
+      final uriNode = target.containingNode;
+      if (uriNode is SimpleStringLiteral && uriNode.literal == entity) {
+        final directive = uriNode.parent;
+        if (directive is UriBasedDirective && directive.uri == uriNode) {
+          return uriNode.value.substring(0, offset - uriNode.contentsOffset);
+        }
       }
     }
 

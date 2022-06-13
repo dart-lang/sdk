@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/snippets/dart/dart_snippet_producers.dart';
@@ -1117,6 +1117,145 @@ void f() {
     expect(res.items.map((item) => item.label).contains('aaa'), isTrue);
   }
 
+  /// Exact matches should always be included when completion lists are
+  /// truncated, even if they ranked poorly.
+  Future<void> test_maxCompletionItems_doesNotExcludeExactMatches() async {
+    final content = '''
+import 'a.dart';
+void f() {
+  var a = Item^
+}
+    ''';
+
+    // Create classes `Item1` to `Item20` along with a field named `item`.
+    // The classes will rank higher in the position above and push
+    // the field out without an exception to include exact matches.
+    newFile(
+      join(projectFolderPath, 'lib', 'a.dart'),
+      [
+        'String item = "";',
+        for (var i = 1; i <= 20; i++) 'class Item$i {}',
+      ].join('\n'),
+    );
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities: withApplyEditSupport(
+              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
+      {'maxCompletionItems': 10},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res =
+        await getCompletionList(mainFileUri, positionFromMarker(content));
+
+    // We expect 11 items, because the exact match was not in the top 10 and
+    // was included additionally.
+    expect(res.items, hasLength(11));
+    expect(res.isIncomplete, isTrue);
+
+    // Ensure the 'Item' field is included.
+    expect(
+      res.items.map((item) => item.label),
+      contains('item'),
+    );
+  }
+
+  /// Snippet completions should be kept when maxCompletionItems truncates
+  /// because they are not ranked like other completions and might be
+  /// truncated when they are exactly what the user wants.
+  Future<void> test_maxCompletionItems_doesNotExcludeSnippets() async {
+    final content = '''
+import 'a.dart';
+void f() {
+  fo^
+}
+    ''';
+
+    // Create fields for1 to for20 in the other file.
+    newFile(
+      join(projectFolderPath, 'lib', 'a.dart'),
+      [
+        for (var i = 1; i <= 20; i++) 'String for$i = ' ';',
+      ].join('\n'),
+    );
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+          textDocumentCapabilities: withCompletionItemSnippetSupport(
+              emptyTextDocumentClientCapabilities),
+          workspaceCapabilities: withApplyEditSupport(
+              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
+      {'maxCompletionItems': 10},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res =
+        await getCompletionList(mainFileUri, positionFromMarker(content));
+
+    // Should be capped at 10 and marked as incomplete.
+    expect(res.items, hasLength(10));
+    expect(res.isIncomplete, isTrue);
+
+    // Ensure the 'for' snippet is included.
+    expect(
+      res.items
+          .where((item) => item.kind == CompletionItemKind.Snippet)
+          .map((item) => item.label)
+          .contains('for'),
+      isTrue,
+    );
+  }
+
+  Future<void> test_namedArg_flutterChildren() async {
+    final content = '''
+import 'package:flutter/widgets.dart';
+
+final a = Flex(c^);
+''';
+
+    final expectedContent = '''
+import 'package:flutter/widgets.dart';
+
+final a = Flex(children: [^],);
+''';
+
+    await verifyCompletions(
+      mainFileUri,
+      content,
+      expectCompletions: ['children: []'],
+      applyEditsFor: 'children: []',
+      expectedContent: expectedContent,
+    );
+  }
+
+  Future<void> test_namedArg_flutterChildren_existingValue() async {
+    // Flutter's widget classes have special handling that adds `[]` after the
+    // children named arg, but this should not occur if there's already a value
+    // for this named arg.
+    final content = '''
+import 'package:flutter/widgets.dart';
+
+final a = Flex(c^: []);
+''';
+
+    final expectedContent = '''
+import 'package:flutter/widgets.dart';
+
+final a = Flex(children: []);
+''';
+
+    await verifyCompletions(
+      mainFileUri,
+      content,
+      expectCompletions: ['children'],
+      applyEditsFor: 'children',
+      expectedContent: expectedContent,
+    );
+  }
+
   Future<void> test_namedArg_insertReplaceRanges() async {
     /// Helper to check multiple completions in the same template file.
     Future<void> check(
@@ -2030,7 +2169,7 @@ void f() {
     // Execute the associated command (which will handle edits in other files).
     ApplyWorkspaceEditParams? editParams;
     final commandResponse = await handleExpectedRequest<Object?,
-        ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
+        ApplyWorkspaceEditParams, ApplyWorkspaceEditResult>(
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams.fromJson,
       () => executeCommand(resolved.command!),
@@ -2038,7 +2177,7 @@ void f() {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).
         editParams = edit;
-        return ApplyWorkspaceEditResponse(applied: true);
+        return ApplyWorkspaceEditResult(applied: true);
       },
     );
     // Successful edits return an empty success() response.
@@ -2060,79 +2199,6 @@ void f() {
 import '../other_file.dart';
 
 part 'main.dart';'''));
-  }
-
-  Future<void> test_unimportedSymbols_members() async {
-    newFile(
-      join(projectFolderPath, 'source_file.dart'),
-      '''
-      class MyExportedClass {
-        DateTime myInstanceDateTime;
-        static DateTime myStaticDateTimeField;
-        static DateTime get myStaticDateTimeGetter => null;
-      }
-      ''',
-    );
-
-    final content = '''
-void f() {
-  var a = MyExported^
-}
-    ''';
-
-    final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
-    await openFile(mainFileUri, withoutMarkers(content));
-    await initialAnalysis;
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-
-    final completions =
-        res.where((c) => c.label.startsWith('MyExportedClass')).toList();
-    expect(
-        completions.map((c) => c.label),
-        unorderedEquals([
-          'MyExportedClass',
-          'MyExportedClass()',
-          // The instance field should not show up.
-          'MyExportedClass.myStaticDateTimeField',
-          'MyExportedClass.myStaticDateTimeGetter'
-        ]));
-
-    final completion = completions
-        .singleWhere((c) => c.label == 'MyExportedClass.myStaticDateTimeField');
-
-    // Resolve the completion item (via server) to get its edits. This is the
-    // LSP's equiv of getSuggestionDetails() and is invoked by LSP clients to
-    // populate additional info (in our case, the additional edits for inserting
-    // the import).
-    final resolved = await resolveCompletion(completion);
-    expect(resolved, isNotNull);
-
-    // Ensure the detail field was update to show this will auto-import.
-    expect(
-        resolved.detail, startsWith("Auto import from '../source_file.dart'"));
-
-    // Ensure the edit was added on.
-    expect(resolved.textEdit, isNotNull);
-
-    // Apply both the main completion edit and the additionalTextEdits atomically.
-    final newContent = applyTextEdits(
-      withoutMarkers(content),
-      [toTextEdit(resolved.textEdit!)]
-          .followedBy(resolved.additionalTextEdits!)
-          .toList(),
-    );
-
-    // Ensure both edits were made - the completion, and the inserted import.
-    expect(newContent, equals('''
-import '../source_file.dart';
-
-void f() {
-  var a = MyExportedClass.myStaticDateTimeField
-}
-    '''));
   }
 
   /// This test reproduces a bug where the pathKey hash used in
@@ -2788,6 +2854,7 @@ void f() {
 class FlutterSnippetCompletionTest extends SnippetCompletionTest {
   /// Standard import statements expected for basic Widgets.
   String get expectedImports => '''
+import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';''';
 
   /// Nullability suffix expected in this test class.
@@ -2842,7 +2909,7 @@ class \${1:MyWidget} extends StatefulWidget {
 class _\${1:MyWidget}State extends State<\${1:MyWidget}> {
   @override
   Widget build(BuildContext context) {
-    \$0
+    return \${0:Container()};
   }
 }
 
@@ -2893,13 +2960,13 @@ class _\${1:MyWidget}State extends State<\${1:MyWidget}>
 
   @override
   void dispose() {
-    super.dispose();
     _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    \$0
+    return \${0:Container()};
   }
 }
 
@@ -2935,7 +3002,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    \$0
+    return \${0:Container()};
   }
 }
 
@@ -2969,7 +3036,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    \$0
+    return \${0:Container()};
   }
 }
 
@@ -2997,7 +3064,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    \$0
+    return \${0:Container()};
   }
 }
 ''');
@@ -3023,7 +3090,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    \$0
+    return \${0:Container()};
   }
 }
 ''');
@@ -3065,6 +3132,7 @@ class FlutterSnippetCompletionWithoutNullSafetyTest
   @override
   String get expectedImports => '''
 import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';''';
 
   @override

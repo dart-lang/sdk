@@ -70,8 +70,8 @@ const LintCode customCode = LintCode(
 class CollectingReporter extends ErrorReporter {
   ErrorCode? code;
 
-  CollectingReporter(AnalysisErrorListener listener, Source source)
-      : super(listener, source, isNonNullableByDefault: false);
+  CollectingReporter(super.listener, super.source)
+      : super(isNonNullableByDefault: false);
 
   @override
   void reportErrorForElement(ErrorCode errorCode, Element element,

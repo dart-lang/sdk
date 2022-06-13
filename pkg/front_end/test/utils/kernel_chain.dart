@@ -4,9 +4,8 @@
 
 library fasta.testing.kernel_chain;
 
+import 'dart:async';
 import 'dart:io' show Directory, File, IOSink, Platform;
-
-import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
@@ -32,7 +31,16 @@ import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 import 'package:front_end/src/fasta/messages.dart'
     show DiagnosticMessageFromJson, LocatedMessage, Message;
 
-import 'package:kernel/ast.dart' show Component, Library, Reference, Source;
+import 'package:kernel/ast.dart'
+    show
+        Block,
+        Component,
+        Library,
+        Procedure,
+        Reference,
+        ReturnStatement,
+        Source,
+        Statement;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
@@ -423,7 +431,9 @@ class KernelTextSerialization
 }
 
 class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
-  const WriteDill();
+  final bool skipVm;
+
+  const WriteDill({required this.skipVm});
 
   @override
   String get name => "write .dill";
@@ -431,24 +441,64 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
   @override
   Future<Result<ComponentResult>> run(ComponentResult result, _) async {
     Component component = result.component;
-    Directory tmp = await Directory.systemTemp.createTemp();
-    Uri uri = tmp.uri.resolve("generated.dill");
-    File generated = new File.fromUri(uri);
-    IOSink sink = generated.openWrite();
-    result = new ComponentResult(
-        result.description,
-        result.component,
-        result.userLibraries,
-        result.compilationSetup,
-        result.sourceTarget,
-        uri);
+    Procedure? mainMethod = component.mainMethod;
+    bool writeToFile = true;
+    if (mainMethod == null) {
+      writeToFile = false;
+    } else {
+      Statement? mainBody = mainMethod.function.body;
+      if (mainBody is Block && mainBody.statements.isEmpty ||
+          mainBody is ReturnStatement && mainBody.expression == null) {
+        writeToFile = false;
+      }
+    }
+    ByteSink sink = new ByteSink();
+    bool good = false;
     try {
-      new BinaryPrinter(sink).writeComponentFile(component);
+      // Avoid serializing the sdk.
+      component.computeCanonicalNames();
+      Component userCode = new Component(
+          nameRoot: component.root,
+          uriToSource: new Map<Uri, Source>.from(component.uriToSource));
+      userCode.setMainMethodAndMode(
+          component.mainMethodName, true, component.mode);
+      for (Library library in component.libraries) {
+        if (library.importUri.isScheme("dart")) {
+          if (result.isUserLibrary(library)) {
+            // dart:test, test:extra etc as used will say yes to being a user
+            // library.
+          } else if (library.isSynthetic) {
+            // OK --- serialize that.
+          } else {
+            // Skip serialization of "real" platform libraries.
+            continue;
+          }
+        }
+        userCode.libraries.add(library);
+      }
+      new BinaryPrinter(sink).writeComponentFile(userCode);
+      good = true;
     } catch (e, s) {
       return fail(result, e, s);
     } finally {
-      print("Wrote `${generated.path}`");
-      await sink.close();
+      if (good && writeToFile && !skipVm) {
+        Directory tmp = await Directory.systemTemp.createTemp();
+        Uri uri = tmp.uri.resolve("generated.dill");
+        File generated = new File.fromUri(uri);
+        IOSink ioSink = generated.openWrite();
+        ioSink.add(sink.builder.takeBytes());
+        await ioSink.close();
+        result = new ComponentResult(
+            result.description,
+            result.component,
+            result.userLibraries,
+            result.compilationSetup,
+            result.sourceTarget,
+            uri);
+        print("Wrote component to `${generated.path}`.");
+      } else {
+        print("Wrote component to memory.");
+      }
     }
     return pass(result);
   }
@@ -469,32 +519,6 @@ class ReadDill extends Step<Uri, Uri, ChainContext> {
     }
     return new Future.value(pass(uri));
   }
-}
-
-class BytesCollector implements Sink<List<int>> {
-  final List<List<int>> lists = <List<int>>[];
-
-  int length = 0;
-
-  @override
-  void add(List<int> data) {
-    lists.add(data);
-    length += data.length;
-  }
-
-  Uint8List collect() {
-    Uint8List result = new Uint8List(length);
-    int offset = 0;
-    for (List<int> list in lists) {
-      result.setRange(offset, offset += list.length, list);
-    }
-    lists.clear();
-    length = 0;
-    return result;
-  }
-
-  @override
-  void close() {}
 }
 
 Future<String> runDiff(Uri expected, String actual) async {

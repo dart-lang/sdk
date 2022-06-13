@@ -5,13 +5,8 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
-    as lsp;
-import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
+import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
@@ -62,12 +57,12 @@ final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
 /// field.
 final _upgradableDocCompletePattern = RegExp(r'^_([\w ]{0,20})_$');
 
-lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
+lsp.Either2<lsp.MarkupContent, String> asMarkupContentOrString(
     Set<lsp.MarkupKind>? preferredFormats, String content) {
-  return preferredFormats == null
-      ? lsp.Either2<String, lsp.MarkupContent>.t1(content)
-      : lsp.Either2<String, lsp.MarkupContent>.t2(
-          _asMarkup(preferredFormats, content));
+  return preferredFormats != null
+      ? lsp.Either2<lsp.MarkupContent, String>.t1(
+          _asMarkup(preferredFormats, content))
+      : lsp.Either2<lsp.MarkupContent, String>.t2(content);
 }
 
 /// Creates a [lsp.WorkspaceEdit] from simple [server.SourceFileEdit]s.
@@ -98,7 +93,7 @@ lsp.WorkspaceEdit createPlainWorkspaceEdit(
 /// Create a [WorkspaceEdit] that renames [oldPath] to [newPath].
 WorkspaceEdit createRenameEdit(String oldPath, String newPath) {
   final changes =
-      <Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>[];
+      <Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>[];
 
   final rename = RenameFile(
     oldUri: Uri.file(oldPath).toString(),
@@ -106,16 +101,11 @@ WorkspaceEdit createRenameEdit(String oldPath, String newPath) {
   );
 
   final renameUnion =
-      Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(rename);
+      Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>.t3(rename);
 
   changes.add(renameUnion);
 
-  final edit = WorkspaceEdit(
-      documentChanges: Either2<
-          List<TextDocumentEdit>,
-          List<
-              Either4<TextDocumentEdit, CreateFile, RenameFile,
-                  DeleteFile>>>.t2(changes));
+  final edit = WorkspaceEdit(documentChanges: changes);
   return edit;
 }
 
@@ -163,30 +153,24 @@ lsp.WorkspaceEdit createWorkspaceEdit(
     change.linkedEditGroups,
     lineInfo,
     selectionOffset: change.selection?.offset,
+    selectionLength: change.selectionLength,
   );
 
   // Compile the edits into a TextDocumentEdit for this file.
   final textDocumentEdit = lsp.TextDocumentEdit(
     textDocument: server.getVersionedDocumentIdentifier(fileEdit.file),
     edits: snippetEdits
-        .map((e) => Either3<lsp.SnippetTextEdit, lsp.AnnotatedTextEdit,
-            lsp.TextEdit>.t1(e))
+        .map((e) => Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit,
+            lsp.TextEdit>.t2(e))
         .toList(),
   );
 
   // Convert to the union that documentChanges require.
-  final textDocumentEditsAsUnion = Either4<lsp.TextDocumentEdit, lsp.CreateFile,
-      lsp.RenameFile, lsp.DeleteFile>.t1(textDocumentEdit);
-
-  // Convert to the union that documentChanges is.
-  final documentChanges = Either2<
-      List<lsp.TextDocumentEdit>,
-      List<
-          Either4<lsp.TextDocumentEdit, lsp.CreateFile, lsp.RenameFile,
-              lsp.DeleteFile>>>.t2([textDocumentEditsAsUnion]);
+  final textDocumentEditsAsUnion = Either4<lsp.CreateFile, lsp.DeleteFile,
+      lsp.RenameFile, lsp.TextDocumentEdit>.t4(textDocumentEdit);
 
   /// Add the textDocumentEdit to a WorkspaceEdit.
-  return lsp.WorkspaceEdit(documentChanges: documentChanges);
+  return lsp.WorkspaceEdit(documentChanges: [textDocumentEditsAsUnion]);
 }
 
 lsp.CompletionItemKind? declarationKindToCompletionItemKind(
@@ -298,31 +282,10 @@ lsp.CompletionItem declarationToCompletionItem(
   required bool completeFunctionCalls,
 }) {
   final supportsSnippets = capabilities.completionSnippets;
-  final parent = declaration.parent;
 
-  String completion;
-  switch (declaration.kind) {
-    case DeclarationKind.ENUM_CONSTANT:
-      completion = '${parent!.name}.${declaration.name}';
-      break;
-    case DeclarationKind.GETTER:
-    case DeclarationKind.FIELD:
-      completion = parent != null && parent.name.isNotEmpty
-          ? '${parent.name}.${declaration.name}'
-          : declaration.name;
-      break;
-    case DeclarationKind.CONSTRUCTOR:
-      completion = parent!.name;
-      if (declaration.name.isNotEmpty) {
-        completion += '.${declaration.name}';
-      }
-      break;
-    default:
-      completion = declaration.name;
-      break;
-  }
   // By default, label is the same as the completion text, but may be added to
   // later (parens/snippets).
+  final completion = getDeclarationName(declaration);
   var label = completion;
 
   // isCallable is used to suffix the label with parens so it's clear the item
@@ -642,6 +605,32 @@ String? getDeclarationCompletionDetail(
   }
 }
 
+String getDeclarationName(Declaration declaration) {
+  final parent = declaration.parent;
+  String completion;
+  switch (declaration.kind) {
+    case DeclarationKind.ENUM_CONSTANT:
+      completion = '${parent!.name}.${declaration.name}';
+      break;
+    case DeclarationKind.GETTER:
+    case DeclarationKind.FIELD:
+      completion = parent != null && parent.name.isNotEmpty
+          ? '${parent.name}.${declaration.name}'
+          : declaration.name;
+      break;
+    case DeclarationKind.CONSTRUCTOR:
+      completion = parent!.name;
+      if (declaration.name.isNotEmpty) {
+        completion += '.${declaration.name}';
+      }
+      break;
+    default:
+      completion = declaration.name;
+      break;
+  }
+  return completion;
+}
+
 List<lsp.DiagnosticTag>? getDiagnosticTags(
     Set<lsp.DiagnosticTag>? supportedTags, plugin.AnalysisError error) {
   if (supportedTags == null) {
@@ -695,24 +684,13 @@ WorkspaceEdit mergeWorkspaceEdits(List<WorkspaceEdit> edits) {
   // TODO(dantup): This method (and much other code here) should be
   // significantly tidied up when nonfunction-type-aliases is available here.
   final changes =
-      <Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>[];
+      <Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>[];
 
   for (final edit in edits) {
-    // Flatten the Either into just the Union side to get a flat list.
-    final flatResourceChanges = edit.documentChanges!.map(
-      (edits) => edits.map((e) =>
-          Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t1(e)),
-      (resources) => resources,
-    );
-    changes.addAll(flatResourceChanges);
+    changes.addAll(edit.documentChanges!);
   }
 
-  return WorkspaceEdit(
-      documentChanges: Either2<
-          List<TextDocumentEdit>,
-          List<
-              Either4<TextDocumentEdit, CreateFile, RenameFile,
-                  DeleteFile>>>.t2(changes));
+  return WorkspaceEdit(documentChanges: changes);
 }
 
 lsp.Location navigationTargetToLocation(
@@ -836,7 +814,7 @@ lsp.Diagnostic pluginToDiagnostic(
     tags: getDiagnosticTags(supportedTags, error),
     relatedInformation: relatedInformation,
     // Only include codeDescription if the client explicitly supports it
-    // (a minor optimization to avoid unnecessary payload/(de)serialisation).
+    // (a minor optimization to avoid unnecessary payload/(de)serialization).
     codeDescription: clientSupportsCodeDescription && documentationUrl != null
         ? CodeDescription(href: documentationUrl)
         : null,
@@ -931,6 +909,7 @@ lsp.SnippetTextEdit snippetTextEditFromEditGroups(
   required List<server.LinkedEditGroup> editGroups,
   required int editOffset,
   required int? selectionOffset,
+  required int? selectionLength,
 }) {
   return lsp.SnippetTextEdit(
     insertTextFormat: lsp.InsertTextFormat.Snippet,
@@ -941,6 +920,7 @@ lsp.SnippetTextEdit snippetTextEditFromEditGroups(
       editGroups: editGroups,
       editOffset: editOffset,
       selectionOffset: selectionOffset,
+      selectionLength: selectionLength,
     ),
   );
 }
@@ -1005,6 +985,8 @@ lsp.CompletionItem snippetToCompletionItem(
     lineInfo,
     selectionOffset:
         changes.selection?.file == file ? changes.selection?.offset : null,
+    selectionLength:
+        changes.selection?.file == file ? changes.selectionLength : null,
   );
 
   // For LSP, we need to provide the main edit and other edits separately. The
@@ -1022,7 +1004,7 @@ lsp.CompletionItem snippetToCompletionItem(
     kind: lsp.CompletionItemKind.Snippet,
     command: command,
     documentation: documentation != null
-        ? asStringOrMarkupContent(formats, documentation)
+        ? asMarkupContentOrString(formats, documentation)
         : null,
     // Force snippets to be sorted at the bottom of the list.
     // TODO(dantup): Consider if we can rank these better. Client-side
@@ -1031,7 +1013,7 @@ lsp.CompletionItem snippetToCompletionItem(
     sortText: 'zzz${snippet.prefix}',
     insertTextFormat: lsp.InsertTextFormat.Snippet,
     insertTextMode: supportsAsIsInsertMode ? InsertTextMode.asIs : null,
-    textEdit: Either2<TextEdit, InsertReplaceEdit>.t1(mainEdit),
+    textEdit: Either2<InsertReplaceEdit, TextEdit>.t2(mainEdit),
     additionalTextEdits: nonMainEdits,
   );
 }
@@ -1222,7 +1204,7 @@ lsp.CompletionItem toCompletionItem(
     data: resolutionData,
     detail: detail,
     documentation: cleanedDoc != null
-        ? asStringOrMarkupContent(formats, cleanedDoc)
+        ? asMarkupContentOrString(formats, cleanedDoc)
         : null,
     deprecated: supportsCompletionDeprecatedFlag && suggestion.isDeprecated
         ? true
@@ -1243,14 +1225,14 @@ lsp.CompletionItem toCompletionItem(
     textEdit: (insertionRange == null || replacementRange == null)
         ? null
         : supportsInsertReplace && insertionRange != replacementRange
-            ? Either2<TextEdit, InsertReplaceEdit>.t2(
+            ? Either2<InsertReplaceEdit, TextEdit>.t1(
                 InsertReplaceEdit(
                   insert: insertionRange,
                   replace: replacementRange,
                   newText: insertText,
                 ),
               )
-            : Either2<TextEdit, InsertReplaceEdit>.t1(
+            : Either2<InsertReplaceEdit, TextEdit>.t2(
                 TextEdit(
                   range: replacementRange,
                   newText: insertText,
@@ -1476,7 +1458,7 @@ lsp.SignatureHelp toSignatureHelp(Set<lsp.MarkupKind>? preferredFormats,
       lsp.SignatureInformation(
         label: getSignatureLabel(signature),
         documentation: cleanedDoc != null
-            ? asStringOrMarkupContent(preferredFormats, cleanedDoc)
+            ? asMarkupContentOrString(preferredFormats, cleanedDoc)
             : null,
         parameters: signature.parameters.map(toParameterInfo).toList(),
       ),
@@ -1500,6 +1482,7 @@ List<lsp.SnippetTextEdit> toSnippetTextEdits(
   List<server.LinkedEditGroup> editGroups,
   LineInfo lineInfo, {
   required int? selectionOffset,
+  required int? selectionLength,
 }) {
   final snippetEdits = <lsp.SnippetTextEdit>[];
 
@@ -1520,6 +1503,7 @@ List<lsp.SnippetTextEdit> toSnippetTextEdits(
       editGroups: editGroups,
       editOffset: edit.offset + offsetDelta,
       selectionOffset: selectionOffset,
+      selectionLength: selectionLength,
     ));
 
     offsetDelta += edit.replacement.length - edit.length;
@@ -1562,7 +1546,7 @@ lsp.TextDocumentEdit toTextDocumentEdit(
           .toList());
 }
 
-Either3<lsp.SnippetTextEdit, lsp.AnnotatedTextEdit, lsp.TextEdit>
+Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>
     toTextDocumentEditEdit(
   LspClientCapabilities capabilities,
   server.LineInfo lineInfo,
@@ -1572,10 +1556,10 @@ Either3<lsp.SnippetTextEdit, lsp.AnnotatedTextEdit, lsp.TextEdit>
 }) {
   if (!capabilities.experimentalSnippetTextEdit ||
       selectionOffsetRelative == null) {
-    return Either3<lsp.SnippetTextEdit, lsp.AnnotatedTextEdit, lsp.TextEdit>.t3(
+    return Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>.t3(
         toTextEdit(lineInfo, edit));
   }
-  return Either3<lsp.SnippetTextEdit, lsp.AnnotatedTextEdit, lsp.TextEdit>.t1(
+  return Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>.t2(
       snippetTextEditWithSelection(lineInfo, edit,
           selectionOffsetRelative: selectionOffsetRelative,
           selectionLength: selectionLength));
@@ -1596,8 +1580,8 @@ lsp.WorkspaceEdit toWorkspaceEdit(
   if (supportsDocumentChanges) {
     final supportsCreate = capabilities.createResourceOperations;
     final changes = <
-        Either4<lsp.TextDocumentEdit, lsp.CreateFile, lsp.RenameFile,
-            lsp.DeleteFile>>[];
+        Either4<lsp.CreateFile, lsp.DeleteFile, lsp.RenameFile,
+            lsp.TextDocumentEdit>>[];
 
     // Convert each SourceEdit to either a TextDocumentEdit or a
     // CreateFile + a TextDocumentEdit depending on whether it's a new
@@ -1605,23 +1589,18 @@ lsp.WorkspaceEdit toWorkspaceEdit(
     for (final edit in edits) {
       if (supportsCreate && edit.newFile) {
         final create = lsp.CreateFile(uri: edit.doc.uri);
-        final createUnion = Either4<lsp.TextDocumentEdit, lsp.CreateFile,
-            lsp.RenameFile, lsp.DeleteFile>.t2(create);
+        final createUnion = Either4<lsp.CreateFile, lsp.DeleteFile,
+            lsp.RenameFile, lsp.TextDocumentEdit>.t1(create);
         changes.add(createUnion);
       }
 
       final textDocEdit = toTextDocumentEdit(capabilities, edit);
-      final textDocEditUnion = Either4<lsp.TextDocumentEdit, lsp.CreateFile,
-          lsp.RenameFile, lsp.DeleteFile>.t1(textDocEdit);
+      final textDocEditUnion = Either4<lsp.CreateFile, lsp.DeleteFile,
+          lsp.RenameFile, lsp.TextDocumentEdit>.t4(textDocEdit);
       changes.add(textDocEditUnion);
     }
 
-    return lsp.WorkspaceEdit(
-        documentChanges: Either2<
-            List<lsp.TextDocumentEdit>,
-            List<
-                Either4<lsp.TextDocumentEdit, lsp.CreateFile, lsp.RenameFile,
-                    lsp.DeleteFile>>>.t2(changes));
+    return lsp.WorkspaceEdit(documentChanges: changes);
   } else {
     return lsp.WorkspaceEdit(changes: toWorkspaceEditChanges(edits));
   }

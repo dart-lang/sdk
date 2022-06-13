@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
     show FormalParameterKind, FormalParameterKindExtension;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart'
-    show DartType, DynamicType, Expression, VariableDeclaration;
+    show DartType, DynamicType, Expression, NullLiteral, VariableDeclaration;
 
 import '../constant_context.dart' show ConstantContext;
 import '../kernel/body_builder.dart' show BodyBuilder;
@@ -26,13 +26,14 @@ import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
 import 'named_type_builder.dart';
+import 'omitted_type_builder.dart';
 import 'type_builder.dart';
 import 'variable_builder.dart';
 
 abstract class ParameterBuilder {
   /// List of metadata builders for the metadata declared on this parameter.
   List<MetadataBuilder>? get metadata;
-  TypeBuilder? get type;
+  TypeBuilder get type;
 
   /// The kind of this parameter, i.e. if it's required, positional optional,
   /// or named optional.
@@ -54,7 +55,7 @@ abstract class ParameterBuilder {
 /// A builder for a formal parameter, i.e. a parameter on a method or
 /// constructor.
 class FormalParameterBuilder extends ModifierBuilderImpl
-    implements VariableBuilder, ParameterBuilder {
+    implements VariableBuilder, ParameterBuilder, InferredTypeListener {
   static const String noNameSentinel = 'no name sentinel';
 
   /// List of metadata builders for the metadata declared on this parameter.
@@ -65,7 +66,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   final int modifiers;
 
   @override
-  final TypeBuilder? type;
+  final TypeBuilder type;
 
   @override
   final String name;
@@ -97,7 +98,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       this.name, LibraryBuilder? compilationUnit, int charOffset,
       {Uri? fileUri, this.isExtensionThis: false})
       : this.fileUri = fileUri ?? compilationUnit?.fileUri,
-        super(compilationUnit, charOffset);
+        super(compilationUnit, charOffset) {
+    type.registerInferredTypeListener(this);
+  }
 
   @override
   String get debugName => "FormalParameterBuilder";
@@ -142,12 +145,15 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   @override
   String get fullNameForErrors => name;
 
-  VariableDeclaration build(
-      SourceLibraryBuilder library, int functionNestingLevel) {
+  VariableDeclaration build(SourceLibraryBuilder library) {
     if (variable == null) {
-      DartType? builtType = type?.build(library);
+      DartType? builtType = type is OmittedTypeBuilder
+          // `null` is used in [VariableDeclarationImpl] to signal an omitted
+          // type.
+          ? null
+          : type.build(library, TypeUse.parameterType);
       variable = new VariableDeclarationImpl(
-          name == noNameSentinel ? null : name, functionNestingLevel,
+          name == noNameSentinel ? null : name,
           type: builtType,
           isFinal: isFinal,
           isConst: false,
@@ -162,6 +168,13 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   }
 
   @override
+  void onInferredType(DartType type) {
+    if (variable != null) {
+      variable!.type = type;
+    }
+  }
+
+  @override
   ParameterBuilder clone(
       List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
@@ -169,7 +182,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     // TODO(cstefantsova):  It's not clear how [metadata] is used currently,
     // and how it should be cloned.  Consider cloning it instead of reusing it.
     return new FunctionTypeParameterBuilder(metadata, kind,
-        type?.clone(newTypes, contextLibrary, contextDeclaration), name);
+        type.clone(newTypes, contextLibrary, contextDeclaration), name);
   }
 
   FormalParameterBuilder forFormalParameterInitializerScope() {
@@ -209,9 +222,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   void finalizeInitializingFormal(ClassBuilder classBuilder) {
     Builder? fieldBuilder = classBuilder.lookupLocalMember(name);
     if (fieldBuilder is SourceFieldBuilder) {
-      variable!.type = fieldBuilder.inferType();
+      type.registerInferredType(fieldBuilder.inferType());
     } else {
-      variable!.type = const DynamicType();
+      type.registerInferredType(const DynamicType());
     }
   }
 
@@ -219,23 +232,23 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   /// formal parameter on a const constructor or instance method.
   void buildOutlineExpressions(SourceLibraryBuilder library,
       List<DelayedActionPerformer> delayedActionPerformers) {
-    if (initializerToken != null) {
-      // For modular compilation we need to include default values for optional
-      // and named parameters in several cases:
-      // * for const constructors to enable constant evaluation,
-      // * for instance methods because these might be needed to generated
-      //   noSuchMethod forwarders, and
-      // * for generative constructors to support forwarding constructors
-      //   in mixin applications.
-      bool needsDefaultValues = false;
-      if (parent is ConstructorBuilder) {
-        needsDefaultValues = true;
-      } else if (parent is SourceFactoryBuilder) {
-        needsDefaultValues = parent!.isFactory && parent!.isConst;
-      } else {
-        needsDefaultValues = parent!.isClassInstanceMember;
-      }
-      if (needsDefaultValues) {
+    // For modular compilation we need to include default values for optional
+    // and named parameters in several cases:
+    // * for const constructors to enable constant evaluation,
+    // * for instance methods because these might be needed to generated
+    //   noSuchMethod forwarders, and
+    // * for generative constructors to support forwarding constructors
+    //   in mixin applications.
+    bool needsDefaultValues = false;
+    if (parent is ConstructorBuilder) {
+      needsDefaultValues = true;
+    } else if (parent is SourceFactoryBuilder) {
+      needsDefaultValues = parent!.isFactory && parent!.isConst;
+    } else {
+      needsDefaultValues = parent!.isClassInstanceMember;
+    }
+    if (needsDefaultValues) {
+      if (initializerToken != null) {
         final ClassBuilder classBuilder = parent!.parent as ClassBuilder;
         Scope scope = classBuilder.scope;
         BodyBuilder bodyBuilder = library.loader
@@ -255,6 +268,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
             library.library);
         initializerWasInferred = true;
         bodyBuilder.performBacklogComputations(delayedActionPerformers);
+      } else if (kind != FormalParameterKind.requiredPositional) {
+        // As done by BodyBuilder.endFormalParameter.
+        variable!.initializer = new NullLiteral()..parent = variable;
       }
     }
     initializerToken = null;
@@ -269,7 +285,7 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
   final FormalParameterKind kind;
 
   @override
-  final TypeBuilder? type;
+  final TypeBuilder type;
 
   @override
   final String? name;
@@ -284,7 +300,7 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
     // TODO(cstefantsova):  It's not clear how [metadata] is used currently,
     // and how it should be cloned.  Consider cloning it instead of reusing it.
     return new FunctionTypeParameterBuilder(metadata, kind,
-        type?.clone(newTypes, contextLibrary, contextDeclaration), name);
+        type.clone(newTypes, contextLibrary, contextDeclaration), name);
   }
 
   @override

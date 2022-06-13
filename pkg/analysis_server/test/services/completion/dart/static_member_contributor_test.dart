@@ -52,7 +52,7 @@ void f() {
   }
 
   Future<void> test_enumConst() async {
-    addTestSource('enum E { one, two } main() {E.^}');
+    addTestSource('enum E { one, two } void f() {E.^}');
     await computeSuggestions();
     assertNotSuggested('E');
     assertSuggestEnumConst('one');
@@ -62,7 +62,7 @@ void f() {
   }
 
   Future<void> test_enumConst2() async {
-    addTestSource('enum E { one, two } main() {E.o^}');
+    addTestSource('enum E { one, two } void f() {E.o^}');
     await computeSuggestions();
     assertNotSuggested('E');
     assertSuggestEnumConst('one');
@@ -72,7 +72,7 @@ void f() {
   }
 
   Future<void> test_enumConst3() async {
-    addTestSource('enum E { one, two } main() {E.^ int g;}');
+    addTestSource('enum E { one, two } void f() {E.^ int g;}');
     await computeSuggestions();
     assertNotSuggested('E');
     assertSuggestEnumConst('one');
@@ -82,13 +82,13 @@ void f() {
   }
 
   Future<void> test_enumConst_cascade1() async {
-    addTestSource('enum E { one, two } main() {E..^}');
+    addTestSource('enum E { one, two } void f() {E..^}');
     await computeSuggestions();
     assertNoSuggestions();
   }
 
   Future<void> test_enumConst_cascade2() async {
-    addTestSource('enum E { one, two } main() {E.^.}');
+    addTestSource('enum E { one, two } void f() {E.^.}');
     await computeSuggestions();
     assertNotSuggested('E');
     assertSuggestEnumConst('one');
@@ -98,13 +98,13 @@ void f() {
   }
 
   Future<void> test_enumConst_cascade3() async {
-    addTestSource('enum E { one, two } main() {E..o^}');
+    addTestSource('enum E { one, two } void f() {E..o^}');
     await computeSuggestions();
     assertNoSuggestions();
   }
 
   Future<void> test_enumConst_cascade4() async {
-    addTestSource('enum E { one, two } main() {E.^.o}');
+    addTestSource('enum E { one, two } void f() {E.^.o}');
     await computeSuggestions();
     assertNotSuggested('E');
     assertSuggestEnumConst('one');
@@ -114,7 +114,7 @@ void f() {
   }
 
   Future<void> test_enumConst_deprecated() async {
-    addTestSource('@deprecated enum E { one, two } main() {E.^}');
+    addTestSource('@deprecated enum E { one, two } void f() {E.^}');
     await computeSuggestions();
     assertNotSuggested('E');
     assertSuggestEnumConst('one', isDeprecated: true);
@@ -129,7 +129,7 @@ extension E on Object {
   static int i;
   static String s;
 }
-main() {E.^}
+void f() {E.^}
 ''');
     await computeSuggestions();
     assertNotSuggested('E');
@@ -169,7 +169,7 @@ class A {
     addTestSource('''
 import 'a.dart';
 
-main() {
+void f() {
   A.^;
 }
 ''');
@@ -190,7 +190,7 @@ class A {
     addTestSource('''
 import 'a.dart';
 
-main() {
+void f() {
   A Function() v = A.^;
 }
 ''');
@@ -211,7 +211,7 @@ class A {
     addTestSource('''
 import 'a.dart';
 
-main() {
+void f() {
   int Function() v = A.^;
 }
 ''');
@@ -222,7 +222,8 @@ main() {
   }
 
   Future<void> test_keyword() async {
-    addTestSource('class C { static C get instance => null; } main() {C.in^}');
+    addTestSource(
+        'class C { static C get instance => null; } void f() {C.in^}');
     await computeSuggestions();
     assertSuggestGetter('instance', 'C');
   }
@@ -239,7 +240,7 @@ class C extends B {
   m1() {}
   static m2() {}
 }
-void main() {C.^}''');
+void f() {C.^}''');
     await computeSuggestions();
     assertNotSuggested('b1');
     assertNotSuggested('f1');
@@ -260,7 +261,7 @@ class C extends B {
   m1() {}
   static m2() {}
 }
-void main() {C.^ print("something");}''');
+void f() {C.^ print("something");}''');
     await computeSuggestions();
     assertNotSuggested('b1');
     assertNotSuggested('f1');
@@ -281,7 +282,7 @@ class C extends B {
   m1() {}
   static m2() {}
 }
-void main() {C..^}''');
+void f() {C..^}''');
     await computeSuggestions();
     assertNoSuggestions();
   }
@@ -298,7 +299,7 @@ class C extends B {
   m1() {}
   static m2() {}
 }
-void main() {C.^.}''');
+void f() {C.^.}''');
     await computeSuggestions();
     assertNotSuggested('b1');
     assertNotSuggested('f1');
@@ -319,7 +320,7 @@ class C extends B {
   m1() {}
   static m2() {}
 }
-void main() {C..m^()}''');
+void f() {C..m^()}''');
     await computeSuggestions();
     assertNoSuggestions();
   }
@@ -336,7 +337,7 @@ class C extends B {
   m1() {}
   static m2() {}
 }
-void main() {C.^.m()}''');
+void f() {C.^.m()}''');
     await computeSuggestions();
     assertNotSuggested('b1');
     assertNotSuggested('f1');
@@ -349,7 +350,7 @@ void main() {C.^.m()}''');
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
 import "dart:async" as async;
-void main() {async.Future..w^()}''');
+void f() {async.Future..w^()}''');
     await computeSuggestions();
     assertNoSuggestions();
   }
@@ -358,7 +359,7 @@ void main() {async.Future..w^()}''');
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
 import "dart:async" as async;
-void main() {async.Future.^.w()}''');
+void f() {async.Future.^.w()}''');
     await computeSuggestions();
     assertSuggestMethod('wait', 'Future', 'Future<List<T>>');
   }
@@ -383,7 +384,7 @@ void main() {async.Future.^.w()}''');
         class A extends B {
           static const String scA = 'foo';
           w() { }}
-        main() {A.^}''');
+        void f() {A.^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);

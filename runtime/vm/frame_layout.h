@@ -42,6 +42,12 @@ struct UntaggedFrame {
   // The offset (in words) from FP to the saved pool (if applicable).
   int saved_caller_pp_from_fp;
 
+  // The offset (in words) from FP to the saved FP.
+  int saved_caller_fp_from_fp;
+
+  // The offset (in words) from FP to the saved return address.
+  int saved_caller_pc_from_fp;
+
   // The offset (in words) from FP to the code object (if applicable).
   int code_from_fp;
 

@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 import '../common/names.dart';
-import 'modular.dart';
+import 'modular_migrated.dart';
 
 class IrAnnotationData {
   final Map<ir.Class, String> _nativeClassNames = {};
@@ -25,13 +23,13 @@ class IrAnnotationData {
       {};
 
   // Returns the text from the `@Native(<text>)` annotation of [node], if any.
-  String getNativeClassName(ir.Class node) => _nativeClassNames[node];
+  String? getNativeClassName(ir.Class node) => _nativeClassNames[node];
 
   // Returns `true` if [node] has a native body, as in `method() native;`.
   bool hasNativeBody(ir.Member node) => _nativeMembers.contains(node);
 
   // Returns the text from the `@JSName(<text>)` annotation of [node], if any.
-  String getNativeMemberName(ir.Member node) => _nativeMemberNames[node];
+  String? getNativeMemberName(ir.Member node) => _nativeMemberNames[node];
 
   // Returns a list of the text from the `@Creates(<text>)` annotation of
   // [node].
@@ -44,18 +42,18 @@ class IrAnnotationData {
       _returnsAnnotations[node] ?? const [];
 
   // Returns the text from the `@JS(<text>)` annotation of [node], if any.
-  String getJsInteropLibraryName(ir.Library node) =>
+  String? getJsInteropLibraryName(ir.Library node) =>
       _jsInteropLibraryNames[node];
 
   // Returns the text from the `@JS(<text>)` annotation of [node], if any.
-  String getJsInteropClassName(ir.Class node) => _jsInteropClassNames[node];
+  String? getJsInteropClassName(ir.Class node) => _jsInteropClassNames[node];
 
   // Returns `true` if [node] is annotated with `@anonymous`.
   bool isAnonymousJsInteropClass(ir.Class node) =>
       _anonymousJsInteropClasses.contains(node);
 
   // Returns the text from the `@JS(<text>)` annotation of [node], if any.
-  String getJsInteropMemberName(ir.Member node) => _jsInteropMemberNames[node];
+  String? getJsInteropMemberName(ir.Member node) => _jsInteropMemberNames[node];
 
   // Returns a list of the `@pragma('dart2js:<suffix>')` annotations on [node].
   List<PragmaAnnotationData> getMemberPragmaAnnotationData(ir.Member node) =>
@@ -76,7 +74,7 @@ class IrAnnotationData {
     });
   }
 
-  void forEachJsInteropMember(void Function(ir.Member, String) f) {
+  void forEachJsInteropMember(void Function(ir.Member, String?) f) {
     _jsInteropLibraryNames.forEach((ir.Library library, _) {
       for (ir.Member member in library.members) {
         if (member.isExternal) {
@@ -87,7 +85,7 @@ class IrAnnotationData {
     _jsInteropClassNames.forEach((ir.Class cls, _) {
       for (ir.Member member in cls.members) {
         if (member is ir.Field) continue;
-        String name = _jsInteropMemberNames[member];
+        String? name = _jsInteropMemberNames[member];
         if (member.isExternal) {
           name ??= member.name.text;
         }
@@ -131,15 +129,15 @@ IrAnnotationData processAnnotations(ModularCore modularCore) {
   void processMember(ir.Member member) {
     ir.StaticTypeContext staticTypeContext = ir.StaticTypeContext(
         member, modularCore.constantEvaluator.typeEnvironment);
-    List<PragmaAnnotationData> pragmaAnnotations;
-    List<String> createsAnnotations;
-    List<String> returnsAnnotations;
+    List<PragmaAnnotationData>? pragmaAnnotations;
+    List<String>? createsAnnotations;
+    List<String>? returnsAnnotations;
     for (ir.Expression annotation in member.annotations) {
       if (annotation is ir.ConstantExpression) {
         ir.Constant constant = modularCore.constantEvaluator
             .evaluate(staticTypeContext, annotation);
 
-        String jsName = _getJsInteropName(constant);
+        String? jsName = _getJsInteropName(constant);
         if (jsName != null) {
           data._jsInteropMemberNames[member] = jsName;
         }
@@ -149,12 +147,12 @@ IrAnnotationData processAnnotations(ModularCore modularCore) {
           data._nativeMembers.add(member);
         }
 
-        String nativeName = _getNativeMemberName(constant);
+        String? nativeName = _getNativeMemberName(constant);
         if (nativeName != null) {
           data._nativeMemberNames[member] = nativeName;
         }
 
-        String creates = _getCreatesAnnotation(constant);
+        String? creates = _getCreatesAnnotation(constant);
         if (creates != null) {
           if (createsAnnotations == null) {
             data._createsAnnotations[member] = createsAnnotations = [];
@@ -162,7 +160,7 @@ IrAnnotationData processAnnotations(ModularCore modularCore) {
           createsAnnotations.add(creates);
         }
 
-        String returns = _getReturnsAnnotation(constant);
+        String? returns = _getReturnsAnnotation(constant);
         if (returns != null) {
           if (returnsAnnotations == null) {
             data._returnsAnnotations[member] = returnsAnnotations = [];
@@ -170,7 +168,7 @@ IrAnnotationData processAnnotations(ModularCore modularCore) {
           returnsAnnotations.add(returns);
         }
 
-        PragmaAnnotationData pragmaAnnotation = _getPragmaAnnotation(constant);
+        PragmaAnnotationData? pragmaAnnotation = _getPragmaAnnotation(constant);
         if (pragmaAnnotation != null) {
           if (pragmaAnnotations == null) {
             data._memberPragmaAnnotations[member] = pragmaAnnotations = [];
@@ -190,7 +188,7 @@ IrAnnotationData processAnnotations(ModularCore modularCore) {
         ir.Constant constant = modularCore.constantEvaluator
             .evaluate(staticTypeContext, annotation);
 
-        String jsName = _getJsInteropName(constant);
+        String? jsName = _getJsInteropName(constant);
         if (jsName != null) {
           data._jsInteropLibraryNames[library] = jsName;
         }
@@ -202,12 +200,12 @@ IrAnnotationData processAnnotations(ModularCore modularCore) {
           ir.Constant constant = modularCore.constantEvaluator
               .evaluate(staticTypeContext, annotation);
 
-          String nativeClassName = _getNativeClassName(constant);
+          String? nativeClassName = _getNativeClassName(constant);
           if (nativeClassName != null) {
             data._nativeClassNames[cls] = nativeClassName;
           }
 
-          String jsName = _getJsInteropName(constant);
+          String? jsName = _getJsInteropName(constant);
           if (jsName != null) {
             data._jsInteropClassNames[cls] = jsName;
           }
@@ -229,7 +227,7 @@ IrAnnotationData processAnnotations(ModularCore modularCore) {
   return data;
 }
 
-String _getNativeClassName(ir.Constant constant) {
+String? _getNativeClassName(ir.Constant constant) {
   if (constant is ir.InstanceConstant) {
     // TODO(johnniwinther): Add an IrCommonElements for these queries; i.e.
     // `commonElements.isNativeAnnotationClass(constant.classNode)`.
@@ -237,7 +235,7 @@ String _getNativeClassName(ir.Constant constant) {
         constant.classNode.enclosingLibrary.importUri == Uris.dart__js_helper) {
       if (constant.fieldValues.length == 1) {
         ir.Constant fieldValue = constant.fieldValues.values.single;
-        String name;
+        String? name;
         if (fieldValue is ir.StringConstant) {
           name = fieldValue.value;
         }
@@ -256,7 +254,7 @@ bool _isNativeMember(ir.Constant constant) {
       constant.classNode.enclosingLibrary.importUri == Uris.dart__internal;
 }
 
-String _getNativeMemberName(ir.Constant constant) {
+String? _getNativeMemberName(ir.Constant constant) {
   if (constant is ir.InstanceConstant &&
       constant.classNode.name == 'JSName' &&
       constant.classNode.enclosingLibrary.importUri == Uris.dart__js_helper) {
@@ -269,7 +267,7 @@ String _getNativeMemberName(ir.Constant constant) {
   return null;
 }
 
-String _getCreatesAnnotation(ir.Constant constant) {
+String? _getCreatesAnnotation(ir.Constant constant) {
   if (constant is ir.InstanceConstant &&
       constant.classNode.name == 'Creates' &&
       constant.classNode.enclosingLibrary.importUri == Uris.dart__js_helper) {
@@ -282,7 +280,7 @@ String _getCreatesAnnotation(ir.Constant constant) {
   return null;
 }
 
-String _getReturnsAnnotation(ir.Constant constant) {
+String? _getReturnsAnnotation(ir.Constant constant) {
   if (constant is ir.InstanceConstant &&
       constant.classNode.name == 'Returns' &&
       constant.classNode.enclosingLibrary.importUri == Uris.dart__js_helper) {
@@ -295,7 +293,7 @@ String _getReturnsAnnotation(ir.Constant constant) {
   return null;
 }
 
-String _getJsInteropName(ir.Constant constant) {
+String? _getJsInteropName(ir.Constant constant) {
   if (constant is ir.InstanceConstant &&
       constant.classNode.name == 'JS' &&
       (constant.classNode.enclosingLibrary.importUri == Uris.package_js ||
@@ -335,7 +333,7 @@ class PragmaAnnotationData {
   String toString() => 'PragmaAnnotationData($name)';
 }
 
-PragmaAnnotationData _getPragmaAnnotation(ir.Constant constant) {
+PragmaAnnotationData? _getPragmaAnnotation(ir.Constant constant) {
   if (constant is! ir.InstanceConstant) return null;
   ir.InstanceConstant value = constant;
   ir.Class cls = value.classNode;
@@ -347,8 +345,8 @@ PragmaAnnotationData _getPragmaAnnotation(ir.Constant constant) {
       return const PragmaAnnotationData('tryInline');
     }
   } else if (uri == Uris.dart_core && cls.name == 'pragma') {
-    ir.Constant nameValue;
-    ir.Constant optionsValue;
+    ir.Constant? nameValue;
+    ir.Constant? optionsValue;
     value.fieldValues.forEach((ir.Reference reference, ir.Constant fieldValue) {
       ir.Field field = reference.asField;
       if (field.name.text == 'name') {
@@ -357,8 +355,9 @@ PragmaAnnotationData _getPragmaAnnotation(ir.Constant constant) {
         optionsValue = fieldValue;
       }
     });
-    if (nameValue is! ir.StringConstant) return null;
-    ir.StringConstant stringValue = nameValue;
+    final nameValueFinal = nameValue;
+    if (nameValueFinal is! ir.StringConstant) return null;
+    ir.StringConstant stringValue = nameValueFinal;
     String name = stringValue.value;
     String prefix = 'dart2js:';
     if (!name.startsWith(prefix)) return null;
@@ -377,7 +376,7 @@ List<PragmaAnnotationData> computePragmaAnnotationDataFromIr(ir.Member member) {
     ir.Constant constant = constantExpression.constant;
     assert(constant is! ir.UnevaluatedConstant,
         "Unexpected unevaluated constant on $member: $metadata");
-    PragmaAnnotationData data = _getPragmaAnnotation(constant);
+    PragmaAnnotationData? data = _getPragmaAnnotation(constant);
     if (data != null) {
       annotations.add(data);
     }

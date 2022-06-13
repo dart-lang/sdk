@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 class ShutdownMessageHandler extends MessageHandler<void, void> {
   ShutdownMessageHandler(super.server);
+
   @override
   Method get handlesMessage => Method.shutdown;
 
@@ -16,7 +16,8 @@ class ShutdownMessageHandler extends MessageHandler<void, void> {
   LspJsonHandler<void> get jsonHandler => NullJsonHandler;
 
   @override
-  ErrorOr<void> handle(void _, CancellationToken token) {
+  ErrorOr<void> handle(
+      void params, MessageInfo message, CancellationToken token) {
     // Move to the Shutting Down state so we won't process any more
     // requests and the Exit notification will know it was a clean shutdown.
     server.messageHandler = ShuttingDownStateMessageHandler(server);

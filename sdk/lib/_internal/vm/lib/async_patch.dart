@@ -7,7 +7,7 @@
 /// by patches of that library. We plan to change this when we have a shared
 /// front end and simply use parts.
 
-import "dart:_internal" show VMLibraryHooks, patch;
+import "dart:_internal" show VMLibraryHooks, patch, unsafeCast;
 
 /// These are the additional parts of this patch library:
 // part "deferred_load_patch.dart";
@@ -70,8 +70,8 @@ dynamic Function(Object, StackTrace) _asyncErrorWrapperHelper(
 ///
 /// Returns the result of registering with `.then`.
 Future _awaitHelper(var object, dynamic Function(dynamic) thenCallback,
-    dynamic Function(dynamic, StackTrace) errorCallback) {
-  late _Future future;
+    dynamic Function(Object, StackTrace) errorCallback) {
+  _Future future;
   if (object is _Future) {
     future = object;
   } else if (object is! Future) {
@@ -110,17 +110,24 @@ void _asyncStarMoveNextHelper(var stream) {
 class _AsyncStarStreamController<T> {
   @pragma("vm:entry-point")
   StreamController<T> controller;
-  Function asyncStarBody;
+  Function? asyncStarBody;
   bool isAdding = false;
   bool onListenReceived = false;
   bool isScheduled = false;
   bool isSuspendedAtYield = false;
   _Future? cancellationFuture = null;
 
+  /// Argument passed to the generator when it is resumed after an addStream.
+  ///
+  /// `true` if the generator should exit after `yield*` resumes.
+  /// `false` if the generator should continue after `yield*` resumes.
+  /// `null` otherwies.
+  bool? continuationArgument = null;
+
   Stream<T> get stream {
     final Stream<T> local = controller.stream;
     if (local is _StreamImpl<T>) {
-      local._generator = asyncStarBody;
+      local._generator = asyncStarBody!;
     }
     return local;
   }
@@ -128,7 +135,9 @@ class _AsyncStarStreamController<T> {
   void runBody() {
     isScheduled = false;
     isSuspendedAtYield = false;
-    asyncStarBody(null, null);
+    final bool? argument = continuationArgument;
+    continuationArgument = null;
+    asyncStarBody!(argument, null);
   }
 
   void scheduleGenerator() {
@@ -149,14 +158,15 @@ class _AsyncStarStreamController<T> {
   // controller.add(e);
   // suspend;
   // if (controller.isCancelled) return;
+  @pragma("vm:entry-point", "call")
   bool add(T event) {
     if (!onListenReceived) _fatal("yield before stream is listened to");
     if (isSuspendedAtYield) _fatal("unexpected yield");
-    // If stream is cancelled, tell caller to exit the async generator.
+    controller.add(event);
     if (!controller.hasListener) {
       return true;
     }
-    controller.add(event);
+
     scheduleGenerator();
     isSuspendedAtYield = true;
     return false;
@@ -165,20 +175,40 @@ class _AsyncStarStreamController<T> {
   // Adds the elements of stream into this controller's stream.
   // The generator will be scheduled again when all of the
   // elements of the added stream have been consumed.
-  // Returns true if the caller should terminate
-  // execution of the generator.
-  bool addStream(Stream<T> stream) {
+  @pragma("vm:entry-point", "call")
+  void addStream(Stream<T> stream) {
     if (!onListenReceived) _fatal("yield before stream is listened to");
-    // If stream is cancelled, tell caller to exit the async generator.
-    if (!controller.hasListener) return true;
+
+    if (exitAfterYieldStarIfCancelled()) return;
+
     isAdding = true;
-    var whenDoneAdding = controller.addStream(stream, cancelOnError: false);
+    final whenDoneAdding = controller.addStream(stream, cancelOnError: false);
     whenDoneAdding.then((_) {
       isAdding = false;
-      scheduleGenerator();
-      if (!isScheduled) isSuspendedAtYield = true;
+      if (exitAfterYieldStarIfCancelled()) return;
+      resumeNormallyAfterYieldStar();
     });
+  }
+
+  /// Schedules the generator to exit after `yield*` if stream was cancelled.
+  ///
+  /// Returns `true` if generator is told to exit and `false` otherwise.
+  bool exitAfterYieldStarIfCancelled() {
+    // If consumer cancelled subscription we should tell async* generator to
+    // finish (i.e. run finally clauses and return).
+    if (!controller.hasListener) {
+      continuationArgument = true;
+      scheduleGenerator();
+      return true;
+    }
     return false;
+  }
+
+  /// Schedules the generator to resume normally after `yield*`.
+  void resumeNormallyAfterYieldStar() {
+    continuationArgument = false;
+    scheduleGenerator();
+    if (!isScheduled) isSuspendedAtYield = true;
   }
 
   void addError(Object error, StackTrace stackTrace) {
@@ -211,7 +241,7 @@ class _AsyncStarStreamController<T> {
   }
 
   _AsyncStarStreamController(this.asyncStarBody)
-      : controller = new StreamController() {
+      : controller = new StreamController(sync: true) {
     controller.onListen = this.onListen;
     controller.onResume = this.onResume;
     controller.onCancel = this.onCancel;
@@ -290,3 +320,202 @@ void _completeOnAsyncError(
 
 @pragma("vm:external-name", "AsyncStarMoveNext_debuggerStepCheck")
 external void _moveNextDebuggerStepCheck(Function async_op);
+
+@pragma("vm:entry-point")
+class _SuspendState {
+  static const bool _trace = false;
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  static Object? _initAsync<T>() {
+    if (_trace) print('_initAsync<$T>');
+    return _Future<T>();
+  }
+
+  @pragma("vm:invisible")
+  @pragma("vm:recognized", "other")
+  void _createAsyncCallbacks() {
+    if (_trace) print('_createAsyncCallbacks');
+
+    @pragma("vm:invisible")
+    thenCallback(value) {
+      if (_trace) print('thenCallback (this=$this, value=$value)');
+      _resume(value, null, null);
+    }
+
+    @pragma("vm:invisible")
+    errorCallback(exception, stackTrace) {
+      if (_trace) {
+        print('errorCallback (this=$this, '
+            'exception=$exception, stackTrace=$stackTrace)');
+      }
+      _resume(null, exception, stackTrace);
+    }
+
+    final currentZone = Zone._current;
+    if (identical(currentZone, _rootZone) ||
+        identical(currentZone._registerUnaryCallback,
+            _rootZone._registerUnaryCallback)) {
+      _thenCallback = thenCallback;
+    } else {
+      _thenCallback =
+          currentZone.registerUnaryCallback<dynamic, dynamic>(thenCallback);
+    }
+    if (identical(currentZone, _rootZone) ||
+        identical(currentZone._registerBinaryCallback,
+            _rootZone._registerBinaryCallback)) {
+      _errorCallback = errorCallback;
+    } else {
+      _errorCallback = currentZone
+          .registerBinaryCallback<dynamic, Object, StackTrace>(errorCallback);
+    }
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  Object? _await(Object? object) {
+    if (_trace) print('_awaitAsync (object=$object)');
+    if (_thenCallback == null) {
+      _createAsyncCallbacks();
+    }
+    _awaitHelper(object, unsafeCast<dynamic Function(dynamic)>(_thenCallback),
+        unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback));
+    return _functionData;
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  static Future _returnAsync(Object suspendState, Object? returnValue) {
+    if (_trace) {
+      print('_returnAsync (suspendState=$suspendState, '
+          'returnValue=$returnValue)');
+    }
+    _Future future;
+    bool isSync = true;
+    if (suspendState is _SuspendState) {
+      future = unsafeCast<_Future>(suspendState._functionData);
+    } else {
+      future = unsafeCast<_Future>(suspendState);
+      isSync = false;
+    }
+    _completeOnAsyncReturn(future, returnValue, isSync);
+    return future;
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  static Future _returnAsyncNotFuture(
+      Object suspendState, Object? returnValue) {
+    if (_trace) {
+      print('_returnAsyncNotFuture (suspendState=$suspendState, '
+          'returnValue=$returnValue)');
+    }
+    _Future future;
+    bool isSync = true;
+    if (suspendState is _SuspendState) {
+      future = unsafeCast<_Future>(suspendState._functionData);
+    } else {
+      future = unsafeCast<_Future>(suspendState);
+      isSync = false;
+    }
+    _completeWithNoFutureOnAsyncReturn(future, returnValue, isSync);
+    return future;
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  static Object? _initAsyncStar<T>() {
+    if (_trace) print('_initAsyncStar<$T>');
+    return _AsyncStarStreamController<T>(null);
+  }
+
+  @pragma("vm:invisible")
+  @pragma("vm:recognized", "other")
+  _createAsyncStarCallback(_AsyncStarStreamController controller) {
+    controller.asyncStarBody = (value, _) {
+      if (_trace) print('asyncStarBody callback (value=$value)');
+      _resume(value, null, null);
+    };
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  Object? _yieldAsyncStar(Object? object) {
+    final controller = unsafeCast<_AsyncStarStreamController>(_functionData);
+    if (controller.asyncStarBody == null) {
+      _createAsyncStarCallback(controller);
+      return controller.stream;
+    }
+    return null;
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  static void _returnAsyncStar(Object suspendState, Object? returnValue) {
+    if (_trace) {
+      print('_returnAsyncStar (suspendState=$suspendState, '
+          'returnValue=$returnValue)');
+    }
+    final controller = unsafeCast<_AsyncStarStreamController>(
+        unsafeCast<_SuspendState>(suspendState)._functionData);
+    controller.close();
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  static Object? _handleException(
+      Object suspendState, Object exception, StackTrace stackTrace) {
+    if (_trace) {
+      print('_handleException (suspendState=$suspendState, '
+          'exception=$exception, stackTrace=$stackTrace)');
+    }
+    Object? functionData;
+    bool isSync = true;
+    if (suspendState is _SuspendState) {
+      functionData = suspendState._functionData;
+    } else {
+      functionData = suspendState;
+      isSync = false;
+    }
+    if (functionData is _Future) {
+      // async function.
+      _completeOnAsyncError(functionData, exception, stackTrace, isSync);
+    } else if (functionData is _AsyncStarStreamController) {
+      // async* function.
+      functionData.addError(exception, stackTrace);
+      functionData.close();
+    } else {
+      throw 'Unexpected function data ${functionData.runtimeType} $functionData';
+    }
+    return functionData;
+  }
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external set _functionData(Object value);
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external Object get _functionData;
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external set _thenCallback(Function? value);
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external Function? get _thenCallback;
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external set _errorCallback(Function value);
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external Function get _errorCallback;
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:never-inline")
+  external void _resume(
+      Object? value, Object? exception, StackTrace? stackTrace);
+}

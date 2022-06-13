@@ -221,6 +221,7 @@ abstract class FutureOr<T> {
 /// A future may also fail to ever complete. In that case, no callbacks are
 /// called. That situation should generally be avoided if possible, unless
 /// it's very clearly documented.
+@pragma("wasm:entry-point")
 abstract class Future<T> {
   /// A `Future<Null>` completed with `null`.
   ///

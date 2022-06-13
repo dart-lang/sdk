@@ -52,7 +52,7 @@ class BaseClass {
 
   Future<void> test_hasUnresolvedPrefix() async {
     await resolveTestCode('''
-main() {
+void f() {
   prefix.Test v = null;
   print(v);
 }
@@ -80,7 +80,7 @@ class A {}
     await resolveTestCode('''
 import 'lib.dart' as lib;
 
-main() {
+void f() {
   lib.A? a = null;
   lib.Test? t = null;
   print('\$a \$t');
@@ -123,12 +123,12 @@ class Test {
 
   Future<void> test_instanceCreation_withoutNew_fromFunction() async {
     await resolveTestCode('''
-main() {
+void f() {
   Test ();
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   Test ();
 }
 
@@ -141,14 +141,14 @@ class Test {
   Future<void> test_instanceCreation_withoutNew_fromMethod() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void f() {
     Test ();
   }
 }
 ''');
     await assertHasFix('''
 class A {
-  main() {
+  void f() {
     Test ();
   }
 }
@@ -161,13 +161,13 @@ class Test {
 
   Future<void> test_itemOfList() async {
     await resolveTestCode('''
-main() {
+void f() {
   var a = [Test];
   print(a);
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   var a = [Test];
   print(a);
 }
@@ -184,14 +184,14 @@ class MyAnnotation {
   const MyAnnotation(a, b);
 }
 @MyAnnotation(int, const [Test])
-main() {}
+void f() {}
 ''');
     await assertHasFix('''
 class MyAnnotation {
   const MyAnnotation(a, b);
 }
 @MyAnnotation(int, const [Test])
-main() {}
+void f() {}
 
 class Test {
 }
@@ -203,13 +203,13 @@ class Test {
 
   Future<void> test_simple() async {
     await resolveTestCode('''
-main() {
+void f() {
   Test v = null;
   print(v);
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   Test v = null;
   print(v);
 }

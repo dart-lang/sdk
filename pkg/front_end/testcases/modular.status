@@ -23,6 +23,7 @@ extension_types/type_variable_in_static_context: ExpectationFileMismatchSerializ
 extensions/extension_setter_error: TypeCheckError
 general/abstract_members: TypeCheckError
 general/bounded_implicit_instantiation: TypeCheckError
+general/bounds_instances: TypeCheckError
 general/bug30695: TypeCheckError
 general/covariant_field: TypeCheckError
 general/crashes/crash_02/main: Crash
@@ -90,4 +91,5 @@ rasta/super_mixin: TypeCheckError
 rasta/super_operator: TypeCheckError
 rasta/unresolved_recovery: TypeCheckError
 regress/issue_31180: TypeCheckError
+regress/issue_31180_2: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError

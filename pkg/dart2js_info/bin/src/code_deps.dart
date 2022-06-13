@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.11
+
 /// Command to query for code dependencies. Currently this tool only
 /// supports the `some_path` query, which gives you the shortest path for how
 /// one function depends on another.
@@ -59,7 +61,6 @@ class _SomePathQuery extends Command<void> with PrintUsageException {
     if (args.length < 3) {
       usageException("Missing arguments for some_path, expected: "
           "info.data <element-regexp-1> <element-regexp-2>");
-      return;
     }
 
     var info = await infoFromFile(args.first);

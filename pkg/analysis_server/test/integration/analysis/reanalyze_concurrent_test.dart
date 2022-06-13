@@ -28,7 +28,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:async';
 
-main() {}''';
+void f() {}''';
     writeFile(pathname, text);
     standardAnalysisSetup();
     return analysisFinished.then((_) {

@@ -163,8 +163,8 @@ const String _packageData = '''{
   "configVersion": 2,
   "packages": [
     {
-      "name": "pedantic",
-      "rootUri": "file:///Users/.../.pub-cache/hosted/pub.dartlang.org/pedantic-1.9.0",
+      "name": "lints",
+      "rootUri": "file:///Users/.../.pub-cache/hosted/pub.dartlang.org/lints-1.0.1",
       "packageUri": "lib/",
       "languageVersion": "2.1"
     },

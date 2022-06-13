@@ -1,0 +1,180 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/macros/augment_super_lib.dart:10:3: Error: Can't have modifier 'augment' here.
+// Try removing 'augment'.
+//   augment int local; // Error
+//   ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_super_lib.dart:11:3: Error: Undefined name 'augment'.
+//   augment; // Error
+//   ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_super_lib.dart:21:17: Error: Can't assign to this.
+//   augment super = value;
+//                 ^
+//
+// pkg/front_end/testcases/macros/augment_super_lib.dart:25:3: Error: 'augment super' is only allowed in member augmentations.
+//   augment super(); // Error
+//   ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_super_lib.dart:26:3: Error: 'augment super' is only allowed in member augmentations.
+//   augment super; // Error
+//   ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_super_lib.dart:27:3: Error: Can't have modifier 'augment' here.
+// Try removing 'augment'.
+//   augment int local; // Error
+//   ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_super_lib.dart:28:3: Error: Undefined name 'augment'.
+//   augment; // Error
+//   ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_super_lib.dart:37:5: Error: Can't have modifier 'augment' here.
+// Try removing 'augment'.
+//     augment int local; // Error
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_super_lib.dart:38:5: Error: The getter 'augment' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/macros/augment_super.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'augment'.
+//     augment; // Error
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_super_lib.dart:42:5: Error: Can't assign to this.
+//     augment super++;
+//     ^
+//
+// pkg/front_end/testcases/macros/augment_super_lib.dart:43:7: Error: Can't assign to this.
+//     --augment super;
+//       ^
+//
+// pkg/front_end/testcases/macros/augment_super_lib.dart:48:19: Error: Can't assign to this.
+//     augment super = value;
+//                   ^
+//
+// pkg/front_end/testcases/macros/augment_super_lib.dart:52:5: Error: 'augment super' is only allowed in member augmentations.
+//     augment super(); // Error
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_super_lib.dart:53:5: Error: 'augment super' is only allowed in member augmentations.
+//     augment super; // Error
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_super_lib.dart:54:5: Error: Can't have modifier 'augment' here.
+// Try removing 'augment'.
+//     augment int local; // Error
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/macros/augment_super_lib.dart:55:5: Error: The getter 'augment' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/macros/augment_super.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'augment'.
+//     augment; // Error
+//     ^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///augment_super.dart";
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-testcase:///augment_super_lib.dart */ instanceMethod() → void {
+    (null as{ForNonNullableByDefault} dynamic){dynamic}.call();
+  }
+  method /* from org-dartlang-testcase:///augment_super_lib.dart */ instanceMethodErrors() → void {
+    core::int local;
+    invalid-expression "pkg/front_end/testcases/macros/augment_super_lib.dart:38:5: Error: The getter 'augment' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/macros/augment_super.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'augment'.
+    augment; // Error
+    ^^^^^^^" in this{<unresolved>}.augment;
+  }
+  get /* from org-dartlang-testcase:///augment_super_lib.dart */ instanceProperty() → core::int {
+    invalid-expression "pkg/front_end/testcases/macros/augment_super_lib.dart:42:5: Error: Can't assign to this.
+    augment super++;
+    ^" in null as{ForNonNullableByDefault} dynamic;
+    invalid-expression "pkg/front_end/testcases/macros/augment_super_lib.dart:43:7: Error: Can't assign to this.
+    --augment super;
+      ^" in null as{ForNonNullableByDefault} dynamic;
+    return (null as{ForNonNullableByDefault} dynamic){dynamic}.unary-() as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  }
+  set /* from org-dartlang-testcase:///augment_super_lib.dart */ instanceProperty(core::int value) → void {
+    invalid-expression "pkg/front_end/testcases/macros/augment_super_lib.dart:48:19: Error: Can't assign to this.
+    augment super = value;
+                  ^";
+  }
+  method /* from org-dartlang-testcase:///augment_super_lib.dart */ injectedInstanceMethod() → void {
+    invalid-expression "pkg/front_end/testcases/macros/augment_super_lib.dart:52:5: Error: 'augment super' is only allowed in member augmentations.
+    augment super(); // Error
+    ^^^^^^^";
+    invalid-expression "pkg/front_end/testcases/macros/augment_super_lib.dart:53:5: Error: 'augment super' is only allowed in member augmentations.
+    augment super; // Error
+    ^^^^^^^";
+    core::int local;
+    invalid-expression "pkg/front_end/testcases/macros/augment_super_lib.dart:55:5: Error: The getter 'augment' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/macros/augment_super.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'augment'.
+    augment; // Error
+    ^^^^^^^" in this{<unresolved>}.augment;
+  }
+}
+static method /* from org-dartlang-testcase:///augment_super_lib.dart */ topLevelMethod() → void {
+  (null as{ForNonNullableByDefault} dynamic){dynamic}.call();
+}
+static method topLevelMethodErrors() → void {}
+static get /* from org-dartlang-testcase:///augment_super_lib.dart */ topLevelProperty() → core::List<core::int> {
+  return block {
+    final core::List<core::int> #t1 = core::_GrowableList::•<core::int>(0);
+    {
+      core::Iterator<dynamic> :sync-for-iterator = ((null as{ForNonNullableByDefault} dynamic) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t2 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        {
+          final core::int #t3 = #t2 as{TypeError,ForNonNullableByDefault} core::int;
+          #t1.{core::List::add}{Invariant}(#t3){(core::int) → void};
+        }
+      }
+    }
+    #t1.{core::List::add}{Invariant}((null as{ForNonNullableByDefault} dynamic){dynamic}.[](0) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int){(core::int) → void};
+  } =>#t1;
+}
+static set /* from org-dartlang-testcase:///augment_super_lib.dart */ topLevelProperty(core::List<core::int> value) → void {
+  (null as{ForNonNullableByDefault} dynamic){dynamic}.[]=(0, value.{core::List::[]}(1){(core::int) → core::int});
+  invalid-expression "pkg/front_end/testcases/macros/augment_super_lib.dart:21:17: Error: Can't assign to this.
+  augment super = value;
+                ^";
+}
+static method main() → dynamic {}
+static method /* from org-dartlang-testcase:///augment_super_lib.dart */ topLevelMethodError() → void {
+  core::int local;
+  invalid-expression "pkg/front_end/testcases/macros/augment_super_lib.dart:11:3: Error: Undefined name 'augment'.
+  augment; // Error
+  ^^^^^^^";
+}
+static method /* from org-dartlang-testcase:///augment_super_lib.dart */ injectedTopLevelMethod() → void {
+  invalid-expression "pkg/front_end/testcases/macros/augment_super_lib.dart:25:3: Error: 'augment super' is only allowed in member augmentations.
+  augment super(); // Error
+  ^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/macros/augment_super_lib.dart:26:3: Error: 'augment super' is only allowed in member augmentations.
+  augment super; // Error
+  ^^^^^^^";
+  core::int local;
+  invalid-expression "pkg/front_end/testcases/macros/augment_super_lib.dart:28:3: Error: Undefined name 'augment'.
+  augment; // Error
+  ^^^^^^^";
+}
+
+
+Extra constant evaluation status:
+Evaluated: AsExpression @ org-dartlang-testcase:///augment_super_lib.dart:33:5 -> NullConstant(null)
+Evaluated: AsExpression @ org-dartlang-testcase:///augment_super_lib.dart:44:13 -> NullConstant(null)
+Evaluated: AsExpression @ org-dartlang-testcase:///augment_super_lib.dart:6:3 -> NullConstant(null)
+Evaluated: AsExpression @ org-dartlang-testcase:///augment_super_lib.dart:16:15 -> NullConstant(null)
+Evaluated: AsExpression @ org-dartlang-testcase:///augment_super_lib.dart:16:30 -> NullConstant(null)
+Evaluated: AsExpression @ org-dartlang-testcase:///augment_super_lib.dart:20:3 -> NullConstant(null)
+Extra constant evaluation: evaluated: 30, effectively constant: 6

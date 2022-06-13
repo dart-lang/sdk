@@ -153,7 +153,7 @@ bool randomBool() {
 
   Future<void> test_multiple() async {
     var selection = r'''
-main() {
+void f() {
   Random r = new Random();
   String s = r.nextBool().toString();
   print(s);
@@ -364,7 +364,7 @@ String foo = '';
     var selection = 'f.foo';
     var content = '''
 import 'package:foo/foo.dart' as f;
-main() {
+void f() {
   $selection = '';
 }
 ''';

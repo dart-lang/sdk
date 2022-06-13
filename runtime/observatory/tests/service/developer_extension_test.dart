@@ -43,10 +43,15 @@ Future<ServiceExtensionResponse> Handler(String method, Map paremeters) {
 }
 
 void test() {
+  Expect.isFalse(extensionStreamHasListener);
+  postEvent('Disabled event', {'foo': 'bar'});
+
   registerExtension('ext..delay', Handler);
   debugger();
+  Expect.isTrue(extensionStreamHasListener);
   postEvent('ALPHA', {'cat': 'dog'});
   debugger();
+
   registerExtension('ext..error', Handler);
   registerExtension('ext..exception', Handler);
   registerExtension('ext..success', Handler);
@@ -56,7 +61,7 @@ void test() {
   } catch (e) {
     exceptionThrown = true;
   }
-  // This check is running in the target process so we can't used package:test.
+  // This check is running in the target process so we can't use package:test.
   Expect.isTrue(exceptionThrown);
 }
 

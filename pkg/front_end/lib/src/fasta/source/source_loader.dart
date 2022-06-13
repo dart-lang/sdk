@@ -84,6 +84,7 @@ import '../ticker.dart' show Ticker;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 import '../util/helpers.dart';
+import '../uris.dart';
 import 'diet_listener.dart' show DietListener;
 import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
 import 'name_scheme.dart';
@@ -717,6 +718,8 @@ class SourceLoader extends Loader {
       List<LocatedMessage>? context,
       bool problemOnLibrary: false,
       List<Uri>? involvedFiles}) {
+    assert(
+        fileUri != missingUri, "Message unexpectedly reported on missing uri.");
     severity ??= message.code.severity;
     if (severity == Severity.ignored) return null;
     String trace = """
@@ -1202,20 +1205,20 @@ severity: $severity
       }
     }
     ProcedureBuilder builder = new SourceProcedureBuilder(
-        null,
-        0,
-        null,
+        /* metadata = */ null,
+        /* modifier flags = */ 0,
+        libraryBuilder.addInferableType(),
         "debugExpr",
-        null,
-        null,
+        /* type variables = */ null,
+        /* formals = */ null,
         ProcedureKind.Method,
         libraryBuilder,
-        0,
-        0,
-        -1,
-        -1,
-        null,
-        null,
+        /* start char offset = */ 0,
+        /* char offset = */ 0,
+        /* open paren offset = */ -1,
+        /* end offset = */ -1,
+        /* procedure reference = */ null,
+        /* tear off reference = */ null,
         AsyncMarker.Sync,
         new NameScheme(
             className: null,
@@ -1600,11 +1603,15 @@ severity: $severity
           SourceClassBuilder classBuilder = builder;
           ClassMacroApplicationData classMacroApplicationData =
               new ClassMacroApplicationData();
-          classMacroApplicationData.classApplications = prebuildAnnotations(
+          List<MacroApplication>? classMacroApplications = prebuildAnnotations(
               enclosingLibrary: libraryBuilder,
               scope: classBuilder.scope,
               fileUri: classBuilder.fileUri,
               metadataBuilders: classBuilder.metadata);
+          if (classMacroApplications != null) {
+            classMacroApplicationData.classApplications = new ApplicationData(
+                libraryBuilder, classBuilder, classMacroApplications);
+          }
           classBuilder.forEach((String name, Builder memberBuilder) {
             if (memberBuilder is SourceProcedureBuilder) {
               List<MacroApplication>? macroApplications = prebuildAnnotations(
@@ -1614,7 +1621,8 @@ severity: $severity
                   metadataBuilders: memberBuilder.metadata);
               if (macroApplications != null) {
                 classMacroApplicationData.memberApplications[memberBuilder] =
-                    macroApplications;
+                    new ApplicationData(
+                        libraryBuilder, memberBuilder, macroApplications);
               }
             } else if (memberBuilder is SourceFieldBuilder) {
               List<MacroApplication>? macroApplications = prebuildAnnotations(
@@ -1624,7 +1632,8 @@ severity: $severity
                   metadataBuilders: memberBuilder.metadata);
               if (macroApplications != null) {
                 classMacroApplicationData.memberApplications[memberBuilder] =
-                    macroApplications;
+                    new ApplicationData(
+                        libraryBuilder, memberBuilder, macroApplications);
               }
             } else {
               throw new UnsupportedError("Unexpected class member "
@@ -1640,7 +1649,8 @@ severity: $severity
                   metadataBuilders: memberBuilder.metadata);
               if (macroApplications != null) {
                 classMacroApplicationData.memberApplications[memberBuilder] =
-                    macroApplications;
+                    new ApplicationData(
+                        libraryBuilder, memberBuilder, macroApplications);
               }
             } else if (memberBuilder is SourceFactoryBuilder) {
               List<MacroApplication>? macroApplications = prebuildAnnotations(
@@ -1650,7 +1660,8 @@ severity: $severity
                   metadataBuilders: memberBuilder.metadata);
               if (macroApplications != null) {
                 classMacroApplicationData.memberApplications[memberBuilder] =
-                    macroApplications;
+                    new ApplicationData(
+                        libraryBuilder, memberBuilder, macroApplications);
               }
             } else {
               throw new UnsupportedError("Unexpected constructor "
@@ -1671,7 +1682,7 @@ severity: $severity
               metadataBuilders: builder.metadata);
           if (macroApplications != null) {
             libraryMacroApplicationData.memberApplications[builder] =
-                macroApplications;
+                new ApplicationData(libraryBuilder, builder, macroApplications);
           }
         } else if (builder is SourceFieldBuilder) {
           List<MacroApplication>? macroApplications = prebuildAnnotations(
@@ -1681,7 +1692,7 @@ severity: $severity
               metadataBuilders: builder.metadata);
           if (macroApplications != null) {
             libraryMacroApplicationData.memberApplications[builder] =
-                macroApplications;
+                new ApplicationData(libraryBuilder, builder, macroApplications);
           }
         } else if (builder is PrefixBuilder ||
             builder is SourceExtensionBuilder ||
@@ -1997,7 +2008,11 @@ severity: $severity
     }
   }
 
-  List<SourceClassBuilder> checkSemantics(ClassBuilder objectClass) {
+  /// Checks that there are no cycles in the class hierarchy, and if so break
+  /// these cycles by removing supertypes.
+  ///
+  /// Returns a list of all source classes in topological order.
+  List<SourceClassBuilder> checkClassCycles(ClassBuilder objectClass) {
     checkObjectClassHierarchy(objectClass);
     return handleHierarchyCycles(objectClass);
   }

@@ -63,6 +63,14 @@ class DebugAdapterCommand extends DartdevCommand {
       enableDds: args[argDds],
       enableAuthCodes: args[argAuthCodes],
       test: args[argTest],
+      // Protocol errors should be written to stderr to help debug (or in the
+      // case of a user running this command to explain it's for tools).
+      onError: (e) => stderr.writeln(
+        'Input could not be parsed as a Debug Adapter Protocol message.\n'
+        'The "dart debug_adapter" command is intended for use by tooling that '
+        'communicates using the Debug Adapter Protocol.\n\n'
+        '$e',
+      ),
     );
 
     await server.channel.closed;

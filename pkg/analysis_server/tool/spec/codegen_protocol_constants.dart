@@ -11,13 +11,13 @@ import 'from_html.dart';
 final GeneratedFile clientTarget = GeneratedFile(
     '../analysis_server_client/lib/src/protocol/protocol_constants.dart',
     (String pkgPath) async {
-  var visitor = CodegenVisitor(readApi(pkgPath));
+  var visitor = _CodegenVisitor(readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
 
 final GeneratedFile serverTarget = GeneratedFile(
     'lib/protocol/protocol_constants.dart', (String pkgPath) async {
-  var visitor = CodegenVisitor(readApi(pkgPath));
+  var visitor = _CodegenVisitor(readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
 
@@ -53,8 +53,8 @@ Iterable<String> _split(String first) {
 
 /// A visitor that produces Dart code defining constants associated with the
 /// API.
-class CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
-  CodegenVisitor(super.api) {
+class _CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
+  _CodegenVisitor(super.api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.docCommentStartMarker = null;
     codeGeneratorSettings.docCommentLineLeader = '/// ';

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_foreign_helper' show JS, JS_GET_NAME, TYPE_REF;
-import 'dart:_js_embedded_names' show JsGetName;
+import 'dart:_js_shared_embedded_names' show JsGetName;
 import 'dart:_rti' as rti;
 import 'package:expect/expect.dart';
 

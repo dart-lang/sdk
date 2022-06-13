@@ -135,6 +135,8 @@ import 'util/experiment_environment_getter.dart'
 
 import 'util/textual_outline.dart' show textualOutline;
 
+import 'uris.dart' show dartCore;
+
 import 'hybrid_file_system.dart' show HybridFileSystem;
 
 import 'kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
@@ -319,7 +321,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       _benchmarker
           ?.enterPhase(BenchmarkPhases.incremental_experimentalInvalidation);
       ExperimentalInvalidation? experimentalInvalidation =
-          await _initializeExperimentalInvalidation(reusedResult, c);
+          await _initializeExperimentalInvalidation(
+              reusedResult, c, uriTranslator);
       recorderForTesting?.recordRebuildBodiesCount(
           experimentalInvalidation?.missingSources.length ?? 0);
 
@@ -654,7 +657,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           dillLibraryBuilder.exportScope.lookupLocalMember(name, setter: false);
       if (dillBuilder == null) {
         if ((name == 'dynamic' || name == 'Never') &&
-            sourceLibraryBuilder.importUri == Uri.parse('dart:core')) {
+            sourceLibraryBuilder.importUri == dartCore) {
           // The source library builder for dart:core has synthetically
           // injected builders for `dynamic` and `Never` which do not have
           // corresponding classes in the AST.
@@ -1165,7 +1168,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Note that - when doing experimental invalidation - [reusedResult] is
   /// updated.
   Future<ExperimentalInvalidation?> _initializeExperimentalInvalidation(
-      ReusageResult reusedResult, CompilerContext c) async {
+      ReusageResult reusedResult,
+      CompilerContext c,
+      UriTranslator uriTranslator) async {
     Set<LibraryBuilder>? rebuildBodies;
     Set<LibraryBuilder> originalNotReusedLibraries;
     Set<Uri>? missingSources;
@@ -1208,37 +1213,46 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
 
-      List<int>? previousSource =
-          CompilerContext.current.uriToSource[builder.fileUri]!.source;
-      // ignore: unnecessary_null_comparison
-      if (previousSource == null || previousSource.isEmpty) {
-        return null;
+      List<Uri> builderUris = [builder.fileUri];
+      for (LibraryPart part in builder.library.parts) {
+        Uri? fileUri =
+            uriTranslator.getPartFileUri(builder.library.fileUri, part);
+        if (fileUri != null) builderUris.add(fileUri);
       }
-      ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-          enableExtensionMethods: true /* can't be disabled */,
-          enableNonNullable: builder
-              .isNonNullableByDefault /* depends on language version etc */,
-          enableTripleShift:
-              /* should this be on the library? */
-              /* this is effectively what the constant evaluator does */
-              context.options.globalFeatures.tripleShift.isEnabled);
-      String? before = textualOutline(previousSource, scannerConfiguration,
-          performModelling: true);
-      if (before == null) {
-        return null;
-      }
-      String? now;
-      FileSystemEntity entity =
-          c.options.fileSystem.entityForUri(builder.fileUri);
-      if (await entity.exists()) {
-        now = textualOutline(await entity.readAsBytes(), scannerConfiguration,
+
+      for (Uri uri in builderUris) {
+        List<int>? previousSource =
+            CompilerContext.current.uriToSource[uri]!.source;
+        // ignore: unnecessary_null_comparison
+        if (previousSource == null || previousSource.isEmpty) {
+          return null;
+        }
+        ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
+            enableExtensionMethods: true /* can't be disabled */,
+            enableNonNullable: builder
+                .isNonNullableByDefault /* depends on language version etc */,
+            enableTripleShift:
+                /* should this be on the library? */
+                /* this is effectively what the constant evaluator does */
+                context.options.globalFeatures.tripleShift.isEnabled);
+        String? before = textualOutline(previousSource, scannerConfiguration,
             performModelling: true);
+        if (before == null) {
+          return null;
+        }
+        String? now;
+        FileSystemEntity entity = c.options.fileSystem.entityForUri(uri);
+        if (await entity.exists()) {
+          now = textualOutline(await entity.readAsBytes(), scannerConfiguration,
+              performModelling: true);
+        }
+        if (before != now) {
+          return null;
+        }
+        missingSources ??= new Set<Uri>();
+        missingSources.add(uri);
       }
-      if (before != now) {
-        return null;
-      }
-      missingSources ??= new Set<Uri>();
-      missingSources.add(builder.fileUri);
+
       LibraryBuilder? partOfLibrary = builder.partOfLibrary;
       rebuildBodies ??= new Set<LibraryBuilder>();
       if (partOfLibrary != null) {
@@ -1255,6 +1269,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (!skipExperimentalInvalidationChecksForTesting) {
       for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
         if (missingSources!.contains(builder.fileUri)) {
+          // Missing sources will be rebuild, so mixin usage there doesn't
+          // matter.
           continue;
         }
         Library lib = builder.library;
@@ -1962,7 +1978,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           typeParameters: typeDefinitions,
           positionalParameters: definitions.keys
               .map<VariableDeclaration>((name) =>
-                  new VariableDeclarationImpl(name, 0, type: definitions[name])
+                  new VariableDeclarationImpl(name, type: definitions[name])
                     ..fileOffset = cls?.fileOffset ??
                         extension?.fileOffset ??
                         libraryBuilder.library.fileOffset)

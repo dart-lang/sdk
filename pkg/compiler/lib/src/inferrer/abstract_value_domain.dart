@@ -2,23 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.abstract_value_domain;
 
 import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart' show DartType;
-import '../ir/static_type.dart';
-import '../serialization/serialization.dart';
+import '../ir/class_relation.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../universe/selector.dart';
-import '../universe/world_builder.dart';
-import '../world.dart';
 
 /// Enum-like values used for reporting known and unknown truth values.
 class AbstractBool {
-  final bool _value;
+  final bool? _value;
 
   const AbstractBool._(this._value);
 
@@ -75,17 +71,7 @@ class AbstractBool {
 
   @override
   String toString() =>
-      'AbstractBool.${_value == null ? 'Maybe' : (_value ? 'True' : 'False')}';
-}
-
-/// Strategy for the abstraction of runtime values used by the global type
-/// inference.
-abstract class AbstractValueStrategy {
-  /// Creates the abstract value domain for [closedWorld].
-  AbstractValueDomain createDomain(JClosedWorld closedWorld);
-
-  /// Creates the [SelectorConstraintsStrategy] used by the backend enqueuer.
-  SelectorConstraintsStrategy createSelectorStrategy();
+      'AbstractBool.${_value == null ? 'Maybe' : (_value! ? 'True' : 'False')}';
 }
 
 /// A value in an abstraction of runtime values.
@@ -634,8 +620,12 @@ abstract class AbstractValueDomain {
   String getCompactText(AbstractValue value);
 
   /// Deserializes an [AbstractValue] for this domain from [source].
-  AbstractValue readAbstractValueFromDataSource(DataSourceReader source);
+  // TODO(48820): Remove covariant when DataSourceReader is migrated.
+  AbstractValue readAbstractValueFromDataSource(
+      covariant DataSourceReader source);
 
   /// Serializes this [value] for this domain to [sink].
-  void writeAbstractValueToDataSink(DataSinkWriter sink, AbstractValue value);
+  // TODO(48820): Remove covariant when DataSinkWriter is migrated.
+  void writeAbstractValueToDataSink(
+      covariant DataSinkWriter sink, AbstractValue value);
 }

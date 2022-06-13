@@ -40,6 +40,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 static method getNull() → dynamic
   return null;
@@ -160,13 +161,13 @@ static method test4() → asy::Stream<core::bool> /* originally async* */ {
       try {
         #L4:
         {
-          if(:controller.{asy::_AsyncStarStreamController::addStream}(invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:21:10: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
+          :controller.{asy::_AsyncStarStreamController::addStream}(invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:21:10: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
  - 'Stream' is from 'dart:async'.
   yield* getStreamNull(); // error
-         ^" in self::getStreamNull() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>){(asy::Stream<core::bool>) → core::bool})
+         ^" in self::getStreamNull() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>){(asy::Stream<core::bool>) → void};
+          [yield] null;
+          if(_in::unsafeCast<core::bool>(:result_or_exception))
             return null;
-          else
-            [yield] null;
         }
         return;
       }
@@ -203,10 +204,10 @@ static method test7() → asy::Stream<core::bool> /* originally async* */ {
       try {
         #L5:
         {
-          if(:controller.{asy::_AsyncStarStreamController::addStream}(self::getStreamBool()){(asy::Stream<core::bool>) → core::bool})
+          :controller.{asy::_AsyncStarStreamController::addStream}(self::getStreamBool()){(asy::Stream<core::bool>) → void};
+          [yield] null;
+          if(_in::unsafeCast<core::bool>(:result_or_exception))
             return null;
-          else
-            [yield] null;
         }
         return;
       }
@@ -285,13 +286,13 @@ static method test() → dynamic /* futureValueType= dynamic */ /* originally as
               try {
                 #L8:
                 {
-                  if(:controller.{asy::_AsyncStarStreamController::addStream}(invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:38:12: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
+                  :controller.{asy::_AsyncStarStreamController::addStream}(invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:38:12: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
  - 'Stream' is from 'dart:async'.
     yield* getStreamNull(); // error
-           ^" in self::getStreamNull() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>){(asy::Stream<core::bool>) → core::bool})
+           ^" in self::getStreamNull() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>){(asy::Stream<core::bool>) → void};
+                  [yield] null;
+                  if(_in::unsafeCast<core::bool>(:result_or_exception))
                     return null;
-                  else
-                    [yield] null;
                 }
                 return;
               }
@@ -328,10 +329,10 @@ static method test() → dynamic /* futureValueType= dynamic */ /* originally as
               try {
                 #L9:
                 {
-                  if(:controller.{asy::_AsyncStarStreamController::addStream}(self::getStreamBool()){(asy::Stream<core::bool>) → core::bool})
+                  :controller.{asy::_AsyncStarStreamController::addStream}(self::getStreamBool()){(asy::Stream<core::bool>) → void};
+                  [yield] null;
+                  if(_in::unsafeCast<core::bool>(:result_or_exception))
                     return null;
-                  else
-                    [yield] null;
                 }
                 return;
               }
@@ -402,10 +403,10 @@ static method test() → dynamic /* futureValueType= dynamic */ /* originally as
               try {
                 #L11:
                 {
-                  if(:controller.{asy::_AsyncStarStreamController::addStream}(self::getStreamNull()){(asy::Stream<dynamic>) → core::bool})
+                  :controller.{asy::_AsyncStarStreamController::addStream}(self::getStreamNull()){(asy::Stream<dynamic>) → void};
+                  [yield] null;
+                  if(_in::unsafeCast<core::bool>(:result_or_exception))
                     return null;
-                  else
-                    [yield] null;
                 }
                 return;
               }
@@ -440,10 +441,10 @@ static method test() → dynamic /* futureValueType= dynamic */ /* originally as
               try {
                 #L12:
                 {
-                  if(:controller.{asy::_AsyncStarStreamController::addStream}(self::getStreamBool()){(asy::Stream<core::bool>) → core::bool})
+                  :controller.{asy::_AsyncStarStreamController::addStream}(self::getStreamBool()){(asy::Stream<core::bool>) → void};
+                  [yield] null;
+                  if(_in::unsafeCast<core::bool>(:result_or_exception))
                     return null;
-                  else
-                    [yield] null;
                 }
                 return;
               }

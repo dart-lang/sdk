@@ -1,10 +1,9 @@
-// @dart = 2.9
 class A {
   foo(int x) => x;
 }
 
 class B {
-  foo(int x, {int y}) => y;
+  foo(int x, {int? y}) => y;
 }
 
 class C extends A implements B {
@@ -16,7 +15,7 @@ class D {
 }
 
 class E extends D {
-  foo(int x, {int y});
+  foo(int x, {int? y});
   noSuchMethod(i) {}
 }
 

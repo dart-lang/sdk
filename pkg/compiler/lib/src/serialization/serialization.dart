@@ -4,14 +4,13 @@
 
 // @dart = 2.10
 
-import 'dart:convert';
+import 'dart:collection';
 import 'dart:typed_data';
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/binary/ast_to_binary.dart';
 import '../closure.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../deferred_load/output_unit.dart';
+import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../diagnostics/source_span.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
@@ -24,18 +23,36 @@ import '../js_model/closure.dart';
 import '../js_model/locals.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
 
+import 'data_sink.dart';
+import 'data_source.dart';
+import 'member_data.dart';
+import 'serialization_interfaces.dart' as migrated
+    show DataSourceReader, DataSinkWriter;
+import 'indexed_sink_source.dart';
+import 'tags.dart';
+
+export 'binary_sink.dart';
+export 'binary_source.dart';
+export 'member_data.dart' show ComponentLookup, computeMemberName;
+export 'object_sink.dart';
+export 'object_source.dart';
+export 'tags.dart';
+
 part 'sink.dart';
 part 'source.dart';
-part 'binary_sink.dart';
-part 'binary_source.dart';
 part 'helpers.dart';
-part 'member_data.dart';
-part 'node_indexer.dart';
-part 'object_sink.dart';
-part 'object_source.dart';
 
-abstract class StringInterner {
-  String internString(String string);
+class ValueInterner {
+  final Map<DartType, DartType> _dartTypeMap = HashMap();
+  final Map<ir.DartType, ir.DartType> _dartTypeNodeMap = HashMap();
+
+  DartType internDartType(DartType dartType) {
+    return _dartTypeMap[dartType] ??= dartType;
+  }
+
+  ir.DartType internDartTypeNode(ir.DartType dartType) {
+    return _dartTypeNodeMap[dartType] ??= dartType;
+  }
 }
 
 /// Data class representing cache information for a given [T] which can be

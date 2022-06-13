@@ -6,6 +6,7 @@
 
 #include <vector>
 
+#include "platform/text_buffer.h"
 #include "platform/utils.h"
 #include "vm/compiler/backend/block_builder.h"
 #include "vm/compiler/backend/il_printer.h"
@@ -144,6 +145,103 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_LateVariablePhiUnboxing) {
   EXPECT_PROPERTY(loop_var, it.representation() == kUnboxedInt64);
 #endif
   EXPECT_PROPERTY(late_var, it.representation() == kTagged);
+}
+
+void TestLargeFrame(const char* type,
+                    const char* zero,
+                    const char* one,
+                    const char* main) {
+  SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 1000);
+  TextBuffer printer(256 * KB);
+
+  intptr_t num_locals = 2000;
+  printer.Printf("import 'dart:typed_data';\n");
+  printer.Printf("@pragma('vm:never-inline')\n");
+  printer.Printf("%s one() { return %s; }\n", type, one);
+  printer.Printf("@pragma('vm:never-inline')\n");
+  printer.Printf("%s largeFrame(int n) {\n", type);
+  for (intptr_t i = 0; i < num_locals; i++) {
+    printer.Printf("  %s local%" Pd " = %s;\n", type, i, zero);
+  }
+  printer.Printf("  for (int i = 0; i < n; i++) {\n");
+  for (intptr_t i = 0; i < num_locals; i++) {
+    printer.Printf("    local%" Pd " += one();\n", i);
+  }
+  printer.Printf("  }\n");
+  printer.Printf("  %s sum = %s;\n", type, zero);
+  for (intptr_t i = 0; i < num_locals; i++) {
+    printer.Printf("    sum += local%" Pd ";\n", i);
+  }
+  printer.Printf("  return sum;\n");
+  printer.Printf("}\n");
+
+  printer.AddString(main);
+
+  const auto& root_library = Library::Handle(LoadTestScript(printer.buffer()));
+  Invoke(root_library, "main");
+}
+
+ISOLATE_UNIT_TEST_CASE(FlowGraph_LargeFrame_Int) {
+  TestLargeFrame("int", "0", "1",
+                 "main() {\n"
+                 "  for (var i = 0; i < 100; i++) {\n"
+                 "    var r = largeFrame(1);\n"
+                 "    if (r != 2000) throw r;\n"
+                 "  }\n"
+                 "  return 'Okay';\n"
+                 "}\n");
+}
+
+ISOLATE_UNIT_TEST_CASE(FlowGraph_LargeFrame_Double) {
+  TestLargeFrame("double", "0.0", "1.0",
+                 "main() {\n"
+                 "  for (var i = 0; i < 100; i++) {\n"
+                 "    var r = largeFrame(1);\n"
+                 "    if (r != 2000.0) throw r;\n"
+                 "  }\n"
+                 "  return 'Okay';\n"
+                 "}\n");
+}
+
+ISOLATE_UNIT_TEST_CASE(FlowGraph_LargeFrame_Int32x4) {
+  TestLargeFrame("Int32x4", "Int32x4(0, 0, 0, 0)", "Int32x4(1, 2, 3, 4)",
+                 "main() {\n"
+                 "  for (var i = 0; i < 100; i++) {\n"
+                 "    var r = largeFrame(1);\n"
+                 "    if (r.x != 2000) throw r;\n"
+                 "    if (r.y != 4000) throw r;\n"
+                 "    if (r.z != 6000) throw r;\n"
+                 "    if (r.w != 8000) throw r;\n"
+                 "  }\n"
+                 "  return 'Okay';\n"
+                 "}\n");
+}
+
+ISOLATE_UNIT_TEST_CASE(FlowGraph_LargeFrame_Float32x4) {
+  TestLargeFrame("Float32x4", "Float32x4(0.0, 0.0, 0.0, 0.0)",
+                 "Float32x4(1.0, 2.0, 3.0, 4.0)",
+                 "main() {\n"
+                 "  for (var i = 0; i < 100; i++) {\n"
+                 "    var r = largeFrame(1);\n"
+                 "    if (r.x != 2000.0) throw r;\n"
+                 "    if (r.y != 4000.0) throw r;\n"
+                 "    if (r.z != 6000.0) throw r;\n"
+                 "    if (r.w != 8000.0) throw r;\n"
+                 "  }\n"
+                 "  return 'Okay';\n"
+                 "}\n");
+}
+
+ISOLATE_UNIT_TEST_CASE(FlowGraph_LargeFrame_Float64x2) {
+  TestLargeFrame("Float64x2", "Float64x2(0.0, 0.0)", "Float64x2(1.0, 2.0)",
+                 "main() {\n"
+                 "  for (var i = 0; i < 100; i++) {\n"
+                 "    var r = largeFrame(1);\n"
+                 "    if (r.x != 2000.0) throw r;\n"
+                 "    if (r.y != 4000.0) throw r;\n"
+                 "  }\n"
+                 "  return 'Okay';\n"
+                 "}\n");
 }
 
 }  // namespace dart

@@ -6,7 +6,7 @@
 
 library dart2js.js_emitter.native_generator;
 
-import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
+import 'package:js_runtime/synced/embedded_names.dart' as embeddedNames;
 
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;

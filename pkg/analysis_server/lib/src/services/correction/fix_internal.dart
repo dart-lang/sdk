@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_async.dart';
 import 'package:analysis_server/src/services/correction/dart/add_await.dart';
+import 'package:analysis_server/src/services/correction/dart/add_call_super.dart';
 import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_enum_constant.dart';
@@ -229,6 +230,7 @@ class DartFixContributor implements FixContributor {
 /// Computer for Dart "fix all in file" fixes.
 class FixInFileProcessor {
   final DartFixContext context;
+
   FixInFileProcessor(this.context);
 
   Future<List<Fix>> compute() async {
@@ -350,6 +352,9 @@ class FixProcessor extends BaseProcessor {
   static final Map<String, List<ProducerGenerator>> lintProducerMap = {
     LintNames.always_declare_return_types: [
       AddReturnType.new,
+    ],
+    LintNames.always_put_control_body_on_new_line: [
+      UseCurlyBraces.nonBulk,
     ],
     LintNames.always_require_non_null_named_parameters: [
       AddRequired.new,
@@ -1089,6 +1094,12 @@ class FixProcessor extends BaseProcessor {
       AddEnumConstant.new,
       ChangeTo.getterOrSetter,
     ],
+    CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED: [
+      CreateConstructor.new,
+    ],
+    CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED: [
+      CreateConstructor.new,
+    ],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [
       ChangeTo.getterOrSetter,
       CreateGetter.new,
@@ -1233,6 +1244,9 @@ class FixProcessor extends BaseProcessor {
     ],
     HintCode.MISSING_RETURN: [
       AddAsync.missingReturn,
+    ],
+    HintCode.MUST_CALL_SUPER: [
+      AddCallSuper.new,
     ],
     HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
       RemoveQuestionMark.new,

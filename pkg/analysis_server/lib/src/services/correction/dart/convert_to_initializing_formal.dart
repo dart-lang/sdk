@@ -106,6 +106,9 @@ class ConvertToInitializingFormal extends CorrectionProducer {
     var parameterElement = expression.staticElement;
     for (var parameter in constructor.parameters.parameters) {
       if (parameter.declaredElement == parameterElement) {
+        if (parameter is DefaultFormalParameter) {
+          parameter = parameter.parameter;
+        }
         return parameter is SimpleFormalParameter ? parameter : null;
       }
     }

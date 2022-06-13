@@ -83,6 +83,23 @@ namespace dart {
   V(::, copyRangeFromUint8ListToOneByteString,                                 \
     CopyRangeFromUint8ListToOneByteString, 0x19a1bf41)                         \
   V(_StringBase, _interpolate, StringBaseInterpolate, 0x7da2a580)              \
+  V(_SuspendState, get:_functionData, SuspendState_getFunctionData,            \
+    0x7290026e)                                                                \
+  V(_SuspendState, set:_functionData, SuspendState_setFunctionData,            \
+    0x2b6668ab)                                                                \
+  V(_SuspendState, get:_thenCallback, SuspendState_getThenCallback,            \
+    0xff1dccec)                                                                \
+  V(_SuspendState, set:_thenCallback, SuspendState_setThenCallback,            \
+    0x6446bde9)                                                                \
+  V(_SuspendState, get:_errorCallback, SuspendState_getErrorCallback,          \
+    0x8a6eb3cf)                                                                \
+  V(_SuspendState, set:_errorCallback, SuspendState_setErrorCallback,          \
+    0x4935f88c)                                                                \
+  V(_SuspendState, _createAsyncCallbacks, SuspendState_createAsyncCallbacks,   \
+    0x4add6c13)                                                                \
+  V(_SuspendState, _createAsyncStarCallback,                                   \
+    SuspendState_createAsyncStarCallback, 0xfa7537e4)                          \
+  V(_SuspendState, _resume, SuspendState_resume, 0xc738e9d2)                   \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x97728b46)             \
   V(_Double, _add, DoubleAdd, 0xea666327)                                      \
   V(_Double, _sub, DoubleSub, 0x28474c2e)                                      \
@@ -168,6 +185,7 @@ namespace dart {
   V(_Float64x2, get:y, Float64x2GetY, 0x27cae053)                              \
   V(_Float64x2, unary-, Float64x2Negate, 0x958a0d28)                           \
   V(_Float64x2, abs, Float64x2Abs, 0x9a24c75e)                                 \
+  V(_Float64x2, clamp, Float64x2Clamp, 0xfddc1533)                             \
   V(_Float64x2, sqrt, Float64x2Sqrt, 0x93d543c8)                               \
   V(_Float64x2, get:signMask, Float64x2GetSignMask, 0x7c6b11ea)                \
   V(_Float64x2, scale, Float64x2Scale, 0x52959118)                             \
@@ -268,6 +286,7 @@ namespace dart {
   V(_RootZone, runUnary, RootZoneRunUnary, 0xb607f8bf)                         \
   V(_FutureListener, handleValue, FutureListenerHandleValue, 0x438115a8)       \
   V(::, has63BitSmis, Has63BitSmis, 0xf61b56f1)                                \
+  V(::, get:extensionStreamHasListener, ExtensionStreamHasListener, 0xfab46343)\
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).

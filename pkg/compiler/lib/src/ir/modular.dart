@@ -20,16 +20,10 @@ import '../kernel/element_map.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'annotations.dart';
-import 'constants.dart';
 import 'impact.dart';
 import 'scope.dart';
 
-class ModularCore {
-  final ir.Component component;
-  final Dart2jsConstantEvaluator constantEvaluator;
-
-  ModularCore(this.component, this.constantEvaluator);
-}
+export 'modular_migrated.dart';
 
 class ModularMemberData {
   final ScopeModel scopeModel;

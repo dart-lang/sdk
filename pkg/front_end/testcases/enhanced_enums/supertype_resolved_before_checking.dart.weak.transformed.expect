@@ -29,8 +29,8 @@ abstract class _E&_Enum&GM&M<S extends core::num, T extends core::num> extends s
 class E<S extends core::num, T extends core::num> extends self::_E&_Enum&GM&M<self::E::S, self::E::T> implements self::I, self::GI<self::E::S> /*isEnum*/  {
   static const field core::List<self::E<core::num, core::num>> values = #C4;
   static const field self::E<core::num, core::num> element = #C3;
-  const constructor •(core::int index, core::String name) → self::E<self::E::S, self::E::T>
-    : super self::_E&_Enum&GM&M::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self::E<self::E::S, self::E::T>
+    : super self::_E&_Enum&GM&M::•(#index, #name)
     ;
   method toString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";

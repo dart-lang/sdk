@@ -49,9 +49,7 @@ class _WhyNotPromotedDataComputer extends DataComputer<String?> {
 class _WhyNotPromotedDataExtractor extends AstDataExtractor<String?> {
   final FlowAnalysisDataForTesting _flowResult;
 
-  _WhyNotPromotedDataExtractor(
-      Uri uri, Map<Id, ActualData<String?>> actualMap, this._flowResult)
-      : super(uri, actualMap);
+  _WhyNotPromotedDataExtractor(super.uri, super.actualMap, this._flowResult);
 
   @override
   String? computeNodeValue(Id id, AstNode node) {

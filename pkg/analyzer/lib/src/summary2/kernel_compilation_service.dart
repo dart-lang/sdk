@@ -36,11 +36,7 @@ class KernelCompilationService {
     }
 
     final executablePath = io.Platform.resolvedExecutable;
-    final binPath = package_path.dirname(executablePath);
-    final sdkPath = package_path.dirname(binPath);
-
-    final frontEndSnapshotPath = package_path.join(
-        binPath, 'snapshots', 'frontend_server.dart.snapshot');
+    final sdkPaths = _computeSdkPaths();
 
     final socketCompleter = Completer<io.Socket>();
     final serverSocket = await _loopbackServerSocket();
@@ -52,7 +48,7 @@ class KernelCompilationService {
     final addressStr = '$host:${serverSocket.port}';
 
     final process = await io.Process.start(executablePath, [
-      frontEndSnapshotPath,
+      sdkPaths.frontEndSnapshot,
       '--binary-protocol-address=$addressStr',
     ]);
 
@@ -66,8 +62,7 @@ class KernelCompilationService {
     final requestChannel = RequestChannel(socket);
 
     // Put the platform dill.
-    final platformDillPath = package_path.join(
-        sdkPath, 'lib', '_internal', 'vm_platform_strong.dill');
+    final platformDillPath = sdkPaths.platformDill;
     final platformDillBytes = io.File(platformDillPath).readAsBytesSync();
     await requestChannel.sendRequest<void>('dill.put', {
       'uri': 'dill:vm',
@@ -149,6 +144,30 @@ class KernelCompilationService {
     });
   }
 
+  static _SdkPaths _computeSdkPaths() {
+    // Check for google3.
+    final runFiles = io.Platform.environment['RUNFILES'];
+    if (runFiles != null) {
+      final frontServerPath = io.Platform.environment['FRONTEND_SERVER_PATH']!;
+      final platformDillPath = io.Platform.environment['PLATFORM_DILL_PATH']!;
+      return _SdkPaths(
+        frontEndSnapshot: package_path.join(runFiles, frontServerPath),
+        platformDill: package_path.join(runFiles, platformDillPath),
+      );
+    }
+
+    final executablePath = io.Platform.resolvedExecutable;
+    final binPath = package_path.dirname(executablePath);
+    final sdkPath = package_path.dirname(binPath);
+
+    return _SdkPaths(
+      frontEndSnapshot: package_path.join(
+          binPath, 'snapshots', 'frontend_server.dart.snapshot'),
+      platformDill: package_path.join(
+          sdkPath, 'lib', '_internal', 'vm_platform_strong.dill'),
+    );
+  }
+
   static Future<io.ServerSocket> _loopbackServerSocket() async {
     try {
       return await io.ServerSocket.bind(io.InternetAddress.loopbackIPv6, 0);
@@ -198,4 +217,14 @@ class _Lock {
       completer.complete();
     }
   }
+}
+
+class _SdkPaths {
+  final String frontEndSnapshot;
+  final String platformDill;
+
+  _SdkPaths({
+    required this.frontEndSnapshot,
+    required this.platformDill,
+  });
 }

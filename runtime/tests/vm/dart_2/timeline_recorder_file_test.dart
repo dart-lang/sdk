@@ -4,13 +4,9 @@
 
 // @dart = 2.9
 
-import "dart:io";
-import "dart:convert";
 import "dart:developer";
 
-import "package:path/path.dart" as path;
-
-import "snapshot_test_helper.dart";
+import "timeline_utils.dart";
 
 main(List<String> args) async {
   if (const bool.fromEnvironment("dart.vm.product")) {
@@ -23,48 +19,25 @@ main(List<String> args) async {
     return;
   }
 
-  await withTempDir((String tmp) async {
-    final String timelinePath = path.join(tmp, "timeline.json");
-    final p = await Process.run(Platform.executable, [
-      ...Platform.executableArguments,
-      "--trace_timeline",
-      "--timeline_recorder=file:$timelinePath",
-      "--timeline_streams=VM,Isolate,GC,Compiler",
-      Platform.script.toFilePath(),
-      "--child"
-    ]);
-    print(p.stdout);
-    print(p.stderr);
-    if (p.exitCode != 0) {
-      throw "Child process failed: ${p.exitCode}";
-    }
-    // On Android, --trace_timeline goes to syslog instead of stderr.
-    if (!Platform.isAndroid) {
-      if (!p.stderr.contains("Using the File timeline recorder")) {
-        throw "Failed to select file recorder";
-      }
-    }
+  final timelineEvents =
+      await runAndCollectTimeline('VM,Isolate,GC,Compiler', ['--child']);
 
-    final timeline = jsonDecode(await new File(timelinePath).readAsString());
-    if (timeline is! List) throw "Timeline should be a JSON list";
-    print("${timeline.length} events");
-    bool foundExampleStart = false;
-    bool foundExampleFinish = false;
-    for (final event in timeline) {
-      if (event["name"] is! String) throw "Event missing name";
-      if (event["cat"] is! String) throw "Event missing category";
-      if (event["tid"] is! int) throw "Event missing thread";
-      if (event["pid"] is! int) throw "Event missing process";
-      if (event["ph"] is! String) throw "Event missing type";
-      if ((event["name"] == "TestEvent") && (event["ph"] == "B")) {
-        foundExampleStart = true;
-      }
-      if ((event["name"] == "TestEvent") && (event["ph"] == "E")) {
-        foundExampleFinish = true;
-      }
+  bool foundExampleStart = false;
+  bool foundExampleFinish = false;
+  for (final event in timelineEvents) {
+    if (event.name is! String) throw "Event missing name";
+    if (event.cat is! String) throw "Event missing category";
+    if (event.tid is! int) throw "Event missing thread";
+    if (event.pid is! int) throw "Event missing process";
+    if (event.ph is! String) throw "Event missing type";
+    if (event.name == "TestEvent" && event.ph == "B") {
+      foundExampleStart = true;
     }
+    if (event.name == "TestEvent" && event.ph == "E") {
+      foundExampleFinish = true;
+    }
+  }
 
-    if (foundExampleStart) throw "Missing test start event";
-    if (foundExampleFinish) throw "Missing test finish event";
-  });
+  if (foundExampleStart) throw "Missing test start event";
+  if (foundExampleFinish) throw "Missing test finish event";
 }

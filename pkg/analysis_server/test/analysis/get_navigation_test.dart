@@ -29,7 +29,7 @@ class GetNavigationTest extends AbstractNavigationTest {
 
   Future<void> test_beforeAnalysisComplete() async {
     addTestFile('''
-main() {
+void f() {
   var test = 0;
   print(test);
 }
@@ -42,7 +42,7 @@ main() {
   Future<void> test_comment_outsideReference() async {
     addTestFile('''
 /// Returns a [String].
-String main() {
+String f() {
 }''');
     await waitForTasksFinished();
     await _getNavigation(search: 'Returns', length: 1);
@@ -52,7 +52,7 @@ String main() {
   Future<void> test_comment_reference() async {
     addTestFile('''
 /// Returns a [String].
-String main() {
+String f() {
 }''');
     await waitForTasksFinished();
     await _getNavigation(search: '[String', length: 1);
@@ -67,7 +67,7 @@ String main() {
 /// {@tool dartpad}
 /// ** See code in $examplePath **
 /// {@end-tool}
-String main() {
+String f() {
 }''');
     await waitForTasksFinished();
     await _getNavigation(search: examplePath, length: 1);
@@ -148,7 +148,7 @@ class Bar {
   @FailingTest(reason: 'requires infrastructure rewriting')
   Future<void> test_fileOutsideOfRoot() async {
     var file = newFile('/outside.dart', '''
-main() {
+void f() {
   var test = 0;
   print(test);
 }
@@ -162,7 +162,7 @@ main() {
     addTestFile('''
 import 'dart:math';
 
-main() {
+void f() {
 }''');
     await waitForTasksFinished();
     await _getNavigation(offset: 0, length: 17);
@@ -176,7 +176,7 @@ main() {
     addTestFile('''
 import 'dart:math';
 
-main() {
+void f() {
 }''');
     await waitForTasksFinished();
     await _getNavigation(offset: 7, length: 11);
@@ -194,7 +194,7 @@ import 'foo.dart'
   if (dart.library.io) 'io.dart'
   if (dart.library.html) 'html.dart';
 
-main() {
+void f() {
 }''');
     await waitForTasksFinished();
 
@@ -240,7 +240,7 @@ main() {
 
   Future<void> test_multipleRegions() async {
     addTestFile('''
-main() {
+void f() {
   var aaa = 1;
   var bbb = 2;
   var ccc = 3;
@@ -314,9 +314,67 @@ void f(A a) {
     }
   }
 
+  Future<void> test_partDirective() async {
+    final partFile = newFile(
+      '$testPackageLibPath/a.dart',
+      '''
+part of 'test.dart';
+''',
+    );
+    addTestFile('''
+part 'a.dart';
+''');
+    await waitForTasksFinished();
+    await _getNavigation(offset: 8, length: 0);
+    expect(regions, hasLength(1));
+    assertHasRegionString("'a.dart'");
+    expect(testTargets, hasLength(1));
+    expect(testTargets[0].kind, ElementKind.COMPILATION_UNIT);
+    assertHasFileTarget(partFile.path, 0, 0);
+  }
+
+  Future<void> test_partOfDirective_named() async {
+    final partOfFile = newFile(
+      '$testPackageLibPath/a.dart',
+      '''
+library foo;
+part 'test.dart';
+''',
+    );
+    addTestFile('''
+part of foo;
+''');
+    await waitForTasksFinished();
+    await _getNavigation(offset: 10, length: 0);
+    expect(regions, hasLength(1));
+    assertHasRegionString("foo");
+    expect(testTargets, hasLength(1));
+    expect(testTargets[0].kind, ElementKind.LIBRARY);
+    assertHasFileTarget(partOfFile.path, 8, 3); // library [[foo]]
+  }
+
+  Future<void> test_partOfDirective_uri() async {
+    final partOfFile = newFile(
+      '$testPackageLibPath/a.dart',
+      '''
+part 'test.dart';
+''',
+    );
+    addTestFile('''
+part of 'a.dart';
+''');
+    await waitForTasksFinished();
+    await _getNavigation(offset: 11, length: 0);
+    expect(regions, hasLength(1));
+    assertHasRegionString("'a.dart'");
+    expect(testTargets, hasLength(1));
+    expect(testTargets[0].kind, ElementKind.LIBRARY);
+    assertHasFileTarget(partOfFile.path, 0, 0);
+  }
+
   Future<void> test_zeroLength_end() async {
     addTestFile('''
-main() {
+void f() {
   var test = 0;
   print(test);
 }
@@ -329,7 +387,7 @@ main() {
 
   Future<void> test_zeroLength_start() async {
     addTestFile('''
-main() {
+void f() {
   var test = 0;
   print(test);
 }

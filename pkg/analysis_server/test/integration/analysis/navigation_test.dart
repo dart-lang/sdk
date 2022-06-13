@@ -41,7 +41,7 @@ function(FunctionTypeAlias parameter) {
 
 int topLevelVariable = 0;
 
-main() {
+void f() {
   Class<int> localVariable = new Class<int>.constructor(); // usage
   function(() => localVariable.field);
   localVariable.method();

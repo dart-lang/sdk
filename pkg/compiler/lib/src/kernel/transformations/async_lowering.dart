@@ -11,7 +11,9 @@ import 'package:kernel/kernel.dart';
 class _FunctionData {
   final List<AwaitExpression> awaits = [];
   final Set<ReturnStatement> returnStatements = {};
-  bool hasAsyncLoop = false;
+  // If we find certain control flow statements in this function, we choose to
+  // not lower it.
+  bool shouldLower = true;
 
   _FunctionData();
 
@@ -35,7 +37,9 @@ class AsyncLowering {
   AsyncLowering(this._coreTypes);
 
   bool _shouldTryAsyncLowering(FunctionNode node) =>
-      node.asyncMarker == AsyncMarker.Async && !_functions.last.hasAsyncLoop;
+      node.asyncMarker == AsyncMarker.Async &&
+      node.futureValueType != null &&
+      _functions.last.shouldLower;
 
   void enterFunction(FunctionNode node) {
     _functions.add(_FunctionData());
@@ -64,6 +68,20 @@ class AsyncLowering {
             ], types: [
               futureValueType
             ]))));
+  }
+
+  void _wrapReturns(_FunctionData functionData, FunctionNode node) {
+    final futureValueType = node.futureValueType!;
+    for (final returnStatement in functionData.returnStatements) {
+      final expression = returnStatement.expression;
+      // Ensure the returned future has a runtime type (T) matching the
+      // function's return type by wrapping with Future.value<T>.
+      if (expression == null) continue;
+      final futureValueCall = StaticInvocation(_coreTypes.futureValueFactory,
+          Arguments([expression], types: [futureValueType]));
+      returnStatement.expression = futureValueCall;
+      futureValueCall.parent = returnStatement;
+    }
   }
 
   void _transformDirectReturnAwaits(
@@ -117,6 +135,7 @@ class AsyncLowering {
       isLowered = true;
     }
     if (isLowered) {
+      _wrapReturns(functionData, node);
       _wrapBodySync(node);
     }
   }
@@ -138,7 +157,11 @@ class AsyncLowering {
 
   void visitForInStatement(ForInStatement statement) {
     if (statement.isAsync && _functions.isNotEmpty) {
-      _functions.last.hasAsyncLoop = true;
+      _functions.last.shouldLower = false;
     }
+  }
+
+  void visitTry() {
+    _functions.last.shouldLower = false;
   }
 }

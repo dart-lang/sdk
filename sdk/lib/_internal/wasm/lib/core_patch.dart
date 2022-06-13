@@ -9,6 +9,7 @@ import "dart:_internal"
         allocateOneByteString,
         allocateTwoByteString,
         CodeUnits,
+        ClassID,
         copyRangeFromUint8ListToOneByteString,
         doubleToIntBits,
         EfficientLengthIterable,

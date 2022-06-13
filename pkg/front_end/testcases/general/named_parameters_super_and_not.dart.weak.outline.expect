@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  constructor named(core::num x, {core::bool y = false, core::String? z = null}) → self::Super
+    ;
+}
+class SubNamed extends self::Super {
+  constructor namedAnywhere(core::double x, core::String z, {core::bool y = false}) → self::SubNamed
+    ;
+}
+static method main() → dynamic
+  ;

@@ -709,6 +709,20 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
   arguments.SetReturn(cloned_ctx);
 }
 
+// Allocate a SuspendState object.
+// Arg0: frame size.
+// Arg1: function data.
+// Return value: newly allocated object.
+DEFINE_RUNTIME_ENTRY(AllocateSuspendState, 2) {
+  const Smi& frame_size = Smi::CheckedHandle(zone, arguments.ArgAt(0));
+  const Instance& function_data =
+      Instance::CheckedHandle(zone, arguments.ArgAt(1));
+  const SuspendState& result = SuspendState::Handle(
+      zone, SuspendState::New(frame_size.Value(), function_data,
+                              SpaceForRuntimeAllocation()));
+  arguments.SetReturn(result);
+}
+
 // Helper routine for tracing a type check.
 static void PrintTypeCheck(const char* message,
                            const Instance& instance,
@@ -3708,7 +3722,6 @@ extern "C" Thread* DLRT_GetThreadForNativeCallbackTrampoline(
   return GetThreadForNativeCallback(callback_id, 0);
 }
 
-// This is called directly by EnterHandleScopeInstr.
 extern "C" ApiLocalScope* DLRT_EnterHandleScope(Thread* thread) {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("EnterHandleScope %p", thread);
@@ -3723,7 +3736,6 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     false /* is_float */,
     reinterpret_cast<RuntimeFunction>(&DLRT_EnterHandleScope));
 
-// This is called directly by ExitHandleScopeInstr.
 extern "C" void DLRT_ExitHandleScope(Thread* thread) {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("ExitHandleScope %p", thread);
@@ -3736,7 +3748,6 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     false /* is_float */,
     reinterpret_cast<RuntimeFunction>(&DLRT_ExitHandleScope));
 
-// This is called directly by AllocateHandleInstr.
 extern "C" LocalHandle* DLRT_AllocateHandle(ApiLocalScope* scope) {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("AllocateHandle %p", scope);

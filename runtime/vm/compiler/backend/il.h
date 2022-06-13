@@ -428,9 +428,7 @@ struct InstrAttrs {
   M(SpecialParameter, kNoGC)                                                   \
   M(ClosureCall, _)                                                            \
   M(FfiCall, _)                                                                \
-  M(EnterHandleScope, kNoGC)                                                   \
-  M(ExitHandleScope, kNoGC)                                                    \
-  M(AllocateHandle, kNoGC)                                                     \
+  M(CCall, kNoGC)                                                              \
   M(RawStoreField, kNoGC)                                                      \
   M(InstanceCall, _)                                                           \
   M(PolymorphicInstanceCall, _)                                                \
@@ -528,6 +526,7 @@ struct InstrAttrs {
   M(BoxSmallInt, kNoGC)                                                        \
   M(IntConverter, kNoGC)                                                       \
   M(BitCast, kNoGC)                                                            \
+  M(Call1ArgStub, _)                                                           \
   M(LoadThread, kNoGC)                                                         \
   M(Deoptimize, kNoGC)                                                         \
   M(SimdOp, kNoGC)
@@ -3099,6 +3098,8 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
   const intptr_t yield_index_;
   const Representation representation_;
 
+  const Code& GetReturnStub(FlowGraphCompiler* compiler) const;
+
   DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
 };
 
@@ -3670,6 +3671,23 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
   const Object& value() const { return value_; }
 
   bool IsSmi() const { return compiler::target::IsSmi(value()); }
+
+  bool HasZeroRepresentation() const {
+    switch (representation()) {
+      case kTagged:
+      case kUnboxedUint8:
+      case kUnboxedUint16:
+      case kUnboxedUint32:
+      case kUnboxedInt32:
+      case kUnboxedInt64:
+        return IsSmi() && compiler::target::SmiValue(value()) == 0;
+      case kUnboxedDouble:
+        return compiler::target::IsDouble(value()) &&
+               bit_cast<uint64_t>(compiler::target::DoubleValue(value())) == 0;
+      default:
+        return false;
+    }
+  }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -5329,54 +5347,53 @@ class FfiCallInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(FfiCallInstr);
 };
 
-class EnterHandleScopeInstr : public TemplateDefinition<0, NoThrow> {
+// Has the target address in a register passed as the last input in IL.
+class CCallInstr : public Definition {
  public:
-  enum class Kind { kEnterHandleScope = 0, kGetTopHandleScope = 1 };
+  CCallInstr(
+      Zone* zone,
+      const compiler::ffi::NativeCallingConvention& native_calling_convention,
+      InputsArray* inputs);
 
-  explicit EnterHandleScopeInstr(Kind kind) : kind_(kind) {}
+  DECLARE_INSTRUCTION(CCall)
 
-  DECLARE_INSTRUCTION(EnterHandleScope)
+  LocationSummary* MakeLocationSummaryInternal(Zone* zone,
+                                               const RegList temps) const;
 
-  virtual Representation representation() const { return kUnboxedIntPtr; }
+  // Input index of the function pointer to invoke.
+  intptr_t TargetAddressIndex() const {
+    return native_calling_convention_.argument_locations().length();
+  }
+
+  virtual intptr_t InputCount() const { return inputs_->length(); }
+  virtual Value* InputAt(intptr_t i) const { return inputs_->At(i); }
+  virtual bool MayThrow() const { return false; }
+
   virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool HasUnknownSideEffects() const { return true; }
+
+  virtual bool CanCallDart() const { return false; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+  virtual Representation representation() const;
+
+  void EmitParamMoves(FlowGraphCompiler* compiler,
+                      Register saved_fp,
+                      Register temp0);
 
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  Kind kind_;
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    (*inputs_)[i] = value;
+  }
 
-  DISALLOW_COPY_AND_ASSIGN(EnterHandleScopeInstr);
-};
+  Zone* const zone_;
+  const compiler::ffi::NativeCallingConvention& native_calling_convention_;
+  InputsArray* inputs_;
 
-class ExitHandleScopeInstr : public TemplateInstruction<0, NoThrow> {
- public:
-  ExitHandleScopeInstr() {}
-
-  DECLARE_INSTRUCTION(ExitHandleScope)
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool HasUnknownSideEffects() const { return false; }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(ExitHandleScopeInstr);
-};
-
-class AllocateHandleInstr : public TemplateDefinition<1, NoThrow> {
- public:
-  explicit AllocateHandleInstr(Value* scope) { SetInputAt(kScope, scope); }
-
-  enum { kScope = 0 };
-
-  DECLARE_INSTRUCTION(AllocateHandle)
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
-  virtual Representation representation() const { return kUnboxedIntPtr; }
-  virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool HasUnknownSideEffects() const { return false; }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(AllocateHandleInstr);
+  DISALLOW_COPY_AND_ASSIGN(CCallInstr);
 };
 
 // Populates the untagged base + offset outside the heap with a tagged value.
@@ -8159,7 +8176,7 @@ class ShiftInt64OpInstr : public ShiftIntegerOpInstr {
     return kNotSpeculative;
   }
   virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool MayThrow() const { return true; }
+  virtual bool MayThrow() const { return !IsShiftCountInRange(); }
 
   virtual Representation representation() const { return kUnboxedInt64; }
 
@@ -9430,6 +9447,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   M(1, _, Float32x4Abs, (Float32x4), Float32x4)                                \
   M(1, _, Float64x2Abs, (Float64x2), Float64x2)                                \
   M(3, _, Float32x4Clamp, (Float32x4, Float32x4, Float32x4), Float32x4)        \
+  M(3, _, Float64x2Clamp, (Float64x2, Float64x2, Float64x2), Float64x2)        \
   M(1, _, Float64x2GetX, (Float64x2), Double)                                  \
   M(1, _, Float64x2GetY, (Float64x2), Double)                                  \
   M(2, _, Float64x2WithX, (Float64x2, Double), Float64x2)                      \
@@ -9558,6 +9576,44 @@ class SimdOpInstr : public Definition {
   intptr_t mask_;
 
   DISALLOW_COPY_AND_ASSIGN(SimdOpInstr);
+};
+
+// Generic instruction to call 1-argument stubs specified using [StubId].
+class Call1ArgStubInstr : public TemplateDefinition<1, Throws> {
+ public:
+  enum class StubId {
+    kAwait,
+    kInitAsync,
+    kInitAsyncStar,
+    kYieldAsyncStar,
+  };
+
+  Call1ArgStubInstr(const InstructionSource& source,
+                    StubId stub_id,
+                    Value* operand,
+                    intptr_t deopt_id)
+      : TemplateDefinition(source, deopt_id),
+        stub_id_(stub_id),
+        token_pos_(source.token_pos) {
+    SetInputAt(0, operand);
+  }
+
+  Value* operand() const { return inputs_[0]; }
+  StubId stub_id() const { return stub_id_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
+
+  virtual bool CanCallDart() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool HasUnknownSideEffects() const { return true; }
+
+  DECLARE_INSTRUCTION(Call1ArgStub);
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  const StubId stub_id_;
+  const TokenPosition token_pos_;
+
+  DISALLOW_COPY_AND_ASSIGN(Call1ArgStubInstr);
 };
 
 #undef DECLARE_INSTRUCTION

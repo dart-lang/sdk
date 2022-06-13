@@ -6,37 +6,11 @@
 
 part of 'serialization.dart';
 
-/// Interface handling [DataSinkWriter] low-level data serialization.
-///
-/// Each implementation of [DataSink] should have a corresponding
-/// [DataSource] that deserializes data serialized by that implementation.
-abstract class DataSink {
-  int get length;
-
-  /// Serialization of a non-negative integer value.
-  void writeInt(int value);
-
-  /// Serialization of an enum value.
-  void writeEnum(dynamic value);
-
-  /// Serialization of a String value.
-  void writeString(String value);
-
-  /// Serialization of a section begin tag. May be omitted by some writers.
-  void beginTag(String tag);
-
-  /// Serialization of a section end tag. May be omitted by some writers.
-  void endTag(String tag);
-
-  /// Closes any underlying data sinks.
-  void close();
-}
-
 /// Serialization writer
 ///
 /// To be used with [DataSourceReader] to read and write serialized data.
 /// Serialization format is deferred to provided [DataSink].
-class DataSinkWriter {
+class DataSinkWriter implements migrated.DataSinkWriter {
   final DataSink _sinkWriter;
 
   /// If `true`, serialization of every data kind is preceded by a [DataKind]
@@ -54,8 +28,8 @@ class DataSinkWriter {
   /// inconsistencies between serialization and deserialization.
   List<String> _tags;
 
-  /// Map of [_MemberData] object for serialized kernel member nodes.
-  final Map<ir.Member, _MemberData> _memberData = {};
+  /// Map of [MemberData] object for serialized kernel member nodes.
+  final Map<ir.Member, MemberData> _memberData = {};
 
   IndexedSink<String> _stringIndex;
   IndexedSink<Uri> _uriIndex;
@@ -71,7 +45,7 @@ class DataSinkWriter {
   final Map<String, int> tagFrequencyMap;
 
   ir.Member _currentMemberContext;
-  _MemberData _currentMemberData;
+  MemberData _currentMemberData;
 
   IndexedSink<T> _createSink<T>() {
     if (importedIndices == null || !importedIndices.caches.containsKey(T)) {
@@ -108,6 +82,7 @@ class DataSinkWriter {
   ///
   /// This is used for debugging to verify that sections are correctly aligned
   /// between serialization and deserialization.
+  @override
   void begin(String tag) {
     if (tagFrequencyMap != null) {
       tagFrequencyMap[tag] ??= 0;
@@ -120,10 +95,11 @@ class DataSinkWriter {
     }
   }
 
-  /// Registers that the section [tag] starts.
+  /// Registers that the section [tag] ends.
   ///
   /// This is used for debugging to verify that sections are correctly aligned
   /// between serialization and deserialization.
+  @override
   void end(Object tag) {
     if (useDataKinds) {
       _sinkWriter.endTag(tag);
@@ -136,7 +112,8 @@ class DataSinkWriter {
 
   /// Writes a reference to [value] to this data sink. If [value] has not yet
   /// been serialized, [f] is called to serialize the value itself.
-  void writeCached<E>(E value, void f(E value)) {
+  @override
+  void writeCached<E>(E /*?*/ value, void f(E value)) {
     IndexedSink sink = _generalCaches[E] ??= _createSink<E>();
     sink.write(value, (v) => f(v));
   }
@@ -158,6 +135,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readList].
+  @override
   void writeList<E>(Iterable<E> values, void f(E value),
       {bool allowNull = false}) {
     if (values == null) {
@@ -170,6 +148,7 @@ class DataSinkWriter {
   }
 
   /// Writes the boolean [value] to this data sink.
+  @override
   void writeBool(bool value) {
     assert(value != null);
     _writeDataKind(DataKind.bool);
@@ -181,6 +160,7 @@ class DataSinkWriter {
   }
 
   /// Writes the non-negative 30 bit integer [value] to this data sink.
+  @override
   void writeInt(int value) {
     assert(value != null);
     assert(value >= 0 && value >> 30 == 0);
@@ -192,6 +172,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readIntOrNull].
+  @override
   void writeIntOrNull(int value) {
     writeBool(value != null);
     if (value != null) {
@@ -200,6 +181,7 @@ class DataSinkWriter {
   }
 
   /// Writes the string [value] to this data sink.
+  @override
   void writeString(String value) {
     assert(value != null);
     _writeDataKind(DataKind.string);
@@ -214,6 +196,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readStringOrNull].
+  @override
   void writeStringOrNull(String value) {
     writeBool(value != null);
     if (value != null) {
@@ -227,6 +210,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readStringMap].
+  @override
   void writeStringMap<V>(Map<String, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -246,6 +230,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readStrings].
+  @override
   void writeStrings(Iterable<String> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -262,12 +247,14 @@ class DataSinkWriter {
   // TODO(johnniwinther): Change the signature to
   // `void writeEnum<E extends Enum<E>>(E value);` when an interface for enums
   // is added to the language.
+  @override
   void writeEnum(dynamic value) {
     _writeDataKind(DataKind.enumValue);
     _sinkWriter.writeEnum(value);
   }
 
   /// Writes the URI [value] to this data sink.
+  @override
   void writeUri(Uri value) {
     assert(value != null);
     _writeDataKind(DataKind.uri);
@@ -329,11 +316,11 @@ class DataSinkWriter {
     if (cls != null) {
       _sinkWriter.writeEnum(MemberContextKind.cls);
       _writeClassNode(cls);
-      _writeString(_computeMemberName(value));
+      _writeString(computeMemberName(value));
     } else {
       _sinkWriter.writeEnum(MemberContextKind.library);
       _writeLibraryNode(value.enclosingLibrary);
-      _writeString(_computeMemberName(value));
+      _writeString(computeMemberName(value));
     }
   }
 
@@ -399,7 +386,7 @@ class DataSinkWriter {
     _writeTreeNode(value, null);
   }
 
-  void _writeTreeNode(ir.TreeNode value, _MemberData memberData) {
+  void _writeTreeNode(ir.TreeNode value, MemberData memberData) {
     if (value is ir.Class) {
       _sinkWriter.writeEnum(_TreeNodeKind.cls);
       _writeClassNode(value);
@@ -491,7 +478,7 @@ class DataSinkWriter {
   }
 
   void writeTreeNodeInContextInternal(
-      ir.TreeNode value, _MemberData memberData) {
+      ir.TreeNode value, MemberData memberData) {
     _writeDataKind(DataKind.treeNode);
     _writeTreeNode(value, memberData);
   }
@@ -533,7 +520,9 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readTreeNodeMapInContext].
-  void writeTreeNodeMapInContext<V>(Map<ir.TreeNode, V> map, void f(V value),
+  @override
+  void writeTreeNodeMapInContext<V>(
+      Map<ir.TreeNode, V> /*?*/ map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
       assert(allowNull);
@@ -554,7 +543,7 @@ class DataSinkWriter {
     _writeTypeParameter(value, null);
   }
 
-  void _writeTypeParameter(ir.TypeParameter value, _MemberData memberData) {
+  void _writeTypeParameter(ir.TypeParameter value, MemberData memberData) {
     ir.TreeNode parent = value.parent;
     if (parent is ir.Class) {
       _sinkWriter.writeEnum(_TypeParameterKind.cls);
@@ -590,12 +579,14 @@ class DataSinkWriter {
   }
 
   /// Writes the type [value] to this data sink.
+  @override
   void writeDartType(DartType value) {
     _writeDataKind(DataKind.dartType);
     value.writeToDataSink(this, []);
   }
 
   /// Writes the optional type [value] to this data sink.
+  @override
   void writeDartTypeOrNull(DartType /*?*/ value) {
     _writeDataKind(DataKind.dartType);
     if (value == null) {
@@ -610,6 +601,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readDartTypesOrNull].
+  @override
   void writeDartTypesOrNull(Iterable<DartType> /*?*/ values) {
     if (values == null) {
       writeInt(0);
@@ -622,6 +614,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readDartTypes].
+  @override
   void writeDartTypes(Iterable<DartType> values) {
     writeInt(values.length);
     for (DartType value in values) {
@@ -629,11 +622,18 @@ class DataSinkWriter {
     }
   }
 
-  /// Writes the kernel type node [value] to this data sink. If [allowNull] is
-  /// `true`, [value] is allowed to be `null`.
-  void writeDartTypeNode(ir.DartType value, {bool allowNull = false}) {
+  /// Writes the kernel type node [value] to this data sink.
+  @override
+  void writeDartTypeNode(ir.DartType /*!*/ value) {
     _writeDataKind(DataKind.dartTypeNode);
-    _writeDartTypeNode(value, [], allowNull: allowNull);
+    _writeDartTypeNode(value, [], allowNull: false);
+  }
+
+  /// Writes the kernel type node [value] to this data sink, `null` permitted.
+  @override
+  void writeDartTypeNodeOrNull(ir.DartType /*?*/ value) {
+    _writeDataKind(DataKind.dartTypeNode);
+    _writeDartTypeNode(value, [], allowNull: true);
   }
 
   void _writeDartTypeNode(
@@ -676,6 +676,7 @@ class DataSinkWriter {
   }
 
   /// Writes a reference to the indexed library [value] to this data sink.
+  @override
   void writeLibrary(IndexedLibrary value) {
     _entityWriter.writeLibraryToDataSink(this, value);
   }
@@ -685,6 +686,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readLibraryOrNull].
+  @override
   void writeLibraryOrNull(IndexedLibrary value) {
     writeBool(value != null);
     if (value != null) {
@@ -713,6 +715,7 @@ class DataSinkWriter {
   }
 
   /// Writes a reference to the indexed class [value] to this data sink.
+  @override
   void writeClass(IndexedClass value) {
     _entityWriter.writeClassToDataSink(this, value);
   }
@@ -722,6 +725,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readClassOrNull].
+  @override
   void writeClassOrNull(IndexedClass value) {
     writeBool(value != null);
     if (value != null) {
@@ -806,6 +810,7 @@ class DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readMemberMap].
+  @override
   void writeMemberMap<V>(
       Map<MemberEntity, V> map, void f(MemberEntity member, V value),
       {bool allowNull = false}) {
@@ -822,6 +827,7 @@ class DataSinkWriter {
   }
 
   /// Writes a reference to the indexed type variable [value] to this data sink.
+  @override
   void writeTypeVariable(IndexedTypeVariable value) {
     _entityWriter.writeTypeVariableToDataSink(this, value);
   }
@@ -919,6 +925,7 @@ class DataSinkWriter {
   }
 
   /// Writes the constant [value] to this data sink.
+  @override
   void writeConstant(ConstantValue value) {
     _writeDataKind(DataKind.constant);
     _writeConstant(value);
@@ -1215,9 +1222,10 @@ class DataSinkWriter {
   /// Invoke [f] in the context of [member]. This sets up support for
   /// serialization of `ir.TreeNode`s using the `writeTreeNode*InContext`
   /// methods.
+  @override
   void inMemberContext(ir.Member context, void f()) {
     ir.Member oldMemberContext = _currentMemberContext;
-    _MemberData oldMemberData = _currentMemberData;
+    MemberData oldMemberData = _currentMemberData;
     _currentMemberContext = context;
     _currentMemberData = null;
     f();
@@ -1225,14 +1233,14 @@ class DataSinkWriter {
     _currentMemberContext = oldMemberContext;
   }
 
-  _MemberData get currentMemberData {
+  MemberData get currentMemberData {
     assert(_currentMemberContext != null,
         "DataSink has no current member context.");
     return _currentMemberData ??= _memberData[_currentMemberContext] ??=
-        _MemberData(_currentMemberContext);
+        MemberData(_currentMemberContext);
   }
 
-  _MemberData _getMemberData(ir.TreeNode node) {
+  MemberData _getMemberData(ir.TreeNode node) {
     ir.TreeNode member = node;
     while (member is! ir.Member) {
       if (member == null) {
@@ -1242,10 +1250,10 @@ class DataSinkWriter {
       member = member.parent;
     }
     _writeMemberNode(member);
-    return _memberData[member] ??= _MemberData(member);
+    return _memberData[member] ??= MemberData(member);
   }
 
-  void _writeFunctionNode(ir.FunctionNode value, _MemberData memberData) {
+  void _writeFunctionNode(ir.FunctionNode value, MemberData memberData) {
     ir.TreeNode parent = value.parent;
     if (parent is ir.Procedure) {
       _sinkWriter.writeEnum(_FunctionNodeKind.procedure);

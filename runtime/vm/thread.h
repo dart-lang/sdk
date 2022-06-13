@@ -58,6 +58,7 @@ class RuntimeEntry;
 class Smi;
 class StackResource;
 class StackTrace;
+class StreamInfo;
 class String;
 class TimelineStream;
 class TypeArguments;
@@ -156,13 +157,24 @@ class Thread;
 #define CACHED_NON_VM_STUB_LIST(V)                                             \
   V(ObjectPtr, object_null_, Object::null(), nullptr)                          \
   V(BoolPtr, bool_true_, Object::bool_true().ptr(), nullptr)                   \
-  V(BoolPtr, bool_false_, Object::bool_false().ptr(), nullptr)
+  V(BoolPtr, bool_false_, Object::bool_false().ptr(), nullptr)                 \
+  V(TypePtr, dynamic_type_, Type::dynamic_type().ptr(), nullptr)
 
 // List of VM-global objects/addresses cached in each Thread object.
 // Important: constant false must immediately follow constant true.
 #define CACHED_VM_OBJECTS_LIST(V)                                              \
   CACHED_NON_VM_STUB_LIST(V)                                                   \
   CACHED_VM_STUBS_LIST(V)
+
+#define CACHED_FUNCTION_ENTRY_POINTS_LIST(V)                                   \
+  V(suspend_state_init_async)                                                  \
+  V(suspend_state_await)                                                       \
+  V(suspend_state_return_async)                                                \
+  V(suspend_state_return_async_not_future)                                     \
+  V(suspend_state_init_async_star)                                             \
+  V(suspend_state_yield_async_star)                                            \
+  V(suspend_state_return_async_star)                                           \
+  V(suspend_state_handle_exception)
 
 // This assertion marks places which assume that boolean false immediate
 // follows bool true in the CACHED_VM_OBJECTS_LIST
@@ -512,6 +524,11 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, dart_stream_);
   }
 
+  // Offset of the Dart VM Service Extension StreamInfo object.
+  static intptr_t service_extension_stream_offset() {
+    return OFFSET_OF(Thread, service_extension_stream_);
+  }
+
   // Is |this| executing Dart code?
   bool IsExecutingDartCode() const;
 
@@ -716,6 +733,13 @@ class Thread : public ThreadState {
   static intptr_t OffsetFromThread(const Object& object);
   static bool ObjectAtOffset(intptr_t offset, Object* object);
   static intptr_t OffsetFromThread(const RuntimeEntry* runtime_entry);
+
+#define DEFINE_OFFSET_METHOD(name)                                             \
+  static intptr_t name##_entry_point_offset() {                                \
+    return OFFSET_OF(Thread, name##_entry_point_);                             \
+  }
+  CACHED_FUNCTION_ENTRY_POINTS_LIST(DEFINE_OFFSET_METHOD)
+#undef DEFINE_OFFSET_METHOD
 
 #if defined(DEBUG)
   // For asserts only. Has false positives when running with a simulator or
@@ -1146,6 +1170,10 @@ class Thread : public ThreadState {
   uword write_barrier_wrappers_entry_points_[kNumberOfDartAvailableCpuRegs];
 #endif
 
+#define DECLARE_MEMBERS(name) uword name##_entry_point_ = 0;
+  CACHED_FUNCTION_ENTRY_POINTS_LIST(DECLARE_MEMBERS)
+#undef DECLARE_MEMBERS
+
   // JumpToExceptionHandler state:
   ObjectPtr active_exception_;
   ObjectPtr active_stacktrace_;
@@ -1173,6 +1201,7 @@ class Thread : public ThreadState {
 
   TaskKind task_kind_;
   TimelineStream* dart_stream_;
+  StreamInfo* service_extension_stream_;
   IsolateGroup* isolate_group_ = nullptr;
   mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;

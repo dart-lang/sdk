@@ -11,7 +11,6 @@ import '../common/names.dart' show Identifiers;
 import '../constants/values.dart';
 import '../deferred_load/deferred_load.dart';
 import '../elements/entities.dart';
-import '../elements/entities_parameter_structure_methods.dart';
 import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueuerListener;
 import '../native/enqueue.dart';
@@ -209,16 +208,14 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     DartType type = constant.getType(_commonElements);
     _computeImpactForInstantiatedConstantType(type, impactBuilder);
 
-    if (constant.isFunction) {
-      FunctionConstantValue function = constant;
+    if (constant is FunctionConstantValue) {
       impactBuilder
-          .registerStaticUse(StaticUse.staticTearOff(function.element));
-    } else if (constant.isInterceptor) {
+          .registerStaticUse(StaticUse.staticTearOff(constant.element));
+    } else if (constant is InterceptorConstantValue) {
       // An interceptor constant references the class's prototype chain.
-      InterceptorConstantValue interceptor = constant;
-      InterfaceType type = _elementEnvironment.getThisType(interceptor.cls);
+      InterfaceType type = _elementEnvironment.getThisType(constant.cls);
       _computeImpactForInstantiatedConstantType(type, impactBuilder);
-    } else if (constant.isType) {
+    } else if (constant is TypeConstantValue) {
       FunctionEntity helper = _commonElements.createRuntimeType;
       impactBuilder.registerStaticUse(StaticUse.staticInvoke(
           helper, helper.parameterStructure.callStructure));
@@ -290,6 +287,19 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
     if (_commonElements.isCreateInvocationMirrorHelper(member)) {
       _registerBackendImpact(worldImpact, _impacts.noSuchMethodSupport);
+    }
+
+    if (_commonElements.isLateReadCheck(member)) {
+      _registerBackendImpact(worldImpact, _impacts.lateFieldReadCheck);
+    }
+
+    if (_commonElements.isLateWriteOnceCheck(member)) {
+      _registerBackendImpact(worldImpact, _impacts.lateFieldWriteOnceCheck);
+    }
+
+    if (_commonElements.isLateInitializeOnceCheck(member)) {
+      _registerBackendImpact(
+          worldImpact, _impacts.lateFieldInitializeOnceCheck);
     }
 
     if (member.isGetter && member.name == Identifiers.runtimeType_) {

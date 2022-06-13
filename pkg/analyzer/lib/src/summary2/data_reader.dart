@@ -54,6 +54,14 @@ class SummaryDataReader {
     return _doubleBuffer[0];
   }
 
+  T? readOptionalObject<T>(T Function(SummaryDataReader reader) read) {
+    if (readBool()) {
+      return read(this);
+    } else {
+      return null;
+    }
+  }
+
   String? readOptionalStringReference() {
     if (readBool()) {
       return readStringReference();

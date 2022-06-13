@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
@@ -52,9 +53,14 @@ class PackageBuildFileUriResolverTest with ResourceProviderMixin {
 
     workspace = PackageBuildWorkspace.find(
       resourceProvider,
-      {
-        'project': [getFolder('/workspace')]
-      },
+      Packages({
+        'project': Package(
+          name: 'project',
+          rootFolder: getFolder('/workspace'),
+          libFolder: getFolder('/workspace'),
+          languageVersion: null,
+        ),
+      }),
       convertPath('/workspace'),
     )!;
     resolver = PackageBuildFileUriResolver(workspace);
@@ -191,9 +197,14 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
     }
     workspace = PackageBuildWorkspace.find(
       resourceProvider,
-      {
-        'project': [getFolder('/workspace')]
-      },
+      Packages({
+        'project': Package(
+          name: 'project',
+          rootFolder: getFolder('/workspace'),
+          libFolder: getFolder('/workspace'),
+          languageVersion: null,
+        ),
+      }),
       convertPath(workspacePath),
     )!;
     packageUriResolver = MockUriResolver();
@@ -240,14 +251,25 @@ class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
 
     myWorkspace = PackageBuildWorkspace.find(
       resourceProvider,
-      {
-        'my': [getFolder(myPackageLibPath)],
-        'foo': [getFolder(fooPackageLibPath)],
-      },
+      Packages({
+        'my': Package(
+          name: 'my',
+          rootFolder: getFolder(myPackageRootPath),
+          libFolder: getFolder(myPackageLibPath),
+          languageVersion: null,
+        ),
+        'foo': Package(
+          name: 'foo',
+          rootFolder: getFolder(fooPackageRootPath),
+          libFolder: getFolder(fooPackageLibPath),
+          languageVersion: null,
+        ),
+      }),
       convertPath(myPackageRootPath),
     )!;
 
-    myPackage = myWorkspace.findPackageFor('$myPackageLibPath/fake.dart')!;
+    final fakeFile = getFile('$myPackageLibPath/fake.dart');
+    myPackage = myWorkspace.findPackageFor(fakeFile.path)!;
   }
 
   test_contains_fileUri() {
@@ -423,7 +445,7 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
       () {
         return PackageBuildWorkspace.find(
           resourceProvider,
-          {},
+          Packages.empty,
           convertPath('not_absolute'),
         );
       },
@@ -440,7 +462,7 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
 
     var workspace = PackageBuildWorkspace.find(
       resourceProvider,
-      {},
+      Packages.empty,
       convertPath('/workspace/aaa/lib'),
     );
     expect(workspace, isNull);
@@ -451,7 +473,7 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
     newPubspecYamlFile('/workspace', 'name: project');
     var workspace = PackageBuildWorkspace.find(
       resourceProvider,
-      {},
+      Packages.empty,
       convertPath('/workspace'),
     )!;
     expect(workspace.root, convertPath('/workspace'));
@@ -465,7 +487,7 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
     newPubspecYamlFile('/workspace', 'name: project');
     var workspace = PackageBuildWorkspace.find(
       resourceProvider,
-      {},
+      Packages.empty,
       convertPath('/workspace/opened/up/a/child/dir'),
     )!;
     expect(workspace.root, convertPath('/workspace/opened/up/a/child/dir'));
@@ -479,7 +501,7 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
     newPubspecYamlFile('/workspace', 'name: project');
     var workspace = PackageBuildWorkspace.find(
       resourceProvider,
-      {},
+      Packages.empty,
       convertPath('/workspace/opened/up/a/child/dir'),
     )!;
     expect(workspace.root, convertPath('/workspace'));
@@ -492,7 +514,7 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
     newPubspecYamlFile('/workspace', 'name: project');
     var workspace = PackageBuildWorkspace.find(
       resourceProvider,
-      {},
+      Packages.empty,
       convertPath('/workspace'),
     );
     expect(workspace, isNull);
@@ -502,7 +524,7 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
     newFolder('/workspace/.dart_tool/build/generated/project/lib');
     var workspace = PackageBuildWorkspace.find(
       resourceProvider,
-      {},
+      Packages.empty,
       convertPath('/workspace'),
     );
     expect(workspace, isNull);
@@ -514,7 +536,7 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
     newPubspecYamlFile('/workspace', 'name: project');
     var workspace = PackageBuildWorkspace.find(
       resourceProvider,
-      {},
+      Packages.empty,
       convertPath('/workspace'),
     );
     expect(workspace, isNull);
@@ -525,7 +547,7 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
     newPubspecYamlFile('/workspace', 'not: yaml: here! 1111');
     var workspace = PackageBuildWorkspace.find(
       resourceProvider,
-      {},
+      Packages.empty,
       convertPath('/workspace'),
     );
     expect(workspace, isNull);
@@ -539,7 +561,7 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
 
     var workspace = PackageBuildWorkspace.find(
       resourceProvider,
-      {},
+      Packages.empty,
       convertPath('/workspace/aaa/lib'),
     );
     expect(workspace, isNull);
@@ -549,7 +571,7 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
     newPubspecYamlFile('/workspace', 'name: project');
     var workspace = PackageBuildWorkspace.find(
       resourceProvider,
-      {},
+      Packages.empty,
       convertPath('/workspace'),
     );
     expect(workspace, isNull);
@@ -649,14 +671,19 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
 
   PackageBuildWorkspace _createWorkspace(
       String root, List<String> packageNames) {
+    var packageMap = <String, Package>{};
+    for (var name in packageNames) {
+      packageMap[name] = Package(
+        name: name,
+        rootFolder: getFolder('/packages/$name'),
+        libFolder: getFolder('/packages/$name/lib'),
+        languageVersion: null,
+      );
+    }
+
     return PackageBuildWorkspace.find(
       resourceProvider,
-      Map.fromIterables(
-        packageNames,
-        packageNames.map(
-          (name) => [getFolder('/packages/$name/lib')],
-        ),
-      ),
+      Packages(packageMap),
       convertPath(root),
     )!;
   }

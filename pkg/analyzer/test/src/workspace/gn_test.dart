@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:test/test.dart';
@@ -97,8 +99,11 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     newFile('/ws/some/code/BUILD.gn', '');
     var libraryPath = newFile('/ws/some/code/lib/code.dart', '').path;
     var package = workspace.findPackageFor(libraryPath)!;
-    var packageMap = package.packagesAvailableTo(libraryPath);
-    expect(packageMap.keys, unorderedEquals(['p1', 'workspace']));
+    var packages = package.packagesAvailableTo(libraryPath);
+    expect(
+      packages.packages.map((e) => e.name),
+      unorderedEquals(['p1', 'workspace']),
+    );
   }
 
   GnWorkspace _buildStandardGnWorkspace() {
@@ -194,9 +199,15 @@ class GnWorkspaceTest with ResourceProviderMixin {
     var workspace = GnWorkspace.find(
         resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
-    expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['flutter']![0].path,
-        convertPath("$packageLocation/lib"));
+    expect(
+      workspace.packages.packages,
+      unorderedEquals([
+        _PackageMatcher(
+          name: 'flutter',
+          rootFolder: getFolder(packageLocation),
+        ),
+      ]),
+    );
   }
 
   void test_packages_absoluteBuildDir() {
@@ -223,9 +234,15 @@ class GnWorkspaceTest with ResourceProviderMixin {
     var workspace = GnWorkspace.find(
         resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
-    expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['flutter']![0].path,
-        convertPath("$packageLocation/lib"));
+    expect(
+      workspace.packages.packages,
+      unorderedEquals([
+        _PackageMatcher(
+          name: 'flutter',
+          rootFolder: getFolder(packageLocation),
+        ),
+      ]),
+    );
   }
 
   void test_packages_fallbackBuildDir() {
@@ -250,9 +267,15 @@ class GnWorkspaceTest with ResourceProviderMixin {
     var workspace = GnWorkspace.find(
         resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
-    expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['flutter']![0].path,
-        convertPath("$packageLocation/lib"));
+    expect(
+      workspace.packages.packages,
+      unorderedEquals([
+        _PackageMatcher(
+          name: 'flutter',
+          rootFolder: getFolder(packageLocation),
+        ),
+      ]),
+    );
   }
 
   void test_packages_fallbackBuildDirWithUselessConfig() {
@@ -278,9 +301,15 @@ class GnWorkspaceTest with ResourceProviderMixin {
     var workspace = GnWorkspace.find(
         resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
-    expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['flutter']![0].path,
-        convertPath("$packageLocation/lib"));
+    expect(
+      workspace.packages.packages,
+      unorderedEquals([
+        _PackageMatcher(
+          name: 'flutter',
+          rootFolder: getFolder(packageLocation),
+        ),
+      ]),
+    );
   }
 
   void test_packages_multipleCandidates() {
@@ -323,9 +352,16 @@ class GnWorkspaceTest with ResourceProviderMixin {
     var workspace = GnWorkspace.find(
         resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
-    expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['rettulf']![0].path,
-        convertPath("$otherPackageLocation/lib2"));
+    expect(
+      workspace.packages.packages,
+      unorderedEquals([
+        _PackageMatcher(
+          name: 'rettulf',
+          rootFolder: getFolder(otherPackageLocation),
+          libFolder: getFolder('$otherPackageLocation/lib2'),
+        ),
+      ]),
+    );
   }
 
   void test_packages_multipleFiles() {
@@ -368,10 +404,48 @@ class GnWorkspaceTest with ResourceProviderMixin {
     var workspace = GnWorkspace.find(
         resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
-    expect(workspace.packageMap.length, 2);
-    expect(workspace.packageMap['flutter']![0].path,
-        convertPath("$packageOneLocation/one/lib"));
-    expect(workspace.packageMap['rettulf']![0].path,
-        convertPath("$packageTwoLocation/two/lib"));
+    expect(
+      workspace.packages.packages,
+      unorderedEquals([
+        _PackageMatcher(
+          name: 'flutter',
+          rootFolder: getFolder(packageOneLocation),
+          libFolder: getFolder('$packageOneLocation/one/lib'),
+        ),
+        _PackageMatcher(
+          name: 'rettulf',
+          rootFolder: getFolder(packageTwoLocation),
+          libFolder: getFolder('$packageTwoLocation/two/lib'),
+        ),
+      ]),
+    );
+  }
+}
+
+class _PackageMatcher extends Matcher {
+  final String name;
+  final Folder rootFolder;
+  final Folder libFolder;
+
+  _PackageMatcher({
+    required this.name,
+    required this.rootFolder,
+    Folder? libFolder,
+  }) : libFolder = libFolder ?? rootFolder.getChildAssumingFolder('lib');
+
+  @override
+  Description describe(Description description) => description
+      .add('Package(name:')
+      .addDescriptionOf(name)
+      .add(', rootFolder:')
+      .addDescriptionOf(rootFolder.path)
+      .add(')');
+
+  @override
+  bool matches(Object? item, Map matchState) {
+    return item is Package &&
+        item.name == name &&
+        item.rootFolder == rootFolder &&
+        item.libFolder == libFolder;
   }
 }

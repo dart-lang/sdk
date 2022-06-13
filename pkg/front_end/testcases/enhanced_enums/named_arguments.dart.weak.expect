@@ -8,8 +8,8 @@ class E0 extends core::_Enum /*isEnum*/  {
   final field core::int bar;
   static const field self::E0 one = #C4;
   static const field self::E0 two = #C7;
-  const constructor •(core::int index, core::String name = #C9, core::int foo, {required core::int bar = #C9}) → self::E0
-    : self::E0::foo = foo, self::E0::bar = bar, super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name = #C9, core::int foo, {required core::int bar = #C9}) → self::E0
+    : self::E0::foo = foo, self::E0::bar = bar, super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "E0.${this.{core::_Enum::_name}{core::String}}";
@@ -19,8 +19,8 @@ class E1<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   final field self::E1::X% foo;
   static const field self::E1<core::String> one = #C11;
   static const field self::E1<core::int> two = #C12;
-  const constructor •(core::int index = #C9, core::String name, {required self::E1::X% foo = #C9}) → self::E1<self::E1::X%>
-    : self::E1::foo = foo, super core::_Enum::•(index, name)
+  const constructor •(core::int #index = #C9, core::String #name, {required self::E1::X% foo = #C9}) → self::E1<self::E1::X%>
+    : self::E1::foo = foo, super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
@@ -33,8 +33,8 @@ class E2<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, Z
   static const field self::E2<core::int, core::String, core::double> one = #C15;
   static const field self::E2<core::String, core::int, core::double> two = #C17;
   static const field self::E2<core::double, core::bool, dynamic> three = #C21;
-  const constructor •(core::int index, core::String name = #C9, self::E2::X% foo, {required self::E2::Y% bar = #C9, has-declared-initializer self::E2::Z? baz = #C9}) → self::E2<self::E2::X%, self::E2::Y%, self::E2::Z%>
-    : self::E2::foo = foo, self::E2::bar = bar, self::E2::baz = baz, super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name = #C9, self::E2::X% foo, {required self::E2::Y% bar = #C9, has-declared-initializer self::E2::Z? baz = #C9}) → self::E2<self::E2::X%, self::E2::Y%, self::E2::Z%>
+    : self::E2::foo = foo, self::E2::bar = bar, self::E2::baz = baz, super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";

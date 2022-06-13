@@ -46,6 +46,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -156,6 +157,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -437,15 +439,30 @@ abstract class B extends A {
 
     assertSuperExpression(findNode.super_('super.foo'));
 
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('foo'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.assignment('foo ='), r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@class::A::@setter::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_propertyAccess_setter_mixin_implements() async {
@@ -465,15 +482,30 @@ mixin M implements A {
 
     assertSuperExpression(findNode.super_('super.foo'));
 
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('foo'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.assignment('foo ='), r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: M
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@class::A::@setter::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_propertyAccess_setter_mixinHasNoSuchMethod() async {
@@ -493,15 +525,31 @@ class B extends Object with A {
 
     assertSuperExpression(findNode.super_('super.foo'));
 
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('foo', of: 'A'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.assignment('foo ='), r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: a
+    parameter: self::@class::A::@setter::foo::@parameter::a
+    staticElement: self::@class::B::@setter::foo::@parameter::a
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_propertyAccess_setter_superHasNoSuchMethod() async {
@@ -519,15 +567,31 @@ class B extends A {
 
     assertSuperExpression(findNode.super_('super.foo'));
 
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('foo', of: 'A'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.assignment('foo ='), r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: a
+    parameter: self::@class::A::@setter::foo::@parameter::a
+    staticElement: self::@class::B::@setter::foo::@parameter::a
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_propertyAccess_setter_superSuperHasConcrete() async {
@@ -549,14 +613,29 @@ class C extends B {
 
     assertSuperExpression(findNode.super_('super.foo'));
 
-    assertAssignment(
-      findNode.assignment('foo ='),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('foo', of: 'A'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
+    assertResolvedNodeText(findNode.assignment('foo ='), r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@class::A::@setter::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
   }
 }

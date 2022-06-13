@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
+import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -22,7 +22,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     final mainContents = '''
     import 'referenced.dart';
 
-    main() {
+    void f() {
       fo^o();
     }
     ''';
@@ -64,7 +64,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     /// Te^st
     ///
     /// References [String].
-    main() {}
+    void f() {}
     ''';
 
     await initialize();
@@ -144,7 +144,7 @@ class A {
     final mainContents = '''
     import 'referenced.dart';
 
-    main() {
+    void f() {
       Icons.[[ad^d]]();
     }
     ''';
@@ -187,7 +187,7 @@ class A {
     final mainContents = '''
     import 'referenced.dart';
 
-    main() {
+    void f() {
       [[fo^o]]();
     }
     ''';
@@ -238,7 +238,7 @@ class A {
     final mainContents = '''
     import 'lib.dart';
 
-    main() {
+    void f() {
       Icons.[[ad^d]]();
     }
     ''';
@@ -282,6 +282,46 @@ class A {
       loc.targetSelectionRange,
       equals(rangeOfString(partContents, 'add')),
     );
+  }
+
+  Future<void> test_partFilename() async {
+    final mainContents = '''
+part 'pa^rt.dart';
+    ''';
+
+    final partContents = '''
+part of 'main.dart';
+    ''';
+
+    final partFileUri = Uri.file(join(projectFolderPath, 'lib', 'part.dart'));
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(mainContents));
+    await openFile(partFileUri, withoutMarkers(partContents));
+    final res = await getDefinitionAsLocation(
+        mainFileUri, positionFromMarker(mainContents));
+
+    expect(res.single.uri, equals(partFileUri.toString()));
+  }
+
+  Future<void> test_partOfFilename() async {
+    final mainContents = '''
+part 'part.dart';
+    ''';
+
+    final partContents = '''
+part of 'ma^in.dart';
+    ''';
+
+    final partFileUri = Uri.file(join(projectFolderPath, 'lib', 'part.dart'));
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(mainContents));
+    await openFile(partFileUri, withoutMarkers(partContents));
+    final res = await getDefinitionAsLocation(
+        partFileUri, positionFromMarker(partContents));
+
+    expect(res.single.uri, equals(mainFileUri.toString()));
   }
 
   Future<void> test_sameLine() async {

@@ -2844,13 +2844,15 @@ DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj,
 DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len) {
   Thread* thread = Thread::Current();
   DARTSCOPE(thread);
-  ReusableObjectHandleScope reused_obj_handle(thread);
-  const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
-  if (str_obj.IsNull()) {
-    RETURN_TYPE_ERROR(thread->zone(), str, String);
+  {
+    ReusableObjectHandleScope reused_obj_handle(thread);
+    const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
+    if (!str_obj.IsNull()) {
+      *len = str_obj.Length();
+      return Api::Success();
+    }
   }
-  *len = str_obj.Length();
-  return Api::Success();
+  RETURN_TYPE_ERROR(thread->zone(), str, String);
 }
 
 DART_EXPORT Dart_Handle Dart_NewStringFromCString(const char* str) {
@@ -3044,16 +3046,18 @@ DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str,
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
-  ReusableObjectHandleScope reused_obj_handle(thread);
-  const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
-  if (str_obj.IsNull()) {
-    RETURN_TYPE_ERROR(thread->zone(), str, String);
-  }
   if (size == NULL) {
     RETURN_NULL_ERROR(size);
   }
-  *size = (str_obj.Length() * str_obj.CharSize());
-  return Api::Success();
+  {
+    ReusableObjectHandleScope reused_obj_handle(thread);
+    const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
+    if (!str_obj.IsNull()) {
+      *size = (str_obj.Length() * str_obj.CharSize());
+      return Api::Success();
+    }
+  }
+  RETURN_TYPE_ERROR(thread->zone(), str, String);
 }
 
 DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
@@ -3063,21 +3067,23 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
-  ReusableObjectHandleScope reused_obj_handle(thread);
-  const String& str = Api::UnwrapStringHandle(reused_obj_handle, object);
-  if (str.IsNull()) {
-    RETURN_TYPE_ERROR(thread->zone(), object, String);
+  {
+    ReusableObjectHandleScope reused_obj_handle(thread);
+    const String& str = Api::UnwrapStringHandle(reused_obj_handle, object);
+    if (!str.IsNull()) {
+      if (str.IsExternal()) {
+        *peer = str.GetPeer();
+        ASSERT(*peer != NULL);
+      } else {
+        NoSafepointScope no_safepoint_scope;
+        *peer = thread->heap()->GetPeer(str.ptr());
+      }
+      *char_size = str.CharSize();
+      *str_len = str.Length();
+      return Api::Success();
+    }
   }
-  if (str.IsExternal()) {
-    *peer = str.GetPeer();
-    ASSERT(*peer != NULL);
-  } else {
-    NoSafepointScope no_safepoint_scope;
-    *peer = thread->heap()->GetPeer(str.ptr());
-  }
-  *char_size = str.CharSize();
-  *str_len = str.Length();
-  return Api::Success();
+  RETURN_TYPE_ERROR(thread->zone(), object, String);
 }
 
 // --- Lists ---
@@ -4927,13 +4933,16 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
-  ReusableObjectHandleScope reused_obj_handle(thread);
-  const Instance& instance = Api::UnwrapInstanceHandle(reused_obj_handle, obj);
-  if (instance.IsNull()) {
-    RETURN_TYPE_ERROR(thread->zone(), obj, Instance);
+  {
+    ReusableObjectHandleScope reused_obj_handle(thread);
+    const Instance& instance =
+        Api::UnwrapInstanceHandle(reused_obj_handle, obj);
+    if (!instance.IsNull()) {
+      *count = instance.NumNativeFields();
+      return Api::Success();
+    }
   }
-  *count = instance.NumNativeFields();
-  return Api::Success();
+  RETURN_TYPE_ERROR(thread->zone(), obj, Instance);
 }
 
 DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
@@ -4942,18 +4951,26 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
-  ReusableObjectHandleScope reused_obj_handle(thread);
-  const Instance& instance = Api::UnwrapInstanceHandle(reused_obj_handle, obj);
-  if (instance.IsNull()) {
+  bool is_null = false;
+  {
+    ReusableObjectHandleScope reused_obj_handle(thread);
+    const Instance& instance =
+        Api::UnwrapInstanceHandle(reused_obj_handle, obj);
+    if (!instance.IsNull()) {
+      if (instance.IsValidNativeIndex(index)) {
+        *value = instance.GetNativeField(index);
+        return Api::Success();
+      }
+    } else {
+      is_null = true;
+    }
+  }
+  if (is_null) {
     RETURN_TYPE_ERROR(thread->zone(), obj, Instance);
   }
-  if (!instance.IsValidNativeIndex(index)) {
-    return Api::NewError(
-        "%s: invalid index %d passed in to access native instance field",
-        CURRENT_FUNC, index);
-  }
-  *value = instance.GetNativeField(index);
-  return Api::Success();
+  return Api::NewError(
+      "%s: invalid index %d passed in to access native instance field",
+      CURRENT_FUNC, index);
 }
 
 DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,

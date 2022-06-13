@@ -6,6 +6,7 @@ import 'dart:io' as io;
 import 'dart:io';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
@@ -14,6 +15,8 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/server/performance.dart';
+import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
@@ -60,6 +63,9 @@ import 'package:meta/meta.dart';
 abstract class AbstractAnalysisServer {
   /// The options of this server instance.
   AnalysisServerOptions options;
+
+  /// The object through which analytics are to be sent.
+  final AnalyticsManager analyticsManager;
 
   /// The builder for attachments that should be included into crash reports.
   final CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder;
@@ -124,6 +130,9 @@ abstract class AbstractAnalysisServer {
   /// Performance information before initial analysis is complete.
   final ServerPerformance performanceDuringStartup = ServerPerformance();
 
+  /// Performance about recent requests.
+  final ServerRecentPerformance recentPerformance = ServerRecentPerformance();
+
   RequestStatisticsHelper? requestStatistics;
 
   PerformanceLog? analysisPerformanceLogger;
@@ -146,6 +155,7 @@ abstract class AbstractAnalysisServer {
     this.options,
     this.sdkManager,
     this.diagnosticServer,
+    this.analyticsManager,
     this.crashReportingAttachmentsBuilder,
     ResourceProvider baseResourceProvider,
     this.instrumentationService,
@@ -524,7 +534,13 @@ abstract class AbstractAnalysisServer {
 
   @mustCallSuper
   void shutdown() {
+    // For now we record plugins only on shutdown. We might want to record them
+    // every time the set of plugins changes, in which case we'll need to listen
+    // to the `PluginManager.pluginsChanged` stream.
+    analyticsManager.changedPlugins(pluginManager);
+
     pubPackageService.shutdown();
+    analyticsManager.shutdown();
   }
 
   /// Return the path to the location of the byte store on disk, or `null` if
@@ -542,4 +558,19 @@ abstract class AbstractAnalysisServer {
     }
     return null;
   }
+}
+
+class ServerRecentPerformance {
+  /// The maximum number of performance measurements to keep.
+  static const int performanceListMaxLength = 50;
+
+  /// A list of code completion performance measurements for the latest
+  /// completion operation up to [performanceListMaxLength] measurements.
+  final RecentBuffer<CompletionPerformance> completion =
+      RecentBuffer<CompletionPerformance>(performanceListMaxLength);
+
+  /// A [RecentBuffer] for performance information about the most recent
+  /// requests.
+  final RecentBuffer<RequestPerformance> requests =
+      RecentBuffer(performanceListMaxLength);
 }

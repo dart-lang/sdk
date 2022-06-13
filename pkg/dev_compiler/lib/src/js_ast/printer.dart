@@ -856,6 +856,12 @@ class Printer implements NodeVisitor {
         // We cannot remove parenthesis for "*" because of precision issues.
         rightPrecedenceRequirement = UNARY;
         break;
+      case '**':
+        // 'a ** b ** c' parses as 'a ** (b ** c)', so the left must have higher
+        // precedence.
+        leftPrecedenceRequirement = UNARY;
+        rightPrecedenceRequirement = EXPONENTIATION;
+        break;
       default:
         leftPrecedenceRequirement = EXPRESSION;
         rightPrecedenceRequirement = EXPRESSION;

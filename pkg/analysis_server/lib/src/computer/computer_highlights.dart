@@ -7,7 +7,7 @@ import 'dart:math' as math;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart'
     show analyzeQuote, Quote, firstQuoteLength, lastQuoteLength;
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart' as char;
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart'
+import 'package:analysis_server/lsp_protocol/protocol.dart'
     show SemanticTokenTypes, SemanticTokenModifiers;
 import 'package:analysis_server/src/lsp/constants.dart'
     show CustomSemanticTokenModifiers, CustomSemanticTokenTypes;

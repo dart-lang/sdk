@@ -1,0 +1,33 @@
+main = main::main;
+library from "org-dartlang-test:///lib.dart" as lib {
+//
+// Problems in library:
+//
+// org-dartlang-test:///lib.dart:3:16: Error: Can't create typedef from non-function type.
+// typedef Bar<X> = Foo<X>;
+//                ^
+//
+
+  typedef Bar<unrelated X extends dart.core::Object? = dynamic> = invalid-type;
+  class Foo<X extends dart.core::Object? = dynamic> extends dart.core::Object {
+    synthetic constructor •() → lib::Foo<lib::Foo::X%>
+      : super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:6:20: Error: Couldn't find constructor 'Bar'.
+//   Bar<int> x = new Bar<int>();
+//                    ^^^
+//
+
+  import "org-dartlang-test:///lib.dart";
+
+  static method main() → dynamic {
+    invalid-type x = invalid-expression "org-dartlang-test:///main.dart:6:20: Error: Couldn't find constructor 'Bar'.\n  Bar<int> x = new Bar<int>();\n                   ^^^";
+    dart.core::print(x);
+  }
+}

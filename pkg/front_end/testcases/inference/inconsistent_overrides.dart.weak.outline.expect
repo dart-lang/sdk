@@ -41,11 +41,11 @@ import "dart:core" as core;
 class A extends core::Object {
   synthetic constructor •() → self::A*
     ;
-  method f(self::A* x, {self::A* y}) → self::A*
+  method f(self::A* x, {self::A* y = null}) → self::A*
     ;
-  method g(self::A* x, {self::A* y}) → self::A*
+  method g(self::A* x, {self::A* y = null}) → self::A*
     ;
-  method h(self::A* x, {self::A* y}) → self::A*
+  method h(self::A* x, {self::A* y = null}) → self::A*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -61,21 +61,21 @@ class A extends core::Object {
 class B extends self::A implements self::I {
   synthetic constructor •() → self::B*
     ;
-  method f(invalid-type x, {invalid-type y}) → invalid-type
+  method f(invalid-type x, {invalid-type y = null}) → invalid-type
     ;
-  method g(invalid-type x, {invalid-type y}) → invalid-type
+  method g(invalid-type x, {invalid-type y = null}) → invalid-type
     ;
-  method h(invalid-type x, {invalid-type y}) → invalid-type
+  method h(invalid-type x, {invalid-type y = null}) → invalid-type
     ;
 }
 class I extends core::Object {
   synthetic constructor •() → self::I*
     ;
-  method f(self::I* x, {self::I* y}) → self::I*
+  method f(self::I* x, {self::I* y = null}) → self::I*
     ;
-  method g(self::I* x, {self::I* y}) → self::A*
+  method g(self::I* x, {self::I* y = null}) → self::A*
     ;
-  method h(self::A* x, {self::I* y}) → self::A*
+  method h(self::A* x, {self::I* y = null}) → self::A*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

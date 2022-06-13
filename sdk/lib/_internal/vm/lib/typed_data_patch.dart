@@ -4031,6 +4031,8 @@ class _Float64x2 implements Float64x2 {
   @pragma("vm:exact-result-type", _Float64x2)
   @pragma("vm:external-name", "Float64x2_abs")
   external Float64x2 abs();
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _Float64x2)
   @pragma("vm:external-name", "Float64x2_clamp")
   external Float64x2 clamp(Float64x2 lowerLimit, Float64x2 upperLimit);
   @pragma("vm:recognized", "other")

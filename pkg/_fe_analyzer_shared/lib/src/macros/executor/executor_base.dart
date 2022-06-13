@@ -172,8 +172,8 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
                     responseType: MessageType.remoteInstance,
                     response: (await resolver.declarationOf(request.identifier)
                         // TODO: Consider refactoring to avoid the need for
-                        //  this.
-                        as TypeDeclarationImpl),
+                        //  this cast.
+                        as Serializable),
                     serializationZoneId: zoneId);
               } on ArgumentError catch (error) {
                 response = new SerializableResponse(

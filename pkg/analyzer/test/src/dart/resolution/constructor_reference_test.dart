@@ -242,6 +242,21 @@ ConstructorReference
 ''');
   }
 
+  test_alias_generic_with_inferred_type_parameter() async {
+    await assertErrorsInCode('''
+class C<T> {
+  final T x;
+  C(this.x);
+}
+typedef Direct<T> = C<T>;
+void main() {
+  var x = const <C<int> Function(int)>[Direct.new];
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 87, 1),
+    ]);
+  }
+
   test_alias_genericWithBound_unnamed() async {
     await assertNoErrorsInCode('''
 class A<T> {

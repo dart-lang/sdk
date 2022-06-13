@@ -13,6 +13,28 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 
+/// A request handler for the completion domain.
+abstract class CompletionHandler extends LegacyHandler {
+  /// Initialize a newly created handler to be able to service requests for the
+  /// [server].
+  CompletionHandler(super.server, super.request, super.cancellationToken);
+
+  /// Return `true` if completion is disabled and the handler should return. If
+  /// `true` is returned then a response will already have been returned, so
+  /// subclasses should not return a second response.
+  bool get completionIsDisabled {
+    if (!server.options.featureSet.completion) {
+      sendResponse(Response.invalidParameter(
+        request,
+        'request',
+        'The completion feature is not enabled',
+      ));
+      return true;
+    }
+    return false;
+  }
+}
+
 /// A request handler for the legacy protocol.
 abstract class LegacyHandler {
   /// The analysis server that is using this handler to process a request.

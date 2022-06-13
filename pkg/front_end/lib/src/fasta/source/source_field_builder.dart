@@ -16,6 +16,7 @@ import '../builder/class_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
@@ -40,7 +41,7 @@ import 'source_class_builder.dart';
 import 'source_member_builder.dart';
 
 class SourceFieldBuilder extends SourceMemberBuilderImpl
-    implements FieldBuilder {
+    implements FieldBuilder, InferredTypeListener {
   @override
   final String name;
 
@@ -51,7 +52,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   final List<MetadataBuilder>? metadata;
 
-  final TypeBuilder? type;
+  final TypeBuilder type;
 
   Token? _constInitializerToken;
 
@@ -90,10 +91,13 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       Reference? lateIsSetSetterReference,
       Reference? lateGetterReference,
       Reference? lateSetterReference,
+      Token? initializerToken,
       Token? constInitializerToken,
       this.isSynthesized = false})
       : _constInitializerToken = constInitializerToken,
         super(libraryBuilder, charOffset) {
+    type.registerInferredTypeListener(this);
+
     bool isInstanceMember = fieldNameScheme.isInstanceMember;
 
     Uri fileUri = libraryBuilder.fileUri;
@@ -258,6 +262,19 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
           getterReference: fieldGetterReference,
           setterReference: fieldSetterReference);
     }
+
+    if (type is OmittedTypeBuilder) {
+      if (!hasInitializer && isStatic) {
+        // A static field without type and initializer will always be inferred
+        // to have type `dynamic`.
+        type.registerInferredType(const DynamicType());
+      } else {
+        // A field with no type and initializer or an instance field without
+        // type and initializer need to have the type inferred.
+        fieldType = new ImplicitFieldType(this, initializerToken);
+        libraryBuilder.registerImplicitlyTypedField(this);
+      }
+    }
   }
 
   bool get isLateLowered => _fieldEncoding.isLateLowering;
@@ -325,10 +342,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
         isSynthetic: isSynthetic);
   }
 
-  bool get isEligibleForInference {
-    return type == null && (hasInitializer || isClassInstanceMember);
-  }
-
   @override
   bool get isAssignable {
     if (isConst) return false;
@@ -366,8 +379,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   /// Builds the core AST structures for this field as needed for the outline.
   void build() {
-    if (type != null) {
-      fieldType = type!.build(libraryBuilder);
+    if (type is! OmittedTypeBuilder) {
+      fieldType = type.build(libraryBuilder, TypeUse.fieldType);
     }
     _fieldEncoding.build(libraryBuilder, this);
   }
@@ -460,7 +473,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       if (!libraryBuilder.isNonNullableByDefault) {
         inferredType = legacyErasure(inferredType);
       }
-      fieldType = implicitFieldType.checkInferred(inferredType);
+      type.registerInferredType(implicitFieldType.checkInferred(inferredType));
 
       IncludesTypeParametersNonCovariantly? needsCheckVisitor;
       if (parent is ClassBuilder) {
@@ -481,6 +494,11 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       }
     }
     return fieldType;
+  }
+
+  @override
+  void onInferredType(DartType type) {
+    fieldType = type;
   }
 
   DartType get builtType => fieldType;

@@ -1,27 +1,17 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class Mixin extends core::Object {
   field dynamic field = null;
-  synthetic constructor •() → self::Mixin*
+  synthetic constructor •() → self::Mixin
     : super core::Object::•()
     ;
   method foo() → dynamic
     return 87;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class _Foo&Object&Mixin = core::Object with self::Mixin /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_Foo&Object&Mixin*
+  synthetic constructor •() → self::_Foo&Object&Mixin
     : super core::Object::•()
     ;
   mixin-super-stub method foo() → dynamic
@@ -30,19 +20,9 @@ abstract class _Foo&Object&Mixin = core::Object with self::Mixin /*isAnonymousMi
     return super.{self::Mixin::field};
   mixin-super-stub set field(dynamic value) → void
     return super.{self::Mixin::field} = value;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Foo extends self::_Foo&Object&Mixin {
-  synthetic constructor •() → self::Foo*
+  synthetic constructor •() → self::Foo
     : super self::_Foo&Object&Mixin::•()
     ;
   method foo() → dynamic
@@ -51,7 +31,7 @@ class Foo extends self::_Foo&Object&Mixin {
     return super.{self::_Foo&Object&Mixin::field};
 }
 static method main() → dynamic {
-  self::Foo* f = new self::Foo::•();
+  self::Foo f = new self::Foo::•();
   f.{self::_Foo&Object&Mixin::field} = 42;
-  core::print(f.{self::Foo::bar}(){() →* dynamic});
+  core::print(f.{self::Foo::bar}(){() → dynamic});
 }

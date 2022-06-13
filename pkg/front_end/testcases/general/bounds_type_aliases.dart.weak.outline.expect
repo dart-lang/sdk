@@ -1,0 +1,203 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:32:5: Error: Generic type 'F' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'F' here.
+//     T1 extends F, // Error
+//     ^^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:9:11: Context: Bound of this variable references variable 'X' from the same declaration.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:40:5: Error: Generic type 'G' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'G' here.
+//     S1 extends G, // Error
+//     ^^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:11:9: Context: Bound of this variable references variable 'X' from the same declaration.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:38:16: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//     T7 extends F<Object>, // Error
+//                ^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:39:16: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//     T8 extends F<int>, // Error
+//                ^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:46:16: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//     S7 extends G<Object>, // Error
+//                ^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:47:16: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//     S8 extends G<int> // Error
+//                ^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:13:14: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// typedef T1 = F; // Error
+//              ^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:14:14: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// typedef T2 = F<dynamic>; // Error
+//              ^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:15:14: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// typedef T3 = F<Class>; // Error
+//              ^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:16:14: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// typedef T4 = F<Class<dynamic>>; // Error
+//              ^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:19:14: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// typedef T7 = F<Object>; // Error
+//              ^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:20:14: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// typedef T8 = F<int>; // Error
+//              ^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:22:14: Error: Inferred type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// typedef S1 = G; // Error
+//              ^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:23:14: Error: Type argument 'dynamic' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// typedef S2 = G<dynamic>; // Error
+//              ^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:24:14: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// typedef S3 = G<Class>; // Error
+//              ^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:25:14: Error: Type argument 'Class<dynamic>' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// typedef S4 = G<Class<dynamic>>; // Error
+//              ^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:28:14: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// typedef S7 = G<Object>; // Error
+//              ^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:29:14: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// typedef S8 = G<int>; // Error
+//              ^
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F<X extends self::Class<X> = self::Class<dynamic>> = X;
+typedef T1 = self::Class<dynamic>;
+typedef T2 = dynamic;
+typedef T3 = self::Class<dynamic>;
+typedef T4 = self::Class<dynamic>;
+typedef T5 = self::ConcreteClass;
+typedef T6 = self::Class<self::ConcreteClass>;
+typedef T7 = core::Object;
+typedef T8 = core::int;
+typedef S1 = self::G<self::Class<dynamic>>;
+typedef S2 = self::G<dynamic>;
+typedef S3 = self::G<self::Class<dynamic>>;
+typedef S4 = self::G<self::Class<dynamic>>;
+typedef S5 = self::G<self::ConcreteClass>;
+typedef S6 = self::G<self::Class<self::ConcreteClass>>;
+typedef S7 = self::G<core::Object>;
+typedef S8 = self::G<core::int>;
+typedef Typedef1 = <T1 extends self::Class<dynamic> = dynamic, T2 extends dynamic, T3 extends self::Class<dynamic> = dynamic, T4 extends self::Class<dynamic> = dynamic, T5 extends self::ConcreteClass = dynamic, T6 extends self::Class<self::ConcreteClass> = dynamic, T7 extends core::Object = dynamic, T8 extends core::int = dynamic, S1 extends self::G<self::Class<dynamic>> = dynamic, S2 extends self::G<dynamic> = dynamic, S3 extends self::G<self::Class<dynamic>> = dynamic, S4 extends self::G<self::Class<dynamic>> = dynamic, S5 extends self::G<self::ConcreteClass> = dynamic, S6 extends self::G<self::Class<self::ConcreteClass>> = dynamic, S7 extends self::G<core::Object> = dynamic, S8 extends self::G<core::int> = dynamic>() → void;
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    ;
+}
+class ConcreteClass extends core::Object implements self::Class<self::ConcreteClass> {
+  synthetic constructor •() → self::ConcreteClass
+    ;
+}
+class G<X extends self::Class<self::G::X> = self::Class<dynamic>> extends core::Object {
+  synthetic constructor •() → self::G<self::G::X>
+    ;
+}
+static method main() → dynamic
+  ;

@@ -1,14 +1,13 @@
-// @dart = 2.9
 library test;
 
 class B<T, U extends F<T>> {
-  B<T, F<T>> operator +(other) => null;
+  B<T, F<T>> operator +(other) => throw '';
 }
 
 class C {
-  B<num, F<num>> operator [](int i) => null;
-  B<num, F<num>> x;
-  static B<num, F<num>> y;
+  B<num, F<num>> operator [](int i) => throw '';
+  B<num, F<num>> x = throw '';
+  static B<num, F<num>> y = throw '';
   void operator []=(int i, B<num, F<num>> v) {}
 }
 

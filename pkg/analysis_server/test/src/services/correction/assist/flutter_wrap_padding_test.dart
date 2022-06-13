@@ -31,7 +31,7 @@ class FlutterWrapPaddingTest extends AssistProcessorTest {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
-  main() {
+  Widget f() {
     return /*caret*/Container();
   }
 }
@@ -39,7 +39,7 @@ class FakeFlutter {
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
-  main() {
+  Widget f() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(),
@@ -53,7 +53,7 @@ class FakeFlutter {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
-  main() {
+  Widget f() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(),
@@ -64,10 +64,7 @@ class FakeFlutter {
     await assertNoAssist();
   }
 
-  @failingTest
   Future<void> test_inConstantContext() async {
-    // TODO(brianwilkerson) Get this test to pass again. Not clear whether it's
-    //  a problem with the test code or the mock flutter package.
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {

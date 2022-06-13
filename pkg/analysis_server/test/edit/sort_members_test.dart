@@ -40,7 +40,7 @@ class SortMembersTest extends PubPackageAnalysisServerTest {
 
   Future<void> test_BAD_hasParseError() async {
     addTestFile('''
-main() {
+void f() {
   print()
 }
 ''');
@@ -136,7 +136,7 @@ import 'aaa/aaa.dart';
 part 'bbb/bbb.dart';
 part 'aaa/aaa.dart';
 
-main() {
+void f() {
 }
 ''');
     return _assertSorted(r'''
@@ -163,7 +163,7 @@ export 'bbb/bbb.dart';
 part 'aaa/aaa.dart';
 part 'bbb/bbb.dart';
 
-main() {
+void f() {
 }
 ''');
   }

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 
 /// The characters that will cause the editor to automatically commit the selected
 /// completion item.
@@ -215,7 +214,6 @@ abstract class ServerErrorCodes {
   static const FileHasErrors = ErrorCodes(-32008);
   static const ClientFailedToApplyEdit = ErrorCodes(-32009);
   static const RenameNotValid = ErrorCodes(-32010);
-  static const RefactorFailed = ErrorCodes(-32011);
   static const FeatureDisabled = ErrorCodes(-32012);
 
   /// A file that is expected to be analyzed, but failed.

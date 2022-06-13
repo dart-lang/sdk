@@ -20,6 +20,7 @@ void main(List<String> args) {
     ...listSubdirectories(platform('third_party/pkg')),
     ...listSubdirectories(platform('third_party/pkg/file/packages')),
     ...listSubdirectories(platform('third_party/pkg/test/pkgs')),
+    ...listSubdirectories(platform('third_party/pkg/shelf/pkgs')),
     platform('pkg/vm_service/test/test_package'),
     platform('runtime/observatory_2'),
     platform(
@@ -32,6 +33,9 @@ void main(List<String> args) {
     platform('third_party/pkg/webdev/frontend_server_client'),
     platform('tools/package_deps'),
   ];
+
+  // Remove the package at the top-level of the package:file monorepo.
+  packageDirs.remove(platform('third_party/pkg/file'));
 
   var cfePackageDirs = [
     platform('pkg/front_end/testcases'),
@@ -49,12 +53,50 @@ void main(List<String> args) {
     platform('pkg/_fe_analyzer_shared/test/inheritance'),
   ];
 
+  // Validate that all the given directories exist.
+  var hasMissingDirectories = false;
+  for (var path in [
+    ...packageDirs,
+    ...cfePackageDirs,
+    ...feAnalyzerSharedPackageDirs
+  ]) {
+    if (!Directory(join(repoRoot, path)).existsSync()) {
+      stderr.writeln("Unable to locate directory: '$path'.");
+      hasMissingDirectories = true;
+    }
+  }
+
+  if (hasMissingDirectories) {
+    exit(1);
+  }
+
   var packages = <Package>[
     ...makePackageConfigs(packageDirs),
     ...makeCfePackageConfigs(cfePackageDirs),
     ...makeFeAnalyzerSharedPackageConfigs(feAnalyzerSharedPackageDirs)
   ];
   packages.sort((a, b) => a.name.compareTo(b.name));
+
+  // Remove any packages with identical names.
+  final uniqueNames = packages.map((p) => p.name).toSet();
+
+  var hasDuplicatePackages = false;
+
+  for (var name in uniqueNames) {
+    var matches = packages.where((p) => p.name == name).toList();
+    if (matches.length > 1) {
+      print('Duplicates found for package:$name');
+      for (var package in matches) {
+        print('  ${package.rootUri}');
+      }
+
+      hasDuplicatePackages = true;
+    }
+  }
+
+  if (hasDuplicatePackages) {
+    exit(1);
+  }
 
   var configFile = File(join(repoRoot, '.dart_tool', 'package_config.json'));
   var packageConfig = PackageConfig(
@@ -72,28 +114,6 @@ void main(List<String> args) {
     },
   );
   writeIfDifferent(configFile, packageConfig.generateJson('..'));
-
-  // Also generate the repo's .packages file.
-  var packagesFile = File(join(repoRoot, '.packages'));
-  var buffer = StringBuffer('''
-# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
-# for details. All rights reserved. Use of this source code is governed by a
-# BSD-style license that can be found in the LICENSE file.
-#
-# This file is generated; do not edit. To re-generate, run:
-#   'dart tools/generate_package_config.dart'.
-
-''');
-  for (var package in packages) {
-    final name = package.name;
-    final rootUri = package.rootUri;
-    final packageUri = package.packageUri;
-
-    if (packageUri != null && packageUri != '.nonexisting') {
-      buffer.writeln('$name:${posix(rootUri)}/${posix(packageUri)}');
-    }
-  }
-  writeIfDifferent(packagesFile, buffer.toString());
 }
 
 /// Writes the given [contents] string to [file] if the contents are different

@@ -150,10 +150,11 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression evaluateArgumentsBefore(
       Arguments arguments, Expression expression);
 
-  DartType buildDartType(TypeBuilder typeBuilder,
+  DartType buildDartType(TypeBuilder typeBuilder, TypeUse typeUse,
       {required bool allowPotentiallyConstantType});
 
-  List<DartType> buildDartTypeArguments(List<TypeBuilder>? typeArguments,
+  List<DartType> buildDartTypeArguments(
+      List<TypeBuilder>? typeArguments, TypeUse typeUse,
       {required bool allowPotentiallyConstantType});
 
   void reportDuplicatedDeclaration(

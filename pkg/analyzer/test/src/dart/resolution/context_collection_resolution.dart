@@ -12,7 +12,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/summary2/macro.dart';
+import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -129,6 +129,12 @@ abstract class ContextResolutionTest
   /// to this path, instead of the given path.
   String? pathForContextSelection;
 
+  /// Optional Dart SDK summary file, to be used instead of [sdkRoot].
+  File? sdkSummaryFile;
+
+  /// Optional summaries to provide for the collection.
+  List<File>? librarySummaryFiles;
+
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
   List<String> get collectionIncludedPaths;
@@ -140,8 +146,6 @@ abstract class ContextResolutionTest
 
     _declaredVariables = map;
   }
-
-  MacroKernelBuilder? get macroKernelBuilder => null;
 
   bool get retainDataForTesting => false;
 
@@ -179,7 +183,9 @@ abstract class ContextResolutionTest
   void disposeAnalysisContextCollection() {
     final analysisContextCollection = _analysisContextCollection;
     if (analysisContextCollection != null) {
-      analysisContextCollection.dispose();
+      analysisContextCollection.dispose(
+        forTesting: true,
+      );
       _analysisContextCollection = null;
     }
   }
@@ -221,6 +227,9 @@ abstract class ContextResolutionTest
   @mustCallSuper
   Future<void> tearDown() async {
     disposeAnalysisContextCollection();
+    KernelCompilationService.disposeDelayed(
+      const Duration(milliseconds: 500),
+    );
   }
 
   /// Override this method to update [analysisOptions] for every context root,
@@ -256,8 +265,9 @@ abstract class ContextResolutionTest
       resourceProvider: resourceProvider,
       retainDataForTesting: retainDataForTesting,
       sdkPath: sdkRoot.path,
+      sdkSummaryPath: sdkSummaryFile?.path,
+      librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
       updateAnalysisOptions: updateAnalysisOptions,
-      macroKernelBuilder: macroKernelBuilder,
     );
 
     verifyCreatedCollection();
@@ -285,6 +295,8 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 
   /// The path that is not in [workspaceRootPath], contains external packages.
   String get packagesRootPath => '/packages';
+
+  File get testFile => getFile(testFilePath);
 
   @override
   String get testFilePath => '$testPackageLibPath/test.dart';

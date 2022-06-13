@@ -27,7 +27,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _finalizableClassName = 'Finalizable';
   static const _isLeafParamName = 'isLeaf';
   static const _opaqueClassName = 'Opaque';
-  static const _ffiNativeName = 'FfiNative';
 
   static const Set<String> _primitiveIntegerNativeTypesFixedSize = {
     'Int8',
@@ -190,7 +189,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    _checkFfiNative(node);
+    _checkFfiNative(
+      errorNode: node,
+      annotations: node.metadata,
+      declarationElement: node.declaredElement as ExecutableElement,
+      formalParameterList: node.functionExpression.parameters,
+    );
     super.visitFunctionDeclaration(node);
   }
 
@@ -237,7 +241,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    _checkFfiNative(node);
+    _checkFfiNative(
+        errorNode: node,
+        annotations: node.metadata,
+        declarationElement: node.declaredElement as ExecutableElement,
+        formalParameterList: node.parameters);
     super.visitMethodDeclaration(node);
   }
 
@@ -302,127 +310,84 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     super.visitPropertyAccess(node);
   }
 
-  void _checkFfiNative(Declaration node) {
-    NodeList<Annotation> annotations = node.metadata;
-    if (annotations.isEmpty) {
-      return;
-    }
+  void _checkFfiNative({
+    required Declaration errorNode,
+    required List<Annotation> annotations,
+    required ExecutableElement declarationElement,
+    required FormalParameterList? formalParameterList,
+  }) {
+    final formalParameters =
+        formalParameterList?.parameters ?? <FormalParameter>[];
 
     for (Annotation annotation in annotations) {
-      if (annotation.name.name != _ffiNativeName) {
+      if (!annotation.isFfiNative) {
         continue;
       }
 
-      final NodeList<Expression> arguments = annotation.arguments!.arguments;
-      final NodeList<TypeAnnotation> typeArguments =
-          annotation.typeArguments!.arguments;
+      final typeArguments = annotation.typeArguments?.arguments;
+      final arguments = annotation.arguments?.arguments;
+      if (typeArguments == null || arguments == null) {
+        continue;
+      }
 
       final ffiSignature = typeArguments[0].type! as FunctionType;
 
       // Leaf call FFI Natives can't use Handles.
-      _validateFfiLeafCallUsesNoHandles(arguments, ffiSignature, node);
+      _validateFfiLeafCallUsesNoHandles(arguments, ffiSignature, errorNode);
 
-      if (node is MethodDeclaration) {
-        if (!node.declaredElement!.isExternal) {
-          _errorReporter.reportErrorForNode(
-              FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL, node);
-        }
-
-        List<DartType> ffiParameterTypes;
-        if (!node.isStatic) {
-          // Instance methods must have the receiver as an extra parameter in the
-          // FfiNative annotation.
-          if (node.parameters!.parameters.length + 1 !=
-              ffiSignature.parameters.length) {
-            _errorReporter.reportErrorForNode(
-                FfiCode
-                    .FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER,
-                node,
-                [
-                  node.parameters!.parameters.length + 1,
-                  ffiSignature.parameters.length
-                ]);
-            return;
-          }
-
-          // Receiver can only be Pointer if the class extends
-          // NativeFieldWrapperClass1.
-          if (ffiSignature.normalParameterTypes[0].isPointer) {
-            final cls = node.declaredElement!.enclosingElement as ClassElement;
-            if (!_extendsNativeFieldWrapperClass1(cls.thisType)) {
-              _errorReporter.reportErrorForNode(
-                  FfiCode
-                      .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
-                  node);
-            }
-          }
-
-          ffiParameterTypes = ffiSignature.normalParameterTypes.sublist(1);
-        } else {
-          // Number of parameters in the FfiNative annotation must match the
-          // annotated declaration.
-          if (node.parameters!.parameters.length !=
-              ffiSignature.parameters.length) {
-            _errorReporter.reportErrorForNode(
-                FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, node, [
-              ffiSignature.parameters.length,
-              node.parameters!.parameters.length
-            ]);
-            return;
-          }
-
-          ffiParameterTypes = ffiSignature.normalParameterTypes;
-        }
-
-        // Arguments can only be Pointer if the class extends
-        // NativeFieldWrapperClass1.
-        for (var i = 0; i < node.parameters!.parameters.length; i++) {
-          if (ffiParameterTypes[i].isPointer) {
-            final type = node.parameters!.parameters[i].declaredElement!.type;
-            if (!_extendsNativeFieldWrapperClass1(type as InterfaceType)) {
-              _errorReporter.reportErrorForNode(
-                  FfiCode
-                      .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
-                  node);
-            }
-          }
-        }
-
-        continue;
+      if (!declarationElement.isExternal) {
+        _errorReporter.reportErrorForNode(
+            FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL, errorNode);
       }
 
-      if (node is FunctionDeclaration) {
-        if (!node.declaredElement!.isExternal) {
-          _errorReporter.reportErrorForNode(
-              FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL, node);
-        }
+      var ffiParameterTypes = ffiSignature.normalParameterTypes;
 
-        // Number of parameters in the FfiNative annotation must match the
-        // annotated declaration.
-        if (node.functionExpression.parameters!.parameters.length !=
-            ffiSignature.parameters.length) {
+      if (declarationElement is MethodElement && !declarationElement.isStatic) {
+        // Instance methods must have the receiver as an extra parameter in the
+        // FfiNative annotation.
+        if (formalParameters.length + 1 != ffiSignature.parameters.length) {
           _errorReporter.reportErrorForNode(
-              FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, node, [
-            ffiSignature.parameters.length,
-            node.functionExpression.parameters!.parameters.length
-          ]);
+              FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER,
+              errorNode,
+              [formalParameters.length + 1, ffiSignature.parameters.length]);
           return;
         }
 
-        // Arguments can only be Pointer if the class extends
+        // Receiver can only be Pointer if the class extends
         // NativeFieldWrapperClass1.
-        for (var i = 0;
-            i < node.functionExpression.parameters!.parameters.length;
-            i++) {
-          if (ffiSignature.normalParameterTypes[i].isPointer) {
-            final type = node.functionExpression.parameters!.parameters[i]
-                .declaredElement!.type;
-            if (!_extendsNativeFieldWrapperClass1(type as InterfaceType)) {
-              _errorReporter.reportErrorForNode(
-                  FfiCode
-                      .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
-                  node);
-            }
+        if (ffiSignature.normalParameterTypes[0].isPointer) {
+          final cls = declarationElement.enclosingElement as ClassElement;
+          if (!_extendsNativeFieldWrapperClass1(cls.thisType)) {
+            _errorReporter.reportErrorForNode(
+                FfiCode
+                    .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
+                errorNode);
+          }
+        }
+
+        ffiParameterTypes = ffiParameterTypes.sublist(1);
+      } else {
+        // Number of parameters in the FfiNative annotation must match the
+        // annotated declaration.
+        if (formalParameters.length != ffiSignature.parameters.length) {
+          _errorReporter.reportErrorForNode(
+              FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS,
+              errorNode,
+              [ffiSignature.parameters.length, formalParameters.length]);
+          return;
+        }
+      }
+
+      // Arguments can only be Pointer if the class extends
+      // NativeFieldWrapperClass1.
+      for (var i = 0; i < formalParameters.length; i++) {
+        if (ffiParameterTypes[i].isPointer) {
+          final type = formalParameters[i].declaredElement!.type;
+          if (!_extendsNativeFieldWrapperClass1(type as InterfaceType)) {
+            _errorReporter.reportErrorForNode(
+                FfiCode
+                    .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
+                errorNode);
           }
         }
       }
@@ -1292,6 +1257,13 @@ extension on Annotation {
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name == 'Array';
+  }
+
+  bool get isFfiNative {
+    final element = this.element;
+    return element is ConstructorElement &&
+        element.ffiClass != null &&
+        element.enclosingElement.name == 'FfiNative';
   }
 
   bool get isPacked {

@@ -38,9 +38,9 @@ abstract class A extends core::Object {
   synthetic constructor •() → self::A*
     ;
   abstract method f(core::int* x, core::int* y) → core::int*;
-  abstract method g(core::int* x, [core::int* y]) → core::int*;
-  abstract method h(core::int* x, {core::int* y}) → core::int*;
-  abstract method i(core::int* x, {core::int* y}) → core::int*;
+  abstract method g(core::int* x, [core::int* y = null]) → core::int*;
+  abstract method h(core::int* x, {core::int* y = null}) → core::int*;
+  abstract method i(core::int* x, {core::int* y = null}) → core::int*;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -58,7 +58,7 @@ abstract class B extends core::Object {
   abstract method f(core::int* x) → core::int*;
   abstract method g(core::int* x) → core::int*;
   abstract method h(core::int* x) → core::int*;
-  abstract method i(core::int* x, {core::int* z}) → core::int*;
+  abstract method i(core::int* x, {core::int* z = null}) → core::int*;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -74,9 +74,9 @@ abstract class C extends core::Object implements self::A, self::B {
   synthetic constructor •() → self::C*
     ;
   abstract method f(invalid-type x, invalid-type y) → invalid-type;
-  abstract method g(core::int* x, [core::int* y]) → core::int*;
-  abstract method h(core::int* x, {core::int* y}) → core::int*;
-  abstract method i(invalid-type x, {invalid-type y, invalid-type z}) → invalid-type;
+  abstract method g(core::int* x, [core::int* y = null]) → core::int*;
+  abstract method h(core::int* x, {core::int* y = null}) → core::int*;
+  abstract method i(invalid-type x, {invalid-type y = null, invalid-type z = null}) → invalid-type;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

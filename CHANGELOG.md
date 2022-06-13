@@ -1,5 +1,52 @@
 ## 2.18.0
 
+### Language
+
+The following features are new in the Dart 2.18 [language version][]. To use
+them, you must set the lower bound on the SDK constraint for your package to
+2.18 or greater (`sdk: '>=2.18.0 <3.0.0'`).
+
+[language version]: https://dart.dev/guides/language/evolution
+
+-  **[Enhanced type inference for generic invocations with function
+   literals][]**: Invocations of generic methods/constructors that supply
+   function literal arguments now have improved type inference.  This primarily
+   affects the `Iterable.fold` method.  For example, in previous versions of
+   Dart, the compiler would fail to infer an appropriate type for the parameter
+   `a`:
+
+   ```dart
+   void main() {
+     List<int> ints = [1, 2, 3];
+     var maximum = ints.fold(0, (a, b) => a < b ? b : a);
+   }
+   ```
+
+   With this improvement, `a` receives its type from the initial value, `0`.
+
+   On rare occasions, the wrong type will be inferred, leading to a compile-time
+   error, for example in this code, type inference will infer that `a` has a
+   type of `Null`:
+
+   ```dart
+   void main() {
+     List<int> ints = [1, 2, 3];
+     var maximumOrNull = ints.fold(null,
+         (a, b) => a == null || a < b ? b : a);
+   }
+   ```
+
+   This can be worked around by supplying the appropriate type as an explicit
+   type argument to `fold`:
+
+   ```dart
+   void main() {
+     List<int> ints = [1, 2, 3];
+     var maximumOrNull = ints.fold<int?>(null,
+         (a, b) => a == null || a < b ? b : a);
+   }
+   ```
+
 ### Core libraries
 
 #### `dart:html`
@@ -7,7 +54,251 @@
 - Add `connectionState` attribute and `connectionstatechange` listener to
   `RtcPeerConnection`.
 
-## 2.17.0
+#### `dart:io`
+
+- **Breaking Change** [#45630][]: The Dart VM no longer automatically restores
+    the initial terminal settings upon exit. Programs that change the `Stdin`
+    settings `lineMode` and `echoMode` are now responsible for restoring the
+    settings upon program exit. E.g. a program disabling `echoMode` will now
+    need to restore the setting itself and handle exiting by the appropriate
+    signals if desired:
+
+    ```dart
+    import 'dart:io';
+    import 'dart:async';
+
+    main() {
+      bool echoWasEnabled = stdin.echoMode;
+      try {
+        late StreamSubscription subscription;
+        subscription = ProcessSignal.sigint.watch().listen((ProcessSignal signal) {
+          stdin.echoMode = echoWasEnabled;
+          subscription.cancel();
+          Process.killPid(pid, signal); /* Die by the signal. */
+        });
+        stdin.echoMode = false;
+      } finally {
+        stdin.echoMode = echoWasEnabled;
+      }
+    }
+    ```
+
+    This change is needed to fix [#36453][] where the dart programs not caring
+    about the terminal settings can inadverently corrupt the terminal settings
+    when e.g. piping into less.
+
+    Furthermore the `echoMode` setting now only controls the `echo` local mode
+    and no longer sets the `echonl` local mode on POSIX systems (which controls
+    whether newline are echoed even if the regular echo mode is disabled). The
+    `echonl` local mode is usually turned off in common shell environments.
+    Programs that wish to control the `echonl` local mode can use the new
+    `echoNewlineMode` setting.
+
+    The Windows console code pages (if not UTF-8) and ANSI escape code support
+    (if disabled) remain restored when the VM exits.
+
+[#45630]: https://github.com/dart-lang/sdk/issues/45630
+[#36453]: https://github.com/dart-lang/sdk/issues/36453
+
+#### `dart:js_util`
+
+- Added `dartify` and a number of minor helper functions.
+
+### Tools
+
+#### Linter
+
+Updated the Linter to `1.24.0`, which includes changes that
+
+- fixes `prefer_final_parameters` to support super parameters.
+- adds new lint: `unnecessary_to_list_in_spreads`.
+- fixes `unawaited_futures` to handle string interpolated
+  futures.
+- updates `use_colored_box` to not flag nullable colors,
+- adds new lint: 
+  `unnecessary_null_aware_operator_on_extension_on_nullable`.
+- fixes `no_leading_underscores_for_local_identifiers`
+  to lint local function declarations.
+- fixes `avoid_init_to_null` to correctly handle super
+  initializing defaults that are non-null.
+- updates `no_leading_underscores_for_local_identifiers`
+  to allow identifiers with just underscores.
+- fixes `flutter_style_todos` to support usernames that
+  start with a digit.
+- updates `require_trailing_commas` to handle functions
+  in asserts and multi-line strings.
+- updates `unsafe_html` to allow assignments to
+  `img.src`.
+- fixes `unnecessary_null_checks` to properly handle map
+  literal entries.
+
+#### Pub
+
+* Breaking: `dart pub get` and `dart pub upgrade` no longer creates the
+  [deprecated](https://github.com/dart-lang/sdk/issues/47431) `.packages` file.
+  It can still be created with the `--legacy-packages-file` flag.
+* `dart pub outdated` now shows which of your dependencies are discontinued.
+
+## 2.17.3 - 2022-06-01
+
+This is a patch release that fixes:
+
+- a Dart VM compiler crash (issue [#100375][]).
+- code completion when writing method overrides (issue [#49027][]).
+- the `dart pub login` command (issue [#3424][]).
+- analysis of enhanced enums (issue [#49097][]).
+
+[#100375]: https://github.com/flutter/flutter/issues/100375
+[#49027]: https://github.com/dart-lang/sdk/issues/49027
+[#3424]: https://github.com/dart-lang/pub/issues/3424
+[#49097]: https://github.com/dart-lang/sdk/issues/49097
+
+## 2.17.1 - 2022-05-18
+
+This is a patch release that fixes:
+
+- an analyzer plugin crash (issue [#48682][]).
+- Dart FFI support for `late` `Finalizable` variables (issue [#49024]).
+- `dart compile` on macOS 10.15 (issue [#49010][]).
+
+[#48682]: https://github.com/dart-lang/sdk/issues/48682
+[#49024]: https://github.com/dart-lang/sdk/issues/49024
+[#49010]: https://github.com/dart-lang/sdk/issues/49010
+
+## 2.17.0 - 2022-05-11
+
+### Language
+
+The following features are new in the Dart 2.17 [language version][]. To use
+them, you must set the lower bound on the SDK constraint for your package to
+2.17 or greater (`sdk: '>=2.17.0 <3.0.0'`).
+
+[language version]: https://dart.dev/guides/language/evolution
+
+-   **[Enhanced enums with members][]**: Enum declarations can now define
+    members including fields, constructors, methods, getters, etc. For example:
+
+    ```dart
+    enum Water {
+      frozen(32),
+      lukewarm(100),
+      boiling(212);
+
+      final int tempInFahrenheit;
+      const Water(this.tempInFahrenheit);
+
+      @override
+      String toString() => "The $name water is $tempInFahrenheit F.";
+    }
+    ```
+
+    Constructors must be `const` since enum values are always constants. If the
+    constructor takes arguments, they are passed when the enum value is
+    declared.
+
+    The above enum can be used like so:
+
+    ```dart
+    void main() {
+      print(Water.frozen); // prints "The frozen water is 32 F."
+    }
+    ```
+
+[enhanced enums with members]: https://github.com/dart-lang/language/blob/master/accepted/future-releases/enhanced-enums/feature-specification.md
+
+-   **[Super parameters][]**: When extending a class whose constructor takes
+    parameters, the subclass constructor needs to provide arguments for them.
+    Often, these are passed as parameters to the subclass constructor, which
+    then forwards them to the superclass constructor. This is verbose because
+    the subclass constructor must list the name and type of each parameter in
+    its parameter list, and then explicitly forward each one as an argument to
+    the superclass constructor.
+
+    [@roy-sianez][] suggested [allowing `super.`][super dot] before a subclass
+    constructor parameter to implicitly forward it to the corresponding
+    superclass constructor parameter. Applying this feature to Flutter
+    eliminated [nearly 2,000 lines of code][flutter super]. For example, before:
+
+    ```dart
+    class CupertinoPage<T> extends Page<T> {
+      const CupertinoPage({
+        required this.child,
+        this.maintainState = true,
+        this.title,
+        this.fullscreenDialog = false,
+        LocalKey? key,
+        String? name,
+        Object? arguments,
+        String? restorationId,
+      }) : super(
+            key: key,
+            name: name,
+            arguments: arguments,
+            restorationId: restorationId,
+          );
+
+      // ...
+    }
+    ```
+
+    And using super parameters:
+
+    ```dart
+    class CupertinoPage<T> extends Page<T> {
+      const CupertinoPage({
+        required this.child,
+        this.maintainState = true,
+        this.title,
+        this.fullscreenDialog = false,
+        super.key,
+        super.name,
+        super.arguments,
+        super.restorationId,
+      });
+
+      // ...
+    }
+    ```
+
+    From our analysis, over 90% of explicit superclass constructor calls can be
+    completely eliminated, using `super.` parameters instead.
+
+[super parameters]: https://github.com/dart-lang/language/blob/master/working/1855%20-%20super%20parameters/proposal.md
+[@roy-sianez]: https://github.com/roy-sianez
+[super dot]: https://github.com/dart-lang/language/issues/1855
+[flutter super]: https://github.com/flutter/flutter/pull/100905/files
+
+-   **[Named args everywhere][]**: In a function call, Dart requires positional
+    arguments to appear before named arguments. This can be frustrating for
+    arguments like collection literals and function expressions that look best
+    as the last argument in the argument list but are positional, like the
+    `test()` function in the [test package][]:
+
+    ```dart
+    main() {
+      test('A test description', () {
+        // Very long function body here...
+      }, skip: true);
+    }
+    ```
+
+    It would be better if the `skip` argument appeared at the top of the call
+    to `test()` so that it wasn't easily overlooked, but since it's named and
+    the test body argument is positional, `skip` must be placed at the end.
+
+    Dart 2.17 removes this restriction. Named arguments can be freely
+    interleaved with positional arguments, allowing code like:
+
+    ```dart
+    main() {
+      test(skip: true, 'A test description', () {
+        // Very long function body here...
+      });
+    }
+    ```
+
+[named args everywhere]: https://github.com/dart-lang/language/blob/master/accepted/future-releases/named-arguments-anywhere/feature-specification.md
+[test package]: https://pub.dev/packages/test
 
 ### Language
 
@@ -276,7 +567,7 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 Updated the Linter to `1.22.0`, which includes changes that
 
-- fixes null-safe variance exceptions in `invariant_booleans`
+- fixes null-safe variance exceptions in `invariant_booleans`.
 - updates `depend_on_referenced_packages` to treat `flutter_gen` as a virtual
   package, not needing an explicit dependency.
 - updates `unnecessary_null_checks` and

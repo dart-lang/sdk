@@ -39,7 +39,7 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       current_ssa_temp_index_(0),
       max_block_id_(max_block_id),
       parsed_function_(parsed_function),
-      num_direct_parameters_(parsed_function.function().HasOptionalParameters()
+      num_direct_parameters_(parsed_function.function().MakesCopyOfParameters()
                                  ? 0
                                  : parsed_function.function().NumParameters()),
       direct_parameters_size_(0),
@@ -54,7 +54,7 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       prologue_info_(prologue_info),
       loop_hierarchy_(nullptr),
       loop_invariant_loads_(nullptr),
-      captured_parameters_(new (zone()) BitVector(zone(), variable_count())),
+      captured_parameters_(new(zone()) BitVector(zone(), variable_count())),
       inlining_id_(-1),
       should_print_(false) {
   should_print_ = FlowGraphPrinter::ShouldPrint(parsed_function.function(),
@@ -1076,7 +1076,7 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
   GrowableArray<BlockEntryInstr*> worklist;
   for (intptr_t var_index = 0; var_index < variable_count(); ++var_index) {
     const bool always_live =
-        !FLAG_prune_dead_locals || (var_index == CurrentContextEnvIndex());
+        !FLAG_prune_dead_locals || IsImmortalVariable(var_index);
     // Add to the worklist each block containing an assignment.
     for (intptr_t block_index = 0; block_index < block_count; ++block_index) {
       if (assigned_vars[block_index]->Contains(var_index)) {
@@ -1378,7 +1378,7 @@ void FlowGraph::RenameRecursive(
       // TODO(fschneider): Make sure that live_in always contains the
       // CurrentContext variable to avoid the special case here.
       if (FLAG_prune_dead_locals && !live_in->Contains(i) &&
-          (i != CurrentContextEnvIndex())) {
+          !IsImmortalVariable(i)) {
         (*env)[i] = constant_dead();
       }
     }
@@ -1619,10 +1619,6 @@ void FlowGraph::ValidatePhis() {
     return;
   }
 
-  // Current_context_var is never pruned, it is artificially kept alive, so
-  // it should not be checked here.
-  const intptr_t current_context_var_index = CurrentContextEnvIndex();
-
   for (intptr_t i = 0, n = preorder().length(); i < n; ++i) {
     BlockEntryInstr* block_entry = preorder()[i];
     Instruction* last_instruction = block_entry->last_instruction();
@@ -1634,7 +1630,7 @@ void FlowGraph::ValidatePhis() {
       if (successor->phis() != NULL) {
         for (intptr_t j = 0; j < successor->phis()->length(); ++j) {
           PhiInstr* phi = (*successor->phis())[j];
-          if (phi == nullptr && j != current_context_var_index) {
+          if (phi == nullptr && !IsImmortalVariable(j)) {
             // We have no phi node for the this variable.
             // Double check we do not have a different value in our env.
             // If we do, we would have needed a phi-node in the successsor.

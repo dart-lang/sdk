@@ -1,0 +1,131 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/set_literals/disambiguation_rule2.dart:13:28: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'LinkedHashSet<int>'.
+//  - 'Set' is from 'dart:core'.
+//  - 'LinkedHashSet' is from 'dart:collection'.
+//   LinkedHashSet<int> lhs = {};
+//                            ^
+//
+// pkg/front_end/testcases/set_literals/disambiguation_rule2.dart:14:34: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'LinkedHashMap<int, bool>'.
+//  - 'Map' is from 'dart:core'.
+//  - 'LinkedHashMap' is from 'dart:collection'.
+//   LinkedHashMap<int, bool> lhm = {};
+//                                  ^
+//
+// pkg/front_end/testcases/set_literals/disambiguation_rule2.dart:32:46: Error: A value of type 'Set<dynamic>' can't be returned from an async function with return type 'Future<LinkedHashSet<int>>'.
+//  - 'Set' is from 'dart:core'.
+//  - 'Future' is from 'dart:async'.
+//  - 'LinkedHashSet' is from 'dart:collection'.
+// Future<LinkedHashSet<int>> lhsfun() async => {};
+//                                              ^
+//
+// pkg/front_end/testcases/set_literals/disambiguation_rule2.dart:33:52: Error: A value of type 'Map<dynamic, dynamic>' can't be returned from an async function with return type 'Future<LinkedHashMap<int, bool>>'.
+//  - 'Map' is from 'dart:core'.
+//  - 'Future' is from 'dart:async'.
+//  - 'LinkedHashMap' is from 'dart:collection'.
+// Future<LinkedHashMap<int, bool>> lhmfun() async => {};
+//                                                    ^
+//
+// pkg/front_end/testcases/set_literals/disambiguation_rule2.dart:38:43: Error: A value of type 'Set<dynamic>' can't be returned from a function with return type 'FutureOr<LinkedHashSet<int>>'.
+//  - 'Set' is from 'dart:core'.
+//  - 'LinkedHashSet' is from 'dart:collection'.
+// FutureOr<LinkedHashSet<int>> lhsfun2() => {};
+//                                           ^
+//
+// pkg/front_end/testcases/set_literals/disambiguation_rule2.dart:39:49: Error: A value of type 'Map<dynamic, dynamic>' can't be returned from a function with return type 'FutureOr<LinkedHashMap<int, bool>>'.
+//  - 'Map' is from 'dart:core'.
+//  - 'LinkedHashMap' is from 'dart:collection'.
+// FutureOr<LinkedHashMap<int, bool>> lhmfun2() => {};
+//                                                 ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+import "dart:async" as asy;
+
+import "dart:async" show FutureOr;
+import "dart:collection" show LinkedHashMap, LinkedHashSet;
+
+static method main() → dynamic async /* futureValueType= dynamic */ {
+  core::Map<core::int, core::bool> m = <core::int, core::bool>{};
+  core::Set<core::int> s = block {
+    final core::Set<core::int> #t1 = col::LinkedHashSet::•<core::int>();
+  } =>#t1;
+  core::Iterable<core::int> i = block {
+    final core::Set<core::int> #t2 = col::LinkedHashSet::•<core::int>();
+  } =>#t2;
+  col::LinkedHashSet<core::int> lhs = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule2.dart:13:28: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'LinkedHashSet<int>'.
+ - 'Set' is from 'dart:core'.
+ - 'LinkedHashSet' is from 'dart:collection'.
+  LinkedHashSet<int> lhs = {};
+                           ^" in ( block {
+    final core::Set<dynamic> #t3 = col::LinkedHashSet::•<dynamic>();
+  } =>#t3) as{TypeError,ForNonNullableByDefault} col::LinkedHashSet<core::int>;
+  col::LinkedHashMap<core::int, core::bool> lhm = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule2.dart:14:34: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'LinkedHashMap<int, bool>'.
+ - 'Map' is from 'dart:core'.
+ - 'LinkedHashMap' is from 'dart:collection'.
+  LinkedHashMap<int, bool> lhm = {};
+                                 ^" in <dynamic, dynamic>{} as{TypeError,ForNonNullableByDefault} col::LinkedHashMap<core::int, core::bool>;
+  core::Map<core::int, core::bool> fm = await self::mapfun();
+  core::Set<core::int> fs = await self::setfun();
+  core::Iterable<core::int> fi = await self::iterablefun();
+  col::LinkedHashSet<core::int> flhs = await self::lhsfun();
+  col::LinkedHashMap<core::int, core::bool> flhm = await self::lhmfun();
+  core::Map<core::int, core::bool> fm2 = await self::mapfun2();
+  core::Set<core::int> fs2 = await self::setfun2();
+  core::Iterable<core::int> fi2 = await self::iterablefun2();
+  col::LinkedHashSet<core::int> flhs2 = await self::lhsfun2();
+  col::LinkedHashMap<core::int, core::bool> flhm2 = await self::lhmfun2();
+}
+static method mapfun() → asy::Future<core::Map<core::int, core::bool>> async /* futureValueType= core::Map<core::int, core::bool> */ 
+  return <core::int, core::bool>{};
+static method setfun() → asy::Future<core::Set<core::int>> async /* futureValueType= core::Set<core::int> */ 
+  return block {
+    final core::Set<core::int> #t4 = col::LinkedHashSet::•<core::int>();
+  } =>#t4;
+static method iterablefun() → asy::Future<core::Iterable<core::int>> async /* futureValueType= core::Iterable<core::int> */ 
+  return block {
+    final core::Set<core::int> #t5 = col::LinkedHashSet::•<core::int>();
+  } =>#t5;
+static method lhsfun() → asy::Future<col::LinkedHashSet<core::int>> async /* futureValueType= col::LinkedHashSet<core::int> */ 
+  return invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule2.dart:32:46: Error: A value of type 'Set<dynamic>' can't be returned from an async function with return type 'Future<LinkedHashSet<int>>'.
+ - 'Set' is from 'dart:core'.
+ - 'Future' is from 'dart:async'.
+ - 'LinkedHashSet' is from 'dart:collection'.
+Future<LinkedHashSet<int>> lhsfun() async => {};
+                                             ^" in ( block {
+    final core::Set<dynamic> #t6 = col::LinkedHashSet::•<dynamic>();
+  } =>#t6) as{TypeError,ForNonNullableByDefault} col::LinkedHashSet<core::int>;
+static method lhmfun() → asy::Future<col::LinkedHashMap<core::int, core::bool>> async /* futureValueType= col::LinkedHashMap<core::int, core::bool> */ 
+  return invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule2.dart:33:52: Error: A value of type 'Map<dynamic, dynamic>' can't be returned from an async function with return type 'Future<LinkedHashMap<int, bool>>'.
+ - 'Map' is from 'dart:core'.
+ - 'Future' is from 'dart:async'.
+ - 'LinkedHashMap' is from 'dart:collection'.
+Future<LinkedHashMap<int, bool>> lhmfun() async => {};
+                                                   ^" in <dynamic, dynamic>{} as{TypeError,ForNonNullableByDefault} col::LinkedHashMap<core::int, core::bool>;
+static method mapfun2() → FutureOr<core::Map<core::int, core::bool>>
+  return <core::int, core::bool>{};
+static method setfun2() → FutureOr<core::Set<core::int>>
+  return block {
+    final core::Set<core::int> #t7 = col::LinkedHashSet::•<core::int>();
+  } =>#t7;
+static method iterablefun2() → FutureOr<core::Iterable<core::int>>
+  return block {
+    final core::Set<core::int> #t8 = col::LinkedHashSet::•<core::int>();
+  } =>#t8;
+static method lhsfun2() → FutureOr<col::LinkedHashSet<core::int>>
+  return invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule2.dart:38:43: Error: A value of type 'Set<dynamic>' can't be returned from a function with return type 'FutureOr<LinkedHashSet<int>>'.
+ - 'Set' is from 'dart:core'.
+ - 'LinkedHashSet' is from 'dart:collection'.
+FutureOr<LinkedHashSet<int>> lhsfun2() => {};
+                                          ^" in ( block {
+    final core::Set<dynamic> #t9 = col::LinkedHashSet::•<dynamic>();
+  } =>#t9) as{TypeError,ForNonNullableByDefault} FutureOr<col::LinkedHashSet<core::int>>;
+static method lhmfun2() → FutureOr<col::LinkedHashMap<core::int, core::bool>>
+  return invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule2.dart:39:49: Error: A value of type 'Map<dynamic, dynamic>' can't be returned from a function with return type 'FutureOr<LinkedHashMap<int, bool>>'.
+ - 'Map' is from 'dart:core'.
+ - 'LinkedHashMap' is from 'dart:collection'.
+FutureOr<LinkedHashMap<int, bool>> lhmfun2() => {};
+                                                ^" in <dynamic, dynamic>{} as{TypeError,ForNonNullableByDefault} FutureOr<col::LinkedHashMap<core::int, core::bool>>;

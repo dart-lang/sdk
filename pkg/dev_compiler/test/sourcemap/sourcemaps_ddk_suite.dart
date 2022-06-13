@@ -59,8 +59,10 @@ class DevCompilerRunner implements CompilerRunner {
 
     var ddcSdkSummary = findInOutDir('ddc_outline.dill');
 
+    var packageConfigPath =
+        sdkRoot.uri.resolve('.dart_tool/package_config.json').toFilePath();
     var args = <String>[
-      "--packages=${sdkRoot.uri.resolve(".packages").toFilePath()}",
+      '--packages=$packageConfigPath',
       '--modules=es6',
       '--dart-sdk-summary=${ddcSdkSummary.path}',
       '-o',

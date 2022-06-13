@@ -8,8 +8,11 @@ import 'package:front_end/src/api_unstable/dart2js.dart' show AsyncModifier;
 
 // TODO(48820): Spannable was imported from `../common.dart`.
 import '../diagnostics/spannable.dart' show Spannable;
+import '../serialization/serialization_interfaces.dart';
+import '../universe/call_structure.dart' show CallStructure;
 import '../util/util.dart';
 import 'names.dart';
+import 'types.dart' show FunctionType;
 
 /// Abstract interface for entities.
 ///
@@ -66,6 +69,10 @@ class ImportEntity {
 /// Currently only [ClassElement] but later also kernel based Dart classes
 /// and/or Dart-in-JS classes.
 abstract class ClassEntity extends Entity {
+  /// Classes always have a name.
+  @override
+  String get name;
+
   /// If this is a normal class, the enclosing library for this class. If this
   /// is a closure class, the enclosing class of the closure for which it was
   /// created.
@@ -240,6 +247,10 @@ enum Variance { legacyCovariant, covariant, contravariant, invariant }
 // TODO(johnniwinther): Remove factory constructors from the set of
 // constructors.
 abstract class ConstructorEntity extends FunctionEntity {
+  // Constructors always have an enclosing class.
+  @override
+  ClassEntity get enclosingClass;
+
   /// Whether this is a generative constructor, possibly redirecting.
   bool get isGenerativeConstructor;
 
@@ -343,6 +354,46 @@ class ParameterStructure {
     );
   }
 
+  static ParameterStructure fromType(FunctionType type) {
+    return ParameterStructure(
+        type.parameterTypes.length,
+        type.parameterTypes.length + type.optionalParameterTypes.length,
+        type.namedParameters,
+        type.requiredNamedParameters,
+        type.typeVariables.length);
+  }
+
+  /// Deserializes a [ParameterStructure] object from [source].
+  static readFromDataSource(DataSourceReader source) {
+    final tag = ParameterStructure.tag;
+    source.begin(tag);
+    int requiredPositionalParameters = source.readInt();
+    int positionalParameters = source.readInt();
+    List<String> namedParameters = source.readStrings()!;
+    Set<String> requiredNamedParameters =
+        source.readStrings(emptyAsNull: true)?.toSet() ?? const <String>{};
+    int typeParameters = source.readInt();
+    source.end(tag);
+    return ParameterStructure(
+        requiredPositionalParameters,
+        positionalParameters,
+        namedParameters,
+        requiredNamedParameters,
+        typeParameters);
+  }
+
+  /// Serializes this [ParameterStructure] to [sink].
+  void writeToDataSink(DataSinkWriter sink) {
+    final tag = ParameterStructure.tag;
+    sink.begin(tag);
+    sink.writeInt(requiredPositionalParameters);
+    sink.writeInt(positionalParameters);
+    sink.writeStrings(namedParameters);
+    sink.writeStrings(requiredNamedParameters);
+    sink.writeInt(typeParameters);
+    sink.end(tag);
+  }
+
   /// The number of optional parameters (positional or named).
   int get optionalParameters =>
       (positionalParameters - requiredPositionalParameters) +
@@ -351,8 +402,11 @@ class ParameterStructure {
   /// The total number of parameters (required or optional).
   int get totalParameters => positionalParameters + namedParameters.length;
 
-  // TODO(48820): Move definition back here:
-  // CallStructure get callStructure;
+  /// Returns the [CallStructure] corresponding to a call site passing all
+  /// parameters both required and optional.
+  CallStructure get callStructure {
+    return CallStructure(totalParameters, namedParameters, typeParameters);
+  }
 
   @override
   int get hashCode => Hashing.listHash(

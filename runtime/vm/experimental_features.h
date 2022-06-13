@@ -27,6 +27,7 @@ enum class ExperimentalFeature {
   enhanced_enums,
   named_arguments_anywhere,
   super_parameters,
+  inference_update_1,
 };
 
 bool GetExperimentalFeatureDefault(ExperimentalFeature feature);

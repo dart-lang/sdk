@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import '../compiler/js_names.dart' as js_ast;
 import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
@@ -78,7 +76,7 @@ abstract class ModuleItemContainer<K> {
 
   /// Creates an automatically sharding container backed by JS Objects.
   factory ModuleItemContainer.asObject(String name,
-      {String Function(K) keyToString}) {
+      {required String Function(K) keyToString}) {
     return ModuleItemObjectContainer<K>(name, keyToString);
   }
 
@@ -95,7 +93,7 @@ abstract class ModuleItemContainer<K> {
 
   bool get isEmpty => moduleItems.isEmpty;
 
-  js_ast.Expression operator [](K key) => moduleItems[key]?.jsValue;
+  js_ast.Expression? operator [](K key) => moduleItems[key]?.jsValue;
 
   void operator []=(K key, js_ast.Expression value);
 
@@ -125,7 +123,7 @@ abstract class ModuleItemContainer<K> {
   /// necessary.
   ///
   /// Uses [emitValue] to emit the values in the table.
-  List<js_ast.Statement> emit({EmitValue<K> emitValue});
+  List<js_ast.Statement> emit({EmitValue<K>? emitValue});
 }
 
 /// Associates a [K] with a container-unique JS key and arbitrary JS value.
@@ -157,7 +155,7 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
   @override
   void operator []=(K key, js_ast.Expression value) {
     if (contains(key)) {
-      moduleItems[key].jsValue = value;
+      moduleItems[key]!.jsValue = value;
       return;
     }
     // Create a unique name for K when emitted as a JS field.
@@ -179,12 +177,12 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
 
   @override
   js_ast.Expression access(K key) {
-    var id = moduleItems[key].id;
-    return js.call('#.#', [id, moduleItems[key].jsKey]);
+    var id = moduleItems[key]!.id;
+    return js.call('#.#', [id, moduleItems[key]!.jsKey]);
   }
 
   @override
-  List<js_ast.Statement> emit({EmitValue<K> emitValue}) {
+  List<js_ast.Statement> emit({EmitValue<K>? emitValue}) {
     var containersToProperties = <js_ast.Identifier, List<js_ast.Property>>{};
     moduleItems.forEach((k, v) {
       if (!incrementalMode && _noEmit.contains(k)) return;
@@ -193,7 +191,7 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
       if (!containersToProperties.containsKey(v.id)) {
         containersToProperties[v.id] = <js_ast.Property>[];
       }
-      containersToProperties[v.id].add(js_ast.Property(
+      containersToProperties[v.id]!.add(js_ast.Property(
           v.jsKey, emitValue == null ? v.jsValue : emitValue(k, v)));
     });
 
@@ -226,7 +224,7 @@ class ModuleItemArrayContainer<K> extends ModuleItemContainer<K> {
   @override
   void operator []=(K key, js_ast.Expression value) {
     if (moduleItems.containsKey(key)) {
-      moduleItems[key].jsValue = value;
+      moduleItems[key]!.jsValue = value;
       return;
     }
     moduleItems[key] =
@@ -236,12 +234,13 @@ class ModuleItemArrayContainer<K> extends ModuleItemContainer<K> {
   @override
   js_ast.Expression access(K key) {
     var id = containerId;
-    return js.call('#[#]', [id, moduleItems[key].jsKey]);
+    return js.call('#[#]', [id, moduleItems[key]!.jsKey]);
   }
 
   @override
-  List<js_ast.Statement> emit({EmitValue<K> emitValue}) {
-    var properties = List<js_ast.Expression>.filled(length, null);
+  List<js_ast.Statement> emit({EmitValue<K>? emitValue}) {
+    var dummyExpression = js_ast.TemporaryId('dummyExpression');
+    var properties = List<js_ast.Expression>.filled(length, dummyExpression);
 
     // If the entire array holds just one value, generate a short initializer.
     var valueSet = <js_ast.Expression>{};

@@ -43,9 +43,11 @@ List<Pattern> _allowedNativeTestPatterns = [
   RegExp(r'(?<!generated_)tests/web/native'),
   RegExp(r'(?<!generated_)tests/web/internal'),
   'generated_tests/web/native/native_test',
+  'generated_tests/web/internal/deferred_url_test',
   RegExp(r'(?<!generated_)tests/web_2/native'),
   RegExp(r'(?<!generated_)tests/web_2/internal'),
   'generated_tests/web_2/native/native_test',
+  'generated_tests/web_2/internal/deferred_url_test',
 ];
 
 bool allowedNativeTest(Uri uri) {
@@ -259,6 +261,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:_js_helper',
     'dart:_js_names',
     'dart:_js_primitives',
+    'dart:_js_shared_embedded_names',
     'dart:_late_helper',
     'dart:_metadata',
     'dart:_native_typed_data',
@@ -294,6 +297,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:_js_helper',
     'dart:_js_names',
     'dart:_js_primitives',
+    'dart:_js_shared_embedded_names',
     'dart:_late_helper',
     'dart:_native_typed_data',
     'dart:_recipe_syntax',

@@ -343,8 +343,10 @@
         "testcases/inference/overloaded_int_operators\\.dart$",
         "testcases/instantiate_to_bound/non_simple_many\\.dart$",
         "testcases/instantiate_to_bound/non_simple_suppress_consequence\\.dart$",
+        "testcases/rasta/switch_execution_case_t01\\.dart$",
         "testcases/rasta/switch_execution_case_t02\\.dart$",
         "testcases/set_literals/disambiguation_rule\\.dart$",
+        "testcases/set_literals/disambiguation_rule2\\.dart$",
         "tool/_fasta/abcompile\\.dart$"
       ]
     },

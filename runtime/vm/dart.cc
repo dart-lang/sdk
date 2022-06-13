@@ -154,8 +154,9 @@ class DartInitializationState {
 };
 static DartInitializationState init_state_;
 
+#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 static void CheckOffsets() {
-#if !defined(IS_SIMARM_X64)
+#if !defined(IS_SIMARM_HOST64)
   // These offsets are embedded in precompiled instructions. We need the
   // compiler and the runtime to agree.
   bool ok = true;
@@ -241,11 +242,18 @@ static void CheckOffsets() {
 #undef CHECK_CONSTANT
 #undef CHECK_OFFSET
 #undef CHECK_PAYLOAD_SIZEOF
-#endif  // !defined(IS_SIMARM_X64)
+#endif  // !defined(IS_SIMARM_HOST64)
 }
+#endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 
 char* Dart::DartInit(const Dart_InitializeParams* params) {
+#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
   CheckOffsets();
+#elif defined(ARCH_IS_64_BIT) != defined(TARGET_ARCH_IS_64_BIT)
+  return Utils::StrDup(
+      "JIT cannot simulate target architecture with different word size than "
+      "host");
+#endif
 
   if (!Flags::Initialized()) {
     return Utils::StrDup("VM initialization failed-VM Flags not initialized.");

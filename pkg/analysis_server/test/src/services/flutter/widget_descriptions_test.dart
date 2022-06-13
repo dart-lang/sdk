@@ -52,7 +52,7 @@ void f() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('aaa');
 }
 ''');
@@ -75,7 +75,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('aaa', softWrap: true);
 }
 ''');
@@ -102,7 +102,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('aaa');
 }
 ''');
@@ -129,7 +129,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('');
 }
 ''');
@@ -153,7 +153,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', style: TextStyle(fontSize: 24));
 }
 ''');
@@ -204,7 +204,7 @@ void main() {
 
   Future<void> test_notInstanceCreation() async {
     await resolveTestCode('''
-void main() {
+void f() {
   42;
 }
 ''');
@@ -216,7 +216,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('aaa');
 }
 ''');
@@ -238,7 +238,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', overflow: TextOverflow.fade);
 }
 ''');
@@ -297,7 +297,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('aaa');
 }
 ''');
@@ -318,7 +318,7 @@ void main() {
   Future<void> test_unresolvedInstanceCreation() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
-void main() {
+void f() {
   new Foo();
 }
 ''');
@@ -333,7 +333,7 @@ class SetPropertyValueSelfTest extends WidgetDescriptionBase {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', maxLines: 1);
 }
 ''');
@@ -347,7 +347,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', maxLines: 1 + 2);
 }
 ''');
@@ -357,7 +357,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', maxLines: 1);
 }
 ''');
@@ -384,7 +384,7 @@ void functionbefore() {
   1 +  2; // two spaces
 }
 
-void main() {
+void f() {
   Text('', );
 }
 
@@ -406,7 +406,7 @@ void functionbefore() {
   1 +  2; // two spaces
 }
 
-void main() {
+void f() {
   Text(
     '',
     maxLines: 42,
@@ -435,7 +435,7 @@ void functionAfter() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   MyWidget<int>(
     child: Text(''),
   );
@@ -455,7 +455,7 @@ class MyWidget<T> {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   MyWidget<int>(
     xxx: 42,
     child: Text(''),
@@ -472,7 +472,7 @@ class MyWidget<T> {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   MyWidget<int>(
     children: [Text('')],
   );
@@ -492,7 +492,7 @@ class MyWidget<T> {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   MyWidget<int>(
     xxx: 42,
     children: [Text('')],
@@ -509,7 +509,7 @@ class MyWidget<T> {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', );
 }
 ''');
@@ -523,7 +523,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text(
     '',
     maxLines: 42,
@@ -536,7 +536,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('');
 }
 ''');
@@ -550,7 +550,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text(
     '',
     maxLines: 42,
@@ -563,7 +563,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   MyWidget<int>(
     bbb: 2,
   );
@@ -583,7 +583,7 @@ class MyWidget<T> {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   MyWidget<int>(
     aaa: 42,
     bbb: 2,
@@ -600,7 +600,7 @@ class MyWidget<T> {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   MyWidget<int>(
     aaa: 1,
   );
@@ -620,7 +620,7 @@ class MyWidget<T> {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   MyWidget<int>(
     aaa: 1,
     bbb: 42,
@@ -637,7 +637,7 @@ class MyWidget<T> {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   MyWidget<int>(
     aaa: 1,
     ccc: 3,
@@ -658,7 +658,7 @@ class MyWidget<T> {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   MyWidget<int>(
     aaa: 1,
     bbb: 42,
@@ -676,7 +676,7 @@ class MyWidget<T> {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', maxLines: 1);
 }
 ''');
@@ -690,7 +690,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', maxLines: 42);
 }
 ''');
@@ -700,7 +700,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', maxLines: 1,);
 }
 ''');
@@ -711,7 +711,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', );
 }
 ''');
@@ -721,7 +721,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', maxLines: 1, softWrap: true,);
 }
 ''');
@@ -732,7 +732,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', softWrap: true,);
 }
 ''');
@@ -742,7 +742,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', style: TextStyle(), );
 }
 ''');
@@ -758,7 +758,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text(
     '',
     style: TextStyle(
@@ -773,7 +773,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', );
 }
 ''');
@@ -789,7 +789,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text(
     '',
     style: TextStyle(
@@ -804,7 +804,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('aaa');
 }
 ''');
@@ -818,7 +818,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('bbbb');
 }
 ''');
@@ -828,7 +828,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('aaa');
 }
 ''');
@@ -847,7 +847,7 @@ void main() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('');
 }
 ''');
@@ -867,7 +867,7 @@ void main() {
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text(
     '',
     overflow: TextOverflow.ellipsis,

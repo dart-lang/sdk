@@ -133,8 +133,8 @@ Compiler compilerFor(
       packageConfig = Uri.base.resolve(Platform.packageConfig);
     } else {
       // The tests are run with the base directory as the SDK root
-      // so just use the .packages file there.
-      packageConfig = Uri.base.resolve('.packages');
+      // so just use the package config there.
+      packageConfig = Uri.base.resolve('.dart_tool/package_config.json');
     }
   }
 

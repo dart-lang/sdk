@@ -12,6 +12,7 @@
 #include "vm/isolate_reload.h"
 #include "vm/object.h"
 #include "vm/runtime_entry.h"
+#include "vm/stack_frame.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -170,6 +171,13 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
     case kPointerCid:
       instance_size = Pointer::InstanceSize();
       break;
+    case kSuspendStateCid: {
+      const SuspendStatePtr raw_suspend_state =
+          static_cast<const SuspendStatePtr>(this);
+      intptr_t frame_size = raw_suspend_state->untag()->frame_size_;
+      instance_size = SuspendState::InstanceSize(frame_size);
+      break;
+    }
     case kTypeArgumentsCid: {
       const TypeArgumentsPtr raw_array =
           static_cast<const TypeArgumentsPtr>(this);
@@ -208,7 +216,7 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
     case kExceptionHandlersCid: {
       const ExceptionHandlersPtr raw_handlers =
           static_cast<const ExceptionHandlersPtr>(this);
-      intptr_t num_handlers = raw_handlers->untag()->num_entries_;
+      intptr_t num_handlers = raw_handlers->untag()->num_entries();
       instance_size = ExceptionHandlers::InstanceSize(num_handlers);
       break;
     }
@@ -563,7 +571,7 @@ COMPRESSED_VISITOR(TypeParameters)
 VARIABLE_COMPRESSED_VISITOR(TypeArguments,
                             Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(LocalVarDescriptors, raw_obj->untag()->num_entries_)
-VARIABLE_COMPRESSED_VISITOR(ExceptionHandlers, raw_obj->untag()->num_entries_)
+VARIABLE_COMPRESSED_VISITOR(ExceptionHandlers, raw_obj->untag()->num_entries())
 VARIABLE_COMPRESSED_VISITOR(Context, raw_obj->untag()->num_variables_)
 VARIABLE_COMPRESSED_VISITOR(Array, Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(
@@ -624,6 +632,33 @@ intptr_t UntaggedField::VisitFieldPointers(FieldPtr raw_obj,
     }
   }
   return Field::InstanceSize();
+}
+
+intptr_t UntaggedSuspendState::VisitSuspendStatePointers(
+    SuspendStatePtr raw_obj,
+    ObjectPointerVisitor* visitor) {
+  ASSERT(raw_obj->IsHeapObject());
+  ASSERT_COMPRESSED(SuspendState);
+
+  if (visitor->CanVisitSuspendStatePointers(raw_obj)) {
+    visitor->VisitCompressedPointers(
+        raw_obj->heap_base(), raw_obj->untag()->from(), raw_obj->untag()->to());
+
+    const uword pc = raw_obj->untag()->pc_;
+    if (pc != 0) {
+      Thread* thread = Thread::Current();
+      ASSERT(thread != nullptr);
+      ASSERT(thread->isolate_group() == visitor->isolate_group());
+      const uword sp = reinterpret_cast<uword>(raw_obj->untag()->payload());
+      StackFrame frame(thread);
+      frame.pc_ = pc;
+      frame.sp_ = sp;
+      frame.fp_ = sp + raw_obj->untag()->frame_size_;
+      frame.VisitObjectPointers(visitor);
+    }
+  }
+
+  return SuspendState::InstanceSize(raw_obj->untag()->frame_size_);
 }
 
 bool UntaggedCode::ContainsPC(const ObjectPtr raw_obj, uword pc) {

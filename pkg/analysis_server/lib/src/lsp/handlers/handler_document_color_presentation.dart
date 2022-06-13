@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
@@ -32,6 +31,7 @@ class DocumentColorPresentationHandler
   @override
   Future<ErrorOr<List<ColorPresentation>>> handle(
     ColorPresentationParams params,
+    MessageInfo message,
     CancellationToken token,
   ) async {
     if (!isDartDocument(params.textDocument)) {

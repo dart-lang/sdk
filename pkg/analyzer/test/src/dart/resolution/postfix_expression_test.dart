@@ -35,7 +35,7 @@ PostfixExpression
   operand: PropertyAccess
     target: SimpleIdentifier
       token: a
-      staticElement: a@38
+      staticElement: self::@function::f::@parameter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -71,12 +71,12 @@ void f(Object x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: x@63
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: ++
-  readElement: x@63
+  readElement: self::@function::f::@parameter::x
   readType: A
-  writeElement: x@63
+  writeElement: self::@function::f::@parameter::x
   writeType: Object
   staticElement: self::@class::A::@method::+
   staticType: A
@@ -96,7 +96,7 @@ void f(int? x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: x@12
+    staticElement: self::@function::f::@parameter::x
     staticType: int?
   operator: !
   staticElement: <null>
@@ -124,7 +124,7 @@ void f(Map<String, int> a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    staticElement: a@24
+    staticElement: self::@function::f::@parameter::a
     staticType: Map<String, int>
   leftBracket: [
   index: SimpleStringLiteral
@@ -141,7 +141,7 @@ PostfixExpression
   operand: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@24
+      staticElement: self::@function::f::@parameter::a
       staticType: Map<String, int>
     leftBracket: [
     index: SimpleStringLiteral
@@ -189,6 +189,9 @@ PostfixExpression
       arguments
         NullLiteral
           literal: null
+          parameter: ParameterMember
+            base: root::@parameter::t
+            substitution: {T: int?}
           staticType: Null
       rightParenthesis: )
     staticInvokeType: int? Function(int?)
@@ -312,7 +315,7 @@ void f<T>(T? x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: x@13
+    staticElement: self::@function::f::@parameter::x
     staticType: T?
   operator: !
   staticElement: <null>
@@ -334,7 +337,7 @@ void f<T>(T? x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: x@13
+    staticElement: self::@function::f::@parameter::x
     staticType: T? & num?
   operator: !
   staticElement: <null>
@@ -357,12 +360,12 @@ void f(int x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: --
-  readElement: x@11
+  readElement: self::@function::f::@parameter::x
   readType: int
-  writeElement: x@11
+  writeElement: self::@function::f::@parameter::x
   writeType: int
   staticElement: dart:core::@class::num::@method::-
   staticType: int
@@ -372,12 +375,12 @@ PostfixExpression
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: --
-  readElement: x@11
+  readElement: self::@function::f::@parameter::x
   readType: int*
-  writeElement: x@11
+  writeElement: self::@function::f::@parameter::x
   writeType: int*
   staticElement: MethodMember
     base: dart:core::@class::num::@method::-
@@ -406,11 +409,12 @@ PostfixExpression
   operand: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@91
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -429,11 +433,12 @@ PostfixExpression
   operand: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@91
+      staticElement: self::@function::f::@parameter::a
       staticType: A*
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>
@@ -476,6 +481,7 @@ PostfixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -498,6 +504,7 @@ PostfixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>
@@ -538,6 +545,7 @@ PostfixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -560,6 +568,7 @@ PostfixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>
@@ -710,10 +719,6 @@ PostfixExpression
   staticType: dynamic
 ''');
     }
-
-    assertSimpleIdentifierAssignmentTarget(
-      node.operand,
-    );
   }
 
   test_inc_prefixedIdentifier_instance() async {
@@ -734,7 +739,7 @@ PostfixExpression
   operand: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@35
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -757,7 +762,7 @@ PostfixExpression
   operand: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@35
+      staticElement: self::@function::f::@parameter::a
       staticType: A*
     period: .
     identifier: SimpleIdentifier
@@ -1065,12 +1070,12 @@ void f(double x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: ++
-  readElement: x@14
+  readElement: self::@function::f::@parameter::x
   readType: double
-  writeElement: x@14
+  writeElement: self::@function::f::@parameter::x
   writeType: double
   staticElement: dart:core::@class::double::@method::+
   staticType: double
@@ -1080,12 +1085,12 @@ PostfixExpression
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: ++
-  readElement: x@14
+  readElement: self::@function::f::@parameter::x
   readType: double*
-  writeElement: x@14
+  writeElement: self::@function::f::@parameter::x
   writeType: double*
   staticElement: MethodMember
     base: dart:core::@class::double::@method::+
@@ -1108,12 +1113,12 @@ void f(int x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: ++
-  readElement: x@11
+  readElement: self::@function::f::@parameter::x
   readType: int
-  writeElement: x@11
+  writeElement: self::@function::f::@parameter::x
   writeType: int
   staticElement: dart:core::@class::num::@method::+
   staticType: int
@@ -1123,12 +1128,12 @@ PostfixExpression
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: ++
-  readElement: x@11
+  readElement: self::@function::f::@parameter::x
   readType: int*
-  writeElement: x@11
+  writeElement: self::@function::f::@parameter::x
   writeType: int*
   staticElement: MethodMember
     base: dart:core::@class::num::@method::+
@@ -1151,12 +1156,12 @@ void f(num x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: ++
-  readElement: x@11
+  readElement: self::@function::f::@parameter::x
   readType: num
-  writeElement: x@11
+  writeElement: self::@function::f::@parameter::x
   writeType: num
   staticElement: dart:core::@class::num::@method::+
   staticType: num
@@ -1166,12 +1171,12 @@ PostfixExpression
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: ++
-  readElement: x@11
+  readElement: self::@function::f::@parameter::x
   readType: num*
-  writeElement: x@11
+  writeElement: self::@function::f::@parameter::x
   writeType: num*
   staticElement: MethodMember
     base: dart:core::@class::num::@method::+
@@ -1229,10 +1234,6 @@ PostfixExpression
   staticType: int*
 ''');
     }
-
-    assertSimpleIdentifierAssignmentTarget(
-      node.operand,
-    );
   }
 
   test_inc_simpleIdentifier_topGetter_topSetter() async {
@@ -1280,10 +1281,6 @@ PostfixExpression
   staticType: int*
 ''');
     }
-
-    assertSimpleIdentifierAssignmentTarget(
-      node.operand,
-    );
   }
 
   test_inc_simpleIdentifier_topGetter_topSetter_fromClass() async {
@@ -1333,10 +1330,6 @@ PostfixExpression
   staticType: int*
 ''');
     }
-
-    assertSimpleIdentifierAssignmentTarget(
-      node.operand,
-    );
   }
 }
 

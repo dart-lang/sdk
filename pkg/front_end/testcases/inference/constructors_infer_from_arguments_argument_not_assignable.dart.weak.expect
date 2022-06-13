@@ -12,16 +12,6 @@ library test;
 // class C<T extends A> {
 //         ^
 //
-// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:21:29: Error: Inferred type argument 'NotA' doesn't conform to the bound 'A' of the type variable 'T' on 'C'.
-//  - 'NotA' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
-//  - 'A' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
-//   var /*@ type=C<NotA*>* */ x =
-//                             ^
-// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:12:9: Context: This is the type variable whose bound isn't conformed to.
-// class C<T extends A> {
-//         ^
-//
 import self as self;
 import "dart:core" as core;
 

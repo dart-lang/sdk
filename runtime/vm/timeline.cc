@@ -222,8 +222,12 @@ void Timeline::Cleanup() {
   Timeline::stream_##name##_.set_enabled(false);
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
 #undef TIMELINE_STREAM_DISABLE
-  Timeline::Clear();
   RecorderLock::WaitForShutdown();
+  // Timeline::Clear() is guarded by the recorder lock and will return
+  // immediately if we've started the shutdown sequence, leaking the recorder.
+  // All outstanding work has already been completed, so we're safe to call this
+  // without explicitly grabbing a recorder lock.
+  Timeline::ClearUnsafe();
   delete recorder_;
   recorder_ = NULL;
   if (enabled_streams_ != NULL) {
@@ -232,17 +236,18 @@ void Timeline::Cleanup() {
   }
 }
 
-TimelineEventRecorder* Timeline::recorder() {
-  return recorder_;
-}
-
 void Timeline::ReclaimCachedBlocksFromThreads() {
   RecorderLockScope rl;
   TimelineEventRecorder* recorder = Timeline::recorder();
   if (recorder == NULL || rl.IsShuttingDown()) {
     return;
   }
+  ReclaimCachedBlocksFromThreadsUnsafe();
+}
 
+void Timeline::ReclaimCachedBlocksFromThreadsUnsafe() {
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  ASSERT(recorder != nullptr);
   // Iterate over threads.
   OSThreadIterator it;
   while (it.HasNext()) {
@@ -250,7 +255,7 @@ void Timeline::ReclaimCachedBlocksFromThreads() {
     MutexLocker ml(thread->timeline_block_lock());
     // Grab block and clear it.
     TimelineEventBlock* block = thread->timeline_block();
-    thread->set_timeline_block(NULL);
+    thread->set_timeline_block(nullptr);
     // TODO(johnmccutchan): Consider dropping the timeline_block_lock here
     // if we can do it everywhere. This would simplify the lock ordering
     // requirements.
@@ -299,10 +304,16 @@ void Timeline::PrintFlagsToJSON(JSONStream* js) {
 void Timeline::Clear() {
   RecorderLockScope rl;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == NULL || rl.IsShuttingDown()) {
+  if (recorder == nullptr || rl.IsShuttingDown()) {
     return;
   }
-  ReclaimCachedBlocksFromThreads();
+  ClearUnsafe();
+}
+
+void Timeline::ClearUnsafe() {
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  ASSERT(recorder != nullptr);
+  ReclaimCachedBlocksFromThreadsUnsafe();
   recorder->Clear();
 }
 
@@ -389,6 +400,7 @@ void TimelineEventArguments::Free() {
 
 TimelineEventRecorder* Timeline::recorder_ = NULL;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
+bool Timeline::recorder_discards_clock_values_ = false;
 
 #define TIMELINE_STREAM_DEFINE(name, fuchsia_name)                             \
   TimelineStream Timeline::stream_##name##_(#name, fuchsia_name, false);
@@ -739,7 +751,7 @@ int64_t TimelineEvent::HighTime() const {
 int64_t TimelineEvent::TimeDuration() const {
   if (timestamp1_ == 0) {
     // This duration is still open, use current time as end.
-    return OS::GetCurrentMonotonicMicros() - timestamp0_;
+    return OS::GetCurrentMonotonicMicrosForTimeline() - timestamp0_;
   }
   return timestamp1_ - timestamp0_;
 }
@@ -1681,7 +1693,7 @@ void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
   ASSERT((phase[0] == 'n') || (phase[0] == 'b') || (phase[0] == 'e') ||
          (phase[0] == 'B') || (phase[0] == 'E'));
   ASSERT(phase[1] == '\0');
-  const int64_t start = OS::GetCurrentMonotonicMicros();
+  const int64_t start = OS::GetCurrentMonotonicMicrosForTimeline();
   const int64_t start_cpu = OS::GetCurrentThreadCPUMicrosForTimeline();
   switch (phase[0]) {
     case 'n':
@@ -1713,7 +1725,7 @@ void DartTimelineEventHelpers::ReportFlowEvent(Thread* thread,
                                                int64_t type,
                                                int64_t flow_id,
                                                char* args) {
-  const int64_t start = OS::GetCurrentMonotonicMicros();
+  const int64_t start = OS::GetCurrentMonotonicMicrosForTimeline();
   TimelineEvent::EventType event_type =
       static_cast<TimelineEvent::EventType>(type);
   switch (event_type) {
@@ -1739,7 +1751,7 @@ void DartTimelineEventHelpers::ReportInstantEvent(Thread* thread,
                                                   const char* category,
                                                   char* name,
                                                   char* args) {
-  const int64_t start = OS::GetCurrentMonotonicMicros();
+  const int64_t start = OS::GetCurrentMonotonicMicrosForTimeline();
   event->Instant(name, start);
   event->set_owns_label(true);
   event->CompleteWithPreSerializedArgs(args);

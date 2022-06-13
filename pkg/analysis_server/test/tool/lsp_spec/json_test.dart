@@ -4,8 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:test/test.dart';
 
@@ -24,7 +23,7 @@ void main() {
           method: Method.shutdown,
           jsonrpc: 'test');
       final output = json.encode(message.toJson());
-      expect(output, equals('{"id":1,"method":"shutdown","jsonrpc":"test"}'));
+      expect(output, equals('{"id":1,"jsonrpc":"test","method":"shutdown"}'));
     });
 
     test('returns correct output for union types containing interface types',
@@ -35,7 +34,7 @@ void main() {
       expect(
           output,
           equals(
-              '{"uri":"!uri","languageId":"!language","version":1,"text":"!text"}'));
+              '{"languageId":"!language","text":"!text","uri":"!uri","version":1}'));
     });
 
     test('returns correct output for types with lists', () {
@@ -55,26 +54,26 @@ void main() {
       );
       final output = json.encode(codeAction.toJson());
       final expected = '''{
-        "range":{
-            "start":{"line":1,"character":1},
-            "end":{"line":2,"character":2}
-        },
-        "severity":1,
         "code":"test_err",
-        "source":"/tmp/source.dart",
         "message":"err!!",
+        "range":{
+            "end":{"character":2,"line":2},
+            "start":{"character":1,"line":1}
+        },
         "relatedInformation":[
             {
               "location":{
-                  "uri":"y-uri",
                   "range":{
-                    "start":{"line":1,"character":1},
-                    "end":{"line":2,"character":2}
-                  }
+                    "end":{"character":2,"line":2},
+                    "start":{"character":1,"line":1}
+                  },
+                  "uri":"y-uri"
               },
               "message":"message"
             }
-        ]
+        ],
+        "severity":1,
+        "source":"/tmp/source.dart"
       }'''
           .replaceAll(RegExp('[ \n]'), '');
       expect(output, equals(expected));
@@ -93,7 +92,7 @@ void main() {
       );
     });
 
-    test('serialises enums to their underlying values', () {
+    test('serializes enums to their underlying values', () {
       final foldingRange = FoldingRange(
           startLine: 1,
           startCharacter: 2,
@@ -102,11 +101,11 @@ void main() {
           kind: FoldingRangeKind.Comment);
       final output = json.encode(foldingRange.toJson());
       final expected = '''{
-        "startLine":1,
-        "startCharacter":2,
-        "endLine":3,
         "endCharacter":4,
-        "kind":"comment"
+        "endLine":3,
+        "kind":"comment",
+        "startCharacter":2,
+        "startLine":1
       }'''
           .replaceAll(RegExp('[ \n]'), '');
       expect(output, equals(expected));
@@ -131,7 +130,7 @@ void main() {
 
     test('canParse returns true for in-spec (restricted) enum values', () {
       expect(
-        MarkupKind.canParse('plaintext', nullLspJsonReporter),
+        MarkupKind.canParse('plaintext', throwingLspJsonReporter),
         isTrue,
       );
     });
@@ -139,7 +138,7 @@ void main() {
     test('canParse returns true for out-of-spec (unrestricted) enum values',
         () {
       expect(
-        SymbolKind.canParse(-1, nullLspJsonReporter),
+        SymbolKind.canParse(-1, throwingLspJsonReporter),
         isTrue,
       );
     });
@@ -151,7 +150,7 @@ void main() {
         'processId': null,
         'rootUri': null,
         'capabilities': <String, Object>{}
-      }, nullLspJsonReporter);
+      }, throwingLspJsonReporter);
       expect(canParse, isTrue);
     });
 
@@ -161,7 +160,7 @@ void main() {
       final canParse = CreateFile.canParse({
         'kind': 'create',
         'uri': 'file:///temp/foo',
-      }, nullLspJsonReporter);
+      }, throwingLspJsonReporter);
       expect(canParse, isTrue);
     });
 
@@ -180,19 +179,23 @@ void main() {
       // Value whether expected to parse
       const testTraceValues = {
         'off': true,
-        'message': true,
+        'message': false,
+        'messages': true,
         'verbose': true,
         null: true,
         'invalid': false,
       };
-      for (final testValue in testTraceValues.keys) {
-        final expected = testTraceValues[testValue];
+      for (final entry in testTraceValues.entries) {
+        final testValue = entry.key;
+        final expected = entry.value;
+        final reporter =
+            expected ? throwingLspJsonReporter : nullLspJsonReporter;
         final canParse = InitializeParams.canParse({
           'processId': null,
           'rootUri': null,
           'capabilities': <String, Object>{},
           'trace': testValue,
-        }, nullLspJsonReporter);
+        }, reporter);
         expect(canParse, expected,
             reason: 'InitializeParams.canParse returned $canParse with a '
                 '"trace" value of "$testValue" but expected $expected');
@@ -201,11 +204,12 @@ void main() {
 
     test('canParse validates optional fields', () {
       expect(
-        RenameFileOptions.canParse(<String, Object>{}, nullLspJsonReporter),
+        RenameFileOptions.canParse(<String, Object>{}, throwingLspJsonReporter),
         isTrue,
       );
       expect(
-        RenameFileOptions.canParse({'overwrite': true}, nullLspJsonReporter),
+        RenameFileOptions.canParse(
+            {'overwrite': true}, throwingLspJsonReporter),
         isTrue,
       );
       expect(
@@ -217,7 +221,7 @@ void main() {
     test('canParse ignores fields not in the spec', () {
       expect(
         RenameFileOptions.canParse(
-            {'overwrite': true, 'invalidField': true}, nullLspJsonReporter),
+            {'overwrite': true, 'invalidField': true}, throwingLspJsonReporter),
         isTrue,
       );
       expect(
@@ -253,9 +257,12 @@ void main() {
     test('canParse records nested undefined fields', () {
       final reporter = LspJsonReporter('params');
       expect(
-          CompletionParams.canParse(
-              {'textDocument': <String, dynamic>{}}, reporter),
-          isFalse);
+        CompletionParams.canParse({
+          'position': {'line': 1, 'character': 1},
+          'textDocument': <String, dynamic>{},
+        }, reporter),
+        isFalse,
+      );
       expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
       expect(reporter.errors.first,
           equals('params.textDocument.uri must not be undefined'));
@@ -264,10 +271,12 @@ void main() {
     test('canParse records nested null fields', () {
       final reporter = LspJsonReporter('params');
       expect(
-          CompletionParams.canParse({
-            'textDocument': {'uri': null}
-          }, reporter),
-          isFalse);
+        CompletionParams.canParse({
+          'position': {'line': 1, 'character': 1},
+          'textDocument': {'uri': null},
+        }, reporter),
+        isFalse,
+      );
       expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
       expect(reporter.errors.first,
           equals('params.textDocument.uri must not be null'));
@@ -276,10 +285,12 @@ void main() {
     test('canParse records nested fields of the wrong type', () {
       final reporter = LspJsonReporter('params');
       expect(
-          CompletionParams.canParse({
-            'textDocument': {'uri': 1}
-          }, reporter),
-          isFalse);
+        CompletionParams.canParse({
+          'position': {'line': 1, 'character': 1},
+          'textDocument': {'uri': 1},
+        }, reporter),
+        isFalse,
+      );
       expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
       expect(reporter.errors.first,
           equals('params.textDocument.uri must be of type String'));
@@ -290,15 +301,16 @@ void main() {
         () {
       final reporter = LspJsonReporter('params');
       expect(
-          WorkspaceEdit.canParse({
-            'documentChanges': {'uri': 1}
-          }, reporter),
-          isFalse);
+        WorkspaceEdit.canParse({
+          'documentChanges': {'uri': 1}
+        }, reporter),
+        isFalse,
+      );
       expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
       expect(
           reporter.errors.first,
           equals(
-              'params.documentChanges must be of type Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>'));
+              'params.documentChanges must be of type List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>'));
     });
 
     test('ResponseMessage can include a null result', () {
@@ -366,9 +378,9 @@ void main() {
       expect(message.params, isNull);
     });
 
-    test('deserialises subtypes into the correct class', () {
-      // Create some JSON that includes a VersionedTextDocumentIdenfitier but
-      // where the class definition only references a TextDocumentIdemntifier.
+    test('deserializes subtypes into the correct class', () {
+      // Create some JSON that includes a VersionedTextDocumentIdentifier but
+      // where the class definition only references a TextDocumentIdentifier.
       final input = jsonEncode(TextDocumentPositionParams(
         textDocument: VersionedTextDocumentIdentifier(
             version: 111, uri: 'file:///foo/bar.dart'),
@@ -389,6 +401,15 @@ void main() {
       expect(message.method, equals(Method('foo')));
       expect(message.params, isNull);
       expect(message.jsonrpc, equals('test'));
+    });
+
+    test('parses JSON with integers in double fields', () {
+      final input = '{"alpha":1.0,"blue":0,"green":1,"red":1.5}';
+      final message = Color.fromJson(jsonDecode(input) as Map<String, Object?>);
+      expect(message.alpha, 1.0);
+      expect(message.blue, 0.0);
+      expect(message.green, 1.0);
+      expect(message.red, 1.5);
     });
   });
 

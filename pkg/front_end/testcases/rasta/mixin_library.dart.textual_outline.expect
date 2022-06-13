@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test.mixin_library;
 
 f() => 2;
@@ -7,9 +6,9 @@ _private() => 117;
 
 class Mixin<T> {
   var x = f(), y, z;
-  T t;
+  T? t;
   foo() => super.foo() + f();
-  T g(T a) => null;
+  T? g(T a) => null;
   h() => V();
   l() => _private();
   _privateMethod() => 49;

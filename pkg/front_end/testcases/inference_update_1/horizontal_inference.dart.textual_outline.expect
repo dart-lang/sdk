@@ -1,0 +1,39 @@
+testLaterUnnamedParameter(void Function<T>(T, void Function(T)) f) {}
+testLaterUnnamedParameterDependsOnNamedParameter(
+    void Function<T>(void Function(T), {required T a}) f) {}
+testEarlierUnnamedParameter(void Function<T>(void Function(T), T) f) {}
+testLaterNamedParameter(
+    void Function<T>({required T a, required void Function(T) b}) f) {}
+testEarlierNamedParameter(
+    void Function<T>({required void Function(T) a, required T b}) f) {}
+testEarlierNamedParameterDependsOnUnnamedParameter(
+    void Function<T>(T b, {required void Function(T) a}) f) {}
+testPropagateToReturnType(U Function<T, U>(T, U Function(T)) f) {}
+testFold(List<int> list) {}
+testClosureAsParameterType(U Function<T, U>(T, U Function(T)) f) {}
+testPropagateToEarlierClosure(
+    U Function<T, U>(U Function(T), T Function()) f) {}
+testPropagateToLaterClosure(U Function<T, U>(T Function(), U Function(T)) f) {}
+testLongDependencyChain(
+    V Function<T, U, V>(T Function(), U Function(T), V Function(U)) f) {}
+testDependencyCycle(Map<T, U> Function<T, U>(T Function(U), U Function(T)) f) {}
+testNecessaryDueToWrongExplicitParameterType(List<int> list) {}
+testPropagateFromContravariantReturnType(
+    U Function<T, U>(void Function(T) Function(), U Function(T)) f) {}
+testPropagateToContravariantParameterType(
+    U Function<T, U>(T Function(), U Function(void Function(T))) f) {}
+testReturnTypeRefersToMultipleTypeVars(
+    void Function<T, U>(
+            Map<T, U> Function(), void Function(T), void Function(U))
+        f) {}
+testUnnecessaryDueToNoDependency(T Function<T>(T Function(), T) f) {}
+testUnnecessaryDueToExplicitParameterType(List<int> list) {}
+testUnnecessaryDueToExplicitParameterTypeNamed(
+    T Function<T>(T, T Function({required T x, required int y})) f) {}
+testParenthesized(void Function<T>(T, void Function(T)) f) {}
+testParenthesizedNamed(
+    void Function<T>({required T a, required void Function(T) b}) f) {}
+testParenthesizedTwice(void Function<T>(T, void Function(T)) f) {}
+testParenthesizedTwiceNamed(
+    void Function<T>({required T a, required void Function(T) b}) f) {}
+main() {}

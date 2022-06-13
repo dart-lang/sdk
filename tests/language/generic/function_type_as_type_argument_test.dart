@@ -18,17 +18,16 @@ void main() {
 
   // Generic function types are not allowed as type arguments.
   List<T Function<T>(T)> typedList = <T Function<T>(T)>[foo];
-  //   ^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT
-  //                     ^
-  // [cfe] A generic function type can't be used as a type argument.
+//^
+// [cfe] A generic function type can't be used as a type argument.
+//     ^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT
 
   // Type inference must also give an error.
   var inferredList = [foo];
-  //  ^
-  // [cfe] Generic function type 'T Function<T>(T)' inferred as a type argument.
   //                 ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
+  // [cfe] Generic function type 'T Function<T>(T)' inferred as a type argument.
 
   // No error if illegal type cannot be inferred.
   var dynamicList = <dynamic>[foo];

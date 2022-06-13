@@ -29,11 +29,11 @@ main(List<String> args) async {
   await compileTests(flutterDir, flutterPlatformDir, new StdoutLogger());
 }
 
-Future<NnbdMode> _getNNBDMode(Uri script, Uri packagesFileUri) async {
+Future<NnbdMode> _getNNBDMode(Uri script, Uri packageConfigUri) async {
   final CompilerOptions compilerOptions = new CompilerOptions()
     ..sdkRoot = null
     ..fileSystem = StandardFileSystem.instance
-    ..packagesFileUri = packagesFileUri
+    ..packagesFileUri = packageConfigUri
     ..sdkSummary = null
     ..nnbdMode = NnbdMode.Weak;
 
@@ -91,19 +91,20 @@ Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
         "platform_strong.dill file.";
   }
   logger.notice("Using $flutterPlatformDirectory as platform directory.");
-  List<File> dotPackagesFiles = new List<File>.from(allFlutterFiles.where((f) =>
-      (f.uri.toString().contains("/examples/") ||
-          f.uri.toString().contains("/packages/")) &&
-      f.uri.toString().endsWith("/.packages")));
+  List<File> packageConfigFiles = new List<File>.from(allFlutterFiles.where(
+      (f) =>
+          (f.uri.toString().contains("/examples/") ||
+              f.uri.toString().contains("/packages/")) &&
+          f.uri.toString().endsWith("/.dart_tool/package_config.json")));
 
   List<String> allCompilationErrors = [];
   final Directory systemTempDir = Directory.systemTemp;
   List<_QueueEntry> queue = [];
   int totalFiles = 0;
-  for (int i = 0; i < dotPackagesFiles.length; i++) {
-    File dotPackage = dotPackagesFiles[i];
+  for (int i = 0; i < packageConfigFiles.length; i++) {
+    File packageConfig = packageConfigFiles[i];
     Directory testDir =
-        new Directory.fromUri(dotPackage.parent.uri.resolve("test/"));
+        new Directory.fromUri(packageConfig.parent.uri.resolve("../test/"));
     if (!testDir.existsSync()) continue;
     if (testDir.toString().contains("packages/flutter_web_plugins/test/")) {
       // TODO(jensj): Figure out which tests are web-tests, and compile those
@@ -129,7 +130,7 @@ Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
     List<File> weak = [];
     List<File> strong = [];
     for (File file in testFiles) {
-      if (await _getNNBDMode(file.uri, dotPackage.uri) == NnbdMode.Weak) {
+      if (await _getNNBDMode(file.uri, packageConfig.uri) == NnbdMode.Weak) {
         weak.add(file);
       } else {
         strong.add(file);
@@ -137,7 +138,7 @@ Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
     }
     for (List<File> files in [weak, strong]) {
       if (files.isEmpty) continue;
-      queue.add(new _QueueEntry(files, dotPackage, testDir));
+      queue.add(new _QueueEntry(files, packageConfig, testDir));
       totalFiles += files.length;
     }
   }
@@ -165,7 +166,7 @@ Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
           systemTempDir,
           chunk,
           flutterPlatformDirectory,
-          queueEntry.dotPackage,
+          queueEntry.packageConfig,
           queueEntry.testDir,
           flutterDirectory,
           logger,
@@ -187,17 +188,17 @@ Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
 
 class _QueueEntry {
   final List<File> files;
-  final File dotPackage;
+  final File packageConfig;
   final Directory testDir;
 
-  _QueueEntry(this.files, this.dotPackage, this.testDir);
+  _QueueEntry(this.files, this.packageConfig, this.testDir);
 }
 
 Future<void> _processFiles(
     Directory systemTempDir,
     List<File> files,
     Directory flutterPlatformDirectory,
-    File dotPackage,
+    File packageConfig,
     Directory testDir,
     Directory flutterDirectory,
     Logger logger,
@@ -209,7 +210,7 @@ Future<void> _processFiles(
         files,
         tempDir,
         flutterPlatformDirectory,
-        dotPackage,
+        packageConfig,
         testDir,
         flutterDirectory,
         logger,
@@ -228,7 +229,7 @@ Future<List<String>> attemptStuff(
     List<File> testFiles,
     Directory tempDir,
     Directory flutterPlatformDirectory,
-    File dotPackage,
+    File packageConfig,
     Directory testDir,
     Directory flutterDirectory,
     Logger logger,
@@ -249,7 +250,7 @@ Future<List<String>> attemptStuff(
     '--incremental',
     '--target=flutter',
     '--packages',
-    dotPackage.path,
+    packageConfig.path,
     '--output-dill=${dillFile.path}',
     // '--unsafe-package-serialization',
   ];

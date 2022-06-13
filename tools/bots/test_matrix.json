@@ -4,7 +4,6 @@
   ],
   "filesets": {
     "analyzer_unit_tests": [
-      ".packages",
       ".dart_tool/package_config.json",
       "pkg/",
       "third_party/pkg/",
@@ -14,7 +13,6 @@
       "xcodebuild/ReleaseX64/dart-sdk/"
     ],
     "web_platform": [
-      ".packages",
       ".dart_tool/package_config.json",
       "out/ReleaseIA32/dart-sdk/",
       "out/ReleaseX64/dart-sdk/",
@@ -60,7 +58,6 @@
       "xcodebuild/ReleaseX64/gen/utils/dartdevc/"
     ],
     "web_platform_nnbd": [
-      ".packages",
       ".dart_tool/package_config.json",
       "out/ReleaseIA32/dart-sdk/",
       "out/ReleaseX64/dart-sdk/",
@@ -98,7 +95,6 @@
       "xcodebuild/ReleaseX64/gen/utils/dartdevc/"
     ],
     "web_platform_hostasserts": [
-      ".packages",
       ".dart_tool/package_config.json",
       "out/ReleaseIA32/dart",
       "out/ReleaseIA32/dart2js_platform.dill",
@@ -149,7 +145,6 @@
       "xcodebuild/ReleaseX64/dart2js_platform_unsound.dill"
     ],
     "web_platform_hostasserts_nnbd": [
-      ".packages",
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
       "out/ReleaseX64/dart2js_platform.dill",
@@ -186,9 +181,13 @@
       "xcodebuild/ReleaseX64/dart2js_platform_unsound.dill"
     ],
     "dart2wasm_hostasserts": [
-      ".packages",
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
+      "out/ReleaseX64/dart_precompiled_runtime",
+      "out/ReleaseX64/dart2wasm.snapshot",
+      "out/ReleaseX64/dart2wasm_asserts.snapshot",
+      "out/ReleaseX64/dart2wasm_outline.dill",
+      "out/ReleaseX64/dart2wasm_platform.dill",
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
@@ -219,7 +218,6 @@
       "xcodebuild/ReleaseX64/dart"
     ],
     "front-end": [
-      ".packages",
       ".dart_tool/package_config.json",
       "out/ReleaseIA32/",
       "out/ReleaseX64/",
@@ -284,8 +282,7 @@
       "pkg/vm/",
       "runtime/",
       "sdk/",
-      ".dart_tool/package_config.json",
-      ".packages"
+      ".dart_tool/package_config.json"
     ],
     "vm-kernel": [
       "benchmarks/",
@@ -356,7 +353,6 @@
       "runtime/",
       "sdk/",
       ".dart_tool/package_config.json",
-      ".packages",
       ".vpython"
     ]
   },
@@ -1482,8 +1478,10 @@
         "vm-kernel-precomp-linux-release-simarm64",
         "vm-kernel-precomp-linux-release-simriscv32",
         "vm-kernel-precomp-linux-release-simriscv64",
+        "vm-kernel-precomp-mac-product-x64",
         "vm-kernel-precomp-mac-release-simarm64",
         "vm-kernel-precomp-mac-release-simarm64c",
+        "vm-kernel-precomp-win-product-x64",
         "vm-kernel-precomp-win-release-x64",
         "vm-kernel-precomp-win-release-x64c"
       ],
@@ -2663,7 +2661,7 @@
           "name": "dart2js tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
-            "--exclude_suite=observatory_ui"
+            "--exclude-suite=observatory_ui"
           ],
           "shards": 6,
           "fileset": "web_platform_hostasserts"
@@ -2727,7 +2725,7 @@
           "arguments": [
             "-ndart2js-${system}-${runtime}",
             "--reset-browser-configuration",
-            "--exclude_suite=observatory_ui"
+            "--exclude-suite=observatory_ui"
           ],
           "shards": 6,
           "fileset": "web_platform"
@@ -2787,7 +2785,7 @@
           "name": "dart2js tests",
           "arguments": [
             "-ndart2js-minified-linux-d8",
-            "--exclude_suite=observatory_ui"
+            "--exclude-suite=observatory_ui"
           ],
           "shards": 6,
           "fileset": "web_platform"
@@ -2817,7 +2815,7 @@
           "name": "dart2js production tests",
           "arguments": [
             "-ndart2js-production-linux-d8",
-            "--exclude_suite=observatory_ui"
+            "--exclude-suite=observatory_ui"
           ],
           "shards": 6,
           "fileset": "web_platform"
@@ -2867,7 +2865,7 @@
           "arguments": [
             "-ndart2js-minified-csp-linux-chrome",
             "--reset-browser-configuration",
-            "--exclude_suite=observatory_ui"
+            "--exclude-suite=observatory_ui"
           ],
           "shards": 4,
           "fileset": "web_platform"
@@ -3026,7 +3024,8 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime"
+            "runtime",
+            "dart2wasm"
           ]
         },
         {
@@ -3037,7 +3036,7 @@
             "corelib",
             "web/wasm"
           ],
-          "shards": 30,
+          "shards": 3,
           "fileset": "dart2wasm_hostasserts"
         }
       ]
@@ -3410,6 +3409,15 @@
           ]
         },
         {
+          "name": "analyze pkg/dart2native",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "--fatal-infos",
+            "pkg/dart2native"
+          ]
+        },
+        {
           "name": "analyze pkg/dartdev",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
@@ -3682,14 +3690,18 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "tools/verify_docs/bin/verify_docs.dart",
-            "sdk/lib/_http",
-            "sdk/lib/_internal",
-            "sdk/lib/cli",
-            "sdk/lib/convert",
-            "sdk/lib/ffi",
-            "sdk/lib/js",
-            "sdk/lib/math",
-            "sdk/lib/mirrors"
+            "dart:_http",
+            "dart:_internal",
+            "dart:cli",
+            "dart:convert",
+            "dart:developer",
+            "dart:ffi",
+            "dart:isolate",
+            "dart:js",
+            "dart:js_util",
+            "dart:math",
+            "dart:mirrors",
+            "dart:wasm"
           ]
         },
         {

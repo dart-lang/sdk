@@ -1876,7 +1876,7 @@ class LoadOptimizer : public ValueObject {
 
     // 1) Populate 'gen' sets with places which are initialized at each basic
     // block. Optimize lazy initializer calls within basic block and
-    // figure out if there are lazy intializer calls left to optimize.
+    // figure out if there are lazy initializer calls left to optimize.
     bool has_lazy_initializer_calls = false;
     for (BlockIterator block_it = graph_->reverse_postorder_iterator();
          !block_it.Done(); block_it.Advance()) {
@@ -4351,7 +4351,6 @@ static bool CanEliminateInstruction(Instruction* current,
   if (MayHaveVisibleEffect(current) || current->CanDeoptimize() ||
       current == block->last_instruction() || current->IsMaterializeObject() ||
       current->IsCheckStackOverflow() || current->IsReachabilityFence() ||
-      current->IsEnterHandleScope() || current->IsExitHandleScope() ||
       current->IsRawStoreField()) {
     return false;
   }

@@ -12,34 +12,74 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_server_abstract.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analysis_server/src/domain_completion.dart';
-import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
-import 'package:analysis_server/src/edit/edit_domain.dart';
-import 'package:analysis_server/src/flutter/flutter_domain.dart';
 import 'package:analysis_server/src/flutter/flutter_notifications.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_get_errors.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_get_hover.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_get_imported_elements.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_get_navigation.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_get_signature.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_reanalyze.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_set_analysis_roots.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_set_general_subscriptions.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_set_priority_files.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_set_subscriptions.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_update_content.dart';
+import 'package:analysis_server/src/handler/legacy/analysis_update_options.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_enable.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_is_enabled.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_send_event.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_send_timing.dart';
+import 'package:analysis_server/src/handler/legacy/completion_get_suggestion_details.dart';
+import 'package:analysis_server/src/handler/legacy/completion_get_suggestion_details2.dart';
+import 'package:analysis_server/src/handler/legacy/completion_get_suggestions.dart';
+import 'package:analysis_server/src/handler/legacy/completion_get_suggestions2.dart';
+import 'package:analysis_server/src/handler/legacy/completion_set_subscriptions.dart';
 import 'package:analysis_server/src/handler/legacy/diagnostic_get_diagnostics.dart';
 import 'package:analysis_server/src/handler/legacy/diagnostic_get_server_port.dart';
+import 'package:analysis_server/src/handler/legacy/edit_bulk_fixes.dart';
+import 'package:analysis_server/src/handler/legacy/edit_format.dart';
+import 'package:analysis_server/src/handler/legacy/edit_format_if_enabled.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_assists.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_available_refactorings.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_fixes.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_postfix_completion.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_refactoring.dart';
+import 'package:analysis_server/src/handler/legacy/edit_get_statement_completion.dart';
+import 'package:analysis_server/src/handler/legacy/edit_import_elements.dart';
+import 'package:analysis_server/src/handler/legacy/edit_is_postfix_completion_applicable.dart';
+import 'package:analysis_server/src/handler/legacy/edit_list_postfix_completion_templates.dart';
+import 'package:analysis_server/src/handler/legacy/edit_organize_directives.dart';
+import 'package:analysis_server/src/handler/legacy/edit_sort_members.dart';
 import 'package:analysis_server/src/handler/legacy/execution_create_context.dart';
 import 'package:analysis_server/src/handler/legacy/execution_delete_context.dart';
 import 'package:analysis_server/src/handler/legacy/execution_get_suggestions.dart';
 import 'package:analysis_server/src/handler/legacy/execution_map_uri.dart';
 import 'package:analysis_server/src/handler/legacy/execution_set_subscriptions.dart';
+import 'package:analysis_server/src/handler/legacy/flutter_get_widget_description.dart';
+import 'package:analysis_server/src/handler/legacy/flutter_set_subscriptions.dart';
+import 'package:analysis_server/src/handler/legacy/flutter_set_widget_property_value.dart';
 import 'package:analysis_server/src/handler/legacy/kythe_get_kythe_entries.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/handler/legacy/search_find_element_references.dart';
+import 'package:analysis_server/src/handler/legacy/search_find_member_declarations.dart';
+import 'package:analysis_server/src/handler/legacy/search_find_member_references.dart';
+import 'package:analysis_server/src/handler/legacy/search_find_top_level_declarations.dart';
+import 'package:analysis_server/src/handler/legacy/search_get_element_declarations.dart';
+import 'package:analysis_server/src/handler/legacy/search_get_type_hierarchy.dart';
+import 'package:analysis_server/src/handler/legacy/server_cancel_request.dart';
+import 'package:analysis_server/src/handler/legacy/server_get_version.dart';
+import 'package:analysis_server/src/handler/legacy/server_set_subscriptions.dart';
+import 'package:analysis_server/src/handler/legacy/server_shutdown.dart';
+import 'package:analysis_server/src/handler/legacy/unsupported_request.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
-import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/debounce_requests.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
@@ -50,6 +90,8 @@ import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/services/completion/completion_state.dart';
 import 'package:analysis_server/src/services/execution/execution_context.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring_manager.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -86,13 +128,57 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// A map from the name of a request to a function used to create a request
   /// handler.
   static final Map<String, HandlerGenerator> handlerGenerators = {
+    ANALYSIS_REQUEST_GET_ERRORS: AnalysisGetErrorsHandler.new,
+    ANALYSIS_REQUEST_GET_HOVER: AnalysisGetHoverHandler.new,
+    ANALYSIS_REQUEST_GET_IMPORTED_ELEMENTS:
+        AnalysisGetImportedElementsHandler.new,
+    ANALYSIS_REQUEST_GET_LIBRARY_DEPENDENCIES: UnsupportedRequestHandler.new,
+    ANALYSIS_REQUEST_GET_NAVIGATION: AnalysisGetNavigationHandler.new,
+    ANALYSIS_REQUEST_GET_REACHABLE_SOURCES: UnsupportedRequestHandler.new,
+    ANALYSIS_REQUEST_GET_SIGNATURE: AnalysisGetSignatureHandler.new,
+    ANALYSIS_REQUEST_REANALYZE: AnalysisReanalyzeHandler.new,
+    ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS: AnalysisSetAnalysisRootsHandler.new,
+    ANALYSIS_REQUEST_SET_GENERAL_SUBSCRIPTIONS:
+        AnalysisSetGeneralSubscriptionsHandler.new,
+    ANALYSIS_REQUEST_SET_PRIORITY_FILES: AnalysisSetPriorityFilesHandler.new,
+    ANALYSIS_REQUEST_SET_SUBSCRIPTIONS: AnalysisSetSubscriptionsHandler.new,
+    ANALYSIS_REQUEST_UPDATE_CONTENT: AnalysisUpdateContentHandler.new,
+    ANALYSIS_REQUEST_UPDATE_OPTIONS: AnalysisUpdateOptionsHandler.new,
+    //
     ANALYTICS_REQUEST_IS_ENABLED: AnalyticsIsEnabledHandler.new,
     ANALYTICS_REQUEST_ENABLE: AnalyticsEnableHandler.new,
     ANALYTICS_REQUEST_SEND_EVENT: AnalyticsSendEventHandler.new,
     ANALYTICS_REQUEST_SEND_TIMING: AnalyticsSendTimingHandler.new,
     //
+    COMPLETION_REQUEST_GET_SUGGESTION_DETAILS:
+        CompletionGetSuggestionDetailsHandler.new,
+    COMPLETION_REQUEST_GET_SUGGESTION_DETAILS2:
+        CompletionGetSuggestionDetails2Handler.new,
+    COMPLETION_REQUEST_GET_SUGGESTIONS: CompletionGetSuggestionsHandler.new,
+    COMPLETION_REQUEST_GET_SUGGESTIONS2: CompletionGetSuggestions2Handler.new,
+    COMPLETION_REQUEST_SET_SUBSCRIPTIONS: CompletionSetSubscriptionsHandler.new,
+    //
     DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS: DiagnosticGetDiagnosticsHandler.new,
     DIAGNOSTIC_REQUEST_GET_SERVER_PORT: DiagnosticGetServerPortHandler.new,
+    //
+    EDIT_REQUEST_FORMAT: EditFormatHandler.new,
+    EDIT_REQUEST_FORMAT_IF_ENABLED: EditFormatIfEnabledHandler.new,
+    EDIT_REQUEST_GET_ASSISTS: EditGetAssistsHandler.new,
+    EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS:
+        EditGetAvailableRefactoringsHandler.new,
+    EDIT_REQUEST_BULK_FIXES: EditBulkFixes.new,
+    EDIT_REQUEST_GET_FIXES: EditGetFixesHandler.new,
+    EDIT_REQUEST_GET_REFACTORING: EditGetRefactoringHandler.new,
+    EDIT_REQUEST_IMPORT_ELEMENTS: EditImportElementsHandler.new,
+    EDIT_REQUEST_ORGANIZE_DIRECTIVES: EditOrganizeDirectivesHandler.new,
+    EDIT_REQUEST_SORT_MEMBERS: EditSortMembersHandler.new,
+    EDIT_REQUEST_GET_STATEMENT_COMPLETION:
+        EditGetStatementCompletionHandler.new,
+    EDIT_REQUEST_IS_POSTFIX_COMPLETION_APPLICABLE:
+        EditIsPostfixCompletionApplicableHandler.new,
+    EDIT_REQUEST_GET_POSTFIX_COMPLETION: EditGetPostfixCompletionHandler.new,
+    EDIT_REQUEST_LIST_POSTFIX_COMPLETION_TEMPLATES:
+        EditListPostfixCompletionTemplatesHandler.new,
     //
     EXECUTION_REQUEST_CREATE_CONTEXT: ExecutionCreateContextHandler.new,
     EXECUTION_REQUEST_DELETE_CONTEXT: ExecutionDeleteContextHandler.new,
@@ -100,7 +186,30 @@ class AnalysisServer extends AbstractAnalysisServer {
     EXECUTION_REQUEST_MAP_URI: ExecutionMapUriHandler.new,
     EXECUTION_REQUEST_SET_SUBSCRIPTIONS: ExecutionSetSubscriptionsHandler.new,
     //
+    FLUTTER_REQUEST_GET_WIDGET_DESCRIPTION:
+        FlutterGetWidgetDescriptionHandler.new,
+    FLUTTER_REQUEST_SET_WIDGET_PROPERTY_VALUE:
+        FlutterSetWidgetPropertyValueHandler.new,
+    FLUTTER_REQUEST_SET_SUBSCRIPTIONS: FlutterSetSubscriptionsHandler.new,
+    //
     KYTHE_REQUEST_GET_KYTHE_ENTRIES: KytheGetKytheEntriesHandler.new,
+    //
+    SEARCH_REQUEST_FIND_ELEMENT_REFERENCES:
+        SearchFindElementReferencesHandler.new,
+    SEARCH_REQUEST_FIND_MEMBER_DECLARATIONS:
+        SearchFindMemberDeclarationsHandler.new,
+    SEARCH_REQUEST_FIND_MEMBER_REFERENCES:
+        SearchFindMemberReferencesHandler.new,
+    SEARCH_REQUEST_FIND_TOP_LEVEL_DECLARATIONS:
+        SearchFindTopLevelDeclarationsHandler.new,
+    SEARCH_REQUEST_GET_ELEMENT_DECLARATIONS:
+        SearchGetElementDeclarationsHandler.new,
+    SEARCH_REQUEST_GET_TYPE_HIERARCHY: SearchGetTypeHierarchyHandler.new,
+    //
+    SERVER_REQUEST_GET_VERSION: ServerGetVersionHandler.new,
+    SERVER_REQUEST_SET_SUBSCRIPTIONS: ServerSetSubscriptionsHandler.new,
+    SERVER_REQUEST_SHUTDOWN: ServerShutdownHandler.new,
+    SERVER_REQUEST_CANCEL_REQUEST: ServerCancelRequestHandler.new,
   };
 
   /// The channel from which requests are received and to which responses should
@@ -110,10 +219,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// A flag indicating the value of the 'analyzing' parameter sent in the last
   /// status message to the client.
   bool statusAnalyzing = false;
-
-  /// A list of the request handlers used to handle the requests sent to this
-  /// server.
-  late List<RequestHandler> handlers;
 
   /// A set of the [ServerService]s to send notifications for.
   Set<ServerService> serverServices = HashSet<ServerService>();
@@ -143,6 +248,12 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// The state used by the completion domain handlers.
   final CompletionState completionState = CompletionState();
+
+  /// The workspace for rename refactorings.
+  late RefactoringWorkspace refactoringWorkspace;
+
+  /// The object used to manage uncompleted refactorings.
+  late RefactoringManager? _refactoringManager;
 
   /// The context used by the execution domain handlers.
   final ExecutionContext executionContext = ExecutionContext();
@@ -216,6 +327,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     ResourceProvider baseResourceProvider,
     AnalysisServerOptions options,
     DartSdkManager sdkManager,
+    AnalyticsManager analyticsManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService, {
     http.Client? httpClient,
@@ -229,6 +341,7 @@ class AnalysisServer extends AbstractAnalysisServer {
           options,
           sdkManager,
           diagnosticServer,
+          analyticsManager,
           crashReportingAttachmentsBuilder,
           baseResourceProvider,
           instrumentationService,
@@ -258,18 +371,9 @@ class AnalysisServer extends AbstractAnalysisServer {
     );
     debounceRequests(channel, discardedRequests)
         .listen(handleRequest, onDone: done, onError: error);
-    handlers = <server.RequestHandler>[
-      ServerDomainHandler(this),
-      AnalysisDomainHandler(this),
-      EditDomainHandler(this),
-      SearchDomainHandler(this),
-      CompletionDomainHandler(this),
-      FlutterDomainHandler(this)
-    ];
+    refactoringWorkspace = RefactoringWorkspace(driverMap.values, searchEngine);
+    _newRefactoringManager();
   }
-
-  /// The analytics instance; note, this object can be `null`.
-  telemetry.Analytics? get analytics => options.analytics;
 
   /// The [Future] that completes when analysis is complete.
   Future<void> get onAnalysisComplete {
@@ -290,6 +394,18 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// The stream that is notified with `true` when analysis is started.
   Stream<bool> get onAnalysisStarted {
     return _onAnalysisStartedController.stream;
+  }
+
+  RefactoringManager? get refactoringManager {
+    var refactoringManager = _refactoringManager;
+    if (refactoringManager == null) {
+      return null;
+    }
+    if (refactoringManager.hasPendingRequest) {
+      refactoringManager.cancel();
+      _newRefactoringManager();
+    }
+    return _refactoringManager;
   }
 
   String get sdkPath {
@@ -326,6 +442,8 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// Handle a [request] that was read from the communication channel.
   void handleRequest(Request request) {
+    analyticsManager.startedRequest(
+        request: request, startTime: DateTime.now());
     performance.logRequestTiming(request.clientRequestTime);
     // Because we don't `await` the execution of the handlers, we wrap the
     // execution in order to have one central place to handle exceptions.
@@ -337,19 +455,6 @@ class AnalysisServer extends AbstractAnalysisServer {
         var handler = generator(this, request, cancellationToken);
         handler.handle();
       } else {
-        // TODO(brianwilkerson) When all the handlers are in [handlerGenerators]
-        //  remove local variable and for loop below.
-        var count = handlers.length;
-        for (var i = 0; i < count; i++) {
-          var response = handlers[i].handleRequest(request, cancellationToken);
-          if (response == Response.DELAYED_RESPONSE) {
-            return;
-          }
-          if (response != null) {
-            sendResponse(response);
-            return;
-          }
-        }
         sendResponse(Response.unknownRequest(request));
       }
     }, (exception, stackTrace) {
@@ -410,6 +515,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Send the given [response] to the client.
   void sendResponse(Response response) {
     channel.sendResponse(response);
+    analyticsManager.sentResponse(response: response);
     cancellationTokens.remove(response.id);
   }
 
@@ -565,6 +671,8 @@ class AnalysisServer extends AbstractAnalysisServer {
 
     pubApi.close();
 
+    // TODO(brianwilkerson) Remove the following 6 lines when the
+    //  analyticsManager is being correctly initialized.
     var analytics = options.analytics;
     if (analytics != null) {
       analytics.waitForLastPing(timeout: Duration(milliseconds: 200)).then((_) {
@@ -690,6 +798,11 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   bool _hasFlutterServiceSubscription(FlutterService service, String file) {
     return flutterServices[service]?.contains(file) ?? false;
+  }
+
+  /// Initializes [_refactoringManager] with a new instance.
+  void _newRefactoringManager() {
+    _refactoringManager = RefactoringManager(this, refactoringWorkspace);
   }
 
   Future<void> _scheduleAnalysisImplementedNotification() async {
@@ -821,26 +934,25 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  void listenAnalysisDriver(analysis.AnalysisDriver analysisDriver) {
-    analysisDriver.results.listen((result) {
+  void listenAnalysisDriver(analysis.AnalysisDriver driver) {
+    driver.results.listen((result) {
       if (result is FileResult) {
         _handleFileResult(result);
       }
     });
-    analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
-    analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
+    driver.exceptions.listen(analysisServer.logExceptionResult);
+    driver.priorityFiles = analysisServer.priorityFiles.toList();
   }
 
   @override
-  void pubspecChanged(String pubspecPath) {
-    analysisServer.pubPackageService.fetchPackageVersionsViaPubOutdated(
-        pubspecPath,
-        pubspecWasModified: true);
+  void pubspecChanged(String path) {
+    analysisServer.pubPackageService
+        .fetchPackageVersionsViaPubOutdated(path, pubspecWasModified: true);
   }
 
   @override
-  void pubspecRemoved(String pubspecPath) {
-    analysisServer.pubPackageService.flushPackageCaches(pubspecPath);
+  void pubspecRemoved(String path) {
+    analysisServer.pubPackageService.flushPackageCaches(path);
   }
 
   @override

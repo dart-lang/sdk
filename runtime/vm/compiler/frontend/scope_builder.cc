@@ -89,6 +89,16 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   scope_->set_begin_token_pos(function.token_pos());
   scope_->set_end_token_pos(function.end_token_pos());
 
+  if (function.IsSuspendableFunction()) {
+    LocalVariable* suspend_state_var =
+        MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                     Symbols::SuspendStateVar(), AbstractType::dynamic_type());
+    suspend_state_var->set_is_forced_stack();
+    suspend_state_var->set_invisible(true);
+    scope_->AddVariable(suspend_state_var);
+    parsed_function_->set_suspend_state_var(suspend_state_var);
+  }
+
   // Add function type arguments variable before current context variable.
   if (function.IsGeneric() || function.HasGenericParent()) {
     LocalVariable* type_args_var = MakeVariable(
@@ -438,6 +448,12 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 
   parsed_function_->AllocateVariables();
 
+  // :suspend_state variable should be allocated to a fixed location in
+  // the stack frame.
+  RELEASE_ASSERT((parsed_function_->suspend_state_var() == nullptr) ||
+                 (parsed_function_->suspend_state_var()->index().value() ==
+                  SuspendState::kSuspendStateVarIndex));
+
   return result_;
 }
 
@@ -732,6 +748,16 @@ void ScopeBuilder::VisitExpression() {
       helper_.SkipName();      // read name.
       VisitExpression();       // read value.
       return;
+    case kAbstractSuperPropertyGet:
+      // Abstract super property getters must be converted into super property
+      // getters during mixin transformation.
+      UNREACHABLE();
+      break;
+    case kAbstractSuperPropertySet:
+      // Abstract super property setters must be converted into super property
+      // setters during mixin transformation.
+      UNREACHABLE();
+      break;
     case kSuperPropertyGet:
       HandleLoadReceiver();
       helper_.ReadPosition();                      // read position.
@@ -801,6 +827,11 @@ void ScopeBuilder::VisitExpression() {
       helper_.ReadPosition();  // read position.
       VisitExpression();       // read expression.
       return;
+    case kAbstractSuperMethodInvocation:
+      // Abstract super method invocations must be converted into super
+      // method invocations during mixin transformation.
+      UNREACHABLE();
+      break;
     case kSuperMethodInvocation:
       HandleLoadReceiver();
       helper_.ReadPosition();  // read position.
@@ -977,6 +1008,10 @@ void ScopeBuilder::VisitExpression() {
     case kCheckLibraryIsLoaded:
       helper_.ReadUInt();  // library index
       break;
+    case kAwaitExpression:
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read operand.
+      return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:
@@ -1256,15 +1291,16 @@ void ScopeBuilder::VisitStatement() {
       word flags = helper_.ReadByte();  // read flags.
       VisitExpression();                // read expression.
 
-      ASSERT(flags == kNativeYieldFlags);
-      if (depth_.function_ == 0) {
-        AddSwitchVariable();
-        // Promote all currently visible local variables into the context.
-        // TODO(27590) CaptureLocalVariables promotes to many variables into
-        // the scope. Mark those variables as stack_local.
-        // TODO(27590) we don't need to promote those variables that are
-        // not used across yields.
-        scope_->CaptureLocalVariables(current_function_scope_);
+      if ((flags & kYieldStatementFlagNative) != 0) {
+        if (depth_.function_ == 0) {
+          AddSwitchVariable();
+          // Promote all currently visible local variables into the context.
+          // TODO(27590) CaptureLocalVariables promotes to many variables into
+          // the scope. Mark those variables as stack_local.
+          // TODO(27590) we don't need to promote those variables that are
+          // not used across yields.
+          scope_->CaptureLocalVariables(current_function_scope_);
+        }
       }
       return;
     }
@@ -1444,10 +1480,6 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
       VisitDartType();     // read named_parameters[i].type.
       helper_.ReadByte();  // read flags
     }
-  }
-
-  if (!simple) {
-    helper_.SkipOptionalDartType();  // read typedef reference.
   }
 
   VisitDartType();  // read return type.

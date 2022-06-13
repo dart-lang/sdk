@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.11
+
 /// This tool gives a breakdown of code size by deferred part in the program.
 library dart2js_info.bin.deferred_library_size;
 
@@ -56,7 +58,7 @@ void printSizes(Map<String, int> sizeByImport, int programSize) {
   int longest = importSizes.fold('Percent of code deferred'.length,
       (longest, importSize) => max(longest, importSize.import.length));
 
-  _printRow(label, data, {int width = 15}) {
+  printRow(label, data, {int width = 15}) {
     print('${label.toString().padRight(longest + 1)}'
         '${data.toString().padLeft(width)}');
   }
@@ -66,16 +68,16 @@ void printSizes(Map<String, int> sizeByImport, int programSize) {
   print('-' * (longest + 16));
   for (var importSize in importSizes) {
     // TODO(het): split into specific and shared size
-    _printRow(importSize.import, importSize.size);
+    printRow(importSize.import, importSize.size);
   }
   print('-' * (longest + 16));
 
   var mainChunkSize = sizeByImport['main'];
   var deferredSize = programSize - mainChunkSize;
   var percentDeferred = (deferredSize * 100 / programSize).toStringAsFixed(2);
-  _printRow('Main chunk size', mainChunkSize);
-  _printRow('Deferred code size', deferredSize);
-  _printRow('Percent of code deferred', '$percentDeferred%');
+  printRow('Main chunk size', mainChunkSize);
+  printRow('Deferred code size', deferredSize);
+  printRow('Percent of code deferred', '$percentDeferred%');
 }
 
 Map<String, int> getSizeByImport(AllInfo info) {

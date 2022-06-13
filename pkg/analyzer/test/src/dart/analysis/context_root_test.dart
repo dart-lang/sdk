@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/basic.dart';
@@ -29,7 +30,7 @@ class ContextRootTest with ResourceProviderMixin {
   void setUp() {
     rootPath = convertPath('/test/root');
     rootFolder = newFolder(rootPath);
-    workspace = BasicWorkspace.find(resourceProvider, {}, rootPath);
+    workspace = BasicWorkspace.find(resourceProvider, Packages.empty, rootPath);
     contextRoot = ContextRootImpl(resourceProvider, rootFolder, workspace);
     contextRoot.included.add(rootFolder);
   }
@@ -247,7 +248,8 @@ class ContextRootTest with ResourceProviderMixin {
   ContextRootImpl _createContextRoot(String posixPath) {
     var rootPath = convertPath(posixPath);
     var rootFolder = newFolder(rootPath);
-    var workspace = BasicWorkspace.find(resourceProvider, {}, rootPath);
+    var workspace =
+        BasicWorkspace.find(resourceProvider, Packages.empty, rootPath);
     var contextRoot = ContextRootImpl(resourceProvider, rootFolder, workspace);
     contextRoot.included.add(rootFolder);
     return contextRoot;

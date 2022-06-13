@@ -1377,15 +1377,19 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
 
   // Build implemented interface types
   intptr_t interface_count = helper_.ReadListLength();
-  const Array& interfaces =
-      Array::Handle(Z, Array::New(interface_count, Heap::kOld));
-  for (intptr_t i = 0; i < interface_count; i++) {
-    const AbstractType& type =
-        T.BuildTypeWithoutFinalization();  // read ith type.
-    interfaces.SetAt(i, type);
+  if (interface_count == 0) {
+    klass->set_interfaces(Object::empty_array());
+  } else {
+    const Array& interfaces =
+        Array::Handle(Z, Array::New(interface_count, Heap::kOld));
+    for (intptr_t i = 0; i < interface_count; i++) {
+      const AbstractType& type =
+          T.BuildTypeWithoutFinalization();  // read ith type.
+      interfaces.SetAt(i, type);
+    }
+    klass->set_interfaces(interfaces);
   }
   class_helper->SetJustRead(ClassHelper::kImplementedClasses);
-  klass->set_interfaces(interfaces);
 
   if (class_helper->is_abstract()) klass->set_is_abstract();
 
@@ -1973,6 +1977,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   bool is_abstract = procedure_helper.IsAbstract();
   bool is_external = procedure_helper.IsExternal();
   bool is_extension_member = procedure_helper.IsExtensionMember();
+  bool is_synthetic = procedure_helper.IsSynthetic();
   String& native_name = String::Handle(Z);
   bool scan_annotations_lazy;
   bool has_pragma_annotation;
@@ -2005,7 +2010,8 @@ void KernelLoader::LoadProcedure(const Library& library,
   function.set_has_pragma(has_pragma_annotation);
   function.set_end_token_pos(procedure_helper.end_position_);
   function.set_is_synthetic(procedure_helper.IsNoSuchMethodForwarder() ||
-                            procedure_helper.IsMemberSignature());
+                            procedure_helper.IsMemberSignature() ||
+                            is_synthetic);
   function.set_is_visible(!is_invisible_function);
   if (register_function) {
     functions_.Add(&function);
@@ -2030,28 +2036,51 @@ void KernelLoader::LoadProcedure(const Library& library,
 
   FunctionNodeHelper function_node_helper(&helper_);
   function_node_helper.ReadUntilIncluding(FunctionNodeHelper::kDartAsyncMarker);
-  function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
-                             FunctionNodeHelper::kSync);
-  switch (function_node_helper.dart_async_marker_) {
-    case FunctionNodeHelper::kSyncStar:
-      function.set_modifier(UntaggedFunction::kSyncGen);
-      function.set_is_visible(!FLAG_lazy_async_stacks);
-      break;
-    case FunctionNodeHelper::kAsync:
-      function.set_modifier(UntaggedFunction::kAsync);
-      function.set_is_inlinable(!FLAG_lazy_async_stacks);
-      function.set_is_visible(!FLAG_lazy_async_stacks);
-      break;
-    case FunctionNodeHelper::kAsyncStar:
-      function.set_modifier(UntaggedFunction::kAsyncGen);
-      function.set_is_inlinable(!FLAG_lazy_async_stacks);
-      function.set_is_visible(!FLAG_lazy_async_stacks);
-      break;
-    default:
-      // no special modifier
-      break;
+  if (function_node_helper.async_marker_ == FunctionNodeHelper::kAsync) {
+    if (!FLAG_precompiled_mode) {
+      FATAL("Compact async functions are only supported in AOT mode.");
+    }
+    function.set_modifier(UntaggedFunction::kAsync);
+    function.set_is_debuggable(true);
+    function.set_is_inlinable(false);
+    function.set_is_visible(true);
+    ASSERT(function.IsCompactAsyncFunction());
+  } else if (function_node_helper.async_marker_ ==
+             FunctionNodeHelper::kAsyncStar) {
+    if (!FLAG_precompiled_mode) {
+      FATAL("Compact async* functions are only supported in AOT mode.");
+    }
+    function.set_modifier(UntaggedFunction::kAsyncGen);
+    function.set_is_debuggable(true);
+    function.set_is_inlinable(false);
+    function.set_is_visible(true);
+    ASSERT(function.IsCompactAsyncStarFunction());
+  } else {
+    ASSERT(function_node_helper.async_marker_ == FunctionNodeHelper::kSync);
+    function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
+                               FunctionNodeHelper::kSync);
+    switch (function_node_helper.dart_async_marker_) {
+      case FunctionNodeHelper::kSyncStar:
+        function.set_modifier(UntaggedFunction::kSyncGen);
+        function.set_is_visible(!FLAG_lazy_async_stacks);
+        break;
+      case FunctionNodeHelper::kAsync:
+        function.set_modifier(UntaggedFunction::kAsync);
+        function.set_is_inlinable(!FLAG_lazy_async_stacks);
+        function.set_is_visible(!FLAG_lazy_async_stacks);
+        break;
+      case FunctionNodeHelper::kAsyncStar:
+        function.set_modifier(UntaggedFunction::kAsyncGen);
+        function.set_is_inlinable(!FLAG_lazy_async_stacks);
+        function.set_is_visible(!FLAG_lazy_async_stacks);
+        break;
+      default:
+        // no special modifier
+        break;
+    }
+    ASSERT(!function.IsCompactAsyncFunction());
+    ASSERT(!function.IsCompactAsyncStarFunction());
   }
-  ASSERT(function_node_helper.async_marker_ == FunctionNodeHelper::kSync);
 
   if (!native_name.IsNull()) {
     function.set_native_name(native_name);

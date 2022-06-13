@@ -300,7 +300,7 @@ int get x => 0;
     await resolveTestCode(r'''
 library foo;
 ''');
-    var element = findElement.unitElement.enclosingElement;
+    var element = this.result.libraryElement;
     var result = await getElementDeclaration(element);
     expect(result, isNull);
   }

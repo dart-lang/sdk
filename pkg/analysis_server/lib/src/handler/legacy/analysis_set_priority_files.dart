@@ -23,6 +23,7 @@ class AnalysisSetPriorityFilesHandler extends LegacyHandler {
     for (var file in params.files) {
       if (!server.isAbsoluteAndNormalized(file)) {
         sendResponse(Response.invalidFilePathFormat(request, file));
+        return;
       }
     }
 

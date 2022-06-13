@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -229,7 +229,7 @@ Type: `String`
       Foo(String arg1, String arg2, [String arg3]);
     }
 
-    main() {
+    void f() {
       var a = Fo^o();
     }
     ''';
@@ -254,7 +254,7 @@ Type: `String`
       Foo(String a, String b);
     }
 
-    main() {
+    void f() {
       var a = Fo^o();
     }
     ''';
@@ -350,15 +350,15 @@ Type: `String`
 
   MarkupContent _getMarkupContents(Hover hover) {
     return hover.contents.map(
-      (t1) => throw 'Hover contents were String, not MarkupContent',
-      (t2) => t2,
+      (t1) => t1,
+      (t2) => throw 'Hover contents were String, not MarkupContent',
     );
   }
 
   String _getStringContents(Hover hover) {
     return hover.contents.map(
-      (t1) => t1,
-      (t2) => throw 'Hover contents were MarkupContent, not String',
+      (t1) => throw 'Hover contents were MarkupContent, not String',
+      (t2) => t2,
     );
   }
 }

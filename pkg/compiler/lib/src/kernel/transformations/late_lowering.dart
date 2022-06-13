@@ -462,6 +462,16 @@ class LateLowering {
         //   }
         //   return value;
         // }
+        //
+        // The following lowering is also possible but currently worse:
+        //
+        // T get field {
+        //   var value = this._#field;
+        //   return isSentinel(value) ? this._#field = e : value;
+        // }
+        //
+        // This lowering avoids generating an extra narrowing node in inference,
+        // but the generated code is worse due to poor register allocation.
         VariableDeclaration value =
             VariableDeclaration('value', initializer: fieldRead(), type: type)
               ..fileOffset = fileOffset;

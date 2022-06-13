@@ -24,7 +24,7 @@ class _FinalizerImpl<T> extends FinalizerBase implements Finalizer<T> {
   ///
   /// This is fine as a non-atomic operation, because the GC only looks at
   /// finalizer instances when it process their entries. By preventing inlining
-  /// we ensure the the finalizer to have been fully initialized by the time
+  /// we ensure the finalizer to have been fully initialized by the time
   /// any [attach] on it is called.
   ///
   /// Alternatively, we could make it a recognized method and add a reachability

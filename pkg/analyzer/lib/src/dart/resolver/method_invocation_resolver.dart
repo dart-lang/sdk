@@ -351,7 +351,7 @@ class MethodInvocationResolver {
     }
     element ??= classElement.getGetter(name);
     element ??= classElement.getMethod(name);
-    if (element != null && element.isAccessibleIn(_definingLibrary)) {
+    if (element != null && element.isAccessibleIn2(_definingLibrary)) {
       return element;
     }
     return null;
@@ -654,7 +654,7 @@ class MethodInvocationResolver {
     // Note: prefix?.bar is reported as an error in ElementResolver.
 
     if (name == FunctionElement.LOAD_LIBRARY_NAME) {
-      var imports = _definingLibrary.getImportsWithPrefix(prefix);
+      var imports = prefix.imports;
       if (imports.length == 1 && imports[0].isDeferred) {
         var importedLibrary = imports[0].importedLibrary;
         var element = importedLibrary?.loadLibraryFunction;
@@ -868,15 +868,6 @@ class MethodInvocationResolver {
     }
   }
 
-  /// If the given [type] is a type parameter, replace with its bound.
-  /// Otherwise, return the original type.
-  DartType _resolveTypeParameter(DartType type) {
-    if (type is TypeParameterType) {
-      return type.resolveToBound(_resolver.typeProvider.objectType);
-    }
-    return type;
-  }
-
   /// We have identified that [node] is not a real [MethodInvocation],
   /// because it does not invoke a method, but instead invokes the result
   /// of a getter execution, or implicitly invokes the `call` method of
@@ -885,7 +876,7 @@ class MethodInvocationResolver {
   void _rewriteAsFunctionExpressionInvocation(
       MethodInvocationImpl node, DartType getterReturnType,
       {required DartType? contextType}) {
-    var targetType = _resolveTypeParameter(getterReturnType);
+    var targetType = _typeSystem.resolveToBound(getterReturnType);
     _inferenceHelper.recordStaticType(node.methodName, targetType,
         contextType: contextType);
 

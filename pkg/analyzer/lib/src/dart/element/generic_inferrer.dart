@@ -699,9 +699,7 @@ class _TypeConstraint extends _TypeRange {
   /// See [toString].
   final _TypeConstraintOrigin origin;
 
-  _TypeConstraint(this.origin, this.typeParameter,
-      {DartType? upper, DartType? lower})
-      : super(upper: upper, lower: lower);
+  _TypeConstraint(this.origin, this.typeParameter, {super.upper, super.lower});
 
   _TypeConstraint.fromExtends(
       TypeParameterElement element, DartType boundType, DartType extendsType,
@@ -735,8 +733,7 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
 
   _TypeConstraintFromArgument(
       this.argumentType, this.parameterType, this.parameterName,
-      {this.genericClass, required bool isNonNullableByDefault})
-      : super(isNonNullableByDefault: isNonNullableByDefault);
+      {this.genericClass, required super.isNonNullableByDefault});
 
   @override
   List<String> formatError() {
@@ -782,8 +779,7 @@ class _TypeConstraintFromExtendsClause extends _TypeConstraintOrigin {
 
   _TypeConstraintFromExtendsClause(
       this.typeParam, this.boundType, this.extendsType,
-      {required bool isNonNullableByDefault})
-      : super(isNonNullableByDefault: isNonNullableByDefault);
+      {required super.isNonNullableByDefault});
 
   @override
   List<String> formatError() {
@@ -801,8 +797,7 @@ class _TypeConstraintFromFunctionContext extends _TypeConstraintOrigin {
   final DartType functionType;
 
   _TypeConstraintFromFunctionContext(this.functionType, this.contextType,
-      {required bool isNonNullableByDefault})
-      : super(isNonNullableByDefault: isNonNullableByDefault);
+      {required super.isNonNullableByDefault});
 
   @override
   List<String> formatError() {
@@ -819,8 +814,7 @@ class _TypeConstraintFromReturnType extends _TypeConstraintOrigin {
   final DartType declaredType;
 
   _TypeConstraintFromReturnType(this.declaredType, this.contextType,
-      {required bool isNonNullableByDefault})
-      : super(isNonNullableByDefault: isNonNullableByDefault);
+      {required super.isNonNullableByDefault});
 
   @override
   List<String> formatError() {

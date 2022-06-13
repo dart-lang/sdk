@@ -617,12 +617,35 @@ class Parser {
         } else if (identical(value, 'library')) {
           context.parseTopLevelKeywordModifiers(start, keyword);
           directiveState?.checkLibrary(this, keyword);
-          return parseLibraryName(keyword);
+          final Token tokenAfterKeyword = keyword.next!;
+          if (tokenAfterKeyword.isIdentifier &&
+              tokenAfterKeyword.lexeme == 'augment') {
+            return parseLibraryAugmentation(keyword, tokenAfterKeyword);
+          } else {
+            return parseLibraryName(keyword);
+          }
         }
       }
     }
 
     throw "Internal error: Unhandled top level keyword '$value'.";
+  }
+
+  /// ```
+  /// libraryAugmentationDirective:
+  ///   'library' 'augment' uri ';'
+  /// ;
+  /// ```
+  Token parseLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
+    assert(optional('library', libraryKeyword));
+    assert(optional('augment', augmentKeyword));
+    listener.beginUncategorizedTopLevelDeclaration(libraryKeyword);
+    listener.beginLibraryAugmentation(libraryKeyword, augmentKeyword);
+    Token start = augmentKeyword;
+    Token token = ensureLiteralString(start);
+    Token semicolon = ensureSemicolon(token);
+    listener.endLibraryAugmentation(libraryKeyword, augmentKeyword, semicolon);
+    return semicolon;
   }
 
   /// ```
@@ -5803,6 +5826,9 @@ class Parser {
         return parseThisExpression(token, context);
       } else if (identical(value, "super")) {
         return parseSuperExpression(token, context);
+      } else if (identical(value, "augment") &&
+          optional('super', token.next!.next!)) {
+        return parseAugmentSuperExpression(token, context);
       } else if (identical(value, "new")) {
         return parseNewExpression(token);
       } else if (identical(value, "const")) {
@@ -5938,6 +5964,21 @@ class Parser {
       listener.handleSend(superToken, token.next!);
     } else if (optional("?.", next)) {
       reportRecoverableError(next, codes.messageSuperNullAware);
+    }
+    return token;
+  }
+
+  Token parseAugmentSuperExpression(Token token, IdentifierContext context) {
+    Token augmentToken = token = token.next!;
+    assert(optional('augment', token));
+    Token superToken = token = token.next!;
+    assert(optional('super', token));
+    listener.handleAugmentSuperExpression(augmentToken, superToken, context);
+    Token next = token.next!;
+    if (optional('(', next)) {
+      listener.handleNoTypeArguments(next);
+      token = parseArguments(token);
+      listener.handleSend(augmentToken, token.next!);
     }
     return token;
   }
@@ -6925,7 +6966,9 @@ class Parser {
     Token? varFinalOrConst;
 
     if (isModifier(next)) {
-      if (optional('var', next) ||
+      if (optional('augment', next) && optional('super', next.next!)) {
+        return parseExpressionStatement(start);
+      } else if (optional('var', next) ||
           optional('final', next) ||
           optional('const', next)) {
         varFinalOrConst = token = token.next!;

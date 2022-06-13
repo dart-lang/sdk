@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library js;
 
 import 'package:js_ast/js_ast.dart';
 
 import '../common.dart';
 import '../options.dart';
-import '../dump_info.dart' show DumpInfoTask;
+import '../dump_info_javascript_monitor.dart' show DumpInfoJavaScriptMonitor;
 import '../io/code_output.dart' show CodeBuffer, CodeOutputListener;
 import 'js_source_mapping.dart';
 
@@ -35,7 +33,7 @@ String prettyPrint(Node node,
 
 CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
     JavaScriptSourceInformationStrategy sourceInformationStrategy,
-    {DumpInfoTask monitor,
+    {DumpInfoJavaScriptMonitor? monitor,
     bool allowVariableMinification = true,
     List<CodeOutputListener> listeners = const []}) {
   JavaScriptPrintingOptions options = JavaScriptPrintingOptions(
@@ -55,7 +53,7 @@ CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
 }
 
 class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
-  final DumpInfoTask monitor;
+  final DumpInfoJavaScriptMonitor? monitor;
   final CodeBuffer outBuffer;
   final CodePositionListener codePositionListener;
 
@@ -81,7 +79,7 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
 
   @override
   void exitNode(
-      Node node, int startPosition, int endPosition, int closingPosition) {
+      Node node, int startPosition, int endPosition, int? closingPosition) {
     monitor?.exitNode(node, startPosition, endPosition, closingPosition);
     codePositionListener.onPositions(
         node, startPosition, endPosition, closingPosition);
@@ -135,7 +133,8 @@ class UnparsedNode extends DeferredString implements AstContainer {
   final Node tree;
   final bool _enableMinification;
   final bool _protectForEval;
-  LiteralString _cachedLiteral;
+  // TODO(48820): Can be `late final` with initializer.
+  LiteralString? _cachedLiteral;
 
   @override
   Iterable<Node> get containedNodes => [tree];
@@ -147,22 +146,20 @@ class UnparsedNode extends DeferredString implements AstContainer {
   /// parenthesis. The result is also escaped.
   UnparsedNode(this.tree, this._enableMinification, this._protectForEval);
 
-  LiteralString get _literal {
-    if (_cachedLiteral == null) {
-      String text = prettyPrint(tree, enableMinification: _enableMinification);
-      if (_protectForEval) {
-        if (tree is Fun) text = '($text)';
-        if (tree is LiteralExpression) {
-          LiteralExpression literalExpression = tree;
-          String template = literalExpression.template;
-          if (template.startsWith("function ") || template.startsWith("{")) {
-            text = '($text)';
-          }
+  LiteralString get _literal => _cachedLiteral ??= _create(tree);
+
+  LiteralString _create(Node node) {
+    String text = prettyPrint(node, enableMinification: _enableMinification);
+    if (_protectForEval) {
+      if (node is Fun) text = '($text)';
+      if (node is LiteralExpression) {
+        String template = node.template;
+        if (template.startsWith("function ") || template.startsWith("{")) {
+          text = '($text)';
         }
       }
-      _cachedLiteral = js.string(text);
     }
-    return _cachedLiteral;
+    return js.string(text);
   }
 
   @override
@@ -189,10 +186,9 @@ bool isNullGuardOnFirstArgument(Template template) {
     node = call.target;
   }
   if (node is PropertyAccess) {
-    PropertyAccess access = node;
-    if (access.receiver is InterpolatedExpression) {
-      InterpolatedExpression hole = access.receiver;
-      return hole.isPositional && hole.nameOrPosition == 0;
+    final receiver = node.receiver;
+    if (receiver is InterpolatedExpression) {
+      return receiver.isPositional && receiver.nameOrPosition == 0;
     }
   }
   return false;

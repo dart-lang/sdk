@@ -1,0 +1,14 @@
+import 'dart:async' show FutureOr;
+import 'dart:collection' show LinkedHashMap, LinkedHashSet;
+
+main() async {}
+Future<Map<int, bool>> mapfun() async => {};
+Future<Set<int>> setfun() async => {};
+Future<Iterable<int>> iterablefun() async => {};
+Future<LinkedHashSet<int>> lhsfun() async => {};
+Future<LinkedHashMap<int, bool>> lhmfun() async => {};
+FutureOr<Map<int, bool>> mapfun2() => {};
+FutureOr<Set<int>> setfun2() => {};
+FutureOr<Iterable<int>> iterablefun2() => {};
+FutureOr<LinkedHashSet<int>> lhsfun2() => {};
+FutureOr<LinkedHashMap<int, bool>> lhmfun2() => {};

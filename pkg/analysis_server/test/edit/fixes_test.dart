@@ -50,7 +50,7 @@ class FixesTest extends PubPackageAnalysisServerTest {
 
   Future<void> test_fixUndefinedClass() async {
     addTestFile('''
-main() {
+void f() {
   Completer<String> x = null;
   print(x);
 }
@@ -79,9 +79,9 @@ main() {
       info: Future.value(result.toResponse('-', 1))
     };
 
-    addTestFile('main() {}');
+    addTestFile('void f() {}');
     await waitForTasksFinished();
-    var errorFixes = await _getFixesAt(testFile, 'in(');
+    var errorFixes = await _getFixesAt(testFile, 'f(');
     expect(errorFixes, hasLength(1));
   }
 
@@ -133,7 +133,7 @@ bar() {
 
   Future<void> test_overlayOnlyFile() async {
     await _addOverlay(testFile.path, '''
-main() {
+void f() {
 print(1)
 }
 ''');
@@ -174,7 +174,7 @@ dependencies:
 
     // Configure the test file.
     final file =
-        newFile('$workspaceRootPath/aaa/main.dart', 'main() { new Foo(); }');
+        newFile('$workspaceRootPath/aaa/main.dart', 'void f() { new Foo(); }');
 
     await waitForTasksFinished();
 

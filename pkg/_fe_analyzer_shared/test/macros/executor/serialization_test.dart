@@ -166,6 +166,12 @@ void main() {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'foo'),
             type: fooType);
+        final fooNamedFunctionTypeParam = FunctionTypeParameterImpl(
+            id: RemoteInstance.uniqueId,
+            isNamed: true,
+            isRequired: true,
+            name: 'foo',
+            type: fooType);
 
         final barPositionalParam = ParameterDeclarationImpl(
             id: RemoteInstance.uniqueId,
@@ -174,6 +180,19 @@ void main() {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
             type: barType);
+        final barPositionalFunctionTypeParam = FunctionTypeParameterImpl(
+            id: RemoteInstance.uniqueId,
+            isNamed: true,
+            isRequired: true,
+            name: 'bar',
+            type: fooType);
+
+        final unnamedFunctionTypeParam = FunctionTypeParameterImpl(
+            id: RemoteInstance.uniqueId,
+            isNamed: true,
+            isRequired: true,
+            name: null,
+            type: fooType);
 
         final zapTypeParam = TypeParameterDeclarationImpl(
             id: RemoteInstance.uniqueId,
@@ -187,8 +206,11 @@ void main() {
           var functionType = FunctionTypeAnnotationImpl(
             id: RemoteInstance.uniqueId,
             isNullable: true,
-            namedParameters: [fooNamedParam],
-            positionalParameters: [barPositionalParam],
+            namedParameters: [
+              fooNamedFunctionTypeParam,
+              unnamedFunctionTypeParam
+            ],
+            positionalParameters: [barPositionalFunctionTypeParam],
             returnType: fooType,
             typeParameters: [zapTypeParam],
           );

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 
 import 'package:kernel/kernel.dart';
@@ -55,7 +53,7 @@ String _typeString(DartType type, {bool flat = false}) {
   if (type is InterfaceType) {
     var name = '${type.classNode.name}$nullability';
     var typeArgs = type.typeArguments;
-    if (typeArgs == null) return name;
+    if (typeArgs.isEmpty) return name;
     if (typeArgs.every((p) => p == const DynamicType())) return name;
     return "${name}Of${typeArgs.map(_typeString).join("\$")}";
   }
@@ -67,7 +65,7 @@ String _typeString(DartType type, {bool flat = false}) {
   if (type is TypedefType) {
     var name = '${type.typedefNode.name}$nullability';
     var typeArgs = type.typeArguments;
-    if (typeArgs == null) return name;
+    if (typeArgs.isEmpty) return name;
     if (typeArgs.every((p) => p == const DynamicType())) return name;
     return "${name}Of${typeArgs.map(_typeString).join("\$")}";
   }
@@ -110,7 +108,7 @@ class TypeTable {
 
   /// Holds JS type generators keyed by their underlying DartType.
   final typeContainer = ModuleItemContainer<DartType>.asObject('T',
-      keyToString: (DartType t) => escapeIdentifier(_typeString(t)));
+      keyToString: (DartType t) => escapeIdentifier(_typeString(t))!);
 
   final js_ast.Expression Function(String, [List<Object>]) _runtimeCall;
 
@@ -151,8 +149,8 @@ class TypeTable {
 
   js_ast.Statement _dischargeFreeType(DartType type) {
     typeContainer.setNoEmit(type);
-    var init = typeContainer[type];
-    var id = _unboundTypeIds[type];
+    var init = typeContainer[type]!;
+    var id = _unboundTypeIds[type]!;
     // TODO(vsm): Change back to `let`.
     // See https://github.com/dart-lang/sdk/issues/40380.
     return js.statement('var # = () => ((# = #)());', [
@@ -167,7 +165,8 @@ class TypeTable {
   ///
   /// If [formals] is present, only emit the definitions which depend on the
   /// formals.
-  List<js_ast.Statement> dischargeFreeTypes([Iterable<TypeParameter> formals]) {
+  List<js_ast.Statement> dischargeFreeTypes(
+      [Iterable<TypeParameter>? formals]) {
     var decls = <js_ast.Statement>[];
     var types = formals == null
         ? typeContainer.keys.where((p) => freeTypeParameters(p).isNotEmpty)
@@ -175,7 +174,7 @@ class TypeTable {
 
     for (var t in types) {
       var stmt = _dischargeFreeType(t);
-      if (stmt != null) decls.add(stmt);
+      decls.add(stmt);
     }
     return decls;
   }
@@ -221,7 +220,7 @@ class TypeTable {
       // TODO(40273) Remove prepended text when we have a better way to hide
       // these names from debug tools.
       _unboundTypeIds[type] =
-          js_ast.TemporaryId(escapeIdentifier('__t\$${_typeString(type)}'));
+          js_ast.TemporaryId(escapeIdentifier('__t\$${_typeString(type)}')!);
     }
 
     for (var free in freeVariables) {

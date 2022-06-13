@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/translator.dart';
+import 'package:dart2wasm/types.dart';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart' show substitute;
@@ -175,7 +176,7 @@ class Constants {
         .toBytes();
 
     w.Memory stringMemory =
-        m.addMemory(stringsAsBytes.length, stringsAsBytes.length);
+        m.addMemory(false, stringsAsBytes.length, stringsAsBytes.length);
     m.addDataSegment(stringsAsBytes, stringMemory, 0);
     makeStringFunctionBody(translator.oneByteStringClass, oneByteStringFunction,
         (b) {
@@ -245,6 +246,33 @@ class Constants {
     translator.struct_new(b, info);
     b.end();
   }
+
+  /// Makes a type list [ListConstant].
+  ListConstant makeTypeList(List<DartType> types) => ListConstant(
+      InterfaceType(translator.typeClass, Nullability.nonNullable),
+      types.map((t) => TypeLiteralConstant(t)).toList());
+
+  /// Makes a `_NamedParameter` [InstanceConstant].
+  InstanceConstant makeNamedParameterConstant(NamedType n) {
+    Class namedParameter = translator.namedParameterClass;
+    assert(namedParameter.fields[0].name.text == 'name' &&
+        namedParameter.fields[1].name.text == 'type' &&
+        namedParameter.fields[2].name.text == 'isRequired');
+    Reference namedParameterName = namedParameter.fields[0].fieldReference;
+    Reference namedParameterType = namedParameter.fields[1].fieldReference;
+    Reference namedParameterIsRequired =
+        namedParameter.fields[2].fieldReference;
+    return InstanceConstant(namedParameter.reference, [], {
+      namedParameterName: StringConstant(n.name),
+      namedParameterType: TypeLiteralConstant(n.type),
+      namedParameterIsRequired: BoolConstant(n.isRequired)
+    });
+  }
+
+  /// Makes a [ListConstant] of `_NamedParameters` to initialize a [FunctionType].
+  ListConstant makeNamedParametersList(FunctionType type) => ListConstant(
+      translator.types.namedParameterType,
+      type.namedParameters.map(makeNamedParameterConstant).toList());
 
   /// Ensure that the constant has a Wasm global assigned.
   ///
@@ -367,6 +395,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   ConstantCreator(this.constants);
 
   Translator get translator => constants.translator;
+  Types get types => translator.types;
   w.Module get m => constants.m;
   bool get lazyConstants => constants.lazyConstants;
 
@@ -596,13 +625,6 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     translator.functions.allocateClass(info.classId);
     w.RefType type = info.nonNullableType;
     return createConstant(constant, type, (function, b) {
-      // This computation of the hash mask follows the computations in
-      // [_ImmutableLinkedHashMapMixin._createIndex] and
-      // [_HashBase._indexSizeToHashMask].
-      const int initialIndexSize = 8;
-      final int indexSize = max(dataElements.length, initialIndexSize);
-      final int hashMask = (1 << (31 - (indexSize - 1).bitLength)) - 1;
-
       w.RefType indexType =
           info.struct.fields[FieldIndex.hashBaseIndex].type as w.RefType;
       w.RefType dataType =
@@ -611,7 +633,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
       b.ref_null(indexType.heapType); // _index
-      b.i64_const(hashMask); // _hashMask
+      b.i64_const(_computeHashMask(constant.entries.length)); // _hashMask
       constants.instantiateConstant(function, b, dataList, dataType); // _data
       b.i64_const(dataElements.length); // _usedData
       b.i64_const(0); // _deletedKeys
@@ -621,6 +643,46 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
           function, b, valueTypeConstant, constants.typeInfo.nullableType);
       translator.struct_new(b, info);
     });
+  }
+
+  @override
+  ConstantInfo? visitSetConstant(SetConstant constant) {
+    Constant elementTypeConstant = TypeLiteralConstant(constant.typeArgument);
+    ensureConstant(elementTypeConstant);
+    ListConstant dataList = ListConstant(const DynamicType(), constant.entries);
+    ensureConstant(dataList);
+
+    ClassInfo info = translator.classInfo[translator.immutableSetClass]!;
+    translator.functions.allocateClass(info.classId);
+    w.RefType type = info.nonNullableType;
+    return createConstant(constant, type, (function, b) {
+      w.RefType indexType =
+          info.struct.fields[FieldIndex.hashBaseIndex].type as w.RefType;
+      w.RefType dataType =
+          info.struct.fields[FieldIndex.hashBaseData].type as w.RefType;
+
+      b.i32_const(info.classId);
+      b.i32_const(initialIdentityHash);
+      b.ref_null(indexType.heapType); // _index
+      b.i64_const(_computeHashMask(constant.entries.length)); // _hashMask
+      constants.instantiateConstant(function, b, dataList, dataType); // _data
+      b.i64_const(constant.entries.length); // _usedData
+      b.i64_const(0); // _deletedKeys
+      constants.instantiateConstant(
+          function, b, elementTypeConstant, constants.typeInfo.nullableType);
+      translator.struct_new(b, info);
+    });
+  }
+
+  int _computeHashMask(int entries) {
+    // This computation of the hash mask follows the computations in
+    // [_ImmutableLinkedHashMapMixin._createIndex],
+    // [_ImmutableLinkedHashSetMixin._createIndex] and
+    // [_HashBase._indexSizeToHashMask].
+    const int initialIndexSize = 8;
+    final int indexSize = max(entries * 2, initialIndexSize);
+    final int hashMask = (1 << (31 - (indexSize - 1).bitLength)) - 1;
+    return hashMask;
   }
 
   @override
@@ -647,37 +709,104 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     });
   }
 
-  @override
-  ConstantInfo? visitTypeLiteralConstant(TypeLiteralConstant constant) {
-    DartType cType = constant.type;
-    assert(cType is! TypeParameterType);
-    DartType type = cType is DynamicType ||
-            cType is VoidType ||
-            cType is NeverType ||
-            cType is NullType
-        ? translator.coreTypes.objectRawType(Nullability.nullable)
-        : cType is FunctionType
-            ? InterfaceType(translator.functionClass, cType.declaredNullability)
-            : cType;
-    if (type is! InterfaceType) throw "Not implemented: $constant";
-
-    ListConstant typeArgs = ListConstant(
-        InterfaceType(translator.typeClass, Nullability.nonNullable),
-        type.typeArguments.map((t) => TypeLiteralConstant(t)).toList());
+  ConstantInfo? _makeInterfaceType(
+      TypeLiteralConstant constant, InterfaceType type, ClassInfo info) {
+    ListConstant typeArgs = constants.makeTypeList(type.typeArguments);
     ensureConstant(typeArgs);
-
-    ClassInfo info = constants.typeInfo;
-    translator.functions.allocateClass(info.classId);
     return createConstant(constant, info.nonNullableType, (function, b) {
       ClassInfo typeInfo = translator.classInfo[type.classNode]!;
-      w.ValueType typeListExpectedType = info.struct.fields[3].type.unpacked;
+      w.ValueType typeListExpectedType = info
+          .struct.fields[FieldIndex.interfaceTypeTypeArguments].type.unpacked;
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
+      types.encodeNullability(b, type);
       b.i64_const(typeInfo.classId);
       constants.instantiateConstant(
           function, b, typeArgs, typeListExpectedType);
       translator.struct_new(b, info);
     });
+  }
+
+  ConstantInfo? _makeFutureOrType(
+      TypeLiteralConstant constant, FutureOrType type, ClassInfo info) {
+    TypeLiteralConstant typeArgument = TypeLiteralConstant(type.typeArgument);
+    ensureConstant(typeArgument);
+    return createConstant(constant, info.nonNullableType, (function, b) {
+      b.i32_const(info.classId);
+      b.i32_const(initialIdentityHash);
+      types.encodeNullability(b, type);
+      constants.instantiateConstant(
+          function, b, typeArgument, types.nonNullableTypeType);
+      translator.struct_new(b, info);
+    });
+  }
+
+  ConstantInfo? _makeFunctionType(
+      TypeLiteralConstant constant, FunctionType type, ClassInfo info) {
+    TypeLiteralConstant returnTypeConstant =
+        TypeLiteralConstant(type.returnType);
+    ListConstant positionalParametersConstant =
+        constants.makeTypeList(type.positionalParameters);
+    IntConstant requiredParameterCountConstant =
+        IntConstant(type.requiredParameterCount);
+    ListConstant namedParametersConstant =
+        constants.makeNamedParametersList(type);
+    ensureConstant(returnTypeConstant);
+    ensureConstant(positionalParametersConstant);
+    ensureConstant(requiredParameterCountConstant);
+    ensureConstant(namedParametersConstant);
+    return createConstant(constant, info.nonNullableType, (function, b) {
+      b.i32_const(info.classId);
+      b.i32_const(initialIdentityHash);
+      types.encodeNullability(b, type);
+      constants.instantiateConstant(
+          function, b, returnTypeConstant, types.nonNullableTypeType);
+      constants.instantiateConstant(function, b, positionalParametersConstant,
+          types.typeListExpectedType);
+      constants.instantiateConstant(
+          function, b, requiredParameterCountConstant, w.NumType.i64);
+      constants.instantiateConstant(function, b, namedParametersConstant,
+          types.namedParametersExpectedType);
+      translator.struct_new(b, info);
+    });
+  }
+
+  @override
+  ConstantInfo? visitTypeLiteralConstant(TypeLiteralConstant constant) {
+    DartType type = constant.type;
+    assert(type is! TypeParameterType);
+
+    ClassInfo info = translator.classInfo[types.classForType(type)]!;
+    translator.functions.allocateClass(info.classId);
+    if (type is InterfaceType) {
+      return _makeInterfaceType(constant, type, info);
+    } else if (type is FutureOrType) {
+      return _makeFutureOrType(constant, type, info);
+    } else if (type is FunctionType) {
+      if (types.isGenericFunction(type)) {
+        // TODO(joshualitt): implement generic function types and share most of
+        // the logic with _makeFunctionType.
+        return createConstant(constant, info.nonNullableType, (function, b) {
+          b.i32_const(info.classId);
+          b.i32_const(initialIdentityHash);
+          types.encodeNullability(b, type);
+          translator.struct_new(b, info);
+        });
+      } else {
+        return _makeFunctionType(constant, type, info);
+      }
+    } else {
+      assert(type is VoidType ||
+          type is NeverType ||
+          type is NullType ||
+          type is DynamicType);
+      return createConstant(constant, info.nonNullableType, (function, b) {
+        b.i32_const(info.classId);
+        b.i32_const(initialIdentityHash);
+        types.encodeNullability(b, type);
+        translator.struct_new(b, info);
+      });
+    }
   }
 }

@@ -59,7 +59,7 @@ class A {
   Future<void> test_closure() async {
     await resolveTestCode('''
 setup(x) {}
-main() {
+void f() {
   setup(() {
     return 42;
   });
@@ -67,7 +67,7 @@ main() {
 ''');
     await assertHasAssistAt('return', '''
 setup(x) {}
-main() {
+void f() {
   setup(() => 42);
 }
 ''');
@@ -76,7 +76,7 @@ main() {
   Future<void> test_closure_hasBlockComment_afterReturnStatement() async {
     await resolveTestCode('''
 setup(x) {}
-main() {
+void f() {
   setup(() {
     return 42;
     // Comment.
@@ -89,7 +89,7 @@ main() {
   Future<void> test_closure_hasBlockComment_beforeReturnKeyword() async {
     await resolveTestCode('''
 setup(x) {}
-main() {
+void f() {
   setup(() {
     // Comment.
     return 42;
@@ -102,7 +102,7 @@ main() {
   Future<void> test_closure_hasBlockComment_multiple() async {
     await resolveTestCode('''
 setup(x) {}
-main() {
+void f() {
   setup(() {
     // Comment.
 
@@ -117,7 +117,7 @@ main() {
   Future<void> test_closure_hasInlineComment_beforeBodyKeyword() async {
     await resolveTestCode('''
 setup(x) {}
-main() {
+void f() {
   setup(() /* Comment. */ async {
     return 42;
   });
@@ -129,7 +129,7 @@ main() {
   Future<void> test_closure_hasInlineComment_beforeOpenBrace() async {
     await resolveTestCode('''
 setup(x) {}
-main() {
+void f() {
   setup(() /* Comment. */ {
     return 42;
   });
@@ -141,7 +141,7 @@ main() {
   Future<void> test_closure_hasInlineComment_beforeReturn() async {
     await resolveTestCode('''
 setup(x) {}
-main() {
+void f() {
   setup(() {
     /* Comment. */
     return 42;
@@ -154,7 +154,7 @@ main() {
   Future<void> test_closure_hasInlineComment_beforeReturnSemicolon() async {
     await resolveTestCode('''
 setup(x) {}
-main() {
+void f() {
   setup(() {
     return  42 /* Comment. */;
   });
@@ -166,7 +166,7 @@ main() {
   Future<void> test_closure_voidExpression() async {
     await resolveTestCode('''
 setup(x) {}
-main() {
+void f() {
   setup((_) {
     print('test');
   });
@@ -174,7 +174,7 @@ main() {
 ''');
     await assertHasAssistAt('(_) {', '''
 setup(x) {}
-main() {
+void f() {
   setup((_) => print('test'));
 }
 ''');
@@ -236,7 +236,7 @@ fff() => 42;
 
   Future<void> test_inExpression() async {
     await resolveTestCode('''
-main() {
+int f() {
   return 42;
 }
 ''');

@@ -11,12 +11,12 @@ import '../common.dart';
 import '../common/elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../deferred_load/output_unit.dart';
+import '../deferred_load/output_unit.dart' show OutputUnit, OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/abstract_value_strategy.dart';
 import '../ir/closure.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/backend_usage.dart';
@@ -916,8 +916,8 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     return InstantiationConstantValue(typeArguments, function);
   }
 
-  List<ConstantValue> _handleValues(List<ConstantValue> values) {
-    List<ConstantValue> result;
+  List<ConstantValue /*!*/ > _handleValues(List<ConstantValue /*!*/ > values) {
+    List<ConstantValue /*!*/ > result;
     for (int i = 0; i < values.length; i++) {
       var value = values[i];
       var newValue = value.accept(this, null);

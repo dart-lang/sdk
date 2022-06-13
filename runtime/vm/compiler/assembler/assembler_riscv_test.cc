@@ -6128,32 +6128,88 @@ ASSEMBLER_TEST_GENERATE(LoadImmediate_MinInt64, assembler) {
 }
 ASSEMBLER_TEST_RUN(LoadImmediate_MinInt64, test) {
   EXPECT_DISASSEMBLY(
-      "f8000537 lui a0, -134217728\n"
-      "    0532 slli a0, a0, 12\n"
-      "    0532 slli a0, a0, 12\n"
-      "    0532 slli a0, a0, 12\n"
+      "    557d li a0, -1\n"
+      "03f51513 slli a0, a0, 0x3f\n"
       "    8082 ret\n");
   EXPECT_EQ(kMinInt64, Call(test->entry()));
 }
 
-ASSEMBLER_TEST_GENERATE(LoadImmediate_Large, assembler) {
+ASSEMBLER_TEST_GENERATE(LoadImmediate_Full, assembler) {
   FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, 0xABCDABCDABCDABCD);
   __ ret();
 }
-ASSEMBLER_TEST_RUN(LoadImmediate_Large, test) {
+ASSEMBLER_TEST_RUN(LoadImmediate_Full, test) {
   EXPECT_DISASSEMBLY(
-      "fabce537 lui a0, -88285184\n"
-      "abd5051b addiw a0, a0, -1347\n"
+      "feaf3537 lui a0, -22073344\n"
+      "6af5051b addiw a0, a0, 1711\n"
       "    0532 slli a0, a0, 12\n"
-      "dac50513 addi a0, a0, -596\n"
-      "    0532 slli a0, a0, 12\n"
+      "36b50513 addi a0, a0, 875\n"
+      "    053a slli a0, a0, 14\n"
       "cdb50513 addi a0, a0, -805\n"
       "    0532 slli a0, a0, 12\n"
       "bcd50513 addi a0, a0, -1075\n"
       "    8082 ret\n");
   EXPECT_EQ(static_cast<int64_t>(0xABCDABCDABCDABCD), Call(test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(LoadImmediate_LuiAddiwSlli, assembler) {
+  FLAG_use_compressed_instructions = true;
+  __ SetExtensions(RV_GC);
+  __ LoadImmediate(A0, 0x7BCDABCD00000);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadImmediate_LuiAddiwSlli, test) {
+  EXPECT_DISASSEMBLY(
+      "7bcdb537 lui a0, 2077077504\n"
+      "bcd5051b addiw a0, a0, -1075\n"
+      "    0552 slli a0, a0, 20\n"
+      "    8082 ret\n");
+  EXPECT_EQ(static_cast<int64_t>(0x7BCDABCD00000), Call(test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(LoadImmediate_LuiSlli, assembler) {
+  FLAG_use_compressed_instructions = true;
+  __ SetExtensions(RV_GC);
+  __ LoadImmediate(A0, 0xABCDE00000000000);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadImmediate_LuiSlli, test) {
+  EXPECT_DISASSEMBLY(
+      "d5e6f537 lui a0, -706285568\n"
+      "02151513 slli a0, a0, 0x21\n"
+      "    8082 ret\n");
+  EXPECT_EQ(static_cast<int64_t>(0xABCDE00000000000), Call(test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(LoadImmediate_LiSlli, assembler) {
+  FLAG_use_compressed_instructions = true;
+  __ SetExtensions(RV_GC);
+  __ LoadImmediate(A0, 0xABC00000000000);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadImmediate_LiSlli, test) {
+  EXPECT_DISASSEMBLY(
+      "2af00513 li a0, 687\n"
+      "02e51513 slli a0, a0, 0x2e\n"
+      "    8082 ret\n");
+  EXPECT_EQ(static_cast<int64_t>(0xABC00000000000), Call(test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(LoadImmediate_LiSlliAddi, assembler) {
+  FLAG_use_compressed_instructions = true;
+  __ SetExtensions(RV_GC);
+  __ LoadImmediate(A0, 0xFF000000000000FF);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadImmediate_LiSlliAddi, test) {
+  EXPECT_DISASSEMBLY(
+      "    557d li a0, -1\n"
+      "03851513 slli a0, a0, 0x38\n"
+      "0ff50513 addi a0, a0, 255\n"
+      "    8082 ret\n");
+  EXPECT_EQ(static_cast<int64_t>(0xFF000000000000FF), Call(test->entry()));
 }
 #endif
 

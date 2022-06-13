@@ -71,12 +71,12 @@ DeoptContext::DeoptContext(const StackFrame* frame,
   // Do not include incoming arguments if there are optional arguments
   // (they are copied into local space at method entry).
   num_args_ =
-      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
+      function.MakesCopyOfParameters() ? 0 : function.num_fixed_parameters();
 
-// The fixed size section of the (fake) Dart frame called via a stub by the
-// optimized function contains FP, PP (ARM only), PC-marker and
-// return-address. This section is copied as well, so that its contained
-// values can be updated before returning to the deoptimized function.
+  // The fixed size section of the (fake) Dart frame called via a stub by the
+  // optimized function contains FP, PP (ARM only), PC-marker and
+  // return-address. This section is copied as well, so that its contained
+  // values can be updated before returning to the deoptimized function.
   ASSERT(frame->fp() >= frame->sp());
   const intptr_t frame_size = (frame->fp() - frame->sp()) / kWordSize;
 
@@ -326,7 +326,7 @@ const CatchEntryMoves* DeoptContext::ToCatchEntryMoves(intptr_t num_vars) {
 
   Function& function = Function::Handle(zone(), code.function());
   intptr_t params =
-      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
+      function.MakesCopyOfParameters() ? 0 : function.num_fixed_parameters();
   for (intptr_t i = 0; i < num_vars; i++) {
     const intptr_t len = deopt_instructions.length();
     intptr_t slot = i < params ? i

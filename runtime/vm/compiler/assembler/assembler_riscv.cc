@@ -2173,6 +2173,7 @@ void Assembler::PushRegisters(const RegisterSet& regs) {
   }
   ASSERT(offset == 0);
 }
+
 void Assembler::PopRegisters(const RegisterSet& regs) {
   // The order in which the registers are pushed must match the order
   // in which the registers are encoded in the safepoint's stack map.
@@ -2199,6 +2200,16 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
   }
   ASSERT(offset == size);
   addi(SP, SP, size);
+}
+
+void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
+  intptr_t offset = regs.size() * target::kWordSize;
+  subi(SP, SP, offset);
+  for (Register reg : regs) {
+    ASSERT(reg != SP);
+    offset -= target::kWordSize;
+    sx(reg, Address(SP, offset));
+  }
 }
 
 void Assembler::PushNativeCalleeSavedRegisters() {
@@ -2373,10 +2384,9 @@ void Assembler::CompareWithCompressedFieldFromOffset(Register value,
   UNIMPLEMENTED();
 }
 
-void Assembler::CompareWithMemoryValue(Register value,
-                                       Address address,
-                                       OperandSize sz) {
-  UNIMPLEMENTED();
+void Assembler::CompareWithMemoryValue(Register value, Address address) {
+  lx(TMP2, address);
+  CompareRegisters(value, TMP2);
 }
 
 void Assembler::CompareFunctionTypeNullabilityWith(Register type,
@@ -2648,6 +2658,22 @@ void Assembler::BranchIfZero(Register rn, Label* label, JumpDistance distance) {
   beqz(rn, label, distance);
 }
 
+void Assembler::BranchIfBit(Register rn,
+                            intptr_t bit_number,
+                            Condition condition,
+                            Label* label,
+                            JumpDistance distance) {
+  ASSERT(rn != TMP2);
+  andi(TMP2, rn, 1 << bit_number);
+  if (condition == ZERO) {
+    beqz(TMP2, label, distance);
+  } else if (condition == NOT_ZERO) {
+    bnez(TMP2, label, distance);
+  } else {
+    UNREACHABLE();
+  }
+}
+
 void Assembler::BranchIfNotSmi(Register reg,
                                Label* label,
                                JumpDistance distance) {
@@ -2691,6 +2717,10 @@ void Assembler::JumpAndLinkWithEquivalence(const Code& target,
 void Assembler::Call(Address target) {
   lx(RA, target);
   jalr(RA);
+}
+
+void Assembler::Call(Register target) {
+  jalr(target);
 }
 
 void Assembler::AddImmediate(Register rd,
@@ -3005,9 +3035,9 @@ void Assembler::StoreBarrier(Register object,
     if (object != kWriteBarrierValueReg) {
       PushRegister(kWriteBarrierValueReg);
     } else {
-      COMPILE_ASSERT(S2 != kWriteBarrierValueReg);
       COMPILE_ASSERT(S3 != kWriteBarrierValueReg);
-      objectForCall = (value == S2) ? S3 : S2;
+      COMPILE_ASSERT(S4 != kWriteBarrierValueReg);
+      objectForCall = (value == S3) ? S4 : S3;
       PushRegisterPair(kWriteBarrierValueReg, objectForCall);
       mv(objectForCall, object);
     }
@@ -3179,7 +3209,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // No store buffer update.
   if (IsSameObject(compiler::NullObject(), value)) {
     sx(NULL_REG, dest);
-  } else if (target::IsSmi(object) && (target::ToRawSmi(object) == 0)) {
+  } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
     sx(ZR, dest);
   } else {
     LoadObject(TMP2, value);
@@ -3200,7 +3230,7 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
     Register value_reg = TMP2;
     if (IsSameObject(compiler::NullObject(), value)) {
       value_reg = NULL_REG;
-    } else if (target::IsSmi(object) && (target::ToRawSmi(object) == 0)) {
+    } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
       value_reg = ZR;
     } else {
       LoadObject(value_reg, value);
@@ -3243,9 +3273,6 @@ void Assembler::LoadPoolPointer(Register pp) {
   set_constant_pool_allowed(pp == PP);
 }
 
-intptr_t Assembler::FindImmediate(int64_t imm) {
-  UNIMPLEMENTED();
-}
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(IsOriginalObject(object));
   if (!constant_pool_allowed()) {
@@ -3272,13 +3299,32 @@ void Assembler::LoadIsolateGroup(Register dst) {
 }
 
 void Assembler::LoadImmediate(Register reg, intx_t imm) {
-  intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-  intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
-
 #if XLEN > 32
   if (!Utils::IsInt(32, imm)) {
-    LoadImmediate(reg, (imm - lo) >> 12);
-    slli(reg, reg, 12);
+    int shift = Utils::CountTrailingZeros64(imm);
+    if (IsITypeImm(imm >> shift)) {
+      li(reg, imm >> shift);
+      slli(reg, reg, shift);
+      return;
+    }
+    if ((shift >= 12) && IsUTypeImm(imm >> (shift - 12))) {
+      lui(reg, imm >> (shift - 12));
+      slli(reg, reg, shift - 12);
+      return;
+    }
+
+    if (constant_pool_allowed()) {
+      intptr_t index = object_pool_builder().FindImmediate(imm);
+      LoadWordFromPoolIndex(reg, index);
+      return;
+    }
+
+    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
+    intx_t hi = imm - lo;
+    shift = Utils::CountTrailingZeros64(hi);
+    ASSERT(shift != 0);
+    LoadImmediate(reg, hi >> shift);
+    slli(reg, reg, shift);
     if (lo != 0) {
       addi(reg, reg, lo);
     }
@@ -3286,6 +3332,8 @@ void Assembler::LoadImmediate(Register reg, intx_t imm) {
   }
 #endif
 
+  intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
+  intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
   if (hi == 0) {
     addi(reg, ZR, lo);
   } else {
@@ -3310,19 +3358,14 @@ void Assembler::LoadDImmediate(FRegister reg, double immd) {
 #endif
   } else {
     ASSERT(constant_pool_allowed());
-#if XLEN >= 64
-    intptr_t index = object_pool_builder().FindImmediate(imm);
+    intptr_t index = object_pool_builder().FindImmediate64(imm);
     intptr_t offset = target::ObjectPool::element_offset(index);
-#else
-    intptr_t lo_index =
-        object_pool_builder().AddImmediate(Utils::Low32Bits(imm));
-    intptr_t hi_index =
-        object_pool_builder().AddImmediate(Utils::High32Bits(imm));
-    ASSERT(lo_index + 1 == hi_index);
-    intptr_t offset = target::ObjectPool::element_offset(lo_index);
-#endif
     LoadDFromOffset(reg, PP, offset);
   }
+}
+
+void Assembler::LoadQImmediate(FRegister reg, simd128_value_t immq) {
+  UNREACHABLE();  // F registers cannot represent SIMD128.
 }
 
 // Load word from pool from the given offset using encoding that
@@ -3353,7 +3396,7 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   if (IsSameObject(compiler::NullObject(), object)) {
     CompareObjectRegisters(reg, NULL_REG);
   } else if (target::IsSmi(object)) {
-    CompareImmediate(reg, target::ToRawSmi(object));
+    CompareImmediate(reg, target::ToRawSmi(object), kObjectBytes);
   } else {
     LoadObject(TMP, object);
     CompareObjectRegisters(reg, TMP);
@@ -3691,23 +3734,46 @@ void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
   }
 }
 
-void Assembler::LeaveDartFrame(RestorePP restore_pp) {
+void Assembler::LeaveDartFrame() {
   // N.B. The ordering here is important. We must never read beyond SP or
   // it may have already been clobbered by a signal handler.
   if (!FLAG_precompiled_mode) {
-    if (restore_pp == kRestoreCallerPP) {
-      lx(PP, Address(FP, target::frame_layout.saved_caller_pp_from_fp *
-                             target::kWordSize));
-      subi(PP, PP, kHeapObjectTag);
-    }
+    lx(PP, Address(FP, target::frame_layout.saved_caller_pp_from_fp *
+                           target::kWordSize));
+    subi(PP, PP, kHeapObjectTag);
   }
   set_constant_pool_allowed(false);
   subi(SP, FP, 2 * target::kWordSize);
   lx(FP, Address(SP, 0 * target::kWordSize));
   lx(RA, Address(SP, 1 * target::kWordSize));
   addi(SP, SP, 2 * target::kWordSize);
+}
 
-  // TODO(riscv): When we know the stack depth, we can avoid updating SP twice.
+void Assembler::LeaveDartFrame(intptr_t fp_sp_dist) {
+  intptr_t pp_offset =
+      target::frame_layout.saved_caller_pp_from_fp * target::kWordSize -
+      fp_sp_dist;
+  intptr_t fp_offset =
+      target::frame_layout.saved_caller_fp_from_fp * target::kWordSize -
+      fp_sp_dist;
+  intptr_t ra_offset =
+      target::frame_layout.saved_caller_pc_from_fp * target::kWordSize -
+      fp_sp_dist;
+  if (!IsITypeImm(pp_offset) || !IsITypeImm(fp_offset) ||
+      !IsITypeImm(ra_offset)) {
+    // Shorter to update SP twice than generate large immediates.
+    LeaveDartFrame();
+    return;
+  }
+
+  if (!FLAG_precompiled_mode) {
+    lx(PP, Address(SP, pp_offset));
+    subi(PP, PP, kHeapObjectTag);
+  }
+  set_constant_pool_allowed(false);
+  lx(FP, Address(SP, fp_offset));
+  lx(RA, Address(SP, ra_offset));
+  addi(SP, SP, -fp_sp_dist);
 }
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,
@@ -3900,8 +3966,9 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
 
 #ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Label* trace,
                                      Register temp_reg,
-                                     Label* trace) {
+                                     JumpDistance distance) {
   ASSERT(cid > 0);
 
   const intptr_t shared_table_offset =
@@ -3940,7 +4007,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure));
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, temp_reg));
 
     lx(instance_reg, Address(THR, target::Thread::top_offset()));
     lx(temp_reg, Address(THR, target::Thread::end_offset()));
@@ -3980,7 +4047,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp1, failure));
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, temp1));
     // Potential new object start.
     lx(instance, Address(THR, target::Thread::top_offset()));
     AddImmediate(end_address, instance, instance_size);
@@ -4006,6 +4073,22 @@ void Assembler::TryAllocateArray(intptr_t cid,
   } else {
     j(failure);
   }
+}
+
+void Assembler::CopyMemoryWords(Register src,
+                                Register dst,
+                                Register size,
+                                Register temp) {
+  Label loop, done;
+  beqz(size, &done, kNearJump);
+  Bind(&loop);
+  lx(temp, Address(src));
+  addi(src, src, target::kWordSize);
+  sx(temp, Address(dst));
+  addi(dst, dst, target::kWordSize);
+  subi(size, size, target::kWordSize);
+  bnez(size, &loop, kNearJump);
+  Bind(&done);
 }
 
 void Assembler::GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target) {
@@ -4389,6 +4472,56 @@ void Assembler::MultiplyBranchOverflow(Register rd,
   mul(rd, rs1, rs2);
   srai(TMP2, rd, XLEN - 1);
   bne(TMP, TMP2, overflow);
+}
+
+void Assembler::CountLeadingZeroes(Register rd, Register rs) {
+  // Note: clz will appear in the Zbb extension.
+  // if (Supports(RV_Zbb)) {
+  //   clz(rd, rs);
+  // }
+
+  //  n = XLEN
+  //  y = x >>32; if (y != 0) { n = n - 32; x = y; }
+  //  y = x >>16; if (y != 0) { n = n - 16; x = y; }
+  //  y = x >> 8; if (y != 0) { n = n - 8; x = y; }
+  //  y = x >> 4; if (y != 0) { n = n - 4; x = y; }
+  //  y = x >> 2; if (y != 0) { n = n - 2; x = y; }
+  //  y = x >> 1; if (y != 0) { return n - 2; }
+  //  return n - x;
+  Label l0, l1, l2, l3, l4, l5;
+  li(TMP2, XLEN);
+#if XLEN == 64
+  srli(TMP, rs, 32);
+  beqz(TMP, &l0, Assembler::kNearJump);
+  subi(TMP2, TMP2, 32);
+  mv(rs, TMP);
+  Bind(&l0);
+#endif
+  srli(TMP, rs, 16);
+  beqz(TMP, &l1, Assembler::kNearJump);
+  subi(TMP2, TMP2, 16);
+  mv(rs, TMP);
+  Bind(&l1);
+  srli(TMP, rs, 8);
+  beqz(TMP, &l2, Assembler::kNearJump);
+  subi(TMP2, TMP2, 8);
+  mv(rs, TMP);
+  Bind(&l2);
+  srli(TMP, rs, 4);
+  beqz(TMP, &l3, Assembler::kNearJump);
+  subi(TMP2, TMP2, 4);
+  mv(rs, TMP);
+  Bind(&l3);
+  srli(TMP, rs, 2);
+  beqz(TMP, &l4, Assembler::kNearJump);
+  subi(TMP2, TMP2, 2);
+  mv(rs, TMP);
+  Bind(&l4);
+  srli(TMP, rs, 1);
+  sub(rd, TMP2, rs);
+  beqz(TMP, &l5, Assembler::kNearJump);
+  subi(rd, TMP2, 2);
+  Bind(&l5);
 }
 
 }  // namespace compiler

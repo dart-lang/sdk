@@ -938,6 +938,43 @@ bool CompileType::CanBeSmi() {
   return CanPotentiallyBeSmi(*ToAbstractType(), /*recurse=*/true);
 }
 
+bool CompileType::CanBeFuture() {
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  ObjectStore* object_store = isolate_group->object_store();
+
+  if (cid_ != kIllegalCid && cid_ != kDynamicCid) {
+    if ((cid_ == kNullCid) || (cid_ == kNeverCid)) {
+      return false;
+    }
+    const Class& cls = Class::Handle(isolate_group->class_table()->At(cid_));
+    return Class::IsSubtypeOf(
+        cls, TypeArguments::null_type_arguments(), Nullability::kNonNullable,
+        Type::Handle(object_store->non_nullable_future_rare_type()),
+        Heap::kNew);
+  }
+
+  AbstractType& type = AbstractType::Handle(ToAbstractType()->ptr());
+  if (type.IsTypeParameter()) {
+    type = TypeParameter::Cast(type).bound();
+  }
+  if (type.IsTypeParameter()) {
+    // Type parameter bounds can be cyclic, do not bother handling them here.
+    return true;
+  }
+  const intptr_t type_class_id = type.type_class_id();
+  if (type_class_id == kDynamicCid || type_class_id == kVoidCid ||
+      type_class_id == kInstanceCid || type_class_id == kFutureOrCid) {
+    return true;
+  }
+  if ((type_class_id == kNullCid) || (type_class_id == kNeverCid)) {
+    return false;
+  }
+  Type& future_type =
+      Type::Handle(object_store->non_nullable_future_rare_type());
+  future_type = future_type.ToNullability(Nullability::kNullable, Heap::kNew);
+  return type.IsSubtypeOf(future_type, Heap::kNew);
+}
+
 void CompileType::PrintTo(BaseTextBuffer* f) const {
   const char* type_name = "?";
   if (IsNone()) {

@@ -179,14 +179,14 @@ class A {
     await resolveTestCode(r'''
 class A {
   int? _f;
-  main() {
+  void f() {
     _f = 2;
   }
 }
 ''');
     await assertHasFix(r'''
 class A {
-  main() {
+  void f() {
   }
 }
 ''');
@@ -196,14 +196,14 @@ class A {
     await resolveTestCode(r'''
 class A {
   var _f;
-  main() {
+  void f() {
     _f = () { _f = 0; };
   }
 }
 ''');
     await assertHasFix(r'''
 class A {
-  main() {
+  void f() {
   }
 }
 ''');
@@ -213,14 +213,14 @@ class A {
     await resolveTestCode(r'''
 class A {
   int _f = 0;
-  main() {
+  void f() {
     _f += 2;
   }
 }
 ''');
     await assertHasFix(r'''
 class A {
-  main() {
+  void f() {
   }
 }
 ''');

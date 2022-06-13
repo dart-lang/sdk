@@ -248,6 +248,11 @@ class DartDevelopmentServiceClient {
       dds.expressionEvaluator.execute,
     );
 
+    _clientPeer.registerMethod(
+      'lookupResolvedPackageUris',
+      dds.packageUriConverter.convert,
+    );
+
     // When invoked within a fallback, the next fallback will start executing.
     // The final fallback forwards the request to the VM service directly.
     @alwaysThrows

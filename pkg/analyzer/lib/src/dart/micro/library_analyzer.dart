@@ -33,7 +33,7 @@ import 'package:analyzer/src/error/override_verifier.dart';
 import 'package:analyzer/src/error/todo_finder.dart';
 import 'package:analyzer/src/error/unicode_text_verifier.dart';
 import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
-import 'package:analyzer/src/generated/declaration_resolver.dart';
+import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';

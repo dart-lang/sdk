@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_selection_ranges.dart'
     hide SelectionRange;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -22,8 +21,8 @@ class SelectionRangeHandler
       SelectionRangeParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<SelectionRange>?>> handle(
-      SelectionRangeParams params, CancellationToken token) async {
+  Future<ErrorOr<List<SelectionRange>?>> handle(SelectionRangeParams params,
+      MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }

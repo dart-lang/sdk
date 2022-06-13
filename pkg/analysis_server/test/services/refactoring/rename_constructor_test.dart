@@ -21,7 +21,7 @@ void main() {
 class RenameConstructorClassTest extends _RenameConstructorTest {
   Future<void> test_checkInitialConditions_inSDK() async {
     await indexTestUnit('''
-main() {
+void f() {
   new String.fromCharCodes([]);
 }
 ''');
@@ -101,7 +101,7 @@ class A {
 class B extends A {
   B() : super() {}
 }
-main() {
+void f() {
   new A();
   A.new;
 }
@@ -123,7 +123,7 @@ class A {
 class B extends A {
   B() : super.newName() {}
 }
-main() {
+void f() {
   new A.newName();
   A.newName;
 }
@@ -140,7 +140,7 @@ class A {
 class B extends A {
   B() : super() {}
 }
-main() {
+void f() {
   new A();
   A.new;
 }
@@ -163,7 +163,7 @@ class A {
 class B extends A {
   B() : super.newName() {}
 }
-main() {
+void f() {
   new A.newName();
   A.newName;
 }
@@ -181,7 +181,7 @@ class A {
 class B extends A {
   B() : super.test() {}
 }
-main() {
+void f() {
   new A.test();
   A.test;
 }
@@ -203,7 +203,7 @@ class A {
 class B extends A {
   B() : super.newName() {}
 }
-main() {
+void f() {
   new A.newName();
   A.newName;
 }
@@ -216,7 +216,7 @@ main() {
 class A {
   int field = 0;
 }
-main() {
+void f() {
   new A();
 }
 ''');
@@ -233,7 +233,7 @@ class A {
 
   int field = 0;
 }
-main() {
+void f() {
   new A.newName();
 }
 ''');
@@ -250,7 +250,7 @@ class A {
 class B extends A {
   B() : super.test() {}
 }
-main() {
+void f() {
   new A.test();
   A.test;
 }
@@ -272,7 +272,7 @@ class A {
 class B extends A {
   B() : super() {}
 }
-main() {
+void f() {
   new A();
   A.new;
 }

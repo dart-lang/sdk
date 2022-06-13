@@ -28,7 +28,7 @@ class GetErrorsTest extends PubPackageAnalysisServerTest {
 
   Future<void> test_afterAnalysisComplete() async {
     newFile(testFilePath, '''
-main() {
+void f() {
   print(42)
 }
 ''');
@@ -74,7 +74,7 @@ class A {}
 
   Future<void> test_hasErrors() async {
     newFile(testFilePath, '''
-main() {
+void f() {
   print(42)
 }
 ''');
@@ -112,7 +112,7 @@ main() {
 
   Future<void> test_noErrors() async {
     newFile(testFilePath, '''
-main() {
+void f() {
   print(42);
 }
 ''');

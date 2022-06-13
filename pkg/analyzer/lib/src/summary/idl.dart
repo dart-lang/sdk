@@ -427,12 +427,8 @@ abstract class CiderUnitErrors extends base.SummaryClass {
   factory CiderUnitErrors.fromBuffer(List<int> buffer) =>
       generated.readCiderUnitErrors(buffer);
 
-  @Id(1)
-  List<AnalysisDriverUnitError> get errors;
-
-  /// The hash signature of this data.
   @Id(0)
-  List<int> get signature;
+  List<AnalysisDriverUnitError> get errors;
 }
 
 abstract class DiagnosticMessage extends base.SummaryClass {
@@ -565,15 +561,4 @@ enum IndexSyntheticElementKind {
 
   /// The containing unit itself.
   unit
-}
-
-/// Summary information about a package.
-@TopLevel('PBdl')
-abstract class PackageBundle extends base.SummaryClass {
-  factory PackageBundle.fromBuffer(List<int> buffer) =>
-      generated.readPackageBundle(buffer);
-
-  /// The version 2 of the summary.
-  @Id(0)
-  int get fake;
 }

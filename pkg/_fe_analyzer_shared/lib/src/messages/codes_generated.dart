@@ -3847,6 +3847,29 @@ const MessageCode messageExtensionDeclaresInstanceField = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
+    templateExtensionInNullAwareReceiver =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate: r"""The extension '#name' cannot be null.""",
+        correctionMessageTemplate: r"""Try replacing '?.' with '.'""",
+        withArguments: _withArgumentsExtensionInNullAwareReceiver);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeExtensionInNullAwareReceiver =
+    const Code<Message Function(String name)>("ExtensionInNullAwareReceiver",
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtensionInNullAwareReceiver(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeExtensionInNullAwareReceiver,
+      problemMessage: """The extension '${name}' cannot be null.""",
+      correctionMessage: """Try replacing '?.' with '.'""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
     templateExtensionMemberConflictsWithObjectMember =
     const Template<Message Function(String name)>(
         problemMessageTemplate:
@@ -4124,7 +4147,7 @@ const MessageCode messageFastaUsageLong =
     Read the SDK platform from <file>, which should be in Dill/Kernel IR format
     and contain the Dart SDK.
 
-  --target=dart2js|dart2js_server|dart_runner|dartdevc|flutter|flutter_runner|none|vm
+  --target=dart2js|dart2js_server|dart2wasm|dart_runner|dartdevc|flutter|flutter_runner|none|vm
     Specify the target configuration.
 
   --enable-asserts
@@ -6331,6 +6354,15 @@ const MessageCode messageInterpolationInUri = const MessageCode(
     "InterpolationInUri",
     analyzerCodes: <String>["INVALID_LITERAL_IN_CONFIGURATION"],
     problemMessage: r"""Can't use string interpolation in a URI.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidAugmentSuper = messageInvalidAugmentSuper;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidAugmentSuper = const MessageCode(
+    "InvalidAugmentSuper",
+    problemMessage:
+        r"""'augment super' is only allowed in member augmentations.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidAwaitFor = messageInvalidAwaitFor;

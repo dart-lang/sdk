@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 /// Library containing identifier, names, and selectors commonly used through
 /// the compiler.
 library dart2js.common.names;
@@ -250,6 +248,10 @@ class Uris {
   /// The URI for 'dart:_js_embedded_names'.
   static final Uri dart__js_embedded_names =
       Uri(scheme: 'dart', path: '_js_embedded_names');
+
+  /// The URI for 'dart:_js_shared_embedded_names'.
+  static final Uri dart__js_shared_embedded_names =
+      Uri(scheme: 'dart', path: '_js_shared_embedded_names');
 
   /// The URI for 'dart:js'.
   static final Uri dart_js = Uri(scheme: 'dart', path: 'js');

@@ -591,6 +591,9 @@ abstract class Set<E> implements Iterable<E> {
   void addAll(Iterable<E> elements);
   bool remove(Object? value);
   E? lookup(Object? object);
+
+  static Set<T> castFrom<S, T>(Set<S> source, {Set<R> Function<R>()? newSet}) =>
+      throw '';
 }
 
 class StackTrace {}
@@ -811,10 +814,14 @@ class Abi {
   static const androidArm = _androidArm;
   static const androidArm64 = _androidArm64;
   static const androidIA32 = _androidIA32;
+  static const linuxX64 = _linuxX64;
+  static const macosX64 = _macosX64;
 
   static const _androidArm = Abi._(_Architecture.arm, _OS.android);
   static const _androidArm64 = Abi._(_Architecture.arm64, _OS.android);
   static const _androidIA32 = Abi._(_Architecture.ia32, _OS.android);
+  static const _linuxX64 = Abi._(_Architecture.x64, _OS.linux);
+  static const _macosX64 = Abi._(_Architecture.x64, _OS.macos);
 
   final _OS _os;
 

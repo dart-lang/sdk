@@ -44,15 +44,13 @@ class ClassDeclaration extends CompilationUnitMember {
 
   final List<ClassMember> members;
 
-  ClassDeclaration(Comment? documentationComment, List<Annotation>? metadata,
-      this.name, this.superclass, this.members)
-      : super(documentationComment, metadata);
+  ClassDeclaration(super.documentationComment, super.metadata, this.name,
+      this.superclass, this.members);
 }
 
 /// "Mini AST" representation of a class member.
 class ClassMember extends AnnotatedNode {
-  ClassMember(Comment? documentationComment, List<Annotation>? metadata)
-      : super(documentationComment, metadata);
+  ClassMember(super.documentationComment, super.metadata);
 }
 
 /// "Mini AST" representation of a comment.
@@ -86,18 +84,14 @@ class CompilationUnit {
 
 /// "Mini AST" representation of a top level member of a compilation unit.
 class CompilationUnitMember extends AnnotatedNode {
-  CompilationUnitMember(
-      Comment? documentationComment, List<Annotation>? metadata)
-      : super(documentationComment, metadata);
+  CompilationUnitMember(super.documentationComment, super.metadata);
 }
 
 /// "Mini AST" representation of a constructor declaration.
 class ConstructorDeclaration extends ClassMember {
   final String name;
 
-  ConstructorDeclaration(
-      Comment? documentationComment, List<Annotation>? metadata, this.name)
-      : super(documentationComment, metadata);
+  ConstructorDeclaration(super.documentationComment, super.metadata, this.name);
 }
 
 /// "Mini AST" representation of an individual enum constant in an enum
@@ -106,8 +100,7 @@ class EnumConstantDeclaration extends AnnotatedNode {
   final String name;
 
   EnumConstantDeclaration(
-      Comment? documentationComment, List<Annotation>? metadata, this.name)
-      : super(documentationComment, metadata);
+      super.documentationComment, super.metadata, this.name);
 }
 
 /// "Mini AST" representation of an enum declaration.
@@ -116,9 +109,8 @@ class EnumDeclaration extends CompilationUnitMember {
 
   final List<EnumConstantDeclaration> constants;
 
-  EnumDeclaration(Comment? documentationComment, List<Annotation>? metadata,
-      this.name, this.constants)
-      : super(documentationComment, metadata);
+  EnumDeclaration(
+      super.documentationComment, super.metadata, this.name, this.constants);
 }
 
 /// "Mini AST" representation of an expression.
@@ -157,9 +149,8 @@ class MethodDeclaration extends ClassMember {
 
   final TypeName? returnType;
 
-  MethodDeclaration(Comment? documentationComment, List<Annotation>? metadata,
-      this.isGetter, this.name, this.returnType)
-      : super(documentationComment, metadata);
+  MethodDeclaration(super.documentationComment, super.metadata, this.isGetter,
+      this.name, this.returnType);
 }
 
 /// Parser listener which generates a "mini AST" representation of the source
@@ -665,7 +656,7 @@ class MiniAstBuilder extends StackListener {
 
 /// Parser intended for use with [MiniAstBuilder].
 class MiniAstParser extends Parser {
-  MiniAstParser(MiniAstBuilder listener) : super(listener);
+  MiniAstParser(MiniAstBuilder super.listener);
 
   @override
   Token parseArgumentsOpt(Token token) {

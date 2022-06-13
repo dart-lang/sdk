@@ -2,64 +2,36 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/nested_variance2.dart:177:21: Error: Type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(Y)' of the type variable 'Y' on 'AinvCyclicCoBound'.
-// Try changing type arguments so that they conform to the bounds.
-//   AinvCyclicCoBound source12 = throw ''; //# 02: compile-time error
-//                     ^
-// pkg/front_end/testcases/general/nested_variance2.dart:57:57: Context: This is the type variable whose bound isn't conformed to.
-// class AinvCyclicCoBound<X extends FinvCyclicCoBound<Y>, Y extends Function(Y)> {
-//                                                         ^
-// pkg/front_end/testcases/general/nested_variance2.dart:177:21: Context: If you want 'AinvCyclicCoBound<dynamic Function(Never) Function(dynamic Function(Never)), dynamic Function(Never)>' to be a super-bounded type, note that the inverted type 'AinvCyclicCoBound<FinvCyclicCoBound<Never Function(Never)>, Never Function(Object?)>' must then satisfy its bounds, which it does not.
-//  - 'AinvCyclicCoBound' is from 'pkg/front_end/testcases/general/nested_variance2.dart'.
-//  - 'Object' is from 'dart:core'.
-//   AinvCyclicCoBound source12 = throw ''; //# 02: compile-time error
-//                     ^
-//
-// pkg/front_end/testcases/general/nested_variance2.dart:177:21: Error: Type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(X)' of the type variable 'X' on 'FinvCyclicCoBound'.
-// Try changing type arguments so that they conform to the bounds.
-//   AinvCyclicCoBound source12 = throw ''; //# 02: compile-time error
-//                     ^
-// pkg/front_end/testcases/general/nested_variance2.dart:49:27: Context: This is the type variable whose bound isn't conformed to.
-// typedef FinvCyclicCoBound<X extends Function(X)> = X Function(X);
-//                           ^
-// pkg/front_end/testcases/general/nested_variance2.dart:177:21: Context: If you want 'FinvCyclicCoBound<dynamic Function(Never)>' to be a super-bounded type, note that the inverted type 'AinvCyclicCoBound<FinvCyclicCoBound<Never Function(Never)>, Never Function(Object?)>' must then satisfy its bounds, which it does not.
-//  - 'AinvCyclicCoBound' is from 'pkg/front_end/testcases/general/nested_variance2.dart'.
-//  - 'Object' is from 'dart:core'.
-//   AinvCyclicCoBound source12 = throw ''; //# 02: compile-time error
-//                     ^
-//
 // pkg/front_end/testcases/general/nested_variance2.dart:84:42: Error: A value of type 'void Function<Y extends Acon<dynamic Function(Never), dynamic>>()' can't be assigned to a variable of type 'void Function<Y extends Acon<dynamic Function(Null), dynamic>>()' because 'Null' is nullable and 'Never' isn't.
 //  - 'Acon' is from 'pkg/front_end/testcases/general/nested_variance2.dart'.
 //   F<Acon<Fcon<Null>, dynamic>> target2 = fsource2;
 //                                          ^
 //
-// pkg/front_end/testcases/general/nested_variance2.dart:236:24: Error: Type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(Y)' of the type variable 'Y' on 'AinvCyclicCoBound'.
-// Try changing type arguments so that they conform to the bounds.
-//   B<AinvCyclicCoBound> source12 = throw ''; //# 04: compile-time error
-//                        ^
+// pkg/front_end/testcases/general/nested_variance2.dart:177:3: Error: Inferred type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(Y)' of the type variable 'Y' on 'AinvCyclicCoBound'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   AinvCyclicCoBound source12 = throw ''; //# 02: compile-time error
+//   ^
 // pkg/front_end/testcases/general/nested_variance2.dart:57:57: Context: This is the type variable whose bound isn't conformed to.
 // class AinvCyclicCoBound<X extends FinvCyclicCoBound<Y>, Y extends Function(Y)> {
 //                                                         ^
-// pkg/front_end/testcases/general/nested_variance2.dart:236:24: Context: If you want 'AinvCyclicCoBound<dynamic Function(Never) Function(dynamic Function(Never)), dynamic Function(Never)>' to be a super-bounded type, note that the inverted type 'B<AinvCyclicCoBound<FinvCyclicCoBound<Never Function(Never)>, Never Function(Object?)>>' must then satisfy its bounds, which it does not.
+// pkg/front_end/testcases/general/nested_variance2.dart:177:3: Context: If you want 'AinvCyclicCoBound<FinvCyclicCoBound<dynamic Function(Never)>, dynamic Function(Never)>' to be a super-bounded type, note that the inverted type 'AinvCyclicCoBound<FinvCyclicCoBound<Never Function(Never)>, Never Function(Object?)>' must then satisfy its bounds, which it does not.
 //  - 'AinvCyclicCoBound' is from 'pkg/front_end/testcases/general/nested_variance2.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/general/nested_variance2.dart'.
 //  - 'Object' is from 'dart:core'.
-//   B<AinvCyclicCoBound> source12 = throw ''; //# 04: compile-time error
-//                        ^
+//   AinvCyclicCoBound source12 = throw ''; //# 02: compile-time error
+//   ^
 //
-// pkg/front_end/testcases/general/nested_variance2.dart:236:24: Error: Type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(X)' of the type variable 'X' on 'FinvCyclicCoBound'.
-// Try changing type arguments so that they conform to the bounds.
+// pkg/front_end/testcases/general/nested_variance2.dart:236:5: Error: Inferred type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(Y)' of the type variable 'Y' on 'AinvCyclicCoBound'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
 //   B<AinvCyclicCoBound> source12 = throw ''; //# 04: compile-time error
-//                        ^
-// pkg/front_end/testcases/general/nested_variance2.dart:49:27: Context: This is the type variable whose bound isn't conformed to.
-// typedef FinvCyclicCoBound<X extends Function(X)> = X Function(X);
-//                           ^
-// pkg/front_end/testcases/general/nested_variance2.dart:236:24: Context: If you want 'FinvCyclicCoBound<dynamic Function(Never)>' to be a super-bounded type, note that the inverted type 'B<AinvCyclicCoBound<FinvCyclicCoBound<Never Function(Never)>, Never Function(Object?)>>' must then satisfy its bounds, which it does not.
-//  - 'B' is from 'pkg/front_end/testcases/general/nested_variance2.dart'.
+//     ^
+// pkg/front_end/testcases/general/nested_variance2.dart:57:57: Context: This is the type variable whose bound isn't conformed to.
+// class AinvCyclicCoBound<X extends FinvCyclicCoBound<Y>, Y extends Function(Y)> {
+//                                                         ^
+// pkg/front_end/testcases/general/nested_variance2.dart:236:5: Context: If you want 'AinvCyclicCoBound<FinvCyclicCoBound<dynamic Function(Never)>, dynamic Function(Never)>' to be a super-bounded type, note that the inverted type 'AinvCyclicCoBound<FinvCyclicCoBound<Never Function(Never)>, Never Function(Object?)>' must then satisfy its bounds, which it does not.
 //  - 'AinvCyclicCoBound' is from 'pkg/front_end/testcases/general/nested_variance2.dart'.
 //  - 'Object' is from 'dart:core'.
 //   B<AinvCyclicCoBound> source12 = throw ''; //# 04: compile-time error
-//                        ^
+//     ^
 //
 import self as self;
 import "dart:core" as core;

@@ -35,10 +35,10 @@ abstract class FunctionTypeAnnotation implements TypeAnnotation {
   TypeAnnotation get returnType;
 
   /// The positional parameters for this function.
-  Iterable<ParameterDeclaration> get positionalParameters;
+  Iterable<FunctionTypeParameter> get positionalParameters;
 
   /// The named parameters for this function.
-  Iterable<ParameterDeclaration> get namedParameters;
+  Iterable<FunctionTypeParameter> get namedParameters;
 
   /// The type parameters for this function.
   Iterable<TypeParameterDeclaration> get typeParameters;
@@ -100,10 +100,15 @@ abstract class ClassMemberDeclaration implements Declaration {
   bool get isStatic;
 }
 
-/// A declaration that defines a new type in the program.
+/// Marker interface for a declaration that defines a new type in the program.
+///
+/// See [ParameterizedTypeDeclaration] and [TypeParameterDeclaration].
+abstract class TypeDeclaration implements Declaration {}
+
+/// A [TypeDeclaration] which may have type parameters.
 ///
 /// See subtypes [ClassDeclaration] and [TypeAliasDeclaration].
-abstract class TypeDeclaration implements Declaration {
+abstract class ParameterizedTypeDeclaration implements TypeDeclaration {
   /// The type parameters defined for this type declaration.
   Iterable<TypeParameterDeclaration> get typeParameters;
 }
@@ -112,7 +117,7 @@ abstract class TypeDeclaration implements Declaration {
 ///
 /// Information about fields, methods, and constructors must be retrieved from
 /// the `builder` objects.
-abstract class ClassDeclaration implements TypeDeclaration {
+abstract class ClassDeclaration implements ParameterizedTypeDeclaration {
   /// Whether this class has an `abstract` modifier.
   bool get isAbstract;
 
@@ -133,7 +138,7 @@ abstract class ClassDeclaration implements TypeDeclaration {
 }
 
 /// Type alias introspection information.
-abstract class TypeAliasDeclaration extends TypeDeclaration {
+abstract class TypeAliasDeclaration implements ParameterizedTypeDeclaration {
   /// The type annotation this is an alias for.
   TypeAnnotation get aliasedType;
 }
@@ -197,8 +202,9 @@ abstract class VariableDeclaration implements Declaration {
 abstract class FieldDeclaration
     implements VariableDeclaration, ClassMemberDeclaration {}
 
-/// Parameter introspection information.
-abstract class ParameterDeclaration implements Declaration {
+/// General parameter introspection information, see the subtypes
+/// [FunctionTypeParameter] and [ParameterDeclaration].
+abstract class Parameter {
   /// The type of this parameter.
   TypeAnnotation get type;
 
@@ -216,8 +222,18 @@ abstract class ParameterDeclaration implements Declaration {
   ParameterCode get code;
 }
 
-/// Type parameter introspection information.
-abstract class TypeParameterDeclaration implements Declaration {
+/// Parameters of normal functions/methods, which always have an identifier.
+abstract class ParameterDeclaration implements Parameter, Declaration {}
+
+/// Function type parameters don't always have names, and it is never useful to
+/// get an [Identifier] for them, so they do not implement [Declaration] and
+/// instead have an optional name.
+abstract class FunctionTypeParameter implements Parameter {
+  String? get name;
+}
+
+/// Generic type parameter introspection information.
+abstract class TypeParameterDeclaration implements TypeDeclaration {
   /// The bound for this type parameter, if it has any.
   TypeAnnotation? get bound;
 

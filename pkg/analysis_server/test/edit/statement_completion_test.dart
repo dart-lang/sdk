@@ -50,14 +50,14 @@ class StatementCompletionTest extends PubPackageAnalysisServerTest {
 
   Future<void> test_plainEnterFromStart() async {
     addTestFile('''
-main() {
+void f() {
   int v = 1;
 }
 ''');
     await waitForTasksFinished();
     await _prepareCompletion('v = 1;', atStart: true);
     _assertHasChange('Insert a newline at the end of the current line', '''
-main() {
+void f() {
   int v = 1;
   /*caret*/
 }
@@ -66,14 +66,14 @@ main() {
 
   Future<void> test_plainOleEnter() async {
     addTestFile('''
-main() {
+void f() {
   int v = 1;
 }
 ''');
     await waitForTasksFinished();
     await _prepareCompletion('v = 1;', atEnd: true);
     _assertHasChange('Insert a newline at the end of the current line', '''
-main() {
+void f() {
   int v = 1;
   /*caret*/
 }
@@ -82,7 +82,7 @@ main() {
 
   Future<void> test_plainOleEnterWithError() async {
     addTestFile('''
-main() {
+void f() {
   int v =
 }
 ''');
@@ -92,7 +92,7 @@ main() {
     _assertHasChange(
         'Insert a newline at the end of the current line',
         '''
-main() {
+void f() {
   int v =
   x
 }

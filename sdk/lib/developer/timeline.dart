@@ -4,6 +4,9 @@
 
 part of dart.developer;
 
+// Examples can assume:
+// void doSomething() {}
+
 const bool _hasTimeline =
     const bool.fromEnvironment("dart.developer.timeline", defaultValue: true);
 

@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert' show jsonDecode, jsonEncode;
 import 'dart:io';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -209,7 +209,7 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
 class LspAnalysisServerMemoryUsageTest
     extends AbstractLspAnalysisServerIntegrationTest
     with ServerMemoryUsageMixin {
-  Map<String, List<Diagnostic>> currentAnalysisErrors = {};
+  Map<String, List<lsp.Diagnostic>> currentAnalysisErrors = {};
 
   @override
   void expect(Object? actual, Matcher matcher, {String? reason}) =>
@@ -227,7 +227,7 @@ class LspAnalysisServerMemoryUsageTest
     ]);
     await super.setUp();
 
-    errorNotificationsFromServer.listen((NotificationMessage error) {
+    errorNotificationsFromServer.listen((lsp.NotificationMessage error) {
       // A server error should never happen during an integration test.
       fail('${error.toJson()}');
     });

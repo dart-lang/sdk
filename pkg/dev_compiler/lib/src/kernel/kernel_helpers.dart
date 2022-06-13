@@ -203,9 +203,13 @@ Expression? getInvocationReceiver(InvocationExpression node) {
 }
 
 bool isInlineJS(Member e) =>
-    e is Procedure &&
-    e.name.text == 'JS' &&
-    e.enclosingLibrary.importUri.toString() == 'dart:_foreign_helper';
+    e is Procedure && _isProcedureFromForeignHelper('JS', e);
+
+/// Returns `true` if [p] is the procedure named [name] from the
+/// 'dart:_foreign_helper' library.
+bool _isProcedureFromForeignHelper(String name, Procedure p) =>
+    p.name.text == name &&
+    p.enclosingLibrary.importUri.toString() == 'dart:_foreign_helper';
 
 /// Whether the parameter [p] is covariant (either explicitly `covariant` or
 /// implicitly due to generics) and needs a check for soundness.

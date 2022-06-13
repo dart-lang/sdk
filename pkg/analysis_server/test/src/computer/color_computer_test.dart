@@ -198,7 +198,7 @@ class ColorComputerTest extends AbstractContextTest {
 
   Future<void> test_collectionLiteral_const() async {
     const testCode = '''
-main() {
+void f() {
   const colors = [
     [[COLOR]],
   ];
@@ -209,7 +209,7 @@ main() {
 
   Future<void> test_collectionLiteral_nonConst() async {
     const testCode = '''
-main() {
+void f() {
   final colors = [
     [[COLOR]],
   ];
@@ -222,7 +222,7 @@ main() {
     const testCode = '''
 import 'other_file.dart';
 
-void main() {
+void f() {
   final a1 = MyTheme.staticWhite;
   final a2 = MyTheme.staticMaterialRedAccent;
   const theme = MyTheme();
@@ -258,7 +258,7 @@ class MyTheme {
 
   Future<void> test_local_const() async {
     const testCode = '''
-main() {
+void f() {
   const a = [[COLOR]];
 }
 ''';
@@ -267,7 +267,7 @@ main() {
 
   Future<void> test_local_nonConst() async {
     const testCode = '''
-main() {
+void f() {
   final a = [[COLOR]];
 }
 ''';
@@ -276,7 +276,7 @@ main() {
 
   Future<void> test_namedParameter_const() async {
     const testCode = '''
-main() {
+void f() {
   const w = Widget(color: [[COLOR]]);
 }
 
@@ -290,7 +290,7 @@ class Widget {
 
   Future<void> test_namedParameter_nonConst() async {
     const testCode = '''
-main() {
+void f() {
   final w = Widget(color: [[COLOR]]);
 }
 
@@ -304,7 +304,7 @@ class Widget {
 
   Future<void> test_nested_const() async {
     const testCode = '''
-main() {
+void f() {
   const a = [[COLOR]];
 }
 ''';
@@ -313,7 +313,7 @@ main() {
 
   Future<void> test_nested_nonConst() async {
     const testCode = '''
-main() {
+void f() {
   final a = [[COLOR]];
 }
 ''';

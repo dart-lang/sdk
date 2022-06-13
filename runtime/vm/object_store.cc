@@ -286,7 +286,16 @@ void ObjectStore::InitKnownObjects() {
   cls =
       async_lib.LookupClassAllowPrivate(Symbols::_AsyncStarStreamController());
   ASSERT(!cls.IsNull());
+  RELEASE_ASSERT(cls.EnsureIsFinalized(thread) == Error::null());
   set_async_star_stream_controller(cls);
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::add());
+  ASSERT(!function.IsNull());
+  set_async_star_stream_controller_add(function);
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::addStream());
+  ASSERT(!function.IsNull());
+  set_async_star_stream_controller_add_stream(function);
 
   if (FLAG_async_debugger) {
     // Disable debugging and inlining of all functions on the
@@ -300,6 +309,47 @@ void ObjectStore::InitKnownObjects() {
       DisableDebuggingAndInlining(function);
     }
   }
+
+  cls = async_lib.LookupClassAllowPrivate(Symbols::Stream());
+  ASSERT(!cls.IsNull());
+  set_stream_class(cls);
+
+  cls = async_lib.LookupClassAllowPrivate(Symbols::_SuspendState());
+  ASSERT(!cls.IsNull());
+  const auto& error = cls.EnsureIsFinalized(thread);
+  ASSERT(error == Error::null());
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::_initAsync());
+  ASSERT(!function.IsNull());
+  set_suspend_state_init_async(function);
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::_await());
+  ASSERT(!function.IsNull());
+  set_suspend_state_await(function);
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::_returnAsync());
+  ASSERT(!function.IsNull());
+  set_suspend_state_return_async(function);
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::_returnAsyncNotFuture());
+  ASSERT(!function.IsNull());
+  set_suspend_state_return_async_not_future(function);
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::_initAsyncStar());
+  ASSERT(!function.IsNull());
+  set_suspend_state_init_async_star(function);
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::_yieldAsyncStar());
+  ASSERT(!function.IsNull());
+  set_suspend_state_yield_async_star(function);
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::_returnAsyncStar());
+  ASSERT(!function.IsNull());
+  set_suspend_state_return_async_star(function);
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::_handleException());
+  ASSERT(!function.IsNull());
+  set_suspend_state_handle_exception(function);
 
   const Library& core_lib = Library::Handle(zone, core_library());
   cls = core_lib.LookupClassAllowPrivate(Symbols::_CompileTimeError());

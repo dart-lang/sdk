@@ -4,6 +4,9 @@
 
 library dart._foreign_helper;
 
+import 'dart:_js_shared_embedded_names' show JsBuiltin, JsGetName;
+import 'dart:_rti' show Rti;
+
 /**
  * Emits a JavaScript code fragment parameterized by arguments.
  *
@@ -221,7 +224,7 @@ external String JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG();
 external String JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG();
 
 /// Returns the JS name for [name] from the Namer.
-external String JS_GET_NAME(String name);
+external String JS_GET_NAME(JsGetName name);
 
 /// Returns the state of a flag that is determined by the state of the compiler
 /// when the program has been analyzed.
@@ -274,3 +277,52 @@ dynamic spread(args) {
   throw StateError('The spread function cannot be called, '
       'it should be compiled away.');
 }
+
+/// Reads an embedded global.
+///
+/// The [name] should be a constant defined in the `_js_shared_embedded_names`
+/// library.
+external JS_EMBEDDED_GLOBAL(String typeDescription, String name);
+
+/// Instructs the compiler to execute the [builtinName] action at the call-site.
+///
+/// The [builtin] should be a constant defined in the
+/// `_js_shared_embedded_names` library.
+// Add additional optional arguments if needed. The method is treated internally
+// as a variable argument method.
+external JS_BUILTIN(String typeDescription, JsBuiltin builtin,
+    [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11]);
+
+/// Returns the interceptor for [object].
+///
+// TODO(nshahan) Replace calls at compile time?
+external getInterceptor(object);
+
+/// Returns the Rti object for the type for JavaScript arrays via JS-interop.
+///
+// TODO(nshahan) Replace calls at compile time?
+external Object getJSArrayInteropRti();
+
+/// Returns a raw reference to the JavaScript function which implements
+/// [function].
+///
+/// Warning: this is dangerous, you should probably use
+/// [DART_CLOSURE_TO_JS] instead. The returned object is not a valid
+/// Dart closure, does not store the isolate context or arity.
+///
+/// A valid example of where this can be used is as the second argument
+/// to V8's Error.captureStackTrace. See
+/// https://code.google.com/p/v8/wiki/JavaScriptStackTraceApi.
+// TODO(nshahan) Replace calls at compile time?
+external RAW_DART_FUNCTION_REF(Function function);
+
+/// Returns a TypeReference to [T].
+// TODO(nshahan) Replace calls at compile time?
+external Rti TYPE_REF<T>();
+
+/// Returns a TypeReference to [T]*.
+// TODO(nshahan) Replace calls at compile time?
+external Rti LEGACY_TYPE_REF<T>();
+
+/// JavaScript string concatenation. Inputs must be Strings.
+external String JS_STRING_CONCAT(String a, String b);

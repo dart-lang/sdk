@@ -7,7 +7,7 @@ import "dart:async";
 class Node extends core::Object {
   final field core::List<self::Node>? nested;
   final field core::String name;
-  constructor •(core::String name, [core::List<self::Node>? nested]) → self::Node
+  constructor •(core::String name, [core::List<self::Node>? nested = null]) → self::Node
     ;
   method toString() → core::String
     ;

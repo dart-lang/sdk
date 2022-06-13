@@ -21,6 +21,7 @@ import 'normalize_type_test.dart' as normalize_type;
 import 'nullability_eliminator_test.dart' as nullability_eliminator;
 import 'nullable_test.dart' as nullable;
 import 'replace_top_bottom_test.dart' as replace_top_bottom;
+import 'resolve_to_bound_test.dart' as resolve_to_bound;
 import 'runtime_type_equality_test.dart' as runtime_type_equality;
 import 'subtype_test.dart' as subtype;
 import 'top_merge_test.dart' as top_merge;
@@ -52,6 +53,7 @@ main() {
     nullability_eliminator.main();
     nullable.main();
     replace_top_bottom.main();
+    resolve_to_bound.main();
     runtime_type_equality.main();
     subtype.main();
     top_merge.main();

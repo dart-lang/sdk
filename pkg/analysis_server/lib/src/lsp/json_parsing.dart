@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 final nullLspJsonReporter = _NullLspJsonReporter();
+final throwingLspJsonReporter = _ThrowingLspJsonReporter();
 
 /// Tracks a path through a JSON object during validation to allow reporting
 /// validation errors with user-friendly paths to the invalid fields.
@@ -50,4 +51,12 @@ class _NullLspJsonReporter implements LspJsonReporter {
 
   @override
   void reportError(String message) {}
+}
+
+class _ThrowingLspJsonReporter extends LspJsonReporter {
+  @override
+  void reportError(String message) {
+    super.reportError(message);
+    throw errors.join('\n');
+  }
 }

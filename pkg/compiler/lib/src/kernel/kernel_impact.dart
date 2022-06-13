@@ -17,7 +17,7 @@ import '../ir/constants.dart';
 import '../ir/impact.dart';
 import '../ir/impact_data.dart';
 import '../ir/runtime_type_analysis.dart';
-import '../ir/static_type.dart';
+import '../ir/class_relation.dart';
 import '../ir/util.dart';
 import '../ir/visitors.dart';
 import '../js_backend/annotations.dart';
@@ -852,7 +852,7 @@ class KernelImpactConverter implements ImpactRegistry {
         } else if (type == commonElements.functionType) {
           reporter.reportErrorMessage(computeSourceSpanFromTreeNode(node),
               MessageKind.SWITCH_CASE_FORBIDDEN, {'type': "Function"});
-        } else if (value.isObject &&
+        } else if (value is ObjectConstantValue &&
             type != commonElements.typeLiteralType &&
             overridesEquals(type)) {
           reporter.reportErrorMessage(

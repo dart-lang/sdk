@@ -92,36 +92,33 @@ class AnalysisGetImportedElementsIntegrationTest
 
   Future<void> test_getImportedElements_none() async {
     text = r'''
-main() {}
+void f() {}
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
     await analysisFinished;
 
-    await checkNoElements('main() {}');
+    await checkNoElements('f() {}');
   }
 
   Future<void> test_getImportedElements_some() async {
-    var selection = r'''
-main() {
+    text = '''
+import 'dart:math';
+
+void f() {
   Random r = new Random();
   String s = r.nextBool().toString();
   print(s);
 }
-''';
-    text = '''
-import 'dart:math';
-
-$selection
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
     await analysisFinished;
 
     if (disableManageImportsOnPaste) {
-      await checkElements(selection, []);
+      await checkElements('f()', []);
     } else {
-      await checkElements(selection, [
+      await checkElements('f()', [
         ImportedElements(
             path.join('lib', 'core', 'core.dart'), '', ['String', 'print']),
         ImportedElements(path.join('lib', 'math', 'math.dart'), '', ['Random'])

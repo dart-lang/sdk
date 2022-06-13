@@ -89,9 +89,6 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
     for (NamedType parameter in node.namedParameters) {
       if (parameter.type.accept1(this, visitedTypedefs)) return true;
     }
-    if (node.typedefType != null && visitedTypedefs.add(node.typedefType!)) {
-      if (node.typedefType!.accept1(this, visitedTypedefs)) return true;
-    }
     return false;
   }
 

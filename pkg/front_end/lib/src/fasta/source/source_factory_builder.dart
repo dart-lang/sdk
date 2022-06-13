@@ -43,6 +43,9 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   final bool isExtensionInstanceMember = false;
 
+  @override
+  final TypeBuilder returnType;
+
   final Procedure _procedureInternal;
   final Procedure? _factoryTearOff;
 
@@ -53,7 +56,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   SourceFactoryBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
-      TypeBuilder returnType,
+      this.returnType,
       String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder>? formals,
@@ -79,8 +82,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
           ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault,
         _factoryTearOff = createFactoryTearOffProcedure(name, libraryBuilder,
             libraryBuilder.fileUri, charOffset, tearOffReference),
-        super(metadata, modifiers, returnType, name, typeVariables, formals,
-            libraryBuilder, charOffset, nativeMethodName) {
+        super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
+            charOffset, nativeMethodName) {
     this.asyncModifier = asyncModifier;
   }
 
@@ -151,8 +154,12 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
     _procedureInternal.isStatic = isStatic;
 
     if (_factoryTearOff != null) {
-      buildConstructorTearOffProcedure(_factoryTearOff!, _procedureInternal,
-          classBuilder!.cls, libraryBuilder);
+      buildConstructorTearOffProcedure(
+          tearOff: _factoryTearOff!,
+          declarationConstructor: _procedure,
+          implementationConstructor: _procedureInternal,
+          enclosingClass: classBuilder!.cls,
+          libraryBuilder: libraryBuilder);
     }
     return _procedureInternal;
   }
@@ -224,21 +231,11 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   }
 
   void _finishPatch() {
-    // TODO(ahe): restore file-offset once we track both origin and patch file
-    // URIs. See https://github.com/dart-lang/sdk/issues/31579
-    origin._procedure.fileUri = fileUri;
-    origin._procedure.startFileOffset = _procedureInternal.startFileOffset;
-    origin._procedure.fileOffset = _procedureInternal.fileOffset;
-    origin._procedure.fileEndOffset = _procedureInternal.fileEndOffset;
-    origin._procedure.annotations
-        .forEach((m) => m.fileOffset = _procedureInternal.fileOffset);
+    finishProcedurePatch(origin._procedure, _procedureInternal);
 
-    origin._procedure.isAbstract = _procedureInternal.isAbstract;
-    origin._procedure.isExternal = _procedureInternal.isExternal;
-    origin._procedure.function = _procedureInternal.function;
-    origin._procedure.function.parent = origin._procedure;
-    origin._procedure.isRedirectingFactory =
-        _procedureInternal.isRedirectingFactory;
+    if (_factoryTearOff != null) {
+      finishProcedurePatch(origin._factoryTearOff!, _factoryTearOff!);
+    }
   }
 
   @override
@@ -366,14 +363,17 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     if (redirectionTarget.typeArguments != null) {
       typeArguments = new List<DartType>.generate(
           redirectionTarget.typeArguments!.length,
-          (int i) => redirectionTarget.typeArguments![i].build(libraryBuilder),
+          (int i) => redirectionTarget.typeArguments![i]
+              .build(libraryBuilder, TypeUse.redirectionTypeArgument),
           growable: false);
     }
     updatePrivateMemberName(_procedureInternal, libraryBuilder);
     if (_factoryTearOff != null) {
       _tearOffTypeParameters =
           buildRedirectingFactoryTearOffProcedureParameters(
-              _factoryTearOff!, _procedureInternal, libraryBuilder);
+              tearOff: _factoryTearOff!,
+              implementationConstructor: _procedureInternal,
+              libraryBuilder: libraryBuilder);
     }
     return _procedureInternal;
   }

@@ -15,6 +15,7 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -27,7 +28,11 @@ import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart'
-    show DelayedDefaultValueCloner, TypeDependency;
+    show
+        DelayedDefaultValueCloner,
+        TypeDependency,
+        finishConstructorPatch,
+        finishProcedurePatch;
 import '../kernel/utils.dart'
     show isRedirectingGenerativeConstructorImplementation;
 import '../messages.dart'
@@ -62,6 +67,9 @@ abstract class SourceConstructorBuilder
 
 class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     implements SourceConstructorBuilder {
+  @override
+  final OmittedTypeBuilder returnType;
+
   final Constructor _constructor;
   final Procedure? _constructorTearOff;
 
@@ -102,7 +110,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   DeclaredSourceConstructorBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
-      TypeBuilder? returnType,
+      this.returnType,
       String name,
       List<TypeVariableBuilder>? typeVariables,
       this.formals,
@@ -132,7 +140,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
             forAbstractClassOrEnum: forAbstractClassOrEnum),
         _hasSuperInitializingFormals =
             formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
-        super(metadata, modifiers, returnType, name, typeVariables, formals,
+        super(metadata, modifiers, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 
   @override
@@ -202,8 +210,12 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       updatePrivateMemberName(_constructor, libraryBuilder);
 
       if (_constructorTearOff != null) {
-        buildConstructorTearOffProcedure(_constructorTearOff!, _constructor,
-            classBuilder.cls, libraryBuilder);
+        buildConstructorTearOffProcedure(
+            tearOff: _constructorTearOff!,
+            declarationConstructor: constructor,
+            implementationConstructor: _constructor,
+            enclosingClass: classBuilder.cls,
+            libraryBuilder: libraryBuilder);
       }
 
       _hasBeenBuilt = true;
@@ -211,7 +223,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     if (formals != null) {
       bool needsInference = false;
       for (FormalParameterBuilder formal in formals!) {
-        if (formal.type == null &&
+        if (formal.type is OmittedTypeBuilder &&
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
           formal.variable!.type = const UnknownType();
           needsInference = true;
@@ -233,7 +245,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     if (_hasFormalsInferred) return;
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
-        if (formal.type == null) {
+        if (formal.type is OmittedTypeBuilder) {
           if (formal.isInitializingFormal) {
             formal.finalizeInitializingFormal(classBuilder);
           }
@@ -413,12 +425,12 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           }
         }
 
-        if (formal.type == null) {
+        if (formal.type is OmittedTypeBuilder) {
           DartType? type = correspondingSuperFormalType;
           if (substitution.isNotEmpty && type != null) {
             type = substitute(type, substitution);
           }
-          formal.variable!.type = type ?? const DynamicType();
+          formal.type.registerInferredType(type ?? const DynamicType());
         }
         formal.variable!.hasDeclaredInitializer = formal.hasDeclaredInitializer;
       }
@@ -512,8 +524,9 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           new TypeParameterType.withDefaultNullabilityForLibrary(
               typeParameter, libraryBuilder.library));
     }
-    function.returnType = new InterfaceType(
+    DartType type = new InterfaceType(
         enclosingClass, libraryBuilder.nonNullable, typeParameterTypes);
+    returnType.registerInferredType(type);
   }
 
   @override
@@ -660,20 +673,11 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   }
 
   void _finishPatch() {
-    // TODO(ahe): restore file-offset once we track both origin and patch file
-    // URIs. See https://github.com/dart-lang/sdk/issues/31579
-    origin.constructor.fileUri = fileUri;
-    origin.constructor.startFileOffset = _constructor.startFileOffset;
-    origin.constructor.fileOffset = _constructor.fileOffset;
-    origin.constructor.fileEndOffset = _constructor.fileEndOffset;
-    origin.constructor.annotations
-        .forEach((m) => m.fileOffset = _constructor.fileOffset);
+    finishConstructorPatch(origin.constructor, _constructor);
 
-    origin.constructor.isExternal = _constructor.isExternal;
-    origin.constructor.function = _constructor.function;
-    origin.constructor.function.parent = origin.constructor;
-    origin.constructor.initializers = _constructor.initializers;
-    setParents(origin.constructor.initializers, origin.constructor);
+    if (_constructorTearOff != null) {
+      finishProcedurePatch(origin._constructorTearOff!, _constructorTearOff!);
+    }
   }
 
   @override

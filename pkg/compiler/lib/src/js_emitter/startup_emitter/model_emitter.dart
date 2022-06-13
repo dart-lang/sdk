@@ -8,9 +8,8 @@ library dart2js.js_emitter.startup_emitter.model_emitter;
 
 import 'dart:convert' show JsonEncoder;
 
-import 'package:js_runtime/shared/embedded_names.dart'
+import 'package:js_runtime/synced/embedded_names.dart'
     show
-        ARRAY_RTI_PROPERTY,
         DEFERRED_INITIALIZED,
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
@@ -19,17 +18,22 @@ import 'package:js_runtime/shared/embedded_names.dart'
         INTERCEPTORS_BY_TAG,
         IS_HUNK_INITIALIZED,
         IS_HUNK_LOADED,
-        JsGetName,
         LEAF_TAGS,
         MANGLED_GLOBAL_NAMES,
         MANGLED_NAMES,
         METADATA,
         NATIVE_SUPERCLASS_TAG_NAME,
-        RTI_UNIVERSE,
-        RtiUniverseFieldNames,
+        RUNTIME_METRICS,
         STARTUP_METRICS,
         TearOffParametersPropertyNames,
-        TYPE_TO_INTERCEPTOR_MAP,
+        TYPE_TO_INTERCEPTOR_MAP;
+
+import 'package:js_shared/synced/embedded_names.dart'
+    show
+        ARRAY_RTI_PROPERTY,
+        JsGetName,
+        RTI_UNIVERSE,
+        RtiUniverseFieldNames,
         TYPES;
 
 import 'package:js_ast/src/precedence.dart' as js_precedence;
@@ -38,8 +42,7 @@ import '../../../compiler_api.dart' as api;
 import '../../common.dart';
 import '../../common/elements.dart' show CommonElements, JElementEnvironment;
 import '../../common/tasks.dart';
-import '../../constants/values.dart'
-    show ConstantValue, FunctionConstantValue, LateSentinelConstantValue;
+import '../../constants/values.dart';
 import '../../deferred_load/output_unit.dart' show OutputUnit;
 import '../../dump_info.dart';
 import '../../elements/entities.dart';
@@ -180,8 +183,8 @@ class ModelEmitter {
   }
 
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
-    if (constant.isFunction) return true; // Already emitted.
-    if (constant.isPrimitive) return true; // Inlined.
+    if (constant is FunctionConstantValue) return true; // Already emitted.
+    if (constant is PrimitiveConstantValue) return true; // Inlined.
     if (constant.isDummy) return true; // Inlined.
     if (constant is LateSentinelConstantValue) return true; // Inlined.
     return false;
@@ -197,8 +200,10 @@ class ModelEmitter {
 
     // Emit constant interceptors first. Constant interceptors for primitives
     // might be used by code that builds other constants.  See Issue 18173.
-    if (a.isInterceptor != b.isInterceptor) {
-      return a.isInterceptor ? -1 : 1;
+    bool aIsInterceptor = a is InterceptorConstantValue;
+    bool bIsInterceptor = b is InterceptorConstantValue;
+    if (aIsInterceptor != bIsInterceptor) {
+      return aIsInterceptor ? -1 : 1;
     }
 
     // Sorting by the long name clusters constants with the same constructor
@@ -211,9 +216,8 @@ class ModelEmitter {
   }
 
   js.Expression generateConstantReference(ConstantValue value) {
-    if (value.isFunction) {
-      FunctionConstantValue functionConstant = value;
-      return _emitter.staticClosureAccess(functionConstant.element);
+    if (value is FunctionConstantValue) {
+      return _emitter.staticClosureAccess(value.element);
     }
 
     // We are only interested in the "isInlined" part, but it does not hurt to
@@ -368,19 +372,11 @@ class ModelEmitter {
     return js.Comment(generatedBy(_options, flavor: '$flavor'));
   }
 
-  List<js.Statement> buildDeferredInitializerGlobal() {
-    return [
-      js.js.statement(
-          'self.#deferredInitializers = '
-          'self.#deferredInitializers || Object.create(null);',
-          {'deferredInitializers': deferredInitializersGlobal}),
-      if (_options.experimentalTrackAllocations)
-        js.js.statement(
-            'self.#deferredInitializers["allocations"] = '
-            'self.#deferredInitializers["allocations"] '
-            '|| Object.create(null)',
-            {'deferredInitializers': deferredInitializersGlobal})
-    ];
+  js.Statement buildDeferredInitializerGlobal() {
+    return js.js.statement(
+        'self.#deferredInitializers = '
+        'self.#deferredInitializers || Object.create(null);',
+        {'deferredInitializers': deferredInitializersGlobal});
   }
 
   js.Statement buildStartupMetrics() {
@@ -415,7 +411,7 @@ var ${startupMetricsGlobal} =
   void writeMainFragment(MainFragment fragment, js.Statement code,
       {bool isSplit}) {
     LocationCollector locationCollector;
-    List<CodeOutputListener> codeOutputListeners;
+    List<CodeOutputListener /*!*/ > codeOutputListeners;
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
         locationCollector = LocationCollector();
@@ -431,7 +427,7 @@ var ${startupMetricsGlobal} =
     js.Program program = js.Program([
       buildGeneratedBy(),
       js.Comment(HOOKS_API_USAGE),
-      if (isSplit) ...buildDeferredInitializerGlobal(),
+      if (isSplit) buildDeferredInitializerGlobal(),
       if (_closedWorld.backendUsage.requiresStartupMetrics)
         buildStartupMetrics(),
       code
@@ -485,7 +481,7 @@ var ${startupMetricsGlobal} =
       FinalizedFragment fragment,
       List<EmittedCodeFragment> fragmentCode,
       Map<CodeFragment, String> fragmentHashes) {
-    List<CodeOutputListener> outputListeners = [];
+    List<CodeOutputListener /*!*/ > outputListeners = [];
     LocationCollector locationCollector;
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
@@ -566,10 +562,7 @@ var ${startupMetricsGlobal} =
 
     js.Program program = js.Program([
       if (isFirst) buildGeneratedBy(),
-      if (isFirst) ...buildDeferredInitializerGlobal(),
-      if (_options.experimentalTrackAllocations)
-        js.js.statement("var allocations = #deferredGlobal['allocations']",
-            {'deferredGlobal': deferredInitializersGlobal}),
+      if (isFirst) buildDeferredInitializerGlobal(),
       js.js.statement('$deferredInitializersGlobal.current = #', code)
     ]);
 

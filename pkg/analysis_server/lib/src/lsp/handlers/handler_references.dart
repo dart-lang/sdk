@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' show SearchResult;
@@ -27,8 +26,8 @@ class ReferencesHandler
       ReferenceParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<Location>?>> handle(
-      ReferenceParams params, CancellationToken token) async {
+  Future<ErrorOr<List<Location>?>> handle(ReferenceParams params,
+      MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
     }

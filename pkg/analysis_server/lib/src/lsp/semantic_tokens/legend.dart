@@ -4,7 +4,7 @@
 
 import 'dart:math' as math;
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/mapping.dart';
 import 'package:meta/meta.dart';

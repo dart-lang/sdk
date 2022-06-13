@@ -6,7 +6,7 @@ import 'package:flutter/widgets.dart';
 
 class AppBar extends StatefulWidget {
   AppBar({
-    Key key,
+    Key? key,
     title,
     backgroundColor,
   });

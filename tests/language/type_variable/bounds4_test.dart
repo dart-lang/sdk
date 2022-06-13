@@ -10,8 +10,8 @@ class A<
     > {}
 
 class B<T> implements A<T> {}
-//    ^
-// [cfe] Type argument 'T' doesn't conform to the bound 'num' of the type variable 'T' on 'A' in the supertype 'A' of class 'B'.
+//                    ^
+// [cfe] Type argument 'T' doesn't conform to the bound 'num' of the type variable 'T' on 'A'.
 //                      ^
 // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 

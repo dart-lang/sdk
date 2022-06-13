@@ -31,9 +31,10 @@ import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
     show createContext;
 import 'incremental_suite.dart' as incremental show createContext;
 import 'lint_suite.dart' as lint show createContext;
-import 'parser_suite.dart' as parser show createContext;
-import 'parser_equivalence_suite.dart' as parserEquivalence show createContext;
+import 'outline_extractor_suite.dart' as outline_extractor show createContext;
 import 'parser_all_suite.dart' as parserAll show createContext;
+import 'parser_equivalence_suite.dart' as parserEquivalence show createContext;
+import 'parser_suite.dart' as parser show createContext;
 import 'spelling_test_not_src_suite.dart' as spelling_not_src
     show createContext;
 import 'spelling_test_src_suite.dart' as spelling_src show createContext;
@@ -471,6 +472,12 @@ const List<Suite> suites = [
     "fasta/textual_outline",
     textual_outline.createContext,
     "../../testing.json",
+    shardCount: 1,
+  ),
+  const Suite(
+    "outline_extractor",
+    outline_extractor.createContext,
+    "../testing.json",
     shardCount: 1,
   ),
 ];

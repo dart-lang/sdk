@@ -95,6 +95,9 @@ class SharedCompilerOptions {
 
   final bool soundNullSafety;
 
+  /// A canary feature that enables a new runtime type representation.
+  final bool newRuntimeTypes;
+
   SharedCompilerOptions(
       {this.sourceMap = true,
       this.inlineSourceMap = false,
@@ -110,7 +113,10 @@ class SharedCompilerOptions {
       this.multiRootScheme,
       this.multiRootOutputPath,
       this.experiments = const {},
-      this.soundNullSafety = false});
+      this.soundNullSafety = false,
+      bool canaryFeatures = false})
+      : // Current canary features.
+        newRuntimeTypes = canaryFeatures;
 
   SharedCompilerOptions.fromArguments(ArgResults args)
       : this(
@@ -131,7 +137,8 @@ class SharedCompilerOptions {
             multiRootOutputPath: args['multi-root-output-path'] as String,
             experiments: parseExperimentalArguments(
                 args['enable-experiment'] as List<String>),
-            soundNullSafety: args['sound-null-safety'] as bool);
+            soundNullSafety: args['sound-null-safety'] as bool,
+            canaryFeatures: args['canary'] as bool);
 
   SharedCompilerOptions.fromSdkRequiredArguments(ArgResults args)
       : this(
@@ -145,7 +152,8 @@ class SharedCompilerOptions {
             multiRootOutputPath: args['multi-root-output-path'] as String,
             experiments: parseExperimentalArguments(
                 args['enable-experiment'] as List<String>),
-            soundNullSafety: args['sound-null-safety'] as bool);
+            soundNullSafety: args['sound-null-safety'] as bool,
+            canaryFeatures: args['canary'] as bool);
 
   static void addArguments(ArgParser parser, {bool hide = true}) {
     addSdkRequiredArguments(parser, hide: hide);
@@ -213,7 +221,14 @@ class SharedCompilerOptions {
       ..addFlag('sound-null-safety',
           help: 'Compile for sound null safety at runtime.',
           negatable: true,
-          defaultsTo: false);
+          defaultsTo: false)
+      ..addFlag('canary',
+          help: 'Enable all compiler features under active development. '
+              'This option is intended for compiler development only. '
+              'Canary features are likely to be unstable and can be removed '
+              'without warning.',
+          defaultsTo: false,
+          hide: true);
   }
 
   static String _getModuleName(ArgResults args) {

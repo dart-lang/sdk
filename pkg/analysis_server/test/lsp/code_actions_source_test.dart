@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
@@ -322,14 +322,14 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
     );
 
     final commandResponse = handleExpectedRequest<Object?,
-        ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
+        ApplyWorkspaceEditParams, ApplyWorkspaceEditResult>(
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams.fromJson,
       () => executeCommand(command),
       // Claim that we failed tpo apply the edits. This is what the client
       // would do if the edits provided were for an old version of the
       // document.
-      handler: (edit) => ApplyWorkspaceEditResponse(
+      handler: (edit) => ApplyWorkspaceEditResult(
           applied: false, failureReason: 'Document changed'),
     );
 

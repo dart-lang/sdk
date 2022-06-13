@@ -268,10 +268,10 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
                                  ->build_nongeneric_method_extractor_code());
   ASSERT(!build_method_extractor.IsNull());
 
-  const intptr_t stub_index = __ object_pool_builder().AddObject(
-      build_method_extractor, compiler::ObjectPoolBuilderEntry::kNotPatchable);
-  const intptr_t function_index = __ object_pool_builder().AddObject(
-      extracted_method, compiler::ObjectPoolBuilderEntry::kNotPatchable);
+  const intptr_t stub_index =
+      __ object_pool_builder().FindObject(build_method_extractor);
+  const intptr_t function_index =
+      __ object_pool_builder().FindObject(extracted_method);
 
   // We use a custom pool register to preserve caller PP.
   Register kPoolReg = RAX;
@@ -369,6 +369,15 @@ void FlowGraphCompiler::EmitPrologue() {
       Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : RAX;
       __ movq(compiler::Address(RBP, slot_index * kWordSize), value_reg);
     }
+  } else if (parsed_function().suspend_state_var() != nullptr) {
+    // Initialize synthetic :suspend_state variable early
+    // as it may be accessed by GC and exception handling before
+    // InitSuspendableFunction stub is called.
+    const intptr_t slot_index =
+        compiler::target::frame_layout.FrameSlotForVariable(
+            parsed_function().suspend_state_var());
+    __ LoadObject(RAX, Object::null_object());
+    __ movq(compiler::Address(RBP, slot_index * kWordSize), RAX);
   }
 
   EndCodeSourceRange(PrologueSource());
@@ -385,10 +394,25 @@ void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
   }
 }
 
+void FlowGraphCompiler::EmitJumpToStub(const Code& stub) {
+  ASSERT(!stub.IsNull());
+  if (CanPcRelativeCall(stub)) {
+    __ GenerateUnRelocatedPcRelativeTailCall();
+    AddPcRelativeTailCallStubTarget(stub);
+  } else {
+    __ LoadObject(CODE_REG, stub);
+    __ jmp(compiler::FieldAddress(
+        CODE_REG, compiler::target::Code::entry_point_offset()));
+    AddStubCallTarget(stub);
+  }
+}
+
 void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
   ASSERT(!stub.IsNull());
   if (CanPcRelativeCall(stub)) {
-    __ LeaveDartFrame();
+    if (flow_graph().graph_entry()->NeedsFrame()) {
+      __ LeaveDartFrame();
+    }
     __ GenerateUnRelocatedPcRelativeTailCall();
     AddPcRelativeTailCallStubTarget(stub);
 #if defined(DEBUG)
@@ -396,7 +420,9 @@ void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
 #endif
   } else {
     __ LoadObject(CODE_REG, stub);
-    __ LeaveDartFrame();
+    if (flow_graph().graph_entry()->NeedsFrame()) {
+      __ LeaveDartFrame();
+    }
     __ jmp(compiler::FieldAddress(
         CODE_REG, compiler::target::Code::entry_point_offset()));
     AddStubCallTarget(stub);
@@ -499,7 +525,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   // Load receiver into RDX.
   __ movq(RDX, compiler::Address(
                    RSP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize));
-  __ LoadUniqueObject(RBX, ic_data);
+  __ LoadUniqueObject(IC_DATA_REG, ic_data);
   GenerateDartCall(deopt_id, source, stub, UntaggedPcDescriptors::kIcCall, locs,
                    entry_kind);
   __ Drop(ic_data.SizeWithTypeArgs(), RCX);
@@ -518,7 +544,7 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
   // Load receiver into RDX.
   __ movq(RDX, compiler::Address(
                    RSP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize));
-  __ LoadUniqueObject(RBX, ic_data);
+  __ LoadUniqueObject(IC_DATA_REG, ic_data);
   __ LoadUniqueObject(CODE_REG, stub);
   const intptr_t entry_point_offset =
       entry_kind == Code::EntryKind::kNormal
@@ -551,10 +577,10 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see app_snapshot.cc.
     __ LoadUniqueObject(RCX, StubCode::MegamorphicCall());
-    __ LoadUniqueObject(RBX, cache);
+    __ LoadUniqueObject(IC_DATA_REG, cache);
     __ call(RCX);
   } else {
-    __ LoadUniqueObject(RBX, cache);
+    __ LoadUniqueObject(IC_DATA_REG, cache);
     __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
     __ call(compiler::FieldAddress(
         CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
@@ -629,11 +655,12 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     Code::EntryKind entry_kind) {
   ASSERT(CanCallDart());
   ASSERT(!function.IsClosureFunction());
-  if (function.HasOptionalParameters() || function.IsGeneric()) {
-    __ LoadObject(R10, arguments_descriptor);
+  if (function.PrologueNeedsArgumentsDescriptor()) {
+    __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
   } else {
     if (!FLAG_precompiled_mode) {
-      __ xorl(R10, R10);  // GC safe smi zero because of stub.
+      __ xorl(ARGS_DESC_REG,
+              ARGS_DESC_REG);  // GC safe smi zero because of stub.
     }
   }
   // Do not use the code from the function, but let the code be patched so that
@@ -678,11 +705,15 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     __ pushq(reg);
     __ PushObject(obj);
     if (is_optimizing()) {
-      __ CallPatchable(StubCode::OptimizedIdenticalWithNumberCheck());
+      // No breakpoints in optimized code.
+      __ Call(StubCode::OptimizedIdenticalWithNumberCheck());
+      AddCurrentDescriptor(UntaggedPcDescriptors::kOther, deopt_id, source);
     } else {
+      // Patchable to support breakpoints.
       __ CallPatchable(StubCode::UnoptimizedIdenticalWithNumberCheck());
+      AddCurrentDescriptor(UntaggedPcDescriptors::kRuntimeCall, deopt_id,
+                           source);
     }
-    AddCurrentDescriptor(UntaggedPcDescriptors::kRuntimeCall, deopt_id, source);
     // Stub returns result in flags (result of a cmpq, we need ZF computed).
     __ popq(reg);  // Discard constant.
     __ popq(reg);  // Restore 'reg'.
@@ -702,7 +733,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(
     __ pushq(left);
     __ pushq(right);
     if (is_optimizing()) {
-      __ CallPatchable(StubCode::OptimizedIdenticalWithNumberCheck());
+      __ Call(StubCode::OptimizedIdenticalWithNumberCheck());
     } else {
       __ CallPatchable(StubCode::UnoptimizedIdenticalWithNumberCheck());
     }
@@ -766,7 +797,7 @@ void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
   // Load receiver into RAX.
   __ movq(RAX,
           compiler::Address(RSP, (count_without_type_args - 1) * kWordSize));
-  __ LoadObject(R10, arguments_descriptor);
+  __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
 }
 
 void FlowGraphCompiler::EmitTestAndCallSmiBranch(compiler::Label* label,

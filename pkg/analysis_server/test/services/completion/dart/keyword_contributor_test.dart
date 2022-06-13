@@ -493,13 +493,13 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_anonymous_function_async() async {
-    addTestSource('main() {foo(() ^ {}}}');
+    addTestSource('void f() {foo(() ^ {}}}');
     await computeSuggestions();
     assertSuggestKeywords([], pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   Future<void> test_anonymous_function_async2() async {
-    addTestSource('main() {foo(() a^ {}}}');
+    addTestSource('void f() {foo(() a^ {}}}');
     await computeSuggestions();
     // Fasta adds a closing paren after the first `}`
     // and reports a single function expression argument
@@ -509,44 +509,44 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_anonymous_function_async3() async {
-    addTestSource('main() {foo(() async ^ {}}}');
+    addTestSource('void f() {foo(() async ^ {}}}');
     await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
   Future<void> test_anonymous_function_async4() async {
-    addTestSource('main() {foo(() ^ => 2}}');
+    addTestSource('void f() {foo(() ^ => 2}}');
     await computeSuggestions();
     assertSuggestKeywords([], pseudoKeywords: ['async']);
   }
 
   Future<void> test_anonymous_function_async5() async {
-    addTestSource('main() {foo(() ^}}');
+    addTestSource('void f() {foo(() ^}}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE,
         pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   Future<void> test_anonymous_function_async6() async {
-    addTestSource('main() {foo("bar", () as^{}}');
+    addTestSource('void f() {foo("bar", () as^{}}');
     await computeSuggestions();
     assertSuggestKeywords([], pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   Future<void> test_anonymous_function_async7() async {
-    addTestSource('main() {foo("bar", () as^ => null');
+    addTestSource('void f() {foo("bar", () as^ => null');
     await computeSuggestions();
     assertSuggestKeywords([], pseudoKeywords: ['async']);
   }
 
   Future<void> test_anonymous_function_async8() async {
-    addTestSource('main() {foo(() ^ {})}}');
+    addTestSource('void f() {foo(() ^ {})}}');
     await computeSuggestions();
     assertSuggestKeywords([], pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   Future<void> test_anonymous_function_async9() async {
-    addTestSource('main() {foo(() a^ {})}}');
+    addTestSource('void f() {foo(() a^ {})}}');
     await computeSuggestions();
     // Fasta interprets the argument as a function expression
     // while analyzer adds synthetic `;`s making `a` a statement.
@@ -554,37 +554,37 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_argument() async {
-    addTestSource('main() {foo(^);}');
+    addTestSource('void f() {foo(^);}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
   Future<void> test_argument2() async {
-    addTestSource('main() {foo(n^);}');
+    addTestSource('void f() {foo(n^);}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
   Future<void> test_argument_literal() async {
-    addTestSource('main() {foo("^");}');
+    addTestSource('void f() {foo("^");}');
     await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
   Future<void> test_argument_named() async {
-    addTestSource('main() {foo(bar: ^);}');
+    addTestSource('void f() {foo(bar: ^);}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
   Future<void> test_argument_named2() async {
-    addTestSource('main() {foo(bar: n^);}');
+    addTestSource('void f() {foo(bar: n^);}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
   Future<void> test_argument_named_literal() async {
-    addTestSource('main() {foo(bar: "^");}');
+    addTestSource('void f() {foo(bar: "^");}');
     await computeSuggestions();
     assertSuggestKeywords([]);
   }
@@ -602,26 +602,26 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_assignment_local() async {
-    addTestSource('main() {var foo = ^}');
+    addTestSource('void f() {var foo = ^}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
   Future<void> test_assignment_local2() async {
-    addTestSource('main() {var foo = n^}');
+    addTestSource('void f() {var foo = n^}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
   Future<void> test_assignment_local2_async() async {
-    addTestSource('main() async {var foo = n^}');
+    addTestSource('void f() async {var foo = n^}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE,
         pseudoKeywords: ['await']);
   }
 
   Future<void> test_assignment_local_async() async {
-    addTestSource('main() async {var foo = ^}');
+    addTestSource('void f() async {var foo = ^}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE,
         pseudoKeywords: ['await']);
@@ -636,7 +636,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_1a() async {
     // '}'  Block  BlockFunctionBody  FunctionExpression
-    addTestSource('main() {try {} ^}');
+    addTestSource('void f() {try {} ^}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -646,7 +646,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_1b() async {
     // [ExpressionStatement 'c']  Block  BlockFunctionBody  FunctionExpression
-    addTestSource('main() {try {} c^}');
+    addTestSource('void f() {try {} c^}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -656,7 +656,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_1c() async {
     // [EmptyStatement] Block BlockFunction FunctionExpression
-    addTestSource('main() {try {} ^;}');
+    addTestSource('void f() {try {} ^;}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -666,7 +666,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_1d() async {
     // [EmptyStatement] Block BlockFunction FunctionExpression
-    addTestSource('main() {try {} ^ Foo foo;}');
+    addTestSource('void f() {try {} ^ Foo foo;}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -676,7 +676,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_2a() async {
     // '}'  Block  BlockFunctionBody  FunctionExpression
-    addTestSource('main() {try {} on SomeException {} ^}');
+    addTestSource('void f() {try {} on SomeException {} ^}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -687,7 +687,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_2b() async {
     // [ExpressionStatement 'c']  Block  BlockFunctionBody  FunctionExpression
-    addTestSource('main() {try {} on SomeException {} c^}');
+    addTestSource('void f() {try {} on SomeException {} c^}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -698,7 +698,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_2c() async {
     // [EmptyStatement] Block BlockFunction FunctionExpression
-    addTestSource('main() {try {} on SomeException {} ^;}');
+    addTestSource('void f() {try {} on SomeException {} ^;}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -709,7 +709,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_2d() async {
     // [EmptyStatement] Block BlockFunction FunctionExpression
-    addTestSource('main() {try {} on SomeException {} ^ Foo foo;}');
+    addTestSource('void f() {try {} on SomeException {} ^ Foo foo;}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -720,7 +720,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_3a() async {
     // '}'  Block  BlockFunctionBody  FunctionExpression
-    addTestSource('main() {try {} catch (e) {} ^}');
+    addTestSource('void f() {try {} catch (e) {} ^}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -731,7 +731,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_3b() async {
     // [ExpressionStatement 'c']  Block  BlockFunctionBody  FunctionExpression
-    addTestSource('main() {try {} catch (e) {} c^}');
+    addTestSource('void f() {try {} catch (e) {} c^}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -742,7 +742,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_3c() async {
     // [EmptyStatement] Block BlockFunction FunctionExpression
-    addTestSource('main() {try {} catch (e) {} ^;}');
+    addTestSource('void f() {try {} catch (e) {} ^;}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -753,7 +753,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_3d() async {
     // [EmptyStatement] Block BlockFunction FunctionExpression
-    addTestSource('main() {try {} catch (e) {} ^ Foo foo;}');
+    addTestSource('void f() {try {} catch (e) {} ^ Foo foo;}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -764,7 +764,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_4a1() async {
     // [CatchClause]  TryStatement  Block
-    addTestSource('main() {try {} ^ on SomeException {}}');
+    addTestSource('void f() {try {} ^ on SomeException {}}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -773,7 +773,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_4a2() async {
     // ['c' VariableDeclarationStatement]  Block  BlockFunctionBody
-    addTestSource('main() {try {} c^ on SomeException {}}');
+    addTestSource('void f() {try {} c^ on SomeException {}}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -784,7 +784,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_4b1() async {
     // [CatchClause]  TryStatement  Block
-    addTestSource('main() {try {} ^ catch (e) {}}');
+    addTestSource('void f() {try {} ^ catch (e) {}}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -793,7 +793,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_4b2() async {
     // ['c' ExpressionStatement]  Block  BlockFunctionBody
-    addTestSource('main() {try {} c^ catch (e) {}}');
+    addTestSource('void f() {try {} c^ catch (e) {}}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -804,7 +804,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_4c1() async {
     // ['finally']  TryStatement  Block
-    addTestSource('main() {try {} ^ finally {}}');
+    addTestSource('void f() {try {} ^ finally {}}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -813,7 +813,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_4c2() async {
     // ['c' ExpressionStatement]  Block  BlockFunctionBody
-    addTestSource('main() {try {} c^ finally {}}');
+    addTestSource('void f() {try {} c^ finally {}}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.add(Keyword.CATCH);
@@ -824,7 +824,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_catch_block() async {
     // '}'  Block  CatchClause  TryStatement  Block
-    addTestSource('main() {try {} catch (e) {^}}}');
+    addTestSource('void f() {try {} catch (e) {^}}}');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.addAll(statementStartOutsideClass);
@@ -1061,7 +1061,7 @@ class A {
   }
 
   Future<void> test_do_break_continue_outsideClass() async {
-    addTestSource('main() {do {^} while (true);}');
+    addTestSource('void f() {do {^} while (true);}');
     await computeSuggestions();
     assertSuggestKeywords(statementStartInLoopOutsideClass);
   }
@@ -1129,43 +1129,43 @@ extension E on int {
   }
 
   Future<void> test_for_break_continue_outsideClass() async {
-    addTestSource('main() {for (int x in myList) {^}}');
+    addTestSource('void f() {for (int x in myList) {^}}');
     await computeSuggestions();
     assertSuggestKeywords(statementStartInLoopOutsideClass);
   }
 
   Future<void> test_for_expression_in() async {
-    addTestSource('main() {for (int x i^)}');
+    addTestSource('void f() {for (int x i^)}');
     await computeSuggestions();
     assertSuggestKeywords([Keyword.IN]);
   }
 
   Future<void> test_for_expression_in2() async {
-    addTestSource('main() {for (int x in^)}');
+    addTestSource('void f() {for (int x in^)}');
     await computeSuggestions();
     assertSuggestKeywords([Keyword.IN]);
   }
 
   Future<void> test_for_expression_in_inInitializer() async {
-    addTestSource('main() {for (int i^)}');
+    addTestSource('void f() {for (int i^)}');
     await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
   Future<void> test_for_expression_init() async {
-    addTestSource('main() {for (int x = i^)}');
+    addTestSource('void f() {for (int x = i^)}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
   Future<void> test_for_expression_init2() async {
-    addTestSource('main() {for (int x = in^)}');
+    addTestSource('void f() {for (int x = in^)}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
   Future<void> test_for_initialization_var() async {
-    addTestSource('main() {for (^)}');
+    addTestSource('void f() {for (^)}');
     await computeSuggestions();
     assertSuggestKeywords([Keyword.VAR]);
   }
@@ -1234,32 +1234,32 @@ extension E on int {
   }
 
   Future<void> test_function_async() async {
-    addTestSource('main()^');
+    addTestSource('void f()^');
     await computeSuggestions();
     assertSuggestKeywords([], pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   Future<void> test_function_async2() async {
-    addTestSource('main()^{}');
+    addTestSource('void f()^{}');
     await computeSuggestions();
     assertSuggestKeywords([], pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   Future<void> test_function_async3() async {
-    addTestSource('main()a^');
+    addTestSource('void f()a^');
     await computeSuggestions();
     assertSuggestKeywords(declarationKeywords,
         pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   Future<void> test_function_async4() async {
-    addTestSource('main()a^{}');
+    addTestSource('void f()a^{}');
     await computeSuggestions();
     assertSuggestKeywords([], pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   Future<void> test_function_async5() async {
-    addTestSource('main()a^ Foo foo;');
+    addTestSource('void f()a^ Foo foo;');
     await computeSuggestions();
     assertSuggestKeywords(declarationKeywords,
         pseudoKeywords: ['async', 'async*', 'sync*']);
@@ -1371,33 +1371,33 @@ class A {
   }
 
   Future<void> test_function_body_inUnit() async {
-    addTestSource('main() {^}');
+    addTestSource('void f() {^}');
     await computeSuggestions();
     assertSuggestKeywords(statementStartOutsideClass);
   }
 
   Future<void> test_function_body_inUnit_afterBlock() async {
-    addTestSource('main() {{}^}');
+    addTestSource('void f() {{}^}');
     await computeSuggestions();
     assertSuggestKeywords(statementStartOutsideClass);
   }
 
   Future<void> test_function_body_inUnit_async() async {
-    addTestSource('main() async {^}');
+    addTestSource('void f() async {^}');
     await computeSuggestions();
     assertSuggestKeywords(statementStartOutsideClass,
         pseudoKeywords: ['await']);
   }
 
   Future<void> test_function_body_inUnit_async_star() async {
-    addTestSource('main() async* {n^}');
+    addTestSource('void f() async* {n^}');
     await computeSuggestions();
     assertSuggestKeywords(statementStartOutsideClass,
         pseudoKeywords: ['await', 'yield', 'yield*']);
   }
 
   Future<void> test_function_body_inUnit_async_star2() async {
-    addTestSource('main() async* {n^ foo}');
+    addTestSource('void f() async* {n^ foo}');
     await computeSuggestions();
     assertSuggestKeywords(statementStartOutsideClass,
         pseudoKeywords: ['await', 'yield', 'yield*']);
@@ -1416,27 +1416,27 @@ class A {
   }
 
   Future<void> test_function_body_inUnit_sync_star() async {
-    addTestSource('main() sync* {n^}');
+    addTestSource('void f() sync* {n^}');
     await computeSuggestions();
     assertSuggestKeywords(statementStartOutsideClass,
         pseudoKeywords: ['await', 'yield', 'yield*']);
   }
 
   Future<void> test_function_body_inUnit_sync_star2() async {
-    addTestSource('main() sync* {n^ foo}');
+    addTestSource('void f() sync* {n^ foo}');
     await computeSuggestions();
     assertSuggestKeywords(statementStartOutsideClass,
         pseudoKeywords: ['await', 'yield', 'yield*']);
   }
 
   Future<void> test_if_after_else() async {
-    addTestSource('main() { if (true) {} else ^ }');
+    addTestSource('void f() { if (true) {} else ^ }');
     await computeSuggestions();
     assertSuggestKeywords(statementStartOutsideClass);
   }
 
   Future<void> test_if_afterThen_nextCloseCurlyBrace0() async {
-    addTestSource('main() { if (true) {} ^ }');
+    addTestSource('void f() { if (true) {} ^ }');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.addAll(statementStartOutsideClass);
@@ -1445,7 +1445,7 @@ class A {
   }
 
   Future<void> test_if_afterThen_nextCloseCurlyBrace1() async {
-    addTestSource('main() { if (true) {} e^ }');
+    addTestSource('void f() { if (true) {} e^ }');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.addAll(statementStartOutsideClass);
@@ -1454,7 +1454,7 @@ class A {
   }
 
   Future<void> test_if_afterThen_nextStatement0() async {
-    addTestSource('main() { if (true) {} ^ print(0); }');
+    addTestSource('void f() { if (true) {} ^ print(0); }');
     await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.addAll(statementStartOutsideClass);
@@ -1463,13 +1463,13 @@ class A {
   }
 
   Future<void> test_if_condition_isKeyword() async {
-    addTestSource('main() { if (v i^) {} }');
+    addTestSource('void f() { if (v i^) {} }');
     await computeSuggestions();
     assertSuggestKeywords([Keyword.IS]);
   }
 
   Future<void> test_if_condition_isKeyword2() async {
-    addTestSource('main() { if (v i^ && false) {} }');
+    addTestSource('void f() { if (v i^ && false) {} }');
     await computeSuggestions();
     assertSuggestKeywords([Keyword.IS]);
   }
@@ -2012,25 +2012,25 @@ f() => <int>{1, ^, 2};
   }
 
   Future<void> test_integerLiteral_inArgumentList() async {
-    addTestSource('main() { print(42^); }');
+    addTestSource('void f() { print(42^); }');
     await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
   Future<void> test_integerLiteral_inListLiteral() async {
-    addTestSource('main() { var items = [42^]; }');
+    addTestSource('void f() { var items = [42^]; }');
     await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
   Future<void> test_is_expression() async {
-    addTestSource('main() {if (x is^)}');
+    addTestSource('void f() {if (x is^)}');
     await computeSuggestions();
     assertSuggestKeywords([Keyword.IS]);
   }
 
   Future<void> test_is_expression_partial() async {
-    addTestSource('main() {if (x i^)}');
+    addTestSource('void f() {if (x i^)}');
     await computeSuggestions();
     assertSuggestKeywords([Keyword.IS]);
   }
@@ -2243,7 +2243,7 @@ void m() {
   }
 
   Future<void> test_named_constructor_invocation() async {
-    addTestSource('void main() {new Future.^}');
+    addTestSource('void f() {new Future.^}');
     await computeSuggestions();
     assertSuggestKeywords([]);
   }
@@ -2335,67 +2335,67 @@ f() => [...^];
   }
 
   Future<void> test_switch_expression() async {
-    addTestSource('main() {switch(^) {}}');
+    addTestSource('void f() {switch(^) {}}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
   Future<void> test_switch_expression2() async {
-    addTestSource('main() {switch(n^) {}}');
+    addTestSource('void f() {switch(n^) {}}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
   Future<void> test_switch_expression3() async {
-    addTestSource('main() {switch(n^)}');
+    addTestSource('void f() {switch(n^)}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
   Future<void> test_switch_start() async {
-    addTestSource('main() {switch(1) {^}}');
+    addTestSource('void f() {switch(1) {^}}');
     await computeSuggestions();
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT]);
   }
 
   Future<void> test_switch_start2() async {
-    addTestSource('main() {switch(1) {^ case 1:}}');
+    addTestSource('void f() {switch(1) {^ case 1:}}');
     await computeSuggestions();
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT]);
   }
 
   Future<void> test_switch_start3() async {
-    addTestSource('main() {switch(1) {^default:}}');
+    addTestSource('void f() {switch(1) {^default:}}');
     await computeSuggestions();
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT]);
   }
 
   Future<void> test_switch_start4() async {
-    addTestSource('main() {switch(1) {^ default:}}');
+    addTestSource('void f() {switch(1) {^ default:}}');
     await computeSuggestions();
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT]);
   }
 
   Future<void> test_switch_start5() async {
-    addTestSource('main() {switch(1) {c^ default:}}');
+    addTestSource('void f() {switch(1) {c^ default:}}');
     await computeSuggestions();
-    expect(replacementOffset, 19);
+    expect(replacementOffset, 21);
     expect(replacementLength, 1);
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT]);
   }
 
   Future<void> test_switch_start6() async {
-    addTestSource('main() {switch(1) {c^}}');
+    addTestSource('void f() {switch(1) {c^}}');
     await computeSuggestions();
-    expect(replacementOffset, 19);
+    expect(replacementOffset, 21);
     expect(replacementLength, 1);
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT]);
   }
 
   Future<void> test_switch_start7() async {
-    addTestSource('main() {switch(1) { c^ }}');
+    addTestSource('void f() {switch(1) { c^ }}');
     await computeSuggestions();
-    expect(replacementOffset, 20);
+    expect(replacementOffset, 22);
     expect(replacementLength, 1);
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT]);
   }
@@ -2419,7 +2419,7 @@ f() => [...^];
   }
 
   Future<void> test_switch_statement_outsideClass() async {
-    addTestSource('main() {switch(1) {case 1:^}}');
+    addTestSource('void f() {switch(1) {case 1:^}}');
     await computeSuggestions();
     assertSuggestKeywords(statementStartInSwitchOutsideClass);
   }
@@ -2431,7 +2431,7 @@ f() => [...^];
   }
 
   Future<void> test_while_break_continue() async {
-    addTestSource('main() {while (true) {^}}');
+    addTestSource('void f() {while (true) {^}}');
     await computeSuggestions();
     assertSuggestKeywords(statementStartInLoopOutsideClass);
   }

@@ -218,13 +218,11 @@ void ProgramVisitor::WalkProgram(Zone* zone,
   auto const heap = isolate_group->heap();
   ProgramWalker walker(zone, heap, visitor);
 
-  // Walk through the libraries and patches, looking for visitable objects.
+  // Walk through the libraries looking for visitable objects.
   const auto& libraries =
       GrowableObjectArray::Handle(zone, object_store->libraries());
   auto& lib = Library::Handle(zone);
   auto& cls = Class::Handle(zone);
-  auto& entry = Object::Handle(zone);
-  auto& patches = GrowableObjectArray::Handle(zone);
 
   for (intptr_t i = 0; i < libraries.Length(); i++) {
     lib ^= libraries.At(i);
@@ -232,11 +230,6 @@ void ProgramVisitor::WalkProgram(Zone* zone,
     while (it.HasNext()) {
       cls = it.GetNextClass();
       walker.AddToWorklist(cls);
-    }
-    patches = lib.used_scripts();
-    for (intptr_t j = 0; j < patches.Length(); j++) {
-      entry = patches.At(j);
-      walker.AddToWorklist(entry);
     }
   }
 

@@ -213,9 +213,10 @@ const Class& ClosureClass() {
   return Class::Handle(object_store->closure_class());
 }
 
-const Array& OneArgArgumentsDescriptor() {
+const Array& ArgumentsDescriptorBoxed(intptr_t type_args_len,
+                                      intptr_t num_arguments) {
   return Array::ZoneHandle(
-      ArgumentsDescriptor::NewBoxed(/*type_args_len=*/0, /*num_arguments=*/1));
+      ArgumentsDescriptor::NewBoxed(type_args_len, num_arguments));
 }
 
 bool IsOriginalObject(const Object& object) {
@@ -928,6 +929,15 @@ word ToRawSmi(intptr_t value) {
 word SmiValue(const dart::Object& a) {
   RELEASE_ASSERT(IsSmi(a));
   return static_cast<word>(dart::Smi::Cast(a).Value());
+}
+
+bool IsDouble(const dart::Object& a) {
+  return a.IsDouble();
+}
+
+double DoubleValue(const dart::Object& a) {
+  RELEASE_ASSERT(IsDouble(a));
+  return dart::Double::Cast(a).value();
 }
 
 #if defined(TARGET_ARCH_IA32)

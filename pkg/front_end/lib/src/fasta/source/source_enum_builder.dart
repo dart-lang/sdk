@@ -45,7 +45,6 @@ import '../kernel/constness.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 
 import '../modifier.dart' show constMask, hasInitializerMask, staticMask;
@@ -179,7 +178,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
     List<SourceFieldBuilder> elementBuilders = <SourceFieldBuilder>[];
     NamedTypeBuilder selfType = new NamedTypeBuilder(
         name, const NullabilityBuilder.omitted(),
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected,
+        fileUri: fileUri,
+        charOffset: charOffset);
     NamedTypeBuilder listType = new NamedTypeBuilder(
         "List", const NullabilityBuilder.omitted(),
         arguments: <TypeBuilder>[selfType],
@@ -307,7 +308,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           new DeclaredSourceConstructorBuilder(
               /* metadata = */ null,
               constMask,
-              /* returnType = */ null,
+              /* returnType = */ libraryBuilder.addInferableType(),
               "",
               /* typeParameters = */ null,
               <FormalParameterBuilder>[
@@ -316,7 +317,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
                     FormalParameterKind.requiredPositional,
                     0,
                     intType,
-                    "index",
+                    "#index",
                     libraryBuilder,
                     charOffset),
                 new FormalParameterBuilder(
@@ -324,7 +325,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
                     FormalParameterKind.requiredPositional,
                     0,
                     stringType,
-                    "name",
+                    "#name",
                     libraryBuilder,
                     charOffset)
               ],
@@ -350,7 +351,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
                   FormalParameterKind.requiredPositional,
                   /* modifiers = */ 0,
                   stringType,
-                  "name",
+                  "#name",
                   libraryBuilder,
                   charOffset));
           member.formals!.insert(
@@ -360,7 +361,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
                   FormalParameterKind.requiredPositional,
                   /* modifiers = */ 0,
                   intType,
-                  "index",
+                  "#index",
                   libraryBuilder,
                   charOffset));
         }
@@ -386,7 +387,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
           AsyncMarker.Sync,
           procedureNameScheme,
           isExtensionMember: false,
-          isInstanceMember: true);
+          isInstanceMember: true,
+          isSynthetic: true);
       members["toString"] = toStringBuilder;
     }
     String className = name;
@@ -463,7 +465,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         }
         SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
             metadata,
-            null,
+            libraryBuilder.addInferableType(),
             name,
             constMask | staticMask | hasInitializerMask,
             /* isTopLevel = */ false,
@@ -473,10 +475,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
             staticFieldNameScheme,
             fieldReference: fieldReference,
             fieldGetterReference: getterReference,
-            fieldSetterReference: setterReference);
-        fieldBuilder.fieldType = new ImplicitFieldType(
-            fieldBuilder, enumConstantInfo.argumentsBeginToken);
-        libraryBuilder.registerImplicitlyTypedField(fieldBuilder);
+            fieldSetterReference: setterReference,
+            initializerToken: enumConstantInfo.argumentsBeginToken);
         members[name] = fieldBuilder..next = existing;
         elementBuilders.add(fieldBuilder);
       }
@@ -628,7 +628,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
   }
 
   DartType buildElement(SourceFieldBuilder fieldBuilder, CoreTypes coreTypes) {
-    DartType selfType = this.selfType.build(libraryBuilder);
+    DartType selfType =
+        this.selfType.build(libraryBuilder, TypeUse.enumSelfType);
     Builder? builder = firstMemberNamed(fieldBuilder.name);
     if (builder == null || !builder.isField) return selfType;
     fieldBuilder = builder as SourceFieldBuilder;
@@ -674,7 +675,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
     if (typeArgumentBuilders != null) {
       typeArguments = <DartType>[];
       for (TypeBuilder typeBuilder in typeArgumentBuilders) {
-        typeArguments.add(typeBuilder.build(libraryBuilder));
+        typeArguments.add(
+            typeBuilder.build(libraryBuilder, TypeUse.constructorTypeArgument));
       }
     }
     if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
@@ -789,8 +791,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
             typeArgument: rawType(libraryBuilder.nonNullable), isConst: true));
 
     for (SourceFieldBuilder elementBuilder in elementBuilders) {
-      elementBuilder.fieldType =
-          buildElement(elementBuilder, classHierarchy.coreTypes);
+      elementBuilder.type.registerInferredType(
+          buildElement(elementBuilder, classHierarchy.coreTypes));
     }
     delayedActionPerformers.addAll(_delayedActionPerformers);
     _delayedActionPerformers.clear();

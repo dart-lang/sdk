@@ -19,7 +19,7 @@ import '../common.dart';
 import '../common/elements.dart';
 import '../common/names.dart';
 import '../constants/values.dart';
-import '../deferred_load/output_unit.dart';
+import '../deferred_load/output_unit.dart' show LateOutputUnitDataBuilder;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/indexed.dart';
@@ -358,8 +358,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     source.begin(classDataTag);
     entityLookup.forEachClass((int index, JClass cls) {
       JClassEnv env = JClassEnv.readFromDataSource(source);
+      classes.preRegisterByIndex(index, cls, env);
       JClassData data = JClassData.readFromDataSource(source);
-      classMap[env.cls] = classes.registerByIndex(index, cls, data, env);
+      classes.postRegisterData(cls, data);
+      classMap[env.cls] = cls;
       if (cls is! JRecord && cls is! JClosureClass) {
         // Synthesized classes are not part of the library environment.
         libraries.getEnv(cls.library).registerClass(cls.name, env);
@@ -545,12 +547,12 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       } else if (spannable is JLocal) {
         return getSourceSpan(spannable.memberContext, currentElement);
       }
-      return null;
+      return SourceSpan.unknown();
     }
 
     SourceSpan sourceSpan = fromSpannable(spannable);
-    sourceSpan ??= fromSpannable(currentElement);
-    return sourceSpan;
+    if (sourceSpan.isKnown) return sourceSpan;
+    return fromSpannable(currentElement);
   }
 
   LibraryEntity lookupLibrary(Uri uri) {
@@ -1130,7 +1132,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
-    return data.interfaces;
+    return data.interfaces /*!*/;
   }
 
   MemberDefinition getMemberDefinitionInternal(covariant IndexedMember member) {
@@ -1490,7 +1492,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       // computation.
       ir.StaticTypeContext staticTypeContext =
           getStaticTypeContext(memberContext);
-      ir.Constant constant = constantEvaluator.evaluate(staticTypeContext, node,
+      ir.Constant constant = constantEvaluator.evaluateOrNull(
+          staticTypeContext, node,
           requireConstant: requireConstant);
       if (constant == null) {
         if (requireConstant) {

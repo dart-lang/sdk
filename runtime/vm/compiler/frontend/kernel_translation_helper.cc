@@ -2262,10 +2262,6 @@ void KernelReaderHelper::SkipFunctionType(bool simple) {
     }
   }
 
-  if (!simple) {
-    SkipOptionalDartType();  // read typedef type.
-  }
-
   SkipDartType();  // read return type.
 }
 
@@ -2424,6 +2420,16 @@ void KernelReaderHelper::SkipExpression() {
       SkipName();        // read name.
       SkipExpression();  // read value.
       return;
+    case kAbstractSuperPropertyGet:
+      // Abstract super property getters must be converted into super property
+      // getters during mixin transformation.
+      UNREACHABLE();
+      break;
+    case kAbstractSuperPropertySet:
+      // Abstract super property setters must be converted into super property
+      // setters during mixin transformation.
+      UNREACHABLE();
+      break;
     case kSuperPropertyGet:
       ReadPosition();                      // read position.
       SkipName();                          // read name.
@@ -2486,6 +2492,11 @@ void KernelReaderHelper::SkipExpression() {
       ReadPosition();    // read position.
       SkipExpression();  // read expression.
       return;
+    case kAbstractSuperMethodInvocation:
+      // Abstract super method invocations must be converted into super
+      // method invocations during mixin transformation.
+      UNREACHABLE();
+      break;
     case kSuperMethodInvocation:
       ReadPosition();                      // read position.
       SkipName();                          // read name.
@@ -2619,6 +2630,10 @@ void KernelReaderHelper::SkipExpression() {
     case kLoadLibrary:
     case kCheckLibraryIsLoaded:
       ReadUInt();  // skip library index
+      return;
+    case kAwaitExpression:
+      ReadPosition();    // read position.
+      SkipExpression();  // read operand.
       return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
@@ -3257,10 +3272,6 @@ void TypeTranslator::BuildFunctionType(bool simple) {
     }
   }
   signature.FinalizeNameArray();
-
-  if (!simple) {
-    helper_->SkipOptionalDartType();  // read typedef type.
-  }
 
   BuildTypeInternal();  // read return type.
   signature.set_result_type(result_);

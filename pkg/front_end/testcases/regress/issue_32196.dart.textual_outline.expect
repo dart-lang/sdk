@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A {
   final String name;
   A.get(this.name);

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -13,7 +12,7 @@ import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart
 import 'package:analyzer/dart/element/element.dart';
 
 class PrepareRenameHandler
-    extends MessageHandler<TextDocumentPositionParams, RangeAndPlaceholder?> {
+    extends MessageHandler<TextDocumentPositionParams, PlaceholderAndRange?> {
   PrepareRenameHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_prepareRename;
@@ -23,8 +22,10 @@ class PrepareRenameHandler
       TextDocumentPositionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<RangeAndPlaceholder?>> handle(
-      TextDocumentPositionParams params, CancellationToken token) async {
+  Future<ErrorOr<PlaceholderAndRange?>> handle(
+      TextDocumentPositionParams params,
+      MessageInfo message,
+      CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }
@@ -60,7 +61,7 @@ class PrepareRenameHandler
             ServerErrorCodes.RenameNotValid, initStatus.problem!.message, null);
       }
 
-      return success(RangeAndPlaceholder(
+      return success(PlaceholderAndRange(
         range: toRange(
           unit.result.lineInfo,
           // If the offset is set to -1 it means there is no location for the
@@ -98,7 +99,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
 
   @override
   Future<ErrorOr<WorkspaceEdit?>> handle(
-      RenameParams params, CancellationToken token) async {
+      RenameParams params, MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }

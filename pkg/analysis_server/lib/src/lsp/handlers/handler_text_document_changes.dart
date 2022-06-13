@@ -4,8 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -22,8 +21,8 @@ class TextDocumentChangeHandler
       DidChangeTextDocumentParams.jsonHandler;
 
   @override
-  FutureOr<ErrorOr<void>> handle(
-      DidChangeTextDocumentParams params, CancellationToken token) {
+  FutureOr<ErrorOr<void>> handle(DidChangeTextDocumentParams params,
+      MessageInfo message, CancellationToken token) {
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) => _changeFile(path, params));
   }
@@ -66,8 +65,8 @@ class TextDocumentCloseHandler
       DidCloseTextDocumentParams.jsonHandler;
 
   @override
-  FutureOr<ErrorOr<void>> handle(
-      DidCloseTextDocumentParams params, CancellationToken token) {
+  FutureOr<ErrorOr<void>> handle(DidCloseTextDocumentParams params,
+      MessageInfo message, CancellationToken token) {
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) async {
       await server.removePriorityFile(path);
@@ -91,8 +90,8 @@ class TextDocumentOpenHandler
       DidOpenTextDocumentParams.jsonHandler;
 
   @override
-  FutureOr<ErrorOr<void>> handle(
-      DidOpenTextDocumentParams params, CancellationToken token) {
+  FutureOr<ErrorOr<void>> handle(DidOpenTextDocumentParams params,
+      MessageInfo message, CancellationToken token) {
     final doc = params.textDocument;
     final path = pathOfDocItem(doc);
     return path.mapResult((path) async {

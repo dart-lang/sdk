@@ -242,6 +242,13 @@ class FlowGraphAllocator : public ValueObject {
   // Find a spill slot that can be used by the given live range.
   void AllocateSpillSlotFor(LiveRange* range);
 
+  // Allocate spill slot for synthetic :suspend_state variable.
+  void AllocateSpillSlotForSuspendState();
+
+  // Mark synthetic :suspend_state variable as object in stackmaps
+  // at all safepoints.
+  void UpdateStackmapsForSuspendState();
+
   // Allocate the given live range to a spill slot.
   void Spill(LiveRange* range);
 

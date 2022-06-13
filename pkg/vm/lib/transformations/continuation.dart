@@ -158,9 +158,16 @@ class RecursiveContinuationRewriter extends RemovingTransformer {
           return node;
         }
       case AsyncMarker.AsyncStar:
-        return new AsyncStarFunctionRewriter(
-                helper, node, staticTypeContext, desugarAsync)
-            .rewrite();
+        if (desugarAsync) {
+          return new AsyncStarFunctionRewriter(
+                  helper, node, staticTypeContext, desugarAsync)
+              .rewrite();
+        } else {
+          node.transformOrRemoveChildren(new RecursiveContinuationRewriter(
+              helper, staticTypeContext, desugarAsync,
+              desugarAwaitFor: true));
+          return node;
+        }
     }
   }
 
@@ -1329,10 +1336,21 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
         functionType: addMethodFunctionType)
       ..fileOffset = stmt.fileOffset;
 
-    statements.add(new IfStatement(
-        addExpression,
-        new ReturnStatement(new NullLiteral()),
-        createContinuationPoint()..fileOffset = stmt.fileOffset));
+    if (stmt.isYieldStar) {
+      statements.add(ExpressionStatement(addExpression));
+      statements.add(createContinuationPoint()..fileOffset = stmt.fileOffset);
+      final wasCancelled = StaticInvocation(
+          helper.unsafeCast,
+          Arguments(<Expression>[VariableGet(expressionRewriter!.asyncResult)],
+              types: <DartType>[helper.coreTypes.boolNonNullableRawType]));
+      statements
+          .add(IfStatement(wasCancelled, ReturnStatement(NullLiteral()), null));
+    } else {
+      statements.add(new IfStatement(
+          addExpression,
+          new ReturnStatement(new NullLiteral()),
+          createContinuationPoint()..fileOffset = stmt.fileOffset));
+    }
     return removalSentinel ?? EmptyStatement();
   }
 

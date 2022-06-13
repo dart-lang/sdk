@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
@@ -14,20 +12,18 @@ import '../environment.dart';
 import '../kernel/dart2js_target.dart';
 
 typedef ReportErrorFunction = void Function(
-    ir.LocatedMessage message, List<ir.LocatedMessage> context);
+    ir.LocatedMessage message, List<ir.LocatedMessage>? context);
 
 class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
   final bool _supportReevaluationForTesting;
 
-  bool requiresConstant;
-
   Dart2jsConstantEvaluator(ir.Component component,
       ir.TypeEnvironment typeEnvironment, ReportErrorFunction reportError,
-      {Environment environment,
+      {Environment? environment,
       bool supportReevaluationForTesting = false,
-      ir.EvaluationMode evaluationMode})
+      required ir.EvaluationMode evaluationMode})
       : _supportReevaluationForTesting = supportReevaluationForTesting,
-        assert(evaluationMode != null),
+        assert((evaluationMode as dynamic) != null),
         super(
             const Dart2jsDartLibrarySupport(),
             const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
@@ -39,7 +35,20 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
             evaluationMode: evaluationMode);
 
   @override
-  ErrorReporter get errorReporter => super.errorReporter;
+  ErrorReporter get errorReporter => super.errorReporter as ErrorReporter;
+  // TODO(48820): ^Store another reference to the error reporter with the
+  // refined type and use that.
+
+  // We can't override [ir.ConstantEvaluator.evaluate] and have a nullable
+  // return type.
+  // TODO(48820): Consider using composition. We will need to ensure that
+  // [Dart2jsConstantEvaluator] is not referenced via [ir.ConstantEvaluator].
+  @override
+  ir.Constant evaluate(
+      ir.StaticTypeContext staticTypeContext, ir.Expression node,
+      {ir.TreeNode? contextNode}) {
+    return evaluateOrNull(staticTypeContext, node, contextNode: contextNode)!;
+  }
 
   /// Evaluates [node] to a constant in the given [staticTypeContext].
   ///
@@ -50,10 +59,9 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
   /// expression but evaluates to a constant, [node] is replaced with an
   /// [ir.ConstantExpression] holding the constant. Otherwise the [node] is not
   /// replaced even when it evaluated to a constant.
-  @override
-  ir.Constant evaluate(
+  ir.Constant? evaluateOrNull(
       ir.StaticTypeContext staticTypeContext, ir.Expression node,
-      {ir.TreeNode contextNode,
+      {ir.TreeNode? contextNode,
       bool requireConstant = true,
       bool replaceImplicitConstant = true}) {
     errorReporter.requiresConstant = requireConstant;
@@ -84,7 +92,7 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
             constant.expression is ir.InvalidExpression) {
           return null;
         }
-        if (constant != null && replaceImplicitConstant) {
+        if (replaceImplicitConstant) {
           // Note: Using [replaceWith] is slow and should be avoided.
           node.replaceWith(ir.ConstantExpression(
               constant, node.getStaticType(staticTypeContext))
@@ -100,12 +108,12 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
 
 class ErrorReporter implements ir.ErrorReporter {
   final ReportErrorFunction _reportError;
-  bool requiresConstant;
+  late bool requiresConstant;
 
   ErrorReporter(this._reportError);
 
   @override
-  void report(ir.LocatedMessage message, [List<ir.LocatedMessage> context]) {
+  void report(ir.LocatedMessage message, [List<ir.LocatedMessage>? context]) {
     if (requiresConstant) {
       _reportError(message, context);
     }

@@ -23,7 +23,7 @@ class RemoveUnusedCatchClauseMultiTest extends FixProcessorTest {
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
-main() {
+void f() {
   try {
     throw 42;
   } on int catch (i) {
@@ -32,7 +32,7 @@ main() {
 }
 ''');
     await assertHasFixAllFix(HintCode.UNUSED_CATCH_CLAUSE, '''
-main() {
+void f() {
   try {
     throw 42;
   } on int {
@@ -50,7 +50,7 @@ class RemoveUnusedCatchClauseTest extends FixProcessorTest {
 
   Future<void> test_removeUnusedCatchClause() async {
     await resolveTestCode('''
-main() {
+void f() {
   try {
     throw 42;
   } on int catch (e) {
@@ -58,7 +58,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   try {
     throw 42;
   } on int {

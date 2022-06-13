@@ -457,7 +457,7 @@ class CodeGenerator {
     }
   }
 
-  /// Writes an expression to deserialise a [valueCode].
+  /// Writes an expression to deserialize a [valueCode].
   ///
   /// If [type] represents a spec type, it's `fromJson` function will be called.
   /// If [type] is a [List], it will be mapped over this function again.

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
@@ -21,8 +20,8 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
       InitializedParams.jsonHandler;
 
   @override
-  Future<ErrorOr<void>> handle(
-      InitializedParams params, CancellationToken token) async {
+  Future<ErrorOr<void>> handle(InitializedParams params, MessageInfo message,
+      CancellationToken token) async {
     server.messageHandler = InitializedStateMessageHandler(
       server,
     );

@@ -81,10 +81,10 @@ abstract class CodegenWorld extends BuiltWorld {
   void forEachStaticField(void Function(FieldEntity) f);
 
   /// Returns the types that are live as constant type literals.
-  Iterable<DartType> get constTypeLiterals;
+  Iterable<DartType /*!*/ > get constTypeLiterals;
 
   /// Returns the types that are live as constant type arguments.
-  Iterable<DartType> get liveTypeArguments;
+  Iterable<DartType /*!*/ > get liveTypeArguments;
 
   /// Returns a list of constants topologically sorted so that dependencies
   /// appear before the dependent constant.

@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/package_config_json.dart';
 import 'package:analyzer/src/util/uri.dart';
+import 'package:package_config/package_config_types.dart';
 import 'package:package_config/src/packages_file.dart'
     as package_config_packages_file;
 import 'package:pub_semver/pub_semver.dart';
@@ -74,7 +74,7 @@ Packages parseDotPackagesFile(ResourceProvider provider, File file) {
 Packages parsePackageConfigJsonFile(ResourceProvider provider, File file) {
   var uri = file.toUri();
   var content = file.readAsStringSync();
-  var jsonConfig = parsePackageConfigJson(uri, content);
+  var jsonConfig = PackageConfig.parseString(content, uri);
 
   var map = <String, Package>{};
   for (var jsonPackage in jsonConfig.packages) {
@@ -82,12 +82,12 @@ Packages parsePackageConfigJsonFile(ResourceProvider provider, File file) {
 
     var rootPath = fileUriToNormalizedPath(
       provider.pathContext,
-      jsonPackage.rootUri,
+      jsonPackage.root,
     );
 
     var libPath = fileUriToNormalizedPath(
       provider.pathContext,
-      jsonPackage.packageUri,
+      jsonPackage.packageUriRoot,
     );
 
     Version? languageVersion;

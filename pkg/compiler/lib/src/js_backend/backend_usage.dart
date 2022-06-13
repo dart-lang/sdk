@@ -161,7 +161,8 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     if (_isValidEntity(element)) return true;
     SourceSpan span = _frontendStrategy.spanFromSpannable(element, element);
     if (library.canonicalUri.isScheme('dart') &&
-        span.uri.path.contains('_internal/js_runtime/lib/')) {
+        (span.uri.path.contains('_internal/js_runtime/lib') ||
+            span.uri.path.contains('_internal/js_shared/lib'))) {
       // TODO(johnniwinther): We should be more precise about these.
       return true;
     } else {

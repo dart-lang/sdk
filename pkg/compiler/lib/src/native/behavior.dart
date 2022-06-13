@@ -13,7 +13,7 @@ import '../js/js.dart' as js;
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../js_model/js_world_builder.dart' show JsToFrontendMap;
 import '../options.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import 'js.dart';
 
@@ -946,19 +946,24 @@ List<String> _getAnnotations(DartTypes dartTypes, DiagnosticReporter reporter,
     Iterable<ConstantValue> metadata, ClassEntity cls) {
   List<String> annotations = [];
   for (ConstantValue value in metadata) {
-    if (!value.isConstructedObject) continue;
-    ConstructedConstantValue constructedObject = value;
-    if (constructedObject.type.element != cls) continue;
+    if (value is ConstructedConstantValue) {
+      if (value.type.element != cls) continue;
 
-    Iterable<ConstantValue> fields = constructedObject.fields.values;
-    // TODO(sra): Better validation of the constant.
-    if (fields.length != 1 || !fields.single.isString) {
-      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
-          'Annotations needs one string: ${value.toStructuredText(dartTypes)}');
+      Iterable<ConstantValue> fields = value.fields.values;
+      // TODO(sra): Better validation of the constant.
+      if (fields.length == 1) {
+        ConstantValue field = fields.single;
+        if (field is StringConstantValue) {
+          annotations.add(field.stringValue);
+          continue;
+        }
+      }
+
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE,
+          'Annotations needs one string: '
+          '${value.toStructuredText(dartTypes)}');
     }
-    StringConstantValue specStringConstant = fields.single;
-    String specString = specStringConstant.stringValue;
-    annotations.add(specString);
   }
   return annotations;
 }

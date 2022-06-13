@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -19,8 +18,8 @@ class WillRenameFilesHandler
       RenameFilesParams.jsonHandler;
 
   @override
-  Future<ErrorOr<WorkspaceEdit?>> handle(
-      RenameFilesParams params, CancellationToken token) async {
+  Future<ErrorOr<WorkspaceEdit?>> handle(RenameFilesParams params,
+      MessageInfo message, CancellationToken token) async {
     final files = params.files;
     // Only single-file rename/moves are currently supported.
     // TODO(dantup): Tweak this when VS Code can correctly pass us cancellation

@@ -3568,6 +3568,35 @@ static void GetInstancesAsArray(Thread* thread, JSONStream* js) {
   instances.PrintJSON(js, /* as_ref */ true);
 }
 
+static intptr_t ParseJSONArray(Thread* thread,
+                               const char* str,
+                               const GrowableObjectArray& elements) {
+  ASSERT(str != nullptr);
+  ASSERT(thread != nullptr);
+  Zone* zone = thread->zone();
+  intptr_t n = strlen(str);
+  if (n < 2) {
+    return -1;
+  }
+  intptr_t start = 1;
+  while (start < n) {
+    intptr_t end = start;
+    while ((str[end + 1] != ',') && (str[end + 1] != ']')) {
+      end++;
+    }
+    if (end == start) {
+      // Empty element
+      break;
+    }
+    String& element = String::Handle(
+        zone, String::FromUTF8(reinterpret_cast<const uint8_t*>(&str[start]),
+                               end - start + 1));
+    elements.Add(element);
+    start = end + 3;
+  }
+  return 0;
+}
+
 static const MethodParameter* const get_ports_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     NULL,
@@ -3684,7 +3713,20 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
       return;
     }
   }
-  SourceReport report(report_set, compile_mode, report_lines);
+
+  const char* library_filters_param = js->LookupParam("libraryFilters");
+  GrowableObjectArray& library_filters = GrowableObjectArray::Handle();
+  if (library_filters_param != nullptr) {
+    library_filters = GrowableObjectArray::New();
+    intptr_t library_filters_length =
+        ParseJSONArray(thread, library_filters_param, library_filters);
+    if (library_filters_length < 0) {
+      PrintInvalidParamError(js, "library_filters");
+      return;
+    }
+  }
+
+  SourceReport report(report_set, library_filters, compile_mode, report_lines);
   report.PrintJSON(js, script, TokenPosition::Deserialize(start_pos),
                    TokenPosition::Deserialize(end_pos));
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -5183,35 +5225,6 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
 
 static void GetVM(Thread* thread, JSONStream* js) {
   Service::PrintJSONForVM(js, false);
-}
-
-static intptr_t ParseJSONArray(Thread* thread,
-                               const char* str,
-                               const GrowableObjectArray& elements) {
-  ASSERT(str != nullptr);
-  ASSERT(thread != nullptr);
-  Zone* zone = thread->zone();
-  intptr_t n = strlen(str);
-  if (n < 2) {
-    return -1;
-  }
-  intptr_t start = 1;
-  while (start < n) {
-    intptr_t end = start;
-    while ((str[end + 1] != ',') && (str[end + 1] != ']')) {
-      end++;
-    }
-    if (end == start) {
-      // Empty element
-      break;
-    }
-    String& element = String::Handle(
-        zone, String::FromUTF8(reinterpret_cast<const uint8_t*>(&str[start]),
-                               end - start + 1));
-    elements.Add(element);
-    start = end + 3;
-  }
-  return 0;
 }
 
 class UriMappingTraits {

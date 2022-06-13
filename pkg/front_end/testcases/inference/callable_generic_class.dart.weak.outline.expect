@@ -5,7 +5,7 @@ import "dart:core" as core;
 class ActionDispatcher<P extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::ActionDispatcher<self::ActionDispatcher::P*>*
     ;
-  method call([covariant-by-class self::ActionDispatcher::P* value]) → void
+  method call([covariant-by-class self::ActionDispatcher::P* value = null]) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

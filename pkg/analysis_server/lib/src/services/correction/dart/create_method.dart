@@ -25,8 +25,6 @@ class CreateMethod extends CorrectionProducer {
   @override
   bool canBeAppliedToFile;
 
-  CreateMethod(this._kind, this.canBeAppliedInBulk, this.canBeAppliedToFile);
-
   /// Initialize a newly created instance that will create either an equals
   /// (operator =) or `hashCode` method based on the existing other half of the
   /// pair.
