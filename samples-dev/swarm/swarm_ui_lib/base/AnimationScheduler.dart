@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of base;
 
 typedef void AnimationCallback(num currentTime);
@@ -11,19 +9,13 @@ typedef void AnimationCallback(num currentTime);
 class CallbackData {
   final AnimationCallback callback;
   final num minTime;
-  int id;
+  final int id;
 
-  static int _nextId;
+  static int _nextId = 1;
 
   bool ready(num time) => minTime == null || minTime <= time;
 
-  CallbackData(this.callback, this.minTime) {
-    // TODO(jacobr): static init needs cleanup, see http://b/4161827
-    if (_nextId == null) {
-      _nextId = 1;
-    }
-    id = _nextId++;
-  }
+  CallbackData(this.callback, this.minTime) : id = _nextId++;
 }
 
 /**
@@ -43,15 +35,15 @@ class AnimationScheduler {
   /** List of callbacks to be executed next animation frame. */
   List<CallbackData> _callbacks;
   bool _isMobileSafari = false;
-  CssStyleDeclaration _safariHackStyle;
+  late CssStyleDeclaration _safariHackStyle;
   int _frameCount = 0;
 
-  AnimationScheduler() : _callbacks = new List<CallbackData>() {
+  AnimationScheduler() : _callbacks = List<CallbackData>.empty() {
     if (_isMobileSafari) {
       // TODO(jacobr): find a better workaround for the issue that 3d transforms
       // sometimes don't render on iOS without forcing a layout.
-      final element = new Element.tag('div');
-      document.body.nodes.add(element);
+      final element = Element.tag('div');
+      document.body!.nodes.add(element);
       _safariHackStyle = element.style;
       _safariHackStyle.position = 'absolute';
     }
@@ -73,8 +65,8 @@ class AnimationScheduler {
    * pending callback.
    */
   int requestAnimationFrame(AnimationCallback callback,
-      [Element element = null, num minTime = null]) {
-    final callbackData = new CallbackData(callback, minTime);
+      [Element? element = null, num? minTime = null]) {
+    final callbackData = CallbackData(callback, minTime!);
     _requestAnimationFrameHelper(callbackData);
     return callbackData.id;
   }
@@ -98,7 +90,7 @@ class AnimationScheduler {
       _setupInterval();
     }
     int numRemaining = 0;
-    int minTime = new DateTime.now().millisecondsSinceEpoch + MS_PER_FRAME;
+    int minTime = DateTime.now().millisecondsSinceEpoch + MS_PER_FRAME;
 
     int len = _callbacks.length;
     for (final callback in _callbacks) {
@@ -114,7 +106,7 @@ class AnimationScheduler {
     }
     // Some callbacks need to be executed.
     final currentCallbacks = _callbacks;
-    _callbacks = new List<CallbackData>();
+    _callbacks = List<CallbackData>.empty();
 
     for (final callbackData in currentCallbacks) {
       if (callbackData.ready(minTime)) {

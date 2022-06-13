@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of base;
 
 /**
@@ -24,9 +22,9 @@ class Dom {
 
   /** Adds the given <style> text to the page. */
   static void addStyle(String cssText) {
-    StyleElement style = new Element.tag('style');
+    var style = Element.tag('style') as StyleElement;
     style.type = 'text/css';
     style.text = cssText;
-    document.head.nodes.add(style);
+    document.head!.nodes.add(style);
   }
 }
