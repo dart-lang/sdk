@@ -565,7 +565,12 @@ void Heap::CheckConcurrentMarking(Thread* thread, GCReason reason) {
 
   switch (phase) {
     case PageSpace::kMarking:
-      // TODO(rmacnak): Have this thread help with marking.
+      // TODO(rmacnak): Make the allocator of a large page mark size equals to
+      // the large page?
+      COMPILE_ASSERT(kOldPageSize == 512 * KB);
+      COMPILE_ASSERT(kNewPageSize == 512 * KB);
+      old_space_.IncrementalMarkWithSizeBudget(512 * KB);
+      return;
     case PageSpace::kSweepingLarge:
     case PageSpace::kSweepingRegular:
       return;  // Busy.
