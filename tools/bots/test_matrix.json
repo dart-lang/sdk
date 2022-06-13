@@ -7,7 +7,6 @@
       ".dart_tool/package_config.json",
       "pkg/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "tools/",
       "out/ReleaseX64/dart-sdk/",
       "xcodebuild/ReleaseX64/dart-sdk/"
@@ -50,7 +49,6 @@
       "third_party/babel/babel.min.js",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseIA32/dart-sdk/",
@@ -87,7 +85,6 @@
       "third_party/babel/babel.min.js",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseIA32/dart-sdk/",
@@ -134,7 +131,6 @@
       "tests/ffi_2/",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseIA32/dart",
@@ -173,7 +169,6 @@
       "tests/ffi/",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseX64/dart",
@@ -212,7 +207,6 @@
       "tests/ffi/",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseX64/dart"
@@ -258,7 +252,6 @@
       "tests/ffi_2/",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseIA32/",
@@ -268,7 +261,6 @@
       "runtime/tools/dartfuzz/",
       "out/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "tools/sdks/dart-sdk/",
       "pkg/_fe_analyzer_shared/",
       "pkg/async_helper/",
@@ -299,7 +291,6 @@
       "third_party/devtools/",
       "third_party/webdriver/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
       "tests/co19/co19-analyzer.status",
@@ -3721,10 +3712,11 @@
           ]
         },
         {
-          "name": "third_party pkg_tested unit tests",
+          "name": "third_party tested packages",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg_tested"
+            "dart_style",
+            "package_config"
           ]
         },
         {
@@ -3760,10 +3752,11 @@
           ]
         },
         {
-          "name": "third_party pkg_tested unit tests",
+          "name": "third_party tested packages",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-arm64",
-            "pkg_tested"
+            "dart_style",
+            "package_config"
           ]
         },
         {
@@ -3800,10 +3793,11 @@
           ]
         },
         {
-          "name": "third_party pkg_tested unit tests",
+          "name": "third_party tested packages",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg_tested"
+            "dart_style",
+            "package_config"
           ]
         },
         {

@@ -114,8 +114,7 @@ class GClientHelper {
         rev: (entry.value as Map)['rev'],
       );
     }).where((PackageDependency deps) {
-      return deps.entry.startsWith('sdk/third_party/pkg/') ||
-          deps.entry.startsWith('sdk/third_party/pkg_tested/');
+      return deps.entry.startsWith('sdk/third_party/pkg/');
     }).where((PackageDependency deps) {
       return !pinned.contains(deps.name);
     }).toList();

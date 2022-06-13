@@ -69,10 +69,9 @@ void main(List<String> arguments) {
     print('SDK DEPS');
     print('');
 
-    List<String> deps = [...sdkDeps.pkgs, ...sdkDeps.testedPkgs]..sort();
+    List<String> deps = [...sdkDeps.pkgs]..sort();
     for (var pkg in deps) {
-      final tested = sdkDeps.testedPkgs.contains(pkg);
-      print('package:$pkg${tested ? ' [tested]' : ''}');
+      print('package:$pkg');
     }
 
     // TODO(devoncarew): Find unused entries in the DEPS file.
@@ -421,7 +420,6 @@ class SdkDeps {
   final File file;
 
   List<String> pkgs = [];
-  List<String> testedPkgs = [];
 
   final Map<String, ResolvedDep> _resolvedPackageVersions = {};
 
@@ -440,22 +438,15 @@ class SdkDeps {
     // Var("dart_root") + "/third_party/pkg/dart2js_info":
     final pkgRegExp = RegExp(r'"/third_party/pkg/(\S+)"');
 
-    // Var("dart_root") + "/third_party/pkg_tested/dart_style":
-    final testedPkgRegExp = RegExp(r'"/third_party/pkg_tested/(\S+)"');
-
     for (var line in file.readAsLinesSync()) {
       var pkgDep = pkgRegExp.firstMatch(line);
-      var testedPkgDep = testedPkgRegExp.firstMatch(line);
 
       if (pkgDep != null) {
         pkgs.add(pkgDep.group(1)!);
-      } else if (testedPkgDep != null) {
-        testedPkgs.add(testedPkgDep.group(1)!);
       }
     }
 
     pkgs.sort();
-    testedPkgs.sort();
   }
 
   void _parseRepoPackageVersions() {
@@ -464,7 +455,6 @@ class SdkDeps {
     _findPackages(Directory(path.join('third_party', 'pkg')));
     _findPackages(
         Directory(path.join('third_party', 'pkg', 'file', 'packages')));
-    _findPackages(Directory(path.join('third_party', 'pkg_tested')));
 
     if (verbose) {
       print('Package versions in the SDK:');
