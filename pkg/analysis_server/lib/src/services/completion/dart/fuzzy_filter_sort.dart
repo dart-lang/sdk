@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
+import 'package:collection/collection.dart';
 
 final _identifierPattern = RegExp(r'([_a-zA-Z][_a-zA-Z0-9]*)');
 
@@ -14,7 +15,11 @@ List<CompletionSuggestionBuilder> fuzzyFilterSort({
   required String pattern,
   required List<CompletionSuggestionBuilder> suggestions,
 }) {
-  var matcher = FuzzyMatcher(pattern, matchStyle: MatchStyle.SYMBOL);
+  final matchStyle =
+      suggestions.firstOrNull?.kind == CompletionSuggestionKind.IMPORT
+          ? MatchStyle.FILENAME
+          : MatchStyle.SYMBOL;
+  final matcher = FuzzyMatcher(pattern, matchStyle: matchStyle);
 
   double score(CompletionSuggestionBuilder suggestion) {
     var textToMatch = suggestion.textToMatch;

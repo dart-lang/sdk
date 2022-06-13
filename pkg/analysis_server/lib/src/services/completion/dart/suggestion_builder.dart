@@ -335,10 +335,17 @@ class SuggestionBuilder {
   /// invocation. The [inheritanceDistance] is the value of the inheritance
   /// distance feature computed for the accessor or `-1.0` if the accessor is a
   /// static accessor.
-  void suggestAccessor(PropertyAccessorElement accessor,
-      {required double inheritanceDistance}) {
-    assert(accessor.enclosingElement is ClassElement ||
-        accessor.enclosingElement is ExtensionElement);
+  void suggestAccessor(
+    PropertyAccessorElement accessor, {
+    required double inheritanceDistance,
+    bool withEnclosingName = false,
+  }) {
+    var enclosingPrefix = '';
+    var enclosingName = _enclosingClassOrExtensionName(accessor);
+    if (withEnclosingName && enclosingName != null) {
+      enclosingPrefix = '$enclosingName.';
+    }
+
     if (accessor.isSynthetic) {
       // Avoid visiting a field twice. All fields induce a getter, but only
       // non-final fields induce a setter, so we don't add a suggestion for a
@@ -378,6 +385,7 @@ class SuggestionBuilder {
       _addBuilder(
         _createCompletionSuggestionBuilder(
           accessor,
+          completion: enclosingPrefix + accessor.displayName,
           kind: CompletionSuggestionKind.IDENTIFIER,
           relevance: relevance,
           isNotImported: isNotImportedLibrary,
@@ -825,6 +833,7 @@ class SuggestionBuilder {
           // Let the user know that we are going to insert a complete statement.
           displayText: 'setState(() {});',
         ),
+        textToMatchOverride: 'setState',
       );
       return;
     }
@@ -1023,6 +1032,43 @@ class SuggestionBuilder {
         isNotImported: isNotImportedLibrary,
       ),
     );
+  }
+
+  /// Add a suggestion for a static field declared within a class or extension.
+  /// If the field is synthetic, add the corresponding getter instead.
+  ///
+  /// If the enclosing element can only be referenced using a prefix, then
+  /// the [prefix] should be provided.
+  void suggestStaticField(FieldElement element, {String? prefix}) {
+    assert(element.isStatic);
+    if (element.isSynthetic) {
+      var getter = element.getter;
+      if (getter != null) {
+        suggestAccessor(
+          getter,
+          inheritanceDistance: 0.0,
+          withEnclosingName: true,
+        );
+      }
+    } else {
+      var enclosingPrefix = '';
+      var enclosingName = _enclosingClassOrExtensionName(element);
+      if (enclosingName != null) {
+        enclosingPrefix = '$enclosingName.';
+      }
+      var relevance =
+          _computeTopLevelRelevance(element, elementType: element.type);
+      _addBuilder(
+        _createCompletionSuggestionBuilder(
+          element,
+          completion: enclosingPrefix + element.name,
+          kind: CompletionSuggestionKind.IDENTIFIER,
+          prefix: prefix,
+          relevance: relevance,
+          isNotImported: isNotImportedLibrary,
+        ),
+      );
+    }
   }
 
   /// Add a suggestion to reference a [parameter] in a super formal parameter.
@@ -1390,6 +1436,22 @@ class SuggestionBuilder {
       defaultArgumentList: defaultArgumentList,
       element: suggestedElement,
     );
+  }
+
+  /// Return the name of the enclosing class or extension.
+  ///
+  /// The enclosing element must be either a class, or extension; otherwise
+  /// we either fail with assertion, or return `null`.
+  String? _enclosingClassOrExtensionName(Element element) {
+    var enclosing = element.enclosingElement;
+    if (enclosing is ClassElement) {
+      return enclosing.name;
+    } else if (enclosing is ExtensionElement) {
+      return enclosing.name;
+    } else {
+      assert(false, 'Expected ClassElement or ExtensionElement');
+      return null;
+    }
   }
 
   /// If the [element] has a documentation comment, return it.
