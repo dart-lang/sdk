@@ -26,6 +26,8 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
       server,
     );
 
+    server.analyticsManager.initialized(openWorkspacePaths: openWorkspacePaths);
+
     if (server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles) {
       await server.fetchClientConfigurationAndPerformDynamicRegistration();
     } else {

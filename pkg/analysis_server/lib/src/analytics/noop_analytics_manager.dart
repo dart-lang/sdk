@@ -15,10 +15,17 @@ class NoopAnalyticsManager implements AnalyticsManager {
   void changedPlugins(PluginManager pluginManager) {}
 
   @override
+  void changedWorkspaceFolders(
+      {required List<String> added, required List<String> removed}) {}
+
+  @override
   void handledNotificationMessage(
       {required NotificationMessage notification,
       required DateTime startTime,
       required DateTime endTime}) {}
+
+  @override
+  void initialized({required List<String> openWorkspacePaths}) {}
 
   @override
   void sentResponse({required Response response}) {}

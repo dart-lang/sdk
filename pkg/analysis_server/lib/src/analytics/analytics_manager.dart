@@ -24,11 +24,18 @@ abstract class AnalyticsManager {
   /// Record that the set of plugins known to the [pluginManager] has changed.
   void changedPlugins(PluginManager pluginManager);
 
+  /// Record the number of [added] folders and [removed] folders.
+  void changedWorkspaceFolders(
+      {required List<String> added, required List<String> removed});
+
   /// Record that the given [notification] was received and has been handled.
   void handledNotificationMessage(
       {required NotificationMessage notification,
       required DateTime startTime,
       required DateTime endTime}) {}
+
+  /// Record the number of [openWorkspacePaths].
+  void initialized({required List<String> openWorkspacePaths});
 
   /// Record that the given [response] was sent to the client.
   void sentResponse({required Response response});
