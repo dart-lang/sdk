@@ -487,8 +487,8 @@ class KernelTarget extends TargetImplementation {
       loader.buildClassHierarchy(sortedSourceClassBuilders, objectClassBuilder);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
-      loader.checkSupertypes(
-          sortedSourceClassBuilders, enumClass, underscoreEnumClass);
+      loader.checkSupertypes(sortedSourceClassBuilders, objectClass, enumClass,
+          underscoreEnumClass);
 
       if (macroApplications != null) {
         benchmarker?.enterPhase(BenchmarkPhases.outline_applyDeclarationMacros);

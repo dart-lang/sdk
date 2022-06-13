@@ -63,6 +63,35 @@ class GoogleAnalyticsManagerTest {
     ]);
   }
 
+  void test_server_request_analysisDidChangeWorkspaceFolders() {
+    _defaultStartup();
+    var params = DidChangeWorkspaceFoldersParams(
+        event: WorkspaceFoldersChangeEvent(added: [], removed: []));
+    var request = RequestMessage(
+        jsonrpc: '',
+        id: Either2.t1(1),
+        method: Method.workspace_didChangeWorkspaceFolders,
+        params: params.toJson());
+    manager.startedRequestMessage(request: request, startTime: _now());
+    manager
+        .changedWorkspaceFolders(added: ['a', 'b', 'c'], removed: ['d', 'e']);
+    manager.sentResponseMessage(
+        response: ResponseMessage(jsonrpc: '', id: Either2.t1(1)));
+    manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.request(parameters: {
+        'latency': _IsPercentiles(),
+        'method': Method.workspace_didChangeWorkspaceFolders.toString(),
+        'duration': _IsPercentiles(),
+        'added':
+            '{"count":1,"percentiles":[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]}',
+        'removed':
+            '{"count":1,"percentiles":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]}',
+      }),
+    ]);
+  }
+
   void test_server_request_analysisSetAnalysisRoots() {
     _defaultStartup();
     var params = AnalysisSetAnalysisRootsParams(['a', 'b', 'c'], ['d', 'e']);
@@ -123,6 +152,31 @@ class GoogleAnalyticsManagerTest {
         'method': EDIT_REQUEST_GET_REFACTORING,
         'duration': _IsPercentiles(),
         EDIT_REQUEST_GET_REFACTORING_KIND: '{"RENAME":1}',
+      }),
+    ]);
+  }
+
+  void test_server_request_initialized() {
+    _defaultStartup();
+    var params = InitializedParams();
+    var request = RequestMessage(
+        jsonrpc: '',
+        id: Either2.t1(1),
+        method: Method.initialized,
+        params: params.toJson());
+    manager.startedRequestMessage(request: request, startTime: _now());
+    manager.initialized(openWorkspacePaths: ['a', 'b', 'c']);
+    manager.sentResponseMessage(
+        response: ResponseMessage(jsonrpc: '', id: Either2.t1(1)));
+    manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.request(parameters: {
+        'latency': _IsPercentiles(),
+        'method': Method.initialized.toString(),
+        'duration': _IsPercentiles(),
+        'openWorkspacePaths':
+            '{"count":1,"percentiles":[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]}',
       }),
     ]);
   }

@@ -302,7 +302,7 @@ main() {
       main.writeAsStringSync("""
       import 'lib.dart';
       main() => print(foo());
-      class C1 extends Object with C2, C3 {
+      class C1 extends Object with C3, C2 {
         c1method() {
           print("c1");
         }
@@ -318,7 +318,7 @@ main() {
       import 'main.dart';
       foo() => 'foo';
       main() => print('bar');
-      class C2 extends Object with C3 {
+      mixin C2 on C3 {
         c2method() {
           print("c2");
         }

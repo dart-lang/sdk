@@ -417,9 +417,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         ? hierarchy.getDispatchTarget(instanceClass, name, setter: isSetter)
         : hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
     if (isSuper && target == null) {
-      if (cls.isMixinDeclaration ||
-          (libraryBuilder.loader.target.backendTarget.enableSuperMixins &&
-              this.isAbstract)) {
+      if (cls.isMixinDeclaration) {
         target =
             hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
       }

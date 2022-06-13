@@ -6,7 +6,7 @@ class I<X> {}
 
 class M0<T> extends I<T> {}
 
-class M1<T> extends I<T> {}
+mixin M1<T> on I<T> {}
 
 // M1 is inferred as M1<int>
 class A extends M0<int> with M1 {}

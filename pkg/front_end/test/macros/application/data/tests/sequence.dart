@@ -166,7 +166,6 @@ augment class Class6a {
 */
 class Class6a {}
 
-@SequenceMacro(0)
 /*class: Class7d:
 declarations:
 
@@ -174,7 +173,8 @@ augment class Class7d {
   method2() {}
 }
 */
-class Class7d with Class7b, Class7c {}
+@SequenceMacro(0)
+class Class7d extends Class7b with Class7c {}
 
 @SequenceMacro(0)
 /*class: Class7c:

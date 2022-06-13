@@ -45,6 +45,15 @@ class GoogleAnalyticsManager implements AnalyticsManager {
   }
 
   @override
+  void changedWorkspaceFolders(
+      {required List<String> added, required List<String> removed}) {
+    var requestData =
+        _getRequestData(Method.workspace_didChangeWorkspaceFolders.toString());
+    requestData.addValue('added', added.length);
+    requestData.addValue('removed', removed.length);
+  }
+
+  @override
   void handledNotificationMessage(
       {required NotificationMessage notification,
       required DateTime startTime,
@@ -59,6 +68,12 @@ class GoogleAnalyticsManager implements AnalyticsManager {
       data.latencyTimes.addValue(start - requestTime);
     }
     data.handlingTimes.addValue(end - start);
+  }
+
+  @override
+  void initialized({required List<String> openWorkspacePaths}) {
+    var requestData = _getRequestData(Method.initialized.toString());
+    requestData.addValue('openWorkspacePaths', openWorkspacePaths.length);
   }
 
   @override
@@ -95,9 +110,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
 
   @override
   void startedGetRefactoring(EditGetRefactoringParams params) {
-    var requestData = _completedRequests.putIfAbsent(
-        EDIT_REQUEST_GET_REFACTORING,
-        () => _RequestData(EDIT_REQUEST_GET_REFACTORING));
+    var requestData = _getRequestData(EDIT_REQUEST_GET_REFACTORING);
     requestData.addEnumValue(
         EDIT_REQUEST_GET_REFACTORING_KIND, params.kind.name);
   }
@@ -118,9 +131,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
 
   @override
   void startedSetAnalysisRoots(AnalysisSetAnalysisRootsParams params) {
-    var requestData = _completedRequests.putIfAbsent(
-        ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
-        () => _RequestData(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS));
+    var requestData = _getRequestData(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS);
     requestData.addValue(
         ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED, params.included.length);
     requestData.addValue(
@@ -129,9 +140,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
 
   @override
   void startedSetPriorityFiles(AnalysisSetPriorityFilesParams params) {
-    var requestData = _completedRequests.putIfAbsent(
-        ANALYSIS_REQUEST_SET_PRIORITY_FILES,
-        () => _RequestData(ANALYSIS_REQUEST_SET_PRIORITY_FILES));
+    var requestData = _getRequestData(ANALYSIS_REQUEST_SET_PRIORITY_FILES);
     requestData.addValue(
         ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES, params.files.length);
   }
@@ -151,6 +160,11 @@ class GoogleAnalyticsManager implements AnalyticsManager {
         sdkVersion: sdkVersion);
   }
 
+  /// Return the request data for requests that have the given [method].
+  _RequestData _getRequestData(String method) {
+    return _completedRequests.putIfAbsent(method, () => _RequestData(method));
+  }
+
   /// Record that the request with the given [id] was responded to at the given
   /// [sendTime].
   void _recordResponseData(String id, DateTime sendTime) {
@@ -163,8 +177,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
     var clientRequestTime = data.clientRequestTime;
     var startTime = data.startTime.millisecondsSinceEpoch;
 
-    var requestData =
-        _completedRequests.putIfAbsent(method, () => _RequestData(method));
+    var requestData = _getRequestData(method);
 
     if (clientRequestTime != null) {
       var latencyTime = startTime - clientRequestTime;

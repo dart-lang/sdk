@@ -17,7 +17,6 @@ void main(List<String> args) {
   var packageDirs = [
     ...listSubdirectories(platform('pkg')),
     ...listSubdirectories(platform('third_party/pkg')),
-    ...listSubdirectories(platform('third_party/pkg_tested')),
     platform('pkg/vm_service/test/test_package'),
     platform(
         'runtime/observatory_2/tests/service_2/observatory_test_package_2'),
@@ -105,8 +104,7 @@ void main(List<String> args) {
         'governed by a BSD-style license that can be found in the LICENSE file.',
       ],
       'comment': [
-        'Package configuration for all packages in pkg/, third_party/pkg/, and',
-        'third_party/pkg_tested/',
+        'Package configuration for all packages in pkg/ and third_party/pkg/',
       ],
     },
   );

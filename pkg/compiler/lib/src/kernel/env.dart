@@ -20,10 +20,10 @@ import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/static_type_cache.dart';
 import '../ir/util.dart';
+import '../js_model/class_type_variable_access.dart';
 import '../js_model/element_map.dart';
 import '../js_model/env.dart';
 import '../ordered_typeset.dart';
-import '../ssa/type_builder.dart';
 import '../universe/member_usage.dart';
 import 'element_map.dart';
 

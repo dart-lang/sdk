@@ -14,6 +14,7 @@ import 'data_driven_test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplacedByTest);
+    defineReflectiveTests(ReplacedByUriSemanticsTest);
   });
 }
 
@@ -859,6 +860,83 @@ var x = $prefixReference${newElement.reference}$invocation;
         changesSelector: UnconditionalChangesSelector([
           ReplacedBy(newElement: newElement2),
         ]));
+  }
+}
+
+@reflectiveTest
+class ReplacedByUriSemanticsTest extends DataDrivenFixProcessorTest {
+  Future<void> test_new_element_uris_multiple() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/expect.dart', '''
+void expect(actual, expected) {}
+''');
+    newFile('$workspaceRootPath/p/lib/export.dart', '''
+export 'expect.dart';
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title:  'Replace expect'
+    date: 2022-05-12
+    bulkApply: false
+    element:
+      uris: ['$importUri']
+      function: 'expect'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/expect.dart', 'package:p/export.dart']
+          function: 'expect'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+f() {
+  expect(true, true);
+}
+''');
+    await assertHasFix('''
+import 'package:p/expect.dart';
+import '$importUri';
+
+f() {
+  expect(true, true);
+}
+''', errorFilter: ignoreUnusedImport);
+  }
+
+  Future<void> test_new_element_uris_single() async {
+    setPackageContent('');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title:  'Replace expect'
+    date: 2022-05-12
+    bulkApply: false
+    element:
+      uris: ['$importUri']
+      function: 'expect'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:matcher/expect.dart']
+          function: 'expect'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+main() {
+  expect(true, true);
+}
+''');
+    await assertHasFix('''
+import 'package:matcher/expect.dart';
+import '$importUri';
+
+main() {
+  expect(true, true);
+}
+''', errorFilter: ignoreUnusedImport);
   }
 }
 

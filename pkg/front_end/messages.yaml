@@ -5604,3 +5604,11 @@ EnumImplementerContainsRestrictedInstanceDeclaration:
 
 EnumAbstractMember:
   problemMessage: "Enums can't declare abstract members."
+
+MixinInheritsFromNotObject:
+  problemMessage: "The class '#name' can't be used as a mixin because it extends a class other than 'Object'."
+  analyzerCode: MIXIN_INHERITS_FROM_NOT_OBJECT
+  script: |
+    class Base {}
+    class Mixin extends Base {}
+    class C extends Base with Mixin {}

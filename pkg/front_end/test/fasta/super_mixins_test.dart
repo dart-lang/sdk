@@ -108,7 +108,7 @@ Future<void> testEnabledSuperMixins() async {
     ..target = new NoneTargetWithSuperMixins(new TargetFlags());
   await compileScript(testSource, options: options);
   Expect.setEquals(
-      const <String>['baz', 'foo', 'quux'], missingSuperMethodNames);
+      const <String>['bar', 'baz', 'foo', 'quux'], missingSuperMethodNames);
 }
 
 void main() {
