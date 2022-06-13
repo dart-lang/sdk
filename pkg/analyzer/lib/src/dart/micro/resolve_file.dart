@@ -447,12 +447,12 @@ class FileResolver {
     );
 
     // Release the linked data, the reference count is `>= 1`.
-    byteStore.release2(linkedKeysToRelease);
+    byteStore.release(linkedKeysToRelease);
   }
 
   /// Releases from the cache and clear [removedCacheKeys].
   void releaseAndClearRemovedIds() {
-    byteStore.release2(removedCacheKeys);
+    byteStore.release(removedCacheKeys);
     removedCacheKeys.clear();
   }
 
@@ -903,7 +903,7 @@ class LibraryContext {
       }
 
       var resolutionKey = '${cycle.signatureStr}.resolution';
-      var resolutionBytes = byteStore.get2(resolutionKey);
+      var resolutionBytes = byteStore.get(resolutionKey);
 
       var unitsInformativeBytes = <Uri, Uint8List>{};
       for (var library in cycle.libraries) {
@@ -976,7 +976,7 @@ class LibraryContext {
         librariesLinked += cycle.libraries.length;
 
         resolutionBytes = linkResult.resolutionBytes;
-        resolutionBytes = byteStore.putGet2(resolutionKey, resolutionBytes);
+        resolutionBytes = byteStore.putGet(resolutionKey, resolutionBytes);
         performance.getDataInt('bytesPut').add(resolutionBytes.length);
         testData?.forCycle(cycle).putKeys.add(resolutionKey);
 
