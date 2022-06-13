@@ -1484,6 +1484,26 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   @override
+  bool importsLibrary(Uri uri) {
+    // Self-reference.
+    if (resolvedUnit.libraryElement.source.uri == uri) return false;
+
+    // Existing import.
+    for (var import in resolvedUnit.libraryElement.imports) {
+      var importedLibrary = import.importedLibrary;
+      if (importedLibrary != null && importedLibrary.source.uri == uri) {
+        return true;
+      }
+    }
+
+    // Queued change.
+    var importChange = (libraryChangeBuilder ?? this).librariesToImport[uri];
+    if (importChange != null) return true;
+
+    return false;
+  }
+
+  @override
   void replaceTypeWithFuture(
       TypeAnnotation? typeAnnotation, TypeProvider typeProvider) {
     //
