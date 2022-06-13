@@ -197,19 +197,6 @@ class NamespaceBuilder {
     return Namespace(definedNames);
   }
 
-  /// Return elements imported with the given [element].
-  Iterable<Element> getImportedElements(ImportElement element) {
-    var importedLibrary = element.importedLibrary;
-
-    // If the URI is invalid.
-    if (importedLibrary == null) {
-      return [];
-    }
-
-    var map = _getExportMapping(importedLibrary);
-    return _applyCombinators(map, element.combinators).values;
-  }
-
   /// Add the given [element] to the table of [definedNames] if it has a
   /// publicly visible name.
   void _addIfPublic(Map<String, Element> definedNames, Element element) {

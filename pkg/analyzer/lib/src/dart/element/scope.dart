@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart' as impl;
+import 'package:analyzer/src/summary2/combinator.dart';
 
 /// The scope defined by a class.
 class ClassScope extends EnclosedScope {
@@ -141,10 +141,21 @@ class PrefixScope implements Scope {
   PrefixScope(this._library, PrefixElement? prefix) {
     for (var import in _library.imports) {
       if (import.prefix == prefix) {
-        var elements = impl.NamespaceBuilder().getImportedElements(import);
-        elements.forEach(_add);
-        if (import.isDeferred) {
-          _deferredLibrary ??= import.importedLibrary;
+        final importedLibrary = import.importedLibrary;
+        if (importedLibrary is LibraryElementImpl) {
+          // TODO(scheglov) Ask it from `_library`.
+          final elementFactory = importedLibrary.session.elementFactory;
+          final combinators = import.combinators.build();
+          for (final exportedReference in importedLibrary.exportedReferences) {
+            final reference = exportedReference.reference;
+            if (combinators.allows(reference.name)) {
+              final element = elementFactory.elementOfReference(reference)!;
+              _add(element);
+            }
+          }
+          if (import.isDeferred) {
+            _deferredLibrary ??= importedLibrary;
+          }
         }
       }
     }
