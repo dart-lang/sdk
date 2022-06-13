@@ -31,6 +31,8 @@ abstract class StringInterner {
 /// Documentation of the methods can be found in source.dart.
 // TODO(sra): Copy documentation for methods?
 abstract class DataSinkWriter {
+  int get length;
+
   void begin(String tag);
   void end(Object tag);
 
@@ -91,6 +93,10 @@ abstract class DataSinkWriter {
 
 /// Migrated interface for methods of DataSourceReader.
 abstract class DataSourceReader {
+  int get length;
+  int get startOffset;
+  int get endOffset;
+
   void begin(String tag);
   void end(String tag);
 
@@ -134,4 +140,7 @@ abstract class DataSourceReader {
   List<E>? readListOrNull<E extends Object>(E f());
 
   ConstantValue readConstant();
+
+  E readWithSource<E>(DataSourceReader source, E f());
+  E readWithOffset<E>(int offset, E f());
 }
