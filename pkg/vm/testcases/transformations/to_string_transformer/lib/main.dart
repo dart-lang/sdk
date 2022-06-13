@@ -30,9 +30,9 @@ class Keep {
 @keepToStringInSubtypes
 class Base1 {}
 
-class Base2 extends Base1 {}
+mixin Base2 on Base1 {}
 
-class Base3 extends Object with Base2 {}
+class Base3 extends Object with Base1, Base2 {}
 
 class KeepInherited implements Base3 {
   @override

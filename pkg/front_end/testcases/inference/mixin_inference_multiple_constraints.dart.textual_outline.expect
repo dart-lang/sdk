@@ -3,7 +3,7 @@ class I<X> {}
 
 class J<X> {}
 
-class M0<X, Y> extends I<X> with J<Y> {}
+mixin M0<X, Y> on I<X>, J<Y> {}
 
 class M1 implements I<int> {}
 

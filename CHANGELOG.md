@@ -1,3 +1,23 @@
+## 2.19.0
+
+### Language
+
+- **Breaking Change** [#48167](https://github.com/dart-lang/sdk/issues/48167):
+  Mixin of classes that don't extend `Object` is no longer supported:
+  ```dart
+  class Base {}
+  class Mixin extends Base {}
+  class C extends Base with Mixin {}
+  ```
+  This should instead be written using a mixin declaration of `Mixin`:
+  ```dart
+  class Base {}
+  mixin Mixin on Base {}
+  class C extends Base with Mixin {}
+  ```
+  This feature has not been supported in most compilation targets for some
+  time but is now completely removed.
+
 ## 2.18.0
 
 ### Language

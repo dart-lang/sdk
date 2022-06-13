@@ -41,6 +41,7 @@ import '../dill/dill_member_builder.dart';
 import '../fasta_codes.dart';
 import '../kernel/combined_member_signature.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
+import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/redirecting_factory_body.dart'
@@ -729,6 +730,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   void checkSupertypes(
       CoreTypes coreTypes,
       ClassHierarchyBuilder hierarchyBuilder,
+      Class objectClass,
       Class enumClass,
       Class underscoreEnumClass,
       Class? macroClass) {
@@ -738,16 +740,17 @@ class SourceClassBuilder extends ClassBuilderImpl
     // Moreover, it checks that `FutureOr` and `void` are not among the
     // supertypes and that `Enum` is not implemented by non-abstract classes.
 
+    ClassHierarchyNode classHierarchyNode =
+        hierarchyBuilder.getNodeFromClass(cls);
     if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled && !isEnum) {
       bool hasEnumSuperinterface = false;
-      List<Supertype> interfaces =
-          hierarchyBuilder.getNodeFromClass(cls).superclasses;
+      List<Supertype> interfaces = classHierarchyNode.superclasses;
       for (int i = 0; !hasEnumSuperinterface && i < interfaces.length; i++) {
         if (interfaces[i].classNode == enumClass) {
           hasEnumSuperinterface = true;
         }
       }
-      interfaces = hierarchyBuilder.getNodeFromClass(cls).interfaces;
+      interfaces = classHierarchyNode.interfaces;
       for (int i = 0; !hasEnumSuperinterface && i < interfaces.length; i++) {
         if (interfaces[i].classNode == enumClass) {
           hasEnumSuperinterface = true;
@@ -810,14 +813,13 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (macroClass != null && !cls.isMacro && !cls.isAbstract) {
       // TODO(johnniwinther): Merge this check with the loop above.
       bool isMacroFound = false;
-      List<Supertype> interfaces =
-          hierarchyBuilder.getNodeFromClass(cls).superclasses;
+      List<Supertype> interfaces = classHierarchyNode.superclasses;
       for (int i = 0; !isMacroFound && i < interfaces.length; i++) {
         if (interfaces[i].classNode == macroClass) {
           isMacroFound = true;
         }
       }
-      interfaces = hierarchyBuilder.getNodeFromClass(cls).interfaces;
+      interfaces = classHierarchyNode.interfaces;
       for (int i = 0; !isMacroFound && i < interfaces.length; i++) {
         if (interfaces[i].classNode == macroClass) {
           isMacroFound = true;
@@ -866,6 +868,23 @@ class SourceClassBuilder extends ClassBuilderImpl
         superClass = decl;
       }
     }
+    if (classHierarchyNode.isMixinApplication) {
+      assert(mixedInTypeBuilder != null,
+          "No mixed in type builder for mixin application $this.");
+      ClassHierarchyNode mixedInNode = classHierarchyNode.mixedInNode!;
+      ClassHierarchyNode? mixinSuperClassNode =
+          mixedInNode.directSuperClassNode;
+      if (mixinSuperClassNode != null &&
+          mixinSuperClassNode.classBuilder.cls != objectClass &&
+          !mixedInNode.classBuilder.cls.isMixinDeclaration) {
+        addProblem(
+            templateMixinInheritsFromNotObject
+                .withArguments(mixedInNode.classBuilder.name),
+            mixedInTypeBuilder!.charOffset ?? TreeNode.noOffset,
+            noLength);
+      }
+    }
+
     if (interfaceBuilders == null) return;
 
     // Validate interfaces.

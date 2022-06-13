@@ -6,7 +6,7 @@ class I<X> {}
 
 class M0<T> extends Object implements I<T> {}
 
-class M1<T> extends I<T> {}
+mixin M1<T> on I<T> {}
 
 // M0 is inferred as M0<dynamic> (unconstrained)
 // M1 is inferred as M1<dynamic> (constrained by inferred argument to M0)

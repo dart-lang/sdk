@@ -6,9 +6,9 @@ class I<X> {}
 
 class M0<T> extends I<T> {}
 
-class M1<T> extends I<T> {}
+mixin M1<T> on I<T> {}
 
-class M2<T> extends I<T> {}
+mixin M2<T> on I<T> {}
 
 // M1 is inferred as M1<int>
 // M2 is inferred as M1<int>
