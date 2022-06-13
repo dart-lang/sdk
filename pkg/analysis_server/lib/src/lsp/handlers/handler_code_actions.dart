@@ -392,8 +392,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   ) async {
     final clientSupportsCodeDescription =
         server.clientCapabilities?.diagnosticCodeDescription ?? false;
-    // TODO(dantup): We may be missing fixes for pubspec, analysis_options,
-    //   android manifests (see _computeServerErrorFixes in EditDomainHandler).
+    // TODO(dantup): We may be missing fixes for pubspec and analysis_options
+    // (see _computeServerErrorFixes in EditDomainHandler).
     final lineInfo = unit.lineInfo;
     final codeActions = <CodeAction>[];
     final fixContributor = DartFixContributor();

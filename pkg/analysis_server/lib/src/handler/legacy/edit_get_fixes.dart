@@ -14,7 +14,6 @@ import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
-import 'package:analysis_server/src/services/correction/fix/manifest/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -23,14 +22,11 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/manifest/manifest_validator.dart';
-import 'package:analyzer/src/manifest/manifest_values.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:html/parser.dart';
 import 'package:yaml/yaml.dart';
 
 /// The handler for the `edit.getFixes` request.
@@ -199,43 +195,6 @@ error.errorCode: ${error.errorCode}
   }
 
   /// Compute and return the fixes associated with server-generated errors in
-  /// Android manifest files.
-  Future<List<AnalysisErrorFixes>> _computeManifestFixes(
-      String file, int offset) async {
-    var errorFixesList = <AnalysisErrorFixes>[];
-    var manifestFile = server.resourceProvider.getFile(file);
-    var content = _safelyRead(manifestFile);
-    if (content == null) {
-      return errorFixesList;
-    }
-    var document =
-        parseFragment(content, container: MANIFEST_TAG, generateSpans: true);
-    var validator = ManifestValidator(manifestFile.createSource());
-    var session = await server.getAnalysisSession(file);
-    if (session == null) {
-      return errorFixesList;
-    }
-    var errors = validator.validate(content, true);
-    for (var error in errors) {
-      var generator = ManifestFixGenerator(error, content, document);
-      var fixes = await generator.computeFixes();
-      if (fixes.isNotEmpty) {
-        fixes.sort(Fix.SORT_BY_RELEVANCE);
-        var lineInfo = LineInfo.fromContent(content);
-        var result = engine.ErrorsResultImpl(
-            session, file, Uri.file(file), lineInfo, false, errors);
-        var serverError = newAnalysisError_fromEngine(result, error);
-        var errorFixes = AnalysisErrorFixes(serverError);
-        errorFixesList.add(errorFixes);
-        for (var fix in fixes) {
-          errorFixes.fixes.add(fix.change);
-        }
-      }
-    }
-    return errorFixesList;
-  }
-
-  /// Compute and return the fixes associated with server-generated errors in
   /// pubspec.yaml files.
   Future<List<AnalysisErrorFixes>> _computePubspecFixes(
       String file, int offset) async {
@@ -293,9 +252,6 @@ error.errorCode: ${error.errorCode}
       return _computeAnalysisOptionsFixes(file, offset);
     } else if (file_paths.isPubspecYaml(pathContext, file)) {
       return _computePubspecFixes(file, offset);
-    } else if (file_paths.isAndroidManifestXml(pathContext, file)) {
-      // TODO(brianwilkerson) Do we need to check more than the file name?
-      return _computeManifestFixes(file, offset);
     }
     return <AnalysisErrorFixes>[];
   }

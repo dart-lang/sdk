@@ -15,7 +15,6 @@ dependencies:
   convert: any
   crypto: any
   dart_style: any
-  html: any
   http: any
   linter: any
   meta: any
@@ -30,6 +29,7 @@ dependencies:
 dev_dependencies:
   analyzer_utilities: any
   cli_util: any
+  html: any
   lints: any
   logging: any
   matcher: any
