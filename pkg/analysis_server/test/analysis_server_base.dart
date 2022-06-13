@@ -21,6 +21,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'mocks.dart';
+import 'src/utilities/mock_packages.dart';
 
 /// TODO(scheglov) this is duplicate
 class AnalysisOptionsFileConfig {
@@ -309,6 +310,8 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest {
   void writeTestPackageConfig({
     PackageConfigFileBuilder? config,
     String? languageVersion,
+    bool flutter = false,
+    bool meta = false,
   }) {
     if (config == null) {
       config = PackageConfigFileBuilder();
@@ -321,6 +324,22 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest {
       rootPath: testPackageRootPath,
       languageVersion: languageVersion,
     );
+
+    if (meta || flutter) {
+      var libFolder = MockPackages.instance.addMeta(resourceProvider);
+      config.add(name: 'meta', rootPath: libFolder.parent.path);
+    }
+
+    if (flutter) {
+      {
+        var libFolder = MockPackages.instance.addUI(resourceProvider);
+        config.add(name: 'ui', rootPath: libFolder.parent.path);
+      }
+      {
+        var libFolder = MockPackages.instance.addFlutter(resourceProvider);
+        config.add(name: 'flutter', rootPath: libFolder.parent.path);
+      }
+    }
 
     writePackageConfig(testPackageRoot, config);
   }

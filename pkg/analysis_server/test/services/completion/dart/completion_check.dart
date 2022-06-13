@@ -185,6 +185,14 @@ extension CompletionSuggestionExtension
     );
   }
 
+  @useResult
+  CheckTarget<bool?> get hasNamedParameters {
+    return nest(
+      value.suggestion.hasNamedParameters,
+      (selected) => 'has hasNamedParameters ${valueStr(selected)}',
+    );
+  }
+
   void get isClass {
     kind.isIdentifier;
     element.isNotNull.kind.isClass;
@@ -312,10 +320,26 @@ extension CompletionSuggestionExtension
   }
 
   @useResult
+  CheckTarget<List<String>?> get parameterNames {
+    return nest(
+      value.suggestion.parameterNames,
+      (selected) => 'has parameterNames ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
   CheckTarget<String?> get parameterType {
     return nest(
       value.suggestion.parameterType,
       (selected) => 'has parameterType ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
+  CheckTarget<List<String>?> get parameterTypes {
+    return nest(
+      value.suggestion.parameterTypes,
+      (selected) => 'has parameterTypes ${valueStr(selected)}',
     );
   }
 
@@ -334,6 +358,14 @@ extension CompletionSuggestionExtension
     return nest(
       value.replacementOffset,
       (selected) => 'has replacementOffset ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
+  CheckTarget<int?> get requiredParameterCount {
+    return nest(
+      value.suggestion.requiredParameterCount,
+      (selected) => 'has requiredParameterCount ${valueStr(selected)}',
     );
   }
 
