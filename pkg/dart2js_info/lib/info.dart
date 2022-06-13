@@ -437,8 +437,7 @@ class FunctionInfo extends BasicInfo with CodeInfo {
       required this.functionKind,
       required this.modifiers,
       required this.type,
-      required this.returnType,
-      required this.parameters})
+      required this.returnType})
       : super(InfoKind.function, name, null, 0, coverageId);
 
   FunctionInfo.internal() : super.internal(InfoKind.function);

@@ -413,14 +413,13 @@ class KernelInfoCollector {
   final ir.Component component;
   final Compiler compiler;
   final JClosedWorld closedWorld;
-  final GlobalTypeInferenceResults _globalInferenceResults;
   final DumpInfoTask dumpInfoTask;
   final state = DumpInfoStateData();
 
   JElementEnvironment get environment => closedWorld.elementEnvironment;
 
-  KernelInfoCollector(this.component, this.compiler, this.dumpInfoTask,
-      this.closedWorld, this._globalInferenceResults);
+  KernelInfoCollector(
+      this.component, this.compiler, this.dumpInfoTask, this.closedWorld);
 
   void run() {
     // TODO(markzipan): Add CFE constants to `state.info.constants`.
@@ -479,9 +478,6 @@ class KernelInfoCollector {
     state.info.libraries.add(info);
     return info;
   }
-
-  AbstractValue _resultOfParameter(Local e) =>
-      _globalInferenceResults.resultOfParameter(e);
 
   FieldInfo visitField(ir.Field field, {FieldEntity fieldEntity}) {
     FieldInfo info = FieldInfo.fromKernel(
@@ -597,23 +593,6 @@ class KernelInfoCollector {
       isSetter: isSetter,
     );
 
-    List<ParameterInfo> parameters = <ParameterInfo>[];
-    List<String> inferredParameterTypes = <String>[];
-
-    closedWorld.elementEnvironment.forEachParameterAsLocal(
-        _globalInferenceResults.globalLocalsMap, functionEntity, (parameter) {
-      inferredParameterTypes.add('${_resultOfParameter(parameter)}');
-    });
-
-    int parameterIndex = 0;
-    closedWorld.elementEnvironment.forEachParameter(functionEntity,
-        (type, name, _) {
-      // Synthesized parameters have no name. This can happen on parameters of
-      // setters derived from lowering late fields.
-      parameters.add(ParameterInfo(name ?? '#t${parameterIndex}',
-          inferredParameterTypes[parameterIndex++], '$type'));
-    });
-
     // TODO(markzipan): Determine if it's safe to default to nonNullable here.
     final nullability = parent is ir.Member
         ? parent.enclosingLibrary.nonNullable
@@ -625,7 +604,6 @@ class KernelInfoCollector {
         functionKind: kind,
         modifiers: modifiers,
         returnType: function.returnType.toStringInternal(),
-        parameters: parameters,
         type: functionType.toStringInternal());
     state.entityToInfo[functionEntity] = info;
 
@@ -999,6 +977,7 @@ class DumpInfoAnnotator {
     kFunctionInfo.sideEffects = sideEffects;
     kFunctionInfo.inlinedCount = inlinedCount;
     kFunctionInfo.code = code;
+    kFunctionInfo.parameters = parameters;
     kFunctionInfo.outputUnit = _unitInfoForMember(function);
 
     int closureSize = _addClosureInfo(kFunctionInfo, function);
@@ -1264,9 +1243,8 @@ class DumpInfoTask extends CompilerTask
       GlobalTypeInferenceResults globalInferenceResults) {
     DumpInfoStateData dumpInfoState;
     measure(() {
-      KernelInfoCollector kernelInfoCollector = KernelInfoCollector(
-          component, compiler, this, closedWorld, globalInferenceResults)
-        ..run();
+      KernelInfoCollector kernelInfoCollector =
+          KernelInfoCollector(component, compiler, this, closedWorld)..run();
 
       DumpInfoAnnotator(kernelInfoCollector, compiler, this, closedWorld,
           globalInferenceResults)
