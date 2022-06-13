@@ -554,8 +554,8 @@ class KernelInfoCollector {
     bool isFactory = parent is ir.Procedure && parent.isFactory;
     // Kernel `isStatic` refers to static members, constructors, and top-level
     // members.
-    bool isTopLevel = ((parent is ir.Field && parent.isStatic) ||
-            (parent is ir.Procedure && parent.isStatic)) &&
+    bool isTopLevel = (parent is ir.Field && parent.isStatic) ||
+        (parent is ir.Procedure && parent.isStatic) ||
         (parent is ir.Member && parent.enclosingClass == null);
     bool isStaticMember = ((parent is ir.Field && parent.isStatic) ||
             (parent is ir.Procedure && parent.isStatic)) &&
@@ -1487,12 +1487,12 @@ class LocalFunctionInfo {
 
 class LocalFunctionInfoCollector extends ir.RecursiveVisitor<void> {
   final localFunctions = <ir.LocalFunction, LocalFunctionInfo>{};
-  final localFunctionNames = <String, int>{};
+  final localFunctionNameCount = <String, int>{};
 
   LocalFunctionInfo generateLocalFunctionInfo(ir.LocalFunction localFunction) {
     final name = _computeClosureName(localFunction);
-    localFunctionNames[name] = (localFunctionNames[name] ?? -1) + 1;
-    return LocalFunctionInfo(localFunction, name, localFunctionNames[name]);
+    localFunctionNameCount[name] = (localFunctionNameCount[name] ?? -1) + 1;
+    return LocalFunctionInfo(localFunction, name, localFunctionNameCount[name]);
   }
 
   @override
@@ -1523,11 +1523,7 @@ class LocalFunctionInfoCollector extends ir.RecursiveVisitor<void> {
 String _computeClosureName(ir.TreeNode treeNode) {
   String reconstructConstructorName(ir.Member node) {
     String className = node.enclosingClass.name;
-    if (node.name.text == '') {
-      return className;
-    } else {
-      return '$className\$${node.name}';
-    }
+    return node.name.text == '' ? className : '$className\$${node.name.text}';
   }
 
   var parts = <String>[];
