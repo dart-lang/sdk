@@ -120,4 +120,32 @@ class FakeFlutter {
 }
 ''');
   }
+
+  Future<void> test_variableDeclaration() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+void f() {
+  Widget w = /*caret*/Container();
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/widgets.dart';
+
+void f() {
+  Widget w = Center(child: Container());
+}
+''');
+  }
+
+  Future<void> test_variableDeclaration_name() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+void f() {
+  Widget /*caret*/w = Container();
+}
+''');
+    await assertNoAssist();
+  }
 }
