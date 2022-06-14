@@ -80,3 +80,11 @@ class ContentChannelException {
 
   Exception get exception => _exception!;
 }
+
+enum MyEnum {
+  a('');
+
+  const MyEnum([this._private]);
+
+  final String? _private; // OK (enum constructor must be const)
+}
