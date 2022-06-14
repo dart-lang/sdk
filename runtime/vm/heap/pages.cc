@@ -63,6 +63,7 @@ OldPage* OldPage::Allocate(intptr_t size_in_words,
   result->used_in_bytes_ = 0;
   result->forwarding_page_ = NULL;
   result->card_table_ = NULL;
+  result->progress_bar_ = 0;
   result->type_ = type;
 
   LSAN_REGISTER_ROOT_REGION(result, sizeof(*result));
@@ -128,8 +129,6 @@ void OldPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
     return;
   }
 
-  bool table_is_empty = false;
-
   ArrayPtr obj =
       static_cast<ArrayPtr>(UntaggedObject::FromAddr(object_start()));
   ASSERT(obj->IsArray());
@@ -140,7 +139,10 @@ void OldPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
   uword heap_base = obj.heap_base();
 
   const intptr_t size = card_table_size();
-  for (intptr_t i = 0; i < size; i++) {
+  for (;;) {
+    intptr_t i = progress_bar_.fetch_add(1);
+    if (i >= size) break;
+
     if (card_table_[i] != 0) {
       CompressedObjectPtr* card_from =
           reinterpret_cast<CompressedObjectPtr*>(this) +
@@ -170,19 +172,15 @@ void OldPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
         }
       }
 
-      if (has_new_target) {
-        // Card remains remembered.
-        table_is_empty = false;
-      } else {
+      if (!has_new_target) {
         card_table_[i] = 0;
       }
     }
   }
+}
 
-  if (table_is_empty) {
-    free(card_table_);
-    card_table_ = NULL;
-  }
+void OldPage::ResetProgressBar() {
+  progress_bar_ = 0;
 }
 
 ObjectPtr OldPage::FindObject(FindObjectVisitor* visitor) const {
@@ -833,6 +831,12 @@ void PageSpace::VisitRememberedCards(ObjectPointerVisitor* visitor) const {
   }
 }
 
+void PageSpace::ResetProgressBars() const {
+  for (OldPage* page = large_pages_; page != NULL; page = page->next()) {
+    page->ResetProgressBar();
+  }
+}
+
 ObjectPtr PageSpace::FindObject(FindObjectVisitor* visitor,
                                 OldPage::PageType type) const {
   if (type == OldPage::kExecutable) {
@@ -1474,6 +1478,7 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   page->used_in_bytes_ = page->object_end_ - page->object_start();
   page->forwarding_page_ = NULL;
   page->card_table_ = NULL;
+  page->progress_bar_ = 0;
   if (is_executable) {
     page->type_ = OldPage::kExecutable;
   } else {
