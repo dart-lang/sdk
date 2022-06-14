@@ -39,6 +39,7 @@ linter:
 #    - close_sinks # https://github.com/dart-lang/linter/issues/268
     - comment_references
     - directives_ordering
+    - discarded_futures
     - invariant_booleans
     - join_return_with_assignment
 #    - lines_longer_than_80_chars # under review (see #1068)

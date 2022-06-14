@@ -20,10 +20,10 @@ import 'package:path/path.dart' as path;
 
 import 'rules/visit_registered_nodes.dart';
 
-void main() {
+Future<void> main() async {
   var rules =
       path.normalize(io.File(path.join('lib', 'src', 'rules')).absolute.path);
-  Driver([VisitRegisteredNodes()]).analyze([rules]);
+  await Driver([VisitRegisteredNodes()]).analyze([rules]);
 }
 
 class Driver {
