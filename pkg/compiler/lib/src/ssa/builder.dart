@@ -5830,6 +5830,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       return false;
     }
 
+    // Check if inlining is disabled for the current element (includes globally)
+    // before making decsions on the basis of the callee so that cached callee
+    // decisions are not a function of the call site's method.
+    if (closedWorld.annotationsData.hasDisableInlining(_currentFrame.member)) {
+      return false;
+    }
+
     bool insideLoop = loopDepth > 0 || graph.calledInLoop;
 
     // Bail out early if the inlining decision is in the cache and we can't
@@ -5840,8 +5847,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     if (cachedCanBeInlined == false) return false;
 
     bool meetsHardConstraints() {
-      if (options.disableInlining) return false;
-
       assert(
           selector != null ||
               function.isStatic ||
