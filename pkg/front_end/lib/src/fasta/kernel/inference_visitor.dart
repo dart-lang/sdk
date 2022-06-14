@@ -48,22 +48,36 @@ class InferenceVisitor
 
   Class? mapEntryClass;
 
+  /// Context information for the current closure, or `null` if we are not
+  /// inside a closure.
+  ClosureContext? _closureContext;
+
   InferenceVisitor(this.inferrer);
+
+  ClosureContext get closureContext => _closureContext!;
 
   /// Performs type inference on the given [statement].
   ///
-  /// Derived classes should override this method with logic that dispatches on
-  /// the statement type and calls the appropriate specialized "infer" method.
-  StatementInferenceResult inferStatement(Statement statement) {
+  /// If [closureContext] is not null, the [statement] is inferred using
+  /// [closureContext] as the current context.
+  StatementInferenceResult inferStatement(Statement statement,
+      [ClosureContext? closureContext]) {
+    ClosureContext? oldClosureContext = _closureContext;
+    if (closureContext != null) {
+      _closureContext = closureContext;
+    }
     inferrer.registerIfUnreachableForTesting(statement);
 
     // For full (non-top level) inference, we need access to the
     // ExpressionGeneratorHelper so that we can perform error recovery.
+    StatementInferenceResult result;
     if (statement is InternalStatement) {
-      return statement.acceptInference(this);
+      result = statement.acceptInference(this);
     } else {
-      return statement.accept(this);
+      result = statement.accept(this);
     }
+    _closureContext = oldClosureContext;
+    return result;
   }
 
   /// Performs type inference on the given [expression].
@@ -6093,7 +6107,6 @@ class InferenceVisitor
   @override
   StatementInferenceResult visitReturnStatement(
       covariant ReturnStatementImpl node) {
-    ClosureContext closureContext = inferrer.closureContext!;
     DartType typeContext = closureContext.returnContext;
     DartType inferredType;
     if (node.expression != null) {
@@ -7075,7 +7088,6 @@ class InferenceVisitor
 
   @override
   StatementInferenceResult visitYieldStatement(YieldStatement node) {
-    ClosureContext closureContext = inferrer.closureContext!;
     ExpressionInferenceResult expressionResult;
     DartType typeContext = closureContext.yieldContext;
     if (node.isYieldStar && typeContext is! UnknownType) {

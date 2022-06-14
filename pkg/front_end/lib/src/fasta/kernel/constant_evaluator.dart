@@ -2689,7 +2689,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       return unevaluated(
           node,
           new ConditionalExpression(extract(condition), extract(then),
-              extract(otherwise), node.staticType));
+              extract(otherwise), env.substituteType(node.staticType)));
     } else {
       return createEvaluationErrorConstant(
           node.condition,

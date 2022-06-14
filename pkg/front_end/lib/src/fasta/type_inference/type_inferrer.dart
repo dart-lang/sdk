@@ -275,10 +275,6 @@ class TypeInferrerImpl implements TypeInferrer {
 
   InferenceHelper? _helper;
 
-  /// Context information for the current closure, or `null` if we are not
-  /// inside a closure.
-  ClosureContext? closureContext;
-
   TypeInferrerImpl(
       this.engine,
       this.uriForInstrumentation,
@@ -2047,7 +2043,6 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   ExpressionInferenceResult inferFieldInitializer(
       InferenceHelper helper, DartType declaredType, Expression initializer) {
-    assert(closureContext == null);
     assert(!isTopLevel);
     this.helper = helper;
     InferenceVisitor visitor = _createInferenceVisitor();
@@ -2064,12 +2059,12 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType returnType, AsyncMarker asyncMarker, Statement body) {
     // ignore: unnecessary_null_comparison
     assert(body != null);
-    // ignore: unnecessary_null_comparison
-    assert(closureContext == null);
     this.helper = helper;
-    closureContext = new ClosureContext(this, asyncMarker, returnType, false);
+    ClosureContext closureContext =
+        new ClosureContext(this, asyncMarker, returnType, false);
     InferenceVisitor visitor = _createInferenceVisitor();
-    StatementInferenceResult result = visitor.inferStatement(body);
+    StatementInferenceResult result =
+        visitor.inferStatement(body, closureContext);
     if (dataForTesting != null) {
       if (!flowAnalysis.isReachable) {
         dataForTesting!.flowAnalysisResult.functionBodiesThatDontComplete
@@ -2077,11 +2072,10 @@ class TypeInferrerImpl implements TypeInferrer {
       }
     }
     result =
-        closureContext!.handleImplicitReturn(this, body, result, fileOffset);
-    DartType? futureValueType = closureContext!.futureValueType;
+        closureContext.handleImplicitReturn(this, body, result, fileOffset);
+    DartType? futureValueType = closureContext.futureValueType;
     assert(!(asyncMarker == AsyncMarker.Async && futureValueType == null),
         "No future value type computed.");
-    closureContext = null;
     _helper = null;
     flowAnalysis.finish();
     return new InferredFunctionBody(
@@ -2913,12 +2907,10 @@ class TypeInferrerImpl implements TypeInferrer {
     // Apply type inference to `B` in return context `N’`, with any references
     // to `xi` in `B` having type `Pi`.  This produces `B’`.
     bool needToSetReturnType = hasImplicitReturnType;
-    ClosureContext? oldClosureContext = this.closureContext;
     ClosureContext closureContext = new ClosureContext(
         this, function.asyncMarker, returnContext, needToSetReturnType);
-    this.closureContext = closureContext;
     StatementInferenceResult bodyResult =
-        visitor.inferStatement(function.body!);
+        visitor.inferStatement(function.body!, closureContext);
 
     // If the closure is declared with `async*` or `sync*`, let `M` be the
     // least upper bound of the types of the `yield` expressions in `B’`, or
@@ -2947,7 +2939,6 @@ class TypeInferrerImpl implements TypeInferrer {
     if (bodyResult.hasChanged) {
       function.body = bodyResult.statement..parent = function;
     }
-    this.closureContext = oldClosureContext;
     return function.computeFunctionType(libraryBuilder.nonNullable);
   }
 
@@ -4149,7 +4140,6 @@ class TypeInferrerImpl implements TypeInferrer {
       Expression initializer,
       DartType declaredType,
       bool hasDeclaredInitializer) {
-    assert(closureContext == null);
     this.helper = helper;
     // ignore: unnecessary_null_comparison
     assert(declaredType != null);
