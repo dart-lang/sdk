@@ -85,7 +85,6 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       convertPath(_testFile),
     )!;
 
-    byteStore.testView = CiderByteStoreTestView();
     fileResolver = FileResolver(
       logger: logger,
       resourceProvider: resourceProvider,
