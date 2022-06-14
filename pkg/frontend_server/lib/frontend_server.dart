@@ -7,7 +7,8 @@ library frontend_server;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' hide FileSystemEntity;
+import 'dart:io' show Directory, File, IOSink, stdin, stdout;
+import 'dart:typed_data' show BytesBuilder;
 
 import 'package:args/args.dart';
 import 'package:dev_compiler/dev_compiler.dart'

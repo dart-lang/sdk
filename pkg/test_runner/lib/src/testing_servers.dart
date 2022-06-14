@@ -4,7 +4,8 @@
 
 import 'dart:async';
 import 'dart:convert' show HtmlEscape;
-import 'dart:io';
+import 'dart:io' hide BytesBuilder;
+import 'dart:typed_data' show BytesBuilder;
 
 import 'package:package_config/package_config.dart';
 import 'package:test_runner/src/configuration.dart';

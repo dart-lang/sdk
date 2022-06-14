@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' show File;
+import 'dart:typed_data' show BytesBuilder;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
