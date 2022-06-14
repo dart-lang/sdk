@@ -236,14 +236,14 @@ enum BenchmarkSubdivides {
 
   inferConstructorParameterTypes,
   inferDeclarationType,
-  inferExpression,
+  inferImplicitFieldType,
   inferFieldInitializer,
   inferFunctionBody,
   inferInitializer,
   inferMetadata,
   inferMetadataKeepingHelper,
   inferParameterInitializer,
-  inferInvocation,
+  inferRedirectingFactoryTypeArguments,
 
   buildOutlineExpressions,
   delayedActionPerformer,

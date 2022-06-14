@@ -17,7 +17,6 @@ import '../problems.dart' show unsupported;
 import '../builder/builder.dart';
 import '../source/source_field_builder.dart';
 import '../type_inference/type_inferrer.dart';
-import '../type_inference/type_schema.dart';
 import 'body_builder.dart';
 
 abstract class ImplicitFieldType extends DartType {
@@ -162,10 +161,7 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
           bodyBuilder.parseFieldInitializer(initializerToken!);
       initializerToken = null;
 
-      ExpressionInferenceResult result = typeInferrer.inferExpression(
-          initializer, const UnknownType(), true,
-          isVoidAllowed: true);
-      inferredType = typeInferrer.inferDeclarationType(result.inferredType);
+      inferredType = typeInferrer.inferImplicitFieldType(initializer);
     } else {
       inferredType = const DynamicType();
     }
