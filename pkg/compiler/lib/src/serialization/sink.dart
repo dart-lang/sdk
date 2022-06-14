@@ -21,6 +21,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   /// This is used for debugging data inconsistencies between serialization
   /// and deserialization.
   final bool useDataKinds;
+
   DataSourceIndices importedIndices;
 
   /// Visitor used for serializing [ir.DartType]s.
@@ -49,12 +50,25 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ir.Member _currentMemberContext;
   MemberData _currentMemberData;
 
+  IndexedSink<T> _createUnorderedSink<T>() {
+    if (importedIndices == null) return UnorderedIndexedSink<T>(this);
+    final sourceInfo = importedIndices.caches[T];
+    if (sourceInfo == null) {
+      return UnorderedIndexedSink<T>(this,
+          startOffset: importedIndices.previousSourceReader.endOffset);
+    }
+    Map<T, int> cacheCopy = Map.from(sourceInfo.cache);
+    return UnorderedIndexedSink<T>(this,
+        cache: cacheCopy,
+        startOffset: importedIndices.previousSourceReader.endOffset);
+  }
+
   IndexedSink<T> _createSink<T>() {
     if (importedIndices == null || !importedIndices.caches.containsKey(T)) {
-      return OrderedIndexedSink<T>(this._sinkWriter);
+      return OrderedIndexedSink<T>(_sinkWriter);
     } else {
       Map<T, int> cacheCopy = Map.from(importedIndices.caches[T].cache);
-      return OrderedIndexedSink<T>(this._sinkWriter, cache: cacheCopy);
+      return OrderedIndexedSink<T>(_sinkWriter, cache: cacheCopy);
     }
   }
 
@@ -63,16 +77,25 @@ class DataSinkWriter implements migrated.DataSinkWriter {
       : enableDeferredStrategy =
             (options?.features?.deferredSerialization?.isEnabled ?? false) {
     _dartTypeNodeWriter = DartTypeNodeWriter(this);
-    _stringIndex = _createSink<String>();
-    _uriIndex = _createSink<Uri>();
-    _memberNodeIndex = _createSink<ir.Member>();
-    _importIndex = _createSink<ImportEntity>();
-    _constantIndex = _createSink<ConstantValue>();
+    if (!enableDeferredStrategy) {
+      _stringIndex = _createSink<String>();
+      _uriIndex = _createSink<Uri>();
+      _memberNodeIndex = _createSink<ir.Member>();
+      _importIndex = _createSink<ImportEntity>();
+      _constantIndex = _createSink<ConstantValue>();
+      return;
+    }
+    _stringIndex = _createUnorderedSink<String>();
+    _uriIndex = _createUnorderedSink<Uri>();
+    _memberNodeIndex = _createUnorderedSink<ir.Member>();
+    _importIndex = _createUnorderedSink<ImportEntity>();
+    _constantIndex = _createUnorderedSink<ConstantValue>();
   }
 
   /// The amount of data written to this data sink.
   ///
   /// The units is based on the underlying data structure for this data sink.
+  @override
   int get length => _sinkWriter.length;
 
   /// Flushes any pending data and closes this data sink.
@@ -118,7 +141,8 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   /// been serialized, [f] is called to serialize the value itself.
   @override
   void writeCached<E>(E /*?*/ value, void f(E value)) {
-    IndexedSink sink = _generalCaches[E] ??= _createSink<E>();
+    IndexedSink sink = _generalCaches[E] ??=
+        (enableDeferredStrategy ? _createUnorderedSink<E>() : _createSink<E>());
     sink.write(value, (v) => f(v));
   }
 

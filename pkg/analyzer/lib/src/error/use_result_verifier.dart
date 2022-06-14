@@ -65,7 +65,11 @@ class UseResultVerifier {
   }
 
   void _check(AstNode node, Element element) {
-    if (node.parent is CommentReference) {
+    var parent = node.parent;
+    if (parent is PrefixedIdentifier) {
+      parent = parent.parent;
+    }
+    if (parent is CommentReference) {
       // Don't flag references in comments.
       return;
     }

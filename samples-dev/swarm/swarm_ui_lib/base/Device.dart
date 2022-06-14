@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of base;
 
 // TODO(jacobr): cache these results.
@@ -15,17 +13,17 @@ class Device {
   /**
    * The regular expression for detecting an iPhone or iPod.
    */
-  static final _IPHONE_REGEX = new RegExp('iPhone|iPod');
+  static final _IPHONE_REGEX = RegExp('iPhone|iPod');
 
   /**
    * The regular expression for detecting an iPhone or iPod or iPad.
    */
-  static final _MOBILE_SAFARI_REGEX = new RegExp('iPhone|iPod|iPad');
+  static final _MOBILE_SAFARI_REGEX = RegExp('iPhone|iPod|iPad');
 
   /**
    * The regular expression for detecting an iPhone or iPod or iPad simulator.
    */
-  static final _APPLE_SIM_REGEX = new RegExp('iP.*Simulator');
+  static final _APPLE_SIM_REGEX = RegExp('iP.*Simulator');
 
   /**
    * Gets the browser's user agent. Using this function allows tests to inject
@@ -75,11 +73,5 @@ class Device {
    */
   static bool get isWebOs => userAgent.contains("webOS", 0);
 
-  static bool _supportsTouch;
-  static bool get supportsTouch {
-    if (_supportsTouch == null) {
-      _supportsTouch = isMobileSafari || isAndroid;
-    }
-    return _supportsTouch;
-  }
+  static late bool supportsTouch = isMobileSafari || isAndroid;
 }

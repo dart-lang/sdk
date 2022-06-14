@@ -80,6 +80,9 @@ class DataSourceTypeIndices<E, T> {
 /// [DataSourceReader].
 class DataSourceIndices {
   final Map<Type, DataSourceTypeIndices> caches = {};
+  final DataSourceReader /*?*/ previousSourceReader;
+
+  DataSourceIndices(this.previousSourceReader);
 }
 
 /// Interface used for looking up entities by index during deserialization.

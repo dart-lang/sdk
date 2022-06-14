@@ -1134,6 +1134,40 @@ void f() {
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/47181
+  test_prefixed_classMember() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool b() => true;
+}
+
+/// [A.b].
+const a = 'a';
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/47181
+  test_prefixed_importedMember() async {
+    newFile('$testPackageLibPath/c.dart', '''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool b() => true;
+}
+ ''');
+
+    await assertNoErrorsInCode(r'''
+import 'c.dart' as c;
+
+/// [c.A.b].
+const a = 'a';
+''');
+  }
+
   test_topLevelFunction_result_assigned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';

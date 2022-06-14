@@ -1674,19 +1674,17 @@ void PageSpaceController::RecordUpdate(SpaceUsage before,
       after.CombinedUsedInWords() + (kOldPageSizeInWords * growth_in_pages);
 
 #if defined(TARGET_ARCH_IA32)
-  // No concurrent marking.
-  soft_gc_threshold_in_words_ = threshold;
-  hard_gc_threshold_in_words_ = threshold;
+  bool concurrent_mark = false;
 #else
-  // Start concurrent marking when old-space has less than half of new-space
-  // available or less than 5% available.
-  // Note that heap_ can be null in some unit tests.
-  const intptr_t new_space =
-      heap_ == nullptr ? 0 : heap_->new_space()->CapacityInWords();
-  const intptr_t headroom = Utils::Maximum(new_space / 2, threshold / 20);
-  soft_gc_threshold_in_words_ = threshold;
-  hard_gc_threshold_in_words_ = threshold + headroom;
+  bool concurrent_mark = FLAG_concurrent_mark && (FLAG_marker_tasks != 0);
 #endif
+  if (concurrent_mark) {
+    soft_gc_threshold_in_words_ = threshold;
+    hard_gc_threshold_in_words_ = kIntptrMax / kWordSize;
+  } else {
+    soft_gc_threshold_in_words_ = kIntptrMax / kWordSize;
+    hard_gc_threshold_in_words_ = threshold;
+  }
 
   // Set a tight idle threshold.
   idle_gc_threshold_in_words_ =

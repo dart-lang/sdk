@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of base;
 
 /**
@@ -19,7 +17,7 @@ class Size {
     return other != null && width == other.width && height == other.height;
   }
 
-  int get hashCode => throw new UnimplementedError();
+  int get hashCode => throw UnimplementedError();
 
   /**
    * Returns the area of the size (width * height).
@@ -46,10 +44,10 @@ class Size {
   }
 
   /**
-   * Returns a new copy of the Size.
+   * Returns a copy of the Size.
    */
   Size clone() {
-    return new Size(width, height);
+    return Size(width, height);
   }
 
   /**

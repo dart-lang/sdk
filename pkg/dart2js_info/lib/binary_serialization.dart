@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.11
-
 /// Info serialization to a binary form.
 ///
 /// Unlike the JSON codec, this serialization is designed to be streamed.
@@ -69,7 +67,7 @@ class BinaryPrinter implements InfoVisitor<void> {
     });
     sink.writeList(info.outputUnits, visitOutput);
     sink.writeString(jsonEncode(info.deferredFiles));
-    visitProgram(info.program);
+    visitProgram(info.program!);
     sink.close();
   }
 
@@ -91,7 +89,7 @@ class BinaryPrinter implements InfoVisitor<void> {
   }
 
   void _visitBasicInfo(BasicInfo info) {
-    sink.writeStringOrNull(info.name);
+    sink.writeString(info.name);
     sink.writeInt(info.size);
     sink.writeStringOrNull(info.coverageId);
     _writeOutputOrNull(info.outputUnit);
@@ -149,7 +147,7 @@ class BinaryPrinter implements InfoVisitor<void> {
     sink.writeStringOrNull(code.text);
   }
 
-  void _writeConstantOrNull(ConstantInfo info) {
+  void _writeConstantOrNull(ConstantInfo? info) {
     sink.writeBool(info != null);
     if (info != null) {
       visitConstant(info);
@@ -217,7 +215,7 @@ class BinaryPrinter implements InfoVisitor<void> {
     });
   }
 
-  void _writeOutputOrNull(OutputUnitInfo info) {
+  void _writeOutputOrNull(OutputUnitInfo? info) {
     sink.writeBool(info != null);
     if (info != null) {
       visitOutput(info);
@@ -228,7 +226,7 @@ class BinaryPrinter implements InfoVisitor<void> {
   void visitOutput(OutputUnitInfo output) {
     sink.writeCached(output, (OutputUnitInfo info) {
       _visitBasicInfo(info);
-      sink.writeStringOrNull(info.filename);
+      sink.writeString(info.filename);
       sink.writeList(info.imports, sink.writeString);
     });
   }
@@ -268,7 +266,6 @@ class BinaryReader {
       case InfoKind.closure:
         return readClosure();
     }
-    return null;
   }
 
   AllInfo readAll() {
@@ -355,7 +352,7 @@ class BinaryReader {
   }
 
   void _readBasicInfo(BasicInfo info) {
-    info.name = source.readStringOrNull();
+    info.name = source.readString();
     info.size = source.readInt();
     info.coverageId = source.readStringOrNull();
     info.outputUnit = _readOutputOrNull();
@@ -424,7 +421,7 @@ class BinaryReader {
     return CodeSpan(start: start, end: end, text: text);
   }
 
-  ConstantInfo _readConstantOrNull() {
+  ConstantInfo? _readConstantOrNull() {
     bool hasOutput = source.readBool();
     if (hasOutput) return readConstant();
     return null;
@@ -488,7 +485,7 @@ class BinaryReader {
         return info;
       });
 
-  OutputUnitInfo _readOutputOrNull() {
+  OutputUnitInfo? _readOutputOrNull() {
     bool hasOutput = source.readBool();
     if (hasOutput) return readOutput();
     return null;
@@ -497,7 +494,7 @@ class BinaryReader {
   OutputUnitInfo readOutput() => source.readCached<OutputUnitInfo>(() {
         OutputUnitInfo info = OutputUnitInfo.internal();
         _readBasicInfo(info);
-        info.filename = source.readStringOrNull();
+        info.filename = source.readString();
         info.imports.addAll(source.readList(source.readString));
         return info;
       });
