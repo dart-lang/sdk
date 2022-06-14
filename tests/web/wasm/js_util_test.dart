@@ -72,12 +72,21 @@ void deepConversionsTest() {
     globalThis.a = null;
     globalThis.b = 'foo';
     globalThis.c = ['a', 'b', 'c'];
+    globalThis.d = 2.5;
+    globalThis.e = true;
+    globalThis.f = function () { return 'hello world'; };
+    globalThis.invoke = function (f) { return f(); }
   ''');
   Object gt = globalThis;
-  Expect.isNull(dartify(getProperty(gt, 'a')));
-  Expect.equals('foo', dartify(getProperty(gt, 'b')));
-  _expectListEquals(
-      ['a', 'b', 'c'], dartify(getProperty(gt, 'c')) as List<Object?>);
+  Expect.isNull(getProperty(gt, 'a'));
+  Expect.equals('foo', getProperty(gt, 'b'));
+  _expectListEquals(['a', 'b', 'c'], getProperty<List<Object?>>(gt, 'c'));
+  Expect.equals(2.5, getProperty(gt, 'd'));
+  Expect.equals(true, getProperty(gt, 'e'));
+
+  // Confirm a function that takes a roundtrip remains a function.
+  Expect.equals('hello world',
+      callMethod(gt, 'invoke', <Object?>[dartify(getProperty(gt, 'f'))]));
 }
 
 void main() {

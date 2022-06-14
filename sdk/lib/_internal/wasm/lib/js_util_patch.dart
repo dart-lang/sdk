@@ -22,15 +22,15 @@ bool hasProperty(Object o, String name) =>
 
 @patch
 T getProperty<T>(Object o, String name) =>
-    toDart(getPropertyRaw(jsifyRaw(o)!, name.toJS().toAnyRef())) as T;
+    dartifyRaw(getPropertyRaw(jsifyRaw(o)!, name.toJS().toAnyRef())) as T;
 
 @patch
-T setProperty<T>(Object o, String name, T? value) => toDart(
+T setProperty<T>(Object o, String name, T? value) => dartifyRaw(
     setPropertyRaw(jsifyRaw(o)!, name.toJS().toAnyRef(), jsifyRaw(value))) as T;
 
 @patch
 T callMethod<T>(Object o, String method, List<Object?> args) =>
-    toDart(callMethodVarArgsRaw(
+    dartifyRaw(callMethodVarArgsRaw(
         jsifyRaw(o)!, method.toJS().toAnyRef(), args.toJS().toAnyRef())) as T;
 
 @patch
@@ -38,7 +38,7 @@ bool instanceof(Object? o, Object type) => throw 'unimplemented';
 
 @patch
 T callConstructor<T>(Object o, List<Object?> args) =>
-    toDart(callConstructorVarArgsRaw(jsifyRaw(o)!, args.toJS().toAnyRef()))!
+    dartifyRaw(callConstructorVarArgsRaw(jsifyRaw(o)!, args.toJS().toAnyRef()))!
         as T;
 
 @patch
@@ -99,7 +99,7 @@ List<Object?> objectKeys(Object? object) => throw 'unimplemented';
 @patch
 Object? dartify(Object? object) {
   if (object is JSValue) {
-    return jsObjectToDartObject(dartifyRaw(object.toAnyRef())!);
+    return dartifyRaw(object.toAnyRef())!;
   } else {
     return object;
   }
