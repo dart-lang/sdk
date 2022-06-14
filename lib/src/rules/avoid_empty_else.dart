@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var elseStatement = node.elseStatement;
     if (elseStatement is EmptyStatement &&
         !elseStatement.semicolon.isSynthetic) {
-      rule.reportLint(elseStatement, errorCode: AvoidEmptyElse.code);
+      rule.reportLint(elseStatement);
     }
   }
 }

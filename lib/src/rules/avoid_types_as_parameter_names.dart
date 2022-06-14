@@ -62,9 +62,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitCatchClause(CatchClause node) {
     var parameter = node.exceptionParameter;
     if (parameter != null && _isTypeName(node, parameter)) {
-      rule.reportLint(parameter,
-          errorCode: AvoidTypesAsParameterNames.code,
-          arguments: [parameter.name]);
+      rule.reportLint(parameter, arguments: [parameter.name]);
     }
   }
 
@@ -80,9 +78,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           declaredElement.hasImplicitType &&
           identifier != null &&
           _isTypeName(node, identifier)) {
-        rule.reportLint(identifier,
-            errorCode: AvoidTypesAsParameterNames.code,
-            arguments: [identifier.name]);
+        rule.reportLint(identifier, arguments: [identifier.name]);
       }
     }
   }

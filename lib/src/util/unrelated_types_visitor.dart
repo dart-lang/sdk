@@ -118,7 +118,6 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
           DartTypeUtilities.unrelatedTypes(
               typeSystem, argument.staticType, typeArgument)) {
         rule.reportLint(node,
-            errorCode: rule.lintCode,
             arguments: [typeArgument.getDisplayString(withNullability: true)]);
       }
     }
