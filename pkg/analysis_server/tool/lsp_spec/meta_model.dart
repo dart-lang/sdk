@@ -180,8 +180,9 @@ class LspEnum extends LspEntity {
 
 class LspMetaModel {
   final List<LspEntity> types;
+  final List<String> methods;
 
-  LspMetaModel(this.types);
+  LspMetaModel({required this.types, required this.methods});
 }
 
 /// A [Map] type parsed from the LSP JSON model.

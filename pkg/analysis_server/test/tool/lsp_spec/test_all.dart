@@ -8,6 +8,7 @@ import 'dart_test.dart' as dart_test;
 import 'generated_classes_test.dart' as generated_classes_test;
 import 'json_test.dart' as json_test;
 import 'meta_model_test.dart' as meta_model_test;
+import 'readme_test.dart' as readme_test;
 
 void main() {
   defineReflectiveSuite(() {
@@ -15,5 +16,6 @@ void main() {
     generated_classes_test.main();
     json_test.main();
     meta_model_test.main();
+    readme_test.main();
   }, name: 'lsp-tool');
 }

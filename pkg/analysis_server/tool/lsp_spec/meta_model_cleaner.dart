@@ -27,7 +27,7 @@ class LspMetaModelCleaner {
   /// Cleans an entire [LspMetaModel].
   LspMetaModel cleanModel(LspMetaModel model) {
     final types = cleanTypes(model.types);
-    return LspMetaModel(types);
+    return LspMetaModel(types: types, methods: model.methods);
   }
 
   /// Cleans a List of types.
