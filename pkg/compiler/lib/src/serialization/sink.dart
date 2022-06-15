@@ -151,6 +151,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readValueOrNull].
+  @override
   void writeValueOrNull<E>(E value, void f(E value)) {
     writeBool(value != null);
     if (value != null) {
@@ -766,6 +767,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readClasses].
+  @override
   void writeClasses(Iterable<ClassEntity> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -784,6 +786,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readClassMap].
+  @override
   void writeClassMap<V>(Map<ClassEntity, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -799,6 +802,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   }
 
   /// Writes a reference to the indexed member [value] to this data sink.
+  @override
   void writeMember(IndexedMember value) {
     _entityWriter.writeMemberToDataSink(this, value);
   }
@@ -808,6 +812,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readMemberOrNull].
+  @override
   void writeMemberOrNull(IndexedMember value) {
     writeBool(value != null);
     if (value != null) {
@@ -820,6 +825,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readMembers].
+  @override
   void writeMembers(Iterable<MemberEntity> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -1048,6 +1054,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   }
 
   /// Writes the potentially `null` constant [value] to this data sink.
+  @override
   void writeConstantOrNull(ConstantValue value) {
     writeBool(value != null);
     if (value != null) {
@@ -1079,6 +1086,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readConstantMap].
+  @override
   void writeConstantMap<V>(Map<ConstantValue, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -1122,6 +1130,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   }
 
   /// Writes the import [value] to this data sink.
+  @override
   void writeImport(ImportEntity value) {
     _writeDataKind(DataKind.import);
     _writeImport(value);
@@ -1140,6 +1149,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   }
 
   /// Writes the potentially `null` import [value] to this data sink.
+  @override
   void writeImportOrNull(ImportEntity value) {
     writeBool(value != null);
     if (value != null) {
@@ -1152,6 +1162,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readImports].
+  @override
   void writeImports(Iterable<ImportEntity> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -1170,7 +1181,8 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readImportMap].
-  void writeImportMap<V>(Map<ImportEntity, V> map, void f(V value),
+  @override
+  void writeImportMap<V>(Map<ImportEntity, V> /*?*/ map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
       assert(allowNull);
@@ -1187,6 +1199,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   /// Writes an abstract [value] to this data sink.
   ///
   /// This feature is only available a [CodegenWriter] has been registered.
+  @override
   void writeAbstractValue(AbstractValue value) {
     assert(_codegenWriter != null,
         "Can not serialize an AbstractValue without a registered codegen writer.");
