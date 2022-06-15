@@ -25,6 +25,9 @@ class NoopAnalyticsManager implements AnalyticsManager {
       required DateTime endTime}) {}
 
   @override
+  void initialize(InitializeParams params) {}
+
+  @override
   void initialized({required List<String> openWorkspacePaths}) {}
 
   @override

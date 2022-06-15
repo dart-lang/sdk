@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:telemetry/telemetry.dart';
@@ -68,6 +69,21 @@ class GoogleAnalyticsManager implements AnalyticsManager {
       data.latencyTimes.addValue(start - requestTime);
     }
     data.handlingTimes.addValue(end - start);
+  }
+
+  @override
+  void initialize(InitializeParams params) {
+    var options = LspInitializationOptions(params.initializationOptions);
+    var paramNames = <String>[
+      if (options.closingLabels) 'closingLabels',
+      if (options.flutterOutline) 'flutterOutline',
+      if (options.onlyAnalyzeProjectsWithOpenFiles)
+        'onlyAnalyzeProjectsWithOpenFiles',
+      if (options.outline) 'outline',
+      if (options.suggestFromUnimportedLibraries)
+        'suggestFromUnimportedLibraries',
+    ];
+    _sessionData?.initializeParams = paramNames.join(',');
   }
 
   @override
@@ -154,7 +170,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
       required String sdkVersion}) {
     _sessionData = _SessionData(
         startTime: time,
-        commandLineArguments: arguments.join(' '),
+        commandLineArguments: arguments.join(','),
         clientId: clientId,
         clientVersion: clientVersion ?? '',
         sdkVersion: sdkVersion);
@@ -234,6 +250,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
     var duration = endTime - sessionData.startTime.millisecondsSinceEpoch;
     analytics.sendEvent('language_server', 'session', parameters: {
       'flags': sessionData.commandLineArguments,
+      'parameters': sessionData.initializeParams,
       'clientId': sessionData.clientId,
       'clientVersion': sessionData.clientVersion,
       'sdkVersion': sessionData.sdkVersion,
@@ -373,6 +390,9 @@ class _SessionData {
 
   /// The command-line arguments passed to the server on startup.
   final String commandLineArguments;
+
+  /// The parameters passed on initialize.
+  String initializeParams = '';
 
   /// The name of the client that started the server.
   final String clientId;
