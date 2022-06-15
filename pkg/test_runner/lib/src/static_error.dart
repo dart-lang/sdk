@@ -314,7 +314,7 @@ class StaticError implements Comparable<StaticError> {
         return false;
     }
 
-    throw FallThroughError();
+    throw UnsupportedError("Unsupported source: ${source.name}");
   }
 
   String toString() {

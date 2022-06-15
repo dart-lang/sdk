@@ -95,7 +95,7 @@ class _AssertionError extends Error implements AssertionError {
   final Object? message;
 }
 
-class _TypeError extends Error implements TypeError, CastError {
+class _TypeError extends Error implements TypeError {
   @pragma("vm:entry-point")
   _TypeError._create(this._url, this._line, this._column, this._message);
 
@@ -112,7 +112,7 @@ class _TypeError extends Error implements TypeError, CastError {
   final String _message;
 }
 
-class _CastError extends Error implements CastError, TypeError {
+class _CastError extends Error implements TypeError {
   @pragma("vm:entry-point")
   _CastError._create(this._url, this._line, this._column, this._errorMsg);
 
@@ -126,6 +126,12 @@ class _CastError extends Error implements CastError, TypeError {
   final int _line;
   final int _column;
   final String _errorMsg;
+}
+
+class _NullThrownError extends Error implements NullThrownError {
+  @pragma("vm:entry-point")
+  _NullThrownError();
+  String toString() => "Throw of null.";
 }
 
 @patch
