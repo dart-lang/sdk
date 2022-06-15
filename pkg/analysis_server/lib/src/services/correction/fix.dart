@@ -1630,6 +1630,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Wrap in a 'Text' widget",
   );
+  static const WRAP_IN_UNAWAITED = FixKind(
+    'dart.fix.wrap.unawaited',
+    DartFixKindPriority.DEFAULT,
+    "Wrap in 'unawaited'",
+  );
 }
 
 class DartFixKindPriority {
