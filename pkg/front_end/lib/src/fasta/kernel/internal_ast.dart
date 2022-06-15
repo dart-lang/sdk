@@ -36,7 +36,7 @@ import '../type_inference/type_inferrer.dart';
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
-import 'inference_visitor.dart';
+import '../type_inference/inference_visitor.dart';
 
 int getExtensionTypeParameterCount(Arguments arguments) {
   if (arguments is ArgumentsImpl) {
