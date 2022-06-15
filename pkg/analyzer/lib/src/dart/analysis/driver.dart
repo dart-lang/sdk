@@ -1374,7 +1374,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           String unitSignature =
               _getResolvedUnitSignature(library.file, unitResult.file);
           String unitKey = _getResolvedUnitKey(unitSignature);
-          _byteStore.put(unitKey, unitBytes);
+          _byteStore.putGet(unitKey, unitBytes);
           if (unitResult.file == file) {
             bytes = unitBytes;
             resolvedUnit = unitResult.unit;
@@ -1855,7 +1855,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       String ms = threeDigits(time.millisecond);
       String key = 'exception_${time.year}$m${d}_$h$min${sec}_$ms';
 
-      _byteStore.put(key, bytes);
+      _byteStore.putGet(key, bytes);
       return key;
     } catch (_) {
       return null;

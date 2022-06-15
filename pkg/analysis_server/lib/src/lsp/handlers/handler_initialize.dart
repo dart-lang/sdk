@@ -22,6 +22,8 @@ class InitializeMessageHandler
   @override
   ErrorOr<InitializeResult> handle(
       InitializeParams params, MessageInfo message, CancellationToken token) {
+    server.analyticsManager.initialize(params);
+
     server.handleClientConnection(
       params.capabilities,
       params.initializationOptions,

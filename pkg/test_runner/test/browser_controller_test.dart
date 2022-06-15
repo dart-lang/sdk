@@ -10,13 +10,15 @@ import 'package:test_runner/src/browser_controller.dart';
 import 'package:test_runner/src/service/web_driver_service.dart';
 
 void main() async {
-  if (Platform.environment.containsKey('CHROME_PATH')) {
+  final chromePath = Platform.environment['CHROME_PATH'];
+  if (chromePath != null) {
     print('Testing Chrome');
-    await testChrome();
+    await testChrome(chromePath);
   }
-  if (Platform.environment.containsKey('FIREFOX_PATH')) {
+  final firefoxPath = Platform.environment['FIREFOX_PATH'];
+  if (firefoxPath != null) {
     print('Testing Firefox');
-    await testFirefox();
+    await testFirefox(firefoxPath);
   }
   if (Platform.isMacOS) {
     print('Testing Safari');
@@ -24,17 +26,16 @@ void main() async {
   }
 }
 
-Future<void> testChrome() {
-  return testBrowser(Chrome(Platform.environment['CHROME_PATH']));
+Future<void> testChrome(String path) {
+  return testBrowser(Chrome(path));
 }
 
-Future<void> testFirefox() {
-  return testBrowser(Firefox(Platform.environment['FIREFOX_PATH']));
+Future<void> testFirefox(String path) {
+  return testBrowser(Firefox(path));
 }
 
 Future<void> testSafari() async {
-  var service = WebDriverService.fromRuntime(Runtime.safari);
-  await service.start();
+  var service = await WebDriverService.startServiceForRuntime(Runtime.safari);
   await testBrowser(Safari(service.port));
   service.allDone();
 }

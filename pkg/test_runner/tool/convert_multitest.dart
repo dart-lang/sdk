@@ -22,14 +22,8 @@ import 'update_static_error_tests.dart' show runAnalyzer, runCfe;
 
 Future<List<StaticError>> getErrors(
     List<String> options, String filePath) async {
-  var analyzerErrors = await runAnalyzer(filePath, options);
-  if (analyzerErrors == null) {
-    exit(1);
-  }
-  var cfeErrors = await runCfe(filePath, options);
-  if (cfeErrors == null) {
-    exit(1);
-  }
+  var analyzerErrors = await runAnalyzer(File(filePath), options);
+  var cfeErrors = await runCfe(File(filePath), options);
   return [...analyzerErrors, ...cfeErrors];
 }
 
@@ -87,7 +81,7 @@ CleanedMultiTest removeMultiTestMarker(String test) {
       throw "internal error: cannot process line '$line'";
     } else if (matches.length == 1) {
       var match = matches.single;
-      var annotation = Annotation.tryParse(line);
+      var annotation = Annotation.tryParse(line)!;
       if (annotation.outcomes.length != 1) {
         throw UnableToConvertException("annotation has multiple outcomes");
       }
@@ -248,7 +242,7 @@ Future<void> main(List<String> arguments) async {
   parser.addFlag("verbose", abbr: "v", help: "print additional information");
   parser.addFlag("write", abbr: "w", help: "write output to input file");
   parser.addMultiOption("enable-experiment",
-      help: "Enable one or more experimental features");
+      defaultsTo: <String>[], help: "Enable one or more experimental features");
 
   var results = parser.parse(arguments);
   if (results.rest.isEmpty) {

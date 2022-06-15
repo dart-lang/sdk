@@ -14,13 +14,13 @@ import '../elements/entity_utils.dart';
 import '../elements/types.dart';
 import '../ir/scope_visitor.dart';
 import '../js_model/elements.dart' show JField;
-import '../js_model/js_world_builder.dart';
+import '../js_model/js_world_builder.dart' show JsToFrontendMap;
 import '../kernel/element_map.dart';
 import '../kernel/kernel_strategy.dart';
 import '../kernel/kelements.dart' show KClass, KField, KConstructor;
 import '../kernel/kernel_world.dart';
 import '../options.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../universe/member_usage.dart';
 
 /// AllocatorAnalysis

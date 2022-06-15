@@ -156,6 +156,25 @@ class GoogleAnalyticsManagerTest {
     ]);
   }
 
+  void test_server_request_initialize() {
+    _defaultStartup();
+    var params = InitializeParams(
+        capabilities: ClientCapabilities(),
+        initializationOptions: {
+          'closingLabels': true,
+          'notAnOption': true,
+          'onlyAnalyzeProjectsWithOpenFiles': true,
+        });
+    manager.initialize(params);
+    manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(parameters: {
+        'parameters':
+            'closingLabels,onlyAnalyzeProjectsWithOpenFiles,suggestFromUnimportedLibraries',
+      }),
+    ]);
+  }
+
   void test_server_request_initialized() {
     _defaultStartup();
     var params = InitializedParams();
@@ -215,7 +234,7 @@ class GoogleAnalyticsManagerTest {
     manager.shutdown();
     analytics.assertEvents([
       _ExpectedEvent.session(parameters: {
-        'flags': arguments.join(' '),
+        'flags': arguments.join(','),
         'clientId': clientId,
         'clientVersion': '',
         'sdkVersion': sdkVersion,
@@ -254,7 +273,7 @@ class GoogleAnalyticsManagerTest {
     manager.shutdown();
     analytics.assertEvents([
       _ExpectedEvent.session(parameters: {
-        'flags': arguments.join(' '),
+        'flags': arguments.join(','),
         'clientId': clientId,
         'clientVersion': clientVersion,
         '': isNull,

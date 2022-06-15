@@ -215,7 +215,7 @@ class LibraryContext {
         }
 
         resolutionBytes = linkResult.resolutionBytes;
-        byteStore.put(resolutionKey, resolutionBytes);
+        byteStore.putGet(resolutionKey, resolutionBytes);
         bytesPut += resolutionBytes.length;
 
         librariesLinkedTimer.stop();
@@ -241,7 +241,7 @@ class LibraryContext {
             fileSystem: _MacroFileSystem(fileSystemState),
             libraries: macroLibraries,
           );
-          byteStore.put(macroKernelKey, macroKernelBytes);
+          byteStore.putGet(macroKernelKey, macroKernelBytes);
           bytesPut += macroKernelBytes.length;
         } else {
           bytesGet += macroKernelBytes.length;

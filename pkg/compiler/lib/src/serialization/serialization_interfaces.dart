@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart' as ir show DartType, Member, TreeNode;
 import '../constants/values.dart' show ConstantValue;
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType;
+import '../inferrer/abstract_value_domain.dart' show AbstractValue;
 
 export 'tags.dart';
 
@@ -61,8 +62,16 @@ abstract class DataSinkWriter {
 
   void writeClass(covariant ClassEntity value); // IndexedClass
   void writeClassOrNull(covariant ClassEntity? value); // IndexedClass
+  void writeClasses(Iterable<ClassEntity> values, {bool allowNull = false});
+  void writeClassMap<V>(Map<ClassEntity, V>? map, void f(V value),
+      {bool allowNull = false});
+
   void writeTypeVariable(
       covariant TypeVariableEntity value); // IndexedTypeVariable
+
+  void writeMember(covariant MemberEntity member); // IndexMember
+  void writeMemberOrNull(covariant MemberEntity? member); // IndexMember
+  void writeMembers(Iterable<MemberEntity>? values, {bool allowNull = false});
 
   void writeMemberMap<V>(
       Map<MemberEntity, V>? map, void f(MemberEntity member, V value),
@@ -89,6 +98,19 @@ abstract class DataSinkWriter {
       {bool allowNull = false});
 
   void writeConstant(ConstantValue value);
+  void writeConstantOrNull(ConstantValue? value);
+  void writeConstantMap<V>(Map<ConstantValue, V>? map, void f(V value),
+      {bool allowNull = false});
+
+  void writeValueOrNull<E>(E? value, void f(E value));
+
+  void writeImport(ImportEntity import);
+  void writeImportOrNull(ImportEntity? import);
+  void writeImports(Iterable<ImportEntity>? values, {bool allowNull = false});
+  void writeImportMap<V>(Map<ImportEntity, V>? map, void f(V value),
+      {bool allowNull = false});
+
+  void writeAbstractValue(AbstractValue value);
 }
 
 /// Migrated interface for methods of DataSourceReader.
@@ -112,8 +134,17 @@ abstract class DataSourceReader {
 
   ClassEntity readClass(); // IndexedClass
   ClassEntity? readClassOrNull(); // IndexedClass
+  List<E> readClasses<E extends ClassEntity>();
+  List<E>? readClassesOrNull<E extends ClassEntity>();
+  Map<K, V> readClassMap<K extends ClassEntity, V>(V f());
+  Map<K, V>? readClassMapOrNull<K extends ClassEntity, V>(V f());
+
   TypeVariableEntity readTypeVariable(); // IndexedTypeVariable
 
+  MemberEntity readMember();
+  MemberEntity? readMemberOrNull();
+  List<E> readMembers<E extends MemberEntity>();
+  List<E>? readMembersOrNull<E extends MemberEntity>();
   Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(MemberEntity member));
   Map<K, V>? readMemberMapOrNull<K extends MemberEntity, V>(
       V f(MemberEntity member));
@@ -140,6 +171,20 @@ abstract class DataSourceReader {
   List<E>? readListOrNull<E extends Object>(E f());
 
   ConstantValue readConstant();
+  ConstantValue? readConstantOrNull();
+  Map<K, V> readConstantMap<K extends ConstantValue, V>(V f());
+  Map<K, V>? readConstantMapOrNull<K extends ConstantValue, V>(V f());
+
+  E? readValueOrNull<E>(E f());
+
+  ImportEntity readImport();
+  ImportEntity? readImportOrNull();
+  List<ImportEntity> readImports();
+  List<ImportEntity>? readImportsOrNull();
+  Map<ImportEntity, V> readImportMap<V>(V f());
+  Map<ImportEntity, V>? readImportMapOrNull<V>(V f());
+
+  AbstractValue readAbstractValue();
 
   E readWithSource<E>(DataSourceReader source, E f());
   E readWithOffset<E>(int offset, E f());

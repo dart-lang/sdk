@@ -13,7 +13,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../js/js.dart' as jsAst;
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
 import '../world.dart' show JClosedWorld;

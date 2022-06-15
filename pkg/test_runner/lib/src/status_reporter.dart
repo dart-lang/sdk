@@ -108,7 +108,7 @@ void sanityCheck(String output) {
 }
 
 void main(List<String> args) {
-  var combinations = _combinations[Platform.operatingSystem];
+  var combinations = _combinations[Platform.operatingSystem]!;
 
   var arches = <String>{};
   var modes = <String>{};
@@ -125,19 +125,15 @@ void main(List<String> args) {
 
   ensureBuild(modes, arches);
 
-  List<String> keys;
+  List<String>? keys;
   for (var combination in combinations) {
-    for (var mode in combination['modes']) {
-      if (!modes.contains(mode)) {
-        continue;
-      }
+    for (var mode in combination['modes'] as Iterable<String>) {
+      if (!modes.contains(mode)) continue;
 
-      for (var arch in combination['archs']) {
-        if (!arches.contains(arch)) {
-          continue;
-        }
+      for (var arch in combination['archs'] as Iterable<String>) {
+        if (!arches.contains(arch)) continue;
 
-        for (var runtime in combination['runtimes']) {
+        for (var runtime in combination['runtimes'] as Iterable<String>) {
           var compiler = combination['compiler'] as String;
 
           var args = [
@@ -182,9 +178,9 @@ void main(List<String> args) {
           var values = [compiler, runtime, arch, mode, total];
 
           for (var key in keys) {
-            var value = map[key];
+            var value = map[key]!;
             values.add(value);
-            var pct = 100 * (value / total);
+            var pct = 100 * (value / total!);
             values.add('${pct.toStringAsFixed(3)}%');
           }
 

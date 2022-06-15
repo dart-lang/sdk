@@ -692,7 +692,7 @@ class JSName {
 abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 
 /// Thrown by type assertions that fail.
-class TypeErrorImpl extends Error implements TypeError, CastError {
+class TypeErrorImpl extends Error implements TypeError {
   final String _message;
 
   TypeErrorImpl(this._message);

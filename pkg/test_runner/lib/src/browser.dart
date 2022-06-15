@@ -58,19 +58,9 @@ String _toJSIdentifier(String name) {
   if (name.isEmpty) return r'$';
 
   // Escape any invalid characters
-  StringBuffer buffer;
-  for (var i = 0; i < name.length; i++) {
-    var ch = name[i];
-    var needsEscape = ch == r'$' || _invalidCharInIdentifier.hasMatch(ch);
-    if (needsEscape && buffer == null) {
-      buffer = StringBuffer(name.substring(0, i));
-    }
-    if (buffer != null) {
-      buffer.write(needsEscape ? '\$${ch.codeUnits.join("")}' : ch);
-    }
-  }
+  var result = name.replaceAllMapped(_invalidCharInIdentifier,
+      (match) => '\$${match.group(0)!.codeUnits.join("")}');
 
-  var result = buffer != null ? '$buffer' : name;
   // Ensure the identifier first character is not numeric and that the whole
   // identifier is not a keyword.
   if (result.startsWith(RegExp('[0-9]')) || _invalidVariableName(result)) {
@@ -80,7 +70,7 @@ String _toJSIdentifier(String name) {
 }
 
 // Invalid characters for identifiers, which would need to be escaped.
-final _invalidCharInIdentifier = RegExp(r'[^A-Za-z_$0-9]');
+final _invalidCharInIdentifier = RegExp(r'[^A-Za-z_0-9]');
 
 bool _invalidVariableName(String keyword, {bool strictMode = true}) {
   switch (keyword) {

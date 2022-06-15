@@ -12,7 +12,7 @@ import 'dart:math' as math;
 import 'package:pool/pool.dart';
 
 /// The path to the gsutil script.
-String gsutilPy;
+late String gsutilPy;
 
 // TODO(karlklose):  Update this class with all fields that
 // are used in pkg/test_runner and the tools/bots scripts and include
@@ -42,7 +42,8 @@ class Result {
       this.previousOutcome,
       [this.flaked = false]);
 
-  Result.fromMap(Map<String, dynamic> map, [Map<String, dynamic> flakinessData])
+  Result.fromMap(Map<String, dynamic> map,
+      [Map<String, dynamic>? flakinessData])
       : configuration = map["configuration"] as String,
         name = map["name"] as String,
         outcome = map["result"] as String,
@@ -73,11 +74,11 @@ Future<String> runGsutil(List<String> arguments) async {
     var processResult = await Process.run(
         "python3", [gsutilPy]..addAll(arguments),
         runInShell: Platform.isWindows);
-    var stderr = processResult.stderr as String;
     if (processResult.exitCode != 0) {
+      var stderr = processResult.stderr as String;
       if (processResult.exitCode == 1 && stderr.contains("No URLs matched") ||
           stderr.contains("One or more URLs matched no objects")) {
-        return null;
+        return "";
       }
       var error = "Failed to run: python3 $gsutilPy $arguments\n"
           "exitCode: ${processResult.exitCode}\n"
@@ -102,8 +103,8 @@ Future<String> catGsutil(String path) => runGsutil(["cat", path]);
 /// or null if it didn't exist.
 Future<Iterable<String>> lsGsutil(String directory) async {
   var contents = await runGsutil(["ls", directory]);
-  if (contents == null) {
-    return null;
+  if (contents.isEmpty) {
+    return const [];
   }
   return LineSplitter.split(contents).map((String path) {
     var elements = path.split("/");

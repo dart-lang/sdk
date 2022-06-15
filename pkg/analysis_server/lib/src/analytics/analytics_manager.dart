@@ -34,6 +34,9 @@ abstract class AnalyticsManager {
       required DateTime startTime,
       required DateTime endTime}) {}
 
+  /// Record the parameters passed on initialize.
+  void initialize(InitializeParams params);
+
   /// Record the number of [openWorkspacePaths].
   void initialized({required List<String> openWorkspacePaths});
 

@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:smith/smith.dart';
 
 import '../test_progress.dart';
-import 'service.dart';
 
 const safariDriverPort = 7055;
 
@@ -18,56 +17,58 @@ class WebDriverService extends EventListener {
     Runtime.safari,
   };
 
-  final String _driverExecutable;
-  final List<String> _driverArguments;
-  Future<void> _started;
+  bool _running = false;
   Process _process;
 
-  ServiceState state = ServiceState.created;
   final int port;
 
-  WebDriverService(this._driverExecutable, this._driverArguments, this.port);
-
-  Future<void> start() {
-    if (_started != null) {
-      return _started;
-    }
-    return _started = () async {
-      state = ServiceState.starting;
-      try {
-        _process = await Process.start(
-            _driverExecutable, ['--port', '$port', ..._driverArguments]);
-        _process.exitCode.then((exitCode) {
-          if (state != ServiceState.stopped) {
-            state = ServiceState.failed;
-            print('$runtimeType stopped unexpectedly: $exitCode');
-          }
-        });
-        state = ServiceState.running;
-        print('Started $runtimeType on port $port');
-      } catch (error) {
-        state = ServiceState.failed;
-        print('Failed to start $runtimeType: $error');
-        rethrow;
+  WebDriverService._(this.port, this._process) {
+    _process.exitCode.then((exitCode) {
+      if (_running) {
+        print('WebDriverService stopped unexpectedly: $exitCode');
+        _running = false;
       }
-    }();
+    });
   }
 
   @override
   void allDone() {
-    state = ServiceState.stopped;
-    _process?.kill();
+    _process.kill();
+    _running = false;
+  }
+
+  static Future<WebDriverService> startServiceForRuntime(
+      Runtime runtime) async {
+    var service = _instances[runtime];
+    String driverExecutable;
+    List<String> driverArguments;
+    int port;
+    if (service != null) {
+      return service;
+    }
+    switch (runtime) {
+      case Runtime.safari:
+        driverExecutable = '/usr/bin/safaridriver';
+        driverArguments = const [];
+        port = safariDriverPort;
+        break;
+      default:
+        throw ArgumentError.value(runtime, 'runtime', 'Unsupported runtime');
+    }
+    try {
+      var process = await Process.start(
+          driverExecutable, ['--port', '$port', ...driverArguments]);
+      print('Started WebDriverService on port $port');
+      return _instances[runtime] =
+          WebDriverService._(safariDriverPort, process);
+    } catch (error) {
+      print('Failed to start $runtime web driver service: $error');
+      rethrow;
+    }
   }
 
   factory WebDriverService.fromRuntime(Runtime runtime) {
-    return _instances.putIfAbsent(runtime, () {
-      switch (runtime) {
-        case Runtime.safari:
-          return WebDriverService(
-              '/usr/bin/safaridriver', [], safariDriverPort);
-        default:
-          throw ArgumentError.value(runtime, 'runtime', 'Unsupported runtime');
-      }
-    });
+    return _instances[runtime] ??
+        (throw ArgumentError.value(runtime, 'runtime', 'Service unavailable'));
   }
 }

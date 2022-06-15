@@ -24,7 +24,7 @@ import '../js_model/js_world.dart';
 import '../js_model/locals.dart';
 import '../native/behavior.dart';
 import '../options.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';

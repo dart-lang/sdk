@@ -10,7 +10,7 @@ import '../common/names.dart' show Identifiers, Selectors;
 import '../elements/entities.dart';
 import '../inferrer/types.dart';
 import '../kernel/no_such_method_resolver.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 
 /// [NoSuchMethodRegistry] and [NoSuchMethodData] categorizes `noSuchMethod`
 /// implementations.

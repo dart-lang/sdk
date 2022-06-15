@@ -16,6 +16,9 @@ void main() async {
     testDriverErrorPort: 0,
     testServerPort: 0,
     testServerCrossOriginPort: 0,
+    outputDirectory: '',
+    reproducingArguments: [],
+    sharedOptions: [],
   );
   await configuration.startServers();
   try {

@@ -10,7 +10,7 @@ import '../common.dart';
 import '../constants/values.dart'
     show ConstantValue, DeferredGlobalConstantValue;
 import '../elements/entities.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../options.dart';
 
 // TODO(48820): Move OutputUnit and compareImportEntities back here.

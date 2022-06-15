@@ -17,10 +17,10 @@ class OutputLog implements StreamConsumer<List<int>> {
   static const _maxLength = 10 * 1024 * 1024;
 
   final List<int> _data = [];
-  StreamSubscription _subscription;
+  StreamSubscription? _subscription;
 
   bool get hasNonUtf8 => _hasNonUtf8 ??= _checkUtf8();
-  bool _hasNonUtf8;
+  bool? _hasNonUtf8;
 
   bool get wasTruncated => _wasTruncated;
   bool _wasTruncated = false;
@@ -70,21 +70,21 @@ class OutputLog implements StreamConsumer<List<int>> {
   }
 
   @override
-  Future addStream(Stream<List<int>> stream) {
+  Future<void> addStream(Stream<List<int>> stream) {
     _subscription = stream.listen(add);
-    return _subscription.asFuture();
+    return _subscription?.asFuture() ?? Future.value();
   }
 
   @override
-  Future close() => _subscription?.cancel();
+  Future<void> close() => _subscription?.cancel() ?? Future.value();
 
-  Future cancel() => _subscription?.cancel();
+  Future<void> cancel() => _subscription?.cancel() ?? Future.value();
 }
 
 /// An [OutputLog] that tees the output to a file as well.
 class FileOutputLog extends OutputLog {
   final File _outputFile;
-  IOSink _sink;
+  IOSink? _sink;
 
   FileOutputLog(this._outputFile);
 
@@ -92,22 +92,22 @@ class FileOutputLog extends OutputLog {
   void add(List<int> data) {
     super.add(data);
     _sink ??= _outputFile.openWrite();
-    _sink.add(data);
+    _sink!.add(data);
   }
 
   @override
-  Future close() {
+  Future<void> close() {
     return Future.wait([
       super.close(),
-      if (_sink != null) _sink.flush().whenComplete(_sink.close)
+      if (_sink != null) _sink!.flush().whenComplete(_sink!.close)
     ]);
   }
 
   @override
-  Future cancel() {
+  Future<void> cancel() {
     return Future.wait([
       super.cancel(),
-      if (_sink != null) _sink.flush().whenComplete(_sink.close)
+      if (_sink != null) _sink!.flush().whenComplete(_sink!.close)
     ]);
   }
 }

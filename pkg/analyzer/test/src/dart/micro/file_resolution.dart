@@ -6,8 +6,8 @@ import 'dart:convert';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -29,7 +29,7 @@ import '../resolution/resolution.dart';
 class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   static final String _testFile = '/workspace/dart/test/lib/test.dart';
 
-  final MemoryCiderByteStore byteStore = MemoryCiderByteStore();
+  final MemoryByteStore byteStore = MemoryByteStore();
 
   final FileResolverTestView testData = FileResolverTestView();
 
@@ -167,7 +167,7 @@ class ResolverStatePrinter {
 
   ResolverStatePrinter(this._resourceProvider, this._sink, this._keyShorter);
 
-  void write(MemoryCiderByteStore byteStore, FileSystemState fileSystemState,
+  void write(MemoryByteStore byteStore, FileSystemState fileSystemState,
       LibraryContext libraryContext, FileResolverTestView testData) {
     _writelnWithIndent('files');
     _withIndent(() {

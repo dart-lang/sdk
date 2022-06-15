@@ -26,11 +26,11 @@ abstract class Command {
   int get maxNumRetries => 2;
 
   /// Reproduction command.
-  String get reproductionCommand => null;
+  String get reproductionCommand;
 
   /// We compute the Command.hashCode lazily and cache it here, since it might
   /// be expensive to compute (and hashCode is called often).
-  int _cachedHashCode;
+  int? _cachedHashCode;
 
   Command._(this.displayName, {this.index = 0});
 
@@ -52,7 +52,7 @@ abstract class Command {
       _buildHashCode(builder);
       _cachedHashCode = builder.value;
     }
-    return _cachedHashCode;
+    return _cachedHashCode!;
   }
 
   operator ==(Object other) =>
@@ -85,10 +85,12 @@ class ProcessCommand extends Command {
   final Map<String, String> environmentOverrides;
 
   /// Working directory for the command.
-  final String workingDirectory;
+  final String? workingDirectory;
 
   ProcessCommand(String displayName, this.executable, this.arguments,
-      [this.environmentOverrides, this.workingDirectory, int index = 0])
+      [this.environmentOverrides = const {},
+      this.workingDirectory,
+      int index = 0])
       : super._(displayName, index: index) {
     if (io.Platform.operatingSystem == 'windows') {
       // Windows can't handle the first command if it is a .bat file or the like
@@ -120,7 +122,7 @@ class ProcessCommand extends Command {
 
   String get reproductionCommand {
     var env = StringBuffer();
-    environmentOverrides?.forEach((key, value) =>
+    environmentOverrides.forEach((key, value) =>
         (io.Platform.operatingSystem == 'windows')
             ? env.write('set $key=${escapeCommandLineArgument(value)} & ')
             : env.write('$key=${escapeCommandLineArgument(value)} '));
@@ -162,10 +164,10 @@ class CompilationCommand extends ProcessCommand {
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides,
-      {bool alwaysCompile,
-      String workingDirectory,
+      {required bool alwaysCompile,
+      String? workingDirectory,
       int index = 0})
-      : _alwaysCompile = alwaysCompile ?? false,
+      : _alwaysCompile = alwaysCompile,
         super(displayName, executable, arguments, environmentOverrides,
             workingDirectory, index);
 
@@ -254,9 +256,9 @@ class Dart2jsCompilationCommand extends CompilationCommand {
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides,
-      {this.useSdk,
-      bool alwaysCompile,
-      String workingDirectory,
+      {required this.useSdk,
+      required bool alwaysCompile,
+      String? workingDirectory,
       int index = 0})
       : super("dart2js", outputFile, bootstrapDependencies, executable,
             arguments, environmentOverrides,
@@ -267,7 +269,7 @@ class Dart2jsCompilationCommand extends CompilationCommand {
   @override
   CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
       List<int> stderr, Duration time, bool compilationSkipped,
-      [int pid = 0]) {
+      [int? pid = 0]) {
     return Dart2jsCompilerCommandOutput(
         this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   }
@@ -309,9 +311,9 @@ class DevCompilerCompilationCommand extends CompilationCommand {
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides,
-      {this.compilerPath,
-      bool alwaysCompile,
-      String workingDirectory,
+      {required this.compilerPath,
+      required bool alwaysCompile,
+      String? workingDirectory,
       int index = 0})
       : super("dartdevc", outputFile, bootstrapDependencies, executable,
             arguments, environmentOverrides,
@@ -365,7 +367,7 @@ class FastaCompilationCommand extends CompilationCommand {
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides,
-      String workingDirectory,
+      String? workingDirectory,
       {int index = 0})
       : super("fasta", outputFile, bootstrapDependencies, executable, arguments,
             environmentOverrides,
@@ -386,7 +388,7 @@ class FastaCompilationCommand extends CompilationCommand {
 
   FastaCommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
           List<int> stderr, Duration time, bool compilationSkipped,
-          [int pid = 0]) =>
+          [int? pid = 0]) =>
       FastaCommandOutput(
           this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
 
@@ -404,7 +406,7 @@ class FastaCompilationCommand extends CompilationCommand {
     String relativizeAndEscape(String argument) {
       if (workingDirectory != null) {
         argument = argument.replaceAll(
-            workingDirectory, Uri.directory(".").toFilePath());
+            workingDirectory!, Uri.directory(".").toFilePath());
       }
       return escapeCommandLineArgument(argument);
     }
@@ -412,10 +414,10 @@ class FastaCompilationCommand extends CompilationCommand {
     var buffer = StringBuffer();
     if (workingDirectory != null && !io.Platform.isWindows) {
       buffer.write("(cd ");
-      buffer.write(escapeCommandLineArgument(workingDirectory));
+      buffer.write(escapeCommandLineArgument(workingDirectory!));
       buffer.write(" ; ");
     }
-    environmentOverrides?.forEach((key, value) {
+    environmentOverrides.forEach((key, value) {
       if (io.Platform.isWindows) {
         buffer.write("set ");
       }
@@ -462,7 +464,7 @@ class VMKernelCompilationCommand extends CompilationCommand {
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides,
-      {bool alwaysCompile,
+      {required bool alwaysCompile,
       int index = 0})
       : super('vm_compile_to_kernel', outputFile, bootstrapDependencies,
             executable, arguments, environmentOverrides,
@@ -480,7 +482,7 @@ class VMKernelCompilationCommand extends CompilationCommand {
           List<int> stderr,
           Duration time,
           bool compilationSkipped,
-          [int pid = 0]) =>
+          [int? pid = 0]) =>
       VMKernelCompilationCommandOutput(
           this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
 
@@ -547,7 +549,7 @@ class AnalysisCommand extends ProcessCommand {
 
   CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
           List<int> stderr, Duration time, bool compilationSkipped,
-          [int pid = 0]) =>
+          [int? pid = 0]) =>
       AnalysisCommandOutput(
           this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
 }
@@ -569,7 +571,7 @@ class CompareAnalyzerCfeCommand extends ProcessCommand {
           List<int> stderr,
           Duration time,
           bool compilationSkipped,
-          [int pid = 0]) =>
+          [int? pid = 0]) =>
       CompareAnalyzerCfeCommandOutput(
           this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
 }
@@ -591,7 +593,7 @@ class SpecParseCommand extends ProcessCommand {
           List<int> stderr,
           Duration time,
           bool compilationSkipped,
-          [int pid = 0]) =>
+          [int? pid = 0]) =>
       SpecParseCommandOutput(
           this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
 }
@@ -618,9 +620,9 @@ class VMCommand extends ProcessCommand {
 // must be in the harness.
 class RRCommand extends Command {
   VMCommand originalCommand;
-  VMCommand wrappedCommand;
-  io.Directory recordingDir;
-  io.Directory savedDir;
+  late VMCommand wrappedCommand;
+  late io.Directory recordingDir;
+  late io.Directory savedDir;
 
   RRCommand(this.originalCommand)
       : super._("rr", index: originalCommand.index) {
@@ -643,13 +645,16 @@ class RRCommand extends Command {
   RRCommand indexedCopy(int index) =>
       RRCommand(originalCommand.indexedCopy(index));
 
-  Future<CommandOutput> run(int timeout) async {
+  Future<CommandOutput> run(
+      int timeout, TestConfiguration configuration) async {
     // rr will fail if the output trace directory already exists. Delete any
     // that might be leftover from interrupting the harness.
     if (await recordingDir.exists()) {
       await recordingDir.delete(recursive: true);
     }
-    final output = await RunningProcess(wrappedCommand, timeout).run();
+    final output = await RunningProcess(wrappedCommand, timeout,
+            configuration: configuration)
+        .run();
     if (output.hasCrashed) {
       if (await savedDir.exists()) {
         await savedDir.delete(recursive: true);
@@ -739,6 +744,9 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
 
   String toString() => 'Steps to push precompiled runner and precompiled code '
       'to an attached device. Uses (and requires) adb.';
+
+  @override
+  String get reproductionCommand => throw UnimplementedError();
 }
 
 class AdbDartkCommand extends Command implements AdbCommand {
@@ -790,12 +798,15 @@ class AdbDartkCommand extends Command implements AdbCommand {
 
   String toString() => 'Steps to push Dart VM and Dill file '
       'to an attached device. Uses (and requires) adb.';
+
+  @override
+  String get reproductionCommand => throw UnimplementedError();
 }
 
 class JSCommandLineCommand extends ProcessCommand {
   JSCommandLineCommand(
       String displayName, String executable, List<String> arguments,
-      [Map<String, String> environmentOverrides, int index = 0])
+      [Map<String, String> environmentOverrides = const {}, int index = 0])
       : super(displayName, executable, arguments, environmentOverrides, null,
             index);
 
@@ -809,7 +820,7 @@ class JSCommandLineCommand extends ProcessCommand {
           List<int> stderr,
           Duration time,
           bool compilationSkipped,
-          [int pid = 0]) =>
+          [int? pid = 0]) =>
       JSCommandLineOutput(this, exitCode, timedOut, stdout, stderr, time);
 }
 

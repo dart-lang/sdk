@@ -239,7 +239,6 @@ enum BenchmarkSubdivides {
   inferFunctionBody,
   inferInitializer,
   inferMetadata,
-  inferMetadataKeepingHelper,
   inferParameterInitializer,
   inferRedirectingFactoryTypeArguments,
 

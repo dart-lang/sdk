@@ -387,7 +387,12 @@ void testValidate() {
 }
 
 void expectValidate(List<StaticError> expected, List<StaticError> actual,
-    String expectedValidation) {
+    String? expectedValidation) {
   var actualValidation = StaticError.validateExpectations(expected, actual);
-  Expect.stringEquals(expectedValidation, actualValidation);
+  if (expectedValidation == null) {
+    Expect.isNull(actualValidation);
+  } else {
+    Expect.isNotNull(actualValidation);
+    Expect.stringEquals(expectedValidation, actualValidation!);
+  }
 }

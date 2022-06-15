@@ -58,9 +58,7 @@ final int _lineLength = () {
 /// other sorts of whitespace or separators.
 ///
 /// If [prefix] is passed, it's added at the beginning of any wrapped lines.
-String wordWrap(String text, {String prefix}) {
-  prefix ??= '';
-
+String wordWrap(String text, {String prefix = ''}) {
   var buffer = StringBuffer();
   var originalLines = text.split('\n');
   var lengthSoFar = 0;

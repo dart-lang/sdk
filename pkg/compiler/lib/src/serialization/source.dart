@@ -273,6 +273,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeValueOrNull].
+  @override
   E readValueOrNull<E>(E f()) {
     bool hasValue = readBool();
     if (hasValue) {
@@ -982,13 +983,23 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a list of references to indexed classes from this data source.
-  /// If [emptyAsNull] is `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeClasses].
-  List<E> readClasses<E extends ClassEntity>({bool emptyAsNull = false}) {
+  @override
+  List<E> readClasses<E extends ClassEntity>() {
+    return readClassesOrNull<E>() ?? List.empty();
+  }
+
+  /// Reads a list of references to indexed classes from this data source.
+  /// `null` is returned instead of an empty list.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeClasses].
+  @override
+  List<E> readClassesOrNull<E extends ClassEntity>() {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
+    if (count == 0) return null;
     List<E> list = List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       ClassEntity cls = readClass();
@@ -998,15 +1009,25 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a map from indexed classes to [V] values from this data source,
-  /// calling [f] to read each value from the data source. If [emptyAsNull] is
-  /// `true`, `null` is returned instead of an empty map.
+  /// calling [f] to read each value from the data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeClassMap].
-  Map<K, V> readClassMap<K extends ClassEntity, V>(V f(),
-      {bool emptyAsNull = false}) {
+  @override
+  Map<K, V> readClassMap<K extends ClassEntity, V>(V f()) {
+    return readClassMapOrNull<K, V>(f) ?? {};
+  }
+
+  /// Reads a map from indexed classes to [V] values from this data source,
+  /// calling [f] to read each value from the data source. `null` is returned if
+  /// the map is empty.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeClassMap].
+  @override
+  Map<K, V> /*?*/ readClassMapOrNull<K extends ClassEntity, V>(V f()) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
+    if (count == 0) return null;
     Map<K, V> map = {};
     for (int i = 0; i < count; i++) {
       ClassEntity cls = readClass();
@@ -1017,12 +1038,14 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a reference to an indexed member from this data source.
+  @override
   IndexedMember /*!*/ readMember() {
     return _entityReader.readMemberFromDataSource(this, entityLookup);
   }
 
   /// Reads a reference to a potentially `null` indexed member from this data
   /// source.
+  @override
   IndexedMember readMemberOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -1035,6 +1058,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeMembers].
+  @override
   List<E /*!*/ > readMembers<E extends MemberEntity /*!*/ >() {
     return readMembersOrNull() ?? List.empty();
   }
@@ -1044,6 +1068,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeMembers].
+  @override
   List<E /*!*/ > readMembersOrNull<E extends MemberEntity /*!*/ >() {
     int count = readInt();
     if (count == 0) return null;
@@ -1263,6 +1288,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a potentially `null` constant value from this data source.
+  @override
   ConstantValue readConstantOrNull() {
     bool hasClass = readBool();
     if (hasClass) {
@@ -1288,15 +1314,25 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a map from constant values to [V] values from this data source,
-  /// calling [f] to read each value from the data source. If [emptyAsNull] is
-  /// `true`, `null` is returned instead of an empty map.
+  /// calling [f] to read each value from the data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeConstantMap].
-  Map<K, V> readConstantMap<K extends ConstantValue, V>(V f(),
-      {bool emptyAsNull = false}) {
+  @override
+  Map<K, V> readConstantMap<K extends ConstantValue, V>(V f()) {
+    return readConstantMapOrNull<K, V>(f) ?? {};
+  }
+
+  /// Reads a map from constant values to [V] values from this data source,
+  /// calling [f] to read each value from the data source. `null` is returned
+  /// instead of an empty map.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeConstantMap].
+  @override
+  Map<K, V> /*?*/ readConstantMapOrNull<K extends ConstantValue, V>(V f()) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
+    if (count == 0) return null;
     Map<K, V> map = {};
     for (int i = 0; i < count; i++) {
       ConstantValue key = readConstant();
@@ -1334,6 +1370,7 @@ class DataSourceReader implements migrated.DataSourceReader {
     return BigInt.parse(readString());
   }
 
+  @override
   ImportEntity readImport() {
     _checkDataKind(DataKind.import);
     return _readImport();
@@ -1353,6 +1390,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a potentially `null` import from this data source.
+  @override
   ImportEntity readImportOrNull() {
     bool hasClass = readBool();
     if (hasClass) {
@@ -1361,14 +1399,24 @@ class DataSourceReader implements migrated.DataSourceReader {
     return null;
   }
 
-  /// Reads a list of imports from this data source. If [emptyAsNull] is
-  /// `true`, `null` is returned instead of an empty list.
+  /// Reads a list of imports from this data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeImports].
-  List<ImportEntity> readImports({bool emptyAsNull = false}) {
+  @override
+  List<ImportEntity> readImports() {
+    return readImportsOrNull() ?? const [];
+  }
+
+  /// Reads a list of imports from this data source.
+  /// `null` is returned instead of an empty list.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeImports].
+  @override
+  List<ImportEntity> /*?*/ readImportsOrNull() {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
+    if (count == 0) return null;
     List<ImportEntity> list = List<ImportEntity>.filled(count, null);
     for (int i = 0; i < count; i++) {
       list[i] = readImport();
@@ -1377,14 +1425,25 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a map from imports to [V] values from this data source,
-  /// calling [f] to read each value from the data source. If [emptyAsNull] is
-  /// `true`, `null` is returned instead of an empty map.
+  /// calling [f] to read each value from the data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeImportMap].
-  Map<ImportEntity, V> readImportMap<V>(V f(), {bool emptyAsNull = false}) {
+  @override
+  Map<ImportEntity, V> readImportMap<V>(V f()) {
+    return readImportMapOrNull<V>(f) ?? {};
+  }
+
+  /// Reads a map from imports to [V] values from this data source, calling [f]
+  /// to read each value from the data source. `null` is returned if the map is
+  /// empty map.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeImportMap].
+  @override
+  Map<ImportEntity, V> /*?*/ readImportMapOrNull<V>(V f()) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
+    if (count == 0) return null;
     Map<ImportEntity, V> map = {};
     for (int i = 0; i < count; i++) {
       ImportEntity key = readImport();
@@ -1397,6 +1456,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   /// Reads an [AbstractValue] from this data source.
   ///
   /// This feature is only available a [CodegenReader] has been registered.
+  @override
   AbstractValue readAbstractValue() {
     assert(
         _codegenReader != null,

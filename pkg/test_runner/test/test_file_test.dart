@@ -49,7 +49,7 @@ void testParseDill() {
   Expect.listEquals(<String>[], file.otherResources);
   Expect.listEquals(<String>[], file.sharedObjects);
 
-  Expect.isNull(file.environment);
+  Expect.isEmpty(file.environment.entries);
   Expect.isNull(file.packages);
 
   Expect.isFalse(file.isMultitest);
@@ -159,7 +159,7 @@ void testParseOtherOptions() {
 void testParseEnvironment() {
   // No environment.
   var file = parseTestFile("");
-  Expect.isNull(file.environment);
+  Expect.isTrue(file.environment.isEmpty);
 
   // Without values.
   file = parseTestFile("""
@@ -188,7 +188,7 @@ void testParsePackages() {
   /\/ Packages=packages thing
   """);
   Expect.isTrue(
-      file.packages.endsWith("${Platform.pathSeparator}packages thing"));
+      file.packages!.endsWith("${Platform.pathSeparator}packages thing"));
 
   // "none" is left alone.
   file = parseTestFile("""
@@ -809,11 +809,19 @@ void testShardHash() {
   // don't want to depend on the hash algorithm, so we can't really be more
   // specific than that.
   var testFile = parseTestFile("", path: "a_test.dart");
-  Expect.isTrue(testFile.shardHash is int);
+  Expect.type<int>(testFile.shardHash);
 
   // VM test files are hard-coded to return hash zero because they don't have a
   // path to base the hash on.
-  Expect.equals(0, TestFile.vmUnitTest().shardHash);
+  Expect.equals(
+      0,
+      TestFile.vmUnitTest(
+              hasCompileError: false,
+              hasCrash: false,
+              hasRuntimeError: false,
+              hasStaticWarning: false,
+              hasSyntaxError: false)
+          .shardHash);
 }
 
 void expectParseErrorExpectations(String source, List<StaticError> errors) {
