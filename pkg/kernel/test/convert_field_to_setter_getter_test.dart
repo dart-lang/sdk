@@ -54,6 +54,10 @@ void main() {
 
   // Replace the field with a setter/getter pair.
   lib1.fields.remove(field);
+
+  // Important: Unbind any old canonical name
+  field.fieldReference.canonicalName?.unbind();
+
   FunctionNode getterFunction = new FunctionNode(new Block([]));
   Procedure getter = new Procedure(
       new Name("f"), ProcedureKind.Getter, getterFunction,
@@ -112,6 +116,7 @@ void main() {
   // (nulling out the canonical name is not enough, see above).
   fieldReplacement.getterReference.canonicalName?.unbind();
   fieldReplacement.setterReference?.canonicalName?.unbind();
+  fieldReplacement.fieldReference.canonicalName?.unbind();
   lib1.addField(fieldReplacement);
 
   verifyTargets(
