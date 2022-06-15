@@ -168,7 +168,7 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
   @override
   TreeNode visitTryCatch(TryCatch node, TreeNode? removalSentinel) {
     node.transformOrRemoveChildren(this);
-    // Can replace try/catch with its body if all catches are just rethow.
+    // Can replace try/catch with its body if all catches are just rethrow.
     for (Catch catchClause in node.catches) {
       if (!_isRethrow(catchClause.body)) {
         return node;

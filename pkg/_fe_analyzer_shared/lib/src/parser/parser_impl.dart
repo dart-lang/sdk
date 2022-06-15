@@ -7081,7 +7081,7 @@ class Parser {
       Token afterIdentifier = next.next!;
       //
       // found <typeref> `?` <identifier>
-      // with no annotations or modifiers preceeding it
+      // with no annotations or modifiers preceding it
       //
       if (optional('=', afterIdentifier)) {
         //

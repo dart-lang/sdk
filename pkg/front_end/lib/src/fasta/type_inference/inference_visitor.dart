@@ -16,15 +16,8 @@ import '../../base/instrumentation.dart'
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
 import '../fasta_codes.dart';
-import '../names.dart';
-import '../problems.dart' show unhandled;
-import '../source/source_library_builder.dart';
-import '../type_inference/type_constraint_gatherer.dart';
-import '../type_inference/type_inference_engine.dart';
-import '../type_inference/type_inferrer.dart';
-import '../type_inference/type_schema.dart' show UnknownType;
-import 'body_builder.dart' show combineStatements;
-import 'collections.dart'
+import '../kernel/body_builder.dart' show combineStatements;
+import '../kernel/collections.dart'
     show
         ForElement,
         ForInElement,
@@ -35,9 +28,16 @@ import 'collections.dart'
         SpreadElement,
         SpreadMapEntry,
         convertToElement;
-import 'implicit_type_argument.dart' show ImplicitTypeArgument;
-import 'internal_ast.dart';
-import 'late_lowering.dart' as late_lowering;
+import '../kernel/implicit_type_argument.dart' show ImplicitTypeArgument;
+import '../kernel/internal_ast.dart';
+import '../kernel/late_lowering.dart' as late_lowering;
+import '../names.dart';
+import '../problems.dart' show unhandled;
+import '../source/source_library_builder.dart';
+import 'type_constraint_gatherer.dart';
+import 'type_inference_engine.dart';
+import 'type_inferrer.dart';
+import 'type_schema.dart' show UnknownType;
 
 class InferenceVisitor
     implements

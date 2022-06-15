@@ -946,7 +946,7 @@ void main() {new A().f^}''');
     assertNotSuggested('r');
     assertNotSuggested('x');
 
-    // imported elements are portially filtered
+    // imported elements are partially filtered
     //assertNotSuggested('A');
     assertNotSuggested('_B');
     //assertNotSuggested('C');
@@ -2511,7 +2511,7 @@ g(F.^
     assertSuggestGetter('length', 'int');
   }
 
-  Future<void> test_local_propogatedType() async {
+  Future<void> test_local_propagatedType() async {
     addTestSource('foo() {var x = "bar"; x.^}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');

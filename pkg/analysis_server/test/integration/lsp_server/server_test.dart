@@ -38,21 +38,6 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(responseBody, contains('<title>Analysis Server</title>'));
   }
 
-  Future<void> test_exit_inintializedWithShutdown() async {
-    await initialize();
-    await sendShutdown();
-    sendExit();
-
-    await channel.closed.timeout(const Duration(seconds: 10),
-        onTimeout: () =>
-            fail('Server channel did not close within 10 seconds'));
-
-    final exitCode = await client!.exitCode.timeout(const Duration(seconds: 10),
-        onTimeout: () => fail('Server process did not exit within 10 seconds'));
-
-    expect(exitCode, equals(0));
-  }
-
   Future<void> test_exit_initializedWithoutShutdown() async {
     // Send a request that we can wait for, to ensure the server is fully ready
     // before we send exit. Otherwise the exit notification won't be handled for
@@ -70,7 +55,8 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(exitCode, equals(1));
   }
 
-  Future<void> test_exit_uninintializedWithShutdown() async {
+  Future<void> test_exit_initializedWithShutdown() async {
+    await initialize();
     await sendShutdown();
     sendExit();
 
@@ -95,5 +81,19 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     final exitCode = await client!.exitCode;
 
     expect(exitCode, equals(1));
+  }
+
+  Future<void> test_exit_uninitializedWithShutdown() async {
+    await sendShutdown();
+    sendExit();
+
+    await channel.closed.timeout(const Duration(seconds: 10),
+        onTimeout: () =>
+            fail('Server channel did not close within 10 seconds'));
+
+    final exitCode = await client!.exitCode.timeout(const Duration(seconds: 10),
+        onTimeout: () => fail('Server process did not exit within 10 seconds'));
+
+    expect(exitCode, equals(0));
   }
 }

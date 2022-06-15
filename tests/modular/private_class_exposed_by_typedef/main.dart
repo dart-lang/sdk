@@ -21,7 +21,7 @@ class Derived extends PublicClass {
 }
 
 /// Extend a private class via a public typedef overriding methods and
-/// properties.  The final field `x` is overriden with a getter which returns
+/// properties.  The final field `x` is overridden with a getter which returns
 /// different values every time it is called.
 class AlsoDerived extends AlsoPublicClass {
   int backingStore = publicNameSentinel;

@@ -37,7 +37,7 @@ class ReferencesHandler
     final unit = await path.mapResult(requireResolvedUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
     return offset.mapResult(
-        (offset) => _getRefererences(path.result, offset, params, unit.result));
+        (offset) => _getReferences(path.result, offset, params, unit.result));
   }
 
   List<Location> _getDeclarations(CompilationUnit unit, int offset) {
@@ -53,7 +53,7 @@ class ReferencesHandler
     }).whereNotNull().toList();
   }
 
-  Future<ErrorOr<List<Location>?>> _getRefererences(String path, int offset,
+  Future<ErrorOr<List<Location>?>> _getReferences(String path, int offset,
       ReferenceParams params, ResolvedUnitResult unit) async {
     var element = await server.getElementAtOffset(path, offset);
     if (element is ImportElement) {

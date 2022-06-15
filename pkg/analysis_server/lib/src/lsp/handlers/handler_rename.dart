@@ -114,7 +114,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
     final path = pathOfDoc(params.textDocument);
     // If the client provided us a version doc identifier, we'll use it to ensure
     // we're not computing a rename for an old document. If not, we'll just assume
-    // the version the server had at the time of recieving the request is valid
+    // the version the server had at the time of receiving the request is valid
     // and then use it to verify the document hadn't changed again before we
     // send the edits.
     final docIdentifier = await path.mapResult((path) => success(

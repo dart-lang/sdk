@@ -24,7 +24,7 @@ class SpeculativeInliningPolicy;
 //
 //    * Replace a call to a binary arithmetic operator with corresponding IL
 //      instructions and necessary checks;
-//    * Replace a dynamic call with a static call, if reciever is known
+//    * Replace a dynamic call with a static call, if receiver is known
 //      to have a certain class id;
 //    * Replace type check with a range check
 //

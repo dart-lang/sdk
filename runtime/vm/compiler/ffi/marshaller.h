@@ -85,7 +85,7 @@ class BaseMarshaller : public ZoneAllocated {
     return Location(arg_index).payload_type().AsRepresentationOverApprox(zone_);
   }
 
-  // Representation on how the value is passed to or recieved from the FfiCall
+  // Representation on how the value is passed to or received from the FfiCall
   // instruction or StaticCall, NativeParameter, and NativeReturn instructions.
   virtual Representation RepInFfiCall(intptr_t def_index_global) const;
   void RepsInFfiCall(intptr_t arg_index,

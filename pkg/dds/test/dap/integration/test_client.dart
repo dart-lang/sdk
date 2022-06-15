@@ -176,7 +176,7 @@ class DapTestClient {
       'Event "$event"',
       _eventController.stream.firstWhere((e) => e.event == event,
           orElse: () =>
-              throw 'Did not recieve $event event before stream closed'));
+              throw 'Did not receive $event event before stream closed'));
 
   /// Returns a stream for [event] events.
   Stream<Event> events(String event) {
@@ -673,7 +673,7 @@ extension DapTestClientExtension on DapTestClient {
 
   /// Collects all output events until the program terminates.
   ///
-  /// These results include all events in the order they are recieved, including
+  /// These results include all events in the order they are received, including
   /// console, stdout and stderr.
   ///
   /// Only one of [start] or [launch] may be provided. Use [start] to customise
@@ -701,7 +701,7 @@ extension DapTestClientExtension on DapTestClient {
 
   /// Collects all output and test events until the program terminates.
   ///
-  /// These results include all events in the order they are recieved, including
+  /// These results include all events in the order they are received, including
   /// console, stdout, stderr and test notifications from the test JSON reporter.
   ///
   /// Only one of [start] or [launch] may be provided. Use [start] to customise

@@ -769,7 +769,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
 
   bool EnsureIsRunnable(Isolate* child) {
     // We called out to the embedder to create/initialize a new isolate. The
-    // embedder callback sucessfully did so. It is now our responsibility to
+    // embedder callback successfully did so. It is now our responsibility to
     // run the isolate.
     // If the isolate was not marked as runnable, we'll do so here and run it.
     if (!child->is_runnable()) {

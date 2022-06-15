@@ -32,13 +32,13 @@ typedef Func2 = int Function(bool);
 /// A typedef that defines a generic function type.
 typedef GenericFunc = int Function<T>(T);
 
-/// A typedef with a type paramter that defines a non-generic function type.
+/// A typedef with a type parameter that defines a non-generic function type.
 typedef int GenericTypedef<T>(T t);
 
 /// Semantically identical to [GenericTypedef], but using the Dart 2 syntax.
 typedef GenericTypedef2<T> = int Function(T);
 
-/// A typedef with a type paramter that defines a generic function type.
+/// A typedef with a type parameter that defines a generic function type.
 typedef GenericTypedefAndFunc<S> = S Function<T>(T);
 
 main() {

@@ -729,7 +729,7 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
 //
 // Therefore, to support this assumption, we scan the stack after a scavenge
 // or when concurrent marking begins and add all live temporaries in
-// Dart frames preceeding an exit frame to the store buffer or deferred
+// Dart frames preceding an exit frame to the store buffer or deferred
 // marking stack.
 void Thread::RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op) {
   ASSERT(IsAtSafepoint());

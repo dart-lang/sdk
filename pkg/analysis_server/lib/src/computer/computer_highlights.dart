@@ -86,7 +86,7 @@ class DartUnitHighlightsComputer {
       }
       if (token.type == TokenType.EOF) {
         // Only exit the loop *after* processing the EOF token as it may
-        // have preceeding comments.
+        // have preceding comments.
         break;
       }
       token = token.next;
@@ -517,7 +517,7 @@ class DartUnitHighlightsComputer {
       _regions.add(HighlightRegion(type, offset, length));
     }
     if (_computeSemanticTokens) {
-      // Use default mappings if an overriden type/modifiers were not supplied.
+      // Use default mappings if an overridden type/modifiers were not supplied.
       semanticTokenType ??= highlightRegionTokenTypes[type];
       semanticTokenModifiers ??= highlightRegionTokenModifiers[type];
       if (semanticTokenType != null) {

@@ -177,7 +177,7 @@ int minified(int x, int y) => min(x, y);
       (codeAction) => codeAction.command!,
     );
 
-    // Ensure the request returned an error (error repsonses are thrown by
+    // Ensure the request returned an error (error responses are thrown by
     // the test helper to make consuming success results simpler).
     await expectLater(executeCommand(command),
         throwsA(isResponseError(ServerErrorCodes.FileHasErrors)));
@@ -356,7 +356,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
           applied: false, failureReason: 'Document changed'),
     );
 
-    // Ensure the request returned an error (error repsonses are thrown by
+    // Ensure the request returned an error (error responses are thrown by
     // the test helper to make consuming success results simpler).
     await expectLater(commandResponse,
         throwsA(isResponseError(ServerErrorCodes.ClientFailedToApplyEdit)));
@@ -400,7 +400,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
       (codeAction) => codeAction.command!,
     );
 
-    // Ensure the request returned an error (error repsonses are thrown by
+    // Ensure the request returned an error (error responses are thrown by
     // the test helper to make consuming success results simpler).
     await expectLater(executeCommand(command),
         throwsA(isResponseError(ServerErrorCodes.FileHasErrors)));

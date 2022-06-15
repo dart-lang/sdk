@@ -89,9 +89,9 @@ class ImportOrganizer {
           var offset = directive.offset;
           var end = directive.end;
 
-          final isPsuedoLibraryDirective = directive == unit.directives.first;
+          final isPseudoLibraryDirective = directive == unit.directives.first;
           Annotation? lastLibraryAnnotation;
-          if (isPsuedoLibraryDirective) {
+          if (isPseudoLibraryDirective) {
             // Find the last library-level annotation that does not come
             // after any non-library annotation. If there are already
             // non-library annotations before library annotations, we will not
@@ -196,7 +196,7 @@ class ImportOrganizer {
               postAnnotationCommentText,
               uriContent,
               trailingCommentText,
-              isPsuedoLibraryDirective
+              isPseudoLibraryDirective
                   ? (libraryDocsAndAnnotationsEndOffset ?? offset)
                   : offset,
               end,

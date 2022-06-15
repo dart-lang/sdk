@@ -5124,7 +5124,7 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
   // better optimized by the compiler.
   //
   // TODO(dartbug.com/37291): Allow this optimization, but accumulate affected
-  // InstanceCallInstrs and the corresponding reciever cids during compilation.
+  // InstanceCallInstrs and the corresponding receiver cids during compilation.
   // After compilation, add receiver checks to the ICData for those call sites.
   if (Targets().is_empty()) return this;
 

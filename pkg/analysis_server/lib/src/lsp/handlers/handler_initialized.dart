@@ -6,9 +6,9 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
-class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
+class InitializedMessageHandler extends MessageHandler<InitializedParams, void> {
   final List<String> openWorkspacePaths;
-  IntializedMessageHandler(
+  InitializedMessageHandler(
     super.server,
     this.openWorkspacePaths,
   );

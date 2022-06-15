@@ -716,7 +716,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       Map<String, String> oldFileContent, CreateFile create) {
     final path = Uri.parse(create.uri).toFilePath();
     if (oldFileContent.containsKey(path)) {
-      throw 'Recieved create instruction for $path which already existed.';
+      throw 'Received create instruction for $path which already existed.';
     }
     oldFileContent[path] = '';
   }
@@ -726,7 +726,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final oldPath = Uri.parse(rename.oldUri).toFilePath();
     final newPath = Uri.parse(rename.newUri).toFilePath();
     if (!oldFileContent.containsKey(oldPath)) {
-      throw 'Recieved rename instruction for $oldPath which did not exist.';
+      throw 'Received rename instruction for $oldPath which did not exist.';
     }
     oldFileContent[newPath] = oldFileContent[oldPath]!;
     oldFileContent.remove(oldPath);
@@ -741,7 +741,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     for (var edit in edits) {
       final path = Uri.parse(edit.textDocument.uri).toFilePath();
       if (!oldFileContent.containsKey(path)) {
-        throw 'Recieved edits for $path which was not provided as a file to be edited. '
+        throw 'Received edits for $path which was not provided as a file to be edited. '
             'Perhaps a CreateFile change was missing from the edits?';
       }
       oldFileContent[path] = applyTextDocumentEdit(oldFileContent[path]!, edit);
@@ -1346,7 +1346,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   ///
   /// This is used for testing things like code actions, where the client initiates
   /// a request but the server does not respond to it until it's sent its own
-  /// request to the client and it recieved a response.
+  /// request to the client and it received a response.
   ///
   ///     Client                                 Server
   ///     1. |- Req: textDocument/codeAction      ->
@@ -1819,7 +1819,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         if (message.method == CustomMethods.analyzerStatus) {
           if (_clientCapabilities!.window?.workDoneProgress == true) {
             throw Exception(
-                'Recieved ${CustomMethods.analyzerStatus} notification '
+                'Received ${CustomMethods.analyzerStatus} notification '
                 'but client supports workDoneProgress');
           }
 
@@ -1829,7 +1829,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         } else if (message.method == Method.progress) {
           if (_clientCapabilities!.window?.workDoneProgress != true) {
             throw Exception(
-                'Recieved ${CustomMethods.analyzerStatus} notification '
+                'Received ${CustomMethods.analyzerStatus} notification '
                 'but client supports workDoneProgress');
           }
 

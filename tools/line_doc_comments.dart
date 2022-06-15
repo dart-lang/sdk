@@ -18,7 +18,7 @@ main(List<String> args) {
     print('Converts "/**"-style block doc comments in a directory ');
     print('containing Dart code to "///"-style line doc comments.');
     print('');
-    print('Usage: line_doc_coments.dart <dir>');
+    print('Usage: line_doc_comments.dart <dir>');
     return;
   }
 

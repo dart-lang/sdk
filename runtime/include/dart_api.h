@@ -1552,7 +1552,7 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_HandleMessage(void);
 
 /**
  * Drains the microtask queue, then blocks the calling thread until the current
- * isolate recieves a message, then handles all messages.
+ * isolate receives a message, then handles all messages.
  *
  * \param timeout_millis When non-zero, the call returns after the indicated
           number of milliseconds even if no message was received.
@@ -3293,9 +3293,9 @@ Dart_SetLibraryTagHandler(Dart_LibraryTagHandler handler);
  * call Dart_DeferredLoadComplete or Dart_DeferredLoadCompleteError before the
  * handler returns.
  *
- * If an error is returned, it will be propogated through
+ * If an error is returned, it will be propagated through
  * `prefix.loadLibrary()`. This is useful for synchronous
- * implementations, which must propogate any unwind errors from
+ * implementations, which must propagate any unwind errors from
  * Dart_DeferredLoadComplete or Dart_DeferredLoadComplete. Otherwise the handler
  * should return a non-error such as `Dart_Null()`.
  */

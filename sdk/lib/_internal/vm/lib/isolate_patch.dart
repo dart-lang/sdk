@@ -367,7 +367,7 @@ class Isolate {
     }
     if (script.isScheme("package")) {
       if (Isolate._packageSupported()) {
-        // resolving script uri is not really neccessary, but can be useful
+        // resolving script uri is not really necessary, but can be useful
         // for better failed-to-lookup-function-in-a-script spawn errors.
         script = await Isolate.resolvePackageUri(script);
       }

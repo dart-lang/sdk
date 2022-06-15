@@ -33,7 +33,7 @@ import '../fasta_codes.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
-import '../kernel/inference_visitor.dart';
+import 'inference_visitor.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/invalid_type.dart';
 import '../kernel/kernel_helper.dart';

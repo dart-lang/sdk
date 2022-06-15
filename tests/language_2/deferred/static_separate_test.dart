@@ -6,13 +6,13 @@
 
 // The class lib1.C is referenced via lib1
 // The static function lib1.C.foo is referenced via lib2
-// Dart2js will put them in seperate hunks.
+// Dart2js will put them in separate hunks.
 // Similarly for C2, ..., C5.
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import "static_seperate_lib1.dart" deferred as lib1;
-import "static_seperate_lib2.dart" deferred as lib2;
+import "static_separate_lib1.dart" deferred as lib1;
+import "static_separate_lib2.dart" deferred as lib2;
 
 void main() {
   asyncStart();

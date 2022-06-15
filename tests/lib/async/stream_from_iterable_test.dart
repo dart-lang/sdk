@@ -210,7 +210,7 @@ main() {
 }
 
 // Collects value and error events in a list.
-// Value events preceeded by "value", error events by "error".
+// Value events preceded by "value", error events by "error".
 // Completes on done event.
 Future<List<Object>> collectEvents(Stream<Object> stream) {
   var c = new Completer<List<Object>>();

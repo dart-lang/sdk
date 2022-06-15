@@ -492,7 +492,7 @@ class ShadowRewriter extends Transformer {
   ShadowRewriter(this.enclosingFunction) {
     for (final parameter in enclosingFunction.positionalParameters
         .followedBy(enclosingFunction.namedParameters)) {
-      // Put in placeholers so we can allocate new variables lazily- i.e. only
+      // Put in placeholders so we can allocate new variables lazily- i.e. only
       // if they're later referenced.
       _shadowedParameters[parameter] = null;
     }

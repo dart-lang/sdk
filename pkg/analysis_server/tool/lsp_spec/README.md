@@ -24,7 +24,7 @@ When there are no open workspace folders (or if the initialization option `onlyA
 ## Initialization Options
 
 - `onlyAnalyzeProjectsWithOpenFiles` (`bool?`): When set to `true`, workspace folders will be ignored and analysis will be performed based on the open files, as if no workspace was open at all. This allows opening large folders without causing them to be completely analyzed. Defaults to `false`.
-- `suggestFromUnimportedLibraries` (`bool?`): When set to `false`, completion will not include synbols that are not already imported into the current file. Defaults to `true`, though the client must additionally support `workspace/applyEdit` for these completions to be included.
+- `suggestFromUnimportedLibraries` (`bool?`): When set to `false`, completion will not include symbols that are not already imported into the current file. Defaults to `true`, though the client must additionally support `workspace/applyEdit` for these completions to be included.
 - `closingLabels` (`bool?`): When set to `true`, `dart/textDocument/publishClosingLabels` notifications will be sent with information to render editor closing labels.
 - `outline` (`bool?`): When set to `true`, `dart/textDocument/publishOutline` notifications will be sent with outline information for open files.
 - `flutterOutline` (`bool?`): When set to `true`, `dart/textDocument/publishFlutterOutline` notifications will be sent with Flutter outline information for open files.
@@ -163,7 +163,7 @@ Direction: Client -> Server
 Params: None
 Returns: `{ port: number }`
 
-Starts the analzyer diagnostics server (if not already running) and returns the port number it's listening on.
+Starts the analyzer diagnostics server (if not already running) and returns the port number it's listening on.
 
 ### dart/reanalyze Method
 
@@ -224,4 +224,4 @@ Element: as defined for the `dart/textDocument/publishOutline` notification.
 
 Notifies the client when Flutter outline information is available (or updated) for a file.
 
-Nodes contains multiple ranges as desribed for the `dart/textDocument/publishOutline` notification.
+Nodes contains multiple ranges as described for the `dart/textDocument/publishOutline` notification.
