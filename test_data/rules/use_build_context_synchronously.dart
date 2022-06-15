@@ -14,7 +14,7 @@ extension on BuildContext {
 void mountedBinOpAnd(BuildContext context, bool condition) async {
   await Future<void>.delayed(Duration());
   if (condition && context.mounted) {
-    await Navigator.of(context).pushNamed('routeName');// OK
+    await Navigator.of(context).pushNamed('routeName'); // OK
   }
 }
 
@@ -406,4 +406,23 @@ void closure(BuildContext context) async {
   func(() {
     f(context); // TODO: LINT
   });
+}
+
+// https://github.com/dart-lang/linter/issues/3457
+void awaitInIf1(BuildContext context, Future<bool> condition) async {
+  if (await condition) {
+    Navigator.of(context).pushNamed('routeName'); // LINT
+  }
+}
+
+void awaitInIf2(BuildContext context, Future<bool> condition) async {
+  var b = await condition;
+  if (b) {
+    Navigator.of(context).pushNamed('routeName'); // LINT
+  }
+}
+
+void awaitInIf3(BuildContext context, Future<bool> condition) async {
+  if (await condition) return;
+  Navigator.of(context).pushNamed('routeName'); // LINT
 }

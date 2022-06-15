@@ -160,6 +160,10 @@ class _Visitor extends SimpleAstVisitor {
           return;
         }
       } else if (parent is IfStatement) {
+        if (parent.hasAsyncInCondition) {
+          rule.reportLint(node);
+        }
+
         // if (mounted) { ... do ... }
         if (isMountedCheck(parent, positiveCheck: true)) {
           return;
@@ -172,6 +176,7 @@ class _Visitor extends SimpleAstVisitor {
 
   bool isAsync(Statement statement) {
     if (statement is IfStatement) {
+      if (statement.hasAsyncInCondition) return true;
       if (terminatesControl(statement.thenStatement)) {
         var elseStatement = statement.elseStatement;
         if (elseStatement == null || terminatesControl(elseStatement)) {
@@ -300,4 +305,12 @@ extension on PrefixExpression {
 extension on BinaryExpression {
   bool get isAnd => operator.type == TokenType.AMPERSAND_AMPERSAND;
   bool get isOr => operator.type == TokenType.BAR_BAR;
+}
+
+extension on IfStatement {
+  bool get hasAsyncInCondition {
+    var visitor = _AwaitVisitor();
+    condition.accept(visitor);
+    return visitor.hasAwait;
+  }
 }
