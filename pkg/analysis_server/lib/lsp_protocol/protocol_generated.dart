@@ -15842,7 +15842,7 @@ class InlayHint implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      if (!_canParseListString(obj, reporter, 'label',
+      if (!_canParseListInlayHintLabelPartString(obj, reporter, 'label',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -19463,7 +19463,8 @@ class NotebookCellTextDocumentFilter implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      return _canParseEither3String(obj, reporter, 'notebook',
+      return _canParseNotebookDocumentFilter1NotebookDocumentFilter2NotebookDocumentFilter3String(
+          obj, reporter, 'notebook',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type NotebookCellTextDocumentFilter');
@@ -20566,7 +20567,8 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      return _canParseEither3String(obj, reporter, 'notebook',
+      return _canParseNotebookDocumentFilter1NotebookDocumentFilter2NotebookDocumentFilter3String(
+          obj, reporter, 'notebook',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError(
@@ -20654,7 +20656,8 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      return _canParseEither3String(obj, reporter, 'notebook',
+      return _canParseNotebookDocumentFilter1NotebookDocumentFilter2NotebookDocumentFilter3String(
+          obj, reporter, 'notebook',
           allowsUndefined: true, allowsNull: false);
     } else {
       reporter.reportError(
@@ -37401,36 +37404,6 @@ bool _canParseDocumentSymbolClientCapabilitiesTagSupport(
   return true;
 }
 
-bool _canParseEither3String(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
-  reporter.push(fieldName);
-  try {
-    if (!allowsUndefined && !map.containsKey(fieldName)) {
-      reporter.reportError('must not be undefined');
-      return false;
-    }
-    final value = map[fieldName];
-    final nullCheck = allowsNull || allowsUndefined;
-    if (!nullCheck && value == null) {
-      reporter.reportError('must not be null');
-      return false;
-    }
-    if ((!nullCheck || value != null) &&
-        (!NotebookDocumentFilter1.canParse(value, reporter) &&
-            !NotebookDocumentFilter2.canParse(value, reporter) &&
-            !NotebookDocumentFilter3.canParse(value, reporter) &&
-            value is! String)) {
-      reporter.reportError(
-          'must be of type Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>');
-      return false;
-    }
-  } finally {
-    reporter.pop();
-  }
-  return true;
-}
-
 bool _canParseExecuteCommandClientCapabilities(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -38849,6 +38822,35 @@ bool _canParseListFoldingRangeKind(
   return true;
 }
 
+bool _canParseListInlayHintLabelPartString(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any((item) => !InlayHintLabelPart.canParse(item, reporter)) &&
+                value is! String)) {
+      reporter.reportError(
+          'must be of type Either2<List<InlayHintLabelPart>, String>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseListInsertTextMode(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -40252,6 +40254,37 @@ bool _canParseNotebookDocumentClientCapabilities(
         !NotebookDocumentClientCapabilities.canParse(value, reporter)) {
       reporter
           .reportError('must be of type NotebookDocumentClientCapabilities');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool
+    _canParseNotebookDocumentFilter1NotebookDocumentFilter2NotebookDocumentFilter3String(
+        Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+        {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (!NotebookDocumentFilter1.canParse(value, reporter) &&
+            !NotebookDocumentFilter2.canParse(value, reporter) &&
+            !NotebookDocumentFilter3.canParse(value, reporter) &&
+            value is! String)) {
+      reporter.reportError(
+          'must be of type Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>');
       return false;
     }
   } finally {
