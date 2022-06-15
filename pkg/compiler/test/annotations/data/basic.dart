@@ -11,6 +11,8 @@ main() {
   noThrows();
   noSideEffects();
   assumeDynamic();
+  disableInlining();
+  several();
 }
 
 /*member: noInline:noInline*/
@@ -38,3 +40,15 @@ noSideEffects() {}
 /*member: assumeDynamic:assumeDynamic*/
 @pragma('dart2js:assumeDynamic')
 assumeDynamic() {}
+
+/*member: disableInlining:disable-inlining*/
+@pragma('dart2js:disable-inlining')
+disableInlining() {}
+
+/*member: several:assumeDynamic,disable-inlining,noInline,noSideEffects,noThrows*/
+@pragma('dart2js:disable-inlining')
+@pragma('dart2js:noThrows')
+@pragma('dart2js:noSideEffects')
+@pragma('dart2js:assumeDynamic')
+@pragma('dart2js:noInline')
+several() {}

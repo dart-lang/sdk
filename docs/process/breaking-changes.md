@@ -42,6 +42,12 @@ abide by the following basic conditions:
   documentation (for example, must not mixin a class clearly documented as
   not intended to be used as a mixin).
 
+* Must set an explicit
+  [language version constraint](https://dart.dev/guides/language/evolution#language-versioning)
+  to indicate which version of the language it requires. Incompatibilities
+  introduced in new language versions are not considered breaking as long as
+  the SDK continues to support the older version of the language.
+
 Compatibility is only considered between stable releases (i.e. releases from the
 [Dart stable channel](https://dart.dev/tools/sdk/archive#stable-channel)).
 

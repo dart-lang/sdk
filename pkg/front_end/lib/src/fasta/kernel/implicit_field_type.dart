@@ -161,7 +161,8 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
           bodyBuilder.parseFieldInitializer(initializerToken!);
       initializerToken = null;
 
-      inferredType = typeInferrer.inferImplicitFieldType(initializer);
+      inferredType =
+          typeInferrer.inferImplicitFieldType(bodyBuilder, initializer);
     } else {
       inferredType = const DynamicType();
     }

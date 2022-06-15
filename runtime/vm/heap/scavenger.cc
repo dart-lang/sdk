@@ -247,7 +247,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     thread_ = Thread::Current();
     page_space_->AcquireLock(freelist_);
 
-    LongJumpScope jump;
+    LongJumpScope jump(thread_);
     if (setjmp(*jump.Set()) == 0) {
       scavenger_->IterateRoots(this);
     } else {
@@ -256,7 +256,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   }
 
   void ProcessSurvivors() {
-    LongJumpScope jump;
+    LongJumpScope jump(thread_);
     if (setjmp(*jump.Set()) == 0) {
       // Iterate until all work has been drained.
       do {
@@ -269,7 +269,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   }
 
   void ProcessAll() {
-    LongJumpScope jump;
+    LongJumpScope jump(thread_);
     if (setjmp(*jump.Set()) == 0) {
       do {
         do {
@@ -1282,7 +1282,6 @@ void Scavenger::IterateObjectIdTable(ObjectPointerVisitor* visitor) {
 enum RootSlices {
   kIsolate = 0,
   kObjectIdRing,
-  kCards,
   kStoreBuffer,
   kNumRootSlices,
 };
@@ -1292,7 +1291,7 @@ void Scavenger::IterateRoots(ScavengerVisitorBase<parallel>* visitor) {
   for (;;) {
     intptr_t slice = root_slices_started_.fetch_add(1);
     if (slice >= kNumRootSlices) {
-      return;  // No more slices.
+      break;  // No more slices.
     }
 
     switch (slice) {
@@ -1302,9 +1301,6 @@ void Scavenger::IterateRoots(ScavengerVisitorBase<parallel>* visitor) {
       case kObjectIdRing:
         IterateObjectIdTable(visitor);
         break;
-      case kCards:
-        IterateRememberedCards(visitor);
-        break;
       case kStoreBuffer:
         IterateStoreBuffers(visitor);
         break;
@@ -1312,6 +1308,8 @@ void Scavenger::IterateRoots(ScavengerVisitorBase<parallel>* visitor) {
         UNREACHABLE();
     }
   }
+
+  IterateRememberedCards(visitor);
 }
 
 bool Scavenger::IsUnreachable(ObjectPtr* p) {
@@ -1801,6 +1799,7 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   ASSERT(promotion_stack_.IsEmpty());
   MournWeakHandles();
   MournWeakTables();
+  heap_->old_space()->ResetProgressBars();
 
   // Restore write-barrier assumptions.
   heap_->isolate_group()->RememberLiveTemporaries();

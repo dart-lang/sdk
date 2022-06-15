@@ -234,8 +234,6 @@ enum BenchmarkSubdivides {
   body_buildBody_benchmark_specific_diet_parser,
   body_buildBody_benchmark_specific_parser,
 
-  inferConstructorParameterTypes,
-  inferDeclarationType,
   inferImplicitFieldType,
   inferFieldInitializer,
   inferFunctionBody,

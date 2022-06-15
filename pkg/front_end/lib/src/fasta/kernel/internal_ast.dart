@@ -1019,7 +1019,7 @@ abstract class InitializerJudgment implements Initializer {
 }
 
 Expression? checkWebIntLiteralsErrorIfUnexact(
-    TypeInferrerImpl inferrer, int value, String? literal, int charOffset) {
+    InferenceVisitorBase inferrer, int value, String? literal, int charOffset) {
   if (value >= 0 && value <= (1 << 53)) return null;
   if (inferrer.isTopLevel) return null;
   if (!inferrer.libraryBuilder.loader.target.backendTarget

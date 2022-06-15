@@ -173,8 +173,6 @@ abstract class TypeInferrer {
 
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables;
 
-  InferenceHelper get helper;
-
   /// Indicates whether the construct we are currently performing inference for
   /// is outside of a method body, and hence top level type inference rules
   /// should apply.
@@ -182,16 +180,12 @@ abstract class TypeInferrer {
 
   /// Performs top level type inference on the given field initializer and
   /// returns the computed field type.
-  DartType inferImplicitFieldType(Expression initializer);
+  DartType inferImplicitFieldType(
+      InferenceHelper helper, Expression initializer);
 
   /// Performs full type inference on the given field initializer.
   ExpressionInferenceResult inferFieldInitializer(
       InferenceHelper helper, DartType declaredType, Expression initializer);
-
-  /// Returns the type used as the inferred type of a variable declaration,
-  /// based on the static type of the initializer expression, given by
-  /// [initializerType].
-  DartType inferDeclarationType(DartType initializerType);
 
   /// Performs type inference on the given function body.
   InferredFunctionBody inferFunctionBody(InferenceHelper helper, int fileOffset,
@@ -212,11 +206,6 @@ abstract class TypeInferrer {
       Expression initializer,
       DartType declaredType,
       bool hasDeclaredInitializer);
-
-  /// Ensures that all parameter types of [constructor] have been inferred.
-  // TODO(johnniwinther): We are still parameters on synthesized mixin
-  //  application constructors.
-  void inferConstructorParameterTypes(Constructor constructor);
 
   /// Infers the type arguments a redirecting factory target reference.
   List<DartType>? inferRedirectingFactoryTypeArguments(
@@ -245,7 +234,7 @@ class TypeInferrerImpl implements TypeInferrer {
               new TypeOperationsCfe(engine.typeSchemaEnvironment),
               assignedVariables,
               respectImplicitlyTypedVarInitializers:
-                  libraryFeatures.constructorTearoffs.isEnabled)
+                  libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled)
           : new FlowAnalysis.legacy(
               new TypeOperationsCfe(engine.typeSchemaEnvironment),
               assignedVariables);
@@ -273,12 +262,10 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   final SourceLibraryBuilder libraryBuilder;
 
-  InferenceHelper? _helper;
-
   TypeInferrerImpl(
       this.engine,
       this.uriForInstrumentation,
-      bool topLevel,
+      this.isTopLevel,
       this.thisType,
       this.libraryBuilder,
       this.assignedVariables,
@@ -288,30 +275,199 @@ class TypeInferrerImpl implements TypeInferrer {
         unknownFunction = new FunctionType(
             const [], const DynamicType(), libraryBuilder.nonNullable),
         classHierarchy = engine.classHierarchy,
-        instrumentation = topLevel ? null : engine.instrumentation,
-        typeSchemaEnvironment = engine.typeSchemaEnvironment,
-        isTopLevel = topLevel {}
+        instrumentation = isTopLevel ? null : engine.instrumentation,
+        typeSchemaEnvironment = engine.typeSchemaEnvironment {}
 
-  @override
-  InferenceHelper get helper => _helper!;
-
-  void set helper(InferenceHelper helper) {
-    if (isTopLevel) {
-      throw new StateError("Attempting to assign TypeInferrerImpl.helper "
-          "during top-level inference.");
-    }
-    _helper = helper;
-  }
-
-  InferenceVisitor _createInferenceVisitor() {
+  InferenceVisitor _createInferenceVisitor(InferenceVisitorBase inferrer) {
     // For full (non-top level) inference, we need access to the
     // ExpressionGeneratorHelper so that we can perform error recovery.
-    assert(isTopLevel || _helper != null,
+    assert(isTopLevel || inferrer._helper != null,
         "Helper hasn't been set up for full inference.");
-    return new InferenceVisitor(this);
+    return new InferenceVisitor(inferrer);
   }
 
+  @override
+  DartType inferImplicitFieldType(
+      InferenceHelper helper, Expression initializer) {
+    InferenceVisitorBase inferrer = new InferenceVisitorBase(this, helper);
+    InferenceVisitor visitor = _createInferenceVisitor(inferrer);
+    ExpressionInferenceResult result = visitor.inferExpression(
+        initializer, const UnknownType(), true,
+        isVoidAllowed: true);
+    return inferrer.inferDeclarationType(result.inferredType);
+  }
+
+  @override
+  ExpressionInferenceResult inferFieldInitializer(
+      InferenceHelper helper, DartType declaredType, Expression initializer) {
+    assert(!isTopLevel);
+    InferenceVisitorBase inferrer = new InferenceVisitorBase(this, helper);
+    InferenceVisitor visitor = _createInferenceVisitor(inferrer);
+    ExpressionInferenceResult initializerResult = visitor
+        .inferExpression(initializer, declaredType, true, isVoidAllowed: true);
+    initializerResult = inferrer.ensureAssignableResult(
+        declaredType, initializerResult,
+        isVoidAllowed: declaredType is VoidType);
+    return initializerResult;
+  }
+
+  @override
+  InferredFunctionBody inferFunctionBody(InferenceHelper helper, int fileOffset,
+      DartType returnType, AsyncMarker asyncMarker, Statement body) {
+    // ignore: unnecessary_null_comparison
+    assert(body != null);
+    InferenceVisitorBase inferrer = new InferenceVisitorBase(this, helper);
+    ClosureContext closureContext =
+        new ClosureContext(inferrer, asyncMarker, returnType, false);
+    InferenceVisitor visitor = _createInferenceVisitor(inferrer);
+    StatementInferenceResult result =
+        visitor.inferStatement(body, closureContext);
+    if (dataForTesting != null) {
+      if (!flowAnalysis.isReachable) {
+        dataForTesting!.flowAnalysisResult.functionBodiesThatDontComplete
+            .add(body);
+      }
+    }
+    result =
+        closureContext.handleImplicitReturn(inferrer, body, result, fileOffset);
+    DartType? futureValueType = closureContext.futureValueType;
+    assert(!(asyncMarker == AsyncMarker.Async && futureValueType == null),
+        "No future value type computed.");
+    flowAnalysis.finish();
+    return new InferredFunctionBody(
+        result.hasChanged ? result.statement : body, futureValueType);
+  }
+
+  @override
+  List<DartType>? inferRedirectingFactoryTypeArguments(
+      InferenceHelper helper,
+      DartType typeContext,
+      FunctionNode redirectingFactoryFunction,
+      int fileOffset,
+      Member target,
+      FunctionType targetType) {
+    InferenceVisitorBase inferrer = new InferenceVisitorBase(this, helper);
+    InferenceVisitor visitor = _createInferenceVisitor(inferrer);
+    List<Expression> positionalArguments = <Expression>[];
+    for (VariableDeclaration parameter
+        in redirectingFactoryFunction.positionalParameters) {
+      flowAnalysis.declare(parameter, true);
+      positionalArguments
+          .add(new VariableGetImpl(parameter, forNullGuardedAccess: false));
+    }
+    List<NamedExpression> namedArguments = <NamedExpression>[];
+    for (VariableDeclaration parameter
+        in redirectingFactoryFunction.namedParameters) {
+      flowAnalysis.declare(parameter, true);
+      namedArguments.add(new NamedExpression(parameter.name!,
+          new VariableGetImpl(parameter, forNullGuardedAccess: false)));
+    }
+    // If arguments are created using [Forest.createArguments], and the
+    // type arguments are omitted, they are to be inferred.
+    ArgumentsImpl targetInvocationArguments = engine.forest.createArguments(
+        fileOffset, positionalArguments,
+        named: namedArguments);
+
+    InvocationInferenceResult result = inferrer.inferInvocation(
+        visitor, typeContext, fileOffset, targetType, targetInvocationArguments,
+        staticTarget: target);
+    DartType resultType = result.inferredType;
+    if (resultType is InterfaceType) {
+      return resultType.typeArguments;
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  InitializerInferenceResult inferInitializer(
+      InferenceHelper helper, Initializer initializer) {
+    // Use polymorphic dispatch on [KernelInitializer] to perform whatever
+    // kind of type inference is correct for this kind of initializer.
+    // TODO(paulberry): experiment to see if dynamic dispatch would be better,
+    // so that the type hierarchy will be simpler (which may speed up "is"
+    // checks).
+    InferenceVisitorBase inferrer = new InferenceVisitorBase(this, helper);
+    InferenceVisitor visitor = _createInferenceVisitor(inferrer);
+    InitializerInferenceResult inferenceResult;
+    if (initializer is InitializerJudgment) {
+      inferenceResult = initializer.acceptInference(visitor);
+    } else {
+      inferenceResult = initializer.accept(visitor);
+    }
+    return inferenceResult;
+  }
+
+  @override
+  void inferMetadata(
+      InferenceHelper helper, TreeNode? parent, List<Expression>? annotations) {
+    if (annotations != null) {
+      // We bypass the check for assignment of the helper during top-level
+      // inference and use `_helper = helper` instead of `this.helper = helper`
+      // because inference on metadata requires the helper.
+      InferenceVisitorBase inferrer = new InferenceVisitorBase(this, helper);
+      InferenceVisitor visitor = _createInferenceVisitor(inferrer);
+      inferrer.inferMetadataKeepingHelper(visitor, parent, annotations);
+    }
+  }
+
+  @override
+  Expression inferParameterInitializer(
+      InferenceHelper helper,
+      Expression initializer,
+      DartType declaredType,
+      bool hasDeclaredInitializer) {
+    // ignore: unnecessary_null_comparison
+    assert(declaredType != null);
+    InferenceVisitorBase inferrer = new InferenceVisitorBase(this, helper);
+    InferenceVisitor visitor = _createInferenceVisitor(inferrer);
+    ExpressionInferenceResult result =
+        visitor.inferExpression(initializer, declaredType, true);
+    if (hasDeclaredInitializer) {
+      initializer =
+          inferrer.ensureAssignableResult(declaredType, result).expression;
+    }
+    return initializer;
+  }
+}
+
+class InferenceVisitorBase {
+  final TypeInferrerImpl _inferrer;
+
+  final InferenceHelper? _helper;
+
+  InferenceVisitorBase(this._inferrer, this._helper);
+
+  AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables =>
+      _inferrer.assignedVariables;
+
+  FunctionType get unknownFunction => _inferrer.unknownFunction;
+
+  InterfaceType? get thisType => _inferrer.thisType;
+
+  Uri get uriForInstrumentation => _inferrer.uriForInstrumentation;
+
+  Instrumentation? get instrumentation => _inferrer.instrumentation;
+
+  ClassHierarchy get classHierarchy => _inferrer.classHierarchy;
+
+  InferenceDataForTesting? get dataForTesting => _inferrer.dataForTesting;
+
+  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration, DartType>
+      get flowAnalysis => _inferrer.flowAnalysis;
+
+  TypeSchemaEnvironment get typeSchemaEnvironment =>
+      _inferrer.typeSchemaEnvironment;
+
+  TypeInferenceEngine get engine => _inferrer.engine;
+
+  bool get isTopLevel => _inferrer.isTopLevel;
+
+  InferenceHelper get helper => _helper!;
+
   CoreTypes get coreTypes => engine.coreTypes;
+
+  SourceLibraryBuilder get libraryBuilder => _inferrer.libraryBuilder;
 
   bool get isInferenceUpdate1Enabled =>
       libraryBuilder.isInferenceUpdate1Enabled;
@@ -456,7 +612,7 @@ class TypeInferrerImpl implements TypeInferrer {
     }
   }
 
-  @override
+  /// Ensures that all parameter types of [constructor] have been inferred.
   void inferConstructorParameterTypes(Constructor target) {
     SourceConstructorBuilder? constructor = engine.beingInferred[target];
     if (constructor != null) {
@@ -490,27 +646,6 @@ class TypeInferrerImpl implements TypeInferrer {
       constructor.inferFormalTypes(classHierarchy);
       engine.beingInferred.remove(target);
     }
-  }
-
-  @override
-  InitializerInferenceResult inferInitializer(
-      InferenceHelper helper, Initializer initializer) {
-    this.helper = helper;
-
-    // Use polymorphic dispatch on [KernelInitializer] to perform whatever
-    // kind of type inference is correct for this kind of initializer.
-    // TODO(paulberry): experiment to see if dynamic dispatch would be better,
-    // so that the type hierarchy will be simpler (which may speed up "is"
-    // checks).
-    InferenceVisitor visitor = _createInferenceVisitor();
-    InitializerInferenceResult inferenceResult;
-    if (initializer is InitializerJudgment) {
-      inferenceResult = initializer.acceptInference(visitor);
-    } else {
-      inferenceResult = initializer.accept(visitor);
-    }
-    _helper = null;
-    return inferenceResult;
   }
 
   bool isDoubleContext(DartType typeContext) {
@@ -1979,8 +2114,9 @@ class TypeInferrerImpl implements TypeInferrer {
     }
   }
 
-  /// Modifies a type as appropriate when inferring a declared variable's type.
-  @override
+  /// Returns the type used as the inferred type of a variable declaration,
+  /// based on the static type of the initializer expression, given by
+  /// [initializerType].
   DartType inferDeclarationType(DartType initializerType,
       {bool forSyntheticVariable: false}) {
     if (initializerType is NullType) {
@@ -2028,99 +2164,6 @@ class TypeInferrerImpl implements TypeInferrer {
           expression);
     } else {
       return new ExpressionInferenceResult(inferredType, expression);
-    }
-  }
-
-  @override
-  DartType inferImplicitFieldType(Expression initializer) {
-    InferenceVisitor visitor = _createInferenceVisitor();
-    ExpressionInferenceResult result = visitor.inferExpression(
-        initializer, const UnknownType(), true,
-        isVoidAllowed: true);
-    return inferDeclarationType(result.inferredType);
-  }
-
-  @override
-  ExpressionInferenceResult inferFieldInitializer(
-      InferenceHelper helper, DartType declaredType, Expression initializer) {
-    assert(!isTopLevel);
-    this.helper = helper;
-    InferenceVisitor visitor = _createInferenceVisitor();
-    ExpressionInferenceResult initializerResult = visitor
-        .inferExpression(initializer, declaredType, true, isVoidAllowed: true);
-    initializerResult = ensureAssignableResult(declaredType, initializerResult,
-        isVoidAllowed: declaredType is VoidType);
-    _helper = null;
-    return initializerResult;
-  }
-
-  @override
-  InferredFunctionBody inferFunctionBody(InferenceHelper helper, int fileOffset,
-      DartType returnType, AsyncMarker asyncMarker, Statement body) {
-    // ignore: unnecessary_null_comparison
-    assert(body != null);
-    this.helper = helper;
-    ClosureContext closureContext =
-        new ClosureContext(this, asyncMarker, returnType, false);
-    InferenceVisitor visitor = _createInferenceVisitor();
-    StatementInferenceResult result =
-        visitor.inferStatement(body, closureContext);
-    if (dataForTesting != null) {
-      if (!flowAnalysis.isReachable) {
-        dataForTesting!.flowAnalysisResult.functionBodiesThatDontComplete
-            .add(body);
-      }
-    }
-    result =
-        closureContext.handleImplicitReturn(this, body, result, fileOffset);
-    DartType? futureValueType = closureContext.futureValueType;
-    assert(!(asyncMarker == AsyncMarker.Async && futureValueType == null),
-        "No future value type computed.");
-    _helper = null;
-    flowAnalysis.finish();
-    return new InferredFunctionBody(
-        result.hasChanged ? result.statement : body, futureValueType);
-  }
-
-  @override
-  List<DartType>? inferRedirectingFactoryTypeArguments(
-      InferenceHelper helper,
-      DartType typeContext,
-      FunctionNode redirectingFactoryFunction,
-      int fileOffset,
-      Member target,
-      FunctionType targetType) {
-    this.helper = helper;
-    InferenceVisitor visitor = _createInferenceVisitor();
-    List<Expression> positionalArguments = <Expression>[];
-    for (VariableDeclaration parameter
-        in redirectingFactoryFunction.positionalParameters) {
-      flowAnalysis.declare(parameter, true);
-      positionalArguments
-          .add(new VariableGetImpl(parameter, forNullGuardedAccess: false));
-    }
-    List<NamedExpression> namedArguments = <NamedExpression>[];
-    for (VariableDeclaration parameter
-        in redirectingFactoryFunction.namedParameters) {
-      flowAnalysis.declare(parameter, true);
-      namedArguments.add(new NamedExpression(parameter.name!,
-          new VariableGetImpl(parameter, forNullGuardedAccess: false)));
-    }
-    // If arguments are created using [Forest.createArguments], and the
-    // type arguments are omitted, they are to be inferred.
-    ArgumentsImpl targetInvocationArguments = engine.forest.createArguments(
-        fileOffset, positionalArguments,
-        named: namedArguments);
-
-    InvocationInferenceResult result = inferInvocation(
-        visitor, typeContext, fileOffset, targetType, targetInvocationArguments,
-        staticTarget: target);
-    DartType resultType = result.inferredType;
-    _helper = null;
-    if (resultType is InterfaceType) {
-      return resultType.typeArguments;
-    } else {
-      return null;
     }
   }
 
@@ -2940,20 +2983,6 @@ class TypeInferrerImpl implements TypeInferrer {
       function.body = bodyResult.statement..parent = function;
     }
     return function.computeFunctionType(libraryBuilder.nonNullable);
-  }
-
-  @override
-  void inferMetadata(
-      InferenceHelper helper, TreeNode? parent, List<Expression>? annotations) {
-    if (annotations != null) {
-      // We bypass the check for assignment of the helper during top-level
-      // inference and use `_helper = helper` instead of `this.helper = helper`
-      // because inference on metadata requires the helper.
-      _helper = helper;
-      InferenceVisitor visitor = _createInferenceVisitor();
-      inferMetadataKeepingHelper(visitor, parent, annotations);
-      _helper = null;
-    }
   }
 
   void inferMetadataKeepingHelper(InferenceVisitor visitor, TreeNode? parent,
@@ -4023,7 +4052,6 @@ class TypeInferrerImpl implements TypeInferrer {
           actualReceiverType,
           typeSchemaEnvironment,
           classHierarchy,
-          this,
           actualMethodName,
           interfaceTarget,
           arguments,
@@ -4041,7 +4069,7 @@ class TypeInferrerImpl implements TypeInferrer {
     if (!isTopLevel) {
       // We only perform checks in full inference.
       libraryBuilder.checkBoundsInInstantiation(typeSchemaEnvironment,
-          classHierarchy, this, functionType, arguments, helper.uri, fileOffset,
+          classHierarchy, functionType, arguments, helper.uri, fileOffset,
           inferred: inferred);
     }
   }
@@ -4054,7 +4082,6 @@ class TypeInferrerImpl implements TypeInferrer {
       libraryBuilder.checkBoundsInFunctionInvocation(
           typeSchemaEnvironment,
           classHierarchy,
-          this,
           functionType,
           localName,
           arguments,
@@ -4132,25 +4159,6 @@ class TypeInferrerImpl implements TypeInferrer {
 
     return new ExpressionInferenceResult(
         inferredType, result.applyResult(expression));
-  }
-
-  @override
-  Expression inferParameterInitializer(
-      InferenceHelper helper,
-      Expression initializer,
-      DartType declaredType,
-      bool hasDeclaredInitializer) {
-    this.helper = helper;
-    // ignore: unnecessary_null_comparison
-    assert(declaredType != null);
-    InferenceVisitor visitor = _createInferenceVisitor();
-    ExpressionInferenceResult result =
-        visitor.inferExpression(initializer, declaredType, true);
-    if (hasDeclaredInitializer) {
-      initializer = ensureAssignableResult(declaredType, result).expression;
-    }
-    _helper = null;
-    return initializer;
   }
 
   /// Performs the core type inference algorithm for super property get.
@@ -4872,25 +4880,10 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   Uri get uriForInstrumentation => impl.uriForInstrumentation;
 
   @override
-  void inferConstructorParameterTypes(Constructor constructor) {
-    benchmarker
-        .beginSubdivide(BenchmarkSubdivides.inferConstructorParameterTypes);
-    impl.inferConstructorParameterTypes(constructor);
-    benchmarker.endSubdivide();
-  }
-
-  @override
-  DartType inferDeclarationType(DartType initializerType) {
-    benchmarker.beginSubdivide(BenchmarkSubdivides.inferDeclarationType);
-    DartType result = impl.inferDeclarationType(initializerType);
-    benchmarker.endSubdivide();
-    return result;
-  }
-
-  @override
-  DartType inferImplicitFieldType(Expression initializer) {
+  DartType inferImplicitFieldType(
+      InferenceHelper helper, Expression initializer) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferImplicitFieldType);
-    DartType result = impl.inferImplicitFieldType(initializer);
+    DartType result = impl.inferImplicitFieldType(helper, initializer);
     benchmarker.endSubdivide();
     return result;
   }
@@ -4966,9 +4959,6 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     benchmarker.endSubdivide();
     return result;
   }
-
-  @override
-  InferenceHelper get helper => impl.helper;
 }
 
 abstract class MixinInferrer {
@@ -5186,7 +5176,7 @@ class MultipleStatementInferenceResult implements StatementInferenceResult {
 /// Tells the inferred type and how the code should be transformed.
 ///
 /// It is intended for use by generalized inference methods, such as
-/// [TypeInferrerImpl.inferInvocation], where the input [Expression] isn't
+/// [InferenceVisitorBase.inferInvocation], where the input [Expression] isn't
 /// available for rewriting.  So, instead of transforming the code, the result
 /// of the inference provides a way to transform the code at the point of
 /// invocation.
@@ -5449,7 +5439,7 @@ class NullAwareGuard {
   /// The file offset used for the null-test.
   int _nullAwareFileOffset;
 
-  final TypeInferrerImpl _inferrer;
+  final InferenceVisitorBase _inferrer;
 
   NullAwareGuard(
       this._nullAwareVariable, this._nullAwareFileOffset, this._inferrer)
@@ -5905,7 +5895,7 @@ class _WhyNotPromotedVisitor
     implements
         NonPromotionReasonVisitor<LocatedMessage?, Node, VariableDeclaration,
             DartType> {
-  final TypeInferrerImpl inferrer;
+  final InferenceVisitorBase inferrer;
 
   Member? propertyReference;
 

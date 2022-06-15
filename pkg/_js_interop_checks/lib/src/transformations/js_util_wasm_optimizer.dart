@@ -49,7 +49,7 @@ class JsUtilWasmOptimizer extends Transformer {
   final Procedure _setPropertyTarget;
   final Procedure _jsifyRawTarget;
   final Procedure _newObjectTarget;
-  final Procedure _wrapDartCallbackTarget;
+  final Procedure _wrapDartFunctionTarget;
   final Procedure _allowInteropTarget;
   final Class _wasmAnyRefClass;
   final Class _objectClass;
@@ -57,7 +57,7 @@ class JsUtilWasmOptimizer extends Transformer {
   final Field _pragmaName;
   final Field _pragmaOptions;
   final Member _globalThisMember;
-  int _callbackTrampolineN = 1;
+  int _functionTrampolineN = 1;
 
   final CoreTypes _coreTypes;
   final StatefulStaticTypeContext _staticTypeContext;
@@ -77,8 +77,8 @@ class JsUtilWasmOptimizer extends Transformer {
             .getTopLevelProcedure('dart:js_util', 'setProperty'),
         _jsifyRawTarget = _coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', 'jsifyRaw'),
-        _wrapDartCallbackTarget = _coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', '_wrapDartCallback'),
+        _wrapDartFunctionTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction'),
         _newObjectTarget =
             _coreTypes.index.getTopLevelProcedure('dart:js_util', 'newObject'),
         _allowInteropTarget =
@@ -210,11 +210,11 @@ class JsUtilWasmOptimizer extends Transformer {
   /// trampoline expects a Dart callback as its first argument, followed by all
   /// of the arguments to the Dart callback as Dart objects. The trampoline will
   /// cast all incoming Dart objects to the appropriate types, dispatch, and
-  /// then `jsifyRaw` any returned value. [_createCallbackTrampoline] Returns a
+  /// then `jsifyRaw` any returned value. [_createFunctionTrampoline] Returns a
   /// [String] function name representing the name of the wrapping function.
   /// TODO(joshualitt): Share callback trampolines if the [FunctionType]
   /// matches.
-  String _createCallbackTrampoline(Procedure node, FunctionType function) {
+  String _createFunctionTrampoline(Procedure node, FunctionType function) {
     int fileOffset = node.fileOffset;
     Library library = node.enclosingLibrary;
 
@@ -245,11 +245,11 @@ class JsUtilWasmOptimizer extends Transformer {
     // a native JS value before being returned to JS.
     DartType nullableWasmAnyRefType =
         _wasmAnyRefClass.getThisType(_coreTypes, Nullability.nullable);
-    final callbackTrampolineName =
-        '|_callbackTrampoline${_callbackTrampolineN++}';
-    final callbackTrampolineImportName = '\$$callbackTrampolineName';
-    final callbackTrampoline = Procedure(
-        Name(callbackTrampolineName, library),
+    final functionTrampolineName =
+        '|_functionTrampoline${_functionTrampolineN++}';
+    final functionTrampolineImportName = '\$$functionTrampolineName';
+    final functionTrampoline = Procedure(
+        Name(functionTrampolineName, library),
         ProcedureKind.Method,
         FunctionNode(
             ReturnStatement(StaticInvocation(
@@ -268,24 +268,24 @@ class JsUtilWasmOptimizer extends Transformer {
         fileUri: node.fileUri)
       ..fileOffset = fileOffset
       ..isNonNullableByDefault = true;
-    callbackTrampoline.addAnnotation(
+    functionTrampoline.addAnnotation(
         ConstantExpression(InstanceConstant(_pragmaClass.reference, [], {
       _pragmaName.fieldReference: StringConstant('wasm:export'),
       _pragmaOptions.fieldReference:
-          StringConstant(callbackTrampolineImportName)
+          StringConstant(functionTrampolineImportName)
     })));
-    library.addProcedure(callbackTrampoline);
-    return callbackTrampolineImportName;
+    library.addProcedure(functionTrampoline);
+    return functionTrampolineImportName;
   }
 
   /// Lowers a [StaticInvocation] of `allowInterop` to
-  /// [_createCallbackTrampoline] followed by `_wrapDartCallback`.
+  /// [_createFunctionTrampoline] followed by `_wrapDartFunction`.
   StaticInvocation _allowInterop(
       Procedure node, FunctionType type, Expression argument) {
-    String callbackTrampolineName = _createCallbackTrampoline(node, type);
+    String functionTrampolineName = _createFunctionTrampoline(node, type);
     return StaticInvocation(
-        _wrapDartCallbackTarget,
-        Arguments([argument, StringLiteral(callbackTrampolineName)],
+        _wrapDartFunctionTarget,
+        Arguments([argument, StringLiteral(functionTrampolineName)],
             types: [type]));
   }
 

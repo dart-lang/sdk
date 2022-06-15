@@ -183,6 +183,7 @@ class OldPage {
   }
 #endif
   void VisitRememberedCards(ObjectPointerVisitor* visitor);
+  void ResetProgressBar();
 
  private:
   void set_object_end(uword value) {
@@ -205,6 +206,7 @@ class OldPage {
   uword used_in_bytes_;
   ForwardingPage* forwarding_page_;
   uint8_t* card_table_;  // Remembered set, not marking.
+  RelaxedAtomic<intptr_t> progress_bar_;
   PageType type_;
 
   friend class PageSpace;
@@ -403,6 +405,7 @@ class PageSpace {
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
   void VisitRememberedCards(ObjectPointerVisitor* visitor) const;
+  void ResetProgressBars() const;
 
   ObjectPtr FindObject(FindObjectVisitor* visitor,
                        OldPage::PageType type) const;

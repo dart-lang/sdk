@@ -1,3 +1,6 @@
+# 2.2.2
+- Updated `vm_service` version to 9.0.0.
+
 # 2.2.1
 - Reduce latency of `streamListen` calls through improved locking behavior.
 

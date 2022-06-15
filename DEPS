@@ -105,7 +105,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "d7b73536a8079331c888b7da539b80e6825270ea",
 
-  "dartdoc_rev": "b61647bc3833302c23bd79f03aa1fbe83578af50",
+  "dartdoc_rev": "58348a98b992ce99b95d23131b67227bdb2b4875",
   "devtools_rev": "51ac983d2db7eb19b3ce5956cb70b769d74fe784",
   "ffi_rev": "0c8364a728cfe4e4ba859c53b99d56b3dbe3add4",
   "file_rev": "0132eeedea2933513bf230513a766a8baeab0c4f",
@@ -114,7 +114,7 @@ vars = {
   "html_rev": "f108bce59d136c584969fd24a5006914796cf213",
   "http_multi_server_rev": "35a3b947256768426090e3b1f5132e4fc23c175d",
   "http_parser_rev": "9126ee04e77fd8e4e2e6435b503ee4dd708d7ddc",
-  "http_rev": "2993ea5dff5ffb066b4a35c707e7a2b8dcfa17c2",
+  "http_rev": "0c2293062d7c1fa472f299da764a7dbb3895ee22",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "intl_rev": "9145f308f1458f37630a1ffce3b7d3b471ebbc56",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",

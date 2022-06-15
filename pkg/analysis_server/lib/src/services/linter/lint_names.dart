@@ -53,6 +53,7 @@ class LintNames {
   static const String diagnostic_describe_all_properties =
       'diagnostic_describe_all_properties';
   static const String directives_ordering = 'directives_ordering';
+  static const String discarded_futures = 'discarded_futures';
   static const String empty_catches = 'empty_catches';
   static const String empty_constructor_bodies = 'empty_constructor_bodies';
   static const String empty_statements = 'empty_statements';

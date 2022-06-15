@@ -299,6 +299,10 @@ lsp.CompletionItem declarationToCompletionItem(
     label += declaration.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
   }
 
+  final insertionRange = toRange(lineInfo, replacementOffset, insertLength);
+  final replacementRange =
+      toRange(lineInfo, replacementOffset, replacementLength);
+
   final insertTextInfo = _buildInsertText(
     supportsSnippets: supportsSnippets,
     includeCommitCharacters: includeCommitCharacters,
@@ -325,6 +329,7 @@ lsp.CompletionItem declarationToCompletionItem(
       .contains(lsp.CompletionItemTag.Deprecated);
   final supportsAsIsInsertMode =
       capabilities.completionInsertTextModes.contains(InsertTextMode.asIs);
+  final supportsInsertReplace = capabilities.insertReplaceCompletionRanges;
 
   final completionKind = declarationKindToCompletionItemKind(
       capabilities.completionItemKinds, declaration.kind);
@@ -364,6 +369,20 @@ lsp.CompletionItem declarationToCompletionItem(
     insertTextMode: supportsAsIsInsertMode && isMultilineCompletion
         ? InsertTextMode.asIs
         : null,
+    textEdit: supportsInsertReplace && insertionRange != replacementRange
+        ? Either2<InsertReplaceEdit, TextEdit>.t1(
+            InsertReplaceEdit(
+              insert: insertionRange,
+              replace: replacementRange,
+              newText: insertText,
+            ),
+          )
+        : Either2<InsertReplaceEdit, TextEdit>.t2(
+            TextEdit(
+              range: replacementRange,
+              newText: insertText,
+            ),
+          ),
     // data, used for completionItem/resolve.
     data: lsp.DartSuggestionSetCompletionItemResolutionInfo(
         file: file,

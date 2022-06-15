@@ -17,8 +17,9 @@ class SetTypeMask extends AllocationTypeMask {
   @override
   final TypeMask forwardTo;
 
+  final ir.Node /*?*/ _allocationNode;
   @override
-  final ir.Node allocationNode;
+  ir.Node get allocationNode => _allocationNode /*!*/;
 
   @override
   final MemberEntity allocationElement;
@@ -26,20 +27,18 @@ class SetTypeMask extends AllocationTypeMask {
   // The element type of this set.
   final TypeMask elementType;
 
-  const SetTypeMask(this.forwardTo, this.allocationNode, this.allocationElement,
-      this.elementType);
+  const SetTypeMask(this.forwardTo, this._allocationNode,
+      this.allocationElement, this.elementType);
 
   /// Deserializes a [SetTypeMask] object from [source].
   factory SetTypeMask.readFromDataSource(
       DataSourceReader source, CommonMasks domain) {
     source.begin(tag);
     TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
-    ir.TreeNode allocationNode = source.readTreeNodeOrNull();
     MemberEntity allocationElement = source.readMemberOrNull();
     TypeMask elementType = TypeMask.readFromDataSource(source, domain);
     source.end(tag);
-    return SetTypeMask(
-        forwardTo, allocationNode, allocationElement, elementType);
+    return SetTypeMask(forwardTo, null, allocationElement, elementType);
   }
 
   /// Serializes this [SetTypeMask] to [sink].
@@ -48,7 +47,6 @@ class SetTypeMask extends AllocationTypeMask {
     sink.writeEnum(TypeMaskKind.set);
     sink.begin(tag);
     forwardTo.writeToDataSink(sink);
-    sink.writeTreeNodeOrNull(allocationNode);
     sink.writeMemberOrNull(allocationElement);
     elementType.writeToDataSink(sink);
     sink.end(tag);

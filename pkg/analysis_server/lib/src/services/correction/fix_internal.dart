@@ -447,6 +447,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.directives_ordering: [
       OrganizeImports.new,
     ],
+    LintNames.discarded_futures: [
+      AddAsync.new,
+    ],
     LintNames.empty_catches: [
       RemoveEmptyCatch.new,
     ],

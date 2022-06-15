@@ -6,13 +6,6 @@ import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 
-class CacheData {
-  final int id;
-  final Uint8List bytes;
-
-  CacheData(this.id, this.bytes);
-}
-
 /// Store of bytes associated with string keys and a hash.
 ///
 /// Each key must be not longer than 100 characters and consist of only `[a-z]`,
@@ -40,17 +33,10 @@ abstract class CiderByteStore {
   void release(Iterable<String> keys);
 }
 
-class CiderByteStoreTestView {
-  int length = 0;
-}
-
 /// [CiderByteStore] that keeps all data in local memory.
 class MemoryCiderByteStore implements CiderByteStore {
   @visibleForTesting
   final Map<String, MemoryCiderByteStoreEntry> map = {};
-
-  /// This field gets value only during testing.
-  CiderByteStoreTestView? testView;
 
   @override
   Uint8List? get(String key) {
@@ -69,7 +55,6 @@ class MemoryCiderByteStore implements CiderByteStore {
       throw StateError('Overwriting is not allowed: $key');
     }
 
-    testView?.length++;
     map[key] = MemoryCiderByteStoreEntry._(bytes);
     return bytes;
   }

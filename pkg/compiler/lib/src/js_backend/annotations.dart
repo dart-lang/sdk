@@ -22,6 +22,10 @@ class PragmaAnnotation {
   final bool forFieldsOnly;
   final bool internalOnly;
 
+  // TODO(sra): Review [forFunctionsOnly] and [forFieldsOnly]. Fields have
+  // implied getters and setters, so some annotations meant only for functions
+  // could reasonable be placed on a field to apply to the getter and setter.
+
   const PragmaAnnotation(this._index, this.name,
       {this.forFunctionsOnly = false,
       this.forFieldsOnly = false,
@@ -41,15 +45,20 @@ class PragmaAnnotation {
   static const PragmaAnnotation tryInline =
       PragmaAnnotation(1, 'tryInline', forFunctionsOnly: true);
 
+  /// Annotation on a member that tells the optimizing compiler to disable
+  /// inlining at call sites within the member.
+  static const PragmaAnnotation disableInlining =
+      PragmaAnnotation(2, 'disable-inlining');
+
   static const PragmaAnnotation disableFinal = PragmaAnnotation(
-      2, 'disableFinal',
+      3, 'disableFinal',
       forFunctionsOnly: true, internalOnly: true);
 
-  static const PragmaAnnotation noElision = PragmaAnnotation(3, 'noElision');
+  static const PragmaAnnotation noElision = PragmaAnnotation(4, 'noElision');
 
   /// Tells the optimizing compiler that the annotated method cannot throw.
   /// Requires @pragma('dart2js:noInline') to function correctly.
-  static const PragmaAnnotation noThrows = PragmaAnnotation(4, 'noThrows',
+  static const PragmaAnnotation noThrows = PragmaAnnotation(5, 'noThrows',
       forFunctionsOnly: true, internalOnly: true);
 
   /// Tells the optimizing compiler that the annotated method has no
@@ -58,7 +67,7 @@ class PragmaAnnotation {
   ///
   /// Requires @pragma('dart2js:noInline') to function correctly.
   static const PragmaAnnotation noSideEffects = PragmaAnnotation(
-      5, 'noSideEffects',
+      6, 'noSideEffects',
       forFunctionsOnly: true, internalOnly: true);
 
   /// Use this as metadata on method declarations to disable closed world
@@ -66,48 +75,49 @@ class PragmaAnnotation {
   /// could be any value. Note that the constraints due to static types still
   /// apply.
   static const PragmaAnnotation assumeDynamic = PragmaAnnotation(
-      6, 'assumeDynamic',
+      7, 'assumeDynamic',
       forFunctionsOnly: true, internalOnly: true);
 
-  static const PragmaAnnotation asTrust = PragmaAnnotation(7, 'as:trust',
+  static const PragmaAnnotation asTrust = PragmaAnnotation(8, 'as:trust',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation asCheck = PragmaAnnotation(8, 'as:check',
+  static const PragmaAnnotation asCheck = PragmaAnnotation(9, 'as:check',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation typesTrust = PragmaAnnotation(9, 'types:trust',
+  static const PragmaAnnotation typesTrust = PragmaAnnotation(10, 'types:trust',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation typesCheck = PragmaAnnotation(10, 'types:check',
+  static const PragmaAnnotation typesCheck = PragmaAnnotation(11, 'types:check',
       forFunctionsOnly: false, internalOnly: false);
 
   static const PragmaAnnotation parameterTrust = PragmaAnnotation(
-      11, 'parameter:trust',
+      12, 'parameter:trust',
       forFunctionsOnly: false, internalOnly: false);
 
   static const PragmaAnnotation parameterCheck = PragmaAnnotation(
-      12, 'parameter:check',
+      13, 'parameter:check',
       forFunctionsOnly: false, internalOnly: false);
 
   static const PragmaAnnotation downcastTrust = PragmaAnnotation(
-      13, 'downcast:trust',
+      14, 'downcast:trust',
       forFunctionsOnly: false, internalOnly: false);
 
   static const PragmaAnnotation downcastCheck = PragmaAnnotation(
-      14, 'downcast:check',
+      15, 'downcast:check',
       forFunctionsOnly: false, internalOnly: false);
 
   static const PragmaAnnotation indexBoundsTrust = PragmaAnnotation(
-      15, 'index-bounds:trust',
+      16, 'index-bounds:trust',
       forFunctionsOnly: false, internalOnly: false);
 
   static const PragmaAnnotation indexBoundsCheck = PragmaAnnotation(
-      16, 'index-bounds:check',
+      17, 'index-bounds:check',
       forFunctionsOnly: false, internalOnly: false);
 
   static const List<PragmaAnnotation> values = [
     noInline,
     tryInline,
+    disableInlining,
     disableFinal,
     noElision,
     noThrows,
@@ -273,6 +283,9 @@ abstract class AnnotationsData {
   /// annotation.
   bool hasTryInline(MemberEntity member);
 
+  /// Returns `true` if inlining is disabled at call sites inside [member].
+  bool hasDisableInlining(MemberEntity member);
+
   /// Returns `true` if [member] has a `@pragma('dart2js:disableFinal')`
   /// annotation.
   bool hasDisableFinal(MemberEntity member);
@@ -343,6 +356,7 @@ class AnnotationsDataImpl implements AnnotationsData {
   final CheckPolicy _defaultConditionCheckPolicy;
   final CheckPolicy _defaultExplicitCastCheckPolicy;
   final CheckPolicy _defaultIndexBoundsCheckPolicy;
+  final bool _defaultDisableInlining;
   final Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations;
 
   AnnotationsDataImpl(CompilerOptions options, this.pragmaAnnotations)
@@ -353,7 +367,8 @@ class AnnotationsDataImpl implements AnnotationsData {
         this._defaultExplicitCastCheckPolicy =
             options.defaultExplicitCastCheckPolicy,
         this._defaultIndexBoundsCheckPolicy =
-            options.defaultIndexBoundsCheckPolicy;
+            options.defaultIndexBoundsCheckPolicy,
+        this._defaultDisableInlining = options.disableInlining;
 
   factory AnnotationsDataImpl.readFromDataSource(
       CompilerOptions options, DataSourceReader source) {
@@ -391,6 +406,11 @@ class AnnotationsDataImpl implements AnnotationsData {
   @override
   bool hasTryInline(MemberEntity member) =>
       _hasPragma(member, PragmaAnnotation.tryInline);
+
+  @override
+  bool hasDisableInlining(MemberEntity member) =>
+      _hasPragma(member, PragmaAnnotation.disableInlining) ||
+      _defaultDisableInlining;
 
   @override
   bool hasDisableFinal(MemberEntity member) =>

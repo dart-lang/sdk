@@ -44,7 +44,7 @@ class InferenceVisitor
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
         StatementVisitor<StatementInferenceResult>,
         InitializerVisitor<InitializerInferenceResult> {
-  final TypeInferrerImpl inferrer;
+  final InferenceVisitorBase inferrer;
 
   Class? mapEntryClass;
 
@@ -5058,11 +5058,11 @@ class InferenceVisitor
                     .computeFunctionType(inferrer.libraryBuilder.nonNullable)
                 : interfaceMember.function.returnType;
             checkReturn =
-                TypeInferrerImpl.returnedTypeParametersOccurNonCovariantly(
+                InferenceVisitorBase.returnedTypeParametersOccurNonCovariantly(
                     interfaceMember.enclosingClass!, typeToCheck);
           } else if (interfaceMember is Field) {
             checkReturn =
-                TypeInferrerImpl.returnedTypeParametersOccurNonCovariantly(
+                InferenceVisitorBase.returnedTypeParametersOccurNonCovariantly(
                     interfaceMember.enclosingClass!, interfaceMember.type);
           }
         }

@@ -90,11 +90,7 @@ declare_args() {
 # Scripts that go under bin/
 _platform_sdk_scripts = [ "dartanalyzer" ]
 
-_full_sdk_scripts = [
-  "dart2js",
-  "dartanalyzer",
-  "dartdevc",
-]
+_full_sdk_scripts = [ "dartanalyzer" ]
 
 # Snapshots that go under bin/snapshots
 _platform_sdk_snapshots = [

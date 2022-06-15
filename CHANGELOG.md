@@ -140,6 +140,13 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 ### Tools
 
+#### Dart command line
+
+- **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dart2js` and `dartdevc` tools have been removed as previously
+  announced. `dart2js` is replaced by the `dart compile js` command, `dartdevc`
+  is no longer exposed as a command-line tool.
+
 #### Linter
 
 Updated the Linter to `1.25.0`, which includes changes that
