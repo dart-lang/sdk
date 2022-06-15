@@ -21,8 +21,7 @@ class XX {
   /*member: XX.useFoo:function() {
   var t2, t3, t4, t5, _this = this,
     t1 = _this.__XX_foo_A;
-  if (t1 === $)
-    A.throwLateFieldNI("foo");
+  t1 === $ && A.throwLateFieldNI("foo");
   t2 = _this.effect$0();
   t3 = _this.__XX_foo_A;
   t4 = _this.effect$0();
@@ -40,8 +39,7 @@ class XX {
   /*member: XX.useBar:function() {
   var _this = this,
     t1 = _this.__XX_bar_F;
-  if (t1 === $)
-    A.throwLateFieldNI("bar");
+  t1 === $ && A.throwLateFieldNI("bar");
   _this.use$8(t1, t1, _this.effect$0(), t1, t1, _this.effect$0(), t1, t1);
 }*/
   void useBar() {
