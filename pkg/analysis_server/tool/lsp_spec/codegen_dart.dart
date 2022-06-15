@@ -382,7 +382,7 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('} else {')
     ..indent()
     ..writeIndentedln(
-        "reporter.reportError('must be of type ${interface.nameWithTypeArgs}');")
+        "reporter.reportError('must be of type ${interface.name}');")
     ..writeIndentedln('return false;')
     ..outdent()
     ..writeIndentedln('}')
@@ -785,8 +785,8 @@ void _writeFromJsonConstructor(
     IndentableStringBuffer buffer, Interface interface) {
   final allFields = _getAllFields(interface);
   buffer
-    ..writeIndentedln('static ${interface.nameWithTypeArgs} '
-        'fromJson${interface.typeArgsString}(Map<String, Object?> json) {')
+    ..writeIndentedln('static ${interface.name} '
+        'fromJson(Map<String, Object?> json) {')
     ..indent();
   // First check whether any of our subclasses can deserialize this.
   for (final subclassName in _subtypes[interface.name] ?? const <String>[]) {
@@ -795,7 +795,7 @@ void _writeFromJsonConstructor(
       ..writeIndentedln(
           'if (${subclass.name}.canParse(json, nullLspJsonReporter)) {')
       ..indent()
-      ..writeIndentedln('return ${subclass.nameWithTypeArgs}.fromJson(json);')
+      ..writeIndentedln('return ${subclass.name}.fromJson(json);')
       ..outdent()
       ..writeIndentedln('}');
   }
@@ -810,7 +810,7 @@ void _writeFromJsonConstructor(
     buffer.writeln(';');
   }
   buffer
-    ..writeIndented('return ${interface.nameWithTypeArgs}(')
+    ..writeIndented('return ${interface.name}(')
     ..write(allFields.map((field) => '${field.name}: ${field.name}, ').join())
     ..writeln(');')
     ..outdent()
@@ -861,7 +861,7 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   final isPrivate = interface.name.startsWith('_');
   _writeDocCommentsAndAnnotations(buffer, interface);
 
-  buffer.writeIndented('class ${interface.nameWithTypeArgs} ');
+  buffer.writeIndented('class ${interface.name} ');
   final allBaseTypes =
       interface.baseTypes.map((t) => t.dartTypeWithTypeArgs).toList();
   allBaseTypes.add('ToJsonable');
@@ -1113,13 +1113,6 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
     if (parenForCollection) {
       buffer.write(')');
     }
-  } else if (interface != null &&
-      interface.typeArgs.any((typeArg) => typeArg == fullDartType)) {
-    final comment = '/* $operator$fullDartType.canParse($valueCode) */';
-    print(
-        'WARN: Unable to write a type check for $valueCode with generic type $fullDartType. '
-        'Please review the generated code annotated with $comment');
-    buffer.write('${negation ? 'false' : 'true'} $comment');
   } else {
     throw 'Unable to type check $valueCode against $fullDartType';
   }
