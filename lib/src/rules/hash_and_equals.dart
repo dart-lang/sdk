@@ -51,12 +51,19 @@ class Better {
 ''';
 
 class HashAndEquals extends LintRule {
+  static const LintCode code = LintCode(
+      'hash_and_equals', "Missing a corresponding override of '{0}'.",
+      correctionMessage: "Try overriding '{0}' or removing '{1}'.");
+
   HashAndEquals()
       : super(
             name: 'hash_and_equals',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => HashAndEquals.code;
 
   @override
   void registerNodeProcessors(
@@ -67,13 +74,6 @@ class HashAndEquals extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  static const LintCode hashMemberCode = LintCode(
-      'hash_and_equals', 'Override `==` if overriding `hashCode`.',
-      correctionMessage: 'Implement `==`.');
-  static const LintCode equalsMemberCode = LintCode(
-      'hash_and_equals', 'Override `hashCode` if overriding `==`.',
-      correctionMessage: 'Implement `hashCode`.');
-
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -95,14 +95,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (eq != null && hash == null) {
-      rule.reportLint(eq.name, errorCode: equalsMemberCode);
+      rule.reportLint(eq.name, arguments: ['hashCode', '==']);
     }
     if (hash != null && eq == null) {
       if (hash is MethodDeclaration) {
-        rule.reportLint(hash.name, errorCode: hashMemberCode);
+        rule.reportLint(hash.name, arguments: ['==', 'hashCode']);
       } else if (hash is FieldDeclaration) {
         rule.reportLint(getFieldIdentifier(hash, 'hashCode'),
-            errorCode: hashMemberCode);
+            arguments: ['==', 'hashCode']);
       }
     }
   }

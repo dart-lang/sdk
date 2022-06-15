@@ -112,10 +112,14 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
 
     // Finally, determine whether the type of the argument is related to the
     // type of the method target.
-    if (targetType is InterfaceType &&
-        DartTypeUtilities.unrelatedTypes(typeSystem, argument.staticType,
-            _findIterableTypeArgument(definition, targetType))) {
-      rule.reportLint(node);
+    if (targetType is InterfaceType) {
+      var typeArgument = _findIterableTypeArgument(definition, targetType);
+      if (typeArgument != null &&
+          DartTypeUtilities.unrelatedTypes(
+              typeSystem, argument.staticType, typeArgument)) {
+        rule.reportLint(node,
+            arguments: [typeArgument.getDisplayString(withNullability: true)]);
+      }
     }
   }
 }

@@ -120,12 +120,18 @@ class DerivedClass3 extends ClassBase implements Mixin {}
 ''';
 
 class ListRemoveUnrelatedType extends LintRule {
+  static const LintCode code = LintCode('list_remove_unrelated_type',
+      "The type of the argument of 'List<{0}>.remove' isn't a subtype of '{0}'.");
+
   ListRemoveUnrelatedType()
       : super(
             name: 'list_remove_unrelated_type',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => ListRemoveUnrelatedType.code;
 
   @override
   void registerNodeProcessors(
