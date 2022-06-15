@@ -2,86 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data';
+@Deprecated('Use ByteStore directly instead')
+library cider_byte_store;
 
-import 'package:meta/meta.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 
-/// Store of bytes associated with string keys and a hash.
-///
-/// Each key must be not longer than 100 characters and consist of only `[a-z]`,
-/// `[0-9]`, `.` and `_` characters. The key cannot be an empty string, the
-/// literal `.`, or contain the sequence `..`.
-///
-/// Note that associations are not guaranteed to be persistent. The value
-/// associated with a key can change or become `null` at any point in time.
-abstract class CiderByteStore {
-  /// Return the bytes associated with the [key], and increment the reference
-  /// count.
-  ///
-  /// Return `null` if the association does not exist.
-  Uint8List? get(String key);
-
-  /// Associate [bytes] with [key].
-  /// Return an internalized version of [bytes], the reference count is `1`.
-  ///
-  /// This method will throw an exception if there is already an association
-  /// for the [key]. The client should either use [get] to access data,
-  /// or first [release] it.
-  Uint8List putGet(String key, Uint8List bytes);
-
-  ///  Decrement the reference count for every key in [keys].
-  void release(Iterable<String> keys);
-}
-
-/// [CiderByteStore] that keeps all data in local memory.
-class MemoryCiderByteStore implements CiderByteStore {
-  @visibleForTesting
-  final Map<String, MemoryCiderByteStoreEntry> map = {};
-
-  @override
-  Uint8List? get(String key) {
-    final entry = map[key];
-    if (entry == null) {
-      return null;
-    }
-
-    entry.refCount++;
-    return entry.bytes;
-  }
-
-  @override
-  Uint8List putGet(String key, Uint8List bytes) {
-    if (map.containsKey(key)) {
-      throw StateError('Overwriting is not allowed: $key');
-    }
-
-    map[key] = MemoryCiderByteStoreEntry._(bytes);
-    return bytes;
-  }
-
-  @override
-  void release(Iterable<String> keys) {
-    for (final key in keys) {
-      final entry = map[key];
-      if (entry != null) {
-        entry.refCount--;
-        if (entry.refCount == 0) {
-          map.remove(key);
-        }
-      }
-    }
-  }
-}
-
-@visibleForTesting
-class MemoryCiderByteStoreEntry {
-  final Uint8List bytes;
-  int refCount = 1;
-
-  MemoryCiderByteStoreEntry._(this.bytes);
-
-  @override
-  String toString() {
-    return '(length: ${bytes.length}, refCount: $refCount)';
-  }
-}
+@Deprecated('Use ByteStore directly instead')
+typedef CiderByteStore = ByteStore;

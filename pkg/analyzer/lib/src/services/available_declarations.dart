@@ -1251,7 +1251,7 @@ class _File {
         contentHashBuilder.addString(content);
         contentHashBytes = contentHashBuilder.toByteList();
 
-        tracker._byteStore.put(pathKey, contentHashBytes);
+        tracker._byteStore.putGet(pathKey, contentHashBytes);
       }
 
       contentKey = '${hex.encode(contentHashBytes)}.declarations';
@@ -1844,7 +1844,7 @@ class _File {
           templateNames: templateNames, templateValues: templateValues),
     );
     var bytes = builder.toBuffer();
-    tracker._byteStore.put(contentKey, bytes);
+    tracker._byteStore.putGet(contentKey, bytes);
   }
 
   void _readFileDeclarationsFromBytes(List<int> bytes) {

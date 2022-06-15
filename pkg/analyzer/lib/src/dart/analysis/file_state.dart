@@ -607,7 +607,7 @@ class FileState {
         unit: unlinkedUnit,
       );
       var bytes = driverUnlinkedUnit.toBytes();
-      _fsState._byteStore.put(_unlinkedKey!, bytes);
+      _fsState._byteStore.putGet(_unlinkedKey!, bytes);
       return driverUnlinkedUnit;
     });
   }
