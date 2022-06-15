@@ -104,7 +104,7 @@ class IsolateManager {
   /// when asking for data so it's all stored together here.
   final _storedData = <int, _StoredData>{};
 
-  /// A pattern that matches an opening brace `{` that was not preceeded by a
+  /// A pattern that matches an opening brace `{` that was not preceded by a
   /// dollar.
   ///
   /// Any leading character matched in place of the dollar is in the first capture.
@@ -883,7 +883,7 @@ class ThreadInfo {
         }
       } catch (e) {
         // We can't leave dangling completers here because others may already
-        // be waiting on them, so propogate the error to them.
+        // be waiting on them, so propagate the error to them.
         completers.forEach((uri, completer) => completer.completeError(e));
         rethrow;
       }

@@ -215,7 +215,7 @@ class LspMetaModelReader {
 
   /// Generates a valid name for a member.
   String _generateMemberName(String name, {bool camelCase = false}) {
-    // Replace any seperators like `/` with `_`.
+    // Replace any separators like `/` with `_`.
     name = name.replaceAll(_memberNameSeparatorPattern, '_');
 
     // Replace out any characters we don't want in member names.

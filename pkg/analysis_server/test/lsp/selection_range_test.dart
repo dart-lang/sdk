@@ -74,7 +74,7 @@ class Foo<T> {
     final lineInfo = LineInfo.fromContent(contentWithoutMarker);
 
     // The returned List corresponds to the input list of positions, and not
-    // the set of ranges - each range within that list has a (recusrive) parent
+    // the set of ranges - each range within that list has a (recursive) parent
     // to walk up all ranges for that position.
     final regions =
         await getSelectionRanges(mainFileUri, [positionFromMarker(content)]);

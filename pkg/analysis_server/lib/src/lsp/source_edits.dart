@@ -270,7 +270,7 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
     final formattedToken = formattedTokens.current;
 
     if (unformattedToken.lexeme != formattedToken.lexeme) {
-      // If the token lexems do not match, there is a difference in the parsed
+      // If the token lexemes do not match, there is a difference in the parsed
       // token streams (this should not ordinarily happen) so fall back to a
       // full edit.
       return success(_generateFullEdit(lineInfo, unformatted, formatted));

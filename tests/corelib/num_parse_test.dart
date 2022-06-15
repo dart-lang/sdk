@@ -64,7 +64,7 @@ void testParseWhitespace(String source, num result) {
   testParseAllWhitespace("-$source", -result);
 }
 
-// Test parsing source, optionally preceeded and/or followed by whitespace.
+// Test parsing source, optionally preceded and/or followed by whitespace.
 void testParse(String source, num result) {
   expectNumEquals(result, num.parse(source), "parse '$source'");
   expectNumEquals(result, num.parse(" $source"), "parse ' $source'");

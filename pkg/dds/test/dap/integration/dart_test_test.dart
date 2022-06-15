@@ -20,7 +20,7 @@ main() {
     /// A helper that verifies a full set of expected test results for the
     /// [simpleTestProgram] script.
     void expectStandardSimpleTestResults(TestEvents events) {
-      // Check we recieved all expected test events passed through from
+      // Check we received all expected test events passed through from
       // package:test.
       final eventNames =
           events.testNotifications.map((e) => e['type']).toList();

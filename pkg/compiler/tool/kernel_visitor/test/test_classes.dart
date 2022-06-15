@@ -57,7 +57,7 @@ class E implements A {
   }
 }
 
-// Test class with unoverriden superclass method
+// Test class with unoverridden superclass method
 class G extends A {
   G();
 }

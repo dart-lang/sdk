@@ -898,8 +898,8 @@ Future _processLoadRequest(request) async {
     // http://dartbug.com/45137
     // enableColors calls `stdout.supportsAnsiEscapes` which - on Windows -
     // does something with line endings. To avoid this when no error
-    // messages are do be printed anyway, we are carefull not to call it unless
-    // neccessary.
+    // messages are do be printed anyway, we are careful not to call it unless
+    // necessary.
     if (compiler.errorsColorized.isNotEmpty) {
       final List<String> errors =
           (enableColors) ? compiler.errorsColorized : compiler.errorsPlain;

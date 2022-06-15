@@ -79,7 +79,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     _verifyHighlightRegions(fileA, [region1, region2]);
   }
 
-  void test_handlePluginNotification_naviation() {
+  void test_handlePluginNotification_navigation() {
     manager.setSubscriptions({
       server.AnalysisService.NAVIGATION: {fileA, fileB}
     });

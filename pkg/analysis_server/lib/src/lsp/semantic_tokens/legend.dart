@@ -23,7 +23,7 @@ class SemanticTokenLegendLookup {
   late List<SemanticTokenModifiers> _usedTokenModifiers;
 
   /// All [SemanticTokenTypes] the server may generate. The order of these
-  /// items is important as the indexes will be used in communication betewen
+  /// items is important as the indexes will be used in communication between
   /// server and client.
   late List<SemanticTokenTypes> _usedTokenTypes;
 

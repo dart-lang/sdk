@@ -146,13 +146,13 @@ main() {
 main() {
   // TODO: Implement something
   //  that is too long for one line
-  //  TODO: This is a seperate todo that is accidentally indented
+  //  TODO: This is a separate todo that is accidentally indented
 }
 ''', [
       error(TodoCode.TODO, 14, 61,
           text: 'TODO: Implement something that is too long for one line'),
       error(TodoCode.TODO, 82, 59,
-          text: 'TODO: This is a seperate todo that is accidentally indented'),
+          text: 'TODO: This is a separate todo that is accidentally indented'),
     ]);
   }
 

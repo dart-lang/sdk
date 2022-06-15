@@ -182,7 +182,7 @@ class SnippetBuilder {
       );
     }
 
-    // Otherwise, we will use a choice. In a choice it'snot valid to be the
+    // Otherwise, we will use a choice. In a choice it's not valid to be the
     // final (0th) tabstop.
     assert(placeholderNumber == null || placeholderNumber > 0);
 
@@ -193,7 +193,7 @@ class SnippetBuilder {
       placeholderNumber = null;
     }
 
-    placeholderNumber = _usePlaceholerNumber(placeholderNumber);
+    placeholderNumber = _usePlaceholderNumber(placeholderNumber);
 
     final escapedChoices = uniqueChoices.map(escapeSnippetChoiceText).join(',');
     _buffer.write('\${$placeholderNumber|$escapedChoices|}');
@@ -212,7 +212,7 @@ class SnippetBuilder {
       return appendTabStop(placeholderNumber: placeholderNumber);
     }
 
-    placeholderNumber = _usePlaceholerNumber(placeholderNumber);
+    placeholderNumber = _usePlaceholderNumber(placeholderNumber);
 
     final escapedText = escapeSnippetVariableText(text);
     _buffer.write(r'${');
@@ -228,7 +228,7 @@ class SnippetBuilder {
   ///
   /// Returns the placeholder number used.
   int appendTabStop({int? placeholderNumber}) {
-    placeholderNumber = _usePlaceholerNumber(placeholderNumber);
+    placeholderNumber = _usePlaceholderNumber(placeholderNumber);
 
     _buffer.write(r'$');
     _buffer.write(placeholderNumber);
@@ -242,7 +242,7 @@ class SnippetBuilder {
   }
 
   /// Generates the current and next placeholder numbers.
-  int _usePlaceholerNumber(int? placeholderNumber) {
+  int _usePlaceholderNumber(int? placeholderNumber) {
     // If a number was not supplied, use the next available one.
     placeholderNumber ??= _nextPlaceholder;
     // If the number we used was the highest seen, set the next one after it.
@@ -332,13 +332,13 @@ extension SnippetBuilderExtensions on SnippetBuilder {
       appendText(text.substring(offset, placeholder.offset));
 
       final linkedGroupId = placeholder.linkedGroupId;
-      int? thisPaceholderNumber;
+      int? thisPlaceholderNumber;
       // Override the placeholder number if it's the final one (0) or needs to
       // re-use an existing one for a linked group.
       if (placeholder.isFinal) {
-        thisPaceholderNumber = 0;
+        thisPlaceholderNumber = 0;
       } else if (linkedGroupId != null) {
-        thisPaceholderNumber = placeholderIdForLinkedGroupId[linkedGroupId];
+        thisPlaceholderNumber = placeholderIdForLinkedGroupId[linkedGroupId];
       }
 
       // Append the placeholder/choices.
@@ -350,18 +350,18 @@ extension SnippetBuilderExtensions on SnippetBuilder {
       // placeholder but it's faster if we can avoid putting a single item into
       // a set and then detecting it.
       if (placeholder.suggestions == null) {
-        thisPaceholderNumber = appendPlaceholder(
+        thisPlaceholderNumber = appendPlaceholder(
           placeholderText,
-          placeholderNumber: thisPaceholderNumber,
+          placeholderNumber: thisPlaceholderNumber,
         );
       } else {
         final choices = <String>{
           if (placeholderText.isNotEmpty) placeholderText,
           ...?placeholder.suggestions,
         };
-        thisPaceholderNumber = appendChoice(
+        thisPlaceholderNumber = appendChoice(
           choices,
-          placeholderNumber: thisPaceholderNumber,
+          placeholderNumber: thisPlaceholderNumber,
         );
       }
 
@@ -371,7 +371,7 @@ extension SnippetBuilderExtensions on SnippetBuilder {
       // Store the placeholder number used for linked groups so it can be reused
       // by subsequent references to it.
       if (linkedGroupId != null) {
-        placeholderIdForLinkedGroupId[linkedGroupId] = thisPaceholderNumber;
+        placeholderIdForLinkedGroupId[linkedGroupId] = thisPlaceholderNumber;
       }
     }
 

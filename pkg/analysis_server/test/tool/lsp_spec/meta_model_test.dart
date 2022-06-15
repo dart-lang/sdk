@@ -77,7 +77,7 @@ void main() {
       // Length is two because we'll fabricate the type of textDoc.
       expect(output, hasLength(2));
 
-      // Check there was a full fabricarted interface for this type.
+      // Check there was a full fabricated interface for this type.
       expect(output[0], const TypeMatcher<Interface>());
       var interface = output[0] as Interface;
       expect(interface.name, equals('CapabilitiesTextDoc'));

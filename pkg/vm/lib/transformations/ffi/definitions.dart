@@ -747,7 +747,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     return result;
   }
 
-  /// Must only be called if all the depencies are already in the cache.
+  /// Must only be called if all the dependencies are already in the cache.
   CompoundNativeTypeCfe _compoundAnnotatedNativeTypeCfe(Class compoundClass) {
     final layoutConstant = _compoundAnnotatedFields(compoundClass)!;
     final fieldTypes = layoutConstant

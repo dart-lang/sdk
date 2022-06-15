@@ -275,7 +275,7 @@ main() {
     test('can shutdown during startup', () async {
       final testFile = dap.createTestFile(simpleArgPrintingProgram);
 
-      // Terminate the app immediately upon recieving the first Thread event.
+      // Terminate the app immediately upon receiving the first Thread event.
       // The DAP is also responding to this event to configure the isolate (eg.
       // set breakpoints and exception pause behaviour) and will cause it to
       // receive "Service has disappeared" responses if these are in-flight as

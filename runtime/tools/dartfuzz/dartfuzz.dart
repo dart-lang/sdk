@@ -843,7 +843,7 @@ class DartFuzz {
     while (parentClass >= 0) {
       vcm[parentClass] = <int>[];
       for (var j = 0, n = classMethods[parentClass].length; j < n; j++) {
-        // Call methods are presently always already overriden, so we
+        // Call methods are presently always already overridden, so we
         // shouldn't override them here.
         if (rollDice(8) && !(classMethods[parentClass][j] is CallMethod)) {
           currentClassIndex = parentClass;

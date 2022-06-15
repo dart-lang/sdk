@@ -134,7 +134,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return super.visitStaticInvocation(node);
     }
     // We've just created this node. We're likely not going to need to transform
-    // this node itself. Visit its sub exprssions.
+    // this node itself. Visit its sub expressions.
     return super.defaultExpression(modifiedExpression);
   }
 
@@ -270,7 +270,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           isLeaf = false;
         }
 
-        // Inline function body to make all type arguments instatiated.
+        // Inline function body to make all type arguments instantiated.
         final replacement = StaticInvocation(
             asFunctionInternal,
             Arguments([node.arguments.positional[0], BoolLiteral(isLeaf)],
@@ -386,7 +386,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
         // Inline the body to get rid of a generic invocation of sizeOf.
-        // TODO(http://dartbug.com/39964): Add `allignmentOf<T>()` call.
+        // TODO(http://dartbug.com/39964): Add `alignmentOf<T>()` call.
         Expression? sizeInBytes = _inlineSizeOf(nativeType as InterfaceType);
         if (sizeInBytes != null) {
           if (node.arguments.positional.length == 2) {
@@ -761,7 +761,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return super.visitInstanceInvocation(node);
     }
     // We've just created this node. We're likely not going to need to transform
-    // this node itself. Visit its sub exprssions.
+    // this node itself. Visit its sub expressions.
     return super.defaultExpression(modifiedExpression);
   }
 

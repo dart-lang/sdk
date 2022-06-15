@@ -405,7 +405,7 @@ class VirtualContainerProperty {
   /// of the `Container` semantic, such as `Padding`. Such wrapper should be
   /// replaced with full `Container` when `Container` is materialized.
   ///
-  /// Might be `null`, if no existing replacable wrapped.
+  /// Might be `null`, if no existing replaceable wrapped.
   InstanceCreationExpression? _parentCreation;
 
   /// The argument from the [_parentCreation] that should be moved into

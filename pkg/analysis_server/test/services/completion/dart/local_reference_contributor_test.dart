@@ -1258,7 +1258,7 @@ class Z { }''');
     assertNotSuggested('r');
     assertNotSuggested('x');
 
-    // imported elements are portially filtered
+    // imported elements are partially filtered
     //assertNotSuggested('A');
     assertNotSuggested('_B');
     //assertNotSuggested('C');

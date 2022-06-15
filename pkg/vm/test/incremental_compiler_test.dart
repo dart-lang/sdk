@@ -639,7 +639,7 @@ main() {
       return coverageLines;
     }
 
-    test('compile seperatly, check coverage', () async {
+    test('compile separately, check coverage', () async {
       Directory dir = mytest.createTempSync();
 
       // First compile lib, run and verify coverage (un-named constructor
@@ -676,7 +676,7 @@ main() {
       compiler.accept();
 
       // Then compile lib, run and verify coverage (un-named constructor
-      // covered, and the named constructor coveraged too).
+      // covered, and the named constructor covered too).
       File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
       compilerResult = await compiler.compile(entryPoints: [main.uri]);
       component = compilerResult.component;
@@ -714,7 +714,7 @@ main() {
         //
         // Shift lines down by five
         // lines so the original
-        // lines can't be coverred
+        // lines can't be covered
         //
         class Foo {
           final int x;

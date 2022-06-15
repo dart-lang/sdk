@@ -19,9 +19,10 @@ class PackageDetailsCache {
   static const maxCacheAge = Duration(hours: 18);
   static const maxPackageDetailsRequestsInFlight = 5;
 
-  /// Requests to write the cache from fetching packge details will be debounced
-  /// by this duration to prevent many writes while the user may be cursoring
-  /// though completion requests that will trigger fetching descriptions/versions.
+  /// Requests to write the cache from fetching package details will be
+  /// debounced by this duration to prevent many writes while the user may be
+  /// cursoring though completion requests that will trigger fetching
+  /// descriptions/versions.
   static const _writeCacheDebounceDuration = Duration(seconds: 3);
 
   final Map<String, PubPackage> packages;
@@ -273,7 +274,7 @@ class PubPackageService {
   /// Clears package caches for [pubspecPath].
   ///
   /// Does not remove other caches that are not pubspec-specific (for example
-  /// the latest version pulled directly from the Pub API independant of
+  /// the latest version pulled directly from the Pub API independent of
   /// pubspec).
   Future<void> flushPackageCaches(String pubspecPath) async {
     _pubspecPackageVersions.remove(pubspecPath);

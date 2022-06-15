@@ -5,7 +5,7 @@
 library lib2;
 
 import "package:expect/expect.dart";
-import "static_seperate_lib1.dart";
+import "static_separate_lib1.dart";
 
 foo() {
   Expect.equals(1, C.foo());

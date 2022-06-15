@@ -275,7 +275,7 @@ class LspMetaModelCleaner {
       // Merged into InitializeParams.
       '_InitializeParams',
       'WorkspaceFoldersInitializeParams',
-      // We don't use these clases and they weren't in the TS version of the
+      // We don't use these classes and they weren't in the TS version of the
       // spec so continue to not generate them until required.
       'DidChangeConfigurationRegistrationOptions',
       // LSPAny/LSPObject are used by the LSP spec for unions of basic types.

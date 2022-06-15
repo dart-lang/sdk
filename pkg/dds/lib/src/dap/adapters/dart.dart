@@ -1623,7 +1623,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
   /// Creates one or more OutputEvents for the provided [message].
   ///
-  /// Messages that contain stack traces may be split up into seperate events
+  /// Messages that contain stack traces may be split up into separate events
   /// for each frame to allow location metadata to be attached.
   Future<List<OutputEventBody>> _buildOutputEvents(
     String category,

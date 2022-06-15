@@ -1059,7 +1059,7 @@ class B extends A {
     assertNotSuggested('r');
     assertNotSuggested('x');
 
-    // imported elements are portially filtered
+    // imported elements are partially filtered
     //assertSuggestClass('A');
     assertNotSuggested('_B');
     // hidden element not suggested

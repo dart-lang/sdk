@@ -57,7 +57,7 @@ enum E with M {
   }
 
   String toString() {
-    print('overriden toString'); // LINE_H
+    print('overridden toString'); // LINE_H
     return '';
   }
 }

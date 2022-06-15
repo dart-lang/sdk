@@ -108,7 +108,7 @@ List<LoadingUnit> computeLoadingUnits(Component component) {
 
   // 4. Sort loading units so parents are before children. Normally this order
   // would already exist as a side effect of loading sources in import order,
-  // but this isn't guarenteed when combining separately produced kernel files.
+  // but this isn't guaranteed when combining separately produced kernel files.
   for (var unit in loadingUnits) {
     var parent = unit.parent;
     if (parent != null) {

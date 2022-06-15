@@ -8752,7 +8752,7 @@ f() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_typedef_assign_null_type_formal_with_paramter() async {
+  Future<void> test_typedef_assign_null_type_formal_with_parameter() async {
     var content = '''
 typedef F<R> = Function<T>(T);
 

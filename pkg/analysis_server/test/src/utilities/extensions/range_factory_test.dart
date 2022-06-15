@@ -639,7 +639,7 @@ int bar = 1; // 5
     });
   }
 
-  Future<void> test_topLevel_multiple_mixedComents() async {
+  Future<void> test_topLevel_multiple_mixedComments() async {
     await resolveTestCode('''
 import '';
 
