@@ -278,34 +278,30 @@ class TypeInferrerImpl implements TypeInferrer {
         instrumentation = isTopLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment {}
 
-  InferenceVisitor _createInferenceVisitor(InferenceVisitorBase inferrer) {
+  InferenceVisitorBase _createInferenceVisitor(InferenceHelper? helper) {
     // For full (non-top level) inference, we need access to the
-    // ExpressionGeneratorHelper so that we can perform error recovery.
-    assert(isTopLevel || inferrer._helper != null,
-        "Helper hasn't been set up for full inference.");
-    return new InferenceVisitor(inferrer);
+    // InferenceHelper so that we can perform error reporting.
+    return new InferenceVisitorImpl(this, helper);
   }
 
   @override
   DartType inferImplicitFieldType(
       InferenceHelper helper, Expression initializer) {
-    InferenceVisitorBase inferrer = new InferenceVisitorBase(this, helper);
-    InferenceVisitor visitor = _createInferenceVisitor(inferrer);
+    InferenceVisitorBase visitor = _createInferenceVisitor(helper);
     ExpressionInferenceResult result = visitor.inferExpression(
         initializer, const UnknownType(), true,
         isVoidAllowed: true);
-    return inferrer.inferDeclarationType(result.inferredType);
+    return visitor.inferDeclarationType(result.inferredType);
   }
 
   @override
   ExpressionInferenceResult inferFieldInitializer(
       InferenceHelper helper, DartType declaredType, Expression initializer) {
     assert(!isTopLevel);
-    InferenceVisitorBase inferrer = new InferenceVisitorBase(this, helper);
-    InferenceVisitor visitor = _createInferenceVisitor(inferrer);
+    InferenceVisitorBase visitor = _createInferenceVisitor(helper);
     ExpressionInferenceResult initializerResult = visitor
         .inferExpression(initializer, declaredType, true, isVoidAllowed: true);
-    initializerResult = inferrer.ensureAssignableResult(
+    initializerResult = visitor.ensureAssignableResult(
         declaredType, initializerResult,
         isVoidAllowed: declaredType is VoidType);
     return initializerResult;
@@ -316,10 +312,9 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType returnType, AsyncMarker asyncMarker, Statement body) {
     // ignore: unnecessary_null_comparison
     assert(body != null);
-    InferenceVisitorBase inferrer = new InferenceVisitorBase(this, helper);
+    InferenceVisitorBase visitor = _createInferenceVisitor(helper);
     ClosureContext closureContext =
-        new ClosureContext(inferrer, asyncMarker, returnType, false);
-    InferenceVisitor visitor = _createInferenceVisitor(inferrer);
+        new ClosureContext(visitor, asyncMarker, returnType, false);
     StatementInferenceResult result =
         visitor.inferStatement(body, closureContext);
     if (dataForTesting != null) {
@@ -329,7 +324,7 @@ class TypeInferrerImpl implements TypeInferrer {
       }
     }
     result =
-        closureContext.handleImplicitReturn(inferrer, body, result, fileOffset);
+        closureContext.handleImplicitReturn(visitor, body, result, fileOffset);
     DartType? futureValueType = closureContext.futureValueType;
     assert(!(asyncMarker == AsyncMarker.Async && futureValueType == null),
         "No future value type computed.");
@@ -346,8 +341,7 @@ class TypeInferrerImpl implements TypeInferrer {
       int fileOffset,
       Member target,
       FunctionType targetType) {
-    InferenceVisitorBase inferrer = new InferenceVisitorBase(this, helper);
-    InferenceVisitor visitor = _createInferenceVisitor(inferrer);
+    InferenceVisitorBase visitor = _createInferenceVisitor(helper);
     List<Expression> positionalArguments = <Expression>[];
     for (VariableDeclaration parameter
         in redirectingFactoryFunction.positionalParameters) {
@@ -368,7 +362,7 @@ class TypeInferrerImpl implements TypeInferrer {
         fileOffset, positionalArguments,
         named: namedArguments);
 
-    InvocationInferenceResult result = inferrer.inferInvocation(
+    InvocationInferenceResult result = visitor.inferInvocation(
         visitor, typeContext, fileOffset, targetType, targetInvocationArguments,
         staticTarget: target);
     DartType resultType = result.inferredType;
@@ -387,15 +381,8 @@ class TypeInferrerImpl implements TypeInferrer {
     // TODO(paulberry): experiment to see if dynamic dispatch would be better,
     // so that the type hierarchy will be simpler (which may speed up "is"
     // checks).
-    InferenceVisitorBase inferrer = new InferenceVisitorBase(this, helper);
-    InferenceVisitor visitor = _createInferenceVisitor(inferrer);
-    InitializerInferenceResult inferenceResult;
-    if (initializer is InitializerJudgment) {
-      inferenceResult = initializer.acceptInference(visitor);
-    } else {
-      inferenceResult = initializer.accept(visitor);
-    }
-    return inferenceResult;
+    InferenceVisitor visitor = _createInferenceVisitor(helper);
+    return visitor.inferInitializer(initializer);
   }
 
   @override
@@ -405,9 +392,8 @@ class TypeInferrerImpl implements TypeInferrer {
       // We bypass the check for assignment of the helper during top-level
       // inference and use `_helper = helper` instead of `this.helper = helper`
       // because inference on metadata requires the helper.
-      InferenceVisitorBase inferrer = new InferenceVisitorBase(this, helper);
-      InferenceVisitor visitor = _createInferenceVisitor(inferrer);
-      inferrer.inferMetadataKeepingHelper(visitor, parent, annotations);
+      InferenceVisitorBase visitor = _createInferenceVisitor(helper);
+      visitor.inferMetadata(visitor, parent, annotations);
     }
   }
 
@@ -419,24 +405,25 @@ class TypeInferrerImpl implements TypeInferrer {
       bool hasDeclaredInitializer) {
     // ignore: unnecessary_null_comparison
     assert(declaredType != null);
-    InferenceVisitorBase inferrer = new InferenceVisitorBase(this, helper);
-    InferenceVisitor visitor = _createInferenceVisitor(inferrer);
+    InferenceVisitorBase visitor = _createInferenceVisitor(helper);
     ExpressionInferenceResult result =
         visitor.inferExpression(initializer, declaredType, true);
     if (hasDeclaredInitializer) {
       initializer =
-          inferrer.ensureAssignableResult(declaredType, result).expression;
+          visitor.ensureAssignableResult(declaredType, result).expression;
     }
     return initializer;
   }
 }
 
-class InferenceVisitorBase {
+abstract class InferenceVisitorBase implements InferenceVisitor {
   final TypeInferrerImpl _inferrer;
 
   final InferenceHelper? _helper;
 
-  InferenceVisitorBase(this._inferrer, this._helper);
+  InferenceVisitorBase(this._inferrer, this._helper)
+      : assert(_inferrer.isTopLevel || _helper != null,
+            "Helper hasn't been set up for full inference.");
 
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables =>
       _inferrer.assignedVariables;
@@ -2800,7 +2787,7 @@ class InferenceVisitorBase {
       for (int i = 0; i < positionalParameters.length; i++) {
         VariableDeclaration parameter = positionalParameters[i];
         flowAnalysis.declare(parameter, true);
-        inferMetadataKeepingHelper(visitor, parameter, parameter.annotations);
+        inferMetadata(visitor, parameter, parameter.annotations);
         if (parameter.initializer != null) {
           ExpressionInferenceResult initializerResult = visitor.inferExpression(
               parameter.initializer!, parameter.type, !isTopLevel);
@@ -2810,7 +2797,7 @@ class InferenceVisitorBase {
       }
       for (VariableDeclaration parameter in function.namedParameters) {
         flowAnalysis.declare(parameter, true);
-        inferMetadataKeepingHelper(visitor, parameter, parameter.annotations);
+        inferMetadata(visitor, parameter, parameter.annotations);
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
             parameter.initializer!, parameter.type, !isTopLevel);
         parameter.initializer = initializerResult.expression
@@ -2985,7 +2972,7 @@ class InferenceVisitorBase {
     return function.computeFunctionType(libraryBuilder.nonNullable);
   }
 
-  void inferMetadataKeepingHelper(InferenceVisitor visitor, TreeNode? parent,
+  void inferMetadata(InferenceVisitor visitor, TreeNode? parent,
       List<Expression>? annotations) {
     if (annotations != null) {
       for (int index = 0; index < annotations.length; index++) {
@@ -4841,6 +4828,27 @@ class InferenceVisitorBase {
       identical(result.inferredType, noInferredType) || isNonNullableByDefault
           ? result.inferredType
           : legacyErasure(result.inferredType);
+
+  Expression? checkWebIntLiteralsErrorIfUnexact(
+      int value, String? literal, int charOffset) {
+    if (value >= 0 && value <= (1 << 53)) return null;
+    if (isTopLevel) return null;
+    if (!libraryBuilder
+        .loader.target.backendTarget.errorOnUnexactWebIntLiterals) return null;
+    BigInt asInt = new BigInt.from(value).toUnsigned(64);
+    BigInt asDouble = new BigInt.from(asInt.toDouble());
+    if (asInt == asDouble) return null;
+    String text = literal ?? value.toString();
+    String nearest = text.startsWith('0x') || text.startsWith('0X')
+        ? '0x${asDouble.toRadixString(16)}'
+        : asDouble.toString();
+    int length = literal?.length ?? noLength;
+    return helper.buildProblem(
+        templateWebLiteralCannotBeRepresentedExactly.withArguments(
+            text, nearest),
+        charOffset,
+        length);
+  }
 }
 
 class TypeInferrerImplBenchmarked implements TypeInferrer {

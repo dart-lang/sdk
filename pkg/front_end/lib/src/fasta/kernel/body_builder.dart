@@ -153,7 +153,6 @@ class BodyBuilder extends StackListenerImpl
 
   final ClassHierarchy hierarchy;
 
-  @override
   final CoreTypes coreTypes;
 
   final bool isDeclarationInstanceMember;
