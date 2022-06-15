@@ -61,7 +61,7 @@ class PreferFinalLocals extends LintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
-    registry.addVariableDeclaration(this, visitor);
+    registry.addVariableDeclarationList(this, visitor);
   }
 }
 
@@ -71,20 +71,26 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    if (node.isConst ||
-        node.isFinal ||
-        node.equals == null ||
-        node.initializer == null) {
-      return;
-    }
+  void visitVariableDeclarationList(VariableDeclarationList node) {
+    if (node.isConst || node.isFinal) return;
 
     var function = node.thisOrAncestorOfType<FunctionBody>();
-    var declaredElement = node.declaredElement;
-    if (function != null &&
-        declaredElement != null &&
-        !function.isPotentiallyMutatedInScope(declaredElement)) {
-      rule.reportLint(node.name);
+
+    for (var variable in node.variables) {
+      if (variable.equals == null || variable.initializer == null) {
+        return;
+      }
+      var declaredElement = variable.declaredElement;
+      if (function != null &&
+          declaredElement != null &&
+          function.isPotentiallyMutatedInScope(declaredElement)) {
+        return;
+      }
+    }
+    if (node.keyword != null) {
+      rule.reportLintForToken(node.keyword);
+    } else if (node.type != null) {
+      rule.reportLint(node.type);
     }
   }
 }
