@@ -1671,9 +1671,9 @@ class BinaryBuilder {
     assert(tag == Tag.Procedure);
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.reference;
-    Procedure? node = reference.node as Procedure?;
-    if (alwaysCreateNewNamedNodes) {
-      node = null;
+    Procedure? node;
+    if (!alwaysCreateNewNamedNodes) {
+      node = reference.node as Procedure?;
     }
     Uri fileUri = readUriReference();
     int startFileOffset = readOffset();
