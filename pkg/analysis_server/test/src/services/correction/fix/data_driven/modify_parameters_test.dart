@@ -579,6 +579,42 @@ void f(C c) {
 ''');
   }
 
+  Future<void> test_remove_deprecated_add_multiple() async {
+    setPackageContent('''
+class C {
+  void m(
+  {
+  @deprecated
+  int a,
+  int b, int d, int e}
+  ) {}
+}
+''');
+    setPackageData(_modify([
+      'm',
+      'C'
+    ], [
+      RemoveParameter(NamedParameterReference('a')),
+      AddParameter(1, 'b', true, false, codeTemplate('1')),
+      AddParameter(2, 'd', true, false, codeTemplate('2')),
+      AddParameter(3, 'e', true, false, codeTemplate('3')),
+    ]));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(C c) {
+  c.m(a: 0);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m(b: 1, d: 2, e: 3);
+}
+''');
+  }
+
   Future<void> test_remove_first_optionalNamed_deprecated() async {
     setPackageContent('''
 class C {
