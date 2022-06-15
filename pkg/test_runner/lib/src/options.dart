@@ -33,12 +33,12 @@ const _defaultTestSelectors = [
 
 extension _IntOption on ArgParser {
   void addIntegerOption(String name,
-      {String abbr,
-      String help,
-      String valueHelp,
-      Iterable<String> allowed,
-      Map<String, String> allowedHelp,
-      String defaultsTo,
+      {String? abbr,
+      String? help,
+      String? valueHelp,
+      Iterable<String>? allowed,
+      Map<String, String>? allowedHelp,
+      String? defaultsTo,
       bool mandatory = false,
       bool hide = false,
       List<String> aliases = const []}) {
@@ -448,7 +448,7 @@ has been specified on the command line.''')
   /// encountering the first non-option string, the rest of the arguments are
   /// stored in the returned Map under the 'rest' key.
   List<TestConfiguration> parse(List<String> arguments) {
-    ArgResults results;
+    late ArgResults results;
     try {
       results = parser.parse(arguments);
     } on FormatException catch (error) {
@@ -614,7 +614,7 @@ has been specified on the command line.''')
   /// Recursively expands a configuration with multiple values per key into a
   /// list of configurations with exactly one value per key.
   List<TestConfiguration> _expandConfigurations(
-      Map<String, dynamic> data, Map<String, RegExp> selectors) {
+      Map<String, dynamic> data, Map<String, RegExp?> selectors) {
     var result = <TestConfiguration>[];
 
     // Handles a string option containing a space-separated list of words.
@@ -631,7 +631,7 @@ has been specified on the command line.''')
     var dart2jsOptions = listOption("dart2js-options");
     var vmOptions = listOption("vm-options");
     var sharedOptions = listOption("shared-options");
-    var experiments = data["enable-experiment"] as List<String>;
+    var experiments = data["enable-experiment"] as List<String>?;
 
     // JSON reporting implies listing and reporting.
     if (data['report-in-json'] as bool) {
@@ -642,7 +642,7 @@ has been specified on the command line.''')
     // Use verbose progress indication for verbose output unless buildbot
     // progress indication is requested.
     if ((data['verbose'] as bool) &&
-        (data['progress'] as String) != 'buildbot') {
+        (data['progress'] as String?) != 'buildbot') {
       data['progress'] = 'verbose';
     }
 
@@ -672,13 +672,13 @@ has been specified on the command line.''')
     var nnbdMode = NnbdMode.find(data["nnbd"] as String);
 
     void addConfiguration(Configuration innerConfiguration,
-        [String namedConfiguration]) {
+        [String? namedConfiguration]) {
       var configuration = TestConfiguration(
           configuration: innerConfiguration,
           progress: progress,
           selectors: selectors,
           build: data["build"] as bool,
-          testList: data["test-list-contents"] as List<String>,
+          testList: data["test-list-contents"] as List<String>?,
           repeat: int.parse(data["repeat"] as String),
           batch: !(data["no-batch"] as bool),
           copyCoreDumps: data["copy-coredumps"] as bool,
@@ -696,18 +696,18 @@ has been specified on the command line.''')
           writeDebugLog: data["write-debug-log"] as bool,
           writeResults: data["write-results"] as bool,
           writeLogs: data["write-logs"] as bool,
-          drtPath: data["drt"] as String,
-          chromePath: data["chrome"] as String,
-          safariPath: data["safari"] as String,
-          firefoxPath: data["firefox"] as String,
-          dartPath: data["dart"] as String,
-          dartPrecompiledPath: data["dart-precompiled"] as String,
-          genSnapshotPath: data["gen-snapshot"] as String,
+          drtPath: data["drt"] as String?,
+          chromePath: data["chrome"] as String?,
+          safariPath: data["safari"] as String?,
+          firefoxPath: data["firefox"] as String?,
+          dartPath: data["dart"] as String?,
+          dartPrecompiledPath: data["dart-precompiled"] as String?,
+          genSnapshotPath: data["gen-snapshot"] as String?,
           keepGeneratedFiles: data["keep-generated-files"] as bool,
           taskCount: int.parse(data["tasks"] as String),
           shardCount: int.parse(data["shards"] as String),
           shard: int.parse(data["shard"] as String),
-          stepName: data["step-name"] as String,
+          stepName: data["step-name"] as String?,
           testServerPort: int.parse(data['test-server-port'] as String),
           testServerCrossOriginPort:
               int.parse(data['test-server-cross-origin-port'] as String),
@@ -718,10 +718,10 @@ has been specified on the command line.''')
             ...sharedOptions,
             "-Dtest_runner.configuration=${innerConfiguration.name}"
           ],
-          packages: data["packages"] as String,
+          packages: data["packages"] as String?,
           serviceResponseSizesDirectory:
-              data['service-response-sizes-directory'] as String,
-          suiteDirectory: data["suite-dir"] as String,
+              data['service-response-sizes-directory'] as String?,
+          suiteDirectory: data["suite-dir"] as String?,
           outputDirectory: data["output-directory"] as String,
           reproducingArguments:
               _reproducingCommand(data, namedConfiguration != null),
@@ -739,10 +739,11 @@ has been specified on the command line.''')
     if (namedConfigurations.isNotEmpty) {
       var testMatrix = TestMatrix.fromPath(_testMatrixFile);
       for (var namedConfiguration in namedConfigurations) {
-        var configuration = testMatrix.configurations.singleWhere(
-            (c) => c.name == namedConfiguration,
-            orElse: () => null);
-        if (configuration == null) {
+        try {
+          var configuration = testMatrix.configurations
+              .singleWhere((c) => c.name == namedConfiguration);
+          addConfiguration(configuration, namedConfiguration);
+        } on StateError {
           var names = testMatrix.configurations
               .map((configuration) => configuration.name)
               .toList()
@@ -751,7 +752,6 @@ has been specified on the command line.''')
               ' The following configurations are available:\n'
               '  * ${names.join('\n  * ')}');
         }
-        addConfiguration(configuration, namedConfiguration);
       }
       return result;
     }
@@ -821,8 +821,8 @@ has been specified on the command line.''')
                   vmOptions: vmOptions,
                   dart2jsOptions: dart2jsOptions,
                   experiments: experiments,
-                  babel: data['babel'] as String,
-                  builderTag: data["builder-tag"] as String,
+                  babel: data['babel'] as String?,
+                  builderTag: data["builder-tag"] as String?,
                   useQemu: data["use-qemu"] as bool);
               addConfiguration(configuration);
             }
@@ -838,9 +838,9 @@ has been specified on the command line.''')
   ///
   /// If no selectors are explicitly given, uses the default suite patterns.
   Map<String, RegExp> _expandSelectors(Map<String, dynamic> configuration) {
-    var selectors = configuration['selectors'];
+    var selectors = configuration['selectors'] as List<String>?;
 
-    if (selectors == null || (selectors as List).isEmpty) {
+    if (selectors == null || selectors.isEmpty) {
       if (configuration['suite-dir'] != null) {
         var suitePath = Path(configuration['suite-dir'] as String);
         selectors = [suitePath.filename];
@@ -857,7 +857,7 @@ has been specified on the command line.''')
           ? (configuration['exclude-suite'] as String).split(',')
           : [];
       for (var exclude in excludeSuites) {
-        if ((selectors as List).contains(exclude)) {
+        if (selectors.contains(exclude)) {
           selectors.remove(exclude);
         } else {
           print("Warning: default selectors does not contain $exclude");
@@ -866,8 +866,8 @@ has been specified on the command line.''')
     }
 
     var selectorMap = <String, RegExp>{};
-    for (var i = 0; i < (selectors as List).length; i++) {
-      var pattern = selectors[i] as String;
+    for (var i = 0; i < selectors.length; i++) {
+      var pattern = selectors[i];
       var suite = pattern;
       var slashLocation = pattern.indexOf('/');
       if (slashLocation != -1) {
@@ -888,7 +888,7 @@ has been specified on the command line.''')
   }
 
   /// Print out usage information.
-  void _printHelp({bool verbose}) {
+  void _printHelp({bool verbose = false}) {
     print('''The Dart SDK's internal test runner.
 
     Usage: dart tools/test.dart [options] [selector]
@@ -925,8 +925,8 @@ void findConfigurations(Map<String, dynamic> options) {
   var testMatrix = TestMatrix.fromPath('tools/bots/test_matrix.json');
 
   // Default to only showing configurations for the current machine.
-  var systemOption = options['system'] as String;
-  var system = System.host;
+  var systemOption = options['system'] as String?;
+  System? system = System.host;
   if (systemOption == 'all') {
     system = null;
   } else if (systemOption != null) {
@@ -950,7 +950,7 @@ void findConfigurations(Map<String, dynamic> options) {
   var compilers = [...(options['compiler'] as List<String>).map(Compiler.find)];
   var runtimes = [...(options['runtime'] as List<String>).map(Runtime.find)];
 
-  NnbdMode nnbdMode;
+  NnbdMode? nnbdMode;
   if (options.containsKey('nnbd')) {
     nnbdMode = NnbdMode.find(options['nnbd'] as String);
   }
@@ -1006,7 +1006,8 @@ void listConfigurations(Map<String, dynamic> options) {
 }
 
 /// Throws an [OptionParseException] with [message].
-void _fail(String message) {
+// ignore: sdk_version_never
+Never _fail(String message) {
   throw OptionParseException(message);
 }
 
@@ -1018,10 +1019,10 @@ final Map<String, String> sanitizerEnvironmentVariables = (() {
   config['sanitizer_options'].forEach((String key, dynamic value) {
     environment[key] = value as String;
   });
-  var symbolizerPath =
-      config['sanitizer_symbolizer'][Platform.operatingSystem] as String;
-  if (symbolizerPath != null) {
-    symbolizerPath = path.join(Directory.current.path, symbolizerPath);
+  final relativePath =
+      config['sanitizer_symbolizer'][Platform.operatingSystem] as String?;
+  if (relativePath != null) {
+    var symbolizerPath = path.join(Directory.current.path, relativePath);
     environment['ASAN_SYMBOLIZER_PATH'] = symbolizerPath;
     environment['LSAN_SYMBOLIZER_PATH'] = symbolizerPath;
     environment['MSAN_SYMBOLIZER_PATH'] = symbolizerPath;

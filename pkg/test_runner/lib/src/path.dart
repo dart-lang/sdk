@@ -182,24 +182,23 @@ class Path {
     if (isEmpty) return false; // The canonical form of '' is '.'.
     if (_path == '.') return true;
     var segs = _path.split('/'); // Don't mask the getter 'segments'.
+    var start = 0;
     if (segs[0] == '') {
       // Absolute path
-      segs[0] = null; // Faster than removeRange().
+      start = 1; // Faster than removeRange().
     } else {
       // A canonical relative path may start with .. segments.
-      for (var pos = 0; pos < segs.length && segs[pos] == '..'; ++pos) {
-        segs[pos] = null;
-      }
+      for (; start < segs.length && segs[start] == '..'; ++start) {}
     }
     if (segs.last == '') segs.removeLast(); // Path ends with /.
     // No remaining segments can be ., .., or empty.
-    return !segs.any((s) => s == '' || s == '.' || s == '..');
+    return !segs.sublist(start).any((s) => s == '' || s == '.' || s == '..');
   }
 
   Path makeCanonical() {
     var isAbs = isAbsolute;
     var segs = segments();
-    String drive;
+    String? drive;
     if (isAbs && segs.isNotEmpty && segs[0].length == 2 && segs[0][1] == ':') {
       drive = segs[0];
       segs.removeRange(0, 1);
@@ -231,26 +230,17 @@ class Path {
       }
     }
 
-    var segmentsToJoin = <String>[];
-    if (isAbs) {
-      segmentsToJoin.add('');
-      if (drive != null) {
-        segmentsToJoin.add(drive);
-      }
-    }
+    var segmentsToJoin = [
+      if (isAbs) '',
+      if (drive != null) drive,
+      if (newSegs.isEmpty) ...[
+        if (isAbs) '' else '.'
+      ] else ...[
+        ...newSegs,
+        if (hasTrailingSeparator) ''
+      ],
+    ];
 
-    if (newSegs.isEmpty) {
-      if (isAbs) {
-        segmentsToJoin.add('');
-      } else {
-        segmentsToJoin.add('.');
-      }
-    } else {
-      segmentsToJoin.addAll(newSegs);
-      if (hasTrailingSeparator) {
-        segmentsToJoin.add('');
-      }
-    }
     return Path._internal(segmentsToJoin.join('/'), isWindowsShare);
   }
 

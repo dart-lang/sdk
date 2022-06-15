@@ -27,7 +27,7 @@ List<T> _parseOption<T>(
 
   var options = <T>[];
   for (var match in matches) {
-    for (var option in _splitWords(match[1])) {
+    for (var option in _splitWords(match[1]!)) {
       options.add(convert(option));
     }
   }
@@ -40,9 +40,12 @@ List<String> _parseStringOption(String filePath, String contents, String name,
     _parseOption<String>(filePath, contents, name, (string) => string,
         allowMultiple: allowMultiple);
 
+// Fake path used as sentinel for test files that don't have a path.
+final _fakePath = Path('/fake');
+
 abstract class _TestFileBase {
   /// The test suite directory containing this test.
-  final Path _suiteDirectory;
+  final Path? _suiteDirectory;
 
   /// The full path to the test file.
   final Path path;
@@ -92,14 +95,14 @@ abstract class _TestFileBase {
     // directory or path. Don't crash in that case.
     // TODO(rnystrom): Is there a cleaner solution? Should we use the C++ file
     // as the path for the TestFile?
-    if (originPath == null) return 0;
+    if (originPath == _fakePath) return 0;
 
-    return originPath.relativeTo(_suiteDirectory).toString().hashCode;
+    return originPath.relativeTo(_suiteDirectory!).toString().hashCode;
   }
 
   _TestFileBase(this._suiteDirectory, this.path, this.expectedErrors) {
     // The VM C++ unit tests have a special fake TestFile with no path.
-    if (path != null) assert(path.isAbsolute);
+    assert(path.isAbsolute);
   }
 
   /// The logical name of the test.
@@ -108,7 +111,7 @@ abstract class _TestFileBase {
   /// minus any file extension. If this test was split from a multitest,
   /// it contains the multitest key.
   String get name {
-    var testNamePath = originPath.relativeTo(_suiteDirectory);
+    var testNamePath = originPath.relativeTo(_suiteDirectory!);
     var directory = testNamePath.directoryPath;
     var filenameWithoutExt = testNamePath.filenameWithoutExtension;
 
@@ -198,7 +201,9 @@ class TestFile extends _TestFileBase {
           hasCrash: false,
           isMultitest: false,
           sharedObjects: [],
-          otherResources: []);
+          otherResources: [],
+          environment: {},
+          experiments: []);
     }
 
     // Required features.
@@ -217,7 +222,7 @@ class TestFile extends _TestFileBase {
     var vmOptions = <List<String>>[];
     var matches = _vmOptionsRegExp.allMatches(contents);
     for (var match in matches) {
-      vmOptions.add(_splitWords(match[1]));
+      vmOptions.add(_splitWords(match[1]!));
     }
     if (vmOptions.isEmpty) vmOptions.add(<String>[]);
 
@@ -249,26 +254,25 @@ class TestFile extends _TestFileBase {
               "flags. Was:\n$sharedOption");
         }
 
-        experiments.addAll(match.group(1).split(","));
+        experiments.addAll(match.group(1)!.split(","));
         sharedOptions.removeAt(i);
         i--;
       }
     }
 
     // Environment.
-    Map<String, String> environment;
+    var environment = <String, String>{};
     matches = _environmentRegExp.allMatches(contents);
     for (var match in matches) {
-      var envDef = match[1];
+      var envDef = match[1]!;
       var pos = envDef.indexOf('=');
       var name = (pos < 0) ? envDef : envDef.substring(0, pos);
       var value = (pos < 0) ? '' : envDef.substring(pos + 1);
-      environment ??= {};
       environment[name] = value;
     }
 
     // Packages.
-    String packages;
+    String? packages;
 
     matches = _packagesRegExp.allMatches(contents);
     for (var match in matches) {
@@ -280,7 +284,7 @@ class TestFile extends _TestFileBase {
         // Packages=none means that no packages option should be given. Any
         // other value overrides packages.
         packages =
-            Uri.file(filePath).resolveUri(Uri.file(packages)).toFilePath();
+            Uri.file(filePath).resolveUri(Uri.file(packages!)).toFilePath();
       }
     }
 
@@ -343,13 +347,13 @@ class TestFile extends _TestFileBase {
 
   /// A special fake test file for representing a VM unit test written in C++.
   TestFile.vmUnitTest(
-      {this.hasSyntaxError,
-      this.hasCompileError,
-      this.hasRuntimeError,
-      this.hasStaticWarning,
-      this.hasCrash})
+      {required this.hasSyntaxError,
+      required this.hasCompileError,
+      required this.hasRuntimeError,
+      required this.hasStaticWarning,
+      required this.hasCrash})
       : packages = null,
-        environment = null,
+        environment = {},
         isMultitest = false,
         requirements = [],
         sharedOptions = [],
@@ -361,26 +365,26 @@ class TestFile extends _TestFileBase {
         otherResources = [],
         experiments = [],
         isVmIntermediateLanguageTest = false,
-        super(null, null, []);
+        super(null, _fakePath, []);
 
   TestFile._(Path suiteDirectory, Path path, List<StaticError> expectedErrors,
       {this.packages,
-      this.environment,
-      this.isMultitest,
-      this.hasSyntaxError,
-      this.hasCompileError,
-      this.hasRuntimeError,
-      this.hasStaticWarning,
-      this.hasCrash,
-      this.requirements,
-      this.sharedOptions,
-      this.dartOptions,
-      this.dart2jsOptions,
-      this.ddcOptions,
-      this.vmOptions,
-      this.sharedObjects,
-      this.otherResources,
-      this.experiments,
+      required this.environment,
+      required this.isMultitest,
+      required this.hasSyntaxError,
+      required this.hasCompileError,
+      required this.hasRuntimeError,
+      required this.hasStaticWarning,
+      required this.hasCrash,
+      required this.requirements,
+      required this.sharedOptions,
+      required this.dartOptions,
+      required this.dart2jsOptions,
+      required this.ddcOptions,
+      required this.vmOptions,
+      required this.sharedObjects,
+      required this.otherResources,
+      required this.experiments,
       this.isVmIntermediateLanguageTest = false})
       : super(suiteDirectory, path, expectedErrors) {
     assert(!isMultitest || dartOptions.isEmpty);
@@ -390,7 +394,7 @@ class TestFile extends _TestFileBase {
 
   String get multitestKey => "";
 
-  final String packages;
+  final String? packages;
 
   final Map<String, String> environment;
 
@@ -427,16 +431,16 @@ class TestFile extends _TestFileBase {
   /// Derive a multitest test section file from this multitest file with the
   /// given [multitestKey] and expectations.
   TestFile split(Path path, String multitestKey, String contents,
-          {bool hasCompileError,
-          bool hasRuntimeError,
-          bool hasStaticWarning,
-          bool hasSyntaxError}) =>
+          {bool hasCompileError = false,
+          bool hasRuntimeError = false,
+          bool hasStaticWarning = false,
+          bool hasSyntaxError = false}) =>
       _MultitestFile(
           this, path, multitestKey, StaticError.parseExpectations(contents),
-          hasCompileError: hasCompileError ?? false,
-          hasRuntimeError: hasRuntimeError ?? false,
-          hasStaticWarning: hasStaticWarning ?? false,
-          hasSyntaxError: hasSyntaxError ?? false);
+          hasCompileError: hasCompileError,
+          hasRuntimeError: hasRuntimeError,
+          hasStaticWarning: hasStaticWarning,
+          hasSyntaxError: hasSyntaxError);
 
   String toString() => """TestFile(
   packages: $packages
@@ -478,15 +482,15 @@ class _MultitestFile extends _TestFileBase implements TestFile {
 
   _MultitestFile(this._origin, Path path, this.multitestKey,
       List<StaticError> expectedErrors,
-      {this.hasCompileError,
-      this.hasRuntimeError,
-      this.hasStaticWarning,
-      this.hasSyntaxError})
+      {required this.hasCompileError,
+      required this.hasRuntimeError,
+      required this.hasStaticWarning,
+      required this.hasSyntaxError})
       : super(_origin._suiteDirectory, path, expectedErrors);
 
   Path get originPath => _origin.path;
 
-  String get packages => _origin.packages;
+  String? get packages => _origin.packages;
 
   List<Feature> get requirements => _origin.requirements;
   List<String> get dart2jsOptions => _origin.dart2jsOptions;
@@ -503,10 +507,10 @@ class _MultitestFile extends _TestFileBase implements TestFile {
   List<List<String>> get vmOptions => _origin.vmOptions;
 
   TestFile split(Path path, String multitestKey, String contents,
-          {bool hasCompileError,
-          bool hasRuntimeError,
-          bool hasStaticWarning,
-          bool hasSyntaxError}) =>
+          {bool hasCompileError = false,
+          bool hasRuntimeError = false,
+          bool hasStaticWarning = false,
+          bool hasSyntaxError = false}) =>
       throw UnsupportedError(
           "Can't derive a test from one already derived from a multitest.");
 }

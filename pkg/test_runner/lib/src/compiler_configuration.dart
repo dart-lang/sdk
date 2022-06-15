@@ -150,9 +150,7 @@ abstract class CompilerConfiguration {
       /// Each test has its own temporary directory to avoid name collisions.
       String tempDir,
       List<String> arguments,
-      Map<String, String> environmentOverrides) {
-    return CommandArtifact([], null, null);
-  }
+      Map<String, String> environmentOverrides);
 
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
@@ -169,8 +167,8 @@ abstract class CompilerConfiguration {
       TestFile testFile,
       List<String> vmOptions,
       List<String> originalArguments,
-      CommandArtifact artifact) {
-    return [artifact.filename];
+      CommandArtifact? artifact) {
+    return artifact == null ? [] : [artifact.filename];
   }
 }
 
@@ -179,14 +177,15 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
   NoneCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
-  bool get hasCompiler => false;
+  @override
+  final bool hasCompiler = false;
 
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
       TestFile testFile,
       List<String> vmOptions,
       List<String> originalArguments,
-      CommandArtifact artifact) {
+      CommandArtifact? artifact) {
     return [
       if (_enableAsserts) '--enable_asserts',
       if (_configuration.hotReload)
@@ -201,6 +200,13 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       ...originalArguments,
       ...testFile.dartOptions
     ];
+  }
+
+  @override
+  CommandArtifact computeCompilationArtifact(String tempDir,
+      List<String> arguments, Map<String, String> environmentOverrides) {
+    throw UnsupportedError(
+        '"None" compiler configuration has no compilation artifacts');
   }
 }
 
@@ -251,8 +257,8 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       TestFile testFile,
       List<String> vmOptions,
       List<String> originalArguments,
-      CommandArtifact artifact) {
-    var filename = artifact.filename;
+      CommandArtifact? artifact) {
+    var filename = artifact!.filename;
     if (runtimeConfiguration is DartkAdbRuntimeConfiguration) {
       // On Android the Dill file will be pushed to a different directory on the
       // device. Use that one instead.
@@ -277,7 +283,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
 }
 
 typedef CompilerArgumentsFunction = List<String> Function(
-    List<String> globalArguments, String previousCompilerOutput);
+    List<String> globalArguments, String? previousCompilerOutput);
 
 class PipelineCommand {
   final CompilerConfiguration compilerConfiguration;
@@ -287,8 +293,7 @@ class PipelineCommand {
 
   factory PipelineCommand.runWithGlobalArguments(
       CompilerConfiguration configuration) {
-    return PipelineCommand._(configuration,
-        (List<String> globalArguments, String previousOutput) {
+    return PipelineCommand._(configuration, (globalArguments, previousOutput) {
       assert(previousOutput == null);
       return globalArguments;
     });
@@ -297,7 +302,7 @@ class PipelineCommand {
   factory PipelineCommand.runWithDartOrKernelFile(
       CompilerConfiguration configuration) {
     return PipelineCommand._(configuration,
-        (List<String> globalArguments, String previousOutput) {
+        (List<String> globalArguments, String? previousOutput) {
       var filtered = globalArguments
           .where((name) => name.endsWith('.dart') || name.endsWith('.dill'))
           .toList();
@@ -309,14 +314,14 @@ class PipelineCommand {
   factory PipelineCommand.runWithPreviousKernelOutput(
       CompilerConfiguration configuration) {
     return PipelineCommand._(configuration,
-        (List<String> globalArguments, String previousOutput) {
-      assert(previousOutput.endsWith('.dill'));
-      return _replaceDartFiles(globalArguments, previousOutput);
+        (List<String> globalArguments, String? previousOutput) {
+      assert(previousOutput!.endsWith('.dill'));
+      return _replaceDartFiles(globalArguments, previousOutput!);
     });
   }
 
   List<String> extractArguments(
-      List<String> globalArguments, String previousOutput) {
+      List<String> globalArguments, String? previousOutput) {
     return _argumentsFunction(globalArguments, previousOutput);
   }
 }
@@ -374,7 +379,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
       TestFile testFile,
       List<String> vmOptions,
       List<String> originalArguments,
-      CommandArtifact artifact) {
+      CommandArtifact? artifact) {
     var lastCompilerConfiguration = pipelineCommands.last.compilerConfiguration;
     return lastCompilerConfiguration.computeRuntimeArguments(
         runtimeConfiguration, testFile, vmOptions, originalArguments, artifact);
@@ -459,13 +464,12 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
     var out = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
     var babel = _configuration.babel;
     var babelOut = out;
-    if (babel != null && babel.isNotEmpty) {
+    if (babel.isNotEmpty) {
       out = out.replaceAll('.js', '.raw.js');
     }
     var commands = [
       computeCompilationCommand(out, compilerArguments, environmentOverrides),
-      if (babel != null && babel.isNotEmpty)
-        computeBabelCommand(out, babelOut, babel)
+      if (babel.isNotEmpty) computeBabelCommand(out, babelOut, babel)
     ];
 
     return CommandArtifact(commands, babelOut, 'application/javascript');
@@ -476,13 +480,13 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
       TestFile testFile,
       List<String> vmOptions,
       List<String> originalArguments,
-      CommandArtifact artifact) {
+      CommandArtifact? artifact) {
     var sdk = _useSdk
         ? Uri.directory(_configuration.buildDirectory).resolve('dart-sdk/')
         : Uri.directory(Repository.dir.toNativePath()).resolve('sdk/');
     var preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
-      ..add(artifact.filename);
+      ..add(artifact!.filename);
   }
 
   Command computeBabelCommand(String input, String output, String options) {
@@ -568,13 +572,13 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       TestFile testFile,
       List<String> vmOptions,
       List<String> originalArguments,
-      CommandArtifact artifact) {
+      CommandArtifact? artifact) {
     return [
       '--experimental-wasm-gc',
       '--wasm-gc-js-interop',
       'pkg/dart2wasm/bin/run_wasm.js',
       '--',
-      artifact.filename,
+      artifact!.filename,
     ];
   }
 }
@@ -670,7 +674,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
         : Repository.uri.resolve('pkg/dev_compiler/bin/dartdevc.dart').path;
     return DevCompilerCompilationCommand(outputFile, bootstrapDependencies(),
         computeCompilerPath(), args, environment,
-        compilerPath: compilerPath);
+        compilerPath: compilerPath, alwaysCompile: false);
   }
 
   CommandArtifact computeCompilationArtifact(String tempDir,
@@ -749,13 +753,13 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       TestFile testFile,
       List<String> vmOptions,
       List<String> originalArguments,
-      CommandArtifact artifact) {
+      CommandArtifact? artifact) {
     var sdkDir = _useSdk
         ? Uri.directory(_configuration.buildDirectory).resolve('dart-sdk/')
         : Uri.directory(Repository.dir.toNativePath()).resolve('sdk/');
     var preambleDir = sdkDir.resolve('lib/_internal/js_runtime/lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
-      ..add(artifact.filename);
+      ..add(artifact!.filename);
   }
 }
 
@@ -927,7 +931,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     ];
 
     return CompilationCommand('precompiler', tempDir, bootstrapDependencies(),
-        exec, args, environmentOverrides,
+        exec!, args, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
 
@@ -948,12 +952,12 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   }
 
   static const String ndkPath = "third_party/android_tools/ndk";
-  String get abiTriple => _isArm || _isArmX64
+  String? get abiTriple => _isArm || _isArmX64
       ? "arm-linux-androideabi"
       : _isArm64
           ? "aarch64-linux-android"
           : null;
-  String get host => Platform.isLinux
+  String? get host => Platform.isLinux
       ? "linux"
       : Platform.isMacOS
           ? "darwin"
@@ -961,8 +965,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   Command computeAssembleCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
-    String cc, shared, ldFlags;
-    List<String> target;
+    late String cc;
+    String? shared, ldFlags;
+    List<String>? target;
     if (_isAndroid) {
       cc = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
           "$host-x86_64/bin/$abiTriple-gcc";
@@ -993,7 +998,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       throw "Platform not supported: ${Platform.operatingSystem}";
     }
 
-    String ccFlags;
+    String? ccFlags;
     switch (_configuration.architecture) {
       case Architecture.x64:
       case Architecture.x64c:
@@ -1087,8 +1092,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       TestFile testFile,
       List<String> vmOptions,
       List<String> originalArguments,
-      CommandArtifact artifact) {
-    var dir = artifact.filename;
+      CommandArtifact? artifact) {
+    var dir = artifact!.filename;
     if (runtimeConfiguration is DartPrecompiledAdbRuntimeConfiguration) {
       // On android the precompiled snapshot will be pushed to a different
       // directory on the device, use that one instead.
@@ -1162,7 +1167,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       TestFile testFile,
       List<String> vmOptions,
       List<String> originalArguments,
-      CommandArtifact artifact) {
+      CommandArtifact? artifact) {
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
@@ -1170,7 +1175,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
-      ..._replaceDartFiles(originalArguments, artifact.filename),
+      ..._replaceDartFiles(originalArguments, artifact!.filename),
       ...testFile.dartOptions
     ];
   }
@@ -1205,8 +1210,8 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
     // Since this is not a real compilation, no artifacts are produced.
     return CommandArtifact(
         [AnalysisCommand(computeCompilerPath(), args, environmentOverrides)],
-        null,
-        null);
+        args.singleWhere((arg) => arg.endsWith('.dart')),
+        'application/vnd.dart');
   }
 
   List<String> computeRuntimeArguments(
@@ -1214,7 +1219,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
       TestFile testFile,
       List<String> vmOptions,
       List<String> originalArguments,
-      CommandArtifact artifact) {
+      CommandArtifact? artifact) {
     return [];
   }
 }
@@ -1240,7 +1245,8 @@ class CompareAnalyzerCfeCompilerConfiguration extends CompilerConfiguration {
     return CommandArtifact([
       CompareAnalyzerCfeCommand(
           computeCompilerPath(), arguments.toList(), environmentOverrides)
-    ], null, null);
+    ], arguments.singleWhere((argument) => argument.endsWith('.dart')),
+        'application/vnd.dart');
   }
 
   List<String> computeRuntimeArguments(
@@ -1248,7 +1254,7 @@ class CompareAnalyzerCfeCompilerConfiguration extends CompilerConfiguration {
       TestFile testFile,
       List<String> vmOptions,
       List<String> originalArguments,
-      CommandArtifact artifact) {
+      CommandArtifact? artifact) {
     return [];
   }
 }
@@ -1262,12 +1268,11 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    arguments = arguments.toList();
-
     // Since this is not a real compilation, no artifacts are produced.
     return CommandArtifact([
       SpecParseCommand(computeCompilerPath(), arguments, environmentOverrides)
-    ], null, null);
+    ], arguments.singleWhere((argument) => argument.endsWith('.dart')),
+        'application/vnd.dart');
   }
 
   List<String> computeRuntimeArguments(
@@ -1275,7 +1280,7 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
       TestFile testFile,
       List<String> vmOptions,
       List<String> originalArguments,
-      CommandArtifact artifact) {
+      CommandArtifact? artifact) {
     return [];
   }
 }
@@ -1434,7 +1439,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       TestFile testFile,
       List<String> vmOptions,
       List<String> originalArguments,
-      CommandArtifact artifact) {
+      CommandArtifact? artifact) {
     if (runtimeConfiguration is! NoneRuntimeConfiguration) {
       throw "--compiler=fasta only supports --runtime=none";
     }

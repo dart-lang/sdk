@@ -33,8 +33,10 @@ void main(List<String> arguments) {
 
   var runtime = Runtime.find(name);
   var configuration = TestConfiguration(
-      configuration: Configuration(
-          "dummy-configuration", null, null, null, runtime, null));
+      configuration: Configuration("dummy-configuration", Architecture.x64,
+          Compiler.none, Mode.release, runtime, System.host),
+      outputDirectory: 'dummy',
+      reproducingArguments: []);
   var browser = Browser.fromConfiguration(configuration);
   browser.start(arguments[1]);
 }

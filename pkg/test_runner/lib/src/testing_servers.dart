@@ -30,7 +30,7 @@ class DispatchingServer {
     // handler.  Otherwise, run the notFound handler.
     for (var prefix in _handlers.keys) {
       if (request.uri.path.startsWith(prefix)) {
-        _handlers[prefix](request);
+        _handlers[prefix]!(request);
         return;
       }
     }
@@ -77,16 +77,18 @@ class TestingServers {
   final Uri _buildDirectory;
   final Uri _dartDirectory;
   final Uri _packages;
-  PackageConfig _packageConfig;
+  late PackageConfig _packageConfig;
   final bool useContentSecurityPolicy;
   final Runtime runtime;
-  DispatchingServer _server;
+  DispatchingServer? _server;
 
   TestingServers._(this.useContentSecurityPolicy, this._buildDirectory,
       this._dartDirectory, this._packages, this.runtime);
 
   factory TestingServers(String buildDirectory, bool useContentSecurityPolicy,
-      [Runtime runtime = Runtime.none, String dartDirectory, String packages]) {
+      [Runtime runtime = Runtime.none,
+      String? dartDirectory,
+      String? packages]) {
     var buildDirectoryUri = Uri.base.resolveUri(Uri.directory(buildDirectory));
     var dartDirectoryUri = dartDirectory == null
         ? Repository.uri
@@ -104,7 +106,7 @@ class TestingServers {
 
   int get crossOriginPort => _serverList[1].port;
 
-  DispatchingServer get server => _server;
+  DispatchingServer? get server => _server;
 
   /// [startServers] will start two Http servers.
   ///
@@ -241,7 +243,7 @@ class TestingServers {
 
   void _handleUploadRequest(HttpRequest request) async {
     try {
-      var builder = await request.fold(BytesBuilder(), (var b, var d) {
+      var builder = await request.fold(BytesBuilder(), (dynamic b, var d) {
         b.add(d);
         return b;
       });
@@ -256,7 +258,7 @@ class TestingServers {
     }
   }
 
-  Uri _getFileUriFromRequestUri(Uri request) {
+  Uri? _getFileUriFromRequestUri(Uri request) {
     // Go to the top of the file to see an explanation of the URL path scheme.
     var pathSegments = request.normalizePath().pathSegments;
     if (pathSegments.isEmpty) return null;

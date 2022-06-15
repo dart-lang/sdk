@@ -12,13 +12,11 @@ final _lineCommentRegExp = RegExp(r"^\s*//");
 /// Removes existing static error marker comments in [source] and adds markers
 /// for the given [errors].
 ///
-/// If [remove] is not `null`, then only removes existing errors for the given
+/// If [remove] is not empty, then only removes existing errors for the given
 /// sources. If [includeContext] is `true`, then includes context messages in
 /// the output. Otherwise discards them.
 String updateErrorExpectations(String source, List<StaticError> errors,
-    {Set<ErrorSource> remove, bool includeContext = false}) {
-  remove ??= {};
-
+    {Set<ErrorSource> remove = const {}, bool includeContext = false}) {
   // Split the existing errors into kept and deleted lists.
   var existingErrors = StaticError.parseExpectations(source);
   var keptErrors = <StaticError>[];
@@ -31,7 +29,7 @@ String updateErrorExpectations(String source, List<StaticError> errors,
     }
   }
 
-  var lines = source.split("\n");
+  List<String?> lines = source.split("\n");
 
   // Keep track of the indentation on any existing expectation markers. If
   // found, it will try to preserve that indentation.
@@ -43,7 +41,7 @@ String updateErrorExpectations(String source, List<StaticError> errors,
   void removeLine(int line) {
     if (lines[line] == null) return;
 
-    indentation[line] = _countIndentation(lines[line]);
+    indentation[line] = _countIndentation(lines[line]!);
 
     // Null the line instead of removing it so that line numbers in the
     // reported errors are still correct.
@@ -85,12 +83,12 @@ String updateErrorExpectations(String source, List<StaticError> errors,
 
   // Rebuild the source file a line at a time.
   var previousIndent = 0;
-  var result = <String>[];
+  var result = <String?>[];
   for (var i = 0; i < lines.length; i++) {
     // Keep the code.
     if (lines[i] != null) {
       result.add(lines[i]);
-      previousIndent = _countIndentation(lines[i]);
+      previousIndent = _countIndentation(lines[i]!);
     }
 
     // Add expectations for any errors reported on this line.
@@ -113,13 +111,13 @@ String updateErrorExpectations(String source, List<StaticError> errors,
       // Write the location line, unless we already have an identical one. Allow
       // sharing locations between errors with and without explicit lengths.
       if (error.column != previousColumn ||
-          (previousLength != null &&
-              error.length != null &&
+          (previousLength != 0 &&
+              error.length != 0 &&
               error.length != previousLength)) {
         // If the error can't fit in a line comment, or no source location is
         // specified, use an explicit location.
         if (error.column <= 2 || error.length == 0) {
-          if (error.length == null) {
+          if (error.length == 0) {
             result.add("$comment [error column "
                 "${error.column}]");
           } else {
@@ -129,7 +127,7 @@ String updateErrorExpectations(String source, List<StaticError> errors,
         } else {
           var spacing = " " * (error.column - 1 - 2 - indent);
           // A CFE-only error may not have a length, so treat it as length 1.
-          var carets = "^" * (error.length ?? 1);
+          var carets = "^" * (error.length == 0 ? 1 : error.length);
           result.add("$comment$spacing$carets");
         }
       }
@@ -155,7 +153,7 @@ String updateErrorExpectations(String source, List<StaticError> errors,
       // line.
       if (i < lines.length - 1 &&
           lines[i + 1] != null &&
-          _lineCommentRegExp.hasMatch(lines[i + 1])) {
+          _lineCommentRegExp.hasMatch(lines[i + 1]!)) {
         result.add("");
       }
     }
@@ -189,6 +187,6 @@ Map<StaticError, int> _numberErrors(List<StaticError> errors) {
 
 /// Returns the number of characters of leading spaces in [line].
 int _countIndentation(String line) {
-  var match = _indentationRegExp.firstMatch(line);
-  return match.group(1).length;
+  var match = _indentationRegExp.firstMatch(line)!;
+  return match.group(1)!.length;
 }
