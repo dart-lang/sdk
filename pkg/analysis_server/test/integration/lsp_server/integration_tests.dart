@@ -150,8 +150,9 @@ class LspServerClient {
 
     var dartBinary = join(dartSdkPath, 'bin', 'dart');
 
-    // Prevent flow analysis from marking code below as being dead.
-    const useSnapshot = 1 > 0;
+    // Setting the `TEST_SERVER_SNAPSHOT` env var to 'false' will disable the
+    // snapshot and run from source.
+    var useSnapshot = Platform.environment['TEST_SERVER_SNAPSHOT'] != 'false';
     String serverPath;
 
     if (useSnapshot) {
