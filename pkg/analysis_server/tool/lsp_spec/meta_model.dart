@@ -9,19 +9,19 @@ import 'codegen_dart.dart';
 export 'meta_model_cleaner.dart';
 export 'meta_model_reader.dart';
 
-/// Whether this type allows any value (including null).
-bool isAnyType(TypeBase t) =>
-    t is TypeReference &&
-    (t.name == 'any' ||
-        t.name == 'LSPAny' ||
-        t.name == 'object' ||
-        t.name == 'LSPObject');
-
 bool isLiteralType(TypeBase t) => t is LiteralType;
 
-bool isNullType(TypeBase t) => t is TypeReference && t.name == 'null';
+/// Whether this type is the equivalent of 'Object?' and may also be omitted
+/// from JSON ("undefined").
+bool isNullableAnyType(TypeBase t) =>
+    resolveTypeAlias(t).dartTypeWithTypeArgs == 'Object?';
 
-bool isUndefinedType(TypeBase t) => t is TypeReference && t.name == 'undefined';
+bool isNullType(TypeBase t) =>
+    resolveTypeAlias(t).dartTypeWithTypeArgs == 'Null';
+
+/// Whether this type is the equivalent of (non-nullable) 'Object'.
+bool isObjectType(TypeBase t) =>
+    resolveTypeAlias(t).dartTypeWithTypeArgs == 'Object';
 
 class ArrayType extends TypeBase {
   final TypeBase elementType;
@@ -202,12 +202,35 @@ abstract class Member extends LspEntity {
   });
 }
 
+class NullableType extends TypeBase {
+  final TypeBase baseType;
+
+  NullableType(this.baseType);
+
+  @override
+  String get dartType => baseType.dartType;
+
+  @override
+  String get dartTypeWithTypeArgs => '${super.dartTypeWithTypeArgs}?';
+
+  @override
+  String get typeArgsString => baseType.typeArgsString;
+}
+
 class TypeAlias extends LspEntity {
   final TypeBase baseType;
+
+  /// Whether this alias is just a simple rename and not a name for a more
+  /// complex type.
+  ///
+  /// Renames will be followed when generating code, but other aliases may be
+  /// created as `typedef`s.
+  final bool isRename;
   TypeAlias({
     required super.name,
     super.comment,
     required this.baseType,
+    required this.isRename,
   });
 }
 
@@ -215,6 +238,7 @@ class TypeAlias extends LspEntity {
 abstract class TypeBase {
   String get dartType;
   String get dartTypeWithTypeArgs => '$dartType$typeArgsString';
+
   String get typeArgsString;
 
   /// A unique identifier for this type. Used for folding types together
@@ -225,8 +249,13 @@ abstract class TypeBase {
 /// A reference to a Type by name.
 class TypeReference extends TypeBase {
   static final TypeBase Undefined = TypeReference('undefined');
-  static final TypeBase Null_ = TypeReference('null');
-  static final TypeBase Any = TypeReference('any');
+  static final TypeBase Null_ = TypeReference('Null');
+
+  /// Any object (but not null).
+  static final TypeBase LspObject = TypeReference('Object');
+
+  /// Any object (or null/undefined).
+  static final TypeBase LspAny = NullableType(TypeReference('Object'));
   final String name;
   final List<TypeBase> typeArgs;
 
@@ -238,8 +267,8 @@ class TypeReference extends TypeBase {
 
   @override
   String get dartType {
-    // Always resolve type aliases when asked for our Dart type.
-    final resolvedType = resolveTypeAlias(this);
+    // Resolve any renames when asked for our type.
+    final resolvedType = resolveTypeAlias(this, onlyRenames: true);
     if (resolvedType != this) {
       return resolvedType.dartType;
     }
@@ -249,14 +278,12 @@ class TypeReference extends TypeBase {
       'string': 'String',
       'number': 'num',
       'integer': 'int',
+      'null': 'Null',
       // Map decimal to num because clients may sent "1.0" or "1" and we want
       // to consider both valid.
       'decimal': 'num',
       'uinteger': 'int',
-      'any': 'Object?',
-      'LSPAny': 'Object?',
       'object': 'Object?',
-      'LSPObject': 'Object?',
       // Simplify MarkedString from
       //     string | { language: string; value: string }
       // to just String
@@ -269,8 +296,8 @@ class TypeReference extends TypeBase {
 
   @override
   String get typeArgsString {
-    // Always resolve type aliases when asked for our Dart type.
-    final resolvedType = resolveTypeAlias(this);
+    // Resolve any renames when asked for our type.
+    final resolvedType = resolveTypeAlias(this, onlyRenames: true);
     if (resolvedType != this) {
       return resolvedType.typeArgsString;
     }
@@ -293,8 +320,6 @@ class UnionType extends TypeBase {
     // because `Either2<A, B>` and `Either2<B, A>` are not the same.
     types.sortBy((type) => type.dartTypeWithTypeArgs.toLowerCase());
   }
-
-  UnionType.nullable(TypeBase type) : this([type, TypeReference.Null_]);
 
   @override
   String get dartType {

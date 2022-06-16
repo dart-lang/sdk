@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:collection/collection.dart';
+
 import 'meta_model.dart';
 
 /// Helper methods to clean the meta model to produce better Dart classes.
@@ -162,7 +164,8 @@ class LspMetaModelCleaner {
     return TypeAlias(
       name: typeAlias.name,
       comment: _cleanComment(typeAlias.comment),
-      baseType: typeAlias.baseType,
+      baseType: _cleanType(typeAlias.baseType),
+      isRename: typeAlias.isRename,
     );
   }
 
@@ -184,8 +187,8 @@ class LspMetaModelCleaner {
     // types, we should just treat the whole thing as Object? as we get no value
     // typing Either4<bool, String, num, Object?> but it becomes much more
     // difficult to use.
-    if (uniqueTypes.any(isAnyType)) {
-      return uniqueTypes.firstWhere(isAnyType);
+    if (uniqueTypes.any(isNullableAnyType)) {
+      return uniqueTypes.firstWhere(isNullableAnyType);
     }
 
     // Finally, sort the types by name so that we always generate the same type
@@ -196,11 +199,19 @@ class LspMetaModelCleaner {
     // Recursively clean the inner types.
     uniqueTypes = uniqueTypes.map(_cleanType).toList();
 
-    return uniqueTypes.length == 1
-        ? uniqueTypes.single
-        : uniqueTypes.every(isLiteralType)
-            ? LiteralUnionType(uniqueTypes.cast<LiteralType>())
-            : UnionType(uniqueTypes);
+    if (uniqueTypes.length == 1) {
+      return uniqueTypes.single;
+    } else if (uniqueTypes.every(isLiteralType)) {
+      return LiteralUnionType(uniqueTypes.cast<LiteralType>());
+    } else if (uniqueTypes.any(isNullType)) {
+      final remainingTypes = uniqueTypes.whereNot(isNullType).toList();
+      final nonNullType = remainingTypes.length == 1
+          ? remainingTypes.single
+          : UnionType(remainingTypes);
+      return NullableType(nonNullType);
+    } else {
+      return UnionType(uniqueTypes);
+    }
   }
 
   /// Improves types in code generated from the LSP model, including:
@@ -235,7 +246,7 @@ class LspMetaModelCleaner {
             ? ArrayType(TypeReference(
                 improvedTypeName.substring(0, improvedTypeName.length - 2)))
             : improvedTypeName.endsWith('?')
-                ? UnionType.nullable(TypeReference(
+                ? NullableType(TypeReference(
                     improvedTypeName.substring(0, improvedTypeName.length - 1)))
                 : TypeReference(improvedTypeName)
         : null;
@@ -353,29 +364,42 @@ class LspMetaModelCleaner {
           'SignatureInformationParameterInformation',
       'TextDocumentFilter2': 'TextDocumentFilterWithScheme',
       'PrepareRenameResult1': 'PlaceholderAndRange',
+      'URI': 'LspUri',
     };
 
     for (final type in types) {
-      if (type is Interface) {
-        final newName = renames[type.name];
-        if (newName != null) {
-          // Replace with renamed interface.
-          yield Interface(
-            name: newName,
-            comment: type.comment,
-            baseTypes: type.baseTypes,
-            members: type.members,
-          );
-          // Plus a TypeAlias for the old name.
-          yield TypeAlias(
-            name: type.name,
-            comment: type.comment,
-            baseType: TypeReference(newName),
-          );
-          continue;
-        }
+      final newName = renames[type.name];
+      if (newName == null) {
+        yield type;
+        continue;
       }
-      yield type;
+
+      // Add a TypeAlias for the old name.
+      yield TypeAlias(
+        name: type.name,
+        comment: type.comment,
+        baseType: TypeReference(newName),
+        isRename: true,
+      );
+
+      // Replace the type with an equivalent with the same name.
+      if (type is Interface) {
+        yield Interface(
+          name: newName,
+          comment: type.comment,
+          baseTypes: type.baseTypes,
+          members: type.members,
+        );
+      } else if (type is TypeAlias) {
+        yield TypeAlias(
+          name: newName,
+          comment: type.comment,
+          baseType: type.baseType,
+          isRename: type.isRename,
+        );
+      } else {
+        throw 'Renaming ${type.runtimeType} is not implemented';
+      }
     }
   }
 }

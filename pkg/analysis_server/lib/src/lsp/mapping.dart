@@ -5,7 +5,7 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';

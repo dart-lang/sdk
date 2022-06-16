@@ -4,11 +4,18 @@
 
 import 'package:test/test.dart';
 
+import '../../../tool/lsp_spec/codegen_dart.dart';
+import '../../../tool/lsp_spec/generate_all.dart';
 import '../../../tool/lsp_spec/meta_model.dart';
 import 'matchers.dart';
 
 void main() {
   group('meta model reader', () {
+    setUpAll(() {
+      // Ensure any custom types like LSPAny are registered so that they can
+      // be resolved.
+      recordTypes(getCustomClasses());
+    });
     test('reads an interface', () {
       final input = {
         "structures": [
@@ -445,7 +452,7 @@ Sometimes after a blank line we'll have a note.
       expect(union.types[1], isSimpleType('string'));
     });
 
-    test('reads an union including LSPObject into a single type', () {
+    test('reads an union including LSPAny into a single type', () {
       final input = {
         "structures": [
           {
@@ -457,7 +464,7 @@ Sometimes after a blank line we'll have a note.
                   "kind": "or",
                   "items": [
                     {"kind": "base", "name": "string"},
-                    {"kind": "base", "name": "LSPObject"},
+                    {"kind": "base", "name": "LSPAny"},
                   ]
                 },
               },
@@ -473,7 +480,7 @@ Sometimes after a blank line we'll have a note.
       final field = interface.members.first as Field;
       expect(field, const TypeMatcher<Field>());
       expect(field.name, equals('label'));
-      expect(field.type, isSimpleType('LSPObject'));
+      expect(field.type, isSimpleType('LSPAny'));
     });
 
     test('reads literal string values', () {
