@@ -55,6 +55,62 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     expect(loc.uri, equals(referencedFileUri.toString()));
   }
 
+  Future<void> test_atDeclaration_class() async {
+    final contents = '''
+class [[^A]] {}
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_constructorNamed() async {
+    final contents = '''
+class A {
+  A.[[^named]]() {}
+}
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_constructorNamed_typeName() async {
+    final contents = '''
+class [[A]] {
+  ^A.named() {}
+}
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_defaultConstructor() async {
+    final contents = '''
+class A {
+  [[^A]]() {}
+}
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_function() async {
+    final contents = '''
+void [[^f]]() {}
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_method() async {
+    final contents = '''
+class A {
+  void [[^f]]() {}
+}
+    ''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_comment_adjacentReference() async {
     /// Computing Dart navigation locates a node at the provided offset then
     /// returns all navigation regions inside it. This test ensures we filter
@@ -89,7 +145,7 @@ class A {
     await testContents(contents);
   }
 
-  Future<void> test_constructor_named() async {
+  Future<void> test_constructorNamed() async {
     final contents = '''
 f() {
   final a = A.named^();
@@ -97,6 +153,20 @@ f() {
 
 class A {
   A.[[named]]();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_constructorNamed_typeName() async {
+    final contents = '''
+f() {
+  final a = A^.named();
+}
+
+class [[A]] {
+  A.named();
 }
 ''';
 

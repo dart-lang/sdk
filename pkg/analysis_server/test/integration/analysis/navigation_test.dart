@@ -105,9 +105,7 @@ part of foo;
     checkLocal('Class<int>', 'Class<TypeParameter>', ElementKind.CLASS);
     checkRemote("'test2.dart';", r'test2.dart$', ElementKind.COMPILATION_UNIT);
     checkLocal(
-        'Class<int>.constructor',
-        'constructor(); /* constructor declaration */',
-        ElementKind.CONSTRUCTOR);
+        'Class<int>.constructor', 'Class<TypeParameter>', ElementKind.CLASS);
     checkLocal(
         'constructor(); // usage',
         'constructor(); /* constructor declaration */',
