@@ -26,7 +26,7 @@ class topLevelFunction4GeneratedClass {
   external prefix1.FunctionTypesMacro1? method();
 }
 class topLevelFunction5GeneratedClass {
-  external prefix0.dynamic method();
+  external OmittedType0 method();
 }*/
 
 import 'package:macro/macro.dart';
@@ -66,7 +66,7 @@ FunctionTypesMacro1? topLevelFunction4() => null;
 /*member: topLevelFunction5:
 types:
 class topLevelFunction5GeneratedClass {
-  external dynamic method();
+  external Instance of '_OmittedTypeAnnotationImpl' method();
 }*/
 @FunctionTypesMacro1()
 topLevelFunction5() {}

@@ -10,9 +10,8 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/unaliasing.dart';
 
 import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
-
+import '../kernel/implicit_field_type.dart';
 import '../source/source_library_builder.dart';
-
 import 'formal_parameter_builder.dart';
 import 'library_builder.dart';
 import 'named_type_builder.dart';
@@ -111,15 +110,11 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
     return buffer;
   }
 
-  @override
-  FunctionType build(LibraryBuilder library, TypeUse typeUse,
-      {ClassHierarchyBase? hierarchy});
-
-  FunctionType _buildInternal(
+  DartType _buildInternal(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
     DartType aliasedType = buildAliased(library, typeUse, hierarchy);
     return unalias(aliasedType,
-        legacyEraseAliases: !library.isNonNullableByDefault) as FunctionType;
+        legacyEraseAliases: !library.isNonNullableByDefault);
   }
 
   @override
@@ -230,10 +225,10 @@ class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilder {
   @override
   bool get isExplicit => true;
 
-  FunctionType? _type;
+  DartType? _type;
 
   @override
-  FunctionType build(LibraryBuilder library, TypeUse typeUse,
+  DartType build(LibraryBuilder library, TypeUse typeUse,
       {ClassHierarchyBase? hierarchy}) {
     return _type ??= _buildInternal(library, typeUse, hierarchy);
   }
@@ -245,7 +240,7 @@ class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilder {
 /// defined in terms of inferred types, making this type indirectly depend
 /// on type inference.
 class _InferredFunctionTypeBuilder extends FunctionTypeBuilder
-    with ListenableTypeBuilderMixin<FunctionType> {
+    with InferableTypeBuilderMixin {
   _InferredFunctionTypeBuilder(
       TypeBuilder returnType,
       List<TypeVariableBuilder>? typeVariables,
@@ -260,13 +255,17 @@ class _InferredFunctionTypeBuilder extends FunctionTypeBuilder
   bool get isExplicit => false;
 
   @override
-  FunctionType build(LibraryBuilder library, TypeUse typeUse,
+  DartType build(LibraryBuilder library, TypeUse typeUse,
       {ClassHierarchyBase? hierarchy}) {
-    assert(hierarchy != null, "Cannot build $this.");
     if (hasType) {
       return type;
-    } else {
+    } else if (hierarchy != null) {
       return registerType(_buildInternal(library, typeUse, hierarchy));
+    } else {
+      InferableTypeUse inferableTypeUse =
+          new InferableTypeUse(library as SourceLibraryBuilder, this, typeUse);
+      library.registerInferableType(inferableTypeUse);
+      return new InferredType.fromInferableTypeUse(inferableTypeUse);
     }
   }
 }

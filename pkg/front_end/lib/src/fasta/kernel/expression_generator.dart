@@ -7,9 +7,7 @@ library fasta.expression_generator;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show lengthForToken, lengthOfSpan;
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/unaliasing.dart';
 import 'package:kernel/text/ast_to_text.dart';
@@ -24,16 +22,14 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
-
 import '../constant_context.dart' show ConstantContext;
-
 import '../fasta_codes.dart';
-
 import '../names.dart'
     show
         ampersandName,
@@ -53,25 +49,15 @@ import '../names.dart'
         plusName,
         rightShiftName,
         tripleShiftName;
-
 import '../problems.dart';
-
 import '../scope.dart';
-
 import '../source/stack_listener_impl.dart' show offsetForToken;
-
 import 'body_builder.dart' show noLocation;
-
 import 'constness.dart' show Constness;
-
 import 'expression_generator_helper.dart';
-
 import 'forest.dart';
-
 import 'internal_ast.dart';
-
 import 'load_library_builder.dart';
-
 import 'utils.dart';
 
 /// A generator represents a subexpression for which we can't yet build an
@@ -3064,6 +3050,13 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
       {required bool allowPotentiallyConstantType,
       required bool forTypeLiteral}) {
+    if (declaration is OmittedTypeDeclarationBuilder) {
+      // TODO(johnniwinther): Report errors when this occurs in-body or with
+      // type arguments.
+      // TODO(johnniwinther): Handle nullability.
+      return new DependentTypeBuilder(
+          (declaration as OmittedTypeDeclarationBuilder).omittedTypeBuilder);
+    }
     return new NamedTypeBuilder(targetName, nullabilityBuilder,
         arguments: arguments,
         fileUri: _uri,

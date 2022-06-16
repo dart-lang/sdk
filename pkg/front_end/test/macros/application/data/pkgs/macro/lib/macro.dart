@@ -430,3 +430,117 @@ class ImportConflictMacro implements FunctionDefinitionMacro {
     ]));
   }
 }
+
+macro
+
+class InferableMacro
+    implements
+        FieldDeclarationsMacro,
+        MethodDeclarationsMacro,
+        ConstructorDeclarationsMacro {
+  const InferableMacro();
+
+  FutureOr<void> buildDeclarationsForField(FieldDeclaration field,
+      ClassMemberDeclarationBuilder builder) async {
+    Identifier listIdentifier = await builder.resolveIdentifier(
+        Uri.parse('dart:core'), 'List');
+    builder.declareInClass(new DeclarationCode.fromParts([
+      field.type.code,
+      ' get_${field.identifier.name}(',
+      field.type.code,
+      ' f) => ',
+      field.identifier,
+      ';',
+    ]));
+    builder.declareInClass(new DeclarationCode.fromParts([
+      field.type.code,
+      ' Function() get_${field.identifier.name}Func(',
+      field.type.code,
+      ' Function(',
+      field.type.code,
+      ') f) => () => ',
+      field.identifier,
+      ';',
+    ]));
+    builder.declareInClass(new DeclarationCode.fromParts([
+      listIdentifier,
+      '<',
+      field.type.code,
+      '> get_${field.identifier.name}List(',
+      listIdentifier,
+      '<',
+      field.type.code,
+      '> l) => [',
+      field.identifier,
+      '];',
+    ]));
+    // TODO(johnniwinther): Enable these when field augmentation is supported.
+    /*builder.declareInClass(new DeclarationCode.fromParts([
+      field.type.code,
+      ' field_${field.identifier.name} = ',
+      field.identifier,
+      ';',
+    ]));
+    builder.declareInClass(new DeclarationCode.fromParts([
+      field.type.code,
+      ' Function() field_${field.identifier.name}Func = () => ',
+      field.identifier,
+      ';',
+    ]));
+    builder.declareInClass(new DeclarationCode.fromParts([
+      listIdentifier,
+      '<',
+      field.type.code,
+      '> field_${field.identifier.name}List = [',
+      field.identifier,
+      '];',
+    ]));*/
+  }
+
+  FutureOr<void> buildDeclarationsForMethod(MethodDeclaration method,
+      ClassMemberDeclarationBuilder builder) async {
+    Identifier listIdentifier = await builder.resolveIdentifier(
+        Uri.parse('dart:core'), 'List');
+    builder.declareInClass(new DeclarationCode.fromParts([
+      method.returnType.code,
+      ' get_${method.identifier.name}() => ',
+      method.identifier,
+      '();',
+    ]));
+    builder.declareInClass(new DeclarationCode.fromParts([
+      method.returnType.code,
+      ' Function() get_${method.identifier.name}Func() => () => ',
+      method.identifier,
+      '();',
+    ]));
+    builder.declareInClass(new DeclarationCode.fromParts([
+      listIdentifier,
+      '<',
+      method.returnType.code,
+      '> get_${method.identifier.name}List() => [',
+      method.identifier,
+      '()];',
+    ]));
+  }
+
+  FutureOr<void> buildDeclarationsForConstructor(
+      ConstructorDeclaration constructor,
+      ClassMemberDeclarationBuilder builder) async {
+    Identifier listIdentifier = await builder.resolveIdentifier(
+        Uri.parse('dart:core'), 'List');
+    builder.declareInClass(new DeclarationCode.fromParts([
+      constructor.positionalParameters.first.type.code,
+      ' get_${constructor.identifier.name}() => throw "";',
+    ]));
+    builder.declareInClass(new DeclarationCode.fromParts([
+      constructor.positionalParameters.first.type.code,
+      ' Function() get_${constructor.identifier.name}Func() => throw "";',
+    ]));
+    builder.declareInClass(new DeclarationCode.fromParts([
+      listIdentifier,
+      '<',
+      constructor.positionalParameters.first.type.code,
+      '> get_${constructor.identifier.name}List() => throw "";',
+    ]));
+  }
+}

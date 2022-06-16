@@ -163,11 +163,12 @@ abstract class TypeInferenceEngine {
         new TypeSchemaEnvironment(coreTypes, hierarchy);
   }
 
-  static Member? resolveInferenceNode(Member? member) {
+  static Member? resolveInferenceNode(
+      Member? member, ClassHierarchy hierarchy) {
     if (member is Field) {
       DartType type = member.type;
-      if (type is ImplicitFieldType) {
-        type.inferType();
+      if (type is InferredType) {
+        type.inferType(hierarchy);
       }
     }
     return member;

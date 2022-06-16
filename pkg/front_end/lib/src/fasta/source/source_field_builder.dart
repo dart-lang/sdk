@@ -271,7 +271,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       } else {
         // A field with no type and initializer or an instance field without
         // type and initializer need to have the type inferred.
-        fieldType = new ImplicitFieldType(this, initializerToken);
+        fieldType =
+            new InferredType.fromFieldInitializer(this, initializerToken);
         type.registerInferable(this);
       }
     }
@@ -462,24 +463,24 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   @override
   void inferTypes(ClassHierarchyBase hierarchy) {
-    inferType();
+    inferType(hierarchy);
   }
 
-  DartType inferType() {
-    if (fieldType is! ImplicitFieldType) {
+  DartType inferType(ClassHierarchyBase hierarchy) {
+    if (fieldType is! InferredType) {
       // We have already inferred a type.
       return fieldType;
     }
 
-    ImplicitFieldType implicitFieldType = fieldType as ImplicitFieldType;
-    DartType inferredType = implicitFieldType.computeType();
-    if (fieldType is ImplicitFieldType) {
+    InferredType implicitFieldType = fieldType as InferredType;
+    DartType inferredType = implicitFieldType.computeType(hierarchy);
+    if (fieldType is InferredType) {
       // `fieldType` may have changed if a circularity was detected when
       // [inferredType] was computed.
       if (!libraryBuilder.isNonNullableByDefault) {
         inferredType = legacyErasure(inferredType);
       }
-      type.registerInferredType(implicitFieldType.checkInferred(inferredType));
+      type.registerInferredType(inferredType);
 
       IncludesTypeParametersNonCovariantly? needsCheckVisitor;
       if (parent is ClassBuilder) {
@@ -1028,10 +1029,10 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
   @override
   void set type(DartType value) {
-    assert(_type == null || _type is ImplicitFieldType,
+    assert(_type == null || _type is InferredType,
         "Type has already been computed for field $name.");
     _type = value;
-    if (value is! ImplicitFieldType) {
+    if (value is! InferredType) {
       _field.type = value.withDeclaredNullability(Nullability.nullable);
       _lateGetter.function.returnType = value;
       if (_lateSetter != null) {
@@ -1666,10 +1667,10 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
 
   @override
   void set type(DartType value) {
-    assert(_type == null || _type is ImplicitFieldType,
+    assert(_type == null || _type is InferredType,
         "Type has already been computed for field ${_fieldBuilder.name}.");
     _type = value;
-    if (value is! ImplicitFieldType) {
+    if (value is! InferredType) {
       if (_isExtensionInstanceMember) {
         SourceExtensionBuilder extensionBuilder =
             _fieldBuilder.parent as SourceExtensionBuilder;

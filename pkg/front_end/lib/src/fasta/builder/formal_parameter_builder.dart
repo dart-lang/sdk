@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart'
     show DartType, DynamicType, Expression, NullLiteral, VariableDeclaration;
+import 'package:kernel/class_hierarchy.dart';
 
 import '../constant_context.dart' show ConstantContext;
 import '../kernel/body_builder.dart' show BodyBuilder;
@@ -18,7 +19,6 @@ import '../scope.dart' show Scope;
 import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
-import '../type_inference/type_schema.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'builder.dart';
 import 'class_builder.dart';
@@ -148,20 +148,13 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   VariableDeclaration build(SourceLibraryBuilder library) {
     if (variable == null) {
-      DartType? builtType;
-      if (type is OmittedTypeBuilder) {
-        // `null` is used in [VariableDeclarationImpl] to signal an omitted
-        // type.
-        builtType = null;
-      } else if (type.isExplicit) {
-        builtType = type.build(library, TypeUse.parameterType);
-      } else {
-        // This type needs to be computed at a later point in time.
-        builtType = const UnknownType();
-      }
+      bool isTypeOmitted = type is OmittedTypeBuilder;
+      DartType? builtType = type.build(library, TypeUse.parameterType);
       variable = new VariableDeclarationImpl(
           name == noNameSentinel ? null : name,
-          type: builtType,
+          // `null` is used in [VariableDeclarationImpl] to signal an omitted
+          // type.
+          type: isTypeOmitted ? null : builtType,
           isFinal: isFinal,
           isConst: false,
           isInitializingFormal: isInitializingFormal,
@@ -226,10 +219,11 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     }
   }
 
-  void finalizeInitializingFormal(ClassBuilder classBuilder) {
+  void finalizeInitializingFormal(
+      ClassBuilder classBuilder, ClassHierarchyBase hierarchy) {
     Builder? fieldBuilder = classBuilder.lookupLocalMember(name);
     if (fieldBuilder is SourceFieldBuilder) {
-      type.registerInferredType(fieldBuilder.inferType());
+      type.registerInferredType(fieldBuilder.inferType(hierarchy));
     } else {
       type.registerInferredType(const DynamicType());
     }

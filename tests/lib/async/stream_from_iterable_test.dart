@@ -92,10 +92,16 @@ main() {
   }
 
   {
-    // Test that you can't listen twice..
+    asyncStart();
+    // Test that you can listen twice.
     Stream stream = new Stream.fromIterable(iter);
     stream.listen((x) {}).cancel();
-    Expect.throws<StateError>(() => stream.listen((x) {}));
+    stream.listen((x) {}).cancel(); // Doesn't throw.
+    Future.wait([stream.toList(), stream.toList()]).then((result) {
+      Expect.listEquals(iter.toList(), result[0]);
+      Expect.listEquals(iter.toList(), result[1]);
+      asyncEnd();
+    });
   }
 
   {
@@ -216,9 +222,13 @@ Future<List<Object>> collectEvents(Stream<Object> stream) {
   var c = new Completer<List<Object>>();
   var events = <Object>[];
   stream.listen((value) {
-    events..add("value")..add(value);
+    events
+      ..add("value")
+      ..add(value);
   }, onError: (error) {
-    events..add("error")..add(error);
+    events
+      ..add("error")
+      ..add(error);
   }, onDone: () {
     c.complete(events);
   });

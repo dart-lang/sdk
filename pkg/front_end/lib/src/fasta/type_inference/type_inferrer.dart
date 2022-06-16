@@ -4432,7 +4432,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       member ??=
           classHierarchy.getInterfaceMember(class_, name, setter: setter);
     }
-    return TypeInferenceEngine.resolveInferenceNode(member);
+    return TypeInferenceEngine.resolveInferenceNode(member, classHierarchy);
   }
 
   /// Determines if the given [expression]'s type is precisely known at compile
