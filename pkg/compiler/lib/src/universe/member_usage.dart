@@ -9,7 +9,7 @@ import 'dart:math' as Math;
 import '../common.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
-import '../js_model/closure.dart';
+import '../js_model/closure.dart' show JRecordField;
 import '../serialization/serialization_interfaces.dart';
 import '../util/enumset.dart';
 import 'call_structure.dart';

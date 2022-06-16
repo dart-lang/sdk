@@ -4,8 +4,6 @@
 
 // Test that compare results works as expected.
 
-// @dart = 2.9
-
 import 'package:expect/expect.dart';
 import 'package:test_runner/bot_results.dart';
 import '../../bin/compare_results.dart';
@@ -141,17 +139,17 @@ void testEvent() {
 }
 
 void _expectEvent(Event actual,
-    {bool isNew,
-    bool isNewPassing,
-    bool isNewFailing,
-    bool changed,
-    bool unchanged,
-    bool remainedPassing,
-    bool remainedFailing,
-    bool flaked,
-    bool fixed,
-    bool broke,
-    String description}) {
+    {bool? isNew,
+    bool? isNewPassing,
+    bool? isNewFailing,
+    bool? changed,
+    bool? unchanged,
+    bool? remainedPassing,
+    bool? remainedFailing,
+    bool? flaked,
+    bool? fixed,
+    bool? broke,
+    String? description}) {
   if (isNew != null) {
     Expect.equals(isNew, actual.isNew, 'isNew mismatch');
   }

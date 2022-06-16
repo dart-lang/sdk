@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import 'package:analyzer/src/dart/analysis/cache.dart';
+import 'package:meta/meta.dart';
 
 /// Store of bytes associated with string keys.
 ///
@@ -14,29 +15,72 @@ import 'package:analyzer/src/dart/analysis/cache.dart';
 ///
 /// Note that associations are not guaranteed to be persistent. The value
 /// associated with a key can change or become `null` at any point in time.
-///
-/// TODO(scheglov) Research using asynchronous API.
 abstract class ByteStore {
   /// Return the bytes associated with the given [key].
   /// Return `null` if the association does not exist.
+  ///
+  /// If this store supports reference counting, increments it.
   Uint8List? get(String key);
 
-  /// Associate the given [bytes] with the [key].
-  void put(String key, Uint8List bytes);
+  /// Associate [bytes] with [key].
+  ///
+  /// If this store supports reference counting, returns the internalized
+  /// version of [bytes], the reference count is set to `1`.
+  ///
+  /// TODO(scheglov) Disable overwriting.
+  Uint8List putGet(String key, Uint8List bytes);
+
+  /// If this store supports reference counting, decrements it for every key
+  /// in [keys], and evicts entries with the reference count equal zero.
+  void release(Iterable<String> keys);
 }
 
 /// [ByteStore] which stores data only in memory.
 class MemoryByteStore implements ByteStore {
-  final Map<String, Uint8List> _map = {};
+  @visibleForTesting
+  final Map<String, MemoryByteStoreEntry> map = {};
 
   @override
   Uint8List? get(String key) {
-    return _map[key];
+    final entry = map[key];
+    if (entry == null) {
+      return null;
+    }
+
+    entry.refCount++;
+    return entry.bytes;
   }
 
   @override
-  void put(String key, Uint8List bytes) {
-    _map[key] = bytes;
+  Uint8List putGet(String key, Uint8List bytes) {
+    map[key] = MemoryByteStoreEntry._(bytes);
+    return bytes;
+  }
+
+  @override
+  void release(Iterable<String> keys) {
+    for (final key in keys) {
+      final entry = map[key];
+      if (entry != null) {
+        entry.refCount--;
+        if (entry.refCount == 0) {
+          map.remove(key);
+        }
+      }
+    }
+  }
+}
+
+@visibleForTesting
+class MemoryByteStoreEntry {
+  final Uint8List bytes;
+  int refCount = 1;
+
+  MemoryByteStoreEntry._(this.bytes);
+
+  @override
+  String toString() {
+    return '(length: ${bytes.length}, refCount: $refCount)';
   }
 }
 
@@ -65,10 +109,14 @@ class MemoryCachingByteStore implements ByteStore {
   }
 
   @override
-  void put(String key, Uint8List bytes) {
-    _store.put(key, bytes);
+  Uint8List putGet(String key, Uint8List bytes) {
+    _store.putGet(key, bytes);
     _cache.put(key, bytes);
+    return bytes;
   }
+
+  @override
+  void release(Iterable<String> keys) {}
 }
 
 /// [ByteStore] which does not store any data.
@@ -77,5 +125,8 @@ class NullByteStore implements ByteStore {
   Uint8List? get(String key) => null;
 
   @override
-  void put(String key, Uint8List bytes) {}
+  Uint8List putGet(String key, Uint8List bytes) => bytes;
+
+  @override
+  void release(Iterable<String> keys) {}
 }

@@ -782,7 +782,7 @@ abstract class Token implements SyntacticEntity {
   /**
    * Initialize a newly created token to have the given [type] and [offset].
    */
-  factory Token(TokenType type, int offset, [CommentToken? preceedingComment]) =
+  factory Token(TokenType type, int offset, [CommentToken? precedingComment]) =
       SimpleToken;
 
   /**

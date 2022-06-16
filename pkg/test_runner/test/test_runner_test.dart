@@ -13,9 +13,11 @@ import "package:status_file/expectation.dart";
 import "package:test_runner/src/command.dart";
 import "package:test_runner/src/configuration.dart";
 import "package:test_runner/src/options.dart";
+import 'package:test_runner/src/path.dart';
 import "package:test_runner/src/process_queue.dart";
 import "package:test_runner/src/repository.dart";
 import "package:test_runner/src/test_case.dart";
+import 'package:test_runner/src/test_file.dart';
 import "package:test_runner/src/test_progress.dart" as progress;
 import "package:test_runner/src/test_suite.dart";
 
@@ -113,7 +115,11 @@ class CustomTestSuite extends TestSuite {
       Iterable<Expectation> expectations) {
     var configuration = OptionsParser().parse(['--timeout', '$timeout'])[0];
     return TestCase(
-        name, [command], configuration, Set<Expectation>.from(expectations));
+        name,
+        [command],
+        configuration,
+        Set<Expectation>.from(expectations),
+        TestFile.parse(Path('suite'), '/dummy_test.dart', ''));
   }
 }
 
@@ -146,7 +152,6 @@ void main(List<String> arguments) {
       case 'fail-unexpected':
       case 'fail':
         throw "This test always fails, to test the test scripts.";
-        break;
       case 'timeout':
         // This process should be killed by the test after DEFAULT_TIMEOUT
         Timer(const Duration(hours: 42), () {});

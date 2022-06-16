@@ -18,7 +18,7 @@ class JSValue {
 
   WasmAnyRef toAnyRef() => _ref;
   String toString() => jsStringToDartString(_ref);
-  List<Object?> toObjectList() => jsArrayToDartList(_ref);
+  List<Object?> toObjectList() => toDartList(_ref);
   Object toObject() => jsObjectToDartObject(_ref);
 }
 
@@ -34,23 +34,58 @@ extension ObjectToJS on Object {
   JSValue toJS() => JSValue(jsObjectFromDartObject(this));
 }
 
-Object? toDart(WasmAnyRef? ref) {
-  if (ref == null) {
-    return null;
-  }
-  return jsObjectToDartObject(dartifyRaw(ref)!);
-}
-
 Object jsObjectToDartObject(WasmAnyRef ref) => unsafeCastOpaque<Object>(ref);
 
 WasmAnyRef jsObjectFromDartObject(Object object) =>
     unsafeCastOpaque<WasmAnyRef>(object);
 
+@pragma("wasm:import", "dart2wasm.isJSUndefined")
+external bool isJSUndefined(WasmAnyRef? o);
+
+@pragma("wasm:import", "dart2wasm.isJSBoolean")
+external bool isJSBoolean(WasmAnyRef? o);
+
+@pragma("wasm:import", "dart2wasm.isJSNumber")
+external bool isJSNumber(WasmAnyRef? o);
+
+@pragma("wasm:import", "dart2wasm.isJSBigInt")
+external bool isJSBigInt(WasmAnyRef? o);
+
+@pragma("wasm:import", "dart2wasm.isJSString")
+external bool isJSString(WasmAnyRef? o);
+
+@pragma("wasm:import", "dart2wasm.isJSSymbol")
+external bool isJSSymbol(WasmAnyRef? o);
+
+@pragma("wasm:import", "dart2wasm.isJSFunction")
+external bool isJSFunction(WasmAnyRef? o);
+
+@pragma("wasm:import", "dart2wasm.isJSArray")
+external bool isJSArray(WasmAnyRef? o);
+
+@pragma("wasm:import", "dart2wasm.isJSWrappedDartFunction")
+external bool isJSWrappedDartFunction(WasmAnyRef? o);
+
+@pragma("wasm:import", "dart2wasm.isJSObject")
+external bool isJSObject(WasmAnyRef? o);
+
+@pragma("wasm:import", "dart2wasm.roundtrip")
+external double toDartNumber(WasmAnyRef ref);
+
+@pragma("wasm:import", "dart2wasm.roundtrip")
+external bool toDartBool(WasmAnyRef ref);
+
+@pragma("wasm:import", "dart2wasm.objectLength")
+external double objectLength(WasmAnyRef ref);
+
+@pragma("wasm:import", "dart2wasm.objectReadIndex")
+external WasmAnyRef? objectReadIndex(WasmAnyRef ref, int index);
+
+@pragma("wasm:import", "dart2wasm.unwrapJSWrappedDartFunction")
+external Object? unwrapJSWrappedDartFunction(WasmAnyRef f);
+
 @pragma("wasm:import", "dart2wasm.arrayFromDartList")
 external WasmAnyRef jsArrayFromDartList(List<Object?> list);
-
-@pragma("wasm:import", "dart2wasm.arrayToDartList")
-external List<Object?> jsArrayToDartList(WasmAnyRef list);
 
 @pragma("wasm:import", "dart2wasm.stringFromDartString")
 external WasmAnyRef jsStringFromDartString(String string);
@@ -60,9 +95,6 @@ external String jsStringToDartString(WasmAnyRef string);
 
 @pragma("wasm:import", "dart2wasm.eval")
 external void evalRaw(WasmAnyRef code);
-
-@pragma("wasm:import", "dart2wasm.dartify")
-external WasmAnyRef? dartifyRaw(WasmAnyRef? object);
 
 @pragma("wasm:import", "dart2wasm.newObject")
 external WasmAnyRef newObjectRaw();
@@ -113,15 +145,52 @@ WasmAnyRef? jsifyRaw(Object? object) {
   }
 }
 
-@pragma("wasm:import", "dart2wasm.wrapDartCallback")
-external WasmAnyRef _wrapDartCallbackRaw(
-    WasmAnyRef callback, WasmAnyRef trampolineName);
+/// TODO(joshualitt): We shouldn't need this, but otherwise we seem to get a
+/// cast error for certain oddball types(I think undefined, but need to dig
+/// deeper).
+@pragma("wasm:export", "\$dartifyRaw")
+Object? dartifyExported(WasmAnyRef? ref) => dartifyRaw(ref);
 
-F _wrapDartCallback<F extends Function>(F f, String trampolineName) {
+Object? dartifyRaw(WasmAnyRef? ref) {
+  if (ref == null) {
+    return null;
+  } else if (isJSUndefined(ref)) {
+    // TODO(joshualitt): Introduce a `JSUndefined` type.
+    return null;
+  } else if (isJSBoolean(ref)) {
+    return toDartBool(ref);
+  } else if (isJSNumber(ref)) {
+    return toDartNumber(ref);
+  } else if (isJSString(ref)) {
+    return jsStringToDartString(ref);
+  } else if (isJSArray(ref)) {
+    return toDartList(ref);
+  } else if (isJSWrappedDartFunction(ref)) {
+    return unwrapJSWrappedDartFunction(ref);
+  } else if (isJSObject(ref) ||
+      // TODO(joshualitt): We may want to create proxy types for some of these
+      // cases.
+      isJSBigInt(ref) ||
+      isJSSymbol(ref) ||
+      isJSFunction(ref)) {
+    return JSValue(ref);
+  } else {
+    return jsObjectToDartObject(ref);
+  }
+}
+
+List<Object?> toDartList(WasmAnyRef ref) => List<Object?>.generate(
+    objectLength(ref).round(), (int n) => dartifyRaw(objectReadIndex(ref, n)));
+
+@pragma("wasm:import", "dart2wasm.wrapDartFunction")
+external WasmAnyRef _wrapDartFunctionRaw(
+    WasmAnyRef dartFunction, WasmAnyRef trampolineName);
+
+F _wrapDartFunction<F extends Function>(F f, String trampolineName) {
   if (functionToJSWrapper.containsKey(f)) {
     return f;
   }
-  JSValue wrappedFunction = JSValue(_wrapDartCallbackRaw(
+  JSValue wrappedFunction = JSValue(_wrapDartFunctionRaw(
       f.toJS().toAnyRef(), trampolineName.toJS().toAnyRef()));
   functionToJSWrapper[f] = wrappedFunction;
   return f;
@@ -134,13 +203,3 @@ double _listLength(List list) => list.length.toDouble();
 @pragma("wasm:export", "\$listRead")
 WasmAnyRef? _listRead(List<Object?> list, double index) =>
     jsifyRaw(list[index.toInt()]);
-
-@pragma("wasm:export", "\$listAllocate")
-List<Object?> _listAllocate() => [];
-
-@pragma("wasm:export", "\$listAdd")
-void _listAdd(List<Object?> list, WasmAnyRef? item) =>
-    list.add(dartifyRaw(item));
-
-@pragma("wasm:export", "\$boxJSValue")
-JSValue _boxJSValue(WasmAnyRef ref) => JSValue(ref);

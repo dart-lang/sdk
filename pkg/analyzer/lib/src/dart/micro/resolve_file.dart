@@ -13,6 +13,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
@@ -22,7 +23,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
-import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
@@ -35,7 +35,6 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
-import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -88,7 +87,7 @@ class FileContext {
 class FileResolver {
   final PerformanceLog logger;
   final ResourceProvider resourceProvider;
-  CiderByteStore byteStore;
+  ByteStore byteStore;
   final SourceFactory sourceFactory;
 
   /// A function that returns the digest for a file as a String. The function
@@ -855,10 +854,8 @@ class LibraryContext {
   final FileResolverTestView? testData;
   final PerformanceLog logger;
   final ResourceProvider resourceProvider;
-  final CiderByteStore byteStore;
+  final ByteStore byteStore;
   final MicroContextObjects contextObjects;
-
-  late final LinkedElementFactory elementFactory;
 
   Set<LibraryCycle> loadedBundles = Set.identity();
 
@@ -868,12 +865,10 @@ class LibraryContext {
     this.resourceProvider,
     this.byteStore,
     this.contextObjects,
-  ) {
-    elementFactory = LinkedElementFactory(
-      contextObjects.analysisContext,
-      contextObjects.analysisSession,
-      Reference.root(),
-    );
+  );
+
+  LinkedElementFactory get elementFactory {
+    return contextObjects.analysisSession.elementFactory;
   }
 
   /// Notifies this object that it is about to be discarded.

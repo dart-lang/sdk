@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:telemetry/telemetry.dart';
@@ -45,6 +46,15 @@ class GoogleAnalyticsManager implements AnalyticsManager {
   }
 
   @override
+  void changedWorkspaceFolders(
+      {required List<String> added, required List<String> removed}) {
+    var requestData =
+        _getRequestData(Method.workspace_didChangeWorkspaceFolders.toString());
+    requestData.addValue('added', added.length);
+    requestData.addValue('removed', removed.length);
+  }
+
+  @override
   void handledNotificationMessage(
       {required NotificationMessage notification,
       required DateTime startTime,
@@ -59,6 +69,27 @@ class GoogleAnalyticsManager implements AnalyticsManager {
       data.latencyTimes.addValue(start - requestTime);
     }
     data.handlingTimes.addValue(end - start);
+  }
+
+  @override
+  void initialize(InitializeParams params) {
+    var options = LspInitializationOptions(params.initializationOptions);
+    var paramNames = <String>[
+      if (options.closingLabels) 'closingLabels',
+      if (options.flutterOutline) 'flutterOutline',
+      if (options.onlyAnalyzeProjectsWithOpenFiles)
+        'onlyAnalyzeProjectsWithOpenFiles',
+      if (options.outline) 'outline',
+      if (options.suggestFromUnimportedLibraries)
+        'suggestFromUnimportedLibraries',
+    ];
+    _sessionData?.initializeParams = paramNames.join(',');
+  }
+
+  @override
+  void initialized({required List<String> openWorkspacePaths}) {
+    var requestData = _getRequestData(Method.initialized.toString());
+    requestData.addValue('openWorkspacePaths', openWorkspacePaths.length);
   }
 
   @override
@@ -95,9 +126,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
 
   @override
   void startedGetRefactoring(EditGetRefactoringParams params) {
-    var requestData = _completedRequests.putIfAbsent(
-        EDIT_REQUEST_GET_REFACTORING,
-        () => _RequestData(EDIT_REQUEST_GET_REFACTORING));
+    var requestData = _getRequestData(EDIT_REQUEST_GET_REFACTORING);
     requestData.addEnumValue(
         EDIT_REQUEST_GET_REFACTORING_KIND, params.kind.name);
   }
@@ -118,9 +147,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
 
   @override
   void startedSetAnalysisRoots(AnalysisSetAnalysisRootsParams params) {
-    var requestData = _completedRequests.putIfAbsent(
-        ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
-        () => _RequestData(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS));
+    var requestData = _getRequestData(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS);
     requestData.addValue(
         ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED, params.included.length);
     requestData.addValue(
@@ -129,9 +156,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
 
   @override
   void startedSetPriorityFiles(AnalysisSetPriorityFilesParams params) {
-    var requestData = _completedRequests.putIfAbsent(
-        ANALYSIS_REQUEST_SET_PRIORITY_FILES,
-        () => _RequestData(ANALYSIS_REQUEST_SET_PRIORITY_FILES));
+    var requestData = _getRequestData(ANALYSIS_REQUEST_SET_PRIORITY_FILES);
     requestData.addValue(
         ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES, params.files.length);
   }
@@ -145,10 +170,15 @@ class GoogleAnalyticsManager implements AnalyticsManager {
       required String sdkVersion}) {
     _sessionData = _SessionData(
         startTime: time,
-        commandLineArguments: arguments.join(' '),
+        commandLineArguments: arguments.join(','),
         clientId: clientId,
         clientVersion: clientVersion ?? '',
         sdkVersion: sdkVersion);
+  }
+
+  /// Return the request data for requests that have the given [method].
+  _RequestData _getRequestData(String method) {
+    return _completedRequests.putIfAbsent(method, () => _RequestData(method));
   }
 
   /// Record that the request with the given [id] was responded to at the given
@@ -163,8 +193,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
     var clientRequestTime = data.clientRequestTime;
     var startTime = data.startTime.millisecondsSinceEpoch;
 
-    var requestData =
-        _completedRequests.putIfAbsent(method, () => _RequestData(method));
+    var requestData = _getRequestData(method);
 
     if (clientRequestTime != null) {
       var latencyTime = startTime - clientRequestTime;
@@ -221,6 +250,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
     var duration = endTime - sessionData.startTime.millisecondsSinceEpoch;
     analytics.sendEvent('language_server', 'session', parameters: {
       'flags': sessionData.commandLineArguments,
+      'parameters': sessionData.initializeParams,
       'clientId': sessionData.clientId,
       'clientVersion': sessionData.clientVersion,
       'sdkVersion': sessionData.sdkVersion,
@@ -360,6 +390,9 @@ class _SessionData {
 
   /// The command-line arguments passed to the server on startup.
   final String commandLineArguments;
+
+  /// The parameters passed on initialize.
+  String initializeParams = '';
 
   /// The name of the client that started the server.
   final String clientId;

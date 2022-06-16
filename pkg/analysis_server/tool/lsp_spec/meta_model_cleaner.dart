@@ -27,7 +27,7 @@ class LspMetaModelCleaner {
   /// Cleans an entire [LspMetaModel].
   LspMetaModel cleanModel(LspMetaModel model) {
     final types = cleanTypes(model.types);
-    return LspMetaModel(types);
+    return LspMetaModel(types: types, methods: model.methods);
   }
 
   /// Cleans a List of types.
@@ -118,7 +118,6 @@ class LspMetaModelCleaner {
     return Interface(
       name: interface.name,
       comment: _cleanComment(interface.comment),
-      typeArgs: interface.typeArgs,
       baseTypes: interface.baseTypes
           .where((type) => _includeTypeInOutput(type.name))
           .toList(),
@@ -275,7 +274,7 @@ class LspMetaModelCleaner {
       // Merged into InitializeParams.
       '_InitializeParams',
       'WorkspaceFoldersInitializeParams',
-      // We don't use these clases and they weren't in the TS version of the
+      // We don't use these classes and they weren't in the TS version of the
       // spec so continue to not generate them until required.
       'DidChangeConfigurationRegistrationOptions',
       // LSPAny/LSPObject are used by the LSP spec for unions of basic types.
@@ -313,7 +312,6 @@ class LspMetaModelCleaner {
       return Interface(
         name: dest.name,
         comment: dest.comment ?? source.comment,
-        typeArgs: dest.typeArgs,
         baseTypes: [...dest.baseTypes, ...source.baseTypes],
         members: [...dest.members, ...source.members],
       );
@@ -365,7 +363,6 @@ class LspMetaModelCleaner {
           yield Interface(
             name: newName,
             comment: type.comment,
-            typeArgs: type.typeArgs,
             baseTypes: type.baseTypes,
             members: type.members,
           );

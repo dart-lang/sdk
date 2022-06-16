@@ -79,14 +79,12 @@ class FixedValueField extends Field {
 
 /// An interface/class parsed from the LSP JSON model.
 class Interface extends LspEntity {
-  final List<String> typeArgs;
   final List<TypeReference> baseTypes;
   final List<Member> members;
 
   Interface({
     required super.name,
     super.comment,
-    this.typeArgs = const [],
     this.baseTypes = const [],
     required this.members,
   }) {
@@ -96,11 +94,6 @@ class Interface extends LspEntity {
 
   Interface.inline(String name, List<Member> members)
       : this(name: name, members: members);
-
-  String get nameWithTypeArgs => '$name$typeArgsString';
-
-  String get typeArgsString =>
-      typeArgs.isNotEmpty ? '<${typeArgs.join(', ')}>' : '';
 }
 
 /// A type parsed from the LSP JSON model that has a singe literal value.
@@ -180,8 +173,9 @@ class LspEnum extends LspEntity {
 
 class LspMetaModel {
   final List<LspEntity> types;
+  final List<String> methods;
 
-  LspMetaModel(this.types);
+  LspMetaModel({required this.types, required this.methods});
 }
 
 /// A [Map] type parsed from the LSP JSON model.

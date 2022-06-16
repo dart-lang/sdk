@@ -33,10 +33,10 @@ String get shellScriptExtension => Platform.isWindows ? '.bat' : '';
 String get executableExtension => Platform.isWindows ? '.exe' : '';
 
 class DebugLogger {
-  static IOSink _sink;
+  static IOSink? _sink;
 
   /// If [path] was null, the DebugLogger will write messages to stdout.
-  static void init(Path path) {
+  static void init(Path? path) {
     if (path != null) {
       _sink = File(path.toNativePath()).openWrite(mode: FileMode.append);
     }
@@ -44,7 +44,7 @@ class DebugLogger {
 
   static void close() {
     if (_sink != null) {
-      _sink.close();
+      _sink!.close();
       _sink = null;
     }
   }
@@ -75,105 +75,13 @@ class DebugLogger {
 
   static void _print(String msg) {
     if (_sink != null) {
-      _sink.writeln(msg);
+      _sink!.writeln(msg);
     } else {
       print(msg);
     }
   }
 
   static String get _datetime => "${DateTime.now()}";
-}
-
-String prettifyJson(Object json,
-    {int startIndentation = 0, int shiftWidth = 6}) {
-  var currentIndentation = startIndentation;
-  var buffer = StringBuffer();
-
-  String indentationString() {
-    return List.filled(currentIndentation, ' ').join('');
-  }
-
-  addString(String s, {bool indentation = true, bool newLine = true}) {
-    if (indentation) {
-      buffer.write(indentationString());
-    }
-    buffer.write(s.replaceAll("\n", "\n${indentationString()}"));
-    if (newLine) buffer.write("\n");
-  }
-
-  prettifyJsonInternal(Object obj,
-      {bool indentation = true, bool newLine = true}) {
-    if (obj is List) {
-      addString("[", indentation: indentation);
-      currentIndentation += shiftWidth;
-      for (var item in obj) {
-        prettifyJsonInternal(item, indentation: indentation, newLine: false);
-        addString(",", indentation: false);
-      }
-      currentIndentation -= shiftWidth;
-      addString("]", indentation: indentation);
-    } else if (obj is Map) {
-      addString("{", indentation: indentation);
-      currentIndentation += shiftWidth;
-      for (var key in obj.keys) {
-        addString("$key: ", indentation: indentation, newLine: false);
-        currentIndentation += shiftWidth;
-        prettifyJsonInternal(obj[key], indentation: false);
-        currentIndentation -= shiftWidth;
-      }
-      currentIndentation -= shiftWidth;
-      addString("}", indentation: indentation, newLine: newLine);
-    } else {
-      addString("$obj", indentation: indentation, newLine: newLine);
-    }
-  }
-
-  prettifyJsonInternal(json);
-  return buffer.toString();
-}
-
-/// Compares a range of bytes from [buffer1] with a range of bytes from
-/// [buffer2].
-///
-/// Returns `true` if the [count] bytes in [buffer1] (starting at [offset1])
-/// match the [count] bytes in [buffer2] (starting at [offset2]).
-bool areByteArraysEqual(
-    List<int> buffer1, int offset1, List<int> buffer2, int offset2, int count) {
-  if ((offset1 + count) > buffer1.length ||
-      (offset2 + count) > buffer2.length) {
-    return false;
-  }
-
-  for (var i = 0; i < count; i++) {
-    if (buffer1[offset1 + i] != buffer2[offset2 + i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-/// Searches for [pattern] in [data] beginning at [startPos].
-///
-/// Returns `true` if [pattern] was found in [data].
-int findBytes(List<int> data, List<int> pattern, [int startPos = 0]) {
-  // TODO(kustermann): Use one of the fast string-matching algorithms!
-  for (var i = startPos; i < (data.length - pattern.length); i++) {
-    var found = true;
-    for (var j = 0; j < pattern.length; j++) {
-      if (data[i + j] != pattern[j]) {
-        found = false;
-        break;
-      }
-    }
-    if (found) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-List<int> encodeUtf8(String string) {
-  return utf8.encode(string);
 }
 
 // TODO(kustermann,ricow): As soon we have a debug log we should log
@@ -237,11 +145,11 @@ String escapeCommandLineArgument(String argument) {
 class HashCodeBuilder {
   int _value = 0;
 
-  void add(Object object) {
+  void add(Object? object) {
     _value = ((_value * 31) ^ object.hashCode) & 0x3FFFFFFF;
   }
 
-  void addJson(Object object) {
+  void addJson(Object? object) {
     if (object == null ||
         object is num ||
         object is String ||
@@ -264,7 +172,7 @@ class HashCodeBuilder {
   int get value => _value;
 }
 
-bool deepJsonCompare(Object a, Object b) {
+bool deepJsonCompare(Object? a, Object? b) {
   if (a == null || a is num || a is String || a is Uri) {
     return a == b;
   } else if (a is List) {
@@ -295,7 +203,7 @@ bool deepJsonCompare(Object a, Object b) {
 }
 
 class LastModifiedCache {
-  final Map<String, DateTime> _cache = {};
+  final Map<String, DateTime?> _cache = {};
 
   /// Returns the last modified date of the given [uri].
   ///
@@ -305,7 +213,7 @@ class LastModifiedCache {
   ///
   /// In case [uri] is not a local file, this method will always return
   /// the current date.
-  DateTime getLastModified(Uri uri) {
+  DateTime? getLastModified(Uri uri) {
     if (uri.isScheme("file")) {
       if (_cache.containsKey(uri.path)) {
         return _cache[uri.path];
@@ -325,10 +233,7 @@ class ExistsCache {
   ///
   /// The information will be cached.
   bool doesFileExist(String path) {
-    if (!_cache.containsKey(path)) {
-      _cache[path] = File(path).existsSync();
-    }
-    return _cache[path];
+    return _cache.putIfAbsent(path, () => File(path).existsSync());
   }
 }
 
@@ -507,9 +412,9 @@ class TestUtils {
     var windowsPathEndLength = 30;
     if (Platform.operatingSystem == 'windows' &&
         path.length > windowsShortenPathLimit) {
-      for (var key in pathReplacements.keys) {
-        if (path.startsWith(key)) {
-          path = path.replaceFirst(key, pathReplacements[key]);
+      for (var entry in pathReplacements.entries) {
+        if (path.startsWith(entry.key)) {
+          path = path.replaceFirst(entry.key, entry.value);
           break;
         }
       }

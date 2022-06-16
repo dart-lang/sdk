@@ -34,13 +34,13 @@ StaticError makeError(
     {int line = 1,
     int column = 2,
     int length = 0,
-    String analyzerError,
-    String cfeError,
-    String webError,
-    String contextError,
-    List<StaticError> context}) {
+    String? analyzerError,
+    String? cfeError,
+    String? webError,
+    String? contextError,
+    List<StaticError>? context}) {
   ErrorSource source;
-  String message;
+  String? message;
   if (analyzerError != null) {
     assert(cfeError == null);
     assert(webError == null);
@@ -63,7 +63,7 @@ StaticError makeError(
   }
 
   var error =
-      StaticError(source, message, line: line, column: column, length: length);
+      StaticError(source, message!, line: line, column: column, length: length);
   if (context != null) error.contextMessages.addAll(context);
   return error;
 }

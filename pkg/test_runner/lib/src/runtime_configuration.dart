@@ -17,7 +17,7 @@ import 'utils.dart';
 /// shared between multiple test cases, it should not be mutated after
 /// construction.
 abstract class RuntimeConfiguration {
-  TestConfiguration _configuration;
+  late TestConfiguration _configuration;
 
   static RuntimeConfiguration _makeInstance(TestConfiguration configuration) {
     switch (configuration.runtime) {
@@ -51,14 +51,13 @@ abstract class RuntimeConfiguration {
       case Runtime.dartPrecompiled:
         if (configuration.system == System.android) {
           return DartPrecompiledAdbRuntimeConfiguration(
-            useElf: configuration.useElf,
+            configuration.useElf,
           );
         } else {
           return DartPrecompiledRuntimeConfiguration(
-            useElf: configuration.useElf,
+            configuration.useElf,
           );
         }
-        break;
     }
     throw "unreachable";
   }
@@ -70,15 +69,15 @@ abstract class RuntimeConfiguration {
   RuntimeConfiguration._subclass();
 
   int timeoutMultiplier(
-      {Mode mode,
+      {required Mode mode,
       bool isChecked = false,
       bool isReload = false,
-      Architecture arch}) {
+      required Architecture arch}) {
     return 1;
   }
 
   List<Command> computeRuntimeCommands(
-      CommandArtifact artifact,
+      CommandArtifact? artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
       List<String> extraLibs,
@@ -152,7 +151,7 @@ class NoneRuntimeConfiguration extends RuntimeConfiguration {
   NoneRuntimeConfiguration() : super._subclass();
 
   List<Command> computeRuntimeCommands(
-      CommandArtifact artifact,
+      CommandArtifact? artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
       List<String> extraLibs,
@@ -179,13 +178,13 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
   D8RuntimeConfiguration() : super('d8');
 
   List<Command> computeRuntimeCommands(
-      CommandArtifact artifact,
+      CommandArtifact? artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
       List<String> extraLibs,
       bool isCrashExpected) {
     // TODO(ahe): Avoid duplication of this method between d8 and jsshell.
-    checkArtifact(artifact);
+    checkArtifact(artifact!);
     return [
       JSCommandLineCommand(moniker, d8FileName, arguments, environmentOverrides)
     ];
@@ -201,12 +200,12 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
   JsshellRuntimeConfiguration() : super('jsshell');
 
   List<Command> computeRuntimeCommands(
-      CommandArtifact artifact,
+      CommandArtifact? artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
       List<String> extraLibs,
       bool isCrashExpected) {
-    checkArtifact(artifact);
+    checkArtifact(artifact!);
     return [
       JSCommandLineCommand(
           moniker, jsShellFileName, arguments, environmentOverrides)
@@ -245,10 +244,10 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
   DartVmRuntimeConfiguration() : super._subclass();
 
   int timeoutMultiplier(
-      {Mode mode,
+      {required Mode mode,
       bool isChecked = false,
       bool isReload = false,
-      Architecture arch}) {
+      required Architecture arch}) {
     var multiplier = 1;
 
     switch (arch) {
@@ -284,13 +283,13 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
 //// The standalone Dart VM binary, "dart" or "dart.exe".
 class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
   List<Command> computeRuntimeCommands(
-      CommandArtifact artifact,
+      CommandArtifact? artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
       List<String> extraLibs,
       bool isCrashExpected) {
-    var script = artifact.filename;
-    var type = artifact.mimeType;
+    var script = artifact?.filename;
+    var type = artifact?.mimeType;
     if (script != null &&
         type != 'application/dart' &&
         type != 'application/dart-snapshot' &&
@@ -306,7 +305,7 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       executable = dartVmExecutableFileName;
     }
     if (_configuration.useQemu) {
-      final config = QemuConfig.all[_configuration.architecture];
+      final config = QemuConfig.all[_configuration.architecture]!;
       arguments.insert(0, executable);
       arguments.insertAll(0, config.arguments);
       executable = config.executable;
@@ -321,16 +320,16 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
 class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
   final bool useElf;
-  DartPrecompiledRuntimeConfiguration({this.useElf});
+  DartPrecompiledRuntimeConfiguration(this.useElf);
 
   List<Command> computeRuntimeCommands(
-      CommandArtifact artifact,
+      CommandArtifact? artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
       List<String> extraLibs,
       bool isCrashExpected) {
-    var script = artifact.filename;
-    var type = artifact.mimeType;
+    var script = artifact?.filename;
+    var type = artifact?.mimeType;
     if (script != null && type != 'application/dart-precompiled') {
       throw "dart_precompiled cannot run files of type '$type'.";
     }
@@ -338,7 +337,7 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
     var executable = dartPrecompiledBinaryFileName;
 
     if (_configuration.useQemu) {
-      final config = QemuConfig.all[_configuration.architecture];
+      final config = QemuConfig.all[_configuration.architecture]!;
       arguments.insert(0, executable);
       arguments.insertAll(0, config.arguments);
       executable = config.executable;
@@ -357,13 +356,13 @@ class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
   static const String deviceTestDir = '/data/local/tmp/testing/test';
 
   List<Command> computeRuntimeCommands(
-      CommandArtifact artifact,
+      CommandArtifact? artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
       List<String> extraLibs,
       bool isCrashExpected) {
-    var script = artifact.filename;
-    var type = artifact.mimeType;
+    var script = artifact?.filename;
+    var type = artifact?.mimeType;
     if (script != null && type != 'application/kernel-ir-fully-linked') {
       throw "dart cannot run files of type '$type'.";
     }
@@ -372,7 +371,7 @@ class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
     var processTest = processTestBinaryFileName;
     var abstractSocketTest = abstractSocketTestBinaryFileName;
     return [
-      AdbDartkCommand(buildPath, processTest, abstractSocketTest, script,
+      AdbDartkCommand(buildPath, processTest, abstractSocketTest, script!,
           arguments, extraLibs)
     ];
   }
@@ -384,16 +383,16 @@ class DartPrecompiledAdbRuntimeConfiguration
   static const deviceTestDir = '/data/local/tmp/precompilation-testing/test';
 
   final bool useElf;
-  DartPrecompiledAdbRuntimeConfiguration({this.useElf});
+  DartPrecompiledAdbRuntimeConfiguration(this.useElf);
 
   List<Command> computeRuntimeCommands(
-      CommandArtifact artifact,
+      CommandArtifact? artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
       List<String> extraLibs,
       bool isCrashExpected) {
-    var script = artifact.filename;
-    var type = artifact.mimeType;
+    var script = artifact?.filename;
+    var type = artifact?.mimeType;
     if (script != null && type != 'application/dart-precompiled') {
       throw "dart_precompiled cannot run files of type '$type'.";
     }
@@ -402,7 +401,7 @@ class DartPrecompiledAdbRuntimeConfiguration
     var abstractSocketTest = abstractSocketTestBinaryFileName;
     return [
       AdbPrecompilationCommand(buildDir, processTest, abstractSocketTest,
-          script, arguments, useElf, extraLibs)
+          script!, arguments, useElf, extraLibs)
     ];
   }
 }
@@ -410,13 +409,13 @@ class DartPrecompiledAdbRuntimeConfiguration
 class DartkFuchsiaEmulatorRuntimeConfiguration
     extends DartVmRuntimeConfiguration {
   List<Command> computeRuntimeCommands(
-      CommandArtifact artifact,
+      CommandArtifact? artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
       List<String> extraLibs,
       bool isCrashExpected) {
-    var script = artifact.filename;
-    var type = artifact.mimeType;
+    var script = artifact?.filename;
+    var type = artifact?.mimeType;
     if (script != null &&
         type != 'application/dart' &&
         type != 'application/dart-snapshot' &&
@@ -441,7 +440,7 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
 // TODO(ahe): Remove this class.
 class DummyRuntimeConfiguration extends DartVmRuntimeConfiguration {
   List<Command> computeRuntimeCommands(
-      CommandArtifact artifact,
+      CommandArtifact? artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
       List<String> extraLibs,

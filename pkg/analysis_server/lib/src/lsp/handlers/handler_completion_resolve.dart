@@ -153,6 +153,7 @@ class CompletionResolveHandler
           filterText: item.filterText,
           insertText: newInsertText,
           insertTextFormat: item.insertTextFormat,
+          insertTextMode: item.insertTextMode,
           textEdit: supportsInsertReplace && insertionRange != replacementRange
               ? Either2<InsertReplaceEdit, TextEdit>.t1(
                   InsertReplaceEdit(

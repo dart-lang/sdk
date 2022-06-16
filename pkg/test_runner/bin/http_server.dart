@@ -37,7 +37,7 @@ void main(List<String> arguments) {
         args['csp'] as bool,
         Runtime.find(args['runtime'] as String),
         null,
-        args['packages'] as String);
+        args['packages'] as String?);
     var port = int.parse(args['port'] as String);
     var crossOriginPort = int.parse(args['crossOriginPort'] as String);
     servers

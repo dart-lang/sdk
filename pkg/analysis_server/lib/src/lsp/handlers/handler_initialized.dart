@@ -6,9 +6,9 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
-class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
+class InitializedMessageHandler extends MessageHandler<InitializedParams, void> {
   final List<String> openWorkspacePaths;
-  IntializedMessageHandler(
+  InitializedMessageHandler(
     super.server,
     this.openWorkspacePaths,
   );
@@ -25,6 +25,8 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
     server.messageHandler = InitializedStateMessageHandler(
       server,
     );
+
+    server.analyticsManager.initialized(openWorkspacePaths: openWorkspacePaths);
 
     if (server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles) {
       await server.fetchClientConfigurationAndPerformDynamicRegistration();

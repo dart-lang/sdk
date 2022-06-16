@@ -5,7 +5,8 @@
 // @dart = 2.11
 
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' show File, Platform;
+import 'dart:typed_data' show BytesBuilder;
 
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as binary;

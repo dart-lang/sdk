@@ -102,7 +102,7 @@ class Mixed extends Superclass
 void main() {
   testDirect();
   testInherited();
-  testOverriden();
+  testOverridden();
   testImplemented();
   testMixed();
 }
@@ -135,7 +135,7 @@ void testInherited() {
   Expect.isTrue(named is TakeNamedObjectsAndInts);
 }
 
-void testOverriden() {
+void testOverridden() {
   var method2 = new Override2().method;
   Expect.isTrue(method2 is TakeInts);
   Expect.isTrue(method2 is TakeObjectsAndInts);

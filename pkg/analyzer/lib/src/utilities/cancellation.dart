@@ -13,7 +13,7 @@ class CancelableToken extends CancellationToken {
 
 /// A token used to signal cancellation of an operation. This allows computation
 /// to be skipped when a caller is no longer interested in the result, for example
-/// when a $/cancel request is recieved for an in-progress request.
+/// when a $/cancel request is received for an in-progress request.
 abstract class CancellationToken {
   bool get isCancellationRequested;
 }

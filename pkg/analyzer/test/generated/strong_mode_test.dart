@@ -237,7 +237,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
 
   test_constrainedByBounds1() async {
     // Test that upwards inference with two type variables correctly
-    // propogates from the constrained variable to the unconstrained
+    // propagates from the constrained variable to the unconstrained
     // variable if they are ordered left to right.
     String code = r'''
     T f<S, T extends S>(S x) => null;
@@ -257,7 +257,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
 
   test_constrainedByBounds2() async {
     // Test that upwards inference with two type variables does
-    // propogate from the constrained variable to the unconstrained
+    // propagate from the constrained variable to the unconstrained
     // variable if they are ordered right to left.
     String code = r'''
     T f<T extends S, S>(S x) => null;
@@ -294,7 +294,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
 
   test_constrainedByBounds4() async {
     // Test that upwards inference with two type variables correctly
-    // propogates from the constrained variable to the unconstrained
+    // propagates from the constrained variable to the unconstrained
     // variable if they are ordered left to right, when the variable
     // appears co and contra variantly
     String code = r'''
@@ -873,7 +873,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
   }
 
   test_futureOr_downwards3() async {
-    // Test that downwards inference correctly propogates into
+    // Test that downwards inference correctly propagates into
     // arguments.
     MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;

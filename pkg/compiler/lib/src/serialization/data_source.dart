@@ -22,6 +22,13 @@ abstract class DataSource {
   /// Deserialization of an enum value in [values].
   E readEnum<E>(List<E> values);
 
+  /// Calls [reader] to read a value at the provided offset in the underlying
+  /// data stream.
+  E readAtOffset<E>(int offset, E reader());
+
+  /// The length of the underlying data source.
+  int get length;
+
   /// Returns a string representation of the current state of the data source
   /// useful for debugging in consistencies between serialization and
   /// deserialization.

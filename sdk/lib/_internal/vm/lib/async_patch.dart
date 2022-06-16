@@ -345,7 +345,7 @@ class _SuspendState {
     }
 
     @pragma("vm:invisible")
-    errorCallback(exception, stackTrace) {
+    errorCallback(Object exception, StackTrace stackTrace) {
       if (_trace) {
         print('errorCallback (this=$this, '
             'exception=$exception, stackTrace=$stackTrace)');
@@ -382,13 +382,19 @@ class _SuspendState {
       void run() {
         final AsyncError asyncError =
             unsafeCast<AsyncError>(future._resultOrListeners);
-        zone.runBinary(
-            unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback),
-            asyncError.error,
-            asyncError.stackTrace);
+        if (!future._zone.inSameErrorZone(zone)) {
+          // Don't cross zone boundaries with errors.
+          future._zone
+              .handleUncaughtError(asyncError.error, asyncError.stackTrace);
+        } else {
+          zone.runBinary(
+              unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback),
+              asyncError.error,
+              asyncError.stackTrace);
+        }
       }
 
-      zone.scheduleMicrotask(run);
+      future._zone.scheduleMicrotask(run);
     } else {
       @pragma("vm:invisible")
       void run() {
@@ -396,7 +402,7 @@ class _SuspendState {
             future._resultOrListeners);
       }
 
-      zone.scheduleMicrotask(run);
+      future._zone.scheduleMicrotask(run);
     }
   }
 
@@ -555,19 +561,19 @@ class _SuspendState {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  external set _thenCallback(Function? value);
+  external set _thenCallback(void Function(dynamic)? value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  external Function? get _thenCallback;
+  external void Function(dynamic)? get _thenCallback;
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  external set _errorCallback(Function value);
+  external set _errorCallback(dynamic Function(Object, StackTrace)? value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  external Function get _errorCallback;
+  external dynamic Function(Object, StackTrace)? get _errorCallback;
 
   @pragma("vm:recognized", "other")
   @pragma("vm:never-inline")

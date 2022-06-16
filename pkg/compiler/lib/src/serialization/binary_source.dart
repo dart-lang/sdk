@@ -68,5 +68,17 @@ class BinaryDataSource implements DataSource {
   }
 
   @override
+  E readAtOffset<E>(int offset, E reader()) {
+    final offsetBefore = _byteOffset;
+    _byteOffset = offset;
+    final value = reader();
+    _byteOffset = offsetBefore;
+    return value;
+  }
+
+  @override
+  int get length => _bytes.length;
+
+  @override
   String get errorContext => ' Offset $_byteOffset in ${_bytes.length}.';
 }

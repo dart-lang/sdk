@@ -204,7 +204,7 @@ class _Parser {
         if (c == DOT && !dot) {
           dot = true;
         } else {
-          // Not a digit or decimal seperator
+          // Not a digit or decimal separator
           break;
         }
       }

@@ -1650,7 +1650,7 @@ LintCode.diagnostic_describe_all_properties:
 LintCode.directives_ordering:
   status: hasFix
 LintCode.discarded_futures:
-  status: needsEvaluation
+  status: hasFix
 LintCode.do_not_use_environment:
   status: needsEvaluation
 LintCode.empty_catches:

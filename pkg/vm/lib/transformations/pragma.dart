@@ -13,7 +13,7 @@ const kVmNonNullableResultType = "vm:non-nullable-result-type";
 const kResultTypeUsesPassedTypeArguments =
     "result-type-uses-passed-type-arguments";
 const kVmRecognizedPragmaName = "vm:recognized";
-const kVmDisableUnboxedParametetersPragmaName = "vm:disable-unboxed-parameters";
+const kVmDisableUnboxedParametersPragmaName = "vm:disable-unboxed-parameters";
 
 // Pragmas recognized by dart2wasm
 const kWasmEntryPointPragmaName = "wasm:entry-point";
@@ -153,7 +153,7 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
               "pragma: $options";
         }
         return new ParsedRecognized(type);
-      case kVmDisableUnboxedParametetersPragmaName:
+      case kVmDisableUnboxedParametersPragmaName:
         return new ParsedDisableUnboxedParameters();
       case kWasmEntryPointPragmaName:
         return ParsedEntryPointPragma(PragmaEntryPointType.Default);

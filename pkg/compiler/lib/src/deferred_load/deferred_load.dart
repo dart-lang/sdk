@@ -313,7 +313,7 @@ class DeferredLoadTask extends CompilerTask {
   String get name => 'Deferred Loading';
 
   /// The OutputUnit that will be loaded when the program starts.
-  OutputUnit _mainOutputUnit;
+  /*late final*/ OutputUnit _mainOutputUnit;
 
   /// A sentinel used only by the [ImportSet] corresponding to the
   /// [_mainOutputUnit].

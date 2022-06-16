@@ -637,7 +637,7 @@ abstract class SendPort implements Capability {
   /// objects will be copied.
   ///
   /// The send happens immediately and may have a linear time cost to copy the
-  /// transtive object graph. The send itself doesn't block (i.e. doesn't wait
+  /// transitive object graph. The send itself doesn't block (i.e. doesn't wait
   /// until the receiver has received the message). The corresponding receive
   /// port can receive the message as soon as its isolate's event loop is ready
   /// to deliver it, independently of what the sending isolate is doing.

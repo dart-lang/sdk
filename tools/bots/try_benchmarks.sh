@@ -152,7 +152,6 @@ for command; do
       sdk \
       samples-dev/swarm \
       third_party/pkg \
-      third_party/pkg_tested \
       .dart_tool/package_config.json \
       pkg \
       benchmarks \
@@ -300,7 +299,6 @@ EOF
       sdk \
       samples-dev/swarm \
       third_party/pkg \
-      third_party/pkg_tested \
       .dart_tool/package_config.json \
       pkg \
       benchmarks \

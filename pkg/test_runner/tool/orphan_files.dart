@@ -31,7 +31,7 @@ void main(List<String> arguments) {
   }
 }
 
-AnalysisContext _analysisContext;
+late AnalysisContext _analysisContext;
 
 void _checkTestDirectory(Directory directory) {
   print('-- ${directory.path} --');
@@ -86,7 +86,7 @@ void _parseReferences(Set<String> importedPaths, String filePath) {
 
   for (var directive in unit.directives) {
     if (directive is UriBasedDirective) {
-      add(directive.uri.stringValue);
+      add(directive.uri.stringValue!);
     }
   }
 }

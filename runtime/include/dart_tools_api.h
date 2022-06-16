@@ -169,7 +169,7 @@ DART_EXPORT void Dart_SetEmbedderInformationCallback(
  * \param response_json_length The length of the returned json response.
  * \param error An optional error, must be free()ed by caller.
  *
- * \return Whether the call was sucessfully performed.
+ * \return Whether the call was successfully performed.
  *
  * NOTE: This method does not need a current isolate and must not have the
  * vm-isolate being the current isolate. It must be called after
@@ -350,7 +350,7 @@ DART_EXPORT bool Dart_IsReloading();
  * Enable tracking of specified timeline category. This is operational
  * only when systrace timeline functionality is turned on.
  *
- * \param categories A comma seperated list of categories that need to
+ * \param categories A comma separated list of categories that need to
  *   be enabled, the categories are
  *   "all" : All categories
  *   "API" - Execution of Dart C API functions
@@ -365,7 +365,7 @@ DART_EXPORT bool Dart_IsReloading();
  *   "" - None
  *
  *  When "all" is specified all the categories are enabled.
- *  When a comma seperated list of categories is specified, the categories
+ *  When a comma separated list of categories is specified, the categories
  *   that are specified will be enabled and the rest will be disabled. 
  *  When "" is specified all the categories are disabled.
  *  The category names are case sensitive.

@@ -44,14 +44,18 @@ class EvictingFileByteStore implements ByteStore {
   Uint8List? get(String key) => _fileByteStore.get(key);
 
   @override
-  void put(String key, Uint8List bytes) {
-    _fileByteStore.put(key, bytes);
+  Uint8List putGet(String key, Uint8List bytes) {
+    _fileByteStore.putGet(key, bytes);
     // Update the current size.
     _bytesWrittenSinceCleanup += bytes.length;
     if (_bytesWrittenSinceCleanup > _maxSizeBytes ~/ 8) {
       _requestCacheCleanUp();
     }
+    return bytes;
   }
+
+  @override
+  void release(Iterable<String> keys) {}
 
   /// If the cache clean up process has not been requested yet, request it.
   Future<void> _requestCacheCleanUp() async {
@@ -176,8 +180,10 @@ class FileByteStore implements ByteStore {
   }
 
   @override
-  void put(String key, Uint8List bytes) {
-    if (!_canShard(key)) return;
+  Uint8List putGet(String key, Uint8List bytes) {
+    if (!_canShard(key)) {
+      return bytes;
+    }
 
     _writeInProgress[key] = bytes;
 
@@ -200,7 +206,12 @@ class FileByteStore implements ByteStore {
         // ignore exceptions
       }
     });
+
+    return bytes;
   }
+
+  @override
+  void release(Iterable<String> keys) {}
 
   String _getShardPath(String key) {
     var shardName = key.substring(0, 2);

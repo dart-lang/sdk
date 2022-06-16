@@ -162,7 +162,7 @@ class BrowserTestJsonResult {
 
   BrowserTestJsonResult(this.outcome, this.htmlDom, this.events);
 
-  static BrowserTestJsonResult parseFromString(String content) {
+  static BrowserTestJsonResult? parseFromString(String content) {
     void validate(String message, bool isValid) {
       if (!isValid) {
         throw "InvalidFormat sent from browser driving page: $message:\n\n"
@@ -177,7 +177,9 @@ class BrowserTestJsonResult {
         // TODO(srawlins): This will promote `events` in null safety.
         var eventList = events as List<dynamic>;
 
-        var messagesByType = {for (var type in _allowedTypes) type: <String>[]};
+        var messagesByType = {
+          for (var type in _allowedTypes) type: <String?>[]
+        };
 
         for (var entry in eventList) {
           validate("Entry must be a Map", entry is Map);
@@ -198,12 +200,12 @@ class BrowserTestJsonResult {
             validate("'stack_trace' must be a String", stackTrace is String);
           }
 
-          messagesByType[type].add(value as String);
+          messagesByType[type]!.add(value as String?);
         }
         validate("The message must have exactly one 'dom' entry.",
-            messagesByType['dom'].length == 1);
+            messagesByType['dom']!.length == 1);
 
-        var dom = messagesByType['dom'][0];
+        var dom = messagesByType['dom']![0]!;
         if (dom.endsWith('\n')) {
           dom = '$dom\n';
         }
@@ -221,11 +223,11 @@ class BrowserTestJsonResult {
     return null;
   }
 
-  static Expectation _getOutcome(Map<String, List<String>> messagesByType) {
-    occurred(String type) => messagesByType[type].isNotEmpty;
+  static Expectation _getOutcome(Map<String, List<String?>> messagesByType) {
+    occurred(String type) => messagesByType[type]!.isNotEmpty;
 
     searchForMsg(List<String> types, String message) {
-      return types.any((type) => messagesByType[type].contains(message));
+      return types.any((type) => messagesByType[type]!.contains(message));
     }
 
     // FIXME(kustermann,ricow): I think this functionality doesn't work in
@@ -241,7 +243,7 @@ class BrowserTestJsonResult {
       return Expectation.runtimeError;
     }
 
-    if (messagesByType['dom'][0].contains('FAIL')) {
+    if (messagesByType['dom']![0]!.contains('FAIL')) {
       return Expectation.runtimeError;
     }
 
@@ -276,7 +278,7 @@ class BrowserTestJsonResult {
 
 class BrowserCommandOutput extends CommandOutput
     with _UnittestSuiteMessagesMixin {
-  final BrowserTestJsonResult _jsonResult;
+  final BrowserTestJsonResult? _jsonResult;
   final BrowserTestOutput _result;
   final Expectation _outcome;
 
@@ -319,8 +321,8 @@ class BrowserCommandOutput extends CommandOutput
         outcome,
         parsedResult,
         command.configuration.buildDirectory,
-        encodeUtf8(""),
-        encodeUtf8(stderr));
+        utf8.encode(""),
+        utf8.encode(stderr));
   }
 
   BrowserCommandOutput._internal(
@@ -394,16 +396,16 @@ class BrowserCommandOutput extends CommandOutput
 
     void _showError(String header, event) {
       output.subsection(header);
-      var value = event["value"] as String;
+      var value = event["value"] as String?;
       if (event["stack_trace"] != null) {
-        value = '$value\n${event["stack_trace"] as String}';
+        value = '$value\n${event["stack_trace"]}';
       }
       showedError = true;
       output.write(value);
 
       // Skip deobfuscation if there is no indication that there is a stack
       // trace in the string value.
-      if (!value.contains(RegExp('\\.js:'))) return;
+      if (!value!.contains(RegExp('\\.js:'))) return;
       var stringStack = value
           // Convert `http:` URIs to relative `file:` URIs.
           .replaceAll(RegExp('http://[^/]*/root_build/'), '$_buildDirectory/')
@@ -415,7 +417,7 @@ class BrowserCommandOutput extends CommandOutput
       _deobfuscateAndWriteStack(stringStack, output);
     }
 
-    for (var event in _jsonResult.events) {
+    for (var event in _jsonResult!.events) {
       if (event["type"] == "sync_exception") {
         _showError("Runtime error", event);
       } else if (event["type"] == "window_onerror") {
@@ -432,10 +434,10 @@ class BrowserCommandOutput extends CommandOutput
     }
 
     output.subsection("Events");
-    for (var event in _jsonResult.events) {
-      switch (event["type"] as String) {
+    for (var event in _jsonResult!.events) {
+      switch (event["type"] as String?) {
         case "debug":
-          output.write('- debug "${event["value"] as String}"');
+          output.write('- debug "${event["value"]}"');
           break;
 
         case "dom":
@@ -443,7 +445,7 @@ class BrowserCommandOutput extends CommandOutput
           break;
 
         case "print":
-          output.write('- print "${event["value"] as String}"');
+          output.write('- print "${event["value"]}"');
           break;
 
         case "window_onerror":
@@ -454,7 +456,8 @@ class BrowserCommandOutput extends CommandOutput
           break;
 
         default:
-          output.write("- ${prettifyJson(event)}");
+          output.write(
+              "- ${const JsonEncoder.withIndent('      ').convert(event)}");
       }
     }
   }
@@ -476,7 +479,7 @@ class AnalyzerError implements Comparable<AnalyzerError> {
     for (var diagnostic in jsonData['diagnostics'] as List<dynamic>) {
       var diagnosticMap = diagnostic as Map<String, dynamic>;
 
-      var type = diagnosticMap['type'] as String;
+      var type = diagnosticMap['type'] as String?;
       var code = diagnosticMap['code'] as String;
       var errorCode = '$type.${code.toUpperCase()}';
 
@@ -484,7 +487,7 @@ class AnalyzerError implements Comparable<AnalyzerError> {
           diagnosticMap, diagnosticMap['problemMessage'] as String, errorCode);
       result.add(error);
 
-      var contextMessages = diagnosticMap['contextMessages'] as List<dynamic>;
+      var contextMessages = diagnosticMap['contextMessages'] as List<dynamic>?;
       for (var contextMessage in contextMessages ?? const []) {
         var contextMessageMap = contextMessage as Map<String, dynamic>;
         error.contextMessages.add(
@@ -496,15 +499,15 @@ class AnalyzerError implements Comparable<AnalyzerError> {
   }
 
   static AnalyzerError _parse(Map<String, dynamic> diagnostic, String message,
-      [String errorCode]) {
+      [String? errorCode]) {
     var location = diagnostic['location'] as Map<String, dynamic>;
 
     var range = location['range'] as Map<String, dynamic>;
     var start = range['start'] as Map<String, dynamic>;
     var end = range['end'] as Map<String, dynamic>;
     return AnalyzerError._(
-        severity: diagnostic['severity'] as String,
-        errorCode: errorCode,
+        severity: diagnostic['severity'] as String? ?? '',
+        errorCode: errorCode ?? '',
         file: location['file'] as String,
         message: message,
         line: start['line'] as int,
@@ -523,13 +526,13 @@ class AnalyzerError implements Comparable<AnalyzerError> {
   final List<AnalyzerError> contextMessages = [];
 
   AnalyzerError._(
-      {this.severity,
-      this.errorCode,
-      this.file,
-      this.message,
-      this.line,
-      this.column,
-      this.length});
+      {this.severity = '',
+      this.errorCode = '',
+      required this.file,
+      required this.message,
+      required this.line,
+      required this.column,
+      required this.length});
 
   @override
   int compareTo(AnalyzerError other) {
@@ -549,7 +552,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
   static void parseErrors(
     String stdout,
     List<StaticError> errors, [
-    List<StaticError> warnings,
+    List<StaticError>? warnings,
   ]) {
     StaticError convert(AnalyzerError error) {
       var staticError = StaticError(ErrorSource.analyzer, error.errorCode,
@@ -587,7 +590,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
 
   /// If the stdout of analyzer could not be parsed as valid JSON, this will be
   /// the stdout as a string instead. Otherwise it will be null.
-  String get invalidJsonStdout {
+  String? get invalidJsonStdout {
     if (!_parsedErrors) {
       _parseErrors();
       _parsedErrors = true;
@@ -596,7 +599,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     return _invalidJsonStdout;
   }
 
-  String _invalidJsonStdout;
+  String? _invalidJsonStdout;
 
   AnalysisCommandOutput(
       Command command,
@@ -699,7 +702,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
       super.describe(testCase, progress, output);
     } else {
       // Parse and sort the errors.
-      var errorsByFile = <String, List<AnalyzerError>>{};
+      var errorsByFile = <String?, List<AnalyzerError>>{};
       for (var error in AnalyzerError.parseStdout(decodeUtf8(stdout))) {
         errorsByFile.putIfAbsent(error.file, () => []).add(error);
       }
@@ -708,12 +711,12 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
       files.sort();
 
       for (var file in files) {
-        var path = Path(file)
+        var path = Path(file!)
             .relativeTo(testCase.testFile.path.directoryPath)
             .toString();
         output.subsection("unexpected analysis errors in $path");
 
-        var errors = errorsByFile[file];
+        var errors = errorsByFile[file]!;
         errors.sort();
 
         for (var error in errors) {
@@ -1398,8 +1401,8 @@ mixin _StaticErrorOutput on CommandOutput {
   /// them to [errors] as coming from [errorSource].
   static void _parseCfeErrors(ErrorSource errorSource, RegExp regExp,
       String stdout, List<StaticError> errors,
-      [List<StaticError> warnings]) {
-    StaticError previousError;
+      [List<StaticError>? warnings]) {
+    StaticError? previousError;
     for (var match in regExp.allMatches(stdout)) {
       var line = _parseNullableInt(match.group(2));
       var column = _parseNullableInt(match.group(3));
@@ -1423,8 +1426,8 @@ mixin _StaticErrorOutput on CommandOutput {
       assert(column != null);
 
       var error = StaticError(
-          severity == "Context" ? ErrorSource.context : errorSource, message,
-          line: line, column: column);
+          severity == "Context" ? ErrorSource.context : errorSource, message!,
+          line: line, column: column!);
 
       if (severity == "Context") {
         // Attach context messages to the preceding error/warning.
@@ -1438,7 +1441,7 @@ mixin _StaticErrorOutput on CommandOutput {
         if (severity == "Error") {
           errors.add(error);
         } else {
-          warnings.add(error);
+          warnings!.add(error);
         }
         previousError = error;
       }
@@ -1446,7 +1449,7 @@ mixin _StaticErrorOutput on CommandOutput {
   }
 
   /// Same as `int.parse`, but allows nulls to simply pass through.
-  static int _parseNullableInt(String s) {
+  static int? _parseNullableInt(String? s) {
     if (s == null) {
       // ignore: avoid_returning_null
       return null;
@@ -1560,15 +1563,14 @@ mixin _StaticErrorOutput on CommandOutput {
   ///
   /// If [writer] is given, outputs a description of any error mismatches.
   Expectation _validateExpectedErrors(TestCase testCase,
-      [OutputWriter writer]) {
+      [OutputWriter? writer]) {
     // Filter out errors that aren't for this configuration.
     var errorSource = {
       Compiler.dart2analyzer: ErrorSource.analyzer,
       Compiler.dart2js: ErrorSource.web,
       Compiler.dartdevc: ErrorSource.web,
       Compiler.fasta: ErrorSource.cfe
-    }[testCase.configuration.compiler];
-    assert(errorSource != null);
+    }[testCase.configuration.compiler]!;
 
     var expected = testCase.testFile.expectedErrors
         .where((error) => error.source == errorSource);

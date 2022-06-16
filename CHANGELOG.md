@@ -1,3 +1,23 @@
+## 2.19.0
+
+### Language
+
+- **Breaking Change** [#48167](https://github.com/dart-lang/sdk/issues/48167):
+  Mixin of classes that don't extend `Object` is no longer supported:
+  ```dart
+  class Base {}
+  class Mixin extends Base {}
+  class C extends Base with Mixin {}
+  ```
+  This should instead be written using a mixin declaration of `Mixin`:
+  ```dart
+  class Base {}
+  mixin Mixin on Base {}
+  class C extends Base with Mixin {}
+  ```
+  This feature has not been supported in most compilation targets for some
+  time but is now completely removed.
+
 ## 2.18.0
 
 ### Language
@@ -120,6 +140,13 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 ### Tools
 
+#### Dart command line
+
+- **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dart2js` and `dartdevc` tools have been removed as previously
+  announced. `dart2js` is replaced by the `dart compile js` command, `dartdevc`
+  is no longer exposed as a command-line tool.
+
 #### Linter
 
 Updated the Linter to `1.25.0`, which includes changes that
@@ -157,6 +184,7 @@ Updated the Linter to `1.25.0`, which includes changes that
   [deprecated](https://github.com/dart-lang/sdk/issues/47431) `.packages` file.
   It can still be created with the `--legacy-packages-file` flag.
 * `dart pub outdated` now shows which of your dependencies are discontinued.
+* `dart pub publish` will now list all the files it is about to publish.
 
 ## 2.17.3 - 2022-06-01
 
@@ -2039,11 +2067,11 @@ This is a patch release that fixes the following issues:
 
 ### Dart2JS
 
-- Adds support for deferred loading of types seperately from classes. This
+- Adds support for deferred loading of types separately from classes. This
   enables dart2js to make better optimization choices when deferred loading.
   This work is necessary to address unsoundness in the deferred loading
   algorithm. Currently, fixing this unsoundness would result in code bloat, but
-  loading types seperately from classes will allow us to fix the unsoundness
+  loading types separately from classes will allow us to fix the unsoundness
   with only a minimal regression. To explicitly disable deferred loading of
   types, pass `--no-defer-class-types`. See the original post on the
   [unsoundness in the deferred loading algorithm][].

@@ -16,7 +16,7 @@ class Derived extends PublicClass {
 }
 
 /// Extend a private class via a public typedef overriding methods and
-/// properties.  The final field `x` is overriden with a getter which returns
+/// properties.  The final field `x` is overridden with a getter which returns
 /// different values every time it is called.
 class AlsoDerived extends AlsoPublicClass {
   int backingStore = publicLibrarySentinel;
@@ -43,15 +43,15 @@ void test1() {
   Expect.throwsNoSuchMethodError(() => (p as dynamic)._privateInstanceMethod());
 }
 
-/// Test that overriden methods work correctly.
+/// Test that overridden methods work correctly.
 void test2() {
   var p = AlsoDerived();
   Expect.equals(publicLibrarySentinel, p.instanceMethod());
-  // Calling the overriden private method from this library should work.
+  // Calling the overridden private method from this library should work.
   Expect.equals(publicLibrarySentinel, p._privateInstanceMethod());
   // Calling the inherited private method from the private library should work.
   Expect.equals(privateLibrarySentinel, callPrivateInstanceMethod(p));
-  // Calling the overriden private method dynamically from this library should
+  // Calling the overridden private method dynamically from this library should
   // work.
   Expect.equals(publicLibrarySentinel, (p as dynamic)._privateInstanceMethod());
 }
@@ -66,7 +66,7 @@ void test3() {
   Expect.equals(privateLibrarySentinel, readInstanceField(p));
 }
 
-/// Test that overriden properties work correctly.
+/// Test that overridden properties work correctly.
 void test4() {
   var p = AlsoDerived();
   // Reading the original virtual field should give the private value.

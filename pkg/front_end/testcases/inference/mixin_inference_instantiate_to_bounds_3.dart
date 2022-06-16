@@ -4,7 +4,7 @@
 // @dart=2.9
 class I<X> {}
 
-class M0<X, Y extends Comparable<Y>> extends I<X> {}
+mixin M0<X, Y extends Comparable<Y>> on I<X> {}
 
 class M1 implements I<int> {}
 

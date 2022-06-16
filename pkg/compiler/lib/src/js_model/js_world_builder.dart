@@ -377,7 +377,7 @@ class JsClosedWorldBuilder {
     Map<ClassEntity, OutputUnit> convertClassMap(
         Map<ClassEntity, OutputUnit> classMap,
         Map<Local, OutputUnit> localFunctionMap) {
-      var result = <ClassEntity, OutputUnit>{};
+      final result = <ClassEntity /*!*/, OutputUnit>{};
       classMap.forEach((ClassEntity entity, OutputUnit unit) {
         ClassEntity backendEntity = map.toBackendClass(entity);
         if (backendEntity != null) {
@@ -391,7 +391,7 @@ class JsClosedWorldBuilder {
         // to the local function.
         if (entity is KLocalFunction) {
           var closureInfo = closureDataLookup.getClosureInfo(entity.node);
-          result[closureInfo.closureClassEntity] = unit;
+          result[closureInfo.closureClassEntity /*!*/] = unit;
         }
       });
       return result;
@@ -402,7 +402,7 @@ class JsClosedWorldBuilder {
     Map<MemberEntity, OutputUnit> convertMemberMap(
         Map<MemberEntity, OutputUnit> memberMap,
         Map<Local, OutputUnit> localFunctionMap) {
-      var result = <MemberEntity, OutputUnit>{};
+      final result = <MemberEntity, OutputUnit>{};
       memberMap.forEach((MemberEntity entity, OutputUnit unit) {
         MemberEntity backendEntity = map.toBackendMember(entity);
         if (backendEntity != null) {
@@ -416,9 +416,9 @@ class JsClosedWorldBuilder {
         // corresponding to the local function.
         if (entity is KLocalFunction) {
           var closureInfo = closureDataLookup.getClosureInfo(entity.node);
-          result[closureInfo.callMethod] = unit;
+          result[closureInfo.callMethod /*!*/] = unit;
           if (closureInfo.signatureMethod != null) {
-            result[closureInfo.signatureMethod] = unit;
+            result[closureInfo.signatureMethod /*!*/] = unit;
           }
         }
       });
@@ -430,7 +430,7 @@ class JsClosedWorldBuilder {
         map.toBackendLibrary,
         convertClassMap,
         convertMemberMap,
-        (m) => convertMap<ConstantValue, OutputUnit, OutputUnit>(
+        (m) => convertMap<ConstantValue /*!*/, OutputUnit, OutputUnit>(
             m, map.toBackendConstant, (v) => v));
   }
 }

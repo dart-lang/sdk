@@ -425,7 +425,7 @@ class AnnotateKernel extends RecursiveVisitor {
           node is! StaticTearOff) {
         // The compiler uses another heuristic in addition to the call-site
         // annotation: if the call-site is non-dynamic and the interface target does
-        // not exist in the parent chain of _Smi (int is used as an approxmiation
+        // not exist in the parent chain of _Smi (int is used as an approximation
         // here), then the receiver cannot be _Smi. This heuristic covers most
         // cases, so we skip these to avoid showering the AST with annotations.
         if (interfaceTarget == null ||

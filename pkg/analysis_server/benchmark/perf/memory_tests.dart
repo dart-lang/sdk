@@ -175,7 +175,7 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
     _test.projectFolderPath = roots.single;
     _test.projectFolderUri = Uri.file(_test.projectFolderPath);
     // Use some reasonable default client capabilities that will activate
-    // features that will excercise more code that benchmarks should measure
+    // features that will exercise more code that benchmarks should measure
     // (such as applyEdit to allow suggestion sets results to be merged in).
     await _test.initialize(
       textDocumentCapabilities: withCompletionItemSnippetSupport(

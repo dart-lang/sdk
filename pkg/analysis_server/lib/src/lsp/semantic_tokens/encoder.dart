@@ -106,7 +106,7 @@ class SemanticTokenEncoder {
     }
   }
 
-  /// Splits overlapping/nested tokens into descrete ranges for the "top-most"
+  /// Splits overlapping/nested tokens into discrete ranges for the "top-most"
   /// token.
   ///
   /// Tokens must be pre-sorted by offset, with tokens having the same offset

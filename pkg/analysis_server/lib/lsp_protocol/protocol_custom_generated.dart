@@ -44,25 +44,8 @@ class AnalyzerStatusParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('isAnalyzing');
-      try {
-        if (!obj.containsKey('isAnalyzing')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final isAnalyzing = obj['isAnalyzing'];
-        if (isAnalyzing == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (isAnalyzing is! bool) {
-          reporter.reportError('must be of type bool');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseBool(obj, reporter, 'isAnalyzing',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type AnalyzerStatusParams');
       return false;
@@ -117,43 +100,12 @@ class ClosingLabel implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('label');
-      try {
-        if (!obj.containsKey('label')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final label = obj['label'];
-        if (label == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (label is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'label',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('range');
-      try {
-        if (!obj.containsKey('range')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final range = obj['range'];
-        if (range == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!Range.canParse(range, reporter)) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseRange(obj, reporter, 'range',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type ClosingLabel');
       return false;
@@ -249,25 +201,8 @@ class DartDiagnosticServer implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('port');
-      try {
-        if (!obj.containsKey('port')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final port = obj['port'];
-        if (port == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (port is! int) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseInt(obj, reporter, 'port',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type DartDiagnosticServer');
       return false;
@@ -354,133 +289,32 @@ class DartSuggestionSetCompletionItemResolutionInfo
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('displayUri');
-      try {
-        if (!obj.containsKey('displayUri')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final displayUri = obj['displayUri'];
-        if (displayUri == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (displayUri is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'displayUri',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('file');
-      try {
-        if (!obj.containsKey('file')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final file = obj['file'];
-        if (file == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (file is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'file',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('iLength');
-      try {
-        if (!obj.containsKey('iLength')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final iLength = obj['iLength'];
-        if (iLength == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (iLength is! int) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseInt(obj, reporter, 'iLength',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('libId');
-      try {
-        if (!obj.containsKey('libId')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final libId = obj['libId'];
-        if (libId == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (libId is! int) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseInt(obj, reporter, 'libId',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('offset');
-      try {
-        if (!obj.containsKey('offset')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final offset = obj['offset'];
-        if (offset == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (offset is! int) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseInt(obj, reporter, 'offset',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('rLength');
-      try {
-        if (!obj.containsKey('rLength')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final rLength = obj['rLength'];
-        if (rLength == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (rLength is! int) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseInt(obj, reporter, 'rLength',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('rOffset');
-      try {
-        if (!obj.containsKey('rOffset')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final rOffset = obj['rOffset'];
-        if (rOffset == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (rOffset is! int) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseInt(obj, reporter, 'rOffset',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError(
           'must be of type DartSuggestionSetCompletionItemResolutionInfo');
@@ -584,83 +418,28 @@ class Element implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('kind');
-      try {
-        if (!obj.containsKey('kind')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final kind = obj['kind'];
-        if (kind == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (kind is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'kind',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('name');
-      try {
-        if (!obj.containsKey('name')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final name = obj['name'];
-        if (name == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (name is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'name',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('parameters');
-      try {
-        final parameters = obj['parameters'];
-        if (parameters != null && parameters is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'parameters',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('range');
-      try {
-        final range = obj['range'];
-        if (range != null && !Range.canParse(range, reporter)) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseRange(obj, reporter, 'range',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('returnType');
-      try {
-        final returnType = obj['returnType'];
-        if (returnType != null && returnType is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'returnType',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('typeParameters');
-      try {
-        final typeParameters = obj['typeParameters'];
-        if (typeParameters != null && typeParameters is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseString(obj, reporter, 'typeParameters',
+          allowsUndefined: true, allowsNull: false);
     } else {
       reporter.reportError('must be of type Element');
       return false;
@@ -788,127 +567,40 @@ class FlutterOutline implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('attributes');
-      try {
-        final attributes = obj['attributes'];
-        if (attributes != null &&
-            (attributes is! List<Object?> ||
-                attributes.any((item) =>
-                    !FlutterOutlineAttribute.canParse(item, reporter)))) {
-          reporter.reportError('must be of type List<FlutterOutlineAttribute>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseListFlutterOutlineAttribute(obj, reporter, 'attributes',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('children');
-      try {
-        final children = obj['children'];
-        if (children != null &&
-            (children is! List<Object?> ||
-                children
-                    .any((item) => !FlutterOutline.canParse(item, reporter)))) {
-          reporter.reportError('must be of type List<FlutterOutline>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseListFlutterOutline(obj, reporter, 'children',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('className');
-      try {
-        final className = obj['className'];
-        if (className != null && className is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'className',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('codeRange');
-      try {
-        if (!obj.containsKey('codeRange')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final codeRange = obj['codeRange'];
-        if (codeRange == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!Range.canParse(codeRange, reporter)) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseRange(obj, reporter, 'codeRange',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('dartElement');
-      try {
-        final dartElement = obj['dartElement'];
-        if (dartElement != null && !Element.canParse(dartElement, reporter)) {
-          reporter.reportError('must be of type Element');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseElement(obj, reporter, 'dartElement',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('kind');
-      try {
-        if (!obj.containsKey('kind')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final kind = obj['kind'];
-        if (kind == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (kind is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'kind',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('label');
-      try {
-        final label = obj['label'];
-        if (label != null && label is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'label',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('range');
-      try {
-        if (!obj.containsKey('range')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final range = obj['range'];
-        if (range == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!Range.canParse(range, reporter)) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseRange(obj, reporter, 'range',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('variableName');
-      try {
-        final variableName = obj['variableName'];
-        if (variableName != null && variableName is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseString(obj, reporter, 'variableName',
+          allowsUndefined: true, allowsNull: false);
     } else {
       reporter.reportError('must be of type FlutterOutline');
       return false;
@@ -993,53 +685,16 @@ class FlutterOutlineAttribute implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('label');
-      try {
-        if (!obj.containsKey('label')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final label = obj['label'];
-        if (label == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (label is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'label',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('name');
-      try {
-        if (!obj.containsKey('name')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final name = obj['name'];
-        if (name == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (name is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'name',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('valueRange');
-      try {
-        final valueRange = obj['valueRange'];
-        if (valueRange != null && !Range.canParse(valueRange, reporter)) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseRange(obj, reporter, 'valueRange',
+          allowsUndefined: true, allowsNull: false);
     } else {
       reporter.reportError('must be of type FlutterOutlineAttribute');
       return false;
@@ -1124,53 +779,16 @@ class IncomingMessage implements Message, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('clientRequestTime');
-      try {
-        final clientRequestTime = obj['clientRequestTime'];
-        if (clientRequestTime != null && clientRequestTime is! int) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseInt(obj, reporter, 'clientRequestTime',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('jsonrpc');
-      try {
-        if (!obj.containsKey('jsonrpc')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final jsonrpc = obj['jsonrpc'];
-        if (jsonrpc == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (jsonrpc is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'jsonrpc',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('method');
-      try {
-        if (!obj.containsKey('method')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final method = obj['method'];
-        if (method == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!Method.canParse(method, reporter)) {
-          reporter.reportError('must be of type Method');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseMethod(obj, reporter, 'method',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type IncomingMessage');
       return false;
@@ -1241,35 +859,12 @@ class Message implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('clientRequestTime');
-      try {
-        final clientRequestTime = obj['clientRequestTime'];
-        if (clientRequestTime != null && clientRequestTime is! int) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseInt(obj, reporter, 'clientRequestTime',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('jsonrpc');
-      try {
-        if (!obj.containsKey('jsonrpc')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final jsonrpc = obj['jsonrpc'];
-        if (jsonrpc == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (jsonrpc is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseString(obj, reporter, 'jsonrpc',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type Message');
       return false;
@@ -1348,53 +943,16 @@ class NotificationMessage implements IncomingMessage, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('clientRequestTime');
-      try {
-        final clientRequestTime = obj['clientRequestTime'];
-        if (clientRequestTime != null && clientRequestTime is! int) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseInt(obj, reporter, 'clientRequestTime',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('jsonrpc');
-      try {
-        if (!obj.containsKey('jsonrpc')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final jsonrpc = obj['jsonrpc'];
-        if (jsonrpc == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (jsonrpc is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'jsonrpc',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('method');
-      try {
-        if (!obj.containsKey('method')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final method = obj['method'];
-        if (method == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!Method.canParse(method, reporter)) {
-          reporter.reportError('must be of type Method');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseMethod(obj, reporter, 'method',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type NotificationMessage');
       return false;
@@ -1473,73 +1031,20 @@ class Outline implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('children');
-      try {
-        final children = obj['children'];
-        if (children != null &&
-            (children is! List<Object?> ||
-                children.any((item) => !Outline.canParse(item, reporter)))) {
-          reporter.reportError('must be of type List<Outline>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseListOutline(obj, reporter, 'children',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('codeRange');
-      try {
-        if (!obj.containsKey('codeRange')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final codeRange = obj['codeRange'];
-        if (codeRange == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!Range.canParse(codeRange, reporter)) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseRange(obj, reporter, 'codeRange',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('element');
-      try {
-        if (!obj.containsKey('element')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final element = obj['element'];
-        if (element == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!Element.canParse(element, reporter)) {
-          reporter.reportError('must be of type Element');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseElement(obj, reporter, 'element',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('range');
-      try {
-        if (!obj.containsKey('range')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final range = obj['range'];
-        if (range == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!Range.canParse(range, reporter)) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseRange(obj, reporter, 'range',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type Outline');
       return false;
@@ -1598,25 +1103,8 @@ class PubPackageCompletionItemResolutionInfo
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('packageName');
-      try {
-        if (!obj.containsKey('packageName')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final packageName = obj['packageName'];
-        if (packageName == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (packageName is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseString(obj, reporter, 'packageName',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError(
           'must be of type PubPackageCompletionItemResolutionInfo');
@@ -1674,44 +1162,12 @@ class PublishClosingLabelsParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('labels');
-      try {
-        if (!obj.containsKey('labels')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final labels = obj['labels'];
-        if (labels == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (labels is! List<Object?> ||
-            labels.any((item) => !ClosingLabel.canParse(item, reporter))) {
-          reporter.reportError('must be of type List<ClosingLabel>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseListClosingLabel(obj, reporter, 'labels',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('uri');
-      try {
-        if (!obj.containsKey('uri')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final uri = obj['uri'];
-        if (uri == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (uri is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseString(obj, reporter, 'uri',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type PublishClosingLabelsParams');
       return false;
@@ -1772,43 +1228,12 @@ class PublishFlutterOutlineParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('outline');
-      try {
-        if (!obj.containsKey('outline')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final outline = obj['outline'];
-        if (outline == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!FlutterOutline.canParse(outline, reporter)) {
-          reporter.reportError('must be of type FlutterOutline');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseFlutterOutline(obj, reporter, 'outline',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('uri');
-      try {
-        if (!obj.containsKey('uri')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final uri = obj['uri'];
-        if (uri == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (uri is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseString(obj, reporter, 'uri',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type PublishFlutterOutlineParams');
       return false;
@@ -1867,43 +1292,12 @@ class PublishOutlineParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('outline');
-      try {
-        if (!obj.containsKey('outline')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final outline = obj['outline'];
-        if (outline == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!Outline.canParse(outline, reporter)) {
-          reporter.reportError('must be of type Outline');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseOutline(obj, reporter, 'outline',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('uri');
-      try {
-        if (!obj.containsKey('uri')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final uri = obj['uri'];
-        if (uri == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (uri is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseString(obj, reporter, 'uri',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type PublishOutlineParams');
       return false;
@@ -1988,71 +1382,20 @@ class RequestMessage implements IncomingMessage, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('clientRequestTime');
-      try {
-        final clientRequestTime = obj['clientRequestTime'];
-        if (clientRequestTime != null && clientRequestTime is! int) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseInt(obj, reporter, 'clientRequestTime',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('id');
-      try {
-        if (!obj.containsKey('id')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final id = obj['id'];
-        if (id == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (id is! int && id is! String) {
-          reporter.reportError('must be of type Either2<int, String>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseIntString(obj, reporter, 'id',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('jsonrpc');
-      try {
-        if (!obj.containsKey('jsonrpc')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final jsonrpc = obj['jsonrpc'];
-        if (jsonrpc == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (jsonrpc is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'jsonrpc',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('method');
-      try {
-        if (!obj.containsKey('method')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final method = obj['method'];
-        if (method == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!Method.canParse(method, reporter)) {
-          reporter.reportError('must be of type Method');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseMethod(obj, reporter, 'method',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type RequestMessage');
       return false;
@@ -2128,53 +1471,16 @@ class ResponseError implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('code');
-      try {
-        if (!obj.containsKey('code')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final code = obj['code'];
-        if (code == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!ErrorCodes.canParse(code, reporter)) {
-          reporter.reportError('must be of type ErrorCodes');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseErrorCodes(obj, reporter, 'code',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('data');
-      try {
-        final data = obj['data'];
-        if (data != null && data is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'data',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('message');
-      try {
-        if (!obj.containsKey('message')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final message = obj['message'];
-        if (message == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (message is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseString(obj, reporter, 'message',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type ResponseError');
       return false;
@@ -2264,59 +1570,20 @@ class ResponseMessage implements Message, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('clientRequestTime');
-      try {
-        final clientRequestTime = obj['clientRequestTime'];
-        if (clientRequestTime != null && clientRequestTime is! int) {
-          reporter.reportError('must be of type int');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseInt(obj, reporter, 'clientRequestTime',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('error');
-      try {
-        final error = obj['error'];
-        if (error != null && !ResponseError.canParse(error, reporter)) {
-          reporter.reportError('must be of type ResponseError');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseResponseError(obj, reporter, 'error',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('id');
-      try {
-        if (!obj.containsKey('id')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final id = obj['id'];
-        if (id != null && id is! int && id is! String) {
-          reporter.reportError('must be of type Either2<int, String>');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseIntString(obj, reporter, 'id',
+          allowsUndefined: false, allowsNull: true)) {
+        return false;
       }
-      reporter.push('jsonrpc');
-      try {
-        if (!obj.containsKey('jsonrpc')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final jsonrpc = obj['jsonrpc'];
-        if (jsonrpc == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (jsonrpc is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseString(obj, reporter, 'jsonrpc',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type ResponseMessage');
       return false;
@@ -2395,61 +1662,16 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('insertTextFormat');
-      try {
-        if (!obj.containsKey('insertTextFormat')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final insertTextFormat = obj['insertTextFormat'];
-        if (insertTextFormat == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!InsertTextFormat.canParse(insertTextFormat, reporter)) {
-          reporter.reportError('must be of type InsertTextFormat');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseInsertTextFormat(obj, reporter, 'insertTextFormat',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('newText');
-      try {
-        if (!obj.containsKey('newText')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final newText = obj['newText'];
-        if (newText == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (newText is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'newText',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
       }
-      reporter.push('range');
-      try {
-        if (!obj.containsKey('range')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final range = obj['range'];
-        if (range == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (!Range.canParse(range, reporter)) {
-          reporter.reportError('must be of type Range');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseRange(obj, reporter, 'range',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type SnippetTextEdit');
       return false;
@@ -2512,35 +1734,12 @@ class ValidateRefactorResult implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      reporter.push('message');
-      try {
-        final message = obj['message'];
-        if (message != null && message is! String) {
-          reporter.reportError('must be of type String');
-          return false;
-        }
-      } finally {
-        reporter.pop();
+      if (!_canParseString(obj, reporter, 'message',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
       }
-      reporter.push('valid');
-      try {
-        if (!obj.containsKey('valid')) {
-          reporter.reportError('must not be undefined');
-          return false;
-        }
-        final valid = obj['valid'];
-        if (valid == null) {
-          reporter.reportError('must not be null');
-          return false;
-        }
-        if (valid is! bool) {
-          reporter.reportError('must be of type bool');
-          return false;
-        }
-      } finally {
-        reporter.pop();
-      }
-      return true;
+      return _canParseBool(obj, reporter, 'valid',
+          allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type ValidateRefactorResult');
       return false;
@@ -2563,6 +1762,419 @@ class ValidateRefactorResult implements ToJsonable {
 
   @override
   String toString() => jsonEncoder.convert(toJson());
+}
+
+bool _canParseBool(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) && value is! bool) {
+      reporter.reportError('must be of type bool');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseElement(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) && !Element.canParse(value, reporter)) {
+      reporter.reportError('must be of type Element');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseErrorCodes(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !ErrorCodes.canParse(value, reporter)) {
+      reporter.reportError('must be of type ErrorCodes');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseFlutterOutline(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !FlutterOutline.canParse(value, reporter)) {
+      reporter.reportError('must be of type FlutterOutline');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseInsertTextFormat(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !InsertTextFormat.canParse(value, reporter)) {
+      reporter.reportError('must be of type InsertTextFormat');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseInt(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) && value is! int) {
+      reporter.reportError('must be of type int');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseIntString(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) && (value is! int && value is! String)) {
+      reporter.reportError('must be of type Either2<int, String>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseListClosingLabel(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any((item) => !ClosingLabel.canParse(item, reporter)))) {
+      reporter.reportError('must be of type List<ClosingLabel>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseListFlutterOutline(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any((item) => !FlutterOutline.canParse(item, reporter)))) {
+      reporter.reportError('must be of type List<FlutterOutline>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseListFlutterOutlineAttribute(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any(
+                (item) => !FlutterOutlineAttribute.canParse(item, reporter)))) {
+      reporter.reportError('must be of type List<FlutterOutlineAttribute>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseListOutline(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any((item) => !Outline.canParse(item, reporter)))) {
+      reporter.reportError('must be of type List<Outline>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseMethod(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) && !Method.canParse(value, reporter)) {
+      reporter.reportError('must be of type Method');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseOutline(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) && !Outline.canParse(value, reporter)) {
+      reporter.reportError('must be of type Outline');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseRange(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) && !Range.canParse(value, reporter)) {
+      reporter.reportError('must be of type Range');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseResponseError(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !ResponseError.canParse(value, reporter)) {
+      reporter.reportError('must be of type ResponseError');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseString(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) && value is! String) {
+      reporter.reportError('must be of type String');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
 }
 
 Either2<int, String> _eitherIntString(Object? value) {

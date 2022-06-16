@@ -40,18 +40,20 @@ class LspMetaModelReader {
     final structures = model['structures'] as List?;
     final enums = model['enumerations'] as List?;
     final typeAliases = model['typeAliases'] as List?;
+    final methodNames = [...?requests, ...?notifications]
+        .map((item) => item['method'] as String)
+        .toList();
     [
       ...?structures?.map(_readStructure),
       ...?enums?.map((e) => _readEnum(e)),
       ...?typeAliases?.map(_readTypeAlias),
     ].forEach(_addType);
-    final methodNames =
-        _createMethodNamesEnum([...?requests, ...?notifications]);
-    if (methodNames != null) {
-      _addType(methodNames);
+    final methodsEnum = _createMethodNamesEnum(methodNames);
+    if (methodsEnum != null) {
+      _addType(methodsEnum);
     }
 
-    return LspMetaModel(types);
+    return LspMetaModel(types: types, methods: methodNames);
   }
 
   /// Adds [type] to the current list and prevents its name from being used
@@ -65,7 +67,7 @@ class LspMetaModelReader {
       str.substring(0, 1).toLowerCase() + str.substring(1);
 
   /// Creates an enum for all LSP method names.
-  LspEnum? _createMethodNamesEnum(List items) {
+  LspEnum? _createMethodNamesEnum(List<String> methods) {
     Constant toConstant(String value) {
       final comment = '''Constant for the '$value' method.''';
       return Constant(
@@ -76,8 +78,7 @@ class LspMetaModelReader {
       );
     }
 
-    final methodConstants =
-        items.map((item) => item['method'] as String).map(toConstant).toList();
+    final methodConstants = methods.map(toConstant).toList();
 
     if (methodConstants.isEmpty) {
       return null;
@@ -214,7 +215,7 @@ class LspMetaModelReader {
 
   /// Generates a valid name for a member.
   String _generateMemberName(String name, {bool camelCase = false}) {
-    // Replace any seperators like `/` with `_`.
+    // Replace any separators like `/` with `_`.
     name = name.replaceAll(_memberNameSeparatorPattern, '_');
 
     // Replace out any characters we don't want in member names.

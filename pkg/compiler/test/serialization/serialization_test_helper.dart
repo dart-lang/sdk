@@ -235,6 +235,12 @@ DataAndIndices<JsClosedWorld> cloneClosedWorld(Compiler compiler,
   return newClosedWorldAndIndices;
 }
 
+/// Tests that cloned inference results serialize to the same data.
+///
+/// Does 3 round trips to serialize/deserialize the provided data. The first
+/// round normalizes the data as some information might be dropped in the
+/// serialization/deserialization process. The second and third rounds are
+/// compared for consistency.
 GlobalTypeInferenceResults cloneInferenceResults(
     DataSourceIndices indices,
     Compiler compiler,
@@ -256,7 +262,7 @@ GlobalTypeInferenceResults cloneInferenceResults(
       newComponent,
       closedWorldData);
   var newIndices = indices == null ? null : newClosedWorldAndIndices.indices;
-  GlobalTypeInferenceResults newResults = strategy
+  GlobalTypeInferenceResults initialResults = strategy
       .deserializeGlobalTypeInferenceResults(
           compiler.options,
           compiler.reporter,
@@ -267,8 +273,21 @@ GlobalTypeInferenceResults cloneInferenceResults(
           newIndices,
           worldData)
       .data;
-  List<int> newWorldData = strategy.serializeGlobalTypeInferenceResults(
-      newIndices, newResults, compiler.options);
-  checkData(worldData, newWorldData);
-  return newResults;
+  List<int> initialWorldData = strategy.serializeGlobalTypeInferenceResults(
+      newIndices, initialResults, compiler.options);
+  GlobalTypeInferenceResults finalResults = strategy
+      .deserializeGlobalTypeInferenceResults(
+          compiler.options,
+          compiler.reporter,
+          compiler.environment,
+          compiler.abstractValueStrategy,
+          newComponent,
+          newClosedWorldAndIndices.data,
+          newIndices,
+          worldData)
+      .data;
+  List<int> finalWorldData = strategy.serializeGlobalTypeInferenceResults(
+      newIndices, finalResults, compiler.options);
+  checkData(initialWorldData, finalWorldData);
+  return finalResults;
 }

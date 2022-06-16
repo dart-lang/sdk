@@ -608,7 +608,7 @@ int SSLFilter::Handshake(Dart_Port reply_port) {
     //
     // If either of those functions fail, and this.callback_error has not
     // already been set, then they will set this.callback_error to an error
-    // handle i.e. only the first error will be captured and propogated.
+    // handle i.e. only the first error will be captured and propagated.
     Dart_PropagateError(callback_error);
   }
   if (SSL_want_write(ssl_) || SSL_want_read(ssl_)) {

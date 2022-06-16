@@ -47,6 +47,7 @@ import '../messages.dart'
         noLength;
 import '../scope.dart';
 import '../source/source_class_builder.dart';
+import '../source/source_enum_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../source/source_member_builder.dart';
@@ -246,6 +247,15 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       }
     }
     return _constructor;
+  }
+
+  @override
+  VariableDeclaration getFormalParameter(int index) {
+    if (parent is SourceEnumBuilder) {
+      return formals![index + 2].variable!;
+    } else {
+      return super.getFormalParameter(index);
+    }
   }
 
   @override

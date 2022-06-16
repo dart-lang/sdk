@@ -198,7 +198,7 @@ class Request {
   ///     'id': String,
   ///     'method': methodName,
   ///     'params': {
-  ///       paramter_name: value
+  ///       parameter_name: value
   ///     }
   ///   }
   ///
@@ -234,7 +234,7 @@ class Request {
   ///     'id': String,
   ///     'method': methodName,
   ///     'params': {
-  ///       paramter_name: value
+  ///       parameter_name: value
   ///     }
   ///   }
   ///
@@ -264,7 +264,7 @@ class RequestFailure implements Exception {
   /// The response to be returned as a result of the failure.
   final Response response;
 
-  /// Initialize a newly created exception to return the given reponse.
+  /// Initialize a newly created exception to return the given response.
   RequestFailure(this.response);
 }
 

@@ -65,7 +65,7 @@ ArgResults parseArgs(List<String> args) {
     ..addFlag('remove-source',
         help: 'Removes source code from the emitted dill', defaultsTo: false)
     ..addFlag('verbose',
-        help: 'Write to stdout about what classes and fields where remeoved')
+        help: 'Write to stdout about what classes and fields where removed')
     ..addFlag('help', help: 'Prints this help', negatable: false);
 
   ArgResults? argResults;

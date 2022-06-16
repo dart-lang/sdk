@@ -7,7 +7,6 @@
       ".dart_tool/package_config.json",
       "pkg/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "tools/",
       "out/ReleaseX64/dart-sdk/",
       "xcodebuild/ReleaseX64/dart-sdk/"
@@ -50,7 +49,6 @@
       "third_party/babel/babel.min.js",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseIA32/dart-sdk/",
@@ -87,7 +85,6 @@
       "third_party/babel/babel.min.js",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseIA32/dart-sdk/",
@@ -134,7 +131,6 @@
       "tests/ffi_2/",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseIA32/dart",
@@ -173,7 +169,6 @@
       "tests/ffi/",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseX64/dart",
@@ -212,7 +207,6 @@
       "tests/ffi/",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseX64/dart"
@@ -258,7 +252,6 @@
       "tests/ffi_2/",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseIA32/",
@@ -268,7 +261,6 @@
       "runtime/tools/dartfuzz/",
       "out/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "tools/sdks/dart-sdk/",
       "pkg/_fe_analyzer_shared/",
       "pkg/async_helper/",
@@ -299,7 +291,6 @@
       "third_party/devtools/",
       "third_party/webdriver/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
       "tests/co19/co19-analyzer.status",
@@ -920,6 +911,42 @@
     },
     "dartdevk-weak-linux-release-chrome": {
       "options": {
+        "checked": true,
+        "use-sdk": true,
+        "enable-asserts": true
+      }
+    },
+    "dartdevc-checked-(linux|mac|win)-(debug|product|release)-(chrome|firefox)-arm64": {
+      "options": {
+        "checked": true,
+        "use-sdk": true
+      }
+    },
+    "dartdevc-strong-linux-release-chrome-arm64": {
+      "options": {
+        "checked": true,
+        "use-sdk": true,
+        "enable-asserts": true
+      }
+    },
+    "dartdevc-weak-linux-release-chrome-arm64": {
+      "options": {
+        "checked": true,
+        "use-sdk": true,
+        "enable-asserts": true
+      }
+    },
+    "dartdevc-canary-strong-(linux|mac|win)-release-(chrome|firefox)-(x64|arm64)": {
+      "options": {
+        "builder-tag": "canary",
+        "checked": true,
+        "use-sdk": true,
+        "enable-asserts": true
+      }
+    },
+    "dartdevc-canary-weak-(linux|mac|win)-release-(chrome|firefox)-(x64|arm64)": {
+      "options": {
+        "builder-tag": "canary",
         "checked": true,
         "use-sdk": true,
         "enable-asserts": true
@@ -2369,6 +2396,77 @@
     },
     {
       "builders": [
+        "ddc-canary-linux-release-chrome"
+      ],
+      "meta": {
+        "description": "This configuration is used by the ddc canary builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "dartdevc_test",
+            "--gn-args=ddc_canary=true"
+          ]
+        },
+        {
+          "name": "ddc nnbd weak tests",
+          "arguments": [
+            "-ndartdevc-canary-weak-linux-release-chrome-x64",
+            "language",
+            "corelib",
+            "lib",
+            "dartdevc",
+            "web"
+          ],
+          "shards": 2,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc nnbd weak co19 tests",
+          "arguments": [
+            "-ndartdevc-canary-weak-linux-release-chrome-x64",
+            "co19"
+          ],
+          "shards": 2,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc nnbd strong co19 tests",
+          "arguments": [
+            "-ndartdevc-canary-strong-linux-release-chrome-x64",
+            "co19"
+          ],
+          "shards": 3,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc weak modular tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/modular_suite_nnbd.dart",
+            "-ndartdevc-canary-weak-linux-release-chrome-x64",
+            "--verbose",
+            "--use-sdk"
+          ]
+        },
+        {
+          "name": "ddc nnbd strong tests",
+          "arguments": [
+            "-ndartdevc-canary-strong-linux-release-chrome-x64",
+            "language",
+            "corelib",
+            "lib",
+            "dartdevc",
+            "web"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "ddc-mac-release-chrome"
       ],
       "meta": {
@@ -3721,10 +3819,11 @@
           ]
         },
         {
-          "name": "third_party pkg_tested unit tests",
+          "name": "third_party tested packages",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg_tested"
+            "dart_style",
+            "package_config"
           ]
         },
         {
@@ -3760,10 +3859,11 @@
           ]
         },
         {
-          "name": "third_party pkg_tested unit tests",
+          "name": "third_party tested packages",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-arm64",
-            "pkg_tested"
+            "dart_style",
+            "package_config"
           ]
         },
         {
@@ -3800,10 +3900,11 @@
           ]
         },
         {
-          "name": "third_party pkg_tested unit tests",
+          "name": "third_party tested packages",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg_tested"
+            "dart_style",
+            "package_config"
           ]
         },
         {

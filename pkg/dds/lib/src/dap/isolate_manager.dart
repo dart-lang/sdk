@@ -10,6 +10,7 @@ import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
+import '../rpc_error_codes.dart';
 import 'adapters/dart.dart';
 import 'exceptions.dart';
 import 'protocol_generated.dart';
@@ -103,7 +104,7 @@ class IsolateManager {
   /// when asking for data so it's all stored together here.
   final _storedData = <int, _StoredData>{};
 
-  /// A pattern that matches an opening brace `{` that was not preceeded by a
+  /// A pattern that matches an opening brace `{` that was not preceded by a
   /// dollar.
   ///
   /// Any leading character matched in place of the dollar is in the first capture.
@@ -694,7 +695,22 @@ class IsolateManager {
       final isDebuggable = libraryUri != null
           ? await _adapter.libraryIsDebuggable(thread, Uri.parse(libraryUri))
           : false;
-      await service.setLibraryDebuggable(isolateId, library.id!, isDebuggable);
+      try {
+        await service.setLibraryDebuggable(
+            isolateId, library.id!, isDebuggable);
+      } on vm.RPCError catch (e) {
+        // DWDS does not currently support `setLibraryDebuggable` so instead of
+        // failing (because this code runs in a VM event handler where there's
+        // no incoming request to fail/reject), just log this error.
+        // https://github.com/dart-lang/webdev/issues/606
+        if (e.code == RpcErrorCodes.kMethodNotFound) {
+          _adapter.logger?.call(
+            'setLibraryDebuggable not available ($libraryUri, $e)',
+          );
+        } else {
+          rethrow;
+        }
+      }
     }));
   }
 
@@ -867,7 +883,7 @@ class ThreadInfo {
         }
       } catch (e) {
         // We can't leave dangling completers here because others may already
-        // be waiting on them, so propogate the error to them.
+        // be waiting on them, so propagate the error to them.
         completers.forEach((uri, completer) => completer.completeError(e));
         rethrow;
       }

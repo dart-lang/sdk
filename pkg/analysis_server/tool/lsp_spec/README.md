@@ -24,7 +24,7 @@ When there are no open workspace folders (or if the initialization option `onlyA
 ## Initialization Options
 
 - `onlyAnalyzeProjectsWithOpenFiles` (`bool?`): When set to `true`, workspace folders will be ignored and analysis will be performed based on the open files, as if no workspace was open at all. This allows opening large folders without causing them to be completely analyzed. Defaults to `false`.
-- `suggestFromUnimportedLibraries` (`bool?`): When set to `false`, completion will not include synbols that are not already imported into the current file. Defaults to `true`, though the client must additionally support `workspace/applyEdit` for these completions to be included.
+- `suggestFromUnimportedLibraries` (`bool?`): When set to `false`, completion will not include symbols that are not already imported into the current file. Defaults to `true`, though the client must additionally support `workspace/applyEdit` for these completions to be included.
 - `closingLabels` (`bool?`): When set to `true`, `dart/textDocument/publishClosingLabels` notifications will be sent with information to render editor closing labels.
 - `outline` (`bool?`): When set to `true`, `dart/textDocument/publishOutline` notifications will be sent with outline information for open files.
 - `flutterOutline` (`bool?`): When set to `true`, `dart/textDocument/publishFlutterOutline` notifications will be sent with Flutter outline information for open files.
@@ -53,66 +53,101 @@ Below is a list of LSP methods and their implementation status.
 - Tests: Has automated tests
 - Tested Client: Has been manually tested in at least one LSP client editor
 
-| Method | Basic Impl | Capabilities | Plugins | Tests | Tested Client | Notes |
-| - | - | - | - | - | - | - |
-| initialize | ✅ | ✅ | N/A | ✅ | ✅ | trace and other options NYI
-| initialized | ✅ | ✅ | N/A | ✅ | ✅ |
-| shutdown | ✅ | ✅ | N/A | ✅ | ✅ | supported but does nothing |
-| exit | ✅ | ✅ | N/A | ✅ | ✅ |
-| $/cancelRequest | ✅ | ✅ | | ✅ | ✅ |
-| window/showMessage | ✅ | | | | |
-| window/showMessageRequest | | | | | |
-| window/logMessage | ✅ | | | | |
-| telemetry/event | | | | | |
-| client/registerCapability | ✅ | ✅ | ✅ | ✅ | ✅ |
-| client/unregisterCapability | ✅ | ✅ | ✅ | ✅ | ✅ |
-| workspace/workspaceFolders | | | | | |
-| workspace/didChangeWorkspaceFolders | ✅ | ✅ | ✅ | ✅ | ✅ |
-| workspace/didChangeConfiguration | ✅ | ✅ | | ✅ | ✅ |
-| workspace/configuration | ✅ | ✅ | | ✅ | ✅ |
-| workspace/didChangeWatchedFiles | | | | | | unused, server does own watching |
-| workspace/symbol | ✅ | ✅ | | ✅ | ✅ |
-| workspace/executeCommand | ✅ | ✅ | | ✅ | ✅ |
-| workspace/applyEdit | ✅ | ✅ | | ✅ | ✅ |
-| workspace/onWillRenameFiles | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/didOpen | ✅ | ✅ | ✅ | ✅ | ✅ |
-| textDocument/didChange | ✅ | ✅ | ✅ | ✅ | ✅ |
-| textDocument/willSave | | | | | |
-| textDocument/willSaveWaitUntil | | | | | |
-| textDocument/didClose | ✅ | ✅ | ✅ | ✅ | ✅ |
-| textDocument/publishDiagnostics | ✅ | ✅ | ✅ | ✅ | ✅ |
-| textDocument/completion | ✅ | ✅ | ✅ | ✅ | ✅ |
-| completionItem/resolve | ✅ | ✅ | ✅ | ✅ | ✅ |
-| textDocument/hover | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/signatureHelp | ✅ | ✅ | | ✅ | ✅ | trigger character handling outstanding
-| textDocument/declaration | | | | | |
-| textDocument/definition | ✅ | ✅ | ✅ | ✅ | ✅ |
-| textDocument/typeDefinition | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/implementation | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/references | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/documentHighlight | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/documentSymbol | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/selectionRanges | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/codeAction (sortMembers) | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/codeAction (organiseImports) | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/codeAction (fixAll) | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/codeAction (refactors) | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/codeAction (assists) | ✅ | ✅ | ✅ | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `Refactor`
-| textDocument/codeAction (fixes) | ✅ | ✅ | ✅ | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `QuickFix`
-| textDocument/codeLens | | | | | |
-| codeLens/resolve | | | | | |
-| textDocument/documentLink | | | | | |
-| documentLink/resolve | | | | | |
-| textDocument/documentColor | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/colorPresentation | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/formatting | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/rangeFormatting | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/onTypeFormatting | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/rename | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/prepareRename | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/foldingRange | ✅ | ✅ | ✅ | ✅ | ✅ |
-| textDocument/semanticTokens/full | ✅ | ✅ | ✅ | ✅ | ✅ |
-| textDocument/semanticTokens/range | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Method | Server | Plugins | Notes |
+| - | - | - | - |
+| initialize | ✅ | N/A | trace and other options NYI|
+| initialized | ✅ | N/A | |
+| shutdown | ✅ | N/A | supported but does nothing|
+| exit | ✅ | N/A | |
+| $/cancelRequest | ✅ | | |
+| $/logTrace | | | |
+| $/progress | | | |
+| $/setTrace | | | |
+| client/registerCapability | ✅ | ✅ | |
+| client/unregisterCapability | ✅ | ✅ | |
+| notebookDocument/* | | | |
+| telemetry/event | | | |
+| textDocument/codeAction (assists) | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `Refactor`|
+| textDocument/codeAction (fixAll) | ✅ | | |
+| textDocument/codeAction (fixes) | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `QuickFix`|
+| textDocument/codeAction (organiseImports) | ✅ | | |
+| textDocument/codeAction (refactors) | ✅ | | |
+| textDocument/codeAction (sortMembers) | ✅ | | |
+|  codeAction/resolve | | | |
+| textDocument/codeLens | | | |
+|   codeLens/resolve | | | |
+| textDocument/completion | ✅ | ✅ | |
+|   completionItem/resolve | ✅ | | |
+| textDocument/declaration | | | |
+| textDocument/definition | ✅ | ✅ | |
+| textDocument/diagnostic | | | |
+| textDocument/didChange | ✅ | ✅ | |
+| textDocument/didClose | ✅ | ✅ | |
+| textDocument/didOpen | ✅ | ✅ | |
+| textDocument/didSave | | | |
+| textDocument/documentColor | ✅ | | |
+|   textDocument/colorPresentation | ✅ | | |
+| textDocument/documentHighlight | ✅ | | |
+| textDocument/documentLink | | | |
+|   documentLink/resolve | | | |
+| textDocument/documentSymbol | ✅ | | |
+| textDocument/foldingRange | ✅ | ✅ | |
+| textDocument/formatting | ✅ | | |
+|   textDocument/onTypeFormatting | ✅ | | |
+|   textDocument/rangeFormatting | ✅ | | |
+| textDocument/hover | ✅ | | |
+| textDocument/implementation | ✅ | | |
+| textDocument/inlayHint | | | |
+|   inlayHint/resolve | | | |
+| textDocument/inlineValue | | | |
+| textDocument/linkedEditingRange | | | |
+| textDocument/moniker | | | |
+| textDocument/prepareCallHierarchy | | | |
+|   callHierarchy/incomingCalls | | | |
+|   callHierarchy/outgoingCalls | | | |
+| textDocument/prepareRename | ✅ | | |
+|   textDocument/rename | ✅ | | |
+| textDocument/prepareTypeHierarchy | | | |
+|   typeHierarchy/subtypes | | | |
+|   typeHierarchy/supertypes | | | |
+| textDocument/publishDiagnostics | ✅ | ✅ | |
+| textDocument/references | ✅ | | |
+| textDocument/selectionRange | ✅ | | |
+| textDocument/semanticTokens/full | ✅ | ✅ | |
+| textDocument/semanticTokens/full/delta | | | |
+| textDocument/semanticTokens/range | ✅ | ✅ | |
+| workspace/semanticTokens/refresh | | | |
+| textDocument/signatureHelp | ✅ | | |
+| textDocument/typeDefinition | ✅ | | |
+| textDocument/willSave | | | |
+| textDocument/willSaveWaitUntil | | | |
+| window/logMessage | ✅ | | |
+| window/showDocument | | | |
+| window/showMessage | ✅ | | |
+| window/showMessageRequest | | | |
+| window/workDoneProgress/cancel | | | |
+| window/workDoneProgress/create | ✅ | | |
+| workspace/applyEdit | ✅ | | |
+| workspace/codeLens/refresh | | | |
+| workspace/configuration | ✅ | | |
+| workspace/diagnostic | | | |
+| workspace/diagnostic/refresh | | | |
+| workspace/didChangeConfiguration | ✅ | | |
+| workspace/didChangeWatchedFiles | | | unused, server does own watching|
+| workspace/didChangeWorkspaceFolders | ✅ | ✅ | |
+| workspace/didCreateFiles | | | |
+| workspace/didDeleteFiles | | | |
+| workspace/didRenameFiles | | | |
+| workspace/executeCommand | ✅ | | |
+| workspace/inlayHint/refresh | | | |
+| workspace/inlineValue/refresh | | | |
+| workspace/symbol | ✅ | | |
+|   workspaceSymbol/resolve | | | |
+| workspace/willCreateFiles | | | |
+| workspace/willDeleteFiles | | | |
+| workspace/willRenameFiles | | | |
+| workspace/willRenameFiles | ✅ | | |
+| workspace/workspaceFolders | | | |
 
 ## Custom Fields, Methods and Notifications
 
@@ -128,7 +163,7 @@ Direction: Client -> Server
 Params: None
 Returns: `{ port: number }`
 
-Starts the analzyer diagnostics server (if not already running) and returns the port number it's listening on.
+Starts the analyzer diagnostics server (if not already running) and returns the port number it's listening on.
 
 ### dart/reanalyze Method
 
@@ -189,4 +224,4 @@ Element: as defined for the `dart/textDocument/publishOutline` notification.
 
 Notifies the client when Flutter outline information is available (or updated) for a file.
 
-Nodes contains multiple ranges as desribed for the `dart/textDocument/publishOutline` notification.
+Nodes contains multiple ranges as described for the `dart/textDocument/publishOutline` notification.

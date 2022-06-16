@@ -413,14 +413,13 @@ class KernelInfoCollector {
   final ir.Component component;
   final Compiler compiler;
   final JClosedWorld closedWorld;
-  final GlobalTypeInferenceResults _globalInferenceResults;
   final DumpInfoTask dumpInfoTask;
   final state = DumpInfoStateData();
 
   JElementEnvironment get environment => closedWorld.elementEnvironment;
 
-  KernelInfoCollector(this.component, this.compiler, this.dumpInfoTask,
-      this.closedWorld, this._globalInferenceResults);
+  KernelInfoCollector(
+      this.component, this.compiler, this.dumpInfoTask, this.closedWorld);
 
   void run() {
     // TODO(markzipan): Add CFE constants to `state.info.constants`.
@@ -433,7 +432,7 @@ class KernelInfoCollector {
 
     String libname = lib.name;
     if (libname == null || libname.isEmpty) {
-      libname = '<unnamed>';
+      libname = '${lib.importUri}';
     }
 
     LibraryInfo info = LibraryInfo(libname, lib.importUri, null, null);
@@ -479,9 +478,6 @@ class KernelInfoCollector {
     state.info.libraries.add(info);
     return info;
   }
-
-  AbstractValue _resultOfParameter(Local e) =>
-      _globalInferenceResults.resultOfParameter(e);
 
   FieldInfo visitField(ir.Field field, {FieldEntity fieldEntity}) {
     FieldInfo info = FieldInfo.fromKernel(
@@ -558,8 +554,8 @@ class KernelInfoCollector {
     bool isFactory = parent is ir.Procedure && parent.isFactory;
     // Kernel `isStatic` refers to static members, constructors, and top-level
     // members.
-    bool isTopLevel = ((parent is ir.Field && parent.isStatic) ||
-            (parent is ir.Procedure && parent.isStatic)) &&
+    bool isTopLevel = (parent is ir.Field && parent.isStatic) ||
+        (parent is ir.Procedure && parent.isStatic) ||
         (parent is ir.Member && parent.enclosingClass == null);
     bool isStaticMember = ((parent is ir.Field && parent.isStatic) ||
             (parent is ir.Procedure && parent.isStatic)) &&
@@ -597,23 +593,6 @@ class KernelInfoCollector {
       isSetter: isSetter,
     );
 
-    List<ParameterInfo> parameters = <ParameterInfo>[];
-    List<String> inferredParameterTypes = <String>[];
-
-    closedWorld.elementEnvironment.forEachParameterAsLocal(
-        _globalInferenceResults.globalLocalsMap, functionEntity, (parameter) {
-      inferredParameterTypes.add('${_resultOfParameter(parameter)}');
-    });
-
-    int parameterIndex = 0;
-    closedWorld.elementEnvironment.forEachParameter(functionEntity,
-        (type, name, _) {
-      // Synthesized parameters have no name. This can happen on parameters of
-      // setters derived from lowering late fields.
-      parameters.add(ParameterInfo(name ?? '#t${parameterIndex}',
-          inferredParameterTypes[parameterIndex++], '$type'));
-    });
-
     // TODO(markzipan): Determine if it's safe to default to nonNullable here.
     final nullability = parent is ir.Member
         ? parent.enclosingLibrary.nonNullable
@@ -625,7 +604,6 @@ class KernelInfoCollector {
         functionKind: kind,
         modifiers: modifiers,
         returnType: function.returnType.toStringInternal(),
-        parameters: parameters,
         type: functionType.toStringInternal());
     state.entityToInfo[functionEntity] = info;
 
@@ -762,7 +740,7 @@ class DumpInfoAnnotator {
 
     String libname = environment.getLibraryName(lib);
     if (libname.isEmpty) {
-      libname = '<unnamed>';
+      libname = '${lib.canonicalUri}';
     }
     assert(kLibraryInfo.name == libname);
     kLibraryInfo.size = dumpInfoTask.sizeOf(lib);
@@ -812,7 +790,9 @@ class DumpInfoAnnotator {
     }
 
     final kFieldInfos = kernelInfo.state.info.fields
-        .where((f) => f.name == field.name && f.parent.name == parentName)
+        .where((f) =>
+            f.name == field.name &&
+            fullyResolvedNameForInfo(f.parent) == parentName)
         .toList();
     assert(
         kFieldInfos.length == 1,
@@ -871,7 +851,9 @@ class DumpInfoAnnotator {
   // not always be valid. Check and validate later.
   ClassInfo visitClass(ClassEntity clazz, String parentName) {
     final kClassInfos = kernelInfo.state.info.classes
-        .where((i) => i.name == clazz.name && i.parent.name == parentName)
+        .where((i) =>
+            i.name == clazz.name &&
+            fullyResolvedNameForInfo(i.parent) == parentName)
         .toList();
     assert(
         kClassInfos.length == 1,
@@ -880,16 +862,18 @@ class DumpInfoAnnotator {
     final kClassInfo = kClassInfos.first;
 
     int size = dumpInfoTask.sizeOf(clazz);
+    final disambiguatedMemberName = '$parentName/${clazz.name}';
     environment.forEachLocalClassMember(clazz, (member) {
       if (member.isFunction || member.isGetter || member.isSetter) {
-        FunctionInfo functionInfo = visitFunction(member, clazz.name);
+        FunctionInfo functionInfo =
+            visitFunction(member, disambiguatedMemberName);
         if (functionInfo != null) {
           for (var closureInfo in functionInfo.closures) {
             size += closureInfo.size;
           }
         }
       } else if (member.isField) {
-        FieldInfo fieldInfo = visitField(member, clazz.name);
+        FieldInfo fieldInfo = visitField(member, disambiguatedMemberName);
         if (fieldInfo != null) {
           for (var closureInfo in fieldInfo.closures) {
             size += closureInfo.size;
@@ -900,7 +884,8 @@ class DumpInfoAnnotator {
       }
     });
     environment.forEachConstructor(clazz, (constructor) {
-      FunctionInfo functionInfo = visitFunction(constructor, clazz.name);
+      FunctionInfo functionInfo =
+          visitFunction(constructor, disambiguatedMemberName);
       if (functionInfo != null) {
         for (var closureInfo in functionInfo.closures) {
           size += closureInfo.size;
@@ -938,7 +923,8 @@ class DumpInfoAnnotator {
     FunctionEntity callMethod = closedWorld.elementEnvironment
         .lookupClassMember(element, Identifiers.call);
 
-    final functionInfo = visitFunction(callMethod, disambiguatedElementName);
+    final functionInfo =
+        visitFunction(callMethod, disambiguatedElementName, isClosure: true);
     if (functionInfo == null) return null;
 
     kClosureInfo.treeShakenStatus = TreeShakenStatus.Live;
@@ -947,7 +933,8 @@ class DumpInfoAnnotator {
 
   // TODO(markzipan): [parentName] is used for disambiguation, but this might
   // not always be valid. Check and validate later.
-  FunctionInfo visitFunction(FunctionEntity function, String parentName) {
+  FunctionInfo visitFunction(FunctionEntity function, String parentName,
+      {bool isClosure = false}) {
     int size = dumpInfoTask.sizeOf(function);
     if (size == 0 && !shouldKeep(function)) return null;
 
@@ -963,7 +950,8 @@ class DumpInfoAnnotator {
     final kFunctionInfos = kernelInfo.state.info.functions
         .where((i) =>
             i.name == compareName &&
-            i.parent.name == parentName &&
+            (isClosure ? i.parent.name : fullyResolvedNameForInfo(i.parent)) ==
+                parentName &&
             !(function.isGetter ^ i.modifiers.isGetter) &&
             !(function.isSetter ^ i.modifiers.isSetter))
         .toList();
@@ -999,6 +987,7 @@ class DumpInfoAnnotator {
     kFunctionInfo.sideEffects = sideEffects;
     kFunctionInfo.inlinedCount = inlinedCount;
     kFunctionInfo.code = code;
+    kFunctionInfo.parameters = parameters;
     kFunctionInfo.outputUnit = _unitInfoForMember(function);
 
     int closureSize = _addClosureInfo(kFunctionInfo, function);
@@ -1264,9 +1253,8 @@ class DumpInfoTask extends CompilerTask
       GlobalTypeInferenceResults globalInferenceResults) {
     DumpInfoStateData dumpInfoState;
     measure(() {
-      KernelInfoCollector kernelInfoCollector = KernelInfoCollector(
-          component, compiler, this, closedWorld, globalInferenceResults)
-        ..run();
+      KernelInfoCollector kernelInfoCollector =
+          KernelInfoCollector(component, compiler, this, closedWorld)..run();
 
       DumpInfoAnnotator(kernelInfoCollector, compiler, this, closedWorld,
           globalInferenceResults)
@@ -1509,12 +1497,12 @@ class LocalFunctionInfo {
 
 class LocalFunctionInfoCollector extends ir.RecursiveVisitor<void> {
   final localFunctions = <ir.LocalFunction, LocalFunctionInfo>{};
-  final localFunctionNames = <String, int>{};
+  final localFunctionNameCount = <String, int>{};
 
   LocalFunctionInfo generateLocalFunctionInfo(ir.LocalFunction localFunction) {
     final name = _computeClosureName(localFunction);
-    localFunctionNames[name] = (localFunctionNames[name] ?? -1) + 1;
-    return LocalFunctionInfo(localFunction, name, localFunctionNames[name]);
+    localFunctionNameCount[name] = (localFunctionNameCount[name] ?? -1) + 1;
+    return LocalFunctionInfo(localFunction, name, localFunctionNameCount[name]);
   }
 
   @override
@@ -1545,11 +1533,7 @@ class LocalFunctionInfoCollector extends ir.RecursiveVisitor<void> {
 String _computeClosureName(ir.TreeNode treeNode) {
   String reconstructConstructorName(ir.Member node) {
     String className = node.enclosingClass.name;
-    if (node.name.text == '') {
-      return className;
-    } else {
-      return '$className\$${node.name}';
-    }
+    return node.name.text == '' ? className : '$className\$${node.name.text}';
   }
 
   var parts = <String>[];
@@ -1685,4 +1669,15 @@ class TreeShakingInfoVisitor extends InfoVisitor<void> {
   visitClosure(ClosureInfo info) {
     visitFunction(info.function);
   }
+}
+
+/// Returns a fully resolved name for [info] for disambiguation.
+String fullyResolvedNameForInfo(BasicInfo info) {
+  var name = info.name;
+  var currentInfo = info;
+  while (currentInfo.parent != null) {
+    currentInfo = currentInfo.parent;
+    name = '${currentInfo.name}/$name';
+  }
+  return name;
 }

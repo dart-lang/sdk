@@ -6,11 +6,11 @@ import 'dart:async' show Future, StreamSubscription;
 
 import 'dart:convert' show JsonEncoder, jsonDecode, utf8;
 
-import 'dart:io' show BytesBuilder, File, stdin, stdout;
+import 'dart:io' show File, stdin, stdout;
 
 import 'dart:math' show max;
 
-import 'dart:typed_data' show Uint8List;
+import 'dart:typed_data' show BytesBuilder, Uint8List;
 
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show relativizeUri, isWindows;

@@ -194,6 +194,7 @@ import 'package:analysis_server/src/services/correction/dart/use_not_eq_null.dar
 import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_future.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
+import 'package:analysis_server/src/services/correction/dart/wrap_in_unawaited.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
@@ -447,6 +448,10 @@ class FixProcessor extends BaseProcessor {
     LintNames.directives_ordering: [
       OrganizeImports.new,
     ],
+    LintNames.discarded_futures: [
+      AddAsync.new,
+      WrapInUnawaited.new,
+    ],
     LintNames.empty_catches: [
       RemoveEmptyCatch.new,
     ],
@@ -622,6 +627,7 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unawaited_futures: [
       AddAwait.unawaited,
+      WrapInUnawaited.new,
     ],
     LintNames.unnecessary_brace_in_string_interps: [
       RemoveInterpolationBraces.new,

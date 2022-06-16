@@ -266,7 +266,8 @@ class Flutter {
             parent is IfElement && parent.elseElement == node ||
             parent is ListLiteral ||
             parent is NamedExpression && parent.expression == node ||
-            parent is Statement) {
+            parent is Statement ||
+            parent is VariableDeclaration) {
           return node as Expression;
         }
       }

@@ -166,8 +166,11 @@ abstract class ForwardingTypeMask extends TypeMask {
 abstract class AllocationTypeMask extends ForwardingTypeMask {
   const AllocationTypeMask();
 
-  // The [ir.Node] where this type mask was created.
-  ir.Node get allocationNode;
+  // The [ir.Node] where this type mask was created. This value is not used
+  // after type inference and therefore does not need to be serialized by
+  // subclasses. Using it outside of type inference may cause an exception to be
+  // thrown.
+  ir.Node /*?*/ get allocationNode;
 
   // The [Entity] where this type mask was created.
   MemberEntity get allocationElement;

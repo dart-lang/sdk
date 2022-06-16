@@ -2460,7 +2460,7 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
 
   ConstantAllocationCollector(this.summaryCollector);
 
-  // Ensures the transtive graph of [constant] got scanned for potential
+  // Ensures the transitive graph of [constant] got scanned for potential
   // allocations and field types.  Returns the [Type] of this constant.
   Type typeFor(Constant constant) {
     return constants.putIfAbsent(constant, () => constant.accept(this));

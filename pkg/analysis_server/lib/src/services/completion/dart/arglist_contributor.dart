@@ -154,7 +154,7 @@ class ArgListContributor extends DartCompletionContributor {
           return true;
         }
 
-        // Caret is in the between two values that are not seperated by a comma.
+        // Caret is in the between two values that are not separated by a comma.
         //     f(one: 1, tw^'foo');
         // must be at least two and the target not last.
         var args = argumentList.arguments;

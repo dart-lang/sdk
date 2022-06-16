@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of utilslib;
 
 /**
@@ -78,9 +76,9 @@ class DateUtils {
 
     // Pretend it's a UTC time
     DateTime result =
-        new DateTime.utc(year, month, day, hours, minutes, seconds, 0);
+        DateTime.utc(year, month, day, hours, minutes, seconds, 0);
     // Shift it to the proper zone, but it's still a UTC time
-    result = result.subtract(new Duration(hours: zoneOffset));
+    result = result.subtract(Duration(hours: zoneOffset));
     // Then render it as a local time
     return result.toLocal();
   }
@@ -118,7 +116,7 @@ class DateUtils {
       milliseconds = int.parse(seconds[1]);
     }
 
-    return new DateTime(
+    return DateTime(
         int.parse(date[0]),
         int.parse(date[1]),
         int.parse(date[2]),
@@ -142,9 +140,9 @@ class DateUtils {
           (d1.day == d2.day);
     }
 
-    final now = new DateTime.now();
+    final now = DateTime.now();
     if (datesAreEqual(then, now)) {
-      return toHourMinutesString(new Duration(
+      return toHourMinutesString(Duration(
           days: 0,
           hours: then.hour,
           minutes: then.minute,
@@ -152,7 +150,7 @@ class DateUtils {
           milliseconds: then.millisecond));
     }
 
-    final today = new DateTime(now.year, now.month, now.day, 0, 0, 0, 0);
+    final today = DateTime(now.year, now.month, now.day, 0, 0, 0, 0);
     Duration delta = today.difference(then);
     if (delta.inMilliseconds < Duration.millisecondsPerDay) {
       return YESTERDAY;
@@ -174,7 +172,7 @@ class DateUtils {
   // TODO(jmesserly): this is a workaround for unimplemented DateTime.weekday
   // Code inspired by v8/src/date.js
   static int getWeekday(DateTime dateTime) {
-    final unixTimeStart = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+    final unixTimeStart = DateTime(1970, 1, 1, 0, 0, 0, 0);
     int msSince1970 = dateTime.difference(unixTimeStart).inMilliseconds;
     int daysSince1970 = msSince1970 ~/ Duration.millisecondsPerDay;
     // 1970-1-1 was Thursday

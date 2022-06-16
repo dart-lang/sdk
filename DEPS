@@ -105,7 +105,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "d7b73536a8079331c888b7da539b80e6825270ea",
 
-  "dartdoc_rev": "b61647bc3833302c23bd79f03aa1fbe83578af50",
+  "dartdoc_rev": "58348a98b992ce99b95d23131b67227bdb2b4875",
   "devtools_rev": "51ac983d2db7eb19b3ce5956cb70b769d74fe784",
   "ffi_rev": "0c8364a728cfe4e4ba859c53b99d56b3dbe3add4",
   "file_rev": "0132eeedea2933513bf230513a766a8baeab0c4f",
@@ -114,7 +114,7 @@ vars = {
   "html_rev": "f108bce59d136c584969fd24a5006914796cf213",
   "http_multi_server_rev": "35a3b947256768426090e3b1f5132e4fc23c175d",
   "http_parser_rev": "9126ee04e77fd8e4e2e6435b503ee4dd708d7ddc",
-  "http_rev": "2993ea5dff5ffb066b4a35c707e7a2b8dcfa17c2",
+  "http_rev": "0c2293062d7c1fa472f299da764a7dbb3895ee22",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "intl_rev": "9145f308f1458f37630a1ffce3b7d3b471ebbc56",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
@@ -132,8 +132,8 @@ vars = {
   "path_rev": "3d41ea582f5b0b18de3d90008809b877ff3f69bc",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "c40cc32eabecb9d60f1045d1403108d968805f9a",
-  "protobuf_rev": "408f69b98b2d2de947c4922506416e2ca4905ad5",
-  "pub_rev": "51435efcd574b7bc18d47a5dd620cb9759dea8f8",
+  "protobuf_rev": "3105588b8e515a3391ac5f0673cc06e16d0e3c0c",
+  "pub_rev": "c4e9ddc888c3aa89ef4462f0c4298929191e32b9",
   "pub_semver_rev": "5c0b4bfd5ca57fe16f1319c581dc8c882e9b8cb2",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
@@ -319,7 +319,7 @@ deps = {
       Var("dart_git") + "crypto.git" + "@" + Var("crypto_rev"),
   Var("dart_root") + "/third_party/pkg/csslib":
       Var("dart_git") + "csslib.git" + "@" + Var("csslib_rev"),
-  Var("dart_root") + "/third_party/pkg_tested/dart_style":
+  Var("dart_root") + "/third_party/pkg/dart_style":
       Var("dart_git") + "dart_style.git" + "@" + Var("dart_style_rev"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_rev"),
@@ -361,7 +361,7 @@ deps = {
       Var("dart_git") + "mockito.git" + "@" + Var("mockito_rev"),
   Var("dart_root") + "/third_party/pkg/oauth2":
       Var("dart_git") + "oauth2.git" + "@" + Var("oauth2_rev"),
-  Var("dart_root") + "/third_party/pkg_tested/package_config":
+  Var("dart_root") + "/third_party/pkg/package_config":
       Var("dart_git") + "package_config.git" +
       "@" + Var("package_config_rev"),
   Var("dart_root") + "/third_party/pkg/path":

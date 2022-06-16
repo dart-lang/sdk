@@ -14,6 +14,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddAsyncTest);
     defineReflectiveTests(AvoidReturningNullForFutureTest);
+    defineReflectiveTests(DiscardedFuturesTest);
   });
 }
 
@@ -355,6 +356,32 @@ Future<String> f() {
 Future<String> f() async {
   return null;
 }
+''');
+  }
+}
+
+@reflectiveTest
+class DiscardedFuturesTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_ASYNC;
+
+  @override
+  String get lintCode => LintNames.discarded_futures;
+
+  Future<void> test_discardedFuture() async {
+    await resolveTestCode('''
+void f() {
+  g();
+}
+
+Future<void> g() async { }
+''');
+    await assertHasFix('''
+Future<void> f() async {
+  g();
+}
+
+Future<void> g() async { }
 ''');
   }
 }

@@ -480,11 +480,13 @@ class _MyWidgetState extends State<MyWidget> {
     // placeholders.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
     expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
-    expect(item.textEdit, isNull);
+    expect(item.textEdit, isNotNull);
+    final originalTextEdit = item.textEdit;
 
-    // Ensure the item can be resolved and gets a proper TextEdit.
+    // Ensure the item can be resolved and retains the correct textEdit (since
+    // textEdit may be recomputed during resolve).
     final resolved = await resolveCompletion(item);
-    expect(resolved.textEdit, isNotNull);
+    expect(resolved.textEdit, originalTextEdit);
     final textEdit = toTextEdit(resolved.textEdit!);
     expect(textEdit.newText, equals(item.insertText));
     expect(textEdit.range, equals(rangeFromMarkers(content)));
@@ -1612,21 +1614,24 @@ void f() {
     // Find the completion for the class in the other file.
     final completion = res.singleWhere((c) => c.label == 'InOtherFile');
     expect(completion, isNotNull);
+    expect(completion.textEdit, isNotNull);
+    final originalTextEdit = completion.textEdit;
 
-    // Expect no docs or text edit, since these are added during resolve.
+    // Expect no docs, this is added during resolve.
     expect(completion.documentation, isNull);
-    expect(completion.textEdit, isNull);
 
-    // Resolve the completion item (via server) to get its edits. This is the
-    // LSP's equiv of getSuggestionDetails() and is invoked by LSP clients to
-    // populate additional info (in our case, the additional edits for inserting
-    // the import).
+    // Resolve the completion item (via server) to get any additional edits.
+    // This is LSP's equiv of getSuggestionDetails() and is invoked by LSP
+    // clients to populate additional info (in our case, any additional edits
+    // for inserting the import).
     final resolved = await resolveCompletion(completion);
     expect(resolved, isNotNull);
 
     // Ensure the detail field was update to show this will auto-import.
     expect(
-        resolved.detail, startsWith("Auto import from '../other_file.dart'"));
+      resolved.detail,
+      startsWith("Auto import from '../other_file.dart'"),
+    );
 
     // Ensure the doc comment was added.
     expect(
@@ -1634,8 +1639,8 @@ void f() {
       isTrue,
     );
 
-    // Ensure the edit was added on.
-    expect(resolved.textEdit, isNotNull);
+    // Ensure the edit did not change.
+    expect(resolved.textEdit, originalTextEdit);
 
     // There should be no command for this item because it doesn't need imports
     // in other files. Same-file completions are in additionalEdits.
@@ -2047,21 +2052,24 @@ void f() {
     // Find the completion for the class in the other file.
     final completion = res.singleWhere((c) => c.label == 'InOtherFile');
     expect(completion, isNotNull);
+    expect(completion.textEdit, isNotNull);
+    final originalTextEdit = completion.textEdit;
 
-    // Expect no docs or text edit, since these are added during resolve.
+    // Expect no docs, this is added during resolve.
     expect(completion.documentation, isNull);
-    expect(completion.textEdit, isNull);
 
-    // Resolve the completion item (via server) to get its edits. This is the
-    // LSP's equiv of getSuggestionDetails() and is invoked by LSP clients to
-    // populate additional info (in our case, the additional edits for inserting
-    // the import).
+    // Resolve the completion item (via server) to get any additional edits.
+    // This is LSP's equiv of getSuggestionDetails() and is invoked by LSP
+    // clients to populate additional info (in our case, any additional edits
+    // for inserting the import).
     final resolved = await resolveCompletion(completion);
     expect(resolved, isNotNull);
 
     // Ensure the detail field was update to show this will auto-import.
     expect(
-        resolved.detail, startsWith("Auto import from '../other_file.dart'"));
+      resolved.detail,
+      startsWith("Auto import from '../other_file.dart'"),
+    );
 
     // Ensure the doc comment was added.
     expect(
@@ -2069,8 +2077,8 @@ void f() {
       isTrue,
     );
 
-    // Ensure the edit was added on.
-    expect(resolved.textEdit, isNotNull);
+    // Ensure the edit did not change.
+    expect(resolved.textEdit, originalTextEdit);
 
     // There should be no command for this item because it doesn't need imports
     // in other files. Same-file completions are in additionalEdits.
@@ -2265,15 +2273,15 @@ void f() {
     final completion =
         res.singleWhere((c) => c.label == 'InOtherFile.fromJson()');
     expect(completion, isNotNull);
+    expect(completion.textEdit, isNotNull);
 
-    // Expect no docs or text edit, since these are added during resolve.
+    // Expect no docs, this is added during resolve.
     expect(completion.documentation, isNull);
-    expect(completion.textEdit, isNull);
 
-    // Resolve the completion item (via server) to get its edits. This is the
-    // LSP's equiv of getSuggestionDetails() and is invoked by LSP clients to
-    // populate additional info (in our case, the additional edits for inserting
-    // the import).
+    // Resolve the completion item (via server) to get any additional edits.
+    // This is LSP's equiv of getSuggestionDetails() and is invoked by LSP
+    // clients to populate additional info (in our case, any additional edits
+    // for inserting the import).
     final resolved = await resolveCompletion(completion);
     expect(resolved, isNotNull);
 

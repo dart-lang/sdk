@@ -30,7 +30,7 @@ class Derived1 with PublicMixin {
 }
 
 void test1() {
-  // Test that the mixed in methods have been overriden correctly, and that the
+  // Test that the mixed in methods have been overridden correctly, and that the
   // private methods from the two libraries resolve correctly.
   var p = Derived1();
   Expect.equals(publicLibrarySentinel, p.mixinMethod());

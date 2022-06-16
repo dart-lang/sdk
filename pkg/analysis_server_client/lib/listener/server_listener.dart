@@ -53,7 +53,7 @@ mixin ServerListener {
     log('Unexpected notification format from server', '$message');
   }
 
-  /// Called when the [Server] recieved an unexpected response
+  /// Called when the [Server] received an unexpected response
   /// where the [id] does not match the [id] of an outstanding request.
   void unexpectedResponse(Map<String, Object?> message, Object id) {
     log('Unexpected response from server', 'id=$id');

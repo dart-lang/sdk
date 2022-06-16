@@ -7,8 +7,6 @@
 // The output contains additional details in the verbose mode. There is a human
 // readable mode that explains the results and how they changed.
 
-// @dart = 2.9
-
 import 'dart:collection';
 import 'dart:io';
 
@@ -16,7 +14,7 @@ import 'package:args/args.dart';
 import 'package:test_runner/bot_results.dart';
 
 class Event {
-  final Result before;
+  final Result? before;
   final Result after;
 
   Event(this.before, this.after);
@@ -27,13 +25,13 @@ class Event {
   bool get changed => !unchanged;
   bool get unchanged =>
       before != null &&
-      before.outcome == after.outcome &&
-      before.expectation == after.expectation;
-  bool get remainedPassing => before.matches && after.matches;
-  bool get remainedFailing => !before.matches && !after.matches;
+      before!.outcome == after.outcome &&
+      before!.expectation == after.expectation;
+  bool get remainedPassing => before!.matches && after.matches;
+  bool get remainedFailing => !before!.matches && !after.matches;
   bool get flaked => after.flaked;
-  bool get fixed => !before.matches && after.matches;
-  bool get broke => before.matches && !after.matches;
+  bool get fixed => !before!.matches && after.matches;
+  bool get broke => before!.matches && !after.matches;
 
   String get description {
     if (isNewPassing) {
@@ -60,14 +58,14 @@ class Options {
   final ArgResults _options;
 
   bool get changed => _options["changed"] as bool;
-  int get count => _options["count"] is String
+  int? get count => _options["count"] is String
       ? int.parse(_options["count"] as String)
       : null;
-  String get flakinessData => _options["flakiness-data"] as String;
+  String? get flakinessData => _options["flakiness-data"] as String?;
   bool get help => _options["help"] as bool;
   bool get human => _options["human"] as bool;
   bool get judgement => _options["judgement"] as bool;
-  String get logs => _options["logs"] as String;
+  String? get logs => _options["logs"] as String?;
   bool get logsOnly => _options["logs-only"] as bool;
   Iterable<String> get statusFilter => ["passing", "flaky", "failing"]
       .where((option) => _options[option] as bool);
@@ -81,16 +79,16 @@ bool firstSection = true;
 bool search(
     String description,
     String searchForStatus,
-    List<Event> events,
+    Iterable<Event> events,
     Options options,
     Map<String, Map<String, dynamic>> logs,
-    List<String> logSection) {
+    List<String>? logSection) {
   var judgement = false;
   var beganSection = false;
   var count = options.count;
-  final configurations =
-      events.map((event) => event.after.configuration).toSet();
+  final configurations = <String>{};
   for (final event in events) {
+    configurations.add(event.after.configuration);
     if (searchForStatus == "passing" &&
         (event.after.flaked || !event.after.matches)) {
       continue;
@@ -236,10 +234,10 @@ ${parser.usage}""");
   final after = await loadResultsMap(parameters[1]);
   final logs = options.logs == null
       ? <String, Map<String, dynamic>>{}
-      : await loadResultsMap(options.logs);
-  final flakinessData = options.flakinessData != null
-      ? await loadResultsMap(options.flakinessData)
-      : <String, Map<String, dynamic>>{};
+      : await loadResultsMap(options.logs!);
+  final flakinessData = options.flakinessData == null
+      ? <String, Map<String, dynamic>>{}
+      : await loadResultsMap(options.flakinessData!);
 
   // The names of every test that has a data point in the new data set.
   final names = SplayTreeSet<String>.from(after.keys);
@@ -247,7 +245,7 @@ ${parser.usage}""");
   final events = <Event>[];
   for (final name in names) {
     final mapBefore = before[name];
-    final mapAfter = after[name];
+    final mapAfter = after[name]!;
     final resultBefore = mapBefore != null
         ? Result.fromMap(mapBefore, flakinessData[name])
         : null;
@@ -291,7 +289,7 @@ ${parser.usage}""");
         : options.changed
             ? "changed"
             : null;
-    final aboutStatus = filterDescriptions[searchForStatus][searchForChanged];
+    final aboutStatus = filterDescriptions[searchForStatus]![searchForChanged];
     final sectionHeader = "The following tests $aboutStatus:";
     final logSectionArg =
         searchForStatus == "failing" || searchForStatus == "flaky"
@@ -299,7 +297,7 @@ ${parser.usage}""");
             : null;
     final possibleJudgement = search(
         sectionHeader, searchForStatus, events, options, logs, logSectionArg);
-    if (searchForStatus == null || searchForStatus == "failing") {
+    if (searchForStatus == "failing") {
       judgement = possibleJudgement;
     }
   }

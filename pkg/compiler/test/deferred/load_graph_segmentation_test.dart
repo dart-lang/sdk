@@ -86,7 +86,7 @@ void main() {
 }
 
 // The main library imports lib1 and lib2 deferred and use lib1.foo1 and
-// lib2.foo2.  This should trigger seperate output units for main, lib1 and
+// lib2.foo2.  This should trigger separate output units for main, lib1 and
 // lib2.
 //
 // Both lib1 and lib2 import lib3 directly and

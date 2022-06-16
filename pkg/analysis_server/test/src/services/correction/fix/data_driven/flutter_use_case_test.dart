@@ -1828,6 +1828,382 @@ void f(TextTheme theme) {
 ''');
   }
 
+  Future<void>
+      test_material_ThemeData_toggleableActiveColor_deprecated_1() async {
+    setPackageContent('''
+
+class ThemeData {
+  ThemeData({
+    Color? primaryColor,
+    Color? primaryColorLight,
+    Color? primaryColorDark,
+    Color? focusColor,
+    Color? hoverColor,
+    @deprecated
+    Color? toggleableActiveColor,
+    CheckboxThemeData? checkboxTheme,
+    DataTableThemeData? dataTableTheme,
+    RadioThemeData? radioTheme,
+    SliderThemeData? sliderTheme,
+  }) {}
+}
+
+class Color {
+  Color(int value) {}
+}
+
+class Colors {
+  Colors._();
+
+  static Color black = Color(0xFF000000);
+  static Color white = Color(0xFFFFFFFF);
+}
+
+class CheckboxThemeData {}
+
+class DataTableThemeData {}
+
+class RadioThemeData {}
+
+class SliderThemeData {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Migrate ThemeData.toggleableActiveColor to individual themes'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'ThemeData'
+    changes:
+      - kind: 'removeParameter'
+        name: 'toggleableActiveColor'
+      - kind: 'addParameter'
+        index: 6
+        name: 'checkboxTheme'
+        style: optional_named
+        argumentValue:
+          expression: "CheckboxThemeData()"
+          requiredIf: "toggleableActiveColor != ''"
+      - kind: 'addParameter'
+        index: 8
+        name: 'radioTheme'
+        style: optional_named
+        argumentValue:
+          expression: "RadioThemeData()"
+          requiredIf:  "toggleableActiveColor != ''"
+    variables:
+      toggleableActiveColor:
+        kind: 'fragment'
+        value: 'arguments[toggleableActiveColor]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  ThemeData themeData = ThemeData();
+  themeData = ThemeData(toggleableActiveColor: Colors.black);
+  print(themeData);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  ThemeData themeData = ThemeData();
+  themeData = ThemeData(checkboxTheme: CheckboxThemeData(), radioTheme: RadioThemeData());
+  print(themeData);
+}
+''');
+  }
+
+  Future<void>
+      test_material_ThemeData_toggleableActiveColor_deprecated_2() async {
+    setPackageContent('''
+
+class ThemeData {
+  ThemeData({
+    Color? primaryColor,
+    Color? primaryColorLight,
+    Color? primaryColorDark,
+    Color? focusColor,
+    Color? hoverColor,
+    @deprecated
+    Color? toggleableActiveColor,
+    CheckboxThemeData? checkboxTheme,
+    DataTableThemeData? dataTableTheme,
+    RadioThemeData? radioTheme,
+    SliderThemeData? sliderTheme,
+  }) {}
+}
+
+class Color {
+  Color(int value) {}
+}
+
+class Colors {
+  Colors._();
+
+  static Color black = Color(0xFF000000);
+  static Color white = Color(0xFFFFFFFF);
+}
+
+class CheckboxThemeData {}
+
+class DataTableThemeData {}
+
+class RadioThemeData {}
+
+class SliderThemeData {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Migrate ThemeData.toggleableActiveColor to individual themes'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'ThemeData'
+    changes:
+      - kind: 'removeParameter'
+        name: 'toggleableActiveColor'
+      - kind: 'addParameter'
+        index: 6
+        name: 'checkboxTheme'
+        style: optional_named
+        argumentValue:
+          expression: "CheckboxThemeData()"
+          requiredIf: "toggleableActiveColor != ''"
+      - kind: 'addParameter'
+        index: 8
+        name: 'radioTheme'
+        style: optional_named
+        argumentValue:
+          expression: "RadioThemeData()"
+          requiredIf:  "toggleableActiveColor != ''"
+    variables:
+      toggleableActiveColor:
+        kind: 'fragment'
+        value: 'arguments[toggleableActiveColor]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  ThemeData themeData = ThemeData();
+  themeData = ThemeData(
+    focusColor: Colors.black,
+    toggleableActiveColor: Colors.black,
+    hoverColor: Colors.white,
+    primaryColor: Colors.white,
+    sliderTheme: SliderThemeData(),
+  );
+  print(themeData);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  ThemeData themeData = ThemeData();
+  themeData = ThemeData(
+    focusColor: Colors.black,
+    hoverColor: Colors.white,
+    primaryColor: Colors.white,
+    sliderTheme: SliderThemeData(), checkboxTheme: CheckboxThemeData(), radioTheme: RadioThemeData(),
+  );
+  print(themeData);
+}
+''');
+  }
+
+  Future<void> test_material_ThemeData_toggleableActiveColor_removed_1() async {
+    setPackageContent('''
+
+class ThemeData {
+  ThemeData({
+    Color? primaryColor,
+    Color? primaryColorLight,
+    Color? primaryColorDark,
+    Color? focusColor,
+    Color? hoverColor,
+    CheckboxThemeData? checkboxTheme,
+    DataTableThemeData? dataTableTheme,
+    RadioThemeData? radioTheme,
+    SliderThemeData? sliderTheme,
+  }) {}
+}
+
+class Color {
+  Color(int value) {}
+}
+
+class Colors {
+  Colors._();
+
+  static Color black = Color(0xFF000000);
+  static Color white = Color(0xFFFFFFFF);
+}
+
+class CheckboxThemeData {}
+
+class DataTableThemeData {}
+
+class RadioThemeData {}
+
+class SliderThemeData {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Migrate ThemeData.toggleableActiveColor to individual themes'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'ThemeData'
+    changes:
+      - kind: 'removeParameter'
+        name: 'toggleableActiveColor'
+      - kind: 'addParameter'
+        index: 6
+        name: 'checkboxTheme'
+        style: optional_named
+        argumentValue:
+          expression: "CheckboxThemeData()"
+          requiredIf: "toggleableActiveColor != ''"
+      - kind: 'addParameter'
+        index: 8
+        name: 'radioTheme'
+        style: optional_named
+        argumentValue:
+          expression: "RadioThemeData()"
+          requiredIf:  "toggleableActiveColor != ''"
+    variables:
+      toggleableActiveColor:
+        kind: 'fragment'
+        value: 'arguments[toggleableActiveColor]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  ThemeData themeData = ThemeData();
+  themeData = ThemeData(toggleableActiveColor: Colors.black);
+  print(themeData);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  ThemeData themeData = ThemeData();
+  themeData = ThemeData(checkboxTheme: CheckboxThemeData(), radioTheme: RadioThemeData());
+  print(themeData);
+}
+''');
+  }
+
+  Future<void> test_material_ThemeData_toggleableActiveColor_removed_2() async {
+    setPackageContent('''
+
+class ThemeData {
+  ThemeData({
+    Color? primaryColor,
+    Color? primaryColorLight,
+    Color? primaryColorDark,
+    Color? focusColor,
+    Color? hoverColor,
+    CheckboxThemeData? checkboxTheme,
+    DataTableThemeData? dataTableTheme,
+    RadioThemeData? radioTheme,
+    SliderThemeData? sliderTheme,
+  }) {}
+}
+
+class Color {
+  Color(int value) {}
+}
+
+class Colors {
+  Colors._();
+
+  static Color black = Color(0xFF000000);
+  static Color white = Color(0xFFFFFFFF);
+}
+
+class CheckboxThemeData {}
+
+class DataTableThemeData {}
+
+class RadioThemeData {}
+
+class SliderThemeData {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Migrate ThemeData.toggleableActiveColor to individual themes'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'ThemeData'
+    changes:
+      - kind: 'removeParameter'
+        name: 'toggleableActiveColor'
+      - kind: 'addParameter'
+        index: 6
+        name: 'checkboxTheme'
+        style: optional_named
+        argumentValue:
+          expression: "CheckboxThemeData()"
+          requiredIf: "toggleableActiveColor != ''"
+      - kind: 'addParameter'
+        index: 8
+        name: 'radioTheme'
+        style: optional_named
+        argumentValue:
+          expression: "RadioThemeData()"
+          requiredIf:  "toggleableActiveColor != ''"
+    variables:
+      toggleableActiveColor:
+        kind: 'fragment'
+        value: 'arguments[toggleableActiveColor]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  ThemeData themeData = ThemeData();
+  themeData = ThemeData(
+    focusColor: Colors.black,
+    toggleableActiveColor: Colors.black,
+    hoverColor: Colors.white,
+    primaryColor: Colors.white,
+    sliderTheme: SliderThemeData(),
+  );
+  print(themeData);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  ThemeData themeData = ThemeData();
+  themeData = ThemeData(
+    focusColor: Colors.black,
+    hoverColor: Colors.white,
+    primaryColor: Colors.white,
+    sliderTheme: SliderThemeData(), checkboxTheme: CheckboxThemeData(), radioTheme: RadioThemeData(),
+  );
+  print(themeData);
+}
+''');
+  }
+
   Future<void> test_material_Typography_defaultConstructor_deprecated() async {
     setPackageContent('''
 class Typography {

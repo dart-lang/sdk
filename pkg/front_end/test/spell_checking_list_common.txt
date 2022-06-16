@@ -2266,7 +2266,6 @@ preceded
 precedence
 precedes
 preceding
-preceeding
 precise
 precisely
 precision
