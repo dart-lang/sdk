@@ -2645,8 +2645,7 @@ class SsaNode<Variable extends Object, Type extends Object> {
 
   @override
   String toString() {
-    SsaNode self = this; // Work around #44475
-    int id = _debugIds[self] ??= _nextDebugId++;
+    int id = _debugIds[this] ??= _nextDebugId++;
     return 'ssa$id';
   }
 }
