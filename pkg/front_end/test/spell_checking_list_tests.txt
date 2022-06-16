@@ -175,6 +175,7 @@ datatypes
 day
 days
 db
+dbenchmark
 ddart
 dds
 debugger
