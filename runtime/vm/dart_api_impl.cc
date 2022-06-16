@@ -1234,15 +1234,7 @@ VM_METRIC_LIST(VM_METRIC_API)
 #undef VM_METRIC_API
 #endif  // !defined(PRODUCT)
 
-// TODO(dartbug.com/49211): Remove definition of deprecated functions.
 #define ISOLATE_GROUP_METRIC_API(type, variable, name, unit)                   \
-  DART_EXPORT int64_t Dart_Isolate##variable##Metric(Dart_Isolate isolate) {   \
-    if (isolate == nullptr) {                                                  \
-      FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);   \
-    }                                                                          \
-    Isolate* iso = reinterpret_cast<Isolate*>(isolate);                        \
-    return iso->group()->Get##variable##Metric()->Value();                     \
-  }                                                                            \
   DART_EXPORT int64_t Dart_IsolateGroup##variable##Metric(                     \
       Dart_IsolateGroup isolate_group) {                                       \
     if (isolate_group == nullptr) {                                            \

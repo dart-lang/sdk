@@ -1035,14 +1035,6 @@ void Heap::RecordAfterGC(GCType type) {
   if (Dart::gc_event_callback() != nullptr) {
     Dart_GCEvent event;
     int64_t isolate_group_uptime_micros = isolate_group_->UptimeMicros();
-
-    // TODO(dartbug.com/49211): Remove use of deprecated [isolate_id] field.
-    auto isolate_id = Utils::CStringUniquePtr(
-        OS::SCreate(nullptr, ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING,
-                    isolate_group_->id()),
-        std::free);
-    event.isolate_id = isolate_id.get();
-
     event.isolate_group_id = isolate_group_->id();
     event.type = GCTypeToString(stats_.type_);
     event.reason = GCReasonToString(stats_.reason_);
