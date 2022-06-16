@@ -1067,15 +1067,6 @@ class KernelTarget extends TargetImplementation {
         new DelayedDefaultValueCloner(
             superConstructor, constructor, substitutionMap,
             libraryBuilder: classBuilder.libraryBuilder);
-    if (!isConst) {
-      // For constant constructors default values are computed and cloned part
-      // of the outline expression and therefore passed to the
-      // [SyntheticConstructorBuilder] below.
-      //
-      // For non-constant constructors default values are cloned as part of the
-      // full compilation using [_delayedDefaultValueCloners].
-      registerDelayedDefaultValueCloner(delayedDefaultValueCloner);
-    }
 
     TypeDependency? typeDependency;
     if (hasTypeDependency) {
@@ -1117,10 +1108,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   void registerDelayedDefaultValueCloner(DelayedDefaultValueCloner cloner) {
-    // TODO(johnniwinther): Avoid re-registration of cloners.
-    assert(
-        !_delayedDefaultValueCloners.containsKey(cloner.synthesized) ||
-            _delayedDefaultValueCloners[cloner.synthesized] == cloner,
+    assert(!_delayedDefaultValueCloners.containsKey(cloner.synthesized),
         "Default cloner already registered for ${cloner.synthesized}.");
     _delayedDefaultValueCloners[cloner.synthesized] = cloner;
   }
