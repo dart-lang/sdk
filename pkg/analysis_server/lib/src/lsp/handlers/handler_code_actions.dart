@@ -23,10 +23,11 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:collection/collection.dart' show groupBy;
+import 'package:collection/collection.dart'
+    show IterableNullableExtension, groupBy;
 
-class CodeActionHandler extends MessageHandler<CodeActionParams,
-    List<Either2<Command, CodeAction>>> {
+class CodeActionHandler
+    extends MessageHandler<CodeActionParams, TextDocumentCodeActionResult> {
   // Because server+plugin results are different types and we lose
   // priorities when converting them to CodeActions, store the priorities
   // against each action in an expando. This avoids wrapping CodeActions in
@@ -60,10 +61,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       CodeActionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<Either2<Command, CodeAction>>>> handle(
-      CodeActionParams params,
-      MessageInfo message,
-      CancellationToken token) async {
+  Future<ErrorOr<TextDocumentCodeActionResult>> handle(CodeActionParams params,
+      MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
     }
@@ -189,16 +188,16 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
   /// Wraps a command in a CodeAction if the client supports it so that a
   /// CodeActionKind can be supplied.
-  Either2<Command, CodeAction> _commandOrCodeAction(
+  Either2<CodeAction, Command> _commandOrCodeAction(
     bool supportsLiteralCodeActions,
     CodeActionKind kind,
     Command command,
   ) {
     return supportsLiteralCodeActions
-        ? Either2<Command, CodeAction>.t2(
+        ? Either2<CodeAction, Command>.t1(
             CodeAction(title: command.title, kind: kind, command: command),
           )
-        : Either2<Command, CodeAction>.t1(command);
+        : Either2<CodeAction, Command>.t2(command);
   }
 
   /// Creates a CodeAction to apply this assist. Note: This code will fetch the
@@ -280,7 +279,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     }).toList();
   }
 
-  Future<List<Either2<Command, CodeAction>>> _getAssistActions(
+  Future<TextDocumentCodeActionResult> _getAssistActions(
     bool Function(CodeActionKind?) shouldIncludeKind,
     bool supportsLiteralCodeActions,
     String path,
@@ -323,7 +322,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
       return dedupedCodeActions
           .where((action) => shouldIncludeKind(action.kind))
-          .map((action) => Either2<Command, CodeAction>.t2(action))
+          .map((action) => Either2<CodeAction, Command>.t1(action))
           .toList();
     } on InconsistentAnalysisException {
       // If an InconsistentAnalysisException occurs, it's likely the user modified
@@ -333,7 +332,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     }
   }
 
-  Future<ErrorOr<List<Either2<Command, CodeAction>>>> _getCodeActions(
+  Future<ErrorOr<TextDocumentCodeActionResult>> _getCodeActions(
     OperationPerformanceImpl performance,
     bool Function(CodeActionKind?) shouldIncludeKind,
     bool Function(CodeActionKind?) shouldIncludeAnyOfKind,
@@ -376,12 +375,12 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
               offset, supportedDiagnosticTags, range, unit),
         ),
     ]);
-    final flatResults = results.expand((x) => x).toList();
+    final flatResults = results.whereNotNull().expand((x) => x).toList();
 
     return success(flatResults);
   }
 
-  Future<List<Either2<Command, CodeAction>>> _getFixActions(
+  Future<TextDocumentCodeActionResult> _getFixActions(
     bool Function(CodeActionKind?) shouldIncludeKind,
     bool supportsLiteralCodeActions,
     String path,
@@ -455,7 +454,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
       return dedupedActions
           .where((action) => shouldIncludeKind(action.kind))
-          .map((action) => Either2<Command, CodeAction>.t2(action))
+          .map((action) => Either2<CodeAction, Command>.t1(action))
           .toList();
     } on InconsistentAnalysisException {
       // If an InconsistentAnalysisException occurs, it's likely the user modified
@@ -520,7 +519,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     return pluginFixes;
   }
 
-  Future<List<Either2<Command, CodeAction>>> _getRefactorActions(
+  Future<TextDocumentCodeActionResult> _getRefactorActions(
     bool Function(CodeActionKind) shouldIncludeKind,
     bool supportsLiteralCodeActions,
     String path,
@@ -537,7 +536,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
     /// Helper to create refactors that execute commands provided with
     /// the current file, location and document version.
-    Either2<Command, CodeAction> createRefactor(
+    Either2<CodeAction, Command> createRefactor(
       CodeActionKind actionKind,
       String name,
       RefactoringKind refactorKind, [
@@ -564,7 +563,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     }
 
     try {
-      final refactorActions = <Either2<Command, CodeAction>>[];
+      final refactorActions = <Either2<CodeAction, Command>>[];
 
       // Extracts
       if (shouldIncludeKind(CodeActionKind.RefactorExtract)) {
@@ -641,7 +640,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
   /// Gets "Source" CodeActions, which are actions that apply to whole files of
   /// source such as Sort Members and Organise Imports.
-  Future<List<Either2<Command, CodeAction>>> _getSourceActions(
+  Future<TextDocumentCodeActionResult> _getSourceActions(
     bool Function(CodeActionKind) shouldIncludeKind,
     bool supportsLiteralCodeActions,
     bool supportsApplyEdit,

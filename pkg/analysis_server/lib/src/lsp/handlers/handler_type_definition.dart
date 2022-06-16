@@ -15,12 +15,9 @@ import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 
-typedef _LocationsOrLinks = Either2<List<Location>, List<LocationLink>>;
-
-class TypeDefinitionHandler
-    extends MessageHandler<TypeDefinitionParams, _LocationsOrLinks>
-    with LspPluginRequestHandlerMixin {
-  static const _emptyResult = _LocationsOrLinks.t1([]);
+class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
+    TextDocumentTypeDefinitionResult> with LspPluginRequestHandlerMixin {
+  static const _emptyResult = TextDocumentTypeDefinitionResult.t2([]);
 
   TypeDefinitionHandler(super.server);
 
@@ -35,8 +32,10 @@ class TypeDefinitionHandler
   // The private type in the return type is dictated by the signature of the
   // super-method and the class's super-class.
   // ignore: library_private_types_in_public_api
-  Future<ErrorOr<_LocationsOrLinks>> handle(TypeDefinitionParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<TextDocumentTypeDefinitionResult>> handle(
+      TypeDefinitionParams params,
+      MessageInfo message,
+      CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(_emptyResult);
     }
@@ -90,13 +89,14 @@ class TypeDefinitionHandler
         }
 
         if (supportsLocationLink) {
-          return success(_LocationsOrLinks.t2([
+          return success(TextDocumentTypeDefinitionResult.t2([
             _toLocationLink(
                 result.lineInfo, targetLineInfo, node, element, location)
           ]));
         } else {
-          return success(
-              _LocationsOrLinks.t1([_toLocation(location, targetLineInfo)]));
+          return success(TextDocumentTypeDefinitionResult.t1(
+            Definition.t2(_toLocation(location, targetLineInfo)),
+          ));
         }
       });
     });

@@ -58,13 +58,11 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     // client and server are out of sync and we expect the server to shut down.
     final error = await expectErrorNotification(() async {
       await changeFile(222, mainFileUri, [
-        Either2<TextDocumentContentChangeEvent1,
-                TextDocumentContentChangeEvent2>.t1(
-            TextDocumentContentChangeEvent1(
-                range: Range(
-                    start: Position(line: 99, character: 99),
-                    end: Position(line: 99, character: 99)),
-                text: ' ')),
+        TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
+            range: Range(
+                start: Position(line: 99, character: 99),
+                end: Position(line: 99, character: 99)),
+            text: ' ')),
       ]);
     });
 

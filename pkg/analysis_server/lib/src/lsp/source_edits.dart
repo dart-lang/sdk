@@ -26,10 +26,7 @@ DartFormatter formatter = DartFormatter();
 /// changes into account, this will also apply the edits to [oldContent].
 ErrorOr<Pair<String, List<plugin.SourceEdit>>> applyAndConvertEditsToServer(
   String oldContent,
-  List<
-          Either2<TextDocumentContentChangeEvent1,
-              TextDocumentContentChangeEvent2>>
-      changes, {
+  List<TextDocumentContentChangeEvent> changes, {
   bool failureIsCritical = false,
 }) {
   var newContent = oldContent;
