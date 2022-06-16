@@ -94,6 +94,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
 
   bool _hasFormalsInferred = false;
 
+  bool _hasDefaultValueCloner = false;
+
   final bool _hasSuperInitializingFormals;
 
   final List<DelayedDefaultValueCloner> _superParameterDefaultValueCloners =
@@ -460,12 +462,18 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     }
 
     if (positionalSuperParameters != null || namedSuperParameters != null) {
-      delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
-          superTarget, constructor, substitution,
-          positionalSuperParameters: positionalSuperParameters ?? const <int>[],
-          namedSuperParameters: namedSuperParameters ?? const <String>[],
-          isOutlineNode: true,
-          libraryBuilder: libraryBuilder));
+      if (!_hasDefaultValueCloner) {
+        // If this constructor formals are part of a cyclic dependency this
+        // might be called more than once.
+        delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
+            superTarget, constructor, substitution,
+            positionalSuperParameters:
+                positionalSuperParameters ?? const <int>[],
+            namedSuperParameters: namedSuperParameters ?? const <String>[],
+            isOutlineNode: true,
+            libraryBuilder: libraryBuilder));
+        _hasDefaultValueCloner = true;
+      }
     }
   }
 
@@ -879,6 +887,12 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
       origin.addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
     }
     if (_delayedDefaultValueCloner != null) {
+      // For constant constructors default values are computed and cloned part
+      // of the outline expression and we there set `isOutlineNode` to `true`
+      // below.
+      //
+      // For non-constant constructors default values are cloned as part of the
+      // full compilation using `KernelTarget._delayedDefaultValueCloners`.
       delayedDefaultValueCloners
           .add(_delayedDefaultValueCloner!..isOutlineNode = true);
       _delayedDefaultValueCloner = null;
