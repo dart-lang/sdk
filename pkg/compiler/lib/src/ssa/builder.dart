@@ -669,10 +669,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   /// Extend current method parameters with parameters for the function type
   /// variables.
-  ///
-  /// TODO(johnniwinther): Do we need this?
-  /// If the method has type variables but does not need them, bind to `dynamic`
-  /// (represented as `null`).
   void _addFunctionTypeVariablesIfNeeded(MemberEntity member) {
     if (member is! FunctionEntity) return;
 
@@ -684,8 +680,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
     bool needsTypeArguments = _rtiNeed.methodNeedsTypeArguments(function);
     bool elideTypeParameters = function.parameterStructure.typeParameters == 0;
-    for (TypeVariableType typeVariable
-        in _elementEnvironment.getFunctionTypeVariables(function)) {
+    for (TypeVariableType typeVariable in typeVariables) {
       HInstruction param;
       bool erased = false;
       if (elideTypeParameters) {
@@ -6257,6 +6252,20 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       localsHandler.updateLocal(local, argument);
     });
 
+    bool hasTypeParameters = function.parameterStructure.typeParameters > 0;
+    bool needsTypeArguments = _rtiNeed.methodNeedsTypeArguments(function);
+    for (TypeVariableType typeVariable
+        in _elementEnvironment.getFunctionTypeVariables(function)) {
+      HInstruction argument;
+      if (hasTypeParameters && needsTypeArguments) {
+        argument = compiledArguments[argumentIndex++];
+      } else {
+        argument = _computeTypeArgumentDefaultValue(function, typeVariable);
+      }
+      localsHandler.updateLocal(
+          localsHandler.getTypeVariableAsLocal(typeVariable), argument);
+    }
+
     if (forGenerativeConstructorBody && scopeData.requiresContextBox) {
       HInstruction box = compiledArguments[argumentIndex++];
       assert(box is HCreateBox);
@@ -6278,22 +6287,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
             localsHandler.getTypeVariableAsLocal(typeVariable), argument);
       });
     }
-    if (_rtiNeed.methodNeedsTypeArguments(function)) {
-      bool inlineTypeParameters =
-          function.parameterStructure.typeParameters == 0;
-      for (TypeVariableType typeVariable
-          in _elementEnvironment.getFunctionTypeVariables(function)) {
-        HInstruction argument;
-        if (inlineTypeParameters) {
-          // Add inlined type parameters.
-          argument = _computeTypeArgumentDefaultValue(function, typeVariable);
-        } else {
-          argument = compiledArguments[argumentIndex++];
-        }
-        localsHandler.updateLocal(
-            localsHandler.getTypeVariableAsLocal(typeVariable), argument);
-      }
-    }
+
     assert(
         argumentIndex == compiledArguments.length ||
             !_rtiNeed.methodNeedsTypeArguments(function) &&

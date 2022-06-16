@@ -247,7 +247,7 @@ String _memberNameForType(TypeBase type) {
     type = resolveTypeAlias(type);
   }
   var dartType = type is UnionType
-      ? type.types.map((e) => e.dartType).join()
+      ? type.types.map(_memberNameForType).join()
       : type is ArrayType
           ? 'List${_memberNameForType(type.elementType)}'
           : type is MapType
@@ -696,7 +696,7 @@ void _writeFromJsonCode(
     _writeFromJsonCodeForLiteralUnion(buffer, type, valueCode,
         allowsNull: allowsNull);
   } else if (type is UnionType) {
-    var functionName = type.types.map((t) => _memberNameForType(t)).join();
+    var functionName = type.types.map(_memberNameForType).join();
 
     functionName = '_either$functionName';
 
