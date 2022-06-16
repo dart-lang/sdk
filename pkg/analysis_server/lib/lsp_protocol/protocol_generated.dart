@@ -16,6 +16,18 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
+/// Result for a request to resolve the incoming calls for a given
+/// `CallHierarchyItem`.
+///
+/// @since 3.16.0
+typedef CallHierarchyIncomingCallsResult = List<CallHierarchyIncomingCall>?;
+
+/// Result for a request to resolve the outgoing calls for a given
+/// `CallHierarchyItem`.
+///
+/// @since 3.16.0
+typedef CallHierarchyOutgoingCallsResult = List<CallHierarchyOutgoingCall>?;
+
 /// An identifier to refer to a change annotation stored with a workspace edit.
 typedef ChangeAnnotationIdentifier = String;
 
@@ -119,10 +131,60 @@ typedef PrepareRenameResult
     = Either3<PlaceholderAndRange, PrepareRenameResult2, Range>;
 typedef ProgressToken = Either2<int, String>;
 
+/// Result for a request to provide commands for the given text document and
+/// range.
+typedef TextDocumentCodeActionResult = List<Either2<CodeAction, Command>>?;
+
+/// Result for a request to provide code lens for the given text document.
+typedef TextDocumentCodeLensResult = List<CodeLens>?;
+
+/// Result for request to request completion at a given text document position.
+/// The request's parameter is of type TextDocumentPosition the response is of
+/// type [CompletionItem[]](#CompletionItem) or CompletionList or a Thenable
+/// that resolves to such.
+///
+/// The request can delay the computation of the `detail` and `documentation`
+/// properties to the `completionItem/resolve` request. However, properties that
+/// are needed for the initial sorting and filtering, like `sortText`,
+/// `filterText`, `insertText`, and `textEdit`, must not be changed during
+/// resolve.
+typedef TextDocumentCompletionResult
+    = Either2<CompletionList, List<CompletionItem>>?;
+
 /// An event describing a change to a text document. If only a text is provided
 /// it is considered to be the full content of the document.
 typedef TextDocumentContentChangeEvent
     = Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>;
+
+/// Result for a request to resolve the type definition locations of a symbol at
+/// a given text document position. The request's parameter is of type
+/// TextDocumentPositionParams the response is of type Declaration or a typed
+/// array of DeclarationLink or a Thenable that resolves to such.
+typedef TextDocumentDeclarationResult
+    = Either2<Declaration, List<DeclarationLink>>?;
+
+/// Result for a request to resolve the definition location of a symbol at a
+/// given text document position. The request's parameter is of type
+/// TextDocumentPosition the response is of either type Definition or a typed
+/// array of DefinitionLink or a Thenable that resolves to such.
+typedef TextDocumentDefinitionResult
+    = Either2<Definition, List<DefinitionLink>>?;
+
+/// Result for request to resolve a DocumentHighlight for a given text document
+/// position. The request's parameter is of type TextDocumentPosition the
+/// request response is of type [DocumentHighlight[]] (#DocumentHighlight) or a
+/// Thenable that resolves to such.
+typedef TextDocumentDocumentHighlightResult = List<DocumentHighlight>?;
+
+/// Result for a request to provide document links
+typedef TextDocumentDocumentLinkResult = List<DocumentLink>?;
+
+/// Result for a request to list all symbols found in a given text document. The
+/// request's parameter is of type TextDocumentIdentifier the response is of
+/// type [SymbolInformation[]](#SymbolInformation) or a Thenable that resolves
+/// to such.
+typedef TextDocumentDocumentSymbolResult
+    = Either2<List<DocumentSymbol>, List<SymbolInformation>>?;
 
 /// A document filter denotes a document by different properties like the
 /// language, the scheme of its resource, or a glob-pattern that is applied to
@@ -148,12 +210,177 @@ typedef TextDocumentContentChangeEvent
 typedef TextDocumentFilter = Either3<TextDocumentFilter1,
     TextDocumentFilterWithScheme, TextDocumentFilter3>;
 
+/// Result for a request to provide folding ranges in a document. The request's
+/// parameter is of type FoldingRangeParams, the response is of type
+/// FoldingRangeList or a Thenable that resolves to such.
+typedef TextDocumentFoldingRangeResult = List<FoldingRange>?;
+
+/// Result for a request to to format a whole document.
+typedef TextDocumentFormattingResult = List<TextEdit>?;
+
+/// Result for request to request hover information at a given text document
+/// position. The request's parameter is of type TextDocumentPosition the
+/// response is of type Hover or a Thenable that resolves to such.
+typedef TextDocumentHoverResult = Hover?;
+
+/// Result for a request to resolve the implementation locations of a symbol at
+/// a given text document position. The request's parameter is of type
+/// TextDocumentPositionParams the response is of type Definition or a Thenable
+/// that resolves to such.
+typedef TextDocumentImplementationResult
+    = Either2<Definition, List<DefinitionLink>>?;
+
+/// Result for a request to provide inlay hints in a document. The request's
+/// parameter is of type InlayHintsParams, the response is of type
+/// [InlayHint[]](#InlayHint[]) or a Thenable that resolves to such.
+///
+/// @since 3.17.0
+typedef TextDocumentInlayHintResult = List<InlayHint>?;
+
+/// Result for a request to provide inline values in a document. The request's
+/// parameter is of type InlineValueParams, the response is of type
+/// [InlineValue[]](#InlineValue[]) or a Thenable that resolves to such.
+///
+/// @since 3.17.0
+typedef TextDocumentInlineValueResult = List<InlineValue>?;
+
+/// Result for a request to provide ranges that can be edited together.
+///
+/// @since 3.16.0
+typedef TextDocumentLinkedEditingRangeResult = LinkedEditingRanges?;
+
+/// Result for a request to get the moniker of a symbol at a given text document
+/// position. The request parameter is of type TextDocumentPositionParams. The
+/// response is of type [Moniker[]](#Moniker[]) or `null`.
+typedef TextDocumentMonikerResult = List<Moniker>?;
+
+/// Result for a request to format a document on type.
+typedef TextDocumentOnTypeFormattingResult = List<TextEdit>?;
+
+/// Result for a request to result a `CallHierarchyItem` in a document at a
+/// given position. Can be used as an input to an incoming or outgoing call
+/// hierarchy.
+///
+/// @since 3.16.0
+typedef TextDocumentPrepareCallHierarchyResult = List<CallHierarchyItem>?;
+
+/// Result for a request to test and perform the setup necessary for a rename.
+///
+/// @since 3.16 - support for default behavior
+typedef TextDocumentPrepareRenameResult = PrepareRenameResult?;
+
+/// Result for a request to result a `TypeHierarchyItem` in a document at a
+/// given position. Can be used as an input to a subtypes or supertypes type
+/// hierarchy.
+///
+/// @since 3.17.0
+typedef TextDocumentPrepareTypeHierarchyResult = List<TypeHierarchyItem>?;
+
+/// Result for a request to to format a range in a document.
+typedef TextDocumentRangeFormattingResult = List<TextEdit>?;
+
+/// Result for a request to resolve project-wide references for the symbol
+/// denoted by the given text document position. The request's parameter is of
+/// type ReferenceParams the response is of type [Location[]](#Location) or a
+/// Thenable that resolves to such.
+typedef TextDocumentReferencesResult = List<Location>?;
+
+/// Result for a request to rename a symbol.
+typedef TextDocumentRenameResult = WorkspaceEdit?;
+
+/// Result for a request to provide selection ranges in a document. The
+/// request's parameter is of type SelectionRangeParams, the response is of type
+/// [SelectionRange[]](#SelectionRange[]) or a Thenable that resolves to such.
+typedef TextDocumentSelectionRangeResult = List<SelectionRange>?;
+
+/// Result for @since 3.16.0
+typedef TextDocumentSemanticTokensFullDeltaResult
+    = Either2<SemanticTokens, SemanticTokensDelta>?;
+
+/// Result for @since 3.16.0
+typedef TextDocumentSemanticTokensFullResult = SemanticTokens?;
+
+/// Result for @since 3.16.0
+typedef TextDocumentSemanticTokensRangeResult = SemanticTokens?;
+typedef TextDocumentSignatureHelpResult = SignatureHelp?;
+
+/// Result for a request to resolve the type definition locations of a symbol at
+/// a given text document position. The request's parameter is of type
+/// TextDocumentPositioParams the response is of type Definition or a Thenable
+/// that resolves to such.
+typedef TextDocumentTypeDefinitionResult
+    = Either2<Definition, List<DefinitionLink>>?;
+
+/// Result for a document will save request is sent from the client to the
+/// server before the document is actually saved. The request can return an
+/// array of TextEdits which will be applied to the text document before it is
+/// saved. Please note that clients might drop results if computing the text
+/// edits took too long or if a server constantly fails on this request. This is
+/// done to keep the save fast and reliable.
+typedef TextDocumentWillSaveWaitUntilResult = List<TextEdit>?;
+
+/// Result for a request to resolve the subtypes for a given
+/// `TypeHierarchyItem`.
+///
+/// @since 3.17.0
+typedef TypeHierarchySubtypesResult = List<TypeHierarchyItem>?;
+
+/// Result for a request to resolve the supertypes for a given
+/// `TypeHierarchyItem`.
+///
+/// @since 3.17.0
+typedef TypeHierarchySupertypesResult = List<TypeHierarchyItem>?;
+
+/// Result for the show message request is sent from the server to the client to
+/// show a message and a set of options actions to the user.
+typedef WindowShowMessageRequestResult = MessageActionItem?;
+
 /// A workspace diagnostic document report.
 ///
 /// @since 3.17.0
 typedef WorkspaceDocumentDiagnosticReport = Either2<
     WorkspaceFullDocumentDiagnosticReport,
     WorkspaceUnchangedDocumentDiagnosticReport>;
+
+/// Result for a request send from the client to the server to execute a
+/// command. The request might return a workspace edit which the client will
+/// apply to the workspace.
+typedef WorkspaceExecuteCommandResult = LSPAny?;
+
+/// Result for a request to list project-wide symbols matching the query string
+/// given by the WorkspaceSymbolParams. The response is of type
+/// [SymbolInformation[]](#SymbolInformation) or a Thenable that resolves to
+/// such.
+///
+/// @since 3.17.0 - support for WorkspaceSymbol in the returned data. Clients
+///  need to advertise support for WorkspaceSymbols via the client capability
+///  `workspace.symbol.resolveSupport`.
+typedef WorkspaceSymbolResult
+    = Either2<List<SymbolInformation>, List<WorkspaceSymbol>>?;
+
+/// Result for the will create files request is sent from the client to the
+/// server before files are actually created as long as the creation is
+/// triggered from within the client.
+///
+/// @since 3.16.0
+typedef WorkspaceWillCreateFilesResult = WorkspaceEdit?;
+
+/// Result for the did delete files notification is sent from the client to the
+/// server when files were deleted from within the client.
+///
+/// @since 3.16.0
+typedef WorkspaceWillDeleteFilesResult = WorkspaceEdit?;
+
+/// Result for the will rename files request is sent from the client to the
+/// server before files are actually renamed as long as the rename is triggered
+/// from within the client.
+///
+/// @since 3.16.0
+typedef WorkspaceWillRenameFilesResult = WorkspaceEdit?;
+
+/// Result for the `workspace/workspaceFolders` is sent from the server to the
+/// client to fetch the open workspace folders.
+typedef WorkspaceWorkspaceFoldersResult = List<WorkspaceFolder>?;
 
 /// A special text edit with an additional change annotation.
 ///

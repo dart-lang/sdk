@@ -1753,7 +1753,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future<ResponseMessage> sendDidChangeConfiguration() {
     final request = makeRequest(
       Method.workspace_didChangeConfiguration,
-      DidChangeConfigurationParams(settings: {}),
+      DidChangeConfigurationParams(),
     );
     return sendRequestToServer(request);
   }
