@@ -945,17 +945,26 @@ class DataSourceReader implements migrated.DataSourceReader {
     return null;
   }
 
-  /// Reads a library from library entities to [V] values
-  /// from this data source, calling [f] to read each value from the data
-  /// source. If [emptyAsNull] is `true`, `null` is returned instead of an empty
-  /// map.
+  /// Reads a library from library entities to [V] values from this data source,
+  /// calling [f] to read each value from the data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeLibraryMap].
-  Map<K, V> readLibraryMap<K extends LibraryEntity, V>(V f(),
-      {bool emptyAsNull = false}) {
+  @override
+  Map<K, V> readLibraryMap<K extends LibraryEntity, V>(V f()) {
+    return readLibraryMapOrNull<K, V>(f) ?? {};
+  }
+
+  /// Reads a library from library entities to [V] values from this data source,
+  /// calling [f] to read each value from the data source. `null` is returned
+  /// instead of an empty map.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeLibraryMap].
+  @override
+  Map<K, V> /*?*/ readLibraryMapOrNull<K extends LibraryEntity, V>(V f()) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
+    if (count == 0) return null;
     Map<K, V> map = {};
     for (int i = 0; i < count; i++) {
       LibraryEntity library = readLibrary();

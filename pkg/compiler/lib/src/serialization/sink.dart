@@ -729,6 +729,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readLibraryMap].
+  @override
   void writeLibraryMap<V>(Map<LibraryEntity, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {

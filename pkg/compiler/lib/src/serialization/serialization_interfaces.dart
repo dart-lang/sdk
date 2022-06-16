@@ -79,6 +79,8 @@ abstract class DataSinkWriter {
 
   void writeLibrary(covariant LibraryEntity value); // IndexedLibrary
   void writeLibraryOrNull(covariant LibraryEntity? value); // IndexedLibrary
+  void writeLibraryMap<V>(Map<LibraryEntity, V>? map, void f(V value),
+      {bool allowNull = false});
 
   void writeDartTypeNode(ir.DartType value);
   void writeDartTypeNodeOrNull(ir.DartType? value);
@@ -151,6 +153,8 @@ abstract class DataSourceReader {
 
   LibraryEntity readLibrary(); // IndexedLibrary;
   LibraryEntity? readLibraryOrNull(); // IndexedLibrary;
+  Map<K, V> readLibraryMap<K extends LibraryEntity, V>(V f());
+  Map<K, V>? readLibraryMapOrNull<K extends LibraryEntity, V>(V f());
 
   ir.DartType readDartTypeNode();
   ir.DartType? readDartTypeNodeOrNull();
