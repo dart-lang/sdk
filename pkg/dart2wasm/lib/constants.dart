@@ -775,7 +775,6 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   @override
   ConstantInfo? visitTypeLiteralConstant(TypeLiteralConstant constant) {
     DartType type = constant.type;
-    assert(type is! TypeParameterType);
 
     ClassInfo info = translator.classInfo[types.classForType(type)]!;
     translator.functions.allocateClass(info.classId);
@@ -796,6 +795,18 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       } else {
         return _makeFunctionType(constant, type, info);
       }
+    } else if (type is TypeParameterType) {
+      // TODO(joshualitt): Handle generic function types.
+      assert(!types.isGenericFunctionTypeParameter(type));
+      int environmentIndex =
+          types.interfaceTypeEnvironment.lookup(type.parameter);
+      return createConstant(constant, info.nonNullableType, (function, b) {
+        b.i32_const(info.classId);
+        b.i32_const(initialIdentityHash);
+        types.encodeNullability(b, type);
+        b.i32_const(environmentIndex);
+        translator.struct_new(b, info);
+      });
     } else {
       assert(type is VoidType ||
           type is NeverType ||

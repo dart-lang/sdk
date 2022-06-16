@@ -26,14 +26,18 @@ abstract class _Type implements Type {
   bool get isNull => _testID(ClassID.cidNullType);
   bool get isFutureOr => _testID(ClassID.cidFutureOrType);
   bool get isInterface => _testID(ClassID.cidInterfaceType);
+  bool get isInterfaceTypeParameterType =>
+      _testID(ClassID.cidInterfaceTypeParameterType);
   bool get isFunction => _testID(ClassID.cidFunctionType);
   bool get isGenericFunction => _testID(ClassID.cidGenericFunctionType);
 
   T as<T>() => unsafeCast<T>(this);
 
   _Type get asNonNullable => isNullable ? _asNonNullable : this;
+  _Type get asNullable => isNullable ? this : _asNullable;
 
   _Type get _asNonNullable;
+  _Type get _asNullable;
 
   @override
   bool operator ==(Object other) => ClassID.getID(this) == ClassID.getID(other);
@@ -49,6 +53,10 @@ class _NeverType extends _Type {
   @override
   _Type get _asNonNullable => this;
 
+  /// Never? normalizes to Null.
+  @override
+  _Type get _asNullable => const _NullType();
+
   @override
   String toString() => 'Never';
 }
@@ -59,6 +67,9 @@ class _DynamicType extends _Type {
 
   @override
   _Type get _asNonNullable => throw '`dynamic` type is always nullable.';
+
+  @override
+  _Type get _asNullable => this;
 
   @override
   String toString() => 'dynamic';
@@ -72,6 +83,9 @@ class _VoidType extends _Type {
   _Type get _asNonNullable => throw '`void` type is always nullable.';
 
   @override
+  _Type get _asNullable => this;
+
+  @override
   String toString() => 'void';
 }
 
@@ -83,7 +97,50 @@ class _NullType extends _Type {
   _Type get _asNonNullable => const _NeverType();
 
   @override
+  _Type get _asNullable => this;
+
+  @override
   String toString() => 'Null';
+}
+
+/// Because Interface type parameters are fundamentally different from Generic
+/// function type parameters, we are keeping these classes separate for the time
+/// being.
+@pragma("wasm:entry-point")
+class _InterfaceTypeParameterType extends _Type {
+  final int environmentIndex;
+
+  const _InterfaceTypeParameterType(super.isNullable, this.environmentIndex);
+
+  @override
+  _Type get _asNonNullable =>
+      throw 'Type parameter should have been substituted already.';
+
+  @override
+  _Type get _asNullable =>
+      throw 'Type parameter should have been substituted already.';
+
+  @override
+  String toString() => '$environmentIndex';
+}
+
+@pragma("wasm:entry-point")
+class _GenericFunctionTypeParameterType extends _Type {
+  final int environmentIndex;
+
+  const _GenericFunctionTypeParameterType(
+      super.isNullable, this.environmentIndex);
+
+  @override
+  _Type get _asNonNullable =>
+      throw 'Type parameter should have been substituted already..';
+
+  @override
+  _Type get _asNullable =>
+      throw 'Type parameter should have been substituted already.';
+
+  @override
+  String toString() => '$environmentIndex';
 }
 
 @pragma("wasm:entry-point")
@@ -101,6 +158,9 @@ class _FutureOrType extends _Type {
     if (!typeArgument.isNullable) return _FutureOrType(false, typeArgument);
     throw '`$this` cannot be non nullable.';
   }
+
+  @override
+  _Type get _asNullable => _FutureOrType(true, typeArgument);
 
   @override
   bool operator ==(Object o) {
@@ -140,6 +200,9 @@ class _InterfaceType extends _Type {
 
   @override
   _Type get _asNonNullable => _InterfaceType(classId, false, typeArguments);
+
+  @override
+  _Type get _asNullable => _InterfaceType(classId, true, typeArguments);
 
   @override
   bool operator ==(Object o) {
@@ -234,6 +297,10 @@ class _FunctionType extends _Type {
   _Type get _asNonNullable => _FunctionType(returnType, positionalParameters,
       requiredParameterCount, namedParameters, false);
 
+  @override
+  _Type get _asNullable => _FunctionType(returnType, positionalParameters,
+      requiredParameterCount, namedParameters, true);
+
   bool operator ==(Object o) {
     if (!(super == o)) return false;
     _FunctionType other = unsafeCast<_FunctionType>(o);
@@ -305,19 +372,63 @@ class _GenericFunctionType extends _Type {
   _Type get _asNonNullable => throw 'unimplemented';
 
   @override
+  _Type get _asNullable => throw 'unimplemented';
+
+  @override
   String toString() => 'GenericFunctionType';
 }
 
-external Map<int, List<int>> _getSubtypeMap();
+external List<List<int>> _getTypeRulesSupers();
+external List<List<List<_Type>>> _getTypeRulesSubstitutions();
+
+class _Environment {
+  List<List<_Type>> scopes = [];
+
+  _Environment();
+
+  factory _Environment.from(List<_Type> initialScope) {
+    final env = _Environment();
+    env.push(initialScope);
+    return env;
+  }
+
+  void push(List<_Type> scope) => scopes.add(scope);
+
+  void pop() => scopes.removeLast();
+
+  _Type _substituteTypeParameter(bool declaredNullable, _Type type) {
+    // If the type parameter is non-nullable, or the substitution type is
+    // nullable, then just return the substitution type. Otherwise, we return
+    // [type] as nullable.
+    // Note: This will throw if the required nullability is impossible to
+    // generate.
+    if (!declaredNullable || type.isNullable) {
+      return type;
+    }
+    return type.asNullable;
+  }
+
+  _Type lookup(_InterfaceTypeParameterType typeParameter) {
+    // Lookup `InterfaceType` parameters in the top environment.
+    // TODO(joshualitt): When we implement generic functions be sure to keep the
+    // environments distinct.
+    return _substituteTypeParameter(
+        typeParameter.isNullable, scopes.last[typeParameter.environmentIndex]);
+  }
+}
 
 class _TypeUniverse {
-  /// 'Map' of classId to range of subclasses.
-  final Map<int, List<int>> _subtypeMap;
+  /// 'Map' of classId to the transitive set of super classes it implements.
+  final List<List<int>> typeRulesSupers;
 
-  const _TypeUniverse._(this._subtypeMap);
+  /// 'Map' of classId, and super offset(from [typeRulesSupers]) to a list of
+  /// type substitutions.
+  final List<List<List<_Type>>> typeRulesSubstitutions;
+
+  const _TypeUniverse._(this.typeRulesSupers, this.typeRulesSubstitutions);
 
   factory _TypeUniverse.create() {
-    return _TypeUniverse._(_getSubtypeMap());
+    return _TypeUniverse._(_getTypeRulesSupers(), _getTypeRulesSubstitutions());
   }
 
   bool isSpecificInterfaceType(_Type t, int classId) {
@@ -341,27 +452,55 @@ class _TypeUniverse {
   bool isFunctionType(_Type t) =>
       isSpecificInterfaceType(t, ClassID.cidFunction);
 
-  bool isInterfaceSubtype(_InterfaceType s, _InterfaceType t) {
-    int sId = s.classId;
-    int tId = t.classId;
-    if (sId == tId) {
-      assert(s.typeArguments.length == t.typeArguments.length);
-      for (int i = 0; i < s.typeArguments.length; i++) {
-        if (!isSubtype(s.typeArguments[i], t.typeArguments[i])) {
-          return false;
-        }
+  bool areTypeArgumentsSubtypes(List<_Type> sArgs, _Environment? sEnv,
+      List<_Type> tArgs, _Environment? tEnv) {
+    assert(sArgs.length == tArgs.length);
+    for (int i = 0; i < sArgs.length; i++) {
+      if (!isSubtype(sArgs[i], sEnv, tArgs[i], tEnv)) {
+        return false;
       }
-      return true;
     }
-    List<int>? subtypes = _subtypeMap[tId];
-    if (subtypes == null) return false;
-    if (!subtypes.contains(sId)) return false;
-    // TODO(joshualitt): Compare type arguments.
     return true;
   }
 
-  bool isFunctionSubtype(_FunctionType s, _FunctionType t) {
-    if (!isSubtype(s.returnType, t.returnType)) return false;
+  bool isInterfaceSubtype(_InterfaceType s, _Environment? sEnv,
+      _InterfaceType t, _Environment? tEnv) {
+    int sId = s.classId;
+    int tId = t.classId;
+
+    // If we have the same class, simply compare type arguments.
+    if (sId == tId) {
+      return areTypeArgumentsSubtypes(
+          s.typeArguments, sEnv, t.typeArguments, tEnv);
+    }
+
+    // Otherwise, check if [s] is a subtype of [t], and if it is then compare
+    // [s]'s type substitutions with [t]'s type arguments.
+    List<int> sSupers = typeRulesSupers[sId];
+    if (sSupers.isEmpty) return false;
+    int sSuperIndexOfT = sSupers.indexOf(tId);
+    if (sSuperIndexOfT == -1) return false;
+    assert(sSuperIndexOfT < typeRulesSubstitutions[sId].length);
+
+    List<_Type> substitutions = typeRulesSubstitutions[sId][sSuperIndexOfT];
+
+    // If [sEnv] is null, then create a new environment. Otherwise, we are doing
+    // a recursive type check, so extend the existing environment with [s]'s
+    // type arguments.
+    if (sEnv == null) {
+      sEnv = _Environment.from(s.typeArguments);
+    } else {
+      sEnv.push(s.typeArguments);
+    }
+    bool result =
+        areTypeArgumentsSubtypes(substitutions, sEnv, t.typeArguments, tEnv);
+    sEnv.pop();
+    return result;
+  }
+
+  bool isFunctionSubtype(_FunctionType s, _Environment? sEnv, _FunctionType t,
+      _Environment? tEnv) {
+    if (!isSubtype(s.returnType, sEnv, t.returnType, tEnv)) return false;
 
     // Check [s] does not have more required positional arguments than [t].
     int sRequiredCount = s.requiredParameterCount;
@@ -385,7 +524,7 @@ class _TypeUniverse {
     for (int i = 0; i < tPositionalLength; i++) {
       _Type sParameter = sPositional[i];
       _Type tParameter = tPositional[i];
-      if (!isSubtype(tParameter, sParameter)) {
+      if (!isSubtype(tParameter, tEnv, sParameter, sEnv)) {
         return false;
       }
     }
@@ -414,7 +553,8 @@ class _TypeUniverse {
         }
         bool tIsRequired = tNamedParameter.isRequired;
         if (sIsRequired && !tIsRequired) return false;
-        if (!isSubtype(tNamedParameter.type, sNamedParameter.type)) {
+        if (!isSubtype(
+            tNamedParameter.type, tEnv, sNamedParameter.type, sEnv)) {
           return false;
         }
         break;
@@ -428,7 +568,7 @@ class _TypeUniverse {
 
   // Subtype check based off of sdk/lib/_internal/js_runtime/lib/rti.dart.
   // Returns true if [s] is a subtype of [t], false otherwise.
-  bool isSubtype(_Type s, _Type t) {
+  bool isSubtype(_Type s, _Environment? sEnv, _Type t, _Environment? tEnv) {
     // Reflexivity:
     if (identical(s, t)) return true;
 
@@ -442,7 +582,11 @@ class _TypeUniverse {
     if (isBottomType(s)) return true;
 
     // Left Type Variable Bound 1:
-    // TODO(joshualitt): Implement.
+    // TODO(joshualitt): Implement for generic function type parameters.
+    if (s.isInterfaceTypeParameterType) {
+      return isSubtype(
+          sEnv!.lookup(s.as<_InterfaceTypeParameterType>()), sEnv, t, tEnv);
+    }
 
     // Left Null:
     // TODO(joshualitt): Combine with 'Right Null', and this can just be:
@@ -459,7 +603,7 @@ class _TypeUniverse {
     // Left FutureOr:
     if (s.isFutureOr) {
       _FutureOrType sFutureOr = s.as<_FutureOrType>();
-      if (!isSubtype(sFutureOr.typeArgument, t)) {
+      if (!isSubtype(sFutureOr.typeArgument, sEnv, t, tEnv)) {
         return false;
       }
       return _isSubtype(sFutureOr.asFuture, t);
@@ -467,7 +611,7 @@ class _TypeUniverse {
 
     // Left Nullable:
     if (s.isNullable) {
-      return t.isNullable && isSubtype(s.asNonNullable, t);
+      return t.isNullable && isSubtype(s.asNonNullable, sEnv, t, tEnv);
     }
 
     // Type Variable Reflexivity 1 is subsumed by Reflexivity and therefore
@@ -478,15 +622,15 @@ class _TypeUniverse {
     // Right FutureOr:
     if (t.isFutureOr) {
       _FutureOrType tFutureOr = t.as<_FutureOrType>();
-      if (isSubtype(s, tFutureOr.typeArgument)) {
+      if (isSubtype(s, sEnv, tFutureOr.typeArgument, tEnv)) {
         return true;
       }
-      return isSubtype(s, tFutureOr.asFuture);
+      return isSubtype(s, sEnv, tFutureOr.asFuture, tEnv);
     }
 
     // Right Nullable:
     if (t.isNullable) {
-      return isSubtype(s, t.asNonNullable);
+      return isSubtype(s, sEnv, t.asNonNullable, tEnv);
     }
 
     // Left Promoted Variable does not apply at runtime.
@@ -506,13 +650,15 @@ class _TypeUniverse {
     }
 
     if (s.isFunction && t.isFunction) {
-      return isFunctionSubtype(s.as<_FunctionType>(), t.as<_FunctionType>());
+      return isFunctionSubtype(
+          s.as<_FunctionType>(), sEnv, t.as<_FunctionType>(), tEnv);
     }
 
     // Interface Compositionality + Super-Interface:
     if (s.isInterface &&
         t.isInterface &&
-        isInterfaceSubtype(s.as<_InterfaceType>(), t.as<_InterfaceType>())) {
+        isInterfaceSubtype(
+            s.as<_InterfaceType>(), sEnv, t.as<_InterfaceType>(), tEnv)) {
       return true;
     }
     return false;
@@ -523,5 +669,6 @@ _TypeUniverse _typeUniverse = _TypeUniverse.create();
 
 @pragma("wasm:entry-point")
 bool _isSubtype(Object? s, _Type t) {
-  return _typeUniverse.isSubtype(unsafeCast<_Type>(s.runtimeType), t);
+  return _typeUniverse.isSubtype(
+      unsafeCast<_Type>(s.runtimeType), null, t, null);
 }

@@ -97,6 +97,8 @@ class Translator {
   late final Class interfaceTypeClass;
   late final Class functionTypeClass;
   late final Class genericFunctionTypeClass;
+  late final Class interfaceTypeParameterTypeClass;
+  late final Class genericFunctionTypeParameterTypeClass;
   late final Class namedParameterClass;
   late final Class stackTraceClass;
   late final Class ffiCompoundClass;
@@ -119,7 +121,6 @@ class Translator {
   late final Procedure setFactory;
   late final Procedure setAdd;
   late final Procedure hashImmutableIndexNullable;
-  // TODO(joshualitt): Wire up runtime type checks.
   late final Procedure isSubtype;
   late final Map<Class, w.StorageType> builtinTypes;
   late final Map<w.ValueType, Class> boxedClasses;
@@ -213,6 +214,9 @@ class Translator {
     interfaceTypeClass = lookupCore("_InterfaceType");
     functionTypeClass = lookupCore("_FunctionType");
     genericFunctionTypeClass = lookupCore("_GenericFunctionType");
+    interfaceTypeParameterTypeClass = lookupCore("_InterfaceTypeParameterType");
+    genericFunctionTypeParameterTypeClass =
+        lookupCore("_GenericFunctionTypeParameterType");
     namedParameterClass = lookupCore("_NamedParameter");
     stackTraceClass = lookupCore("StackTrace");
     typeUniverseClass = lookupCore("_TypeUniverse");

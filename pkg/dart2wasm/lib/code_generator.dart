@@ -422,8 +422,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         StringLiteral(expected),
         translator
             .translateType(translator.coreTypes.stringNonNullableRawType));
-    _call(translator.stackTraceCurrent.reference);
-    _call(translator.throwWasmRefError.reference);
+    call(translator.stackTraceCurrent.reference);
+    call(translator.throwWasmRefError.reference);
     b.unreachable();
   }
 
@@ -436,7 +436,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     return expectedType;
   }
 
-  w.ValueType _call(Reference target) {
+  w.ValueType call(Reference target) {
     w.BaseFunction targetFunction = translator.functions.getFunction(target);
     if (translator.shouldInline(target)) {
       List<w.Local> inlinedLocals =
@@ -492,7 +492,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           this, TypeParameterType(typeParam, Nullability.nonNullable));
     }
     _visitArguments(node.arguments, node.targetReference, 1);
-    _call(node.targetReference);
+    call(node.targetReference);
   }
 
   @override
@@ -511,7 +511,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
     _visitArguments(node.arguments, node.targetReference,
         1 + supertype.typeArguments.length);
-    _call(node.targetReference);
+    call(node.targetReference);
   }
 
   @override
@@ -910,7 +910,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       nonNullableType =
           translator.classInfo[translator.stringBaseClass]!.nonNullableType;
       nullableType = nonNullableType.withNullability(true);
-      compare = () => _call(translator.stringEquals.reference);
+      compare = () => call(translator.stringEquals.reference);
     } else {
       // Object switch
       assert(check<InvalidExpression, InstanceConstant>());
@@ -1108,7 +1108,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.ref_as_non_null();
     }
     _visitArguments(node.arguments, node.targetReference, 1);
-    _call(node.targetReference);
+    call(node.targetReference);
     if (expectedType != voidMarker) {
       b.local_get(temp);
       return temp.type;
@@ -1124,7 +1124,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (intrinsicResult != null) return intrinsicResult;
 
     _visitArguments(node.arguments, node.targetReference, 0);
-    return _call(node.targetReference);
+    return call(node.targetReference);
   }
 
   Member _lookupSuperTarget(Member interfaceTarget, {required bool setter}) {
@@ -1143,7 +1143,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.ValueType thisType = visitThis(receiverType);
     translator.convertType(function, thisType, receiverType);
     _visitArguments(node.arguments, target, 1);
-    return _call(target);
+    return call(target);
   }
 
   @override
@@ -1182,7 +1182,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           translator.functions.getFunction(singleTarget.reference);
       wrap(node.receiver, targetFunction.type.inputs.first);
       _visitArguments(node.arguments, node.interfaceTargetReference, 1);
-      return _call(singleTarget.reference);
+      return call(singleTarget.reference);
     }
     return _virtualCall(node, target,
         (signature) => wrap(node.receiver, signature.inputs.first), (_) {
@@ -1258,7 +1258,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       if (singleTarget != null) {
         left();
         right();
-        _call(singleTarget.reference);
+        call(singleTarget.reference);
       } else {
         _virtualCall(node, node.interfaceTarget, left, right,
             getter: false, setter: false);
@@ -1307,7 +1307,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       assert(selector.targetCount <= 1);
       if (selector.targetCount == 1) {
         pushArguments(selector.signature);
-        return _call(selector.singularTarget!);
+        return call(selector.singularTarget!);
       } else {
         b.comment("Virtual call of ${selector.name} with no targets"
             " at ${node.location}");
@@ -1367,7 +1367,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           b.i32_const(id);
           b.i32_eq();
           b.if_(selector.signature.inputs, selector.signature.inputs);
-          _call(target);
+          call(target);
           b.br(block);
           b.end();
           implementations.remove(id);
@@ -1387,7 +1387,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.i32_const(pivotId);
       b.i32_lt_u();
       b.if_(selector.signature.inputs, selector.signature.inputs);
-      _call(target);
+      call(target);
       b.br(block);
       b.end();
       for (int id in sorted) {
@@ -1398,7 +1398,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
     // Call remaining implementation.
     Reference target = implementations.values.first;
-    _call(target);
+    call(target);
     b.end();
   }
 
@@ -1468,7 +1468,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (target is Field) {
       return translator.globals.readGlobal(b, target);
     } else {
-      return _call(target.reference);
+      return call(target.reference);
     }
   }
 
@@ -1502,7 +1502,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         temp = addLocal(translateType(dartTypeOf(node.value)));
         b.local_tee(temp);
       }
-      _call(target.reference);
+      call(target.reference);
       if (preserved) {
         b.local_get(temp!);
         return temp.type;
@@ -1622,7 +1622,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       w.BaseFunction targetFunction =
           translator.functions.getFunction(target.reference);
       wrap(receiver, targetFunction.type.inputs.single);
-      return _call(target.reference);
+      return call(target.reference);
     }
   }
 
@@ -1688,7 +1688,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.local_tee(temp);
         translator.convertType(function, temp.type, paramType);
       }
-      _call(target.reference);
+      call(target.reference);
     }
     if (preserved) {
       b.local_get(temp!);
@@ -1853,8 +1853,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // We lower a null check to a br_on_non_null, throwing a [TypeError] in the
     // null case.
     b.br_on_non_null(nullCheckBlock);
-    _call(translator.stackTraceCurrent.reference);
-    _call(translator.throwNullCheckError.reference);
+    call(translator.stackTraceCurrent.reference);
+    call(translator.throwNullCheckError.reference);
     b.unreachable();
     b.end();
     return nonNullOperandType;
@@ -1905,13 +1905,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       StringConcatenation node, w.ValueType expectedType) {
     makeList(node.expressions, translator.fixedLengthListClass,
         InterfaceType(translator.stringBaseClass, Nullability.nonNullable));
-    return _call(translator.stringInterpolate.reference);
+    return call(translator.stringInterpolate.reference);
   }
 
   @override
   w.ValueType visitThrow(Throw node, w.ValueType expectedType) {
     wrap(node.expression, translator.topInfo.nonNullableType);
-    _call(translator.stackTraceCurrent.reference);
+    call(translator.stackTraceCurrent.reference);
 
     // At this point, we have the exception and the current stack trace on the
     // stack, so just throw them using the exception tag.
@@ -2101,8 +2101,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b.br_if(asCheckBlock);
     b.local_get(operand);
     types.makeType(this, node.type);
-    _call(translator.stackTraceCurrent.reference);
-    _call(translator.throwAsCheckError.reference);
+    call(translator.stackTraceCurrent.reference);
+    call(translator.throwAsCheckError.reference);
     b.unreachable();
     b.end();
     b.local_get(operand);

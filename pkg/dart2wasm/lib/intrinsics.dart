@@ -639,8 +639,10 @@ class Intrinsifier {
           codeGen.wrap(stackTrace, stackTraceType);
           b.throw_(translator.exceptionTag);
           return codeGen.voidMarker;
-        case "_getSubtypeMap":
-          return translator.types.makeSubtypeMap(b);
+        case "_getTypeRulesSupers":
+          return translator.types.makeTypeRulesSupers(b);
+        case "_getTypeRulesSubstitutions":
+          return translator.types.makeTypeRulesSubstitutions(b);
       }
     }
 

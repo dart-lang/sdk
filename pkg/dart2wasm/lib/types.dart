@@ -7,8 +7,26 @@ import 'package:dart2wasm/code_generator.dart';
 import 'package:dart2wasm/translator.dart';
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+class InterfaceTypeEnvironment {
+  final Map<TypeParameter, int> typeOffsets = {};
+
+  void _add(InterfaceType type) {
+    Class cls = type.classNode;
+    if (typeOffsets.containsKey(cls)) {
+      return;
+    }
+    int i = 0;
+    for (TypeParameter typeParameter in cls.typeParameters) {
+      typeOffsets[typeParameter] = i++;
+    }
+  }
+
+  int lookup(TypeParameter typeParameter) => typeOffsets[typeParameter]!;
+}
 
 /// Helper class for building runtime types.
 class Types {
@@ -18,6 +36,32 @@ class Types {
       translator.interfaceTypeClass, FieldIndex.interfaceTypeTypeArguments);
   late final w.ValueType namedParametersExpectedType = classAndFieldToType(
       translator.functionTypeClass, FieldIndex.functionTypeNamedParameters);
+
+  /// A mapping from concrete subclass `classID` to [Map]s of superclass
+  /// `classID` and the necessary substitutions which must be performed to test
+  /// for a valid subtyping relationship.
+  late final Map<int, Map<int, List<DartType>>> typeRules = _buildTypeRules();
+
+  /// We will build the [interfaceTypeEnvironment] when building the
+  /// [typeRules].
+  final InterfaceTypeEnvironment interfaceTypeEnvironment =
+      InterfaceTypeEnvironment();
+
+  /// Because we can't currently support [Map]s in our `TypeUniverse`, we have
+  /// to decompose [typeRules] into two [Map]s based on [List]s.
+  ///
+  /// [typeRulesSupers] is a [List] where the index in the list is a subclasses'
+  /// `classID` and the value at that index is a [List] of superclass
+  /// `classID`s.
+  late final List<List<int>> typeRulesSupers = _buildTypeRulesSupers();
+
+  /// [typeRulesSubstitutions] is a [List] where the index in the list is a
+  /// subclasses' `classID` and the value at that index is a [List] indexed by
+  /// the index of the superclasses' `classID` in [typeRulesSuper] and the value
+  /// at that index is a [List] of [DartType]s which must be substituted for the
+  /// subtyping relationship to be valid.
+  late final List<List<List<DartType>>> typeRulesSubstitutions =
+      _buildTypeRulesSubstitutions();
 
   Types(this.translator);
 
@@ -34,45 +78,134 @@ class Types {
   InterfaceType get namedParameterType =>
       InterfaceType(translator.namedParameterClass, Nullability.nonNullable);
 
-  /// Build a [Map<int, List<int>>] to store subtype information.
-  Map<int, List<int>> _buildSubtypeMap() {
-    List<ClassInfo> classes = translator.classes;
-    Map<int, List<int>> subtypeMap = {};
-    for (ClassInfo classInfo in classes) {
-      if (classInfo.cls == null) continue;
-      List<int> classIds = _getConcreteSubtypes(classInfo.cls!)
-          .map((cls) => translator.classInfo[cls]!.classId)
-          .where((classId) => classId != classInfo.classId)
-          .toList();
+  CoreTypes get coreTypes => translator.coreTypes;
 
-      if (classIds.isEmpty) continue;
-      subtypeMap[classInfo.classId] = classIds;
+  /// Builds a [Map<int, Map<int, List<DartType>>>] to store subtype
+  /// information.  The first key is the class id of a subtype. This returns a
+  /// map where each key is the class id of a transitively implemented super
+  /// type and each value is a list of the necessary type substitutions required
+  /// for the subtyping relationship to be valid.
+  Map<int, Map<int, List<DartType>>> _buildTypeRules() {
+    List<ClassInfo> classes = translator.classes;
+    Map<int, Map<int, List<DartType>>> subtypeMap = {};
+    for (ClassInfo classInfo in classes) {
+      ClassInfo superclassInfo = classInfo;
+
+      // We don't need type rules for any class without a superclass, or for
+      // classes whose supertype is [Object]. The latter case will be handled
+      // directly in the subtype checking algorithm.
+      if (superclassInfo.cls == null ||
+          superclassInfo.cls == coreTypes.objectClass) continue;
+      Class superclass = superclassInfo.cls!;
+      Iterable<Class> subclasses =
+          _getConcreteSubtypes(superclass).where((cls) => cls != superclass);
+      Iterable<InterfaceType> subtypes = subclasses.map(
+          (Class cls) => cls.getThisType(coreTypes, Nullability.nonNullable));
+      for (InterfaceType subtype in subtypes) {
+        interfaceTypeEnvironment._add(subtype);
+        List<DartType>? typeArguments = translator.hierarchy
+            .getTypeArgumentsAsInstanceOf(subtype, superclass);
+        ClassInfo subclassInfo = translator.classInfo[subtype.classNode]!;
+        Map<int, List<DartType>> substitutionMap =
+            subtypeMap[subclassInfo.classId] ??= {};
+        substitutionMap[superclassInfo.classId] = typeArguments ?? const [];
+      }
     }
     return subtypeMap;
   }
 
-  /// Builds the subtype map and pushes it onto the stack.
-  w.ValueType makeSubtypeMap(w.Instructions b) {
-    // Instantiate subtype map constant.
-    Map<int, List<int>> subtypeMap = _buildSubtypeMap();
-    ClassInfo immutableMapInfo =
-        translator.classInfo[translator.immutableMapClass]!;
-    w.ValueType expectedType = immutableMapInfo.nonNullableType;
-    DartType mapAndSetKeyType = translator.coreTypes.intNonNullableRawType;
-    DartType mapValueType = InterfaceType(translator.immutableListClass,
-        Nullability.nonNullable, [mapAndSetKeyType]);
-    List<ConstantMapEntry> entries = subtypeMap.entries.map((mapEntry) {
-      return ConstantMapEntry(
-          IntConstant(mapEntry.key),
-          ListConstant(mapAndSetKeyType,
-              mapEntry.value.map((i) => IntConstant(i)).toList()));
-    }).toList();
-    translator.constants.instantiateConstant(null, b,
-        MapConstant(mapAndSetKeyType, mapValueType, entries), expectedType);
+  List<List<int>> _buildTypeRulesSupers() {
+    List<List<int>> typeRulesSupers = [];
+    for (int i = 0; i < translator.classInfoCollector.nextClassId; i++) {
+      List<int>? superclassIds = typeRules[i]?.keys.toList();
+      if (superclassIds == null) {
+        typeRulesSupers.add(const []);
+      } else {
+        superclassIds.sort();
+        typeRulesSupers.add(superclassIds);
+      }
+    }
+    return typeRulesSupers;
+  }
+
+  List<List<List<DartType>>> _buildTypeRulesSubstitutions() {
+    List<List<List<DartType>>> typeRulesSubstitutions = [];
+    for (int i = 0; i < translator.classInfoCollector.nextClassId; i++) {
+      List<int> supers = typeRulesSupers[i];
+      typeRulesSubstitutions.add(supers.isEmpty ? const [] : []);
+      for (int j = 0; j < supers.length; j++) {
+        int superId = supers[j];
+        typeRulesSubstitutions.last.add(typeRules[i]![superId]!);
+      }
+    }
+    return typeRulesSubstitutions;
+  }
+
+  /// Builds a map of subclasses to the transitive set of superclasses they
+  /// implement.
+  /// TODO(joshualitt): This implementation is just temporary. Eventually we
+  /// should move to a data structure more closely resembling [typeRules].
+  w.ValueType makeTypeRulesSupers(w.Instructions b) {
+    w.ValueType expectedType =
+        translator.classInfo[translator.immutableListClass]!.nonNullableType;
+    DartType listIntType = InterfaceType(translator.immutableListClass,
+        Nullability.nonNullable, [translator.coreTypes.intNonNullableRawType]);
+    List<ListConstant> listIntConstant = [];
+    for (List<int> supers in typeRulesSupers) {
+      listIntConstant.add(ListConstant(
+          listIntType, supers.map((i) => IntConstant(i)).toList()));
+    }
+    DartType listListIntType = InterfaceType(
+        translator.immutableListClass, Nullability.nonNullable, [listIntType]);
+    translator.constants.instantiateConstant(
+        null, b, ListConstant(listListIntType, listIntConstant), expectedType);
+    return expectedType;
+  }
+
+  /// Similar to the above, but provides the substitutions required for each
+  /// supertype.
+  /// TODO(joshualitt): Like [makeTypeRulesSupers], this is just temporary.
+  w.ValueType makeTypeRulesSubstitutions(w.Instructions b) {
+    w.ValueType expectedType =
+        translator.classInfo[translator.immutableListClass]!.nonNullableType;
+    DartType listTypeType = InterfaceType(
+        translator.immutableListClass,
+        Nullability.nonNullable,
+        [translator.typeClass.getThisType(coreTypes, Nullability.nonNullable)]);
+    DartType listListTypeType = InterfaceType(
+        translator.immutableListClass, Nullability.nonNullable, [listTypeType]);
+    DartType listListListTypeType = InterfaceType(translator.immutableListClass,
+        Nullability.nonNullable, [listListTypeType]);
+    List<ListConstant> substitutionsConstantL0 = [];
+    for (List<List<DartType>> substitutionsL1 in typeRulesSubstitutions) {
+      List<ListConstant> substitutionsConstantL1 = [];
+      for (List<DartType> substitutionsL2 in substitutionsL1) {
+        substitutionsConstantL1.add(ListConstant(
+            listTypeType,
+            substitutionsL2.map((t) {
+              // TODO(joshualitt): implement generic functions
+              if (t is FunctionType && isGenericFunction(t)) {
+                return TypeLiteralConstant(DynamicType());
+              } else {
+                return TypeLiteralConstant(t);
+              }
+            }).toList()));
+      }
+      substitutionsConstantL0
+          .add(ListConstant(listListTypeType, substitutionsConstantL1));
+    }
+    translator.constants.instantiateConstant(
+        null,
+        b,
+        ListConstant(listListListTypeType, substitutionsConstantL0),
+        expectedType);
     return expectedType;
   }
 
   bool isGenericFunction(FunctionType type) => type.typeParameters.isNotEmpty;
+
+  bool isGenericFunctionTypeParameter(TypeParameterType type) =>
+      type.parameter.parent == null;
 
   bool _isTypeConstant(DartType type) {
     return type is DynamicType ||
@@ -112,6 +245,12 @@ class Types {
         return translator.genericFunctionTypeClass;
       } else {
         return translator.functionTypeClass;
+      }
+    } else if (type is TypeParameterType) {
+      if (isGenericFunctionTypeParameter(type)) {
+        return translator.genericFunctionTypeParameterTypeClass;
+      } else {
+        return translator.interfaceTypeParameterTypeClass;
       }
     }
     throw "Unexpected DartType: $type";
@@ -251,7 +390,9 @@ class Types {
       TreeNode node) {
     w.Instructions b = codeGen.b;
     if (type is! InterfaceType) {
-      // TODO(askesc): Implement type test for remaining types
+      // TODO(joshualitt): We can enable this after fixing `.runtimeType`.
+      // makeType(codeGen, type);
+      // codeGen.call(translator.isSubtype.reference);
       print("Not implemented: Type test with non-interface type $type"
           " at ${node.location}");
       b.drop();
@@ -284,7 +425,7 @@ class Types {
       }
     }
     List<Class> concrete = _getConcreteSubtypes(type.classNode).toList();
-    if (type.classNode == translator.coreTypes.functionClass) {
+    if (type.classNode == coreTypes.functionClass) {
       ClassInfo functionInfo = translator.classInfo[translator.functionClass]!;
       translator.ref_test(b, functionInfo);
     } else if (concrete.isEmpty) {
