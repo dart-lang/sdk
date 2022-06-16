@@ -50,12 +50,20 @@ try {
 ''';
 
 class EmptyCatches extends LintRule {
+  static const LintCode code = LintCode('empty_catches', 'Empty catch block.',
+      correctionMessage:
+          'Try adding statements to the block, adding a comment to the block, '
+          "or removing the 'catch' clause.");
+
   EmptyCatches()
       : super(
             name: 'empty_catches',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

@@ -46,12 +46,20 @@ dependencies:
 ''';
 
 class DependOnReferencedPackages extends LintRule {
+  static const LintCode code = LintCode('depend_on_referenced_packages',
+      "The imported package '{0}' isn't a dependency of the importing package.",
+      correctionMessage:
+          "Try adding a dependency for '{0}' in the 'pubspec.yaml' file.");
+
   DependOnReferencedPackages()
       : super(
             name: 'depend_on_referenced_packages',
             description: _desc,
             details: _details,
             group: Group.pub);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -115,6 +123,6 @@ class _Visitor extends SimpleAstVisitor {
     var packageName = uriContent.substring(8, firstSlash);
     if (virtualPackages.contains(packageName)) return;
     if (availableDeps.contains(packageName)) return;
-    rule.reportLint(node.uri);
+    rule.reportLint(node.uri, arguments: [packageName]);
   }
 }

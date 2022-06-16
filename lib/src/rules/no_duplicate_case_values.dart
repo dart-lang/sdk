@@ -39,8 +39,11 @@ switch (v) {
 ''';
 
 class NoDuplicateCaseValues extends LintRule {
-  static const LintCode code = LintCode('no_duplicate_case_values',
-      'Do not use more than one case with same value ({0} and {1})');
+  static const LintCode code = LintCode(
+      'no_duplicate_case_values',
+      "The value of the case clause ('{0}') is equal to the value of an "
+          "earlier case clause ('{1}').",
+      correctionMessage: 'Try removing or changing the value.');
 
   NoDuplicateCaseValues()
       : super(
@@ -48,6 +51,9 @@ class NoDuplicateCaseValues extends LintRule {
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -84,8 +90,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         //  pointing at the `duplicateValue`.
         if (duplicateValue != null) {
           rule.reportLint(expression,
-              errorCode: NoDuplicateCaseValues.code,
-              arguments: [duplicateValue.toString(), expression.toString()]);
+              arguments: [expression.toString(), duplicateValue.toString()]);
         } else {
           values[value] = expression;
         }

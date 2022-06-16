@@ -49,7 +49,7 @@ class AvoidRelativeLibImports extends LintRule {
           'import.');
 
   @override
-  LintCode get lintCode => AvoidRelativeLibImports.code;
+  LintCode get lintCode => code;
 
   AvoidRelativeLibImports()
       : super(

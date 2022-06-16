@@ -32,12 +32,20 @@ extension SmartIterable<T> on Iterable<T> {
 ''';
 
 class CamelCaseExtensions extends LintRule {
+  static const LintCode code = LintCode('camel_case_extensions',
+      "The extension name '{0}' isn't an UpperCamelCase identifier.",
+      correctionMessage:
+          'Try changing the name to follow the UpperCamelCase style.');
+
   CamelCaseExtensions()
       : super(
             name: 'camel_case_extensions',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -56,7 +64,7 @@ class _Visitor extends SimpleAstVisitor {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     var name = node.name;
     if (name != null && !isCamelCase(name.name)) {
-      rule.reportLint(name);
+      rule.reportLint(name, arguments: [name.name]);
     }
   }
 }

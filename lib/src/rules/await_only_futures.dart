@@ -35,12 +35,20 @@ main() async {
 ''';
 
 class AwaitOnlyFutures extends LintRule {
+  static const LintCode code = LintCode('await_only_futures',
+      "Uses 'await' on an instance of '{0}', which is not a subtype of 'Future'.",
+      correctionMessage:
+          "Try removing the 'await' or changing the expression.");
+
   AwaitOnlyFutures()
       : super(
             name: 'await_only_futures',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -51,9 +59,6 @@ class AwaitOnlyFutures extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  static const LintCode _errorCode = LintCode('await_only_futures',
-      "'await' applied to '{0}', which is not a 'Future'.");
-
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -69,8 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         DartTypeUtilities.extendsClass(type, 'Future', 'dart.async') ||
         DartTypeUtilities.implementsInterface(type, 'Future', 'dart.async') ||
         DartTypeUtilities.isClass(type, 'FutureOr', 'dart.async'))) {
-      rule.reportLintForToken(node.awaitKeyword,
-          errorCode: _errorCode, arguments: [type]);
+      rule.reportLintForToken(node.awaitKeyword, arguments: [type]);
     }
   }
 }

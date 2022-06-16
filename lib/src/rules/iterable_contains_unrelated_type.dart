@@ -131,7 +131,7 @@ class IterableContainsUnrelatedType extends LintRule {
             group: Group.errors);
 
   @override
-  LintCode get lintCode => IterableContainsUnrelatedType.code;
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

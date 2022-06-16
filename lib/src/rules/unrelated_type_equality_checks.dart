@@ -157,12 +157,19 @@ bool _isFixNumIntX(DartType type) {
 }
 
 class UnrelatedTypeEqualityChecks extends LintRule {
+  static const LintCode code = LintCode('unrelated_type_equality_checks',
+      "Neither type of the operands of '==' is a subtype of the other.",
+      correctionMessage: 'Try changing one or both of the operands.');
+
   UnrelatedTypeEqualityChecks()
       : super(
             name: 'unrelated_type_equality_checks',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
