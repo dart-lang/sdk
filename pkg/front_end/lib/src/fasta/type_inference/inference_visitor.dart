@@ -6046,7 +6046,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       StaticSet node, DartType typeContext) {
     Member writeMember = node.target;
     DartType writeContext = writeMember.setterType;
-    TypeInferenceEngine.resolveInferenceNode(writeMember);
+    TypeInferenceEngine.resolveInferenceNode(writeMember, classHierarchy);
     ExpressionInferenceResult rhsResult =
         inferExpression(node.value, writeContext, true, isVoidAllowed: true);
     rhsResult = ensureAssignableResult(writeContext, rhsResult,
@@ -6061,7 +6061,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ExpressionInferenceResult visitStaticGet(
       StaticGet node, DartType typeContext) {
     Member target = node.target;
-    TypeInferenceEngine.resolveInferenceNode(target);
+    TypeInferenceEngine.resolveInferenceNode(target, classHierarchy);
     DartType type = target.getterType;
 
     if (!isNonNullableByDefault) {

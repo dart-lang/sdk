@@ -246,6 +246,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// `true` if this is an augmentation library.
   final bool isAugmentation;
 
+  /// Map from synthesized names used for omitted types to their corresponding
+  /// synthesized type declarations.
+  ///
+  /// This is used in macro generated code to create type annotations from
+  /// inferred types in the original code.
+  final Map<String, Builder>? _omittedTypeDeclarationBuilders;
+
   SourceLibraryBuilder.internal(
       SourceLoader loader,
       Uri fileUri,
@@ -258,7 +265,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Library? referencesFrom,
       {bool? referenceIsPartOwner,
       required bool isUnsupported,
-      required bool isAugmentation})
+      required bool isAugmentation,
+      Map<String, Builder>? omittedTypes})
       : this.fromScopes(
             loader,
             fileUri,
@@ -271,7 +279,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             nameOrigin,
             referencesFrom,
             isUnsupported: isUnsupported,
-            isAugmentation: isAugmentation);
+            isAugmentation: isAugmentation,
+            omittedTypes: omittedTypes);
 
   SourceLibraryBuilder.fromScopes(
       this.loader,
@@ -285,13 +294,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       this._nameOrigin,
       this.referencesFrom,
       {required this.isUnsupported,
-      required this.isAugmentation})
+      required this.isAugmentation,
+      Map<String, Builder>? omittedTypes})
       : _languageVersion = packageLanguageVersion,
         currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
         referencesFromIndexed =
             referencesFrom == null ? null : new IndexedLibrary(referencesFrom),
         _origin = origin,
-        super(fileUri, _libraryTypeParameterScopeBuilder.toScope(importScope),
+        _omittedTypeDeclarationBuilders = omittedTypes,
+        super(
+            fileUri,
+            _libraryTypeParameterScopeBuilder.toScope(importScope,
+                omittedTypeDeclarationBuilders: omittedTypes),
             new Scope.top()) {
     assert(
         _packageUri == null ||
@@ -390,7 +404,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Library? referencesFrom,
       bool? referenceIsPartOwner,
       required bool isUnsupported,
-      required bool isAugmentation})
+      required bool isAugmentation,
+      Map<String, Builder>? omittedTypes})
       : this.internal(
             loader,
             fileUri,
@@ -410,7 +425,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             referencesFrom,
             referenceIsPartOwner: referenceIsPartOwner,
             isUnsupported: isUnsupported,
-            isAugmentation: isAugmentation);
+            isAugmentation: isAugmentation,
+            omittedTypes: omittedTypes);
 
   @override
   bool get isPart => partOfName != null || partOfUri != null;
@@ -431,10 +447,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   ///
   /// To support the parser of the [source], the library is registered as an
   /// unparsed library on the [loader].
-  SourceLibraryBuilder createAugmentationLibrary(String source) {
+  SourceLibraryBuilder createAugmentationLibrary(String source,
+      {Map<String, OmittedTypeBuilder>? omittedTypes}) {
     int index = _patchLibraries?.length ?? 0;
     Uri uri =
         new Uri(scheme: augmentationScheme, path: '${fileUri.path}-$index');
+    Map<String, Builder>? omittedTypeDeclarationBuilders;
+    if (omittedTypes != null && omittedTypes.isNotEmpty) {
+      omittedTypeDeclarationBuilders = {};
+      for (MapEntry<String, OmittedTypeBuilder> entry in omittedTypes.entries) {
+        omittedTypeDeclarationBuilders[entry.key] =
+            new OmittedTypeDeclarationBuilder(entry.key, entry.value, this);
+      }
+    }
     SourceLibraryBuilder augmentationLibrary = new SourceLibraryBuilder(
         fileUri: uri,
         importUri: uri,
@@ -444,7 +469,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         target: library,
         origin: this,
         isAugmentation: true,
-        referencesFrom: referencesFrom);
+        referencesFrom: referencesFrom,
+        omittedTypes: omittedTypeDeclarationBuilders);
     addPatchLibrary(augmentationLibrary);
     loader.registerUnparsedLibrarySource(augmentationLibrary, source);
     return augmentationLibrary;
@@ -1573,16 +1599,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     //addBuilder("Null", new NullTypeBuilder(const NullType(), this, -1), -1);
   }
 
-  List<InferableTypeBuilder>? _inferableTypes = [];
+  List<InferableType>? _inferableTypes = [];
 
   InferableTypeBuilder addInferableType() {
-    assert(_inferableTypes != null, "Late creation of inferable type.");
     InferableTypeBuilder typeBuilder = new InferableTypeBuilder();
-    _inferableTypes?.add(typeBuilder);
+    registerInferableType(typeBuilder);
     return typeBuilder;
   }
 
-  void collectInferableTypes(List<InferableTypeBuilder> inferableTypes) {
+  void registerInferableType(InferableType inferableType) {
+    assert(_inferableTypes != null,
+        "Late registration of inferable type $inferableType.");
+    _inferableTypes?.add(inferableType);
+  }
+
+  void collectInferableTypes(List<InferableType> inferableTypes) {
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
@@ -1595,12 +1626,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _inferableTypes = null;
   }
 
-  NamedTypeBuilder addNamedType(
-      Object name,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      int charOffset,
+  TypeBuilder addNamedType(Object name, NullabilityBuilder nullabilityBuilder,
+      List<TypeBuilder>? arguments, int charOffset,
       {required InstanceTypeVariableAccessState instanceTypeVariableAccess}) {
+    if (_omittedTypeDeclarationBuilders != null) {
+      Builder? builder = _omittedTypeDeclarationBuilders![name];
+      if (builder is OmittedTypeDeclarationBuilder) {
+        return new DependentTypeBuilder(builder.omittedTypeBuilder);
+      }
+    }
     return registerUnresolvedNamedType(new NamedTypeBuilder(
         name, nullabilityBuilder,
         arguments: arguments,
@@ -1616,11 +1650,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   TypeBuilder addVoidType(int charOffset) {
     // 'void' is always nullable.
-    return addNamedType(
-        "void", const NullabilityBuilder.inherent(), null, charOffset,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
-      ..bind(this,
-          new VoidTypeDeclarationBuilder(const VoidType(), this, charOffset));
+    return new NamedTypeBuilder.fromTypeDeclarationBuilder(
+        new VoidTypeDeclarationBuilder(const VoidType(), this, charOffset),
+        const NullabilityBuilder.inherent(),
+        charOffset: charOffset,
+        fileUri: fileUri,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
   }
 
   void _checkBadFunctionParameter(List<TypeVariableBuilder>? typeVariables) {
@@ -2690,22 +2725,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charEndOffset,
       String? nativeMethodName,
       AsyncMarker asyncModifier) {
-    NamedTypeBuilder returnType = addNamedType(
-        currentTypeParameterScopeBuilder.parent!.name,
-        const NullabilityBuilder.omitted(),
-        <TypeBuilder>[],
-        charOffset,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
+    TypeBuilder returnType;
     if (currentTypeParameterScopeBuilder.parent?.kind ==
         TypeParameterScopeKind.extensionDeclaration) {
       // Make the synthesized return type invalid for extensions.
       String name = currentTypeParameterScopeBuilder.parent!.name;
-      returnType.bind(
-          this,
-          new InvalidTypeDeclarationBuilder(
-              name,
-              messageExtensionDeclaresConstructor.withLocation(
-                  fileUri, charOffset, name.length)));
+      returnType = new NamedTypeBuilder.forInvalidType(
+          currentTypeParameterScopeBuilder.parent!.name,
+          const NullabilityBuilder.omitted(),
+          messageExtensionDeclaresConstructor.withLocation(
+              fileUri, charOffset, name.length));
+    } else {
+      returnType = addNamedType(currentTypeParameterScopeBuilder.parent!.name,
+          const NullabilityBuilder.omitted(), <TypeBuilder>[], charOffset,
+          instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
     }
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     TypeParameterScopeBuilder factoryDeclaration = endNestedDeclaration(
@@ -2744,13 +2777,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     SourceFactoryBuilder procedureBuilder;
+    List<TypeVariableBuilder> typeVariables;
     if (redirectionTarget != null) {
       procedureBuilder = new RedirectingFactoryBuilder(
           metadata,
           staticMask | modifiers,
           returnType,
           procedureName,
-          copyTypeVariables(
+          typeVariables = copyTypeVariables(
               currentTypeParameterScopeBuilder.typeVariables ??
                   const <TypeVariableBuilder>[],
               factoryDeclaration,
@@ -2772,7 +2806,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           staticMask | modifiers,
           returnType,
           procedureName,
-          copyTypeVariables(
+          typeVariables = copyTypeVariables(
               currentTypeParameterScopeBuilder.typeVariables ??
                   const <TypeVariableBuilder>[],
               factoryDeclaration,
@@ -2793,11 +2827,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     TypeParameterScopeBuilder savedDeclaration =
         currentTypeParameterScopeBuilder;
     currentTypeParameterScopeBuilder = factoryDeclaration;
-    for (TypeVariableBuilder tv in procedureBuilder.typeVariables!) {
-      NamedTypeBuilder t = procedureBuilder.returnType as NamedTypeBuilder;
-      t.arguments!.add(addNamedType(tv.name, const NullabilityBuilder.omitted(),
-          null, procedureBuilder.charOffset,
-          instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed));
+    if (returnType is NamedTypeBuilder && !typeVariables.isEmpty) {
+      returnType.arguments =
+          new List<TypeBuilder>.generate(typeVariables.length, (int index) {
+        return addNamedType(
+            typeVariables[index].name,
+            const NullabilityBuilder.omitted(),
+            null,
+            procedureBuilder.charOffset,
+            instanceTypeVariableAccess:
+                InstanceTypeVariableAccessState.Allowed);
+      });
     }
     currentTypeParameterScopeBuilder = savedDeclaration;
 
@@ -5116,7 +5156,16 @@ class TypeParameterScopeBuilder {
     unresolvedNamedTypes.clear();
   }
 
-  Scope toScope(Scope? parent) {
+  Scope toScope(Scope? parent,
+      {Map<String, Builder>? omittedTypeDeclarationBuilders}) {
+    if (omittedTypeDeclarationBuilders != null &&
+        omittedTypeDeclarationBuilders.isNotEmpty) {
+      parent = new Scope(
+          local: omittedTypeDeclarationBuilders,
+          parent: parent,
+          debugName: 'omitted-types',
+          isModifiable: false);
+    }
     return new Scope(
         local: members ?? const {},
         setters: setters,

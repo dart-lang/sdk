@@ -71,7 +71,7 @@ external int topLevelFunction3();
 
 /*member: topLevelFunction4:
 definitions:
-augment dynamic topLevelFunction4() {
+augment Instance of '_OmittedTypeAnnotationImpl' topLevelFunction4() {
   throw 42;
 }*/
 @FunctionDefinitionMacro1()

@@ -24,6 +24,7 @@ import '../../builder/library_builder.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/named_type_builder.dart';
 import '../../builder/nullability_builder.dart';
+import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_alias_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/type_declaration_builder.dart';
@@ -322,9 +323,18 @@ class MacroApplications {
     }
   }
 
-  macro.TypeAnnotation _inferOmittedType(
+  macro.TypeAnnotation? _inferOmittedType(
       macro.OmittedTypeAnnotation omittedType) {
-    throw new UnimplementedError('This is not yet supported!');
+    if (omittedType is _OmittedTypeAnnotationImpl) {
+      OmittedTypeBuilder typeBuilder = omittedType.typeBuilder;
+      if (typeBuilder.hasType) {
+        return _computeTypeAnnotation(
+            sourceLoader.coreLibrary,
+            sourceLoader.target.dillTarget.loader
+                .computeTypeBuilder(typeBuilder.type));
+      }
+    }
+    return null;
   }
 
   void _ensureApplicationData() {
@@ -396,6 +406,7 @@ class MacroApplications {
 
   Future<List<SourceLibraryBuilder>> applyTypeMacros(
       SourceLoader sourceLoader) async {
+    this.sourceLoader = sourceLoader;
     identifierResolver = new _IdentifierResolver(sourceLoader);
     List<SourceLibraryBuilder> augmentationLibraries = [];
     _ensureApplicationData();
@@ -420,9 +431,11 @@ class MacroApplications {
         }
       }
       if (executionResults.isNotEmpty) {
+        Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
         String result = _macroExecutor
             .buildAugmentationLibrary(
-                executionResults, _resolveIdentifier, _inferOmittedType)
+                executionResults, _resolveIdentifier, _inferOmittedType,
+                omittedTypes: omittedTypes)
             .trim();
         assert(
             result.trim().isNotEmpty,
@@ -432,8 +445,19 @@ class MacroApplications {
           if (retainDataForTesting) {
             dataForTesting?.libraryTypesResult[libraryBuilder] = result;
           }
-          augmentationLibraries
-              .add(await libraryBuilder.createAugmentationLibrary(result));
+          Map<String, OmittedTypeBuilder>? omittedTypeBuilders;
+          if (omittedTypes.isNotEmpty) {
+            omittedTypeBuilders = {};
+            for (MapEntry<macro.OmittedTypeAnnotation, String> entry
+                in omittedTypes.entries) {
+              _OmittedTypeAnnotationImpl omittedType =
+                  entry.key as _OmittedTypeAnnotationImpl;
+              omittedTypeBuilders[entry.value] = omittedType.typeBuilder;
+            }
+          }
+          augmentationLibraries.add(
+              await libraryBuilder.createAugmentationLibrary(result,
+                  omittedTypes: omittedTypeBuilders));
         }
       }
     }
@@ -461,15 +485,28 @@ class MacroApplications {
                 typeResolver,
                 classIntrospector);
         if (result.isNotEmpty) {
+          Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
           String source = _macroExecutor.buildAugmentationLibrary(
-              [result], _resolveIdentifier, _inferOmittedType);
+              [result], _resolveIdentifier, _inferOmittedType,
+              omittedTypes: omittedTypes);
           if (retainDataForTesting) {
             dataForTesting?.registerDeclarationsResult(
                 applicationData.builder, result, source);
           }
+          Map<String, OmittedTypeBuilder>? omittedTypeBuilders;
+          if (omittedTypes.isNotEmpty) {
+            omittedTypeBuilders = {};
+            for (MapEntry<macro.OmittedTypeAnnotation, String> entry
+                in omittedTypes.entries) {
+              _OmittedTypeAnnotationImpl omittedType =
+                  entry.key as _OmittedTypeAnnotationImpl;
+              omittedTypeBuilders[entry.value] = omittedType.typeBuilder;
+            }
+          }
           SourceLibraryBuilder augmentationLibrary = await applicationData
               .libraryBuilder
-              .createAugmentationLibrary(source);
+              .createAugmentationLibrary(source,
+                  omittedTypes: omittedTypeBuilders);
           await onAugmentationLibrary(augmentationLibrary);
           if (retainDataForTesting) {
             results.add(result);
@@ -885,6 +922,9 @@ class MacroApplications {
               typeArguments: typeArguments,
               isNullable: isNullable);
         }
+      } else if (typeBuilder is OmittedTypeBuilder) {
+        return new _OmittedTypeAnnotationImpl(typeBuilder,
+            id: macro.RemoteInstance.uniqueId);
       }
     }
     return new macro.NamedTypeAnnotationImpl(
@@ -1170,4 +1210,11 @@ class ApplicationData {
 extension on macro.MacroExecutionResult {
   bool get isNotEmpty =>
       libraryAugmentations.isNotEmpty || classAugmentations.isNotEmpty;
+}
+
+class _OmittedTypeAnnotationImpl extends macro.OmittedTypeAnnotationImpl {
+  final OmittedTypeBuilder typeBuilder;
+
+  _OmittedTypeAnnotationImpl(this.typeBuilder, {required int id})
+      : super(id: id);
 }

@@ -2288,12 +2288,12 @@ severity: $severity
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
     membersBuilder.computeTypes();
 
-    List<InferableTypeBuilder> inferableTypes = [];
+    List<InferableType> inferableTypes = [];
     for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
       libraryBuilder.collectInferableTypes(inferableTypes);
     }
 
-    for (InferableTypeBuilder typeBuilder in inferableTypes) {
+    for (InferableType typeBuilder in inferableTypes) {
       typeBuilder.inferType(typeInferenceEngine.hierarchyBuilder);
     }
 

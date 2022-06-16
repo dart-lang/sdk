@@ -272,7 +272,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       for (FormalParameterBuilder formal in formals!) {
         if (formal.type is InferableTypeBuilder) {
           if (formal.isInitializingFormal) {
-            formal.finalizeInitializingFormal(classBuilder);
+            formal.finalizeInitializingFormal(classBuilder, hierarchy);
           }
         }
       }

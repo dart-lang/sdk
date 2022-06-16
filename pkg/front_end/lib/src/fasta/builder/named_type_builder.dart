@@ -29,6 +29,7 @@ import '../fasta_codes.dart'
         templateTypeArgumentsOnTypeVariable,
         templateTypeNotFound;
 import '../identifiers.dart' show Identifier, QualifiedName, flattenName;
+import '../kernel/implicit_field_type.dart';
 import '../problems.dart' show unhandled;
 import '../scope.dart';
 import '../source/source_library_builder.dart';
@@ -703,7 +704,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilder {
 /// This occurs through macros where type arguments can be defined in terms of
 /// inferred types, making this type indirectly depend on type inference.
 class _InferredNamedTypeBuilder extends NamedTypeBuilder
-    with ListenableTypeBuilderMixin<DartType> {
+    with InferableTypeBuilderMixin {
   _InferredNamedTypeBuilder(Object name, NullabilityBuilder nullabilityBuilder,
       {List<TypeBuilder>? arguments,
       Uri? fileUri,
@@ -725,11 +726,15 @@ class _InferredNamedTypeBuilder extends NamedTypeBuilder
   @override
   DartType build(LibraryBuilder library, TypeUse typeUse,
       {ClassHierarchyBase? hierarchy}) {
-    assert(hierarchy != null, "Cannot build $this.");
     if (hasType) {
       return type;
-    } else {
+    } else if (hierarchy != null) {
       return registerType(_buildInternal(library, typeUse, hierarchy));
+    } else {
+      InferableTypeUse inferableTypeUse =
+          new InferableTypeUse(library as SourceLibraryBuilder, this, typeUse);
+      library.registerInferableType(inferableTypeUse);
+      return new InferredType.fromInferableTypeUse(inferableTypeUse);
     }
   }
 }

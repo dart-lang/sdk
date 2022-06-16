@@ -362,12 +362,34 @@ abstract class TypeBuilder {
   void registerInferable(Inferable inferable) {}
 }
 
-mixin ListenableTypeBuilderMixin<T extends DartType> implements TypeBuilder {
+abstract class InferableType {
+  /// Triggers inference of this type.
+  ///
+  /// If an [Inferable] has been register, this is called to infer the type of
+  /// this builder. Otherwise the type is inferred to be `dynamic`.
+  DartType inferType(ClassHierarchyBase hierarchy);
+}
+
+class InferableTypeUse implements InferableType {
+  final SourceLibraryBuilder sourceLibraryBuilder;
+  final TypeBuilder typeBuilder;
+  final TypeUse typeUse;
+
+  InferableTypeUse(this.sourceLibraryBuilder, this.typeBuilder, this.typeUse);
+
+  @override
+  DartType inferType(ClassHierarchyBase hierarchy) {
+    return typeBuilder.build(sourceLibraryBuilder, typeUse,
+        hierarchy: hierarchy);
+  }
+}
+
+mixin InferableTypeBuilderMixin implements TypeBuilder {
   bool get hasType => _type != null;
 
-  T? _type;
+  DartType? _type;
 
-  T get type => _type!;
+  DartType get type => _type!;
 
   List<InferredTypeListener>? _listeners;
 
@@ -381,7 +403,7 @@ mixin ListenableTypeBuilderMixin<T extends DartType> implements TypeBuilder {
     }
   }
 
-  T registerType(T type) {
+  DartType registerType(DartType type) {
     // TODO(johnniwinther): Avoid multiple registration from enums and
     //  duplicated fields.
     if (_type == null) {
