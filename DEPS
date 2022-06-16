@@ -132,7 +132,7 @@ vars = {
   "path_rev": "3d41ea582f5b0b18de3d90008809b877ff3f69bc",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "c40cc32eabecb9d60f1045d1403108d968805f9a",
-  "protobuf_rev": "3105588b8e515a3391ac5f0673cc06e16d0e3c0c",
+  "protobuf_rev": "3149f6f2d323e11dbcc983b7ac8b3b9e9d686293",
   "pub_rev": "c4e9ddc888c3aa89ef4462f0c4298929191e32b9",
   "pub_semver_rev": "5c0b4bfd5ca57fe16f1319c581dc8c882e9b8cb2",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
