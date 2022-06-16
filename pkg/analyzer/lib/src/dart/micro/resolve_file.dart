@@ -224,22 +224,11 @@ class FileResolver {
     required this.byteStore,
   });
 
-  /// Update the resolver to reflect the fact that the file with the given
-  /// [path] was changed. We need to make sure that when this file, of any file
-  /// that directly or indirectly referenced it, is resolved, we used the new
-  /// state of the file. Updates [removedCacheKeys] with the ids of the invalidated
-  /// items, used in [releaseAndClearRemovedIds] to release the cache items.
-  /// TODO(scheglov) Remove [releaseKeys] when removing [changeFile].
-  @Deprecated('Use changeFiles() instead')
-  void changeFile(String path) {
-    changeFiles([path], releaseKeys: false);
-  }
-
   /// Update the resolver to reflect the fact that the files with the given
   /// [paths] were changed. For each specified file we need to make sure that
   /// when the file, of any file that directly or indirectly referenced it,
   /// is resolved, we use the new state of the file.
-  void changeFiles(List<String> paths, {bool releaseKeys = true}) {
+  void changeFiles(List<String> paths) {
     if (fsState == null) {
       return;
     }
@@ -262,9 +251,7 @@ class FileResolver {
     // If we need these libraries later, we will relink and reattach them.
     libraryContext?.remove(removedFiles, removedCacheKeys);
 
-    if (releaseKeys) {
-      releaseAndClearRemovedIds();
-    }
+    releaseAndClearRemovedIds();
   }
 
   /// Collects all the cached artifacts and add all the cache id's for the
