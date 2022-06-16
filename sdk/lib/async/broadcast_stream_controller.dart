@@ -452,7 +452,7 @@ class _AsyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
 /// on another stream, and it is fine to forward them synchronously.
 class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
     implements _EventDispatch<T> {
-  _StreamImplEvents<T>? _pending;
+  _PendingEvents<T>? _pending;
 
   _AsBroadcastStreamController(void onListen()?, void onCancel()?)
       : super(onListen, onCancel);
@@ -463,7 +463,7 @@ class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
   }
 
   void _addPendingEvent(_DelayedEvent event) {
-    (_pending ??= new _StreamImplEvents<T>()).add(event);
+    (_pending ??= new _PendingEvents<T>()).add(event);
   }
 
   void add(T data) {
@@ -489,9 +489,10 @@ class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
 
   void _flushPending() {
     var pending = _pending;
-    while (pending != null && !pending.isEmpty) {
-      pending.handleNext(this);
-      pending = _pending;
+    if (pending != null) {
+      while (!pending.isEmpty) {
+        pending.handleNext(this);
+      }
     }
   }
 

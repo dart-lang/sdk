@@ -18,6 +18,12 @@
   This feature has not been supported in most compilation targets for some
   time but is now completely removed.
 
+### Libraries
+
+#### `dart:async`
+
+- The `Stream.fromIterable` stream can now be listened to more than once.
+
 ## 2.18.0
 
 ### Language

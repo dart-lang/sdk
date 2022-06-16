@@ -321,7 +321,7 @@ abstract class Stream<T> {
     return controller.stream;
   }
 
-  /// Creates a single-subscription stream that gets its data from [elements].
+  /// Creates a stream that gets its data from [elements].
   ///
   /// The iterable is iterated when the stream receives a listener, and stops
   /// iterating if the listener cancels the subscription, or if the
@@ -333,15 +333,66 @@ abstract class Stream<T> {
   /// If reading [Iterator.current] on `elements.iterator` throws,
   /// the stream emits that error, but keeps iterating.
   ///
+  /// Can be listened to more than once. Each listener iterates [elements]
+  /// independently.
+  ///
   /// Example:
   /// ```dart
   /// final numbers = [1, 2, 3, 5, 6, 7];
   /// final stream = Stream.fromIterable(numbers);
   /// ```
-  factory Stream.fromIterable(Iterable<T> elements) {
-    return new _GeneratedStreamImpl<T>(
-        () => new _IterablePendingEvents<T>(elements));
-  }
+  factory Stream.fromIterable(Iterable<T> elements) =>
+      Stream<T>.multi((controller) {
+        Iterator<T> iterator;
+        try {
+          iterator = elements.iterator;
+        } catch (e, s) {
+          controller.addError(e, s);
+          controller.close();
+          return;
+        }
+        var zone = Zone.current;
+        var isScheduled = true;
+
+        void next() {
+          if (!controller.hasListener || controller.isPaused) {
+            // Cancelled or paused since scheduled.
+            isScheduled = false;
+            return;
+          }
+          bool hasNext;
+          try {
+            hasNext = iterator.moveNext();
+          } catch (e, s) {
+            controller.addErrorSync(e, s);
+            controller.closeSync();
+            return;
+          }
+          if (hasNext) {
+            try {
+              controller.addSync(iterator.current);
+            } catch (e, s) {
+              controller.addErrorSync(e, s);
+            }
+            if (controller.hasListener && !controller.isPaused) {
+              zone.scheduleMicrotask(next);
+            } else {
+              isScheduled = false;
+            }
+          } else {
+            controller.closeSync();
+          }
+        }
+
+        controller.onResume = () {
+          if (!isScheduled) {
+            isScheduled = true;
+            zone.scheduleMicrotask(next);
+          }
+        };
+
+        zone.scheduleMicrotask(next);
+      });
 
   /// Creates a multi-subscription stream.
   ///

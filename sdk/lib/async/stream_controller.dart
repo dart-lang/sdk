@@ -527,19 +527,19 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
   }
 
   // Returns the pending events, and creates the object if necessary.
-  _StreamImplEvents<T> _ensurePendingEvents() {
+  _PendingEvents<T> _ensurePendingEvents() {
     assert(_isInitialState);
     if (!_isAddingStream) {
       Object? events = _varData;
       if (events == null) {
-        _varData = events = _StreamImplEvents<T>();
+        _varData = events = _PendingEvents<T>();
       }
       return events as dynamic;
     }
     _StreamControllerAddStreamState<T> state = _varData as dynamic;
     Object? events = state.varData;
     if (events == null) {
-      state.varData = events = _StreamImplEvents<T>();
+      state.varData = events = _PendingEvents<T>();
     }
     return events as dynamic;
   }
