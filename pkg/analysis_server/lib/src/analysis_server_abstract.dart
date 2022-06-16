@@ -228,6 +228,7 @@ abstract class AbstractAnalysisServer {
       resourceProvider,
       sdkManager,
       options.packagesFile,
+      options.enabledExperiments,
       byteStore,
       fileContentCache,
       analysisPerformanceLogger,

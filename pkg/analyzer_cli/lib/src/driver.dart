@@ -4,6 +4,7 @@
 
 import 'dart:io' as io;
 
+import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -17,6 +18,7 @@ import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/pub.dart';
@@ -553,7 +555,7 @@ class _AnalysisContextProvider {
       packagesFile: _commandLineOptions!.defaultPackagesPath,
       resourceProvider: _resourceProvider,
       sdkPath: _commandLineOptions!.dartSdkPath,
-      updateAnalysisOptions: _updateAnalysisOptions,
+      updateAnalysisOptions2: _updateAnalysisOptions,
       fileContentCache: _fileContentCache,
     );
 
@@ -578,7 +580,11 @@ class _AnalysisContextProvider {
     _analysisContext = _collection!.contextFor(path);
   }
 
-  void _updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {
+  void _updateAnalysisOptions({
+    required AnalysisOptionsImpl analysisOptions,
+    required ContextRoot contextRoot,
+    required DartSdk sdk,
+  }) {
     _commandLineOptions!.updateAnalysisOptions(analysisOptions);
   }
 }

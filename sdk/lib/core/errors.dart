@@ -140,14 +140,17 @@ class TypeError extends Error {}
 
 /// Error thrown by the runtime system when a cast operation fails.
 @Deprecated("Use TypeError instead")
-typedef CastError = TypeError;
+class CastError extends Error {}
 
 /// Error thrown when attempting to throw `null`.
 ///
 /// In null safe code, you are statically disallowed from throwing `null`,
 /// so this error will go away when non-null safe code stops being supported.
-@Deprecated("Use TypeError instead")
-typedef NullThrownError = TypeError;
+class NullThrownError extends Error {
+  @pragma("vm:entry-point")
+  NullThrownError();
+  String toString() => "Throw of null.";
+}
 
 /// Error thrown when a function is passed an unacceptable argument.
 class ArgumentError extends Error {
@@ -450,12 +453,10 @@ class IndexError extends ArgumentError implements RangeError {
 
 /// Error thrown when control reaches the end of a switch case.
 ///
-/// The Dart specification required this error to be thrown when
+/// The Dart specification requires this error to be thrown when
 /// control reaches the end of a switch case (except the last case
 /// of a switch) without meeting a break or similar end of the control
 /// flow.
-/// Fallthrough has been made a compile-time error in Dart 2.0.
-@Deprecated("No longer relevant in Dart 2.0")
 class FallThroughError extends Error {
   FallThroughError();
   @pragma("vm:entry-point")
@@ -607,8 +608,8 @@ class StackOverflowError implements Error {
 /// Error thrown when a lazily initialized variable cannot be initialized.
 ///
 /// This is no longer used in null safe Dart code and is replaced by late
-/// variables which do not specify the error they throw when misused.
-@Deprecated("Not needed by null safe code")
+/// variables and `LateInitializationError`.
+// TODO: Deprecate?
 class CyclicInitializationError extends Error {
   final String? variableName;
   @pragma("vm:entry-point")

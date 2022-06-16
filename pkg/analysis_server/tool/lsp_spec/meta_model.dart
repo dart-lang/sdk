@@ -226,6 +226,7 @@ class TypeAlias extends LspEntity {
   /// Renames will be followed when generating code, but other aliases may be
   /// created as `typedef`s.
   final bool isRename;
+
   TypeAlias({
     required super.name,
     super.comment,

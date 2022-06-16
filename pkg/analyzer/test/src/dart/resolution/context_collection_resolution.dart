@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -12,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -234,7 +236,11 @@ abstract class ContextResolutionTest
 
   /// Override this method to update [analysisOptions] for every context root,
   /// the default or already updated with `analysis_options.yaml` file.
-  void updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {}
+  void updateAnalysisOptions({
+    required AnalysisOptionsImpl analysisOptions,
+    required ContextRoot contextRoot,
+    required DartSdk sdk,
+  }) {}
 
   /// Call this method if the test needs to use the empty byte store, without
   /// any information cached.
@@ -267,7 +273,7 @@ abstract class ContextResolutionTest
       sdkPath: sdkRoot.path,
       sdkSummaryPath: sdkSummaryFile?.path,
       librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
-      updateAnalysisOptions: updateAnalysisOptions,
+      updateAnalysisOptions2: updateAnalysisOptions,
     );
 
     verifyCreatedCollection();

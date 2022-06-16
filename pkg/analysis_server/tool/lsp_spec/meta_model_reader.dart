@@ -49,6 +49,12 @@ class LspMetaModelReader {
       ...?typeAliases?.map(_readTypeAlias),
     ].forEach(_addType);
 
+    // Requests and notifications may have inline union types as their
+    // params/result. We can create TypeAliases for those using sensible
+    // names to simplify their use in the handlers.
+    requests?.forEach(_readRequest);
+    notifications?.forEach(_readNotification);
+
     final methodsEnum = _createMethodNamesEnum(methodNames);
     if (methodsEnum != null) {
       _addType(methodsEnum);
@@ -92,6 +98,32 @@ class LspMetaModelReader {
       typeOfValues: TypeReference('string'),
       members: methodConstants,
     );
+  }
+
+  /// Creates a type alias for a top-level union, such as those used for
+  /// request parameters/results that don't have named types in the spec.
+  void _createUnionAlias(String name, dynamic model, String? documentation) {
+    if (model == null) {
+      return;
+    }
+
+    // We don't currently support reading the two top-level intersection types.
+    // These can just be skipped because the types we're generating here are
+    // just for convenience (to produce better names for use in handlers rather
+    // than referencing `EitherX<Y>` everywhere).
+    if (model['kind'] == 'and') {
+      return;
+    }
+
+    final type = _extractType(name, '', model);
+    if (type is UnionType) {
+      _addType(TypeAlias(
+        name: name,
+        comment: documentation,
+        baseType: type,
+        isRename: false,
+      ));
+    }
   }
 
   Constant _extractEnumValue(TypeBase parentType, dynamic model) {
@@ -255,6 +287,35 @@ class LspMetaModelReader {
         ...?(model['values'] as List?)?.map((p) => _extractEnumValue(type, p)),
       ],
     );
+  }
+
+  void _readNotification(dynamic model) {
+    final method = model['method'] as String;
+    final namePrefix = method.split('/').map(capitalize).join();
+    final documentation = model['documentation'] as String?;
+
+    final paramsDoc = documentation != null
+        ? 'Parameters for ${_camelCase(documentation)}'
+        : null;
+
+    _createUnionAlias('${namePrefix}Params', model['params'], paramsDoc);
+  }
+
+  void _readRequest(dynamic model) {
+    final method = model['method'] as String;
+    final namePrefix = method.split('/').map(capitalize).join();
+    final documentation = model['documentation'] as String?;
+
+    final paramsDoc = documentation != null
+        ? 'Parameters for ${_camelCase(documentation)}'
+        : null;
+
+    final resultDoc = documentation != null
+        ? 'Result for ${_camelCase(documentation)}'
+        : null;
+
+    _createUnionAlias('${namePrefix}Params', model['params'], paramsDoc);
+    _createUnionAlias('${namePrefix}Result', model['result'], resultDoc);
   }
 
   LspEntity _readStructure(dynamic model) {

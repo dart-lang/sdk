@@ -59,7 +59,14 @@ class ContextBuilderImpl implements ContextBuilder {
     AnalysisDriverScheduler? scheduler,
     String? sdkPath,
     String? sdkSummaryPath,
-    void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
+    @Deprecated('Use updateAnalysisOptions2')
+        void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
+    void Function({
+      required AnalysisOptionsImpl analysisOptions,
+      required ContextRoot contextRoot,
+      required DartSdk sdk,
+    })?
+        updateAnalysisOptions2,
     FileContentCache? fileContentCache,
     MacroKernelBuilder? macroKernelBuilder,
     macro.MultiMacroExecutor? macroExecutor,
@@ -67,6 +74,11 @@ class ContextBuilderImpl implements ContextBuilder {
     // TODO(scheglov) Remove this, and make `sdkPath` required.
     sdkPath ??= getSdkPath();
     ArgumentError.checkNotNull(sdkPath, 'sdkPath');
+    if (updateAnalysisOptions != null && updateAnalysisOptions2 != null) {
+      throw ArgumentError(
+          'Either updateAnalysisOptions or updateAnalysisOptions2 must be '
+          'given, but not both.');
+    }
 
     byteStore ??= MemoryByteStore();
     performanceLog ??= PerformanceLog(StringBuffer());
@@ -104,6 +116,12 @@ class ContextBuilderImpl implements ContextBuilder {
     var options = _getAnalysisOptions(contextRoot, sourceFactory);
     if (updateAnalysisOptions != null) {
       updateAnalysisOptions(options);
+    } else if (updateAnalysisOptions2 != null) {
+      updateAnalysisOptions2(
+        analysisOptions: options,
+        contextRoot: contextRoot,
+        sdk: sdk,
+      );
     }
 
     final analysisContext =

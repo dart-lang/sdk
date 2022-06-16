@@ -6,12 +6,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../analysis_server.dart';
 import '../core.dart';
+import '../experiments.dart';
 import '../sdk.dart';
 import '../utils.dart';
 
@@ -80,7 +82,8 @@ class AnalyzeCommand extends DartdevCommand {
         valueHelp: 'path',
         help: 'The path to the Dart SDK.',
         hide: !verbose,
-      );
+      )
+      ..addExperimentalFlags();
   }
 
   @override
@@ -110,12 +113,6 @@ class AnalyzeCommand extends DartdevCommand {
     final machineFormat = args['format'] == 'machine';
     final jsonFormat = args['format'] == 'json';
 
-    final targetsNames =
-        targets.map((entity) => path.basename(entity.path)).join(', ');
-
-    var progress =
-        machineFormat ? null : log.progress('Analyzing $targetsNames');
-
     io.Directory sdkPath;
     if (args.wasParsed('sdk-path')) {
       sdkPath = io.Directory(args['sdk-path'] as String);
@@ -137,6 +134,26 @@ class AnalyzeCommand extends DartdevCommand {
       sdkPath = io.Directory(sdk.sdkPath);
     }
 
+    final experimentNames = {
+      for (var experiment in args.enabledExperiments)
+        if (experiment.startsWith('no-'))
+          experiment.substring(3)
+        else
+          experiment
+    };
+    final unknownExperiments =
+        experimentNames.difference(ExperimentStatus.knownFeatures.keys.toSet());
+    if (unknownExperiments.isNotEmpty) {
+      final unknownExperimentsText =
+          unknownExperiments.map((e) => "'$e'").join(', ');
+      usageException('Unknown experiment(s): $unknownExperimentsText');
+    }
+
+    final targetsNames =
+        targets.map((entity) => path.basename(entity.path)).join(', ');
+    final progress =
+        machineFormat ? null : log.progress('Analyzing $targetsNames');
+
     final AnalysisServer server = AnalysisServer(
       _packagesFile(),
       sdkPath,
@@ -144,6 +161,7 @@ class AnalyzeCommand extends DartdevCommand {
       cacheDirectoryPath: args['cache'],
       commandName: 'analyze',
       argResults: args,
+      enabledExperiments: args.enabledExperiments,
     );
 
     server.onErrors.listen((FileAnalysisErrors fileErrors) {

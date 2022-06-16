@@ -123,8 +123,8 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
         help: defineOption.help,
         abbr: defineOption.abbr,
         valueHelp: defineOption.valueHelp,
-      );
-    addExperimentalFlags(argParser, verbose);
+      )
+      ..addExperimentalFlags(verbose: verbose);
   }
 
   @override
@@ -255,9 +255,8 @@ Remove debugging information from the output and save it separately to the speci
         help: 'Pass additional options to gen_snapshot.',
         hide: true,
         valueHelp: 'opt1,opt2,...',
-      );
-
-    addExperimentalFlags(argParser, verbose);
+      )
+      ..addExperimentalFlags(verbose: verbose);
   }
 
   @override

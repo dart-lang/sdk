@@ -7,6 +7,7 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -206,6 +207,10 @@ class ContextManagerImpl implements ContextManager {
   /// clean up when we destroy a context.
   final bazelWatchedPathsPerFolder = <Folder, _BazelWatchedFiles>{};
 
+  /// Experiments which have been enabled (or disabled) via the
+  /// `--enable-experiment` command-line option.
+  final List<String> _enabledExperiments;
+
   /// Information about the current/last queued context rebuild.
   ///
   /// This is used when a new build is requested to cancel any in-progress
@@ -216,6 +221,7 @@ class ContextManagerImpl implements ContextManager {
       this.resourceProvider,
       this.sdkManager,
       this.packagesFile,
+      this._enabledExperiments,
       this._byteStore,
       this._fileContentCache,
       this._performanceLog,
@@ -456,6 +462,18 @@ class ContextManagerImpl implements ContextManager {
           sdkPath: sdkManager.defaultSdkDirectory,
           packagesFile: packagesFile,
           fileContentCache: _fileContentCache,
+          updateAnalysisOptions2: ({
+            required analysisOptions,
+            required contextRoot,
+            required sdk,
+          }) {
+            if (_enabledExperiments.isNotEmpty) {
+              analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
+                sdkLanguageVersion: sdk.languageVersion,
+                flags: _enabledExperiments,
+              );
+            }
+          },
         );
 
         for (var analysisContext in collection.contexts) {
