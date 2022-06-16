@@ -325,6 +325,8 @@ class Simulator {
 
   // Executes RISC-V instructions until the PC reaches kEndSimulatingPC.
   void Execute();
+  void ExecuteNoTrace();
+  void ExecuteTrace();
 
   // Returns true if tracing of executed instructions is enabled.
   bool IsTracingExecution() const;
