@@ -159,7 +159,7 @@ abstract class HGraphVisitor {
   }
 
   visitPostDominatorTree(HGraph graph) {
-    // Recusion free version of:
+    // Recursion-free version of:
     //
     //     void visitBasicBlockAndSuccessors(HBasicBlock block) {
     //       List dominated = block.dominatedBlocks;
