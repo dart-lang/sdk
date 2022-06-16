@@ -43,7 +43,15 @@ String generateDartForTypes(List<LspEntity> types) {
   _canParseFunctions.clear();
   _unionFunctions.clear();
   final buffer = IndentableStringBuffer();
-  _getSortedUnique(types).forEach((t) => _writeType(buffer, t));
+  final sortedTypes = _getSortedUnique(types);
+  // Bump typedefs to the top.
+  final fileSortedTypes = [
+    ...sortedTypes.whereType<TypeAlias>(),
+    ...sortedTypes.where((type) => type is! TypeAlias),
+  ];
+  for (var type in fileSortedTypes) {
+    _writeType(buffer, type);
+  }
   for (var function in _canParseFunctions.values) {
     buffer.writeln(function);
   }
@@ -79,9 +87,16 @@ void recordTypes(List<LspEntity> types) {
   _sortSubtypes();
 }
 
-TypeBase resolveTypeAlias(TypeBase type, {bool resolveEnumClasses = false}) {
+/// Resolves [type] to its base type if it is a reference to another type.
+///
+/// If [resolveEnums] is `true`, will resolve them to the type of their values.
+///
+/// If [onlyRenames] is true, references to [TypeAlias]es will only be resolved
+/// if they are renames.
+TypeBase resolveTypeAlias(TypeBase type,
+    {bool resolveEnums = false, bool onlyRenames = false}) {
   if (type is TypeReference) {
-    if (resolveEnumClasses) {
+    if (resolveEnums) {
       // Enums are no longer recorded with TypeAliases (as they were in the
       // Markdown/TS spec) so must be resolved explicitly to their base types.
       final enum_ = _namespaces[type.name];
@@ -89,19 +104,20 @@ TypeBase resolveTypeAlias(TypeBase type, {bool resolveEnumClasses = false}) {
         return enum_.typeOfValues;
       }
     }
-    // The LSP spec contains type aliases for `integer` and `uinteger` that map
-    // into the `number` type, with comments stating they must be integers. To
-    // preserve the improved typing, do _not_ resolve them to the `number`
-    // type.
-    if (type.name == 'integer' || type.name == 'uinteger') {
-      return type;
-    }
 
     final alias = _typeAliases[type.name];
-    // Only follow the type if we're not an enum, or we wanted to follow enums.
-    if (alias != null &&
-        (!_namespaces.containsKey(alias.name) || resolveEnumClasses)) {
-      return alias.baseType;
+    if (alias != null && (!onlyRenames || alias.isRename)) {
+      // Resolve aliases recursively.
+      var resolved = alias.baseType;
+      for (int i = 0; i < 10; i++) {
+        final newResolved = resolveTypeAlias(resolved,
+            resolveEnums: resolveEnums, onlyRenames: onlyRenames);
+        if (newResolved == resolved) {
+          return resolved;
+        }
+        resolved = newResolved;
+      }
+      throw 'Failed to resolve type after 10 iterations: ${alias.name}';
     }
   }
   return type;
@@ -215,7 +231,8 @@ bool _isSimpleType(TypeBase type) {
 bool _isSpecType(TypeBase type) {
   type = resolveTypeAlias(type);
   return type is TypeReference &&
-      !isAnyType(type) &&
+      type != TypeReference.LspObject &&
+      type != TypeReference.LspAny &&
       (_interfaces.containsKey(type.name) ||
           (_namespaces.containsKey(type.name)));
 }
@@ -246,14 +263,17 @@ String _memberNameForType(TypeBase type) {
   if (type is TypeReference) {
     type = resolveTypeAlias(type);
   }
-  var dartType = type is UnionType
-      ? type.types.map(_memberNameForType).join()
-      : type is ArrayType
-          ? 'List${_memberNameForType(type.elementType)}'
-          : type is MapType
-              ? 'Map${_memberNameForType(type.indexType)}${_memberNameForType(type.valueType)}'
-              : type.dartType;
-  return capitalize(dartType.replaceAll('?', '_'));
+
+  var dartType = type is NullableType
+      ? '${type.dartType}?'
+      : type is UnionType
+          ? type.types.map(_memberNameForType).join()
+          : type is ArrayType
+              ? 'List${_memberNameForType(type.elementType)}'
+              : type is MapType
+                  ? 'Map${_memberNameForType(type.indexType)}${_memberNameForType(type.valueType)}'
+                  : type.dartType;
+  return capitalize(dartType.replaceAll('?', 'Nullable'));
 }
 
 String _rewriteCommentReference(String comment) {
@@ -308,8 +328,7 @@ void _sortSubtypes() {
 String _specJsonType(TypeBase type) {
   if (type is TypeReference && _namespaces.containsKey(type.name)) {
     final valueType = _namespaces[type.name]!.typeOfValues;
-    return resolveTypeAlias(valueType, resolveEnumClasses: true)
-        .dartTypeWithTypeArgs;
+    return valueType.dartTypeWithTypeArgs;
   }
   return 'Map<String, Object?>';
 }
@@ -346,8 +365,9 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
   // In order to consider this valid for parsing, all fields that must not be
   // undefined must be present and also type check for the correct type.
   // Any fields that are optional but present, must still type check.
-  final fields =
-      _getAllFields(interface).whereNot((f) => isAnyType(f.type)).toList();
+  final fields = _getAllFields(interface)
+      .whereNot((f) => isNullableAnyType(f.type))
+      .toList();
   for (var i = 0; i < fields.length; i++) {
     final field = fields[i];
     var type = field.type;
@@ -463,7 +483,7 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
       final isRequired = !isLiteral &&
           !field.allowsNull &&
           !field.allowsUndefined &&
-          !isAnyType(field.type);
+          !isNullableAnyType(field.type);
       final requiredKeyword = isRequired ? 'required' : '';
       final valueCode =
           isLiteral ? ' = ${(field.type as LiteralType).valueAsLiteral}' : '';
@@ -633,8 +653,8 @@ void _writeEqualsExpression(IndentableStringBuffer buffer, TypeBase type,
 void _writeField(
     IndentableStringBuffer buffer, Interface interface, Field field) {
   _writeDocCommentsAndAnnotations(buffer, field);
-  final needsNullable =
-      (field.allowsNull || field.allowsUndefined) && !isAnyType(field.type);
+  final needsNullable = (field.allowsNull || field.allowsUndefined) &&
+      !isNullableAnyType(field.type);
   if (_isOverride(interface, field)) {
     buffer.writeIndentedln('@override');
   }
@@ -654,7 +674,11 @@ void _writeFromJsonCode(
 }) {
   type = resolveTypeAlias(type);
   final nullOperator = allowsNull ? '?' : '';
-  final cast = requiresCast && type.dartTypeWithTypeArgs != 'Object?'
+  final cast = requiresCast &&
+          // LSPAny
+          !isNullableAnyType(type) &&
+          // LSPObject marked as optional
+          !(isObjectType(type) && allowsNull)
       ? ' as ${type.dartTypeWithTypeArgs}$nullOperator'
       : '';
 
@@ -741,7 +765,7 @@ void _writeFromJsonCodeForUnion(
 
   for (var i = 0; i < union.types.length; i++) {
     final type = union.types[i];
-    final isAny = isAnyType(type);
+    final isAny = isNullableAnyType(type);
 
     // "any" matches all type checks, so only emit it if required.
     if (!isAny) {
@@ -1028,13 +1052,18 @@ void _writeType(IndentableStringBuffer buffer, LspEntity type) {
   } else if (type is LspEnum) {
     _writeEnumClass(buffer, type);
   } else if (type is TypeAlias) {
-    // For now type aliases are not supported, so are collected at the start
-    // of the process in a map, and just replaced with the aliased type during
-    // generation.
-    // _writeTypeAlias(buffer, type);
+    _writeTypeAlias(buffer, type);
   } else {
     throw 'Unknown type';
   }
+}
+
+void _writeTypeAlias(IndentableStringBuffer buffer, TypeAlias alias) {
+  if (alias.isRename) return;
+  final baseType = alias.baseType;
+  final typeName = baseType.dartTypeWithTypeArgs;
+  _writeDocCommentsAndAnnotations(buffer, alias);
+  buffer.writeIndentedln('typedef ${alias.name} = $typeName;');
 }
 
 void _writeTypeCheckCondition(IndentableStringBuffer buffer,
@@ -1049,8 +1078,11 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
   final and = negation ? '||' : '&&';
   final every = negation ? 'any' : 'every';
 
-  if (fullDartType == 'Object?') {
+  if (isNullableAnyType(type)) {
     buffer.write(negation ? 'false' : 'true');
+  } else if (isObjectType(type)) {
+    final notEqual = negation ? '==' : '!=';
+    buffer.write('$valueCode $notEqual null');
   } else if (_isSimpleType(type)) {
     buffer.write('$valueCode is$operator $fullDartType');
   } else if (type is LiteralType) {

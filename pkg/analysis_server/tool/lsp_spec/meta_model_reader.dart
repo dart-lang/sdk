@@ -48,6 +48,7 @@ class LspMetaModelReader {
       ...?enums?.map((e) => _readEnum(e)),
       ...?typeAliases?.map(_readTypeAlias),
     ].forEach(_addType);
+
     final methodsEnum = _createMethodNamesEnum(methodNames);
     if (methodsEnum != null) {
       _addType(methodsEnum);
@@ -174,6 +175,7 @@ class LspMetaModelReader {
         final generatedName = _generateAvailableTypeName(parentName, fieldName);
         return _extractType(generatedName, null, item);
       }).toList();
+
       return UnionType(types);
     } else if (model['kind'] == 'tuple') {
       // We currently just map tuples to an array of any of the types. The
@@ -278,6 +280,7 @@ class LspMetaModelReader {
       name: name,
       comment: model['documentation'] as String?,
       baseType: _extractType(name, null, model['type']),
+      isRename: false,
     );
   }
 }

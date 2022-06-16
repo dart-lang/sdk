@@ -142,11 +142,13 @@ List<LspEntity> getCustomClasses() {
   final customTypes = <LspEntity>[
     TypeAlias(
       name: 'LSPAny',
-      baseType: TypeReference.Any,
+      baseType: TypeReference.LspAny,
+      isRename: false,
     ),
     TypeAlias(
       name: 'LSPObject',
-      baseType: TypeReference.Any,
+      baseType: TypeReference.LspObject,
+      isRename: false,
     ),
     // The DocumentFilter more complex in v3.17's meta_model (to allow
     // TextDocumentFilters to be guaranteed to have at least one of language,
@@ -156,6 +158,7 @@ List<LspEntity> getCustomClasses() {
     TypeAlias(
       name: 'DocumentFilter',
       baseType: TypeReference('TextDocumentFilter2'),
+      isRename: true,
     ),
     // Similarly, the meta_model includes String as an option for
     // DocumentSelector which is deprecated and we never previously supported
@@ -165,6 +168,7 @@ List<LspEntity> getCustomClasses() {
     TypeAlias(
       name: 'DocumentSelector',
       baseType: ArrayType(TypeReference('TextDocumentFilterWithScheme')),
+      isRename: true,
     ),
     interface('Message', [
       field('jsonrpc', type: 'string'),
@@ -231,6 +235,7 @@ List<LspEntity> getCustomClasses() {
     TypeAlias(
       name: 'DocumentUri',
       baseType: TypeReference('string'),
+      isRename: false,
     ),
 
     interface('DartDiagnosticServer', [field('port', type: 'int')]),
@@ -335,6 +340,7 @@ List<LspEntity> getCustomClasses() {
           TypeReference('TextEdit'),
         ]),
       ),
+      isRename: false,
     )
   ];
   return customTypes;

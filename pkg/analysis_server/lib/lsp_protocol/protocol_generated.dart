@@ -16,6 +16,145 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
+/// An identifier to refer to a change annotation stored with a workspace edit.
+typedef ChangeAnnotationIdentifier = String;
+
+/// The declaration of a symbol representation as one or many locations.
+typedef Declaration = Either2<List<Location>, Location>;
+
+/// Information about where a symbol is declared.
+///
+/// Provides additional metadata over normal location declarations, including
+/// the range of the declaring symbol.
+///
+/// Servers should prefer returning `DeclarationLink` over `Declaration` if
+/// supported by the client.
+typedef DeclarationLink = LocationLink;
+
+/// The definition of a symbol represented as one or many locations. For most
+/// programming languages there is only one location at which a symbol is
+/// defined.
+///
+/// Servers should prefer returning `DefinitionLink` over `Definition` if
+/// supported by the client.
+typedef Definition = Either2<List<Location>, Location>;
+
+/// Information about where a symbol is defined.
+///
+/// Provides additional metadata over normal location definitions, including the
+/// range of the defining symbol
+typedef DefinitionLink = LocationLink;
+
+/// The result of a document diagnostic pull request. A report can either be a
+/// full report containing all diagnostics for the requested document or an
+/// unchanged report indicating that nothing has changed in terms of diagnostics
+/// in comparison to the last pull request.
+///
+/// @since 3.17.0
+typedef DocumentDiagnosticReport = Either2<RelatedFullDocumentDiagnosticReport,
+    RelatedUnchangedDocumentDiagnosticReport>;
+
+/// A document filter describes a top level text document or a notebook cell
+/// document.
+///
+/// @since 3.17.0 - proposed support for NotebookCellTextDocumentFilter.
+typedef DocumentFilter
+    = Either2<NotebookCellTextDocumentFilter, TextDocumentFilter>;
+
+/// A document selector is the combination of one or many document filters.
+///
+/// @sample `let sel:DocumentSelector = [{ language: 'typescript' }, { language:
+/// 'json', pattern: '**∕tsconfig.json' }]`;
+///
+/// The use of a string as a document filter is deprecated @since 3.16.0.
+typedef DocumentSelector = List<Either2<TextDocumentFilterWithScheme, String>>;
+
+/// The glob pattern. Either a string pattern or a relative pattern.
+///
+/// @since 3.17.0
+typedef GlobPattern = Either2<Pattern, RelativePattern>;
+
+/// Inline value information can be provided by different means:
+/// - directly as a text value (class InlineValueText).
+/// - as a name to use for a variable lookup (class InlineValueVariableLookup)
+/// - as an evaluatable expression (class InlineValueEvaluatableExpression) The
+/// InlineValue types combines all inline value types into one type.
+///
+/// @since 3.17.0
+typedef InlineValue = Either3<InlineValueEvaluatableExpression, InlineValueText,
+    InlineValueVariableLookup>;
+
+/// LSP arrays.
+/// @since 3.17.0
+typedef LSPArray = List<LSPAny>;
+
+/// A tagging type for string properties that are actually URIs
+///
+/// @since 3.16.0
+typedef LspUri = String;
+
+/// A notebook document filter denotes a notebook document by different
+/// properties. The properties will be match against the notebook's URI (same as
+/// with documents)
+///
+/// @since 3.17.0
+typedef NotebookDocumentFilter = Either3<NotebookDocumentFilter1,
+    NotebookDocumentFilter2, NotebookDocumentFilter3>;
+
+/// The glob pattern to watch relative to the base path. Glob patterns can have
+/// the following syntax:
+/// - `*` to match one or more characters in a path segment
+/// - `?` to match on one character in a path segment
+/// - `**` to match any number of path segments, including none
+/// - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript and
+/// JavaScript files)
+/// - `[]` to declare a range of characters to match in a path segment (e.g.,
+/// `example.[0-9]` to match on `example.0`, `example.1`, …)
+/// - `[!...]` to negate a range of characters to match in a path segment (e.g.,
+/// `example.[!0-9]` to match on `example.a`, `example.b`, but not `example.0`)
+///
+/// @since 3.17.0
+typedef Pattern = String;
+typedef PrepareRenameResult
+    = Either3<PlaceholderAndRange, PrepareRenameResult2, Range>;
+typedef ProgressToken = Either2<int, String>;
+
+/// An event describing a change to a text document. If only a text is provided
+/// it is considered to be the full content of the document.
+typedef TextDocumentContentChangeEvent
+    = Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>;
+
+/// A document filter denotes a document by different properties like the
+/// language, the scheme of its resource, or a glob-pattern that is applied to
+/// the path.
+///
+/// Glob patterns can have the following syntax:
+/// - `*` to match one or more characters in a path segment
+/// - `?` to match on one character in a path segment
+/// - `**` to match any number of path segments, including none
+/// - `{}` to group sub patterns into an OR expression. (e.g. `**​/*.{ts,js}`
+/// matches all TypeScript and JavaScript files)
+/// - `[]` to declare a range of characters to match in a path segment (e.g.,
+/// `example.[0-9]` to match on `example.0`, `example.1`, …)
+/// - `[!...]` to negate a range of characters to match in a path segment (e.g.,
+/// `example.[!0-9]` to match on `example.a`, `example.b`, but not `example.0`)
+///
+/// @sample A language filter that applies to typescript files on disk: `{
+/// language: 'typescript', scheme: 'file' }`
+/// @sample A language filter that applies to all package.json paths: `{
+/// language: 'json', pattern: '**package.json' }`
+///
+/// @since 3.17.0
+typedef TextDocumentFilter = Either3<TextDocumentFilter1,
+    TextDocumentFilterWithScheme, TextDocumentFilter3>;
+
+/// A workspace diagnostic document report.
+///
+/// @since 3.17.0
+typedef WorkspaceDocumentDiagnosticReport = Either2<
+    WorkspaceFullDocumentDiagnosticReport,
+    WorkspaceUnchangedDocumentDiagnosticReport>;
+
 /// A special text edit with an additional change annotation.
 ///
 /// @since 3.16.0.
@@ -45,7 +184,7 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
   }
 
   /// The actual identifier of the change annotation
-  final String annotationId;
+  final ChangeAnnotationIdentifier annotationId;
 
   /// The string to be inserted. For delete operations use an empty string.
   @override
@@ -547,11 +686,11 @@ class CallHierarchyIncomingCallsParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -658,7 +797,7 @@ class CallHierarchyItem implements ToJsonable {
 
   /// A data entry field that is preserved between a call hierarchy prepare and
   /// incoming calls or outgoing calls requests.
-  final Object? data;
+  final LSPAny data;
 
   /// More detail for this item, e.g. the signature of a function.
   final String? detail;
@@ -681,7 +820,7 @@ class CallHierarchyItem implements ToJsonable {
   final List<SymbolTag>? tags;
 
   /// The resource identifier of this item.
-  final String uri;
+  final DocumentUri uri;
 
   @override
   Map<String, Object?> toJson() {
@@ -938,11 +1077,11 @@ class CallHierarchyOutgoingCallsParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -1036,7 +1175,7 @@ class CallHierarchyPrepareParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -1386,7 +1525,7 @@ class ClientCapabilities implements ToJsonable {
   }
 
   /// Experimental client capabilities.
-  final Object? experimental;
+  final LSPAny experimental;
 
   /// General client capabilities.
   ///
@@ -1552,7 +1691,7 @@ class CodeAction implements ToJsonable {
   /// `textDocument/codeAction` and a `codeAction/resolve` request.
   ///
   /// @since 3.16.0
-  final Object? data;
+  final LSPAny data;
 
   /// The diagnostics that this code action resolves.
   final List<Diagnostic>? diagnostics;
@@ -2430,7 +2569,7 @@ class CodeActionParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The range for which the command was invoked.
   final Range range;
@@ -2440,7 +2579,7 @@ class CodeActionParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -2686,7 +2825,7 @@ class CodeDescription implements ToJsonable {
   }
 
   /// An URI to open with more information about the diagnostic error.
-  final String href;
+  final LspUri href;
 
   @override
   Map<String, Object?> toJson() {
@@ -2757,7 +2896,7 @@ class CodeLens implements ToJsonable {
 
   /// A data entry field that is preserved on a code lens item between a
   /// CodeLensRequest and a CodeLensResolveRequest
-  final Object? data;
+  final LSPAny data;
 
   /// The range in which this code lens is valid. Should only span a single
   /// line.
@@ -2972,14 +3111,14 @@ class CodeLensParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The document to request code lens for.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -3496,7 +3635,7 @@ class ColorPresentationParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The range where the color would be inserted. Serves as a context.
   final Range range;
@@ -3506,7 +3645,7 @@ class ColorPresentationParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -3604,7 +3743,7 @@ class Command implements ToJsonable {
   }
 
   /// Arguments that the command handler should be invoked with.
-  final List<Object?>? arguments;
+  final List<LSPAny>? arguments;
 
   /// The identifier of the actual command handler.
   final String command;
@@ -3625,7 +3764,7 @@ class Command implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListObject_(obj, reporter, 'arguments',
+      if (!_canParseListObjectNullable(obj, reporter, 'arguments',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -3645,8 +3784,7 @@ class Command implements ToJsonable {
   bool operator ==(Object other) {
     return other is Command &&
         other.runtimeType == Command &&
-        listEqual(
-            arguments, other.arguments, (Object? a, Object? b) => a == b) &&
+        listEqual(arguments, other.arguments, (LSPAny a, LSPAny b) => a == b) &&
         command == other.command &&
         title == other.title;
   }
@@ -5238,7 +5376,7 @@ class CompletionListItemDefaults implements ToJsonable {
   /// A default data value.
   ///
   /// @since 3.17.0
-  final Object? data;
+  final LSPAny data;
 
   /// A default edit range.
   ///
@@ -5585,7 +5723,7 @@ class CompletionParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The position inside the text document.
   @override
@@ -5597,7 +5735,7 @@ class CompletionParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -6051,7 +6189,7 @@ class CreateFile implements ResourceOperation, ToJsonable {
   ///
   /// @since 3.16.0
   @override
-  final String? annotationId;
+  final ChangeAnnotationIdentifier? annotationId;
 
   /// A create
   @override
@@ -6061,7 +6199,7 @@ class CreateFile implements ResourceOperation, ToJsonable {
   final CreateFileOptions? options;
 
   /// The resource to create.
-  final String uri;
+  final DocumentUri uri;
 
   @override
   Map<String, Object?> toJson() {
@@ -6421,7 +6559,7 @@ class DeclarationParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The position inside the text document.
   @override
@@ -6433,7 +6571,7 @@ class DeclarationParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -6767,7 +6905,7 @@ class DefinitionParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The position inside the text document.
   @override
@@ -6779,7 +6917,7 @@ class DefinitionParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -6959,7 +7097,7 @@ class DeleteFile implements ResourceOperation, ToJsonable {
   ///
   /// @since 3.16.0
   @override
-  final String? annotationId;
+  final ChangeAnnotationIdentifier? annotationId;
 
   /// A delete
   @override
@@ -6969,7 +7107,7 @@ class DeleteFile implements ResourceOperation, ToJsonable {
   final DeleteFileOptions? options;
 
   /// The file to delete.
-  final String uri;
+  final DocumentUri uri;
 
   @override
   Map<String, Object?> toJson() {
@@ -7232,7 +7370,7 @@ class Diagnostic implements ToJsonable {
   /// `textDocument/codeAction` request.
   ///
   /// @since 3.16.0
-  final Object? data;
+  final LSPAny data;
 
   /// The diagnostic's message. It usually appears in the user interface
   final String message;
@@ -8036,7 +8174,7 @@ class DidChangeConfigurationParams implements ToJsonable {
   }
 
   /// The actual changed settings
-  final Object? settings;
+  final LSPAny settings;
 
   @override
   Map<String, Object?> toJson() {
@@ -8199,9 +8337,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
   /// - apply the `TextDocumentContentChangeEvent`s in a single notification in
   /// the order
   ///   you receive them.
-  final List<
-      Either2<TextDocumentContentChangeEvent1,
-          TextDocumentContentChangeEvent2>> contentChanges;
+  final List<TextDocumentContentChangeEvent> contentChanges;
 
   /// The document that did change. The version number points to the version
   /// after all provided content changes have been applied.
@@ -8238,12 +8374,8 @@ class DidChangeTextDocumentParams implements ToJsonable {
         listEqual(
             contentChanges,
             other.contentChanges,
-            (Either2<TextDocumentContentChangeEvent1,
-                            TextDocumentContentChangeEvent2>
-                        a,
-                    Either2<TextDocumentContentChangeEvent1,
-                            TextDocumentContentChangeEvent2>
-                        b) =>
+            (TextDocumentContentChangeEvent a,
+                    TextDocumentContentChangeEvent b) =>
                 a == b) &&
         textDocument == other.textDocument;
   }
@@ -9034,14 +9166,14 @@ class DocumentColorParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -9242,7 +9374,7 @@ class DocumentDiagnosticParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The result id of a previous response if provided.
   final String? previousResultId;
@@ -9252,7 +9384,7 @@ class DocumentDiagnosticParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -9349,7 +9481,7 @@ class DocumentDiagnosticReportPartialResult implements ToJsonable {
   }
 
   final Map<
-      String,
+      DocumentUri,
       Either2<FullDocumentDiagnosticReport,
           UnchangedDocumentDiagnosticReport>> relatedDocuments;
 
@@ -9546,7 +9678,7 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -9944,7 +10076,7 @@ class DocumentHighlightParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The position inside the text document.
   @override
@@ -9956,7 +10088,7 @@ class DocumentHighlightParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -10134,7 +10266,7 @@ class DocumentLink implements ToJsonable {
 
   /// A data entry field that is preserved on a document link between a
   /// DocumentLinkRequest and a DocumentLinkResolveRequest.
-  final Object? data;
+  final LSPAny data;
 
   /// The range this link applies to.
   final Range range;
@@ -10390,14 +10522,14 @@ class DocumentLinkParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The document to provide document links for.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -11051,7 +11183,7 @@ class DocumentRangeFormattingParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -11743,14 +11875,14 @@ class DocumentSymbolParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -12146,14 +12278,14 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
   }
 
   /// Arguments that the command should be invoked with.
-  final List<Object?>? arguments;
+  final List<LSPAny>? arguments;
 
   /// The identifier of the actual command handler.
   final String command;
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -12170,7 +12302,7 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListObject_(obj, reporter, 'arguments',
+      if (!_canParseListObjectNullable(obj, reporter, 'arguments',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -12190,8 +12322,7 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
   bool operator ==(Object other) {
     return other is ExecuteCommandParams &&
         other.runtimeType == ExecuteCommandParams &&
-        listEqual(
-            arguments, other.arguments, (Object? a, Object? b) => a == b) &&
+        listEqual(arguments, other.arguments, (LSPAny a, LSPAny b) => a == b) &&
         command == other.command &&
         workDoneToken == other.workDoneToken;
   }
@@ -12565,7 +12696,7 @@ class FileEvent implements ToJsonable {
   final FileChangeType type;
 
   /// The file's uri.
-  final String uri;
+  final DocumentUri uri;
 
   @override
   Map<String, Object?> toJson() {
@@ -13345,7 +13476,7 @@ class FileSystemWatcher implements ToJsonable {
   /// detail.
   ///
   /// @since 3.17.0 support for relative patterns.
-  final Either2<String, RelativePattern> globPattern;
+  final GlobPattern globPattern;
 
   /// The kind of events of interest. If omitted it defaults to WatchKind.Create
   /// | WatchKind.Change | WatchKind.Delete which is 7.
@@ -13919,14 +14050,14 @@ class FoldingRangeParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -14765,7 +14896,7 @@ class HoverParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -15069,7 +15200,7 @@ class ImplementationParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The position inside the text document.
   @override
@@ -15081,7 +15212,7 @@ class ImplementationParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -15315,7 +15446,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   final InitializeParamsClientInfo? clientInfo;
 
   /// User provided initialization options.
-  final Object? initializationOptions;
+  final LSPAny initializationOptions;
 
   /// The locale the client is currently showing the user interface in. This
   /// must not necessarily be the locale of the operating system.
@@ -15341,14 +15472,14 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   /// `rootPath` and `rootUri` are set `rootUri` wins.
   ///
   /// @deprecated in favour of workspaceFolders.
-  final String? rootUri;
+  final DocumentUri? rootUri;
 
   /// The initial trace setting. If omitted trace is disabled ('off').
   final String? trace;
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   /// The workspace folders configured in the client when the server starts.
   ///
@@ -15771,7 +15902,7 @@ class InlayHint implements ToJsonable {
 
   /// A data entry field that is preserved on an inlay hint between a
   /// `textDocument/inlayHint` and a `inlayHint/resolve` request.
-  final Object? data;
+  final LSPAny data;
 
   /// The kind of this hint. Can be omitted in which case the client should fall
   /// back to a reasonable default.
@@ -16304,7 +16435,7 @@ class InlayHintParams implements WorkDoneProgressParams, ToJsonable {
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -16849,7 +16980,7 @@ class InlineValueParams implements WorkDoneProgressParams, ToJsonable {
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -17558,7 +17689,7 @@ class LinkedEditingRangeParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -17813,7 +17944,7 @@ class Location implements ToJsonable {
   }
 
   final Range range;
-  final String uri;
+  final DocumentUri uri;
 
   @override
   Map<String, Object?> toJson() {
@@ -17908,7 +18039,7 @@ class LocationLink implements ToJsonable {
   final Range targetSelectionRange;
 
   /// The target resource identifier of this link.
-  final String targetUri;
+  final DocumentUri targetUri;
 
   @override
   Map<String, Object?> toJson() {
@@ -19028,7 +19159,7 @@ class MonikerParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The position inside the text document.
   @override
@@ -19040,7 +19171,7 @@ class MonikerParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -19219,7 +19350,7 @@ class NotebookCell implements ToJsonable {
   }
 
   /// The URI of the cell's text document content.
-  final String document;
+  final DocumentUri document;
 
   /// Additional execution summary information if supported by the client.
   final ExecutionSummary? executionSummary;
@@ -19230,7 +19361,7 @@ class NotebookCell implements ToJsonable {
   /// Additional metadata stored with the cell.
   ///
   /// Note: should always be an object literal (e.g. LSPObject)
-  final Object? metadata;
+  final LSPObject? metadata;
 
   @override
   Map<String, Object?> toJson() {
@@ -19256,8 +19387,12 @@ class NotebookCell implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      return _canParseNotebookCellKind(obj, reporter, 'kind',
-          allowsUndefined: false, allowsNull: false);
+      if (!_canParseNotebookCellKind(obj, reporter, 'kind',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseObject(obj, reporter, 'metadata',
+          allowsUndefined: true, allowsNull: false);
     } else {
       reporter.reportError('must be of type NotebookCell');
       return false;
@@ -19442,10 +19577,7 @@ class NotebookCellTextDocumentFilter implements ToJsonable {
   /// A filter that matches against the notebook containing the notebook cell.
   /// If a string value is provided it matches against the notebook type. '*'
   /// matches every notebook.
-  final Either2<
-      Either3<NotebookDocumentFilter1, NotebookDocumentFilter2,
-          NotebookDocumentFilter3>,
-      String> notebook;
+  final Either2<NotebookDocumentFilter, String> notebook;
 
   @override
   Map<String, Object?> toJson() {
@@ -19534,13 +19666,13 @@ class NotebookDocument implements ToJsonable {
   /// Additional metadata stored with the notebook document.
   ///
   /// Note: should always be an object literal (e.g. LSPObject)
-  final Object? metadata;
+  final LSPObject? metadata;
 
   /// The type of the notebook.
   final String notebookType;
 
   /// The notebook document's uri.
-  final String uri;
+  final LspUri uri;
 
   /// The version number of this document (it will increase after each change,
   /// including undo/redo).
@@ -19563,6 +19695,10 @@ class NotebookDocument implements ToJsonable {
     if (obj is Map<String, Object?>) {
       if (!_canParseListNotebookCell(obj, reporter, 'cells',
           allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseObject(obj, reporter, 'metadata',
+          allowsUndefined: true, allowsNull: false)) {
         return false;
       }
       if (!_canParseString(obj, reporter, 'notebookType',
@@ -19639,7 +19775,7 @@ class NotebookDocumentChangeEvent implements ToJsonable {
   /// The changed meta data if any.
   ///
   /// Note: should always be an object literal (e.g. LSPObject)
-  final Object? metadata;
+  final LSPObject? metadata;
 
   @override
   Map<String, Object?> toJson() {
@@ -19655,7 +19791,11 @@ class NotebookDocumentChangeEvent implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseNotebookDocumentChangeEventCells(obj, reporter, 'cells',
+      if (!_canParseNotebookDocumentChangeEventCells(obj, reporter, 'cells',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      return _canParseObject(obj, reporter, 'metadata',
           allowsUndefined: true, allowsNull: false);
     } else {
       reporter.reportError('must be of type NotebookDocumentChangeEvent');
@@ -19908,9 +20048,7 @@ class NotebookDocumentChangeEventCellsTextContent implements ToJsonable {
     );
   }
 
-  final List<
-      Either2<TextDocumentContentChangeEvent1,
-          TextDocumentContentChangeEvent2>> changes;
+  final List<TextDocumentContentChangeEvent> changes;
   final VersionedTextDocumentIdentifier document;
 
   @override
@@ -19944,12 +20082,8 @@ class NotebookDocumentChangeEventCellsTextContent implements ToJsonable {
         listEqual(
             changes,
             other.changes,
-            (Either2<TextDocumentContentChangeEvent1,
-                            TextDocumentContentChangeEvent2>
-                        a,
-                    Either2<TextDocumentContentChangeEvent1,
-                            TextDocumentContentChangeEvent2>
-                        b) =>
+            (TextDocumentContentChangeEvent a,
+                    TextDocumentContentChangeEvent b) =>
                 a == b) &&
         document == other.document;
   }
@@ -20300,7 +20434,7 @@ class NotebookDocumentIdentifier implements ToJsonable {
   }
 
   /// The notebook document's uri.
-  final String uri;
+  final LspUri uri;
 
   @override
   Map<String, Object?> toJson() {
@@ -20545,10 +20679,7 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
 
   /// The notebook to be synced If a string value is provided it matches against
   /// the notebook type. '*' matches every notebook.
-  final Either2<
-      Either3<NotebookDocumentFilter1, NotebookDocumentFilter2,
-          NotebookDocumentFilter3>,
-      String> notebook;
+  final Either2<NotebookDocumentFilter, String> notebook;
 
   @override
   Map<String, Object?> toJson() {
@@ -20634,10 +20765,7 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
 
   /// The notebook to be synced If a string value is provided it matches against
   /// the notebook type. '*' matches every notebook.
-  final Either2<
-      Either3<NotebookDocumentFilter1, NotebookDocumentFilter2,
-          NotebookDocumentFilter3>,
-      String>? notebook;
+  final Either2<NotebookDocumentFilter, String>? notebook;
 
   @override
   Map<String, Object?> toJson() {
@@ -20936,7 +21064,7 @@ class OptionalVersionedTextDocumentIdentifier
 
   /// The text document's uri.
   @override
-  final String uri;
+  final DocumentUri uri;
 
   /// The version number of this document. If a versioned text document
   /// identifier is sent from the server to the client and the file is not open
@@ -21169,7 +21297,7 @@ class PartialResultParams implements ToJsonable {
 
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -21449,7 +21577,7 @@ class PrepareRenameParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -21601,7 +21729,7 @@ class PreviousResultId implements ToJsonable {
   }
 
   /// The URI for which the client knowns a result id.
-  final String uri;
+  final DocumentUri uri;
 
   /// The value of the previous result id.
   final String value;
@@ -21668,10 +21796,10 @@ class ProgressParams implements ToJsonable {
   }
 
   /// The progress token provided by the client or server.
-  final Either2<int, String> token;
+  final ProgressToken token;
 
   /// The progress data.
-  final Object? value;
+  final LSPAny value;
 
   @override
   Map<String, Object?> toJson() {
@@ -21935,7 +22063,7 @@ class PublishDiagnosticsParams implements ToJsonable {
   final List<Diagnostic> diagnostics;
 
   /// The URI for which diagnostic information is reported.
-  final String uri;
+  final DocumentUri uri;
 
   /// Optional the version number of the document the diagnostics are published
   /// for.
@@ -22285,7 +22413,7 @@ class ReferenceParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The position inside the text document.
   @override
@@ -22297,7 +22425,7 @@ class ReferenceParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -22479,7 +22607,7 @@ class Registration implements ToJsonable {
   final String method;
 
   /// Options necessary for the registration.
-  final Object? registerOptions;
+  final LSPAny registerOptions;
 
   @override
   Map<String, Object?> toJson() {
@@ -22714,7 +22842,7 @@ class RelatedFullDocumentDiagnosticReport
   ///
   /// @since 3.17.0
   final Map<
-      String,
+      DocumentUri,
       Either2<FullDocumentDiagnosticReport,
           UnchangedDocumentDiagnosticReport>>? relatedDocuments;
 
@@ -22843,7 +22971,7 @@ class RelatedUnchangedDocumentDiagnosticReport
   ///
   /// @since 3.17.0
   final Map<
-      String,
+      DocumentUri,
       Either2<FullDocumentDiagnosticReport,
           UnchangedDocumentDiagnosticReport>>? relatedDocuments;
 
@@ -22940,10 +23068,10 @@ class RelativePattern implements ToJsonable {
 
   /// A workspace folder or a base URI to which this pattern will be matched
   /// against relatively.
-  final Either2<String, WorkspaceFolder> baseUri;
+  final Either2<LspUri, WorkspaceFolder> baseUri;
 
   /// The actual glob pattern;
-  final String pattern;
+  final Pattern pattern;
 
   @override
   Map<String, Object?> toJson() {
@@ -23151,17 +23279,17 @@ class RenameFile implements ResourceOperation, ToJsonable {
   ///
   /// @since 3.16.0
   @override
-  final String? annotationId;
+  final ChangeAnnotationIdentifier? annotationId;
 
   /// A rename
   @override
   final String kind;
 
   /// The new location.
-  final String newUri;
+  final DocumentUri newUri;
 
   /// The old (existing) location.
-  final String oldUri;
+  final DocumentUri oldUri;
 
   /// Rename options.
   final RenameFileOptions? options;
@@ -23481,7 +23609,7 @@ class RenameParams implements WorkDoneProgressParams, ToJsonable {
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -23672,7 +23800,7 @@ class ResourceOperation implements ToJsonable {
   /// An optional annotation identifier describing the operation.
   ///
   /// @since 3.16.0
-  final String? annotationId;
+  final ChangeAnnotationIdentifier? annotationId;
 
   /// The resource operation kind.
   final String kind;
@@ -24042,7 +24170,7 @@ class SelectionRangeParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The positions inside the text document.
   final List<Position> positions;
@@ -24052,7 +24180,7 @@ class SelectionRangeParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -24869,7 +24997,7 @@ class SemanticTokensDeltaParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The result id of a previous response. The result Id can either point to a
   /// full response or a delta response depending on what was received last.
@@ -24880,7 +25008,7 @@ class SemanticTokensDeltaParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -25385,14 +25513,14 @@ class SemanticTokensParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -25535,7 +25663,7 @@ class SemanticTokensRangeParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The range the semantic tokens are requested for.
   final Range range;
@@ -25545,7 +25673,7 @@ class SemanticTokensRangeParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -26130,7 +26258,7 @@ class ServerCapabilities implements ToJsonable {
   final ExecuteCommandOptions? executeCommandProvider;
 
   /// Experimental server capabilities.
-  final Object? experimental;
+  final LSPAny experimental;
 
   /// The server provides folding provider support.
   final Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>?
@@ -26828,7 +26956,7 @@ class ShowDocumentParams implements ToJsonable {
   final bool? takeFocus;
 
   /// The document uri to show.
-  final String uri;
+  final LspUri uri;
 
   @override
   Map<String, Object?> toJson() {
@@ -27795,7 +27923,7 @@ class SignatureHelpParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -29424,7 +29552,7 @@ class TextDocumentEdit implements ToJsonable {
   ///
   /// @since 3.16.0 - support for AnnotatedTextEdit. This is guarded using a
   /// client capability.
-  final List<Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>> edits;
+  final TextDocumentEditEdits edits;
 
   /// The text document to change.
   final OptionalVersionedTextDocumentIdentifier textDocument;
@@ -29757,7 +29885,7 @@ class TextDocumentIdentifier implements ToJsonable {
   }
 
   /// The text document's uri.
-  final String uri;
+  final DocumentUri uri;
 
   @override
   Map<String, Object?> toJson() {
@@ -29827,7 +29955,7 @@ class TextDocumentItem implements ToJsonable {
   final String text;
 
   /// The text document's uri.
-  final String uri;
+  final DocumentUri uri;
 
   /// The version number of this document (it will increase after each change,
   /// including undo/redo).
@@ -30845,7 +30973,7 @@ class TypeDefinitionParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The position inside the text document.
   @override
@@ -30857,7 +30985,7 @@ class TypeDefinitionParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -31128,7 +31256,7 @@ class TypeHierarchyItem implements ToJsonable {
   /// supertypes or subtypes requests. It could also be used to identify the
   /// type hierarchy in the server, helping improve the performance on resolving
   /// supertypes and subtypes.
-  final Object? data;
+  final LSPAny data;
 
   /// More detail for this item, e.g. the signature of a function.
   final String? detail;
@@ -31151,7 +31279,7 @@ class TypeHierarchyItem implements ToJsonable {
   final List<SymbolTag>? tags;
 
   /// The resource identifier of this item.
-  final String uri;
+  final DocumentUri uri;
 
   @override
   Map<String, Object?> toJson() {
@@ -31337,7 +31465,7 @@ class TypeHierarchyPrepareParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -31529,11 +31657,11 @@ class TypeHierarchySubtypesParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -31623,11 +31751,11 @@ class TypeHierarchySupertypesParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -31954,7 +32082,7 @@ class VersionedNotebookDocumentIdentifier implements ToJsonable {
   }
 
   /// The notebook document's uri.
-  final String uri;
+  final LspUri uri;
 
   /// The version number of this notebook document.
   final int version;
@@ -32025,7 +32153,7 @@ class VersionedTextDocumentIdentifier
 
   /// The text document's uri.
   @override
-  final String uri;
+  final DocumentUri uri;
 
   /// The version number of this document.
   final int version;
@@ -32425,7 +32553,7 @@ class WorkDoneProgressCancelParams implements ToJsonable {
   }
 
   /// The token to be used to report progress.
-  final Either2<int, String> token;
+  final ProgressToken token;
 
   @override
   Map<String, Object?> toJson() {
@@ -32476,7 +32604,7 @@ class WorkDoneProgressCreateParams implements ToJsonable {
   }
 
   /// The token to be used to report progress.
-  final Either2<int, String> token;
+  final ProgressToken token;
 
   @override
   Map<String, Object?> toJson() {
@@ -32857,7 +32985,7 @@ class WorkDoneProgressParams implements ToJsonable {
   }
 
   /// An optional token that a server can use to report work done progress.
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -33381,14 +33509,14 @@ class WorkspaceDiagnosticParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// The currently known diagnostic reports with their previous result ids.
   final List<PreviousResultId> previousResultIds;
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -33476,9 +33604,7 @@ class WorkspaceDiagnosticReport implements ToJsonable {
     );
   }
 
-  final List<
-      Either2<WorkspaceFullDocumentDiagnosticReport,
-          WorkspaceUnchangedDocumentDiagnosticReport>> items;
+  final List<WorkspaceDocumentDiagnosticReport> items;
 
   @override
   Map<String, Object?> toJson() {
@@ -33505,12 +33631,8 @@ class WorkspaceDiagnosticReport implements ToJsonable {
         listEqual(
             items,
             other.items,
-            (Either2<WorkspaceFullDocumentDiagnosticReport,
-                            WorkspaceUnchangedDocumentDiagnosticReport>
-                        a,
-                    Either2<WorkspaceFullDocumentDiagnosticReport,
-                            WorkspaceUnchangedDocumentDiagnosticReport>
-                        b) =>
+            (WorkspaceDocumentDiagnosticReport a,
+                    WorkspaceDocumentDiagnosticReport b) =>
                 a == b);
   }
 
@@ -33546,9 +33668,7 @@ class WorkspaceDiagnosticReportPartialResult implements ToJsonable {
     );
   }
 
-  final List<
-      Either2<WorkspaceFullDocumentDiagnosticReport,
-          WorkspaceUnchangedDocumentDiagnosticReport>> items;
+  final List<WorkspaceDocumentDiagnosticReport> items;
 
   @override
   Map<String, Object?> toJson() {
@@ -33576,12 +33696,8 @@ class WorkspaceDiagnosticReportPartialResult implements ToJsonable {
         listEqual(
             items,
             other.items,
-            (Either2<WorkspaceFullDocumentDiagnosticReport,
-                            WorkspaceUnchangedDocumentDiagnosticReport>
-                        a,
-                    Either2<WorkspaceFullDocumentDiagnosticReport,
-                            WorkspaceUnchangedDocumentDiagnosticReport>
-                        b) =>
+            (WorkspaceDocumentDiagnosticReport a,
+                    WorkspaceDocumentDiagnosticReport b) =>
                 a == b);
   }
 
@@ -33650,10 +33766,10 @@ class WorkspaceEdit implements ToJsonable {
   /// `workspace.changeAnnotationSupport`.
   ///
   /// @since 3.16.0
-  final Map<String, ChangeAnnotation>? changeAnnotations;
+  final Map<ChangeAnnotationIdentifier, ChangeAnnotation>? changeAnnotations;
 
   /// Holds changes to existing resources.
-  final Map<String, List<TextEdit>>? changes;
+  final Map<DocumentUri, List<TextEdit>>? changes;
 
   /// Depending on the client capability
   /// `workspace.workspaceEdit.resourceOperations` document changes are either
@@ -33968,7 +34084,7 @@ class WorkspaceFolder implements ToJsonable {
   final String name;
 
   /// The associated URI for this workspace folder.
-  final String uri;
+  final LspUri uri;
 
   @override
   Map<String, Object?> toJson() {
@@ -34222,7 +34338,7 @@ class WorkspaceFullDocumentDiagnosticReport
   final String? resultId;
 
   /// The URI for which diagnostic information is reported.
-  final String uri;
+  final DocumentUri uri;
 
   /// The version number for which the diagnostics are reported. If the document
   /// is not marked as open `null` can be provided.
@@ -34345,7 +34461,7 @@ class WorkspaceSymbol implements BaseSymbolInformation, ToJsonable {
 
   /// A data entry field that is preserved on a workspace symbol between a
   /// workspace symbol request and a workspace symbol resolve request.
-  final Object? data;
+  final LSPAny data;
 
   /// The kind of this symbol.
   @override
@@ -34753,7 +34869,7 @@ class WorkspaceSymbolLocation implements ToJsonable {
     );
   }
 
-  final String uri;
+  final DocumentUri uri;
 
   @override
   Map<String, Object?> toJson() {
@@ -34897,7 +35013,7 @@ class WorkspaceSymbolParams
   /// An optional token that a server can use to report partial results (e.g.
   /// streaming) to the client.
   @override
-  final Either2<int, String>? partialResultToken;
+  final ProgressToken? partialResultToken;
 
   /// A query string to filter symbols by. Clients may send an empty string here
   /// to request all symbols.
@@ -34905,7 +35021,7 @@ class WorkspaceSymbolParams
 
   /// An optional token that a server can use to report work done progress.
   @override
-  final Either2<int, String>? workDoneToken;
+  final ProgressToken? workDoneToken;
 
   @override
   Map<String, Object?> toJson() {
@@ -35085,7 +35201,7 @@ class WorkspaceUnchangedDocumentDiagnosticReport
   final String resultId;
 
   /// The URI for which diagnostic information is reported.
-  final String uri;
+  final DocumentUri uri;
 
   /// The version number for which the diagnostics are reported. If the document
   /// is not marked as open `null` can be provided.
@@ -39108,7 +39224,7 @@ bool
   return true;
 }
 
-bool _canParseListObject_(
+bool _canParseListObjectNullable(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
   reporter.push(fieldName);
@@ -39125,7 +39241,7 @@ bool _canParseListObject_(
     }
     if ((!nullCheck || value != null) &&
         (value is! List<Object?> || value.any((item) => false))) {
-      reporter.reportError('must be of type List<Object?>');
+      reporter.reportError('must be of type List<LSPAny>');
       return false;
     }
   } finally {
@@ -39483,8 +39599,8 @@ bool
             value.any((item) =>
                 !TextDocumentContentChangeEvent1.canParse(item, reporter) &&
                 !TextDocumentContentChangeEvent2.canParse(item, reporter)))) {
-      reporter.reportError(
-          'must be of type List<Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>>');
+      reporter
+          .reportError('must be of type List<TextDocumentContentChangeEvent>');
       return false;
     }
   } finally {
@@ -39709,7 +39825,7 @@ bool
                 !WorkspaceUnchangedDocumentDiagnosticReport.canParse(
                     item, reporter)))) {
       reporter.reportError(
-          'must be of type List<Either2<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>>');
+          'must be of type List<WorkspaceDocumentDiagnosticReport>');
       return false;
     }
   } finally {
@@ -39847,7 +39963,8 @@ bool _canParseMapStringChangeAnnotation(
                 item is! String ||
                 value.values.any(
                     (item) => !ChangeAnnotation.canParse(item, reporter)))))) {
-      reporter.reportError('must be of type Map<String, ChangeAnnotation>');
+      reporter.reportError(
+          'must be of type Map<ChangeAnnotationIdentifier, ChangeAnnotation>');
       return false;
     }
   } finally {
@@ -39881,7 +39998,7 @@ bool
                     !UnchangedDocumentDiagnosticReport.canParse(
                         item, reporter)))))) {
       reporter.reportError(
-          'must be of type Map<String, Either2<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>');
+          'must be of type Map<DocumentUri, Either2<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>');
       return false;
     }
   } finally {
@@ -39913,7 +40030,7 @@ bool _canParseMapStringListTextEdit(
                     item is! List<Object?> ||
                     item.any(
                         (item) => !TextEdit.canParse(item, reporter))))))) {
-      reporter.reportError('must be of type Map<String, List<TextEdit>>');
+      reporter.reportError('must be of type Map<DocumentUri, List<TextEdit>>');
       return false;
     }
   } finally {
@@ -40284,7 +40401,7 @@ bool
             !NotebookDocumentFilter3.canParse(value, reporter) &&
             value is! String)) {
       reporter.reportError(
-          'must be of type Either2<Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String>');
+          'must be of type Either2<NotebookDocumentFilter, String>');
       return false;
     }
   } finally {
@@ -40393,6 +40510,31 @@ bool _canParseNum(
     }
     if ((!nullCheck || value != null) && value is! num) {
       reporter.reportError('must be of type num');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseObject(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) && value == null) {
+      reporter.reportError('must be of type Object');
       return false;
     }
   } finally {
@@ -41262,7 +41404,7 @@ bool _canParseStringRelativePattern(
     }
     if ((!nullCheck || value != null) &&
         (value is! String && !RelativePattern.canParse(value, reporter))) {
-      reporter.reportError('must be of type Either2<String, RelativePattern>');
+      reporter.reportError('must be of type Either2<Pattern, RelativePattern>');
       return false;
     }
   } finally {
@@ -41288,7 +41430,7 @@ bool _canParseStringWorkspaceFolder(
     }
     if ((!nullCheck || value != null) &&
         (value is! String && !WorkspaceFolder.canParse(value, reporter))) {
-      reporter.reportError('must be of type Either2<String, WorkspaceFolder>');
+      reporter.reportError('must be of type Either2<LspUri, WorkspaceFolder>');
       return false;
     }
   } finally {
@@ -42477,10 +42619,7 @@ Either3<NotebookDocumentFilter1, NotebookDocumentFilter2,
               : throw '$value was not one of (NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3)';
 }
 
-Either2<
-        Either3<NotebookDocumentFilter1, NotebookDocumentFilter2,
-            NotebookDocumentFilter3>,
-        String>
+Either2<NotebookDocumentFilter, String>
     _eitherNotebookDocumentFilter1NotebookDocumentFilter2NotebookDocumentFilter3String(
         Object? value) {
   return NotebookDocumentFilter1.canParse(value, nullLspJsonReporter) ||
@@ -42491,7 +42630,7 @@ Either2<
               value))
       : value is String
           ? Either2.t2(value)
-          : throw '$value was not one of (Either3<NotebookDocumentFilter1, NotebookDocumentFilter2, NotebookDocumentFilter3>, String)';
+          : throw '$value was not one of (NotebookDocumentFilter, String)';
 }
 
 Either2<NotebookDocumentSyncOptions, NotebookDocumentSyncRegistrationOptions>
@@ -42534,20 +42673,20 @@ Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>
           : throw '$value was not one of (SemanticTokensOptions, SemanticTokensRegistrationOptions)';
 }
 
-Either2<String, RelativePattern> _eitherStringRelativePattern(Object? value) {
+Either2<Pattern, RelativePattern> _eitherStringRelativePattern(Object? value) {
   return value is String
       ? Either2.t1(value)
       : RelativePattern.canParse(value, nullLspJsonReporter)
           ? Either2.t2(RelativePattern.fromJson(value as Map<String, Object?>))
-          : throw '$value was not one of (String, RelativePattern)';
+          : throw '$value was not one of (Pattern, RelativePattern)';
 }
 
-Either2<String, WorkspaceFolder> _eitherStringWorkspaceFolder(Object? value) {
+Either2<LspUri, WorkspaceFolder> _eitherStringWorkspaceFolder(Object? value) {
   return value is String
       ? Either2.t1(value)
       : WorkspaceFolder.canParse(value, nullLspJsonReporter)
           ? Either2.t2(WorkspaceFolder.fromJson(value as Map<String, Object?>))
-          : throw '$value was not one of (String, WorkspaceFolder)';
+          : throw '$value was not one of (LspUri, WorkspaceFolder)';
 }
 
 Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>

@@ -853,7 +853,20 @@ bool CompileType::IsAssignableTo(const AbstractType& other) {
   if (other.IsTopTypeForSubtyping()) {
     return true;
   }
-  if (IsNone()) {
+  // If we allow comparisons against an uninstantiated type, then we can
+  // end up incorrectly optimizing away AssertAssignables where the incoming
+  // value and outgoing value have CompileTypes that would return true to the
+  // subtype check below, but at runtime are instantiated with different type
+  // argument vectors such that the relation does not hold for the runtime
+  // instantiated values.
+  //
+  // We might consider using an approximation of the uninstantiated type,
+  // like the instantiation to bounds, and compare to that. However, in
+  // vm/dart_2/regress_b_230945329_test.dart we have a case where the compared
+  // uninstantiated type is the same as the one in the CompileType. Thus, no
+  // approach will be able to distinguish the two types, and so we fail the
+  // comparison in all cases.
+  if (IsNone() || !other.IsInstantiated()) {
     return false;
   }
   if (is_nullable() && !Instance::NullIsAssignableTo(other)) {

@@ -16,6 +16,12 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
+typedef DocumentUri = String;
+typedef LSPAny = Object?;
+typedef LSPObject = Object;
+typedef TextDocumentEditEdits
+    = List<Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>>;
+
 class AnalyzerStatusParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     AnalyzerStatusParams.canParse,
@@ -761,7 +767,7 @@ class IncomingMessage implements Message, ToJsonable {
   @override
   final String jsonrpc;
   final Method method;
-  final Object? params;
+  final LSPAny params;
 
   @override
   Map<String, Object?> toJson() {
@@ -925,7 +931,7 @@ class NotificationMessage implements IncomingMessage, ToJsonable {
   @override
   final Method method;
   @override
-  final Object? params;
+  final LSPAny params;
 
   @override
   Map<String, Object?> toJson() {
@@ -1363,7 +1369,7 @@ class RequestMessage implements IncomingMessage, ToJsonable {
   @override
   final Method method;
   @override
-  final Object? params;
+  final LSPAny params;
 
   @override
   Map<String, Object?> toJson() {
@@ -1548,7 +1554,7 @@ class ResponseMessage implements Message, ToJsonable {
   final Either2<int, String>? id;
   @override
   final String jsonrpc;
-  final Object? result;
+  final LSPAny result;
 
   @override
   Map<String, Object?> toJson() {
