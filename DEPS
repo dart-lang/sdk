@@ -66,8 +66,8 @@ vars = {
   # The list of revisions for these tools comes from Fuchsia, here:
   # https://fuchsia.googlesource.com/integration/+/HEAD/toolchain
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_revision": "c2592c374e469f343ecea82d6728609650924259",
-  "gn_revision": "d7c2209cebcfe37f46dba7be4e1a7000ffc342fb",
+  "clang_revision": "aaaf8e4c409f080f35ea227b20dc6ac8a45c2fa4",
+  "gn_revision": "e62d4e1938a45babc9afb6db543f388cd1802a52",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "bb994c6f067340c1135eb43eed84f4b33cfa7397",
@@ -163,7 +163,7 @@ vars = {
   "webkit_inspection_protocol_rev": "e4965778e2837adc62354eec3a19123402997897",
   "yaml_edit_rev": "0b74d85fac10b4fbf7d1a347debcf16c8f7b0e9c",
   "yaml_rev": "0971c06490b9670add644ed62182acd6a5536946",
-  "zlib_rev": "27c2f474b71d0d20764f86f60ef8b00da1a16cda",
+  "zlib_rev": "64bbf988543996eb8df9a86877b32917187eba8f",
 
   # Windows deps
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
