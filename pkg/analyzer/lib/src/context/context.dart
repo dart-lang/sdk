@@ -24,21 +24,11 @@ class AnalysisContextImpl implements AnalysisContext {
   }
 
   @override
-  set analysisOptions(AnalysisOptions options) {
-    throw StateError('Cannot be changed.');
-  }
-
-  @override
   DeclaredVariables get declaredVariables {
     return _synchronousSession.declaredVariables;
   }
 
   bool get hasTypeProvider => _synchronousSession.hasTypeProvider;
-
-  @override
-  set sourceFactory(SourceFactory factory) {
-    throw StateError('Cannot be changed.');
-  }
 
   TypeProviderImpl get typeProviderLegacy {
     return _synchronousSession.typeProviderLegacy;
