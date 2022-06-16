@@ -65,6 +65,9 @@ class Driver implements ServerStarter {
   static const String DISABLE_SERVER_FEATURE_SEARCH =
       'disable-server-feature-search';
 
+  /// The name of the multi-option to enable one or more experiments.
+  static const String ENABLE_EXPERIMENT = 'enable-experiment';
+
   /// The name of the option used to print usage information.
   static const String HELP_OPTION = 'help';
 
@@ -169,6 +172,11 @@ class Driver implements ServerStarter {
     analysisServerOptions.packagesFile = results[PACKAGES_FILE] as String?;
     analysisServerOptions.reportProtocolVersion =
         results[REPORT_PROTOCOL_VERSION] as String?;
+
+    analysisServerOptions.enabledExperiments =
+        results.wasParsed(ENABLE_EXPERIMENT)
+            ? results[ENABLE_EXPERIMENT] as List<String>
+            : <String>[];
 
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
     var sdkConfig = SdkConfiguration.readFromSdk();
@@ -689,6 +697,13 @@ class Driver implements ServerStarter {
       help: 'The path to the package resolution configuration file, which '
           'supplies a mapping of package names\ninto paths.',
     );
+    parser.addMultiOption(
+      ENABLE_EXPERIMENT,
+      valueHelp: 'experiment',
+      help: 'Enable one or more experimental features '
+          '(see dart.dev/go/experiments).',
+      hide: true,
+    );
 
     parser.addOption(
       SERVER_PROTOCOL,
@@ -784,8 +799,6 @@ class Driver implements ServerStarter {
     parser.addFlag('dartpad', hide: true);
     // Removed 11/15/2020.
     parser.addFlag('enable-completion-model', hide: true);
-    // Removed 10/30/2020.
-    parser.addMultiOption('enable-experiment', hide: true);
     // Removed 9/23/2020.
     parser.addFlag('enable-instrumentation', hide: true);
     // Removed 11/12/2020.

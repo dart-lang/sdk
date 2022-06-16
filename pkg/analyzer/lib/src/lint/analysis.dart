@@ -116,7 +116,11 @@ class LintDriver {
       sdkPath: options.dartSdkPath,
       includedPaths:
           files.map((file) => _absoluteNormalizedPath(file.path)).toList(),
-      updateAnalysisOptions: (analysisOptions) {
+      updateAnalysisOptions2: ({
+        required analysisOptions,
+        required contextRoot,
+        required sdk,
+      }) {
         _updateAnalyzerOptions(analysisOptions, options);
       },
     );
