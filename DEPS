@@ -75,23 +75,23 @@ vars = {
   "gperftools_revision": "180bfa10d7cb38e8b3784d60943d50e8fcef0dcb",
 
   # Revisions of /third_party/* dependencies.
-  "args_rev": "862d929b980b993334974d38485a39d891d83918",
+  "args_rev": "73e8d3b55cbedc9765f8e266f3422d8914f8e62a",
   "async_rev": "f3ed5f690e2ec9dbe1bfc5184705575b4f6480e5",
   "bazel_worker_rev": "9710de6c9c70b1b583183db9d9721ba64e5a16fe",
-  "benchmark_harness_rev": "0530da692a5d689f4b5450a7c8d1a8abe3e2d555",
+  "benchmark_harness_rev": "0ae822e264e410e9f1e927daea68601cc54906ef",
   "boolean_selector_rev": "1d3565e2651d16566bb556955b96ea75018cbd0c",
   "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
   "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
-  "browser_launcher_rev": "f841375ad337381e23d333b6eaaebde3d8266c68",
-  "characters_rev": "4b1d4b7737ad47cd2b8105c47e2159174010f29f",
+  "browser_launcher_rev": "981ca8847dd2b0fe022f9e742045cfb8f214d35f",
+  "characters_rev": "559755d67af2c78b9beaaeb7ca57d7c4ae0b836d",
   "chrome_rev": "19997",
   "cli_util_rev": "b0adbba89442b2ea6fef39c7a82fe79cb31e1168",
-  "clock_rev": "f594d86da123015186d5680b0d0e8255c52fc162",
-  "collection_rev": "f9b433dfc7dba5c8a987b1a8e6a9050292f5582e",
-  "convert_rev": "00b251529c074df394b3391c7e3eea3dd9e5778e",
-  "crypto_rev": "4297d240b0e1e780ec0a9eab23eaf1ad491f3e68",
-  "csslib_rev": "518761b166974537f334dbf264e7f56cb157a96a",
+  "clock_rev": "a75eb69c8e939e2e7eab70e4728da3bcf004e717",
+  "collection_rev": "414ffa1bc8ba18bd608bbf916d95715311d89ac1",
+  "convert_rev": "7145da14f9cd730e80fb4c6a10108fcfd205e8e7",
+  "crypto_rev": "223e0a62c0f762fd2b510f753861445b52e14fc3",
+  "csslib_rev": "ba2eb2d80530eedefadaade338a09c2dd60410f3",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
