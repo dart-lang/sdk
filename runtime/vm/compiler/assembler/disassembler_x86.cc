@@ -406,7 +406,7 @@ int DisassemblerX64::PrintRightOperandHelper(
       if ((rm & 7) == 5) {
 #if defined(TARGET_ARCH_IA32)
         int32_t abs = LoadUnaligned(reinterpret_cast<int32_t*>(modrmp + 1));
-        Print("[%#x]", abs);
+        Print("[0x%08x]", abs);
 #else
         int32_t disp = LoadUnaligned(reinterpret_cast<int32_t*>(modrmp + 1));
         Print("[rip");
