@@ -491,6 +491,7 @@ class FileState {
   /// We read the file digest, end verify that it is the same as the digest
   /// that was recorded during the file creation. If it is not, then the file
   /// was changed, and we failed to call [FileSystemState.changeFile].
+  /// TODO(scheglov) replace with [content]
   String getContent() {
     return _fileContent!.content;
   }
@@ -1137,6 +1138,10 @@ class FileSystemState {
   /// to batch file reads in systems where file fetches are expensive.
   final void Function(List<String> paths)? prefetchFiles;
 
+  /// A function that returns true if the given file path is likely to be that
+  /// of a file that is generated.
+  final bool Function(String path) isGenerated;
+
   late final FileSystemStateTestView _testView;
 
   FileSystemTestData? testData;
@@ -1156,6 +1161,7 @@ class FileSystemState {
     this.featureSetProvider, {
     required this.fileContentStrategy,
     required this.prefetchFiles,
+    required this.isGenerated,
   }) {
     _testView = FileSystemStateTestView(this);
   }
@@ -1337,13 +1343,11 @@ class FileSystemState {
   List<String> getFilesContaining(String value) {
     var result = <String>[];
     _pathToFile.forEach((path, file) {
-      // TODO(scheglov) Exclude generated files.
-      // var genFile = isGenerated == null ? false : isGenerated!(path);
-      // if (!genFile && file.getContent().contains(value)) {
-      //   result.add(path);
-      // }
-      if (file.getContent().contains(value)) {
-        result.add(path);
+      // TODO(scheglov) tests for excluding generated
+      if (!isGenerated(path)) {
+        if (file.getContent().contains(value)) {
+          result.add(path);
+        }
       }
     });
     return result;

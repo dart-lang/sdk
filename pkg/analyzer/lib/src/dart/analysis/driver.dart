@@ -1478,6 +1478,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       featureSetProvider,
       fileContentStrategy: _fileContentStrategy,
       prefetchFiles: null,
+      isGenerated: (_) => false,
     );
     _fileTracker = FileTracker(_logger, _fsState, _fileContentStrategy);
   }

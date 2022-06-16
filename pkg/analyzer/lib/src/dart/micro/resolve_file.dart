@@ -167,7 +167,7 @@ class FileResolver {
 
   /// A function that returns true if the given file path is likely to be that
   /// of a file that is generated.
-  final bool Function(String path)? isGenerated;
+  final bool Function(String path) isGenerated;
 
   /// A function that fetches the given list of files. This function can be used
   /// to batch file reads in systems where file fetches are expensive.
@@ -208,19 +208,7 @@ class FileResolver {
     required this.getFileDigest,
     required this.prefetchFiles,
     required this.workspace,
-    this.isGenerated,
-    required this.byteStore,
-  });
-
-  @Deprecated('Use the unnamed constructor instead')
-  FileResolver.from({
-    required this.logger,
-    required this.resourceProvider,
-    required this.sourceFactory,
-    required this.getFileDigest,
-    required this.prefetchFiles,
-    required this.workspace,
-    this.isGenerated,
+    required this.isGenerated,
     required this.byteStore,
   });
 
@@ -720,8 +708,7 @@ class FileResolver {
           getFileDigest: getFileDigest,
         ),
         prefetchFiles: prefetchFiles,
-        // TODO(scheglov) use these
-        // isGenerated,
+        isGenerated: isGenerated,
       )..testData = testView?.fileSystemTestData;
     }
 

@@ -96,7 +96,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       getFileDigest: (String path) => _getDigest(path),
       workspace: workspace,
       prefetchFiles: null,
-      isGenerated: null,
+      isGenerated: (_) => false,
     );
     fileResolver.testView = testData;
   }

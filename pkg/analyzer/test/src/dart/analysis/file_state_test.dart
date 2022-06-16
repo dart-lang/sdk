@@ -2244,6 +2244,7 @@ class FileSystemStateTest with ResourceProviderMixin {
         FileContentCache.ephemeral(resourceProvider),
       ),
       prefetchFiles: null,
+      isGenerated: (_) => false,
     );
   }
 
