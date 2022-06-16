@@ -343,6 +343,9 @@ class UnlinkedUnit {
   /// The `part of 'uri';` directive.
   final UnlinkedPartOfUriDirective? partOfUriDirective;
 
+  /// Top-level declarations of the unit.
+  final Set<String> topLevelDeclarations;
+
   UnlinkedUnit({
     required this.apiSignature,
     required this.augmentations,
@@ -356,6 +359,7 @@ class UnlinkedUnit {
     required this.parts,
     required this.partOfNameDirective,
     required this.partOfUriDirective,
+    required this.topLevelDeclarations,
   });
 
   factory UnlinkedUnit.read(SummaryDataReader reader) {
@@ -388,6 +392,7 @@ class UnlinkedUnit {
       partOfUriDirective: reader.readOptionalObject(
         UnlinkedPartOfUriDirective.read,
       ),
+      topLevelDeclarations: reader.readStringUtf8Set(),
     );
   }
 
@@ -424,5 +429,6 @@ class UnlinkedUnit {
       partOfUriDirective,
       (x) => x.write(sink),
     );
+    sink.writeStringUtf8Iterable(topLevelDeclarations);
   }
 }

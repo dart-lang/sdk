@@ -1136,10 +1136,11 @@ library my;
     });
   }
 
+  /// TODO(scheglov) Test discovery of a sibling library
   test_newFile_partOfName() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    final a = newFile('$testPackageLibPath/nested/a.dart', r'''
 library my.lib;
-part 'b.dart';
+part '../b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
@@ -2239,7 +2240,10 @@ class FileSystemStateTest with ResourceProviderMixin {
       Uint32List(0),
       Uint32List(0),
       featureSetProvider,
-      fileContentCache: FileContentCache.ephemeral(resourceProvider),
+      fileContentStrategy: StoredFileContentStrategy(
+        FileContentCache.ephemeral(resourceProvider),
+      ),
+      prefetchFiles: null,
     );
   }
 

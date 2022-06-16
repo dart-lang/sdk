@@ -5,6 +5,7 @@
 import 'dart:collection';
 import 'dart:typed_data';
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -19,14 +20,14 @@ import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
-import 'package:analyzer/src/dart/micro/library_graph.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
-import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
@@ -42,6 +43,75 @@ import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
+
+class CiderFileContent implements FileContent {
+  final CiderFileContentStrategy strategy;
+  final String path;
+  final String digestStr;
+
+  CiderFileContent({
+    required this.strategy,
+    required this.path,
+    required this.digestStr,
+  });
+
+  @override
+  String get content {
+    final contentWithDigest = _getContent();
+
+    if (contentWithDigest.digestStr != digestStr) {
+      throw StateError('File was changed, but not invalidated: $path');
+    }
+
+    return contentWithDigest.content;
+  }
+
+  @override
+  String get contentHash => digestStr;
+
+  @override
+  bool get exists => digestStr.isNotEmpty;
+
+  _ContentWithDigest _getContent() {
+    String content;
+    try {
+      final file = strategy.resourceProvider.getFile(path);
+      content = file.readAsStringSync();
+    } catch (_) {
+      content = '';
+    }
+
+    final digestStr = strategy.getFileDigest(path);
+    return _ContentWithDigest(
+      content: content,
+      digestStr: digestStr,
+    );
+  }
+}
+
+class CiderFileContentStrategy implements FileContentStrategy {
+  final ResourceProvider resourceProvider;
+
+  /// A function that returns the digest for a file as a String. The function
+  /// returns a non null value, returns an empty string if file does
+  /// not exist/has no contents.
+  final String Function(String path) getFileDigest;
+
+  CiderFileContentStrategy({
+    required this.resourceProvider,
+    required this.getFileDigest,
+  });
+
+  @override
+  CiderFileContent get(String path) {
+    final digestStr = getFileDigest(path);
+    return CiderFileContent(
+      strategy: this,
+      path: path,
+      digestStr: digestStr,
+    );
+  }
+}
 
 class CiderSearchInfo {
   final CharacterLocation startPosition;
@@ -276,8 +346,8 @@ class FileResolver {
       var file = fileContext.file;
 
       final errorsSignatureBuilder = ApiSignature();
-      errorsSignatureBuilder.addBytes(file.libraryCycle.signature);
-      errorsSignatureBuilder.addBytes(file.digest);
+      errorsSignatureBuilder.addString(file.libraryCycle.apiSignature);
+      errorsSignatureBuilder.addString(file.contentHash);
       final errorsKey = '${errorsSignatureBuilder.toHex()}.errors';
 
       final List<AnalysisError> errors;
@@ -330,7 +400,7 @@ class FileResolver {
       });
 
       var file = performance.run('fileForPath', (performance) {
-        return fsState!.getFileForPath(
+        return fsState!.getFileForPath2(
           path: path,
           performance: performance,
         );
@@ -368,7 +438,8 @@ class FileResolver {
     );
     var file = fileContext.file;
 
-    if (file.partOfLibrary != null) {
+    final kind = file.kind;
+    if (kind is! LibraryFileStateKind) {
       throw ArgumentError('$uri is not a library.');
     }
 
@@ -388,12 +459,12 @@ class FileResolver {
   }) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
-    var file = fsState!.getFileForPath(
+    var file = fsState!.getFileForPath2(
       path: path,
       performance: performance,
     );
 
-    return file.libraryCycle.signatureStr;
+    return file.libraryCycle.apiSignature;
   }
 
   /// Ensure that libraries necessary for resolving [path] are linked.
@@ -427,7 +498,7 @@ class FileResolver {
       performance: performance,
     );
     var file = fileContext.file;
-    var libraryFile = file.partOfLibrary ?? file;
+    var libraryFile = file.kind.library!.file;
 
     // Load the library, link if necessary.
     await libraryContext!.load(
@@ -486,15 +557,17 @@ class FileResolver {
       );
       var file = fileContext.file;
 
-      // If we have a `part of` directive, we want to analyze this library.
-      // But the library must include the file, so have its element.
-      var libraryFile = file;
-      var partOfLibrary = file.partOfLibrary;
-      if (partOfLibrary != null) {
-        if (partOfLibrary.files().ofLibrary.contains(file)) {
-          libraryFile = partOfLibrary;
-        }
-      }
+      // // If we have a `part of` directive, we want to analyze this library.
+      // // But the library must include the file, so have its element.
+      // var libraryFile = file;
+      // var partOfLibrary = file.partOfLibrary;
+      // if (partOfLibrary != null) {
+      //   if (partOfLibrary.files().ofLibrary.contains(file)) {
+      //     libraryFile = partOfLibrary;
+      //   }
+      // }
+      final libraryKind = file.kind.library ?? file.kind.asLibrary;
+      final libraryFile = libraryKind.file;
 
       var libraryResult = await resolveLibrary2(
         completionLine: completionLine,
@@ -533,15 +606,17 @@ class FileResolver {
       );
       var file = fileContext.file;
 
-      // If we have a `part of` directive, we want to analyze this library.
-      // But the library must include the file, so have its element.
-      var libraryFile = file;
-      var partOfLibrary = file.partOfLibrary;
-      if (partOfLibrary != null) {
-        if (partOfLibrary.files().ofLibrary.contains(file)) {
-          libraryFile = partOfLibrary;
-        }
-      }
+      // // If we have a `part of` directive, we want to analyze this library.
+      // // But the library must include the file, so have its element.
+      // var libraryFile = file;
+      // var partOfLibrary = file.partOfLibrary;
+      // if (partOfLibrary != null) {
+      //   if (partOfLibrary.files().ofLibrary.contains(file)) {
+      //     libraryFile = partOfLibrary;
+      //   }
+      // }
+      final libraryKind = file.kind.library ?? file.kind.asLibrary;
+      final libraryFile = libraryKind.file;
 
       int? completionOffset;
       if (completionLine != null && completionColumn != null) {
@@ -573,26 +648,13 @@ class FileResolver {
           (file) => file.getContent(),
         );
 
-        try {
-          results = performance!.run('analyze', (performance) {
-            return libraryAnalyzer.analyze(
-              completionPath: completionOffset != null ? completionPath : null,
-              completionOffset: completionOffset,
-              performance: performance,
-            );
-          });
-        } catch (exception, stackTrace) {
-          var fileContentMap = <String, String>{};
-          for (var file in libraryFile.files().ofLibrary) {
-            var path = file.path;
-            fileContentMap[path] = _getFileContent(path);
-          }
-          throw CaughtExceptionWithFiles(
-            exception,
-            stackTrace,
-            fileContentMap,
+        results = performance!.run('analyze', (performance) {
+          return libraryAnalyzer.analyze(
+            completionPath: completionOffset != null ? completionPath : null,
+            completionOffset: completionOffset,
+            performance: performance,
           );
-        }
+        });
       });
 
       var resolvedUnits = results.values.map((fileResult) {
@@ -655,15 +717,24 @@ class FileResolver {
       );
 
       fsState = FileSystemState(
-        resourceProvider,
+        logger,
         byteStore,
+        resourceProvider,
+        'contextName',
         sourceFactory,
         workspace,
-        Uint32List(0), // linkedSalt
+        AnalysisOptionsImpl(), // TODO(scheglov) remove it
+        DeclaredVariables.fromMap({}),
+        Uint32List(0), // _saltForUnlinked
+        Uint32List(0), // _saltForElements
         featureSetProvider,
-        getFileDigest,
-        prefetchFiles,
-        isGenerated,
+        fileContentStrategy: CiderFileContentStrategy(
+          resourceProvider: resourceProvider,
+          getFileDigest: getFileDigest,
+        ),
+        prefetchFiles: prefetchFiles,
+        // TODO(scheglov) use these
+        // isGenerated,
       )..testData = testView?.fileSystemTestData;
     }
 
@@ -779,15 +850,6 @@ class FileResolver {
     return options;
   }
 
-  /// Return the file content, the empty string if any exception.
-  String _getFileContent(String path) {
-    try {
-      return resourceProvider.getFile(path).readAsStringSync();
-    } catch (_) {
-      return '';
-    }
-  }
-
   Future<List<CiderSearchMatch>> _searchReferences_Import(
       ImportElement element) async {
     var results = <CiderSearchMatch>[];
@@ -897,14 +959,13 @@ class LibraryContext {
         await loadBundle(directDependency);
       }
 
-      var resolutionKey = '${cycle.signatureStr}.resolution';
+      var resolutionKey = '${cycle.apiSignature}.linked_bundle';
       var resolutionBytes = byteStore.get(resolutionKey);
 
       var unitsInformativeBytes = <Uri, Uint8List>{};
       for (var library in cycle.libraries) {
-        for (var file in library.files().ofLibrary) {
-          var informativeBytes = file.unlinkedUnit.informativeBytes;
-          unitsInformativeBytes[file.uri] = informativeBytes;
+        for (var file in library.libraryFiles) {
+          unitsInformativeBytes[file.uri] = file.unlinked2.informativeBytes;
         }
       }
 
@@ -918,21 +979,21 @@ class LibraryContext {
 
           var inputUnits = <LinkInputUnit>[];
           var partIndex = -1;
-          for (var file in libraryFile.files().ofLibrary) {
+          for (var file in libraryFile.libraryFiles) {
             var isSynthetic = !file.exists;
 
             var content = file.getContent();
             performance.getDataInt('parseCount').increment();
             performance.getDataInt('parseLength').add(content.length);
 
-            var unit = file.parse(
+            var unit = file.parse2(
               AnalysisErrorListener.NULL_LISTENER,
               content,
             );
 
             String? partUriStr;
             if (partIndex >= 0) {
-              partUriStr = libraryFile.unlinkedUnit.parts[partIndex];
+              partUriStr = libraryFile.unlinked2.parts[partIndex];
             }
             partIndex++;
 
@@ -1068,4 +1129,14 @@ class LibraryContext {
 class LibraryCycleTestData {
   final List<String> getKeys = [];
   final List<String> putKeys = [];
+}
+
+class _ContentWithDigest {
+  final String content;
+  final String digestStr;
+
+  _ContentWithDigest({
+    required this.content,
+    required this.digestStr,
+  });
 }

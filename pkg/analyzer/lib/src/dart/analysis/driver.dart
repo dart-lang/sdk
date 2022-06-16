@@ -86,7 +86,7 @@ import 'package:meta/meta.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 223;
+  static const int DATA_VERSION = 224;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -115,6 +115,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// This [ContentCache] is consulted for a file content before reading
   /// the content from the file.
   final FileContentCache _fileContentCache;
+
+  late final StoredFileContentStrategy _fileContentStrategy;
 
   /// The analysis options to analyze with.
   AnalysisOptionsImpl _analysisOptions;
@@ -277,6 +279,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     analysisContext?.driver = this;
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = AnalysisDriverTestView(this);
+
+    _fileContentStrategy = StoredFileContentStrategy(_fileContentCache);
+
     _createFileTracker();
     _scheduler.add(this);
     _search = Search(this);
@@ -1507,9 +1512,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _saltForUnlinked,
       _saltForElements,
       featureSetProvider,
-      fileContentCache: _fileContentCache,
+      fileContentStrategy: _fileContentStrategy,
+      prefetchFiles: null,
     );
-    _fileTracker = FileTracker(_logger, _fsState);
+    _fileTracker = FileTracker(_logger, _fsState, _fileContentStrategy);
   }
 
   /// If this has not been done yet, schedule discovery of all files that are

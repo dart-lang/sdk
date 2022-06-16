@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -19,7 +20,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/micro/library_graph.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
@@ -106,7 +106,8 @@ class LibraryAnalyzer {
 
     // Parse all files.
     performance.run('parse', (performance) {
-      for (FileState file in _library.files().ofLibrary) {
+      final libraryKind = _library.kind.asLibrary;
+      for (FileState file in libraryKind.file.libraryFiles) {
         if (completionPath == null || file.path == completionPath) {
           units[file] = _parse(
             file: file,
@@ -227,21 +228,24 @@ class LibraryAnalyzer {
       });
     }
 
+    final libraryKind = _library.kind.asLibrary;
+    final libraryFiles = libraryKind.file.libraryFiles.toList();
+
     if (_analysisOptions.lint) {
       performance.run('computeLints', (performance) {
-        var allUnits = _library.files().ofLibrary.map((file) {
+        var allUnits = libraryFiles.map((file) {
           var content = getFileContent(file);
           return LinterContextUnit(content, units[file]!);
         }).toList();
         for (int i = 0; i < allUnits.length; i++) {
-          _computeLints(_library.files().ofLibrary[i], allUnits[i], allUnits);
+          _computeLints(libraryFiles[i], allUnits[i], allUnits);
         }
       });
     }
 
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
-    for (var file in _library.files().ofLibrary) {
+    for (var file in libraryFiles) {
       IgnoreValidator(
         _getErrorReporter(file),
         _getErrorListener(file).errors,
@@ -475,7 +479,8 @@ class LibraryAnalyzer {
   }
 
   bool _isExistingSource(Source source) {
-    for (var file in _library.files().directReferencedFiles) {
+    final libraryKind = _library.kind.asLibrary;
+    for (var file in libraryKind.file.directReferencedFiles) {
       if (file.uri == source.uri) {
         return file.exists;
       }
@@ -499,7 +504,7 @@ class LibraryAnalyzer {
     performance.getDataInt('length').add(content.length);
 
     AnalysisErrorListener errorListener = _getErrorListener(file);
-    var unit = file.parse(errorListener, content);
+    var unit = file.parse2(errorListener, content);
 
     LineInfo lineInfo = unit.lineInfo;
     _fileToLineInfo[file] = lineInfo;
@@ -543,6 +548,8 @@ class LibraryAnalyzer {
       completionUnit.element = unitElement;
       return;
     }
+
+    final libraryKind = _library.kind.asLibrary;
 
     var definingCompilationUnit = units[_library]!;
     definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
@@ -598,7 +605,7 @@ class LibraryAnalyzer {
       } else if (directive is PartDirectiveImpl) {
         StringLiteral partUri = directive.uri;
 
-        FileState partFile = _library.files().parted[partIndex];
+        FileState partFile = libraryKind.file.partedFiles[partIndex]!;
         var partUnit = units[partFile]!;
         CompilationUnitElement partElement = _libraryElement.parts[partIndex];
         partUnit.element = partElement;

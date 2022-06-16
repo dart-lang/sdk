@@ -1045,6 +1045,7 @@ class _FileStateUnlinked {
       parts: parts,
       partOfNameDirective: partOfNameDirective,
       partOfUriDirective: partOfUriDirective,
+      topLevelDeclarations: topLevelDeclarations,
     );
 
     return CiderUnlinkedUnit(
