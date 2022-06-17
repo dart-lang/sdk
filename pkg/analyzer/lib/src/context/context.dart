@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -11,52 +10,103 @@ import 'package:analyzer/src/generated/source.dart';
 
 /// An [AnalysisContext] in which analysis can be performed.
 class AnalysisContextImpl implements AnalysisContext {
-  final SynchronousSession _synchronousSession;
+  AnalysisOptionsImpl _analysisOptions;
+
+  @override
+  final DeclaredVariables declaredVariables;
 
   @override
   final SourceFactory sourceFactory;
 
-  AnalysisContextImpl(this._synchronousSession, this.sourceFactory);
+  TypeProviderImpl? _typeProviderLegacy;
+  TypeProviderImpl? _typeProviderNonNullableByDefault;
+
+  TypeSystemImpl? _typeSystemLegacy;
+  TypeSystemImpl? _typeSystemNonNullableByDefault;
+
+  AnalysisContextImpl({
+    required AnalysisOptionsImpl analysisOptions,
+    required this.declaredVariables,
+    required this.sourceFactory,
+  }) : _analysisOptions = analysisOptions;
 
   @override
   AnalysisOptionsImpl get analysisOptions {
-    return _synchronousSession.analysisOptions;
+    return _analysisOptions;
   }
 
-  @override
-  DeclaredVariables get declaredVariables {
-    return _synchronousSession.declaredVariables;
+  /// TODO(scheglov) Remove it, exists only for Cider.
+  set analysisOptions(AnalysisOptionsImpl analysisOptions) {
+    _analysisOptions = analysisOptions;
+
+    // TODO() remove this method as well
+    _typeSystemLegacy?.updateOptions(
+      implicitCasts: analysisOptions.implicitCasts,
+      strictCasts: analysisOptions.strictCasts,
+      strictInference: analysisOptions.strictInference,
+    );
+
+    _typeSystemNonNullableByDefault?.updateOptions(
+      implicitCasts: analysisOptions.implicitCasts,
+      strictCasts: analysisOptions.strictCasts,
+      strictInference: analysisOptions.strictInference,
+    );
   }
 
-  bool get hasTypeProvider => _synchronousSession.hasTypeProvider;
+  bool get hasTypeProvider {
+    return _typeProviderNonNullableByDefault != null;
+  }
 
   TypeProviderImpl get typeProviderLegacy {
-    return _synchronousSession.typeProviderLegacy;
+    return _typeProviderLegacy!;
   }
 
   TypeProviderImpl get typeProviderNonNullableByDefault {
-    return _synchronousSession.typeProviderNonNullableByDefault;
+    return _typeProviderNonNullableByDefault!;
   }
 
   TypeSystemImpl get typeSystemLegacy {
-    return _synchronousSession.typeSystemLegacy;
+    return _typeSystemLegacy!;
   }
 
   TypeSystemImpl get typeSystemNonNullableByDefault {
-    return _synchronousSession.typeSystemNonNullableByDefault;
+    return _typeSystemNonNullableByDefault!;
   }
 
   void clearTypeProvider() {
-    _synchronousSession.clearTypeProvider();
+    _typeProviderLegacy = null;
+    _typeProviderNonNullableByDefault = null;
+
+    _typeSystemLegacy = null;
+    _typeSystemNonNullableByDefault = null;
   }
 
   void setTypeProviders({
     required TypeProviderImpl legacy,
     required TypeProviderImpl nonNullableByDefault,
   }) {
-    _synchronousSession.setTypeProviders(
-      legacy: legacy,
-      nonNullableByDefault: nonNullableByDefault,
+    if (_typeProviderLegacy != null ||
+        _typeProviderNonNullableByDefault != null) {
+      throw StateError('TypeProvider(s) can be set only once.');
+    }
+
+    _typeSystemLegacy = TypeSystemImpl(
+      implicitCasts: analysisOptions.implicitCasts,
+      isNonNullableByDefault: false,
+      strictCasts: analysisOptions.strictCasts,
+      strictInference: analysisOptions.strictInference,
+      typeProvider: legacy,
     );
+
+    _typeSystemNonNullableByDefault = TypeSystemImpl(
+      implicitCasts: analysisOptions.implicitCasts,
+      isNonNullableByDefault: true,
+      strictCasts: analysisOptions.strictCasts,
+      strictInference: analysisOptions.strictInference,
+      typeProvider: nonNullableByDefault,
+    );
+
+    _typeProviderLegacy = legacy;
+    _typeProviderNonNullableByDefault = nonNullableByDefault;
   }
 }
