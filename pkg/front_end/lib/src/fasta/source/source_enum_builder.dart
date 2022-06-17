@@ -713,9 +713,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
         if (!fieldBuilder.hasBodyBeenBuilt) {
           fieldBuilder.buildBody(
               coreTypes,
-              bodyBuilder.buildUnresolvedError(new NullLiteral(),
-                  fullConstructorNameForErrors, arguments, fileOffset,
-                  kind: UnresolvedKind.Constructor));
+              bodyBuilder.buildUnresolvedError(
+                  fullConstructorNameForErrors, fileOffset,
+                  arguments: arguments, kind: UnresolvedKind.Constructor));
         }
       } else {
         Expression initializer = bodyBuilder.buildStaticInvocation(

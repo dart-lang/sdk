@@ -33,7 +33,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-abstract class _B&A&C = self::A with self::C /*isAnonymousMixin*/  {
+abstract class _B&A&C extends self::A implements self::C /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_B&A&C
     : super self::A::•()
     ;

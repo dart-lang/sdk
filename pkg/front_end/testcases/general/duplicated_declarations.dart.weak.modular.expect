@@ -418,7 +418,9 @@ Try removing the extra positional arguments.
                ^"
     ;
   method m() → dynamic
-    return super.m();
+    return invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:71:16: Error: Superclass has no method named 'm'.
+  m() => super.m();
+               ^";
 }
 class Enum#4 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   static const field core::List<self::Enum#4> values = #C4;

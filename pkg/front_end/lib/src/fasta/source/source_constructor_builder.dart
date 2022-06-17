@@ -602,11 +602,10 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
         if (message != null) {
           initializers.add(helper.buildInvalidInitializer(
               helper.buildUnresolvedError(
-                  helper.forest.createNullLiteral(initializer.fileOffset),
                   helper.constructorNameForDiagnostics(
                       initializer.target.name.text),
-                  initializer.arguments,
                   initializer.fileOffset,
+                  arguments: initializer.arguments,
                   isSuper: true,
                   message: message,
                   kind: UnresolvedKind.Constructor))
@@ -657,12 +656,11 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
         if (message != null) {
           initializers.add(helper.buildInvalidInitializer(
               helper.buildUnresolvedError(
-                  helper.forest.createNullLiteral(initializer.fileOffset),
                   helper.constructorNameForDiagnostics(
                       initializer.target.name.text,
                       isSuper: false),
-                  initializer.arguments,
                   initializer.fileOffset,
+                  arguments: initializer.arguments,
                   isSuper: false,
                   message: message,
                   kind: UnresolvedKind.Constructor))

@@ -457,7 +457,7 @@ To delegate a constructor to a super constructor, put the super call as an initi
 Try correcting the operator to an existing operator, or defining a '+' operator.
     super.n++;
            ^" in super.{self::A::n}{<unresolved>}.+(1);
-    self::use(let final () → void #t25 = super.{self::A::n} in let final dynamic #t26 = super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:98:16: Error: The operator '+' isn't defined for the class 'void Function()'.
+    self::use(let final () → void #t25 = super.{self::A::n} in let final invalid-type #t26 = super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:98:16: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     use(super.n++);
                ^" in #t25{<unresolved>}.+(1) in #t25);
@@ -728,3 +728,32 @@ static method use(dynamic x) → dynamic {
 static method main() → dynamic {
   new self::C::•().{self::C::test}(){() → dynamic};
 }
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:93:11 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:93:11 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:94:15 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:94:15 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:118:13 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:118:13 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:119:17 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:119:17 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:171:15 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:171:21 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:171:21 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:195:11 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:195:11 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:196:15 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:196:15 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:196:23 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:196:23 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:220:11 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:220:11 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:221:15 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:221:15 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:245:11 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:245:11 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:246:15 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:246:15 -> IntConstant(87)
+Extra constant evaluation: evaluated: 618, effectively constant: 25
