@@ -35,8 +35,6 @@ no_such_method_forwarders/abstract_accessors_from_field: SemiFuzzFailure # Looks
 no_such_method_forwarders/default_argument_values: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
 variance/generic_covariance_sound_variance: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
 
-super_parameters/circular_dependency_inference: SemiFuzzCrash # https://github.com/dart-lang/sdk/issues/49254
-
 dart2js/flutter_issue94561/main: SemiFuzzFailure
 dart2js/flutter_issue94561/main.no_link: SemiFuzzFailure
 dart2js/late_fields: SemiFuzzFailure
