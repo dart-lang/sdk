@@ -35,5 +35,7 @@ class Autobianchi extends core::Object {
     : super core::Object::•()
     ;
   method g() → dynamic
-    return super.[](0);
+    return invalid-expression "pkg/front_end/testcases/rasta/super_operator.dart:22:15: Error: Superclass has no method named '[]'.
+  g() => super[0];
+              ^";
 }

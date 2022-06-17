@@ -2665,23 +2665,24 @@ class BodyBuilder extends StackListenerImpl
     ]));
   }
 
-  bool areArgumentsCompatible(FunctionNode function, Arguments arguments) {
-    // TODO(ahe): Implement this.
-    return true;
-  }
-
   @override
-  Expression buildUnresolvedError(
-      Expression receiver, String name, Arguments arguments, int charOffset,
+  Expression buildUnresolvedError(String name, int charOffset,
       {Member? candidate,
       bool isSuper: false,
       required UnresolvedKind kind,
       bool isStatic: false,
-      LocatedMessage? message}) {
-    int length = name.length;
-    int periodIndex = name.lastIndexOf(".");
-    if (periodIndex != -1) {
-      length -= periodIndex + 1;
+      Arguments? arguments,
+      Expression? rhs,
+      LocatedMessage? message,
+      int? length}) {
+    // TODO(johnniwinther): Use [arguments] and [rhs] to create an unresolved
+    // access expression to include in the invalid expression.
+    if (length == null) {
+      length = name.length;
+      int periodIndex = name.lastIndexOf(".");
+      if (periodIndex != -1) {
+        length -= periodIndex + 1;
+      }
     }
     Name kernelName = new Name(name, libraryBuilder.nameOrigin);
     List<LocatedMessage>? context;
@@ -5003,9 +5004,11 @@ class BodyBuilder extends StackListenerImpl
     LocatedMessage? argMessage = checkArgumentsForFunction(
         target.function!, arguments, charOffset, typeParameters);
     if (argMessage != null) {
-      return buildUnresolvedError(forest.createNullLiteral(charOffset),
-          target.name.text, arguments, charOffset,
-          candidate: target, message: argMessage, kind: UnresolvedKind.Method);
+      return buildUnresolvedError(target.name.text, charOffset,
+          arguments: arguments,
+          candidate: target,
+          message: argMessage,
+          kind: UnresolvedKind.Method);
     }
 
     bool isConst = constness == Constness.explicitConst ||
@@ -5087,9 +5090,11 @@ class BodyBuilder extends StackListenerImpl
         target.function, arguments, fileOffset, typeParameters,
         isExtensionMemberInvocation: true);
     if (argMessage != null) {
-      return buildUnresolvedError(forest.createNullLiteral(fileOffset),
-          target.name.text, arguments, fileOffset,
-          candidate: target, message: argMessage, kind: UnresolvedKind.Method);
+      return buildUnresolvedError(target.name.text, fileOffset,
+          arguments: arguments,
+          candidate: target,
+          message: argMessage,
+          kind: UnresolvedKind.Method);
     }
 
     Expression node;
@@ -5341,9 +5346,9 @@ class BodyBuilder extends StackListenerImpl
       if (type is ProblemBuilder) {
         typeName = type.fullNameForErrors;
       }
-      push(buildUnresolvedError(forest.createNullLiteral(offset),
-          debugName(typeName!, name), arguments, nameToken.charOffset,
-          kind: UnresolvedKind.Constructor));
+      push(buildUnresolvedError(
+          debugName(typeName!, name), nameToken.charOffset,
+          arguments: arguments, kind: UnresolvedKind.Constructor));
     }
     constantContext = savedConstantContext;
     assert(checkState(nameToken, [
@@ -5394,10 +5399,9 @@ class BodyBuilder extends StackListenerImpl
                 allowPotentiallyConstantType: false));
       }
       return buildUnresolvedError(
-          forest.createNullLiteral(instantiationOffset),
           constructorNameForDiagnostics(constructorName, className: className),
-          arguments,
           invocationOffset,
+          arguments: arguments,
           kind: UnresolvedKind.Constructor);
     }
   }
@@ -5476,9 +5480,10 @@ class BodyBuilder extends StackListenerImpl
                       nameToken.lexeme.length));
             }
 
-            return buildUnresolvedError(forest.createNullLiteral(charOffset),
-                errorName, arguments, nameLastToken.charOffset,
-                message: message, kind: UnresolvedKind.Constructor);
+            return buildUnresolvedError(errorName, nameLastToken.charOffset,
+                arguments: arguments,
+                message: message,
+                kind: UnresolvedKind.Constructor);
           }
           MemberBuilder? b = classBuilder.findConstructorOrFactory(
               name, charOffset, uri, libraryBuilder);
@@ -5508,9 +5513,10 @@ class BodyBuilder extends StackListenerImpl
                 charLength: nameToken.length);
             return invocation;
           } else {
-            return buildUnresolvedError(forest.createNullLiteral(charOffset),
-                errorName, arguments, nameLastToken.charOffset,
-                message: message, kind: UnresolvedKind.Constructor);
+            return buildUnresolvedError(errorName, nameLastToken.charOffset,
+                arguments: arguments,
+                message: message,
+                kind: UnresolvedKind.Constructor);
           }
         } else {
           // Empty `typeArguments` and `aliasBuilder``is non-generic, but it
@@ -5672,9 +5678,8 @@ class BodyBuilder extends StackListenerImpl
       errorName ??= debugName(type!.fullNameForErrors, name);
     }
 
-    return buildUnresolvedError(forest.createNullLiteral(charOffset), errorName,
-        arguments, nameLastToken.charOffset,
-        message: message, kind: unresolvedKind);
+    return buildUnresolvedError(errorName, nameLastToken.charOffset,
+        arguments: arguments, message: message, kind: unresolvedKind);
   }
 
   @override
@@ -7434,18 +7439,11 @@ class BodyBuilder extends StackListenerImpl
     }
     Member? target = lookupSuperMember(name);
 
-    if (target == null || (target is Procedure && !target.isAccessor)) {
-      if (target == null) {
-        warnUnresolvedMethod(name, offset, isSuper: true);
-      } else if (!areArgumentsCompatible(target.function!, arguments)) {
-        target = null;
-        addProblemErrorIfConst(
-            fasta.templateSuperclassMethodArgumentMismatch
-                .withArguments(name.text),
-            offset,
-            name.text.length);
-      }
-      return new SuperMethodInvocation(name, arguments, target as Procedure?)
+    if (target == null) {
+      return buildUnresolvedError(name.text, offset,
+          isSuper: true, arguments: arguments, kind: UnresolvedKind.Method);
+    } else if (target is Procedure && !target.isAccessor) {
+      return new SuperMethodInvocation(name, arguments, target)
         ..fileOffset = offset;
     }
     if (isImplicitCall) {

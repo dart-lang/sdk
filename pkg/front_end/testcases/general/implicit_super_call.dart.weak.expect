@@ -158,8 +158,12 @@ class Class7 extends self::Super7 {
     : super self::Super7::•()
     ;
   method test() → void {
-    super.call(0);
-    super.call(0);
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:95:5: Error: Superclass has no method named 'call'.
+    super(0); // error
+    ^^^^";
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:96:11: Error: Superclass has no method named 'call'.
+    super.call(0); // error
+          ^^^^";
   }
 }
 class Super8 extends core::Object {
@@ -172,8 +176,12 @@ class Class8 extends self::Super8 {
     : super self::Super8::•()
     ;
   method test() → void {
-    super.call();
-    super.call();
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:104:5: Error: Superclass has no method named 'call'.
+    super(); // error
+    ^^^^";
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:105:11: Error: Superclass has no method named 'call'.
+    super.call(); // error
+          ^^^^";
   }
 }
 static method main() → dynamic {

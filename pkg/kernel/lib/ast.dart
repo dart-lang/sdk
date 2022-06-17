@@ -4275,6 +4275,10 @@ enum DynamicAccessKind {
   /// type.
   Invalid,
 
+  /// An access of an unresolved target.
+  ///
+  /// An access of this kind always results in a value of an invalid static
+  /// type.
   Unresolved,
 }
 

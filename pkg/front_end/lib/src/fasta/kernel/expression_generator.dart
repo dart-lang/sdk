@@ -52,7 +52,6 @@ import '../names.dart'
 import '../problems.dart';
 import '../scope.dart';
 import '../source/stack_listener_impl.dart' show offsetForToken;
-import 'body_builder.dart' show noLocation;
 import 'constness.dart' show Constness;
 import 'expression_generator_helper.dart';
 import 'forest.dart';
@@ -158,8 +157,7 @@ abstract class Generator {
   ///
   /// At runtime, an exception will be thrown.
   Expression _makeInvalidRead(UnresolvedKind unresolvedKind) {
-    return _helper.buildUnresolvedError(_forest.createNullLiteral(fileOffset),
-        _plainNameForRead, _forest.createArgumentsEmpty(noLocation), fileOffset,
+    return _helper.buildUnresolvedError(_plainNameForRead, fileOffset,
         kind: unresolvedKind);
   }
 
@@ -168,12 +166,8 @@ abstract class Generator {
   ///
   /// At runtime, [value] will be evaluated before throwing an exception.
   Expression _makeInvalidWrite(Expression value) {
-    return _helper.buildUnresolvedError(
-        _forest.createNullLiteral(fileOffset),
-        _plainNameForRead,
-        _forest.createArguments(noLocation, <Expression>[value]),
-        fileOffset,
-        kind: UnresolvedKind.Setter);
+    return _helper.buildUnresolvedError(_plainNameForRead, fileOffset,
+        rhs: value, kind: UnresolvedKind.Setter);
   }
 
   Expression buildForEffect() => buildSimpleRead();
@@ -843,7 +837,8 @@ class SuperPropertyAccessGenerator extends Generator {
 
   Expression _createRead() {
     if (getter == null) {
-      _helper.warnUnresolvedGet(name, fileOffset, isSuper: true);
+      return _helper.buildUnresolvedError(name.text, fileOffset,
+          isSuper: true, kind: UnresolvedKind.Getter);
     }
     return new SuperPropertyGet(name, getter)..fileOffset = fileOffset;
   }
@@ -855,7 +850,8 @@ class SuperPropertyAccessGenerator extends Generator {
 
   Expression _createWrite(int offset, Expression value) {
     if (setter == null) {
-      _helper.warnUnresolvedSet(name, offset, isSuper: true);
+      return _helper.buildUnresolvedError(name.text, fileOffset,
+          rhs: value, isSuper: true, kind: UnresolvedKind.Setter);
     }
     SuperPropertySet write = new SuperPropertySet(name, value, setter)
       ..fileOffset = offset;
@@ -906,7 +902,10 @@ class SuperPropertyAccessGenerator extends Generator {
       // TODO(brianwilkerson) Fix the length
       _helper.addProblem(messageNotAConstantExpression, offset, 1);
     }
-    if (getter == null || isFieldOrGetter(getter)) {
+    if (getter == null) {
+      return _helper.buildUnresolvedError(name.text, fileOffset,
+          arguments: arguments, isSuper: true, kind: UnresolvedKind.Method);
+    } else if (isFieldOrGetter(getter)) {
       return _helper.forest
           .createExpressionInvocation(offset, buildSimpleRead(), arguments);
     } else {
@@ -1229,7 +1228,12 @@ class SuperIndexedAccessGenerator extends Generator {
   @override
   Expression buildSimpleRead() {
     if (getter == null) {
-      _helper.warnUnresolvedMethod(indexGetName, fileOffset, isSuper: true);
+      return _helper.buildUnresolvedError(indexGetName.text, fileOffset,
+          isSuper: true,
+          arguments:
+              _helper.forest.createArguments(fileOffset, <Expression>[index]),
+          kind: UnresolvedKind.Method,
+          length: noLength);
     }
     return _helper.forest.createSuperMethodInvocation(
         fileOffset,
@@ -1242,7 +1246,12 @@ class SuperIndexedAccessGenerator extends Generator {
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
     if (voidContext) {
       if (setter == null) {
-        _helper.warnUnresolvedMethod(indexSetName, fileOffset, isSuper: true);
+        return _helper.buildUnresolvedError(indexSetName.text, fileOffset,
+            isSuper: true,
+            arguments: _helper.forest
+                .createArguments(fileOffset, <Expression>[index, value]),
+            kind: UnresolvedKind.Method,
+            length: noLength);
       }
       return _helper.forest.createSuperMethodInvocation(
           fileOffset,
@@ -3604,11 +3613,11 @@ abstract class ErroneousExpressionGenerator extends Generator {
   ErroneousExpressionGenerator(ExpressionGeneratorHelper helper, Token token)
       : super(helper, token);
 
-  /// Pass [arguments] that must be evaluated before throwing an error.  At
-  /// most one of [isGetter] and [isSetter] should be true and they're passed
-  /// to [ExpressionGeneratorHelper.buildUnresolvedError] if it is used.
-  Expression buildError(Arguments arguments,
-      {required UnresolvedKind kind, int? charOffset});
+  Expression buildError(
+      {Arguments? arguments,
+      Expression? rhs,
+      required UnresolvedKind kind,
+      int? charOffset});
 
   Name get name => unsupported("name", fileOffset, _uri);
 
@@ -3618,9 +3627,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
   @override
   List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
     return <Initializer>[
-      _helper.buildInvalidInitializer(buildError(
-          _forest.createArgumentsEmpty(fileOffset),
-          kind: UnresolvedKind.Setter))
+      _helper.buildInvalidInitializer(buildError(kind: UnresolvedKind.Setter))
     ];
   }
 
@@ -3628,8 +3635,8 @@ abstract class ErroneousExpressionGenerator extends Generator {
   Expression_Generator_Initializer doInvocation(
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
-    return buildError(arguments,
-        charOffset: offset, kind: UnresolvedKind.Method);
+    return buildError(
+        arguments: arguments, charOffset: offset, kind: UnresolvedKind.Method);
   }
 
   @override
@@ -3641,8 +3648,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return buildError(_forest.createArguments(fileOffset, <Expression>[value]),
-        kind: UnresolvedKind.Setter);
+    return buildError(rhs: value, kind: UnresolvedKind.Setter);
   }
 
   @override
@@ -3651,15 +3657,14 @@ abstract class ErroneousExpressionGenerator extends Generator {
       bool voidContext: false,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    return buildError(_forest.createArguments(fileOffset, <Expression>[value]),
-        kind: UnresolvedKind.Getter);
+    return buildError(rhs: value, kind: UnresolvedKind.Getter);
   }
 
   @override
   Expression buildPrefixIncrement(Name binaryOperator,
       {int offset: -1, bool voidContext: false}) {
     return buildError(
-        _forest.createArguments(
+        arguments: _forest.createArguments(
             fileOffset, <Expression>[_forest.createIntLiteral(offset, 1)]),
         kind: UnresolvedKind.Getter)
       ..fileOffset = offset;
@@ -3669,7 +3674,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset: -1, bool voidContext: false}) {
     return buildError(
-        _forest.createArguments(
+        arguments: _forest.createArguments(
             fileOffset, <Expression>[_forest.createIntLiteral(offset, 1)]),
         kind: UnresolvedKind.Getter)
       ..fileOffset = offset;
@@ -3678,26 +3683,22 @@ abstract class ErroneousExpressionGenerator extends Generator {
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    return buildError(_forest.createArguments(fileOffset, <Expression>[value]),
-        kind: UnresolvedKind.Setter);
+    return buildError(rhs: value, kind: UnresolvedKind.Setter);
   }
 
   @override
   Expression buildSimpleRead() {
-    return buildError(_forest.createArgumentsEmpty(fileOffset),
-        kind: UnresolvedKind.Member);
+    return buildError(kind: UnresolvedKind.Member);
   }
 
   @override
   Expression _makeInvalidRead(UnresolvedKind unresolvedKind) {
-    return buildError(_forest.createArgumentsEmpty(fileOffset),
-        kind: unresolvedKind);
+    return buildError(kind: unresolvedKind);
   }
 
   @override
   Expression _makeInvalidWrite(Expression value) {
-    return buildError(_forest.createArguments(fileOffset, <Expression>[value]),
-        kind: UnresolvedKind.Setter);
+    return buildError(rhs: value, kind: UnresolvedKind.Setter);
   }
 
   @override
@@ -3717,7 +3718,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
               typeArguments, TypeUse.constructorTypeArgument,
               allowPotentiallyConstantType: false));
     }
-    return buildError(arguments, kind: UnresolvedKind.Constructor);
+    return buildError(arguments: arguments, kind: UnresolvedKind.Constructor);
   }
 
   @override
@@ -3757,17 +3758,21 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
   Expression doInvocation(
       int charOffset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
-    return buildError(arguments,
-        charOffset: charOffset, kind: UnresolvedKind.Method);
+    return buildError(
+        arguments: arguments,
+        charOffset: charOffset,
+        kind: UnresolvedKind.Method);
   }
 
   @override
-  Expression buildError(Arguments arguments,
-      {required UnresolvedKind kind, int? charOffset}) {
+  Expression buildError(
+      {Arguments? arguments,
+      Expression? rhs,
+      required UnresolvedKind kind,
+      int? charOffset}) {
     charOffset ??= fileOffset;
-    return _helper.buildUnresolvedError(_forest.createNullLiteral(charOffset),
-        _plainNameForRead, arguments, charOffset,
-        kind: kind);
+    return _helper.buildUnresolvedError(_plainNameForRead, charOffset,
+        arguments: arguments, rhs: rhs, kind: kind);
   }
 
   @override
@@ -3791,9 +3796,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
 
   @override
   Expression buildSimpleRead() {
-    return buildError(_forest.createArgumentsEmpty(fileOffset),
-        kind: unresolvedReadKind)
-      ..fileOffset = fileOffset;
+    return buildError(kind: unresolvedReadKind)..fileOffset = fileOffset;
   }
 
   @override
@@ -3804,8 +3807,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
 
   Expression _buildUnresolvedVariableAssignment(
       bool isCompound, Expression value) {
-    return buildError(_forest.createArguments(fileOffset, <Expression>[value]),
-        kind: UnresolvedKind.Setter);
+    return buildError(rhs: value, kind: UnresolvedKind.Setter);
   }
 
   @override
@@ -4184,9 +4186,8 @@ class UnexpectedQualifiedUseGenerator extends Generator {
   Expression doInvocation(
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
-    return _helper.buildUnresolvedError(_forest.createNullLiteral(offset),
-        _plainNameForRead, arguments, fileOffset,
-        kind: UnresolvedKind.Method);
+    return _helper.buildUnresolvedError(_plainNameForRead, fileOffset,
+        arguments: arguments, kind: UnresolvedKind.Method);
   }
 
   @override
@@ -4580,11 +4581,10 @@ class ThisAccessGenerator extends Generator {
           .withLocation(_uri, fileOffset, lengthForToken(token));
       return _helper.buildInvalidInitializer(
           _helper.buildUnresolvedError(
-              _forest.createNullLiteral(offset),
               _helper.constructorNameForDiagnostics(name.text,
                   isSuper: isSuper),
-              arguments,
               offset,
+              arguments: arguments,
               isSuper: isSuper,
               message: message,
               kind: UnresolvedKind.Constructor),
@@ -4682,8 +4682,10 @@ class IncompleteErrorGenerator extends ErroneousExpressionGenerator {
   String get _debugName => "IncompleteErrorGenerator";
 
   @override
-  Expression buildError(Arguments arguments,
-      {required UnresolvedKind kind,
+  Expression buildError(
+      {Arguments? arguments,
+      Expression? rhs,
+      required UnresolvedKind kind,
       String? name,
       int? charOffset,
       int? charLength}) {
@@ -4703,9 +4705,7 @@ class IncompleteErrorGenerator extends ErroneousExpressionGenerator {
 
   @override
   Expression buildSimpleRead() {
-    return buildError(_forest.createArgumentsEmpty(fileOffset),
-        kind: UnresolvedKind.Member)
-      ..fileOffset = fileOffset;
+    return buildError(kind: UnresolvedKind.Member)..fileOffset = fileOffset;
   }
 
   @override

@@ -89,13 +89,15 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       int fileOffset, Procedure target, Arguments arguments,
       {required bool isTearOff});
 
-  Expression buildUnresolvedError(
-      Expression receiver, String name, Arguments arguments, int charOffset,
+  Expression buildUnresolvedError(String name, int charOffset,
       {Member candidate,
       bool isSuper,
       required UnresolvedKind kind,
       bool isStatic,
-      LocatedMessage message});
+      Arguments? arguments,
+      Expression? rhs,
+      LocatedMessage message,
+      int? length});
 
   LocatedMessage? checkArgumentsForFunction(FunctionNode function,
       Arguments arguments, int offset, List<TypeParameter> typeParameters);
