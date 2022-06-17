@@ -1091,10 +1091,7 @@ mixin SummaryMixin on Target {
         // be computed as part of serialization, so we need to do that
         // preemptively here to avoid errors when serializing references to
         // elements of these libraries.
-        component.root
-            .getChildFromUri(library.importUri)
-            .bindTo(library.reference);
-        library.computeCanonicalNames();
+        library.bindCanonicalNames(component.root);
       }
     }
   }

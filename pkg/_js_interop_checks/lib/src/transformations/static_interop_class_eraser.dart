@@ -53,14 +53,14 @@ class StaticInteropClassEraser extends Transformer {
         .where((procedure) => procedure.name.text == stubName);
     if (stubs.isEmpty) {
       // Note that the return type of the cloned function is transformed.
-      var functionNode =
-          super.visitFunctionNode(_cloner.clone(factoryTarget.function))
-              as FunctionNode;
+      var functionNode = super
+              .visitFunctionNode(_cloner.cloneInContext(factoryTarget.function))
+          as FunctionNode;
       var staticMethod = Procedure(
           Name(stubName), ProcedureKind.Method, functionNode,
           isStatic: true, fileUri: factoryTarget.fileUri)
-        ..parent = factoryClass;
-      factoryClass.procedures.add(staticMethod);
+        ..fileOffset = factoryTarget.fileOffset;
+      factoryClass.addProcedure(staticMethod);
       return staticMethod;
     } else {
       assert(stubs.length == 1);

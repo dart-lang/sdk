@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--null-assertions --enable-asserts
+import 'main_lib.dart';
 
 void main() {
-  try {
-    null!;
-  } on TypeError {
-    // _CastError implements TypeError
-  }
+  setUp();
+  var staticJs = StaticJSClass.factory();
 }

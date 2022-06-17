@@ -94,8 +94,7 @@ Future<List<int>> compileUnit(List<String> inputs, Map<String, dynamic> sources,
   var component = (await kernelForModule(inputUris, options)).component;
   for (var lib in component.libraries) {
     if (!inputUriSet.contains(lib.importUri)) {
-      component.root.getChildFromUri(lib.importUri).bindTo(lib.reference);
-      lib.computeCanonicalNames();
+      lib.bindCanonicalNames(component.root);
     }
   }
   return serializeComponent(component,
