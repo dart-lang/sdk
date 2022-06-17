@@ -101,10 +101,12 @@ class LinkedElementFactory {
 
     var reader = _libraryReaders[uri];
     if (reader == null) {
-      var libraryUriList = rootReference.children.map((e) => e.name).toList();
+      final rootChildren = rootReference.children.map((e) => e.name).toList();
       throw ArgumentError(
         'Missing library: $uri\n'
-        'Available libraries: $libraryUriList',
+        'Libraries: $uriListWithLibraryElements'
+        'Root children: $rootChildren'
+        'Readers: ${_libraryReaders.keys.toList()}',
       );
     }
 
