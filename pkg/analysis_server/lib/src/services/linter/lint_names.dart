@@ -29,6 +29,8 @@ class LintNames {
   static const String avoid_redundant_argument_values =
       'avoid_redundant_argument_values';
   static const String avoid_relative_lib_imports = 'avoid_relative_lib_imports';
+  static const String avoid_renaming_method_parameters =
+      'avoid_renaming_method_parameters';
   static const String avoid_return_types_on_setters =
       'avoid_return_types_on_setters';
   static const String avoid_returning_null_for_future =

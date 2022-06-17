@@ -1584,7 +1584,7 @@ LintCode.avoid_redundant_argument_values:
 LintCode.avoid_relative_lib_imports:
   status: hasFix
 LintCode.avoid_renaming_method_parameters:
-  status: needsEvaluation
+  status: hasFix
 LintCode.avoid_return_types_on_setters:
   status: hasFix
 LintCode.avoid_returning_null:

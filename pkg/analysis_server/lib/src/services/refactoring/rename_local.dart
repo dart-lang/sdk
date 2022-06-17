@@ -166,9 +166,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
     if (element is LocalElement) {
       var targetRange = _getVisibleRange(target);
       var elementRange = _getVisibleRange(element);
-      return targetRange != null &&
-          elementRange != null &&
-          elementRange.intersects(targetRange);
+      return elementRange != null && elementRange.intersects(targetRange);
     }
     return false;
   }

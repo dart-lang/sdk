@@ -1273,6 +1273,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Remove 'var'",
   );
+  static const RENAME_METHOD_PARAMETER = FixKind(
+    'dart.fix.rename.methodParameter',
+    DartFixKindPriority.DEFAULT,
+    "Rename '{0}' to '{1}'",
+  );
   static const RENAME_TO_CAMEL_CASE = FixKind(
     'dart.fix.rename.toCamelCase',
     DartFixKindPriority.DEFAULT,
