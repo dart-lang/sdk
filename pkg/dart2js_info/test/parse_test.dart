@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.11
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -18,10 +16,10 @@ main() {
       var json = jsonDecode(helloWorld.readAsStringSync());
       var decoded = AllInfoJsonCodec().decode(json);
 
-      var program = decoded.program;
+      final program = decoded.program;
       expect(program, isNotNull);
 
-      expect(program.entrypoint, isNotNull);
+      expect(program!.entrypoint, isNotNull);
       expect(program.size, 90362);
       expect(program.compilationMoment,
           DateTime.parse("2022-05-26 21:08:43.608041"));

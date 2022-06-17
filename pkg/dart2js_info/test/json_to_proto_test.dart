@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.11
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -49,31 +47,31 @@ main() {
         final value = info.value;
         if (value.hasLibraryInfo()) {
           expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.library]));
+              startsWith(expectedPrefixes[InfoKind.library]!));
         } else if (value.hasClassInfo()) {
-          expect(
-              value.serializedId, startsWith(expectedPrefixes[InfoKind.clazz]));
+          expect(value.serializedId,
+              startsWith(expectedPrefixes[InfoKind.clazz]!));
         } else if (value.hasClassTypeInfo()) {
           expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.classType]));
+              startsWith(expectedPrefixes[InfoKind.classType]!));
         } else if (value.hasFunctionInfo()) {
           expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.function]));
+              startsWith(expectedPrefixes[InfoKind.function]!));
         } else if (value.hasFieldInfo()) {
-          expect(
-              value.serializedId, startsWith(expectedPrefixes[InfoKind.field]));
+          expect(value.serializedId,
+              startsWith(expectedPrefixes[InfoKind.field]!));
         } else if (value.hasConstantInfo()) {
           expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.constant]));
+              startsWith(expectedPrefixes[InfoKind.constant]!));
         } else if (value.hasOutputUnitInfo()) {
           expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.outputUnit]));
+              startsWith(expectedPrefixes[InfoKind.outputUnit]!));
         } else if (value.hasTypedefInfo()) {
           expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.typedef]));
+              startsWith(expectedPrefixes[InfoKind.typedef]!));
         } else if (value.hasClosureInfo()) {
           expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.closure]));
+              startsWith(expectedPrefixes[InfoKind.closure]!));
         }
       }
     });
