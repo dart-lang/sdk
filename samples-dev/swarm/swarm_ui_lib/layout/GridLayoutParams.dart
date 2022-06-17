@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of layout;
 
 /**
@@ -16,25 +14,24 @@ part of layout;
 // field ends up being mentioned 4 times instead of just twice.
 class GridLayoutParams extends LayoutParams {
   /** The coordinates of this item in the grid. */
-  int row;
-  int column;
-  int rowSpan;
-  int columnSpan;
-  int layer;
+  int? row;
+  int? column;
+  int? rowSpan;
+  int? columnSpan;
+  int? layer;
 
   /** Alignment within its box */
   GridItemAlignment rowAlign;
   GridItemAlignment columnAlign;
 
-  GridLayoutParams(Positionable view, GridLayout layout) : super(view.node) {
+  GridLayoutParams(Positionable view, GridLayout layout)
+      : rowAlign =
+            GridItemAlignment.fromString(view.customStyle['grid-row-align']),
+        columnAlign =
+            GridItemAlignment.fromString(view.customStyle['grid-column-align']),
+        super(view.node) {
     // TODO(jmesserly): this can be cleaned up a lot by just passing "view"
     // into the parsers.
-
-    rowAlign =
-        new GridItemAlignment.fromString(view.customStyle['grid-row-align']);
-    columnAlign =
-        new GridItemAlignment.fromString(view.customStyle['grid-column-align']);
-
     layer = StringUtils.parseInt(view.customStyle['grid-layer'], 0);
 
     rowSpan = StringUtils.parseInt(view.customStyle['grid-row-span']);
@@ -45,7 +42,7 @@ class GridLayoutParams extends LayoutParams {
       row = line.start;
       if (line.length != null) {
         if (rowSpan != null) {
-          throw new UnsupportedError(
+          throw UnsupportedError(
               'grid-row-span cannot be with grid-row that defines an end');
         }
         rowSpan = line.length;
@@ -59,14 +56,14 @@ class GridLayoutParams extends LayoutParams {
       column = line.start;
       if (line.length != null) {
         if (columnSpan != null) {
-          throw new UnsupportedError(
+          throw UnsupportedError(
               'grid-column-span cannot be with grid-column that defines an end');
         }
         columnSpan = line.length;
       }
     }
 
-    String cell = _GridTemplateParser.parseCell(view.customStyle['grid-cell']);
+    String? cell = _GridTemplateParser.parseCell(view.customStyle['grid-cell']);
     if (cell != null && cell != 'none') {
       // TODO(jmesserly): I didn't see anything spec'd about conflicts and
       // error handling. For now, throw an error on a misconfigured view.
@@ -76,16 +73,16 @@ class GridLayoutParams extends LayoutParams {
           column != null ||
           rowSpan != null ||
           columnSpan != null) {
-        throw new UnsupportedError(
+        throw UnsupportedError(
             'grid-cell cannot be used with grid-row and grid-column');
       }
 
       if (layout.template == null) {
-        throw new UnsupportedError(
+        throw UnsupportedError(
             'grid-cell requires that grid-template is set on the parent');
       }
 
-      final rect = layout.template.lookupCell(cell);
+      final rect = layout.template!.lookupCell(cell);
       row = rect.row;
       column = rect.column;
       rowSpan = rect.rowSpan;
@@ -96,7 +93,7 @@ class GridLayoutParams extends LayoutParams {
       if (columnSpan == null) columnSpan = 1;
 
       if (row == null && column == null) {
-        throw new UnsupportedError('grid-flow is not implemented' +
+        throw UnsupportedError('grid-flow is not implemented' +
             ' so at least one row or one column must be defined');
       }
 
@@ -104,6 +101,6 @@ class GridLayoutParams extends LayoutParams {
       if (column == null) column = 1;
     }
 
-    assert(row > 0 && rowSpan > 0 && column > 0 && columnSpan > 0);
+    assert(row! > 0 && rowSpan! > 0 && column! > 0 && columnSpan! > 0);
   }
 }

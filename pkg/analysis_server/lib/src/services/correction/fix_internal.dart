@@ -153,6 +153,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unused_label
 import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_var.dart';
+import 'package:analysis_server/src/services/correction/dart/rename_method_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_Null_with_void.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_boolean_with_bool.dart';
@@ -400,6 +401,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.avoid_relative_lib_imports: [
       ConvertToPackageImport.new,
+    ],
+    LintNames.avoid_renaming_method_parameters: [
+      RenameMethodParameter.new,
     ],
     LintNames.avoid_return_types_on_setters: [
       RemoveTypeAnnotation.new,
