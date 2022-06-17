@@ -114,8 +114,6 @@ void _writeTimings(IOSink out, List<_Stat> timings, int summaryLength) {
   timings.sort();
   for (var stat in timings) {
     totalTime += stat.elapsed;
-    // TODO: Shame timings slower than 100ms?
-    // TODO: Present both total times and time per count?
     out.writeln(
         '${stat.name.padRight(longestName)}${stat.elapsed.toString().padLeft(pad)}');
   }

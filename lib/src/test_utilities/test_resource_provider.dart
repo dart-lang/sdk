@@ -68,11 +68,6 @@ class TestResourceProvider extends file_system.ResourceProvider {
     return folder.exists ? folder : physicalResourceProvider.getFolder(path);
   }
 
-  /// TODO(scheglov) Remove it once it is removed in analyzer 3.0.0
-  /// ignore: annotate_overrides
-  Future<List<int?>> getModificationTimes(List<Source> sources) =>
-      throw UnimplementedError('Should not be called');
-
   @override
   file_system.Resource getResource(String path) {
     var resource = memoryResourceProvider.getResource(path);

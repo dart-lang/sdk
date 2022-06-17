@@ -56,7 +56,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   /// Determine if the given literal can be replaced by an int literal.
   bool canReplaceWithIntLiteral(DoubleLiteral literal) {
-    // TODO(danrubel): Consider moving this into analyzer
     var parent = literal.parent;
     if (parent is PrefixExpression) {
       if (parent.operator.lexeme == '-') {
