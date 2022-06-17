@@ -107,7 +107,7 @@ vars = {
 
   "dartdoc_rev": "58348a98b992ce99b95d23131b67227bdb2b4875",
   "devtools_rev": "51ac983d2db7eb19b3ce5956cb70b769d74fe784",
-  "ffi_rev": "0c8364a728cfe4e4ba859c53b99d56b3dbe3add4",
+  "ffi_rev": "0c8364a728cfe4e4ba859c53b99d56b3dbe3add4", # dart-lang/ffi/issues/148
   "file_rev": "0132eeedea2933513bf230513a766a8baeab0c4f",
   "fixnum_rev": "164712f6547cdfb2709b752188186baf31fd1730",
   "glob_rev": "e10eb2407c58427144004458ef85c9bbf7286e56",
@@ -122,7 +122,7 @@ vars = {
   "linter_rev": "1ddc70948d94f2449fec69a95e3ceb7b6b6c8348", # 1.25.0
   "lints_rev": "8294e5648ab49474541527e2911e72e4c5aefe55",
   "logging_rev": "f6979e3bc3b6e1847a08335b7eb6304e18986195",
-  "markdown_rev": "73ad99eeddc1ecebd27faa3221e68c81dc8217eb", # 5.0.0
+  "markdown_rev": "e3f4bd28c9e61b522f75f291d4d6cfcfeccd83ee", # b/236358256
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "matcher_rev": "12cdc5fbafd666ed908359ae215d5d0306087969",
   "mime_rev": "0a75a41445eb642674a0a271eecde78cb025ee60",
