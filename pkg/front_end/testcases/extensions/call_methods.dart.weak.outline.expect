@@ -1,4 +1,19 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:34:18: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+// var topLevel5 = a(2);
+//                  ^
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:36:18: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+// var topLevel6 = a(2, "3");
+//                  ^
+//
 import self as self;
 import "dart:core" as core;
 

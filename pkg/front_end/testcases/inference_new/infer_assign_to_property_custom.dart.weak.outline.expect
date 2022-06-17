@@ -1,4 +1,27 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:17:36: Error: A value of type 'int' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
+// var v_prefix_pp = (/*@target=A.+*/ ++new /*@ type=B* */ B()
+//                                    ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:19:36: Error: A value of type 'double' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
+// var v_prefix_mm = (/*@target=A.-*/ --new /*@ type=B* */ B()
+//                                    ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:23:40: Error: A value of type 'int' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
+//     /*@ type=int* */ a /*@target=A.+*/ ++);
+//                                        ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:26:43: Error: A value of type 'double' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
+//     /*@ type=double* */ a /*@target=A.-*/ --);
+//                                           ^
+//
 import self as self;
 import "dart:core" as core;
 

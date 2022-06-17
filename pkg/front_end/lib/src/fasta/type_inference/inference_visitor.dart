@@ -78,7 +78,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// inside a closure.
   ClosureContext? _closureContext;
 
-  InferenceVisitorImpl(TypeInferrerImpl inferrer, InferenceHelper? helper)
+  InferenceVisitorImpl(TypeInferrerImpl inferrer, InferenceHelper helper)
       : super(inferrer, helper);
 
   ClosureContext get closureContext => _closureContext!;
@@ -134,7 +134,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(inferredType != null,
         "No type inferred for $expression (${expression.runtimeType}).");
     if (inferredType is VoidType && !isVoidAllowed) {
-      if (expression.parent is! ArgumentsImpl && !isTopLevel) {
+      if (expression.parent is! ArgumentsImpl) {
         helper.addProblem(
             messageVoidExpression, expression.fileOffset, noLength);
       }
@@ -228,24 +228,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// Computes uri and offset for [node] for internal errors in a way that is
   /// safe for both top-level and full inference.
   _UriOffset _computeUriOffset(TreeNode node) {
-    Uri uri;
-    int fileOffset;
-    if (!isTopLevel) {
-      // In local inference we have access to the current file uri.
-      uri = helper.uri;
-      fileOffset = node.fileOffset;
-    } else {
-      Location? location = node.location;
-      if (location != null) {
-        // Use the location file uri, if available.
-        uri = location.file;
-        fileOffset = node.fileOffset;
-      } else {
-        // Otherwise use the library file uri with no offset.
-        uri = libraryBuilder.fileUri;
-        fileOffset = TreeNode.noOffset;
-      }
-    }
+    Uri uri = helper.uri;
+    int fileOffset = node.fileOffset;
     return new _UriOffset(uri, fileOffset);
   }
 
@@ -273,11 +257,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       BlockExpression node, DartType typeContext) {
     // This is only used for error cases. The spec doesn't use this and
     // therefore doesn't specify the type context for the subterms.
-    if (!isTopLevel) {
-      StatementInferenceResult bodyResult = inferStatement(node.body);
-      if (bodyResult.hasChanged) {
-        node.body = (bodyResult.statement as Block)..parent = node;
-      }
+    StatementInferenceResult bodyResult = inferStatement(node.body);
+    if (bodyResult.hasChanged) {
+      node.body = (bodyResult.statement as Block)..parent = node;
     }
     ExpressionInferenceResult valueResult = inferExpression(
         node.value, const UnknownType(), true,
@@ -584,59 +566,49 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType resultType = const InvalidType();
     if (operandType is FunctionType) {
       if (operandType.typeParameters.length == node.typeArguments.length) {
-        if (!isTopLevel) {
-          checkBoundsInInstantiation(
-              operandType, node.typeArguments, node.fileOffset,
-              inferred: false);
-        }
+        checkBoundsInInstantiation(
+            operandType, node.typeArguments, node.fileOffset,
+            inferred: false);
         if (operandType.isPotentiallyNullable) {
-          if (!isTopLevel) {
-            result = helper.buildProblem(
-                templateInstantiationNullableGenericFunctionType.withArguments(
-                    operandType, isNonNullableByDefault),
-                node.fileOffset,
-                noLength);
-          }
+          result = helper.buildProblem(
+              templateInstantiationNullableGenericFunctionType.withArguments(
+                  operandType, isNonNullableByDefault),
+              node.fileOffset,
+              noLength);
         } else {
           resultType = Substitution.fromPairs(
                   operandType.typeParameters, node.typeArguments)
               .substituteType(operandType.withoutTypeParameters);
         }
       } else {
-        if (!isTopLevel) {
-          if (operandType.typeParameters.isEmpty) {
-            result = helper.buildProblem(
-                templateInstantiationNonGenericFunctionType.withArguments(
-                    operandType, isNonNullableByDefault),
-                node.fileOffset,
-                noLength);
-          } else if (operandType.typeParameters.length >
-              node.typeArguments.length) {
-            result = helper.buildProblem(
-                templateInstantiationTooFewArguments.withArguments(
-                    operandType.typeParameters.length,
-                    node.typeArguments.length),
-                node.fileOffset,
-                noLength);
-          } else if (operandType.typeParameters.length <
-              node.typeArguments.length) {
-            result = helper.buildProblem(
-                templateInstantiationTooManyArguments.withArguments(
-                    operandType.typeParameters.length,
-                    node.typeArguments.length),
-                node.fileOffset,
-                noLength);
-          }
+        if (operandType.typeParameters.isEmpty) {
+          result = helper.buildProblem(
+              templateInstantiationNonGenericFunctionType.withArguments(
+                  operandType, isNonNullableByDefault),
+              node.fileOffset,
+              noLength);
+        } else if (operandType.typeParameters.length >
+            node.typeArguments.length) {
+          result = helper.buildProblem(
+              templateInstantiationTooFewArguments.withArguments(
+                  operandType.typeParameters.length, node.typeArguments.length),
+              node.fileOffset,
+              noLength);
+        } else if (operandType.typeParameters.length <
+            node.typeArguments.length) {
+          result = helper.buildProblem(
+              templateInstantiationTooManyArguments.withArguments(
+                  operandType.typeParameters.length, node.typeArguments.length),
+              node.fileOffset,
+              noLength);
         }
       }
     } else if (operandType is! InvalidType) {
-      if (!isTopLevel) {
-        result = helper.buildProblem(
-            templateInstantiationNonGenericFunctionType.withArguments(
-                operandType, isNonNullableByDefault),
-            node.fileOffset,
-            noLength);
-      }
+      result = helper.buildProblem(
+          templateInstantiationNonGenericFunctionType.withArguments(
+              operandType, isNonNullableByDefault),
+          node.fileOffset,
+          noLength);
     }
     return new ExpressionInferenceResult(resultType, result);
   }
@@ -868,13 +840,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvocationInferenceResult result = inferInvocation(this, typeContext,
         node.fileOffset, functionType, node.arguments as ArgumentsImpl,
         isConst: node.isConst, staticTarget: node.target);
-    if (!isTopLevel) {
-      SourceLibraryBuilder library = libraryBuilder;
-      if (!hadExplicitTypeArguments) {
-        library.checkBoundsInConstructorInvocation(
-            node, typeSchemaEnvironment, helper.uri,
-            inferred: true);
-      }
+    SourceLibraryBuilder library = libraryBuilder;
+    if (!hadExplicitTypeArguments) {
+      library.checkBoundsInConstructorInvocation(
+          node, typeSchemaEnvironment, helper.uri,
+          inferred: true);
     }
     return new ExpressionInferenceResult(
         result.inferredType, result.applyResult(node));
@@ -900,7 +870,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     StaticInvocation replacement =
         new StaticInvocation(node.target, node.arguments);
     // ignore: unnecessary_null_comparison
-    if (!isTopLevel && node.target != null) {
+    if (node.target != null) {
       libraryBuilder.checkBoundsInStaticInvocation(
           replacement, typeSchemaEnvironment, helper.uri, typeArgumentsInfo);
     }
@@ -1157,18 +1127,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isConst: node.isConst, staticTarget: node.target);
     node.hasBeenInferred = true;
     Expression resultNode = node;
-    if (!isTopLevel) {
-      SourceLibraryBuilder library = libraryBuilder;
-      if (!hadExplicitTypeArguments) {
-        library.checkBoundsInFactoryInvocation(
-            node, typeSchemaEnvironment, helper.uri,
-            inferred: true);
-      }
-      if (isNonNullableByDefault) {
-        if (node.target == coreTypes.listDefaultConstructor) {
-          resultNode = helper.wrapInProblem(node,
-              messageDefaultListConstructorError, node.fileOffset, noLength);
-        }
+    SourceLibraryBuilder library = libraryBuilder;
+    if (!hadExplicitTypeArguments) {
+      library.checkBoundsInFactoryInvocation(
+          node, typeSchemaEnvironment, helper.uri,
+          inferred: true);
+    }
+    if (isNonNullableByDefault) {
+      if (node.target == coreTypes.listDefaultConstructor) {
+        resultNode = helper.wrapInProblem(node,
+            messageDefaultListConstructorError, node.fileOffset, noLength);
       }
     }
     return new ExpressionInferenceResult(
@@ -1187,14 +1155,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isConst: node.isConst, staticTarget: node.target);
     node.hasBeenInferred = true;
     Expression resultNode = node;
-    if (!isTopLevel) {
-      if (isNonNullableByDefault) {
-        if (node.target == coreTypes.listDefaultConstructor) {
-          resultNode = helper.wrapInProblem(node,
-              messageDefaultListConstructorError, node.fileOffset, noLength);
-        }
+
+    if (isNonNullableByDefault) {
+      if (node.target == coreTypes.listDefaultConstructor) {
+        resultNode = helper.wrapInProblem(node,
+            messageDefaultListConstructorError, node.fileOffset, noLength);
       }
     }
+
     return new ExpressionInferenceResult(
         result.inferredType, result.applyResult(resultNode));
   }
@@ -1211,12 +1179,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isConst: node.isConst, staticTarget: node.target);
     node.hasBeenInferred = true;
     Expression resultNode = node;
-    if (!isTopLevel) {
-      if (isNonNullableByDefault) {
-        if (node.target == coreTypes.listDefaultConstructor) {
-          resultNode = helper.wrapInProblem(node,
-              messageDefaultListConstructorError, node.fileOffset, noLength);
-        }
+    if (isNonNullableByDefault) {
+      if (node.target == coreTypes.listDefaultConstructor) {
+        resultNode = helper.wrapInProblem(node,
+            messageDefaultListConstructorError, node.fileOffset, noLength);
       }
     }
     return new ExpressionInferenceResult(
@@ -1242,20 +1208,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Statement? expressionEffects,
       {bool isAsync: false}) {
     DartType elementType;
-    bool typeNeeded = false;
+    bool isVariableTypeNeeded = false;
     bool typeChecksNeeded = !isTopLevel;
     if (variable is VariableDeclarationImpl && variable.isImplicitlyTyped) {
-      typeNeeded = true;
+      isVariableTypeNeeded = true;
       elementType = const UnknownType();
     } else {
       elementType = variable.type;
     }
 
     ExpressionInferenceResult iterableResult = inferForInIterable(
-        iterable, elementType, typeNeeded || typeChecksNeeded,
+        iterable, elementType, isVariableTypeNeeded || typeChecksNeeded,
         isAsync: isAsync);
     DartType inferredType = iterableResult.inferredType;
-    if (typeNeeded) {
+    if (isVariableTypeNeeded) {
       instrumentation?.record(uriForInstrumentation, variable.fileOffset,
           'type', new InstrumentationValueForType(inferredType));
       variable.type = inferredType;
@@ -2210,12 +2176,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     DartType inferredType = new InterfaceType(
         listClass, libraryBuilder.nonNullable, [inferredTypeArgument]);
-    if (!isTopLevel) {
-      SourceLibraryBuilder library = libraryBuilder;
-      if (inferenceNeeded) {
-        if (!library.libraryFeatures.genericMetadata.isEnabled) {
-          checkGenericFunctionTypeArgument(node.typeArgument, node.fileOffset);
-        }
+    if (inferenceNeeded) {
+      if (!libraryBuilder.libraryFeatures.genericMetadata.isEnabled) {
+        checkGenericFunctionTypeArgument(node.typeArgument, node.fileOffset);
       }
     }
 
@@ -2884,8 +2847,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         InterfaceType setType = coreTypes.thisInterfaceType(
             coreTypes.setClass, libraryBuilder.nonNullable);
         for (int i = 0; i < node.entries.length; ++i) {
-          setElements.add(convertToElement(node.entries[i],
-              isTopLevel ? null : helper, assignedVariables.reassignInfo));
+          setElements.add(convertToElement(
+              node.entries[i], helper, assignedVariables.reassignInfo));
           formalTypesForSet.add(setType.typeArguments[0]);
         }
 
@@ -2936,20 +2899,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return new ExpressionInferenceResult(inferredType, setLiteral);
       }
       if (canBeSet && canBeMap && node.entries.isNotEmpty) {
-        Expression replacement = node;
-        if (!isTopLevel) {
-          replacement = helper.buildProblem(
-              messageCantDisambiguateNotEnoughInformation, node.fileOffset, 1);
-        }
+        Expression replacement = helper.buildProblem(
+            messageCantDisambiguateNotEnoughInformation, node.fileOffset, 1);
         return new ExpressionInferenceResult(
             NeverType.fromNullability(libraryBuilder.nonNullable), replacement);
       }
       if (!canBeSet && !canBeMap) {
-        Expression replacement = node;
-        if (!isTopLevel) {
-          replacement = helper.buildProblem(
-              messageCantDisambiguateAmbiguousInformation, node.fileOffset, 1);
-        }
+        Expression replacement = helper.buildProblem(
+            messageCantDisambiguateAmbiguousInformation, node.fileOffset, 1);
         return new ExpressionInferenceResult(
             NeverType.fromNullability(libraryBuilder.nonNullable), replacement);
       }
@@ -2985,17 +2942,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     DartType inferredType = new InterfaceType(mapClass,
         libraryBuilder.nonNullable, [inferredKeyType, inferredValueType]);
-    if (!isTopLevel) {
-      SourceLibraryBuilder library = libraryBuilder;
-      // Either both [_declaredKeyType] and [_declaredValueType] are omitted or
-      // none of them, so we may just check one.
-      if (inferenceNeeded) {
-        if (!library.libraryFeatures.genericMetadata.isEnabled) {
-          checkGenericFunctionTypeArgument(node.keyType, node.fileOffset);
-          checkGenericFunctionTypeArgument(node.valueType, node.fileOffset);
-        }
+    SourceLibraryBuilder library = libraryBuilder;
+    // Either both [_declaredKeyType] and [_declaredValueType] are omitted or
+    // none of them, so we may just check one.
+    if (inferenceNeeded) {
+      if (!library.libraryFeatures.genericMetadata.isEnabled) {
+        checkGenericFunctionTypeArgument(node.keyType, node.fileOffset);
+        checkGenericFunctionTypeArgument(node.valueType, node.fileOffset);
       }
     }
+
     return new ExpressionInferenceResult(inferredType, node);
   }
 
@@ -4176,11 +4132,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(isNot != null);
     EqualityInfo<VariableDeclaration, DartType>? equalityInfo =
         flowAnalysis.equalityOperand_end(left, leftType);
-    bool typeNeeded = !isTopLevel;
 
     Expression? equals;
     ExpressionInferenceResult rightResult = inferExpression(
-        right, const UnknownType(), typeNeeded,
+        right, const UnknownType(), !isTopLevel,
         isVoidAllowed: false);
 
     if (_isNull(right)) {
@@ -4428,7 +4383,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
     }
 
-    if (!isTopLevel && binaryTarget.isNullable) {
+    if (binaryTarget.isNullable) {
       List<LocatedMessage>? context = getWhyNotPromotedContext(
           whyNotPromoted?.call(),
           binary,
@@ -4542,7 +4497,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       unaryType = legacyErasure(unaryType);
     }
 
-    if (!isTopLevel && unaryTarget.isNullable) {
+    if (unaryTarget.isNullable) {
       List<LocatedMessage>? context = getWhyNotPromotedContext(
           whyNotPromoted(), unary, (type) => !type.isPotentiallyNullable);
       // TODO(johnniwinther): Special case 'unary-' in messages. It should
@@ -4679,7 +4634,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       readType = legacyErasure(readType);
     }
 
-    if (!isTopLevel && readTarget.isNullable) {
+    if (readTarget.isNullable) {
       return new ExpressionInferenceResult(
           readType,
           helper.wrapInProblem(
@@ -4780,7 +4735,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ..fileOffset = fileOffset;
         break;
     }
-    if (!isTopLevel && writeTarget.isNullable) {
+    if (writeTarget.isNullable) {
       return helper.wrapInProblem(
           write,
           templateNullableOperatorCallError.withArguments(
@@ -4946,7 +4901,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     readResult ??= new ExpressionInferenceResult(readType, read);
-    if (!isTopLevel && readTarget.isNullable) {
+    if (readTarget.isNullable) {
       readResult = wrapExpressionInferenceResultInProblem(
           readResult,
           templateNullablePropertyAccessError.withArguments(
@@ -5062,7 +5017,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ..fileOffset = fileOffset;
         break;
     }
-    if (!isTopLevel && writeTarget.isNullable) {
+    if (writeTarget.isNullable) {
       return helper.wrapInProblem(
           write,
           templateNullablePropertyAccessError.withArguments(
@@ -6026,18 +5981,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     DartType inferredType = new InterfaceType(
         setClass, libraryBuilder.nonNullable, [inferredTypeArgument]);
-    if (!isTopLevel) {
-      SourceLibraryBuilder library = libraryBuilder;
-      if (inferenceNeeded) {
-        if (!library.libraryFeatures.genericMetadata.isEnabled) {
-          checkGenericFunctionTypeArgument(node.typeArgument, node.fileOffset);
-        }
-      }
-
-      if (!library.loader.target.backendTarget.supportsSetLiterals) {
-        helper.transformSetLiterals = true;
+    if (inferenceNeeded) {
+      if (!libraryBuilder.libraryFeatures.genericMetadata.isEnabled) {
+        checkGenericFunctionTypeArgument(node.typeArgument, node.fileOffset);
       }
     }
+
+    if (!libraryBuilder.loader.target.backendTarget.supportsSetLiterals) {
+      helper.transformSetLiterals = true;
+    }
+
     return new ExpressionInferenceResult(inferredType, node);
   }
 
@@ -6089,7 +6042,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
         staticTarget: node.target);
     // ignore: unnecessary_null_comparison
-    if (!isTopLevel && node.target != null) {
+    if (node.target != null) {
       libraryBuilder.checkBoundsInStaticInvocation(
           node, typeSchemaEnvironment, helper.uri, typeArgumentsInfo);
     }
@@ -6278,42 +6231,36 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           }
         }
 
-        if (!isTopLevel) {
-          if (libraryBuilder.isNonNullableByDefault) {
-            if (!typeSchemaEnvironment.isSubtypeOf(caseExpressionType,
-                expressionType, SubtypeCheckMode.withNullabilities)) {
-              helper.addProblem(
-                  templateSwitchExpressionNotSubtype.withArguments(
-                      caseExpressionType,
-                      expressionType,
-                      isNonNullableByDefault),
-                  caseExpression.fileOffset,
-                  noLength,
-                  context: [
-                    messageSwitchExpressionNotAssignableCause.withLocation(
-                        uriForInstrumentation,
-                        node.expression.fileOffset,
-                        noLength)
-                  ]);
-            }
-          } else {
-            // Check whether the expression type is assignable to the case
-            // expression type.
-            if (!isAssignable(expressionType, caseExpressionType)) {
-              helper.addProblem(
-                  templateSwitchExpressionNotAssignable.withArguments(
-                      expressionType,
-                      caseExpressionType,
-                      isNonNullableByDefault),
-                  caseExpression.fileOffset,
-                  noLength,
-                  context: [
-                    messageSwitchExpressionNotAssignableCause.withLocation(
-                        uriForInstrumentation,
-                        node.expression.fileOffset,
-                        noLength)
-                  ]);
-            }
+        if (libraryBuilder.isNonNullableByDefault) {
+          if (!typeSchemaEnvironment.isSubtypeOf(caseExpressionType,
+              expressionType, SubtypeCheckMode.withNullabilities)) {
+            helper.addProblem(
+                templateSwitchExpressionNotSubtype.withArguments(
+                    caseExpressionType, expressionType, isNonNullableByDefault),
+                caseExpression.fileOffset,
+                noLength,
+                context: [
+                  messageSwitchExpressionNotAssignableCause.withLocation(
+                      uriForInstrumentation,
+                      node.expression.fileOffset,
+                      noLength)
+                ]);
+          }
+        } else {
+          // Check whether the expression type is assignable to the case
+          // expression type.
+          if (!isAssignable(expressionType, caseExpressionType)) {
+            helper.addProblem(
+                templateSwitchExpressionNotAssignable.withArguments(
+                    expressionType, caseExpressionType, isNonNullableByDefault),
+                caseExpression.fileOffset,
+                noLength,
+                context: [
+                  messageSwitchExpressionNotAssignableCause.withLocation(
+                      uriForInstrumentation,
+                      node.expression.fileOffset,
+                      noLength)
+                ]);
           }
         }
       }
@@ -6324,12 +6271,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       if (isNonNullableByDefault) {
         lastCaseTerminates = !flowAnalysis.isReachable;
-        if (!isTopLevel) {
-          // The last case block is allowed to complete normally.
-          if (caseIndex < node.cases.length - 1 && flowAnalysis.isReachable) {
-            libraryBuilder.addProblem(messageSwitchCaseFallThrough,
-                switchCase.fileOffset, noLength, helper.uri);
-          }
+
+        // The last case block is allowed to complete normally.
+        if (caseIndex < node.cases.length - 1 && flowAnalysis.isReachable) {
+          libraryBuilder.addProblem(messageSwitchCaseFallThrough,
+              switchCase.fileOffset, noLength, helper.uri);
         }
       }
     }
@@ -6392,7 +6338,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isVoidAllowed: false);
     node.expression = expressionResult.expression..parent = node;
     flowAnalysis.handleExit();
-    if (!isTopLevel && isNonNullableByDefault) {
+    if (isNonNullableByDefault) {
       if (!isAssignable(typeSchemaEnvironment.objectNonNullableRawType,
           expressionResult.inferredType)) {
         return new ExpressionInferenceResult(
@@ -6515,7 +6461,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.value = rhs..parent = node;
       resultExpression = node;
     }
-    if (!isTopLevel && isNonNullableByDefault) {
+    if (isNonNullableByDefault) {
       // Synthetic variables, local functions, and variables with
       // invalid types aren't checked.
       if (variable.name != null &&
@@ -6778,58 +6724,58 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       resultExpression = node;
     }
-    if (!isTopLevel) {
-      bool isUnassigned = !flowAnalysis.isAssigned(variable);
-      if (isUnassigned) {
-        dataForTesting?.flowAnalysisResult.potentiallyUnassignedNodes.add(node);
-      }
-      bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(variable);
-      if (isDefinitelyUnassigned) {
-        dataForTesting?.flowAnalysisResult.definitelyUnassignedNodes.add(node);
-      }
-      if (isNonNullableByDefault) {
-        // Synthetic variables, local functions, and variables with
-        // invalid types aren't checked.
-        if (variable.name != null &&
-            !variable.isLocalFunction &&
-            declaredOrInferredType is! InvalidType) {
-          if (variable.isLate || variable.lateGetter != null) {
-            if (isDefinitelyUnassigned) {
-              String name = variable.lateName ?? variable.name!;
+
+    bool isUnassigned = !flowAnalysis.isAssigned(variable);
+    if (isUnassigned) {
+      dataForTesting?.flowAnalysisResult.potentiallyUnassignedNodes.add(node);
+    }
+    bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(variable);
+    if (isDefinitelyUnassigned) {
+      dataForTesting?.flowAnalysisResult.definitelyUnassignedNodes.add(node);
+    }
+    if (isNonNullableByDefault) {
+      // Synthetic variables, local functions, and variables with
+      // invalid types aren't checked.
+      if (variable.name != null &&
+          !variable.isLocalFunction &&
+          declaredOrInferredType is! InvalidType) {
+        if (variable.isLate || variable.lateGetter != null) {
+          if (isDefinitelyUnassigned) {
+            String name = variable.lateName ?? variable.name!;
+            return new ExpressionInferenceResult(
+                resultType,
+                helper.wrapInProblem(
+                    resultExpression,
+                    templateLateDefinitelyUnassignedError.withArguments(name),
+                    node.fileOffset,
+                    name.length));
+          }
+        } else {
+          if (isUnassigned) {
+            if (variable.isFinal) {
               return new ExpressionInferenceResult(
                   resultType,
                   helper.wrapInProblem(
                       resultExpression,
-                      templateLateDefinitelyUnassignedError.withArguments(name),
+                      templateFinalNotAssignedError
+                          .withArguments(node.variable.name!),
                       node.fileOffset,
-                      name.length));
-            }
-          } else {
-            if (isUnassigned) {
-              if (variable.isFinal) {
-                return new ExpressionInferenceResult(
-                    resultType,
-                    helper.wrapInProblem(
-                        resultExpression,
-                        templateFinalNotAssignedError
-                            .withArguments(node.variable.name!),
-                        node.fileOffset,
-                        node.variable.name!.length));
-              } else if (declaredOrInferredType.isPotentiallyNonNullable) {
-                return new ExpressionInferenceResult(
-                    resultType,
-                    helper.wrapInProblem(
-                        resultExpression,
-                        templateNonNullableNotAssignedError
-                            .withArguments(node.variable.name!),
-                        node.fileOffset,
-                        node.variable.name!.length));
-              }
+                      node.variable.name!.length));
+            } else if (declaredOrInferredType.isPotentiallyNonNullable) {
+              return new ExpressionInferenceResult(
+                  resultType,
+                  helper.wrapInProblem(
+                      resultExpression,
+                      templateNonNullableNotAssignedError
+                          .withArguments(node.variable.name!),
+                      node.fileOffset,
+                      node.variable.name!.length));
             }
           }
         }
       }
     }
+
     return new ExpressionInferenceResult(resultType, resultExpression);
   }
 
@@ -7016,16 +6962,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   void reportNonNullableInNullAwareWarningIfNeeded(
       DartType operandType, String operationName, int offset) {
-    if (!isTopLevel && isNonNullableByDefault) {
-      if (operandType is! InvalidType &&
-          operandType.nullability == Nullability.nonNullable) {
-        libraryBuilder.addProblem(
-            templateNonNullableInNullAware.withArguments(
-                operationName, operandType, isNonNullableByDefault),
-            offset,
-            noLength,
-            helper.uri);
-      }
+    if (operandType is! InvalidType &&
+        operandType.nullability == Nullability.nonNullable) {
+      libraryBuilder.addProblem(
+          templateNonNullableInNullAware.withArguments(
+              operationName, operandType, isNonNullableByDefault),
+          offset,
+          noLength,
+          helper.uri);
     }
   }
 }
