@@ -61,7 +61,7 @@ import 'closure.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'js_world.dart';
-import 'js_world_builder.dart';
+import 'js_world_builder.dart' show JsClosedWorldBuilder;
 import 'locals.dart';
 
 /// JS Strategy pattern that defines the element model used in type inference

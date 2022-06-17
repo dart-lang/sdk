@@ -14,7 +14,7 @@ import '../elements/entity_utils.dart';
 import '../elements/types.dart';
 import '../ir/scope_visitor.dart';
 import '../js_model/elements.dart' show JField;
-import '../js_model/js_world_builder.dart' show JsToFrontendMap;
+import '../js_model/js_to_frontend_map.dart' show JsToFrontendMap;
 import '../kernel/element_map.dart';
 import '../kernel/kernel_strategy.dart';
 import '../kernel/kelements.dart' show KClass, KField, KConstructor;

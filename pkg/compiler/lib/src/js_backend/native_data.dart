@@ -12,7 +12,7 @@ import '../common.dart';
 import '../common/elements.dart' show ElementEnvironment;
 import '../elements/entities.dart';
 import '../ir/annotations.dart';
-import '../js_model/js_world_builder.dart' show identity, JsToFrontendMap;
+import '../js_model/js_to_frontend_map.dart' show identity, JsToFrontendMap;
 import '../kernel/element_map.dart';
 import '../native/behavior.dart' show NativeBehavior;
 import '../serialization/serialization_interfaces.dart';
