@@ -44,6 +44,7 @@ class CiderServiceTest with ResourceProviderMixin {
       prefetchFiles: null,
       workspace: workspace,
       byteStore: MemoryByteStore(),
+      isGenerated: (_) => false,
     );
     fileResolver.testView = FileResolverTestView();
   }

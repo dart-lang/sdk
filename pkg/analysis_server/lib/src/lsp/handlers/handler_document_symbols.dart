@@ -12,7 +12,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 
 class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
-    Either2<List<DocumentSymbol>, List<SymbolInformation>>?> {
+    TextDocumentDocumentSymbolResult> {
   DocumentSymbolHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_documentSymbol;
@@ -22,13 +22,14 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
       DocumentSymbolParams.jsonHandler;
 
   @override
-  Future<ErrorOr<Either2<List<DocumentSymbol>, List<SymbolInformation>>?>>
-      handle(DocumentSymbolParams params, MessageInfo message,
-          CancellationToken token) async {
+  Future<ErrorOr<TextDocumentDocumentSymbolResult>> handle(
+      DocumentSymbolParams params,
+      MessageInfo message,
+      CancellationToken token) async {
     final clientCapabilities = server.clientCapabilities;
     if (clientCapabilities == null || !isDartDocument(params.textDocument)) {
       return success(
-        Either2<List<DocumentSymbol>, List<SymbolInformation>>.t2([]),
+        TextDocumentDocumentSymbolResult.t2([]),
       );
     }
 
@@ -85,7 +86,7 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     );
   }
 
-  ErrorOr<Either2<List<DocumentSymbol>, List<SymbolInformation>>?> _getSymbols(
+  ErrorOr<TextDocumentDocumentSymbolResult> _getSymbols(
     LspClientCapabilities capabilities,
     String path,
     ResolvedUnitResult unit,
@@ -101,7 +102,7 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
         return success(null);
       }
       return success(
-        Either2<List<DocumentSymbol>, List<SymbolInformation>>.t1(
+        TextDocumentDocumentSymbolResult.t1(
           children
               .map((child) => _asDocumentSymbol(
                   capabilities.documentSymbolKinds, unit.lineInfo, child))
@@ -133,9 +134,7 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
 
       outline.children?.forEach(addSymbol);
 
-      return success(
-        Either2<List<DocumentSymbol>, List<SymbolInformation>>.t2(allSymbols),
-      );
+      return success(TextDocumentDocumentSymbolResult.t2(allSymbols));
     }
   }
 }

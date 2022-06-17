@@ -377,12 +377,13 @@ class A {
 class BBB {}
 ''');
     await prepareNavigation();
-    // has region for complete "A.named"
-    assertHasRegionString('A.named');
+    // has no region for complete "A.named"
+    assertNoRegion('A.named', 'A.named'.length);
+    // has separate regions for "A" and "named"
+    assertHasRegion('A.named(', 'A'.length);
+    assertHasTarget('A {');
+    assertHasRegion('named(', 'named'.length);
     assertHasTarget('named(BBB');
-    // no separate regions for "A" and "named"
-    assertNoRegion('A.named(', 'A'.length);
-    assertNoRegion('named(', 'named'.length);
     // validate that we don't forget to resolve parameters
     assertHasRegionTarget('BBB p', 'BBB {}');
   }
@@ -413,7 +414,7 @@ void f() {
 }
 ''');
     await prepareNavigation();
-    assertHasRegionTarget('B<A>.named;', 'named();');
+    assertHasRegionTarget('B<A>.named;', 'B<T> {');
     assertHasRegionTarget('named;', 'named();');
     assertHasRegionTarget('A>', 'A {}');
   }
@@ -428,7 +429,7 @@ void f() {
 }
 ''');
     await prepareNavigation();
-    assertHasRegionTarget('A.new;', 'A();');
+    assertHasRegionTarget('A.new;', 'A {');
     assertHasRegionTarget('new;', 'A();');
   }
 
@@ -442,7 +443,7 @@ void f() {
 }
 ''');
     await prepareNavigation();
-    assertHasRegionTarget('A.new;', 'new();');
+    assertHasRegionTarget('A.new;', 'A {');
     assertHasRegionTarget('new;', 'new();');
   }
 
@@ -503,7 +504,7 @@ class B {
     await prepareNavigation();
     {
       assertHasRegionString('B.named;', 'B'.length);
-      assertHasTarget('named();');
+      assertHasTarget('B {');
     }
     {
       assertHasRegionString('named;', 'named'.length);
@@ -525,7 +526,7 @@ class C<T> {
     await prepareNavigation();
     {
       assertHasRegion('C<A>');
-      assertHasTarget('named() {}');
+      assertHasTarget('C<T> {');
     }
     {
       assertHasRegion('A>.named');
@@ -1015,7 +1016,7 @@ void f() {
     await prepareNavigation();
     {
       assertHasRegionString('A.named();', 'A'.length);
-      assertHasTarget('named() {}');
+      assertHasTarget('A {');
     }
     {
       assertHasRegionString('named();', 'named'.length);
@@ -1036,7 +1037,7 @@ void f() {
     await prepareNavigation();
     {
       assertHasRegionString('B<A>', 'B'.length);
-      assertHasTarget('named() {}');
+      assertHasTarget('B<T> {');
     }
     {
       assertHasRegion('A>.named');

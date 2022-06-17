@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
@@ -362,9 +363,12 @@ class B {
 }
 ''');
 
-    expect(() async {
+    try {
       await resolveFile(a.path);
-    }, throwsStateError);
+      fail('Expected StateError');
+    } on StateError {
+      // OK
+    }
 
     // Notify the resolver about b.dart, it is OK now.
     fileResolver.changeFiles([b.path]);
@@ -2465,8 +2469,7 @@ byteStore
   }
 
   test_resolve_libraryWithPart_noLibraryDiscovery() async {
-    var partPath = '/workspace/dart/test/lib/a.dart';
-    newFile(partPath, r'''
+    newFile('/workspace/dart/test/lib/a.dart', r'''
 part of 'test.dart';
 
 class A {}
@@ -2480,11 +2483,12 @@ void f(A a) {}
 
     // We started resolution from the library, and then followed to the part.
     // So, the part knows its library, there is no need to discover it.
-    _assertDiscoveredLibraryForParts([]);
+    // TODO(scheglov) Use textual dump
+    // _assertDiscoveredLibraryForParts([]);
   }
 
   test_resolve_part_of_name() async {
-    newFile('/workspace/dart/test/lib/a.dart', r'''
+    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
 library my.lib;
 
 part 'test.dart';
@@ -2503,11 +2507,15 @@ void func() {
 }
 ''');
 
-    _assertDiscoveredLibraryForParts([result.path]);
+    // TODO(scheglov) Use textual dump
+    final fsState = fileResolver.fsState!;
+    final testState = fsState.getExistingFileForResource(testFile)!;
+    final testKind = testState.kind as PartFileStateKind;
+    expect(testKind.library?.file, fsState.getExistingFileForResource(a));
   }
 
   test_resolve_part_of_uri() async {
-    newFile('/workspace/dart/test/lib/a.dart', r'''
+    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
 part 'test.dart';
 
 class A {
@@ -2524,7 +2532,11 @@ void func() {
 }
 ''');
 
-    _assertDiscoveredLibraryForParts([result.path]);
+    // TODO(scheglov) Use textual dump
+    final fsState = fileResolver.fsState!;
+    final testState = fsState.getExistingFileForResource(testFile)!;
+    final testKind = testState.kind as PartFileStateKind;
+    expect(testKind.library?.file, fsState.getExistingFileForResource(a));
   }
 
   test_resolveFile_cache() async {
@@ -2697,10 +2709,6 @@ import 'foo:bar';
 ''', [
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9),
     ]);
-  }
-
-  void _assertDiscoveredLibraryForParts(List<String> expected) {
-    expect(fileResolver.fsState!.testView.partsDiscoveredLibraries, expected);
   }
 
   void _assertResolvedFiles(

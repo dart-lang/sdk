@@ -22,8 +22,7 @@ import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:collection/collection.dart';
 
 class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
-        Either2<List<Location>, List<LocationLink>>>
-    with LspPluginRequestHandlerMixin {
+    TextDocumentDefinitionResult> with LspPluginRequestHandlerMixin {
   DefinitionHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_definition;
@@ -69,7 +68,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
   }
 
   @override
-  Future<ErrorOr<Either2<List<Location>, List<LocationLink>>>> handle(
+  Future<ErrorOr<TextDocumentDefinitionResult>> handle(
       TextDocumentPositionParams params,
       MessageInfo message,
       CancellationToken token) async {
@@ -89,9 +88,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
       // If there is no lineInfo, the request cannot be translated from LSP line/col
       // to server offset/length.
       if (lineInfo == null) {
-        return success(
-          Either2<List<Location>, List<LocationLink>>.t1(const []),
-        );
+        return success(TextDocumentDefinitionResult.t2(const []));
       }
 
       final offset = toOffset(lineInfo, pos);
@@ -107,9 +104,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
         final mergedTargets = mergedResults?.targets ?? [];
 
         if (mergedResults == null) {
-          return success(
-            Either2<List<Location>, List<LocationLink>>.t1(const []),
-          );
+          return success(TextDocumentDefinitionResult.t2(const []));
         }
 
         // Convert and filter the results using the correct type of Location class
@@ -129,9 +124,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
             (LocationLink element) => element.targetSelectionRange,
           );
 
-          return success(
-            Either2<List<Location>, List<LocationLink>>.t2(results),
-          );
+          return success(TextDocumentDefinitionResult.t2(results));
         } else {
           final convertedResults = convert(
             mergedTargets,
@@ -147,7 +140,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
           );
 
           return success(
-            Either2<List<Location>, List<LocationLink>>.t1(results),
+            TextDocumentDefinitionResult.t1(Definition.t1(results)),
           );
         }
       });

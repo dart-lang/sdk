@@ -52,6 +52,10 @@ class LibraryCycle {
   /// include [implSignature] of the macro defining library.
   String implSignature;
 
+  /// The key of the resolution cache entry.
+  /// TODO(scheglov) clean up
+  String? resolutionKey;
+
   late final bool hasMacroClass = () {
     for (final library in libraries) {
       for (final file in library.libraryFiles) {

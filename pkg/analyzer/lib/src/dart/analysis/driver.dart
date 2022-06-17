@@ -86,7 +86,7 @@ import 'package:meta/meta.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 223;
+  static const int DATA_VERSION = 224;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -116,15 +116,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// the content from the file.
   final FileContentCache _fileContentCache;
 
+  late final StoredFileContentStrategy _fileContentStrategy;
+
   /// The analysis options to analyze with.
-  AnalysisOptionsImpl _analysisOptions;
+  final AnalysisOptionsImpl _analysisOptions;
 
   /// The [Packages] object with packages and their language versions.
-  Packages _packages;
+  final Packages _packages;
 
   /// The [SourceFactory] is used to resolve URIs to paths and restore URIs
   /// from file paths.
-  SourceFactory _sourceFactory;
+  final SourceFactory _sourceFactory;
 
   final MacroKernelBuilder? macroKernelBuilder;
 
@@ -277,6 +279,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     analysisContext?.driver = this;
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = AnalysisDriverTestView(this);
+
+    _fileContentStrategy = StoredFileContentStrategy(_fileContentCache);
+
     _createFileTracker();
     _scheduler.add(this);
     _search = Search(this);
@@ -566,42 +571,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   void clearLibraryContext() {
     _libraryContext?.dispose();
     _libraryContext = null;
-  }
-
-  /// Some state on which analysis depends has changed, so the driver needs to be
-  /// re-configured with the new state.
-  ///
-  /// At least one of the optional parameters should be provided, but only those
-  /// that represent state that has actually changed need be provided.
-  @Deprecated('Provide all necessary values to the constructor')
-  void configure({
-    DriverBasedAnalysisContext? analysisContext,
-    AnalysisOptionsImpl? analysisOptions,
-    Packages? packages,
-    SourceFactory? sourceFactory,
-  }) {
-    if (analysisContext != null) {
-      this.analysisContext = analysisContext;
-      _scheduler.driverWatcher?.addedDriver(this);
-    }
-    if (analysisOptions != null) {
-      _analysisOptions = analysisOptions;
-    }
-    if (packages != null) {
-      _packages = packages;
-    }
-    if (sourceFactory != null) {
-      _sourceFactory = sourceFactory;
-    }
-
-    _priorityResults.clear();
-    clearLibraryContext();
-
-    Iterable<String> addedFiles = _fileTracker.addedFiles;
-    _createFileTracker();
-    _fileTracker.addFiles(addedFiles);
-
-    _scheduler.notify(this);
   }
 
   /// Return a [Future] that completes when discovery of all files that are
@@ -1507,9 +1476,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _saltForUnlinked,
       _saltForElements,
       featureSetProvider,
-      fileContentCache: _fileContentCache,
+      fileContentStrategy: _fileContentStrategy,
+      prefetchFiles: null,
+      isGenerated: (_) => false,
     );
-    _fileTracker = FileTracker(_logger, _fsState);
+    _fileTracker = FileTracker(_logger, _fsState, _fileContentStrategy);
   }
 
   /// If this has not been done yet, schedule discovery of all files that are

@@ -15,7 +15,7 @@ import '../ir/annotations.dart';
 import '../js_model/js_world_builder.dart' show identity, JsToFrontendMap;
 import '../kernel/element_map.dart';
 import '../native/behavior.dart' show NativeBehavior;
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../util/util.dart';
 
 import 'native_data_interfaces.dart' as interfaces;

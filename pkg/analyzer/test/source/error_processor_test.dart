@@ -2,15 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -44,13 +40,15 @@ main() {
   AnalysisError annotate_overrides =
       AnalysisError(TestSource(), 0, 1, LintCode('annotate_overrides', ''));
 
-  setUp(() {
-    context = TestContext();
-  });
-
   group('ErrorProcessor', () {
+    late _TestContext context;
+
+    setUp(() {
+      context = _TestContext();
+    });
+
     test('configureOptions', () {
-      configureOptions('''
+      context.configureOptions('''
 analyzer:
   errors:
     invalid_assignment: error # severity ERROR
@@ -58,18 +56,19 @@ analyzer:
     unused_local_variable: true # skipped
     use_of_void_result: unsupported_action # skipped
 ''');
-      expect(getProcessor(invalid_assignment)!.severity, ErrorSeverity.ERROR);
-      expect(getProcessor(missing_return)!.severity, isNull);
-      expect(getProcessor(unused_local_variable), isNull);
-      expect(getProcessor(use_of_void_result), isNull);
+      expect(context.getProcessor(invalid_assignment)!.severity,
+          ErrorSeverity.ERROR);
+      expect(context.getProcessor(missing_return)!.severity, isNull);
+      expect(context.getProcessor(unused_local_variable), isNull);
+      expect(context.getProcessor(use_of_void_result), isNull);
     });
 
     test('does not upgrade other warnings to errors in strong mode', () {
-      configureOptions('''
+      context.configureOptions('''
 analyzer:
   strong-mode: true
 ''');
-      expect(getProcessor(unused_local_variable), isNull);
+      expect(context.getProcessor(unused_local_variable), isNull);
     });
   });
 
@@ -84,7 +83,7 @@ analyzer:
 
     group('processing', () {
       test('yaml map', () {
-        var options = optionsProvider.getOptionsFromString(config);
+        var options = AnalysisOptionsProvider().getOptionsFromString(config);
         var errorConfig =
             ErrorConfig((options['analyzer'] as YamlMap)['errors']);
         expect(errorConfig.processors, hasLength(2));
@@ -132,7 +131,7 @@ analyzer:
     });
 
     test('configure lints', () {
-      var options = optionsProvider.getOptionsFromString(
+      var options = AnalysisOptionsProvider().getOptionsFromString(
           'analyzer:\n  errors:\n    annotate_overrides: warning\n');
       var errorConfig = ErrorConfig((options['analyzer'] as YamlMap)['errors']);
       expect(errorConfig.processors, hasLength(1));
@@ -144,30 +143,15 @@ analyzer:
   });
 }
 
-late TestContext context;
+class _TestContext {
+  final analysisOptions = AnalysisOptionsImpl();
 
-AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
+  void configureOptions(String options) {
+    final optionMap = AnalysisOptionsProvider().getOptionsFromString(options);
+    applyToAnalysisOptions(analysisOptions, optionMap);
+  }
 
-void configureOptions(String options) {
-  YamlMap optionMap = optionsProvider.getOptionsFromString(options);
-  applyToAnalysisOptions(context.analysisOptions, optionMap);
-}
-
-ErrorProcessor? getProcessor(AnalysisError error) =>
-    ErrorProcessor.getProcessor(context.analysisOptions, error);
-
-class TestContext extends AnalysisContextImpl {
-  TestContext()
-      : super(
-          SynchronousSession(
-            AnalysisOptionsImpl(),
-            DeclaredVariables(),
-          ),
-          _SourceFactoryMock(),
-        );
-}
-
-class _SourceFactoryMock implements SourceFactory {
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  ErrorProcessor? getProcessor(AnalysisError error) {
+    return ErrorProcessor.getProcessor(analysisOptions, error);
+  }
 }

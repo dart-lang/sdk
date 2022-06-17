@@ -10,6 +10,10 @@ import 'package:test/test.dart';
 
 void main() {
   group('toJson', () {
+    final start = Position(line: 1, character: 1);
+    final end = Position(line: 2, character: 2);
+    final range = Range(start: start, end: end);
+
     test('returns correct JSON for a union', () {
       final num = Either2.t1(1);
       final string = Either2.t2('Test');
@@ -26,6 +30,29 @@ void main() {
       expect(output, equals('{"id":1,"jsonrpc":"test","method":"shutdown"}'));
     });
 
+    test('returns correct output for nested union types', () {
+      final message = ResponseMessage(
+        id: Either2<int, String>.t1(1),
+        result:
+            Either2<Either2<List<Location>, Location>, List<LocationLink>>.t1(
+                Either2<List<Location>, Location>.t1([
+          Location(
+            range: range,
+            uri: '!uri',
+          )
+        ])),
+        jsonrpc: jsonRpcVersion,
+      );
+      final output = json.encode(message.toJson());
+      expect(
+          output,
+          equals(
+            '{"id":1,"jsonrpc":"2.0",'
+            '"result":[{"range":{"end":{"character":2,"line":2},"start":{"character":1,"line":1}},'
+            '"uri":"!uri"}]}',
+          ));
+    });
+
     test('returns correct output for union types containing interface types',
         () {
       final params = Either2<String, TextDocumentItem>.t2(TextDocumentItem(
@@ -38,9 +65,6 @@ void main() {
     });
 
     test('returns correct output for types with lists', () {
-      final start = Position(line: 1, character: 1);
-      final end = Position(line: 2, character: 2);
-      final range = Range(start: start, end: end);
       final location = Location(uri: 'y-uri', range: range);
       final codeAction = Diagnostic(
         range: range,
