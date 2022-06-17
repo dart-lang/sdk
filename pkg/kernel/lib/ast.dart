@@ -227,6 +227,10 @@ abstract class NamedNode extends TreeNode {
   void _relinkNode() {
     this.reference.node = this;
   }
+
+  /// Computes the canonical names for this node using the [parent] as the
+  /// canonical name of the parent node.
+  void bindCanonicalNames(CanonicalName parent);
 }
 
 abstract class FileUriNode extends TreeNode {
@@ -489,36 +493,28 @@ class Library extends NamedNode
     typedefs.add(typedef_);
   }
 
-  void computeCanonicalNames() {
-    CanonicalName canonicalName = this.reference.canonicalName!;
+  @override
+  CanonicalName bindCanonicalNames(CanonicalName parent) {
+    return parent.getChildFromUri(importUri)..bindTo(reference);
+  }
+
+  /// Computes the canonical name for this library and all its members.
+  void ensureCanonicalNames(CanonicalName parent) {
+    CanonicalName canonicalName = bindCanonicalNames(parent);
     for (int i = 0; i < typedefs.length; ++i) {
-      Typedef typedef_ = typedefs[i];
-      canonicalName.getChildFromTypedef(typedef_).bindTo(typedef_.reference);
+      typedefs[i].bindCanonicalNames(canonicalName);
     }
     for (int i = 0; i < fields.length; ++i) {
-      Field field = fields[i];
-      canonicalName.getChildFromField(field).bindTo(field.fieldReference);
-      canonicalName
-          .getChildFromFieldGetter(field)
-          .bindTo(field.getterReference);
-      if (field.hasSetter) {
-        canonicalName
-            .getChildFromFieldSetter(field)
-            .bindTo(field.setterReference!);
-      }
+      fields[i].bindCanonicalNames(canonicalName);
     }
     for (int i = 0; i < procedures.length; ++i) {
-      Procedure member = procedures[i];
-      canonicalName.getChildFromProcedure(member).bindTo(member.reference);
+      procedures[i].bindCanonicalNames(canonicalName);
     }
     for (int i = 0; i < classes.length; ++i) {
-      Class class_ = classes[i];
-      canonicalName.getChild(class_.name).bindTo(class_.reference);
-      class_.computeCanonicalNames();
+      classes[i].ensureCanonicalNames(canonicalName);
     }
     for (int i = 0; i < extensions.length; ++i) {
-      Extension extension = extensions[i];
-      canonicalName.getChild(extension.name).bindTo(extension.reference);
+      extensions[i].bindCanonicalNames(canonicalName);
     }
   }
 
@@ -852,6 +848,11 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
         this.typeParameters = typeParameters ?? <TypeParameter>[],
         super(reference) {
     setParents(this.typeParameters, this);
+  }
+
+  @override
+  void bindCanonicalNames(CanonicalName parent) {
+    parent.getChildFromTypedef(this).bindTo(reference);
   }
 
   Library get enclosingLibrary => parent as Library;
@@ -1247,34 +1248,26 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     this.isAnonymousMixin = isAnonymousMixin;
   }
 
-  void computeCanonicalNames() {
-    CanonicalName canonicalName = this.reference.canonicalName!;
+  @override
+  CanonicalName bindCanonicalNames(CanonicalName parent) {
+    return parent.getChild(name)..bindTo(reference);
+  }
+
+  /// Computes the canonical name for this class and all its members.
+  void ensureCanonicalNames(CanonicalName parent) {
+    CanonicalName canonicalName = bindCanonicalNames(parent);
     if (!dirty) return;
     for (int i = 0; i < fields.length; ++i) {
-      Field member = fields[i];
-      canonicalName.getChildFromField(member).bindTo(member.fieldReference);
-      canonicalName
-          .getChildFromFieldGetter(member)
-          .bindTo(member.getterReference);
-      if (member.hasSetter) {
-        canonicalName
-            .getChildFromFieldSetter(member)
-            .bindTo(member.setterReference!);
-      }
+      fields[i].bindCanonicalNames(canonicalName);
     }
     for (int i = 0; i < procedures.length; ++i) {
-      Procedure member = procedures[i];
-      canonicalName.getChildFromProcedure(member).bindTo(member.reference);
+      procedures[i].bindCanonicalNames(canonicalName);
     }
     for (int i = 0; i < constructors.length; ++i) {
-      Constructor member = constructors[i];
-      canonicalName.getChildFromConstructor(member).bindTo(member.reference);
+      constructors[i].bindCanonicalNames(canonicalName);
     }
     for (int i = 0; i < redirectingFactories.length; ++i) {
-      RedirectingFactory member = redirectingFactories[i];
-      canonicalName
-          .getChildFromRedirectingFactory(member)
-          .bindTo(member.reference);
+      redirectingFactories[i].bindCanonicalNames(canonicalName);
     }
     dirty = false;
   }
@@ -1574,6 +1567,11 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
     if (onType != null) {
       this.onType = onType;
     }
+  }
+
+  @override
+  void bindCanonicalNames(CanonicalName parent) {
+    parent.getChild(name).bindTo(reference);
   }
 
   Library get enclosingLibrary => parent as Library;
@@ -2193,6 +2191,15 @@ class Field extends Member {
   }
 
   @override
+  void bindCanonicalNames(CanonicalName parent) {
+    parent.getChildFromField(this).bindTo(fieldReference);
+    parent.getChildFromFieldGetter(this).bindTo(getterReference);
+    if (hasSetter) {
+      parent.getChildFromFieldSetter(this).bindTo(setterReference!);
+    }
+  }
+
+  @override
   void _relinkNode() {
     this.fieldReference.node = this;
     this.getterReference.node = this;
@@ -2407,6 +2414,11 @@ class Constructor extends Member {
   }
 
   @override
+  void bindCanonicalNames(CanonicalName parent) {
+    parent.getChildFromConstructor(this).bindTo(reference);
+  }
+
+  @override
   Class get enclosingClass => parent as Class;
 
   static const int FlagConst = 1 << 0; // Must match serialized bit positions.
@@ -2571,6 +2583,11 @@ class RedirectingFactory extends Member {
     this.isConst = isConst;
     this.isExternal = isExternal;
     this.transformerFlags = transformerFlags;
+  }
+
+  @override
+  void bindCanonicalNames(CanonicalName parent) {
+    parent.getChildFromRedirectingFactory(this).bindTo(reference);
   }
 
   @override
@@ -3000,6 +3017,11 @@ class Procedure extends Member {
             (memberSignatureOrigin as Procedure).isMemberSignature),
         "Member signature origin cannot be a member signature "
         "$memberSignatureOrigin for $this.");
+  }
+
+  @override
+  void bindCanonicalNames(CanonicalName parent) {
+    parent.getChildFromProcedure(this).bindTo(reference);
   }
 
   static const int FlagStatic = 1 << 0; // Must match serialized bit positions.
@@ -11429,9 +11451,7 @@ class InterfaceType extends DartType {
   /// list is omitted, 'dynamic' type arguments are filled in.
   InterfaceType(Class classNode, Nullability declaredNullability,
       [List<DartType>? typeArguments])
-      : this.byReference(
-            getNonNullableClassReference(classNode),
-            declaredNullability,
+      : this.byReference(classNode.reference, declaredNullability,
             typeArguments ?? _defaultTypeArguments(classNode));
 
   InterfaceType.byReference(
@@ -11733,9 +11753,9 @@ class TypedefType extends DartType {
   final Reference typedefReference;
   final List<DartType> typeArguments;
 
-  TypedefType(Typedef typedefNode, Nullability nullability,
+  TypedefType(Typedef typedef, Nullability nullability,
       [List<DartType>? typeArguments])
-      : this.byReference(typedefNode.reference, nullability,
+      : this.byReference(typedef.reference, nullability,
             typeArguments ?? const <DartType>[]);
 
   TypedefType.byReference(
@@ -12807,8 +12827,7 @@ class Supertype extends Node {
   final List<DartType> typeArguments;
 
   Supertype(Class classNode, List<DartType> typeArguments)
-      : this.byReference(
-            getNonNullableClassReference(classNode), typeArguments);
+      : this.byReference(classNode.reference, typeArguments);
 
   Supertype.byReference(this.className, this.typeArguments);
 
@@ -13992,8 +14011,7 @@ class Component extends TreeNode {
   }
 
   void computeCanonicalNamesForLibrary(Library library) {
-    root.getChildFromUri(library.importUri).bindTo(library.reference);
-    library.computeCanonicalNames();
+    library.ensureCanonicalNames(root);
   }
 
   void unbindCanonicalNames() {
@@ -14142,7 +14160,7 @@ abstract class BinarySink {
   /// Write List<Byte> into the sink.
   void writeByteList(List<int> bytes);
 
-  void writeNullAllowedCanonicalNameReference(CanonicalName? name);
+  void writeNullAllowedCanonicalNameReference(Reference? reference);
   void writeStringReference(String str);
   void writeName(Name node);
   void writeDartType(DartType type);
@@ -14348,75 +14366,6 @@ Reference getNonNullableMemberReferenceSetter(Member member) {
   return member.reference;
 }
 
-/// Returns the [Reference] object for the given class.
-///
-/// Returns `null` if the class is `null`.
-Reference? getClassReference(Class? class_) {
-  return class_?.reference;
-}
-
-/// Returns the [Reference] object for the given class.
-Reference getNonNullableClassReference(Class class_) {
-  return class_.reference;
-}
-
-/// Returns the canonical name of [member], or throws an exception if the
-/// member has not been assigned a canonical name yet.
-CanonicalName getCanonicalNameOfMemberGetter(Member member) {
-  CanonicalName? canonicalName;
-  if (member is Field) {
-    canonicalName = member.getterReference.canonicalName;
-  } else {
-    canonicalName = member.reference.canonicalName;
-  }
-  if (canonicalName == null) {
-    throw '$member has no canonical name';
-  }
-  return canonicalName;
-}
-
-/// Returns the canonical name of [member], or throws an exception if the
-/// member has not been assigned a canonical name yet.
-CanonicalName getCanonicalNameOfMemberSetter(Member member) {
-  CanonicalName? canonicalName;
-  if (member is Field) {
-    canonicalName = member.setterReference!.canonicalName;
-  } else {
-    canonicalName = member.reference.canonicalName;
-  }
-  if (canonicalName == null) {
-    throw '$member has no canonical name';
-  }
-  return canonicalName;
-}
-
-/// Returns the canonical name of [class_], or throws an exception if the
-/// class has not been assigned a canonical name yet.
-CanonicalName getCanonicalNameOfClass(Class class_) {
-  if (class_.reference.canonicalName == null) {
-    throw '$class_ has no canonical name';
-  }
-  return class_.reference.canonicalName!;
-}
-
-/// Returns the canonical name of [extension], or throws an exception if the
-/// class has not been assigned a canonical name yet.
-CanonicalName getCanonicalNameOfExtension(Extension extension) {
-  if (extension.reference.canonicalName == null) {
-    throw '$extension has no canonical name';
-  }
-  return extension.reference.canonicalName!;
-}
-
-/// Returns the canonical name of [library], or throws an exception if the
-/// library has not been assigned a canonical name yet.
-CanonicalName getCanonicalNameOfLibrary(Library library) {
-  if (library.reference.canonicalName == null) {
-    throw '$library has no canonical name';
-  }
-  return library.reference.canonicalName!;
-}
-
 /// Murmur-inspired hashing, with a fall-back to Jenkins-inspired hashing when
 /// compiled to JavaScript.
 ///
@@ -14546,15 +14495,6 @@ bool mapEquals(Map a, Map b) {
     if (!b.containsKey(key) || a[key] != b[key]) return false;
   }
   return true;
-}
-
-/// Returns the canonical name of [typedef_], or throws an exception if the
-/// typedef has not been assigned a canonical name yet.
-CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
-  if (typedef_.reference.canonicalName == null) {
-    throw '$typedef_ has no canonical name';
-  }
-  return typedef_.reference.canonicalName!;
 }
 
 /// Annotation describing information which is not part of Dart semantics; in

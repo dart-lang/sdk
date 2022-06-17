@@ -179,8 +179,7 @@ Future<Component?> compileComponent(InitializedCompilerState compilerState,
         // be computed as part of serialization, so we need to do that
         // preemptively here to avoid errors when serializing references to
         // elements of these libraries.
-        component.root.getChildFromUri(lib.importUri).bindTo(lib.reference);
-        lib.computeCanonicalNames();
+        lib.bindCanonicalNames(component.root);
       }
     }
   }

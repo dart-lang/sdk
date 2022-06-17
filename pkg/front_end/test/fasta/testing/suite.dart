@@ -405,30 +405,36 @@ class FastaContext extends ChainContext with MatchContext {
     if (kernelTextSerialization) {
       steps.add(const KernelTextSerialization());
     }
-    if (compileMode == CompileMode.full) {
-      steps.add(const Transform());
-      steps.add(const Verify(CompileMode.full));
-      steps.add(const StressConstantEvaluatorStep());
-      if (!ignoreExpectations) {
-        steps.add(new MatchExpectation("$prefix$infix.transformed.expect",
-            serializeFirst: false, isLastMatchStep: updateExpectations));
-        if (!updateExpectations) {
+    switch (compileMode) {
+      case CompileMode.full:
+        steps.add(const Transform());
+        steps.add(const Verify(CompileMode.full));
+        steps.add(const StressConstantEvaluatorStep());
+        if (!ignoreExpectations) {
           steps.add(new MatchExpectation("$prefix$infix.transformed.expect",
-              serializeFirst: true, isLastMatchStep: true));
+              serializeFirst: false, isLastMatchStep: updateExpectations));
+          if (!updateExpectations) {
+            steps.add(new MatchExpectation("$prefix$infix.transformed.expect",
+                serializeFirst: true, isLastMatchStep: true));
+          }
         }
-      }
-      steps.add(const EnsureNoErrors());
-      steps.add(new WriteDill(skipVm: skipVm));
-      if (semiFuzz) {
-        steps.add(const FuzzCompiles());
-      }
+        steps.add(const EnsureNoErrors());
+        steps.add(new WriteDill(skipVm: skipVm));
+        if (semiFuzz) {
+          steps.add(const FuzzCompiles());
+        }
 
-      // Notice: The below steps will run async, i.e. the next test will run
-      // intertwined with this/these step(s). That for instance means that they
-      // should not touch any ASTs!
-      if (!skipVm) {
-        steps.add(const Run());
-      }
+        // Notice: The below steps will run async, i.e. the next test will run
+        // intertwined with this/these step(s). That for instance means that they
+        // should not touch any ASTs!
+        if (!skipVm) {
+          steps.add(const Run());
+        }
+        break;
+      case CompileMode.modular:
+      case CompileMode.outline:
+        steps.add(new WriteDill(skipVm: true));
+        break;
     }
   }
 

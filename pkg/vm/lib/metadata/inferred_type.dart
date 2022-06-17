@@ -39,7 +39,7 @@ class InferredType {
       bool skipCheck: false,
       bool receiverNotInt: false})
       : this._byReference(
-            getClassReference(concreteClass),
+            concreteClass?.reference,
             constantValue,
             (nullable ? flagNullable : 0) |
                 (isInt ? flagInt : 0) |
@@ -114,9 +114,8 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
   void writeToBinary(InferredType metadata, Node node, BinarySink sink) {
     // TODO(sjindel/tfa): Implement serialization of type arguments when can use
     // them for optimizations.
-    sink.writeNullAllowedCanonicalNameReference(metadata.concreteClass != null
-        ? getCanonicalNameOfClass(metadata.concreteClass!)
-        : null);
+    sink.writeNullAllowedCanonicalNameReference(
+        metadata.concreteClass?.reference);
     sink.writeByte(metadata._flags);
     if (metadata.constantValue != null) {
       sink.writeConstantReference(metadata.constantValue!);

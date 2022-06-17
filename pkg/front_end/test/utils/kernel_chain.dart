@@ -228,7 +228,7 @@ class MatchExpectation
 
     Component componentToText = component;
     if (serializeFirst) {
-      component.computeCanonicalNames();
+      // TODO(johnniwinther): Use library filter instead.
       List<Library> sdkLibraries =
           component.libraries.where((l) => !result.isUserLibrary(l)).toList();
 
@@ -442,7 +442,7 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
   Future<Result<ComponentResult>> run(ComponentResult result, _) async {
     Component component = result.component;
     Procedure? mainMethod = component.mainMethod;
-    bool writeToFile = true;
+    bool writeToFile = !skipVm;
     if (mainMethod == null) {
       writeToFile = false;
     } else {
@@ -455,33 +455,60 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
     ByteSink sink = new ByteSink();
     bool good = false;
     try {
+      // TODO(johnniwinther): Use library filter instead.
       // Avoid serializing the sdk.
-      component.computeCanonicalNames();
       Component userCode = new Component(
           nameRoot: component.root,
           uriToSource: new Map<Uri, Source>.from(component.uriToSource));
       userCode.setMainMethodAndMode(
           component.mainMethodName, true, component.mode);
+      List<Library> auxiliaryLibraries = [];
       for (Library library in component.libraries) {
+        bool includeLibrary;
         if (library.importUri.isScheme("dart")) {
           if (result.isUserLibrary(library)) {
             // dart:test, test:extra etc as used will say yes to being a user
             // library.
+            includeLibrary = true;
           } else if (library.isSynthetic) {
             // OK --- serialize that.
+            includeLibrary = true;
           } else {
             // Skip serialization of "real" platform libraries.
-            continue;
+            includeLibrary = false;
           }
+        } else if (result.isUserLibrary(library)) {
+          includeLibrary = true;
+        } else {
+          // This library is neither part of the user libraries nor part of the
+          // platform libraries. To run this, we need to include it in the
+          // dill.
+          auxiliaryLibraries.add(library);
+          includeLibrary = false;
         }
-        userCode.libraries.add(library);
+        if (includeLibrary) {
+          userCode.libraries.add(library);
+        }
       }
+
+      // We first ensure that we can serialize with possible references to
+      // libraries that aren't included in the serialization.
       new BinaryPrinter(sink).writeComponentFile(userCode);
+
+      // We then serialize with any such libraries to
+      //   a) ensure that we can do that too, and that
+      //   b) the output is complete (modulo the platform) so that the VM can
+      //      actually run it.
+      if (auxiliaryLibraries.isNotEmpty) {
+        userCode.libraries.addAll(auxiliaryLibraries);
+        sink = new ByteSink();
+        new BinaryPrinter(sink).writeComponentFile(userCode);
+      }
       good = true;
     } catch (e, s) {
       return fail(result, e, s);
     } finally {
-      if (good && writeToFile && !skipVm) {
+      if (good && writeToFile) {
         Directory tmp = await Directory.systemTemp.createTemp();
         Uri uri = tmp.uri.resolve("generated.dill");
         File generated = new File.fromUri(uri);
