@@ -95,7 +95,8 @@ CompilerOptions setupCompilerOptions(
     List<String> errorsPlain,
     List<String> errorsColorized,
     String invocationModes,
-    String verbosityLevel) {
+    String verbosityLevel,
+    bool enableMirrors) {
   final expFlags = <String>[];
   if (experimentalFlags != null) {
     for (String flag in experimentalFlags) {
@@ -107,7 +108,8 @@ CompilerOptions setupCompilerOptions(
   return new CompilerOptions()
     ..fileSystem = fileSystem
     ..target = new VmTarget(new TargetFlags(
-        enableNullSafety: nullSafety == kNullSafetyOptionStrong))
+        enableNullSafety: nullSafety == kNullSafetyOptionStrong,
+        supportMirrors: enableMirrors))
     ..packagesFileUri = packagesUri
     ..sdkSummary = platformKernelPath
     ..verbose = verbose
@@ -165,6 +167,7 @@ abstract class Compiler {
   final String? packageConfig;
   final String invocationModes;
   final String verbosityLevel;
+  final bool enableMirrors;
 
   // Code coverage and hot reload are only supported by incremental compiler,
   // which is used if vm-service is enabled.
@@ -184,7 +187,8 @@ abstract class Compiler {
       this.supportHotReload: false,
       this.packageConfig: null,
       this.invocationModes: '',
-      this.verbosityLevel: Verbosity.defaultValue}) {
+      this.verbosityLevel: Verbosity.defaultValue,
+      required this.enableMirrors}) {
     Uri? packagesUri = null;
     final packageConfig = this.packageConfig ?? Platform.packageConfig;
     if (packageConfig != null) {
@@ -208,7 +212,8 @@ abstract class Compiler {
         errorsPlain,
         errorsColorized,
         invocationModes,
-        verbosityLevel);
+        verbosityLevel,
+        enableMirrors);
   }
 
   Future<CompilerResult> compile(Uri script) {
@@ -295,7 +300,8 @@ class IncrementalCompilerWrapper extends Compiler {
       List<String>? experimentalFlags,
       String? packageConfig,
       String invocationModes: '',
-      String verbosityLevel: Verbosity.defaultValue})
+      String verbosityLevel: Verbosity.defaultValue,
+      required bool enableMirrors})
       : super(isolateGroupId, fileSystem, platformKernelPath,
             enableAsserts: enableAsserts,
             nullSafety: nullSafety,
@@ -304,7 +310,8 @@ class IncrementalCompilerWrapper extends Compiler {
             supportCodeCoverage: true,
             packageConfig: packageConfig,
             invocationModes: invocationModes,
-            verbosityLevel: verbosityLevel);
+            verbosityLevel: verbosityLevel,
+            enableMirrors: enableMirrors);
 
   factory IncrementalCompilerWrapper.forExpressionCompilationOnly(
       Component component,
@@ -314,13 +321,15 @@ class IncrementalCompilerWrapper extends Compiler {
       {bool enableAsserts: false,
       List<String>? experimentalFlags,
       String? packageConfig,
-      String invocationModes: ''}) {
+      String invocationModes: '',
+      required bool enableMirrors}) {
     IncrementalCompilerWrapper result = IncrementalCompilerWrapper(
         isolateGroupId, fileSystem, platformKernelPath,
         enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
-        invocationModes: invocationModes);
+        invocationModes: invocationModes,
+        enableMirrors: enableMirrors);
     result.generator = new IncrementalCompiler.forExpressionCompilationOnly(
         component,
         result.options,
@@ -349,7 +358,8 @@ class IncrementalCompilerWrapper extends Compiler {
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
-        invocationModes: invocationModes);
+        invocationModes: invocationModes,
+        enableMirrors: enableMirrors);
     final generator = this.generator!;
     // TODO(VM TEAM): This does not seem safe. What if cloning while having
     // pending deltas for instance?
@@ -384,14 +394,16 @@ class SingleShotCompilerWrapper extends Compiler {
       List<String>? experimentalFlags,
       String? packageConfig,
       String invocationModes: '',
-      String verbosityLevel: Verbosity.defaultValue})
+      String verbosityLevel: Verbosity.defaultValue,
+      required bool enableMirrors})
       : super(isolateGroupId, fileSystem, platformKernelPath,
             enableAsserts: enableAsserts,
             nullSafety: nullSafety,
             experimentalFlags: experimentalFlags,
             packageConfig: packageConfig,
             invocationModes: invocationModes,
-            verbosityLevel: verbosityLevel);
+            verbosityLevel: verbosityLevel,
+            enableMirrors: enableMirrors);
 
   @override
   Future<CompilerResult> compileInternal(Uri script) async {
@@ -428,7 +440,8 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateGroupId,
     String? multirootFilepaths,
     String? multirootScheme,
     String invocationModes: '',
-    String verbosityLevel: Verbosity.defaultValue}) async {
+    String verbosityLevel: Verbosity.defaultValue,
+    required bool enableMirrors}) async {
   IncrementalCompilerWrapper? compiler =
       lookupIncrementalCompiler(isolateGroupId);
   if (compiler != null) {
@@ -457,7 +470,8 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateGroupId,
           experimentalFlags: experimentalFlags,
           packageConfig: packageConfig,
           invocationModes: invocationModes,
-          verbosityLevel: verbosityLevel);
+          verbosityLevel: verbosityLevel,
+          enableMirrors: enableMirrors);
     }
     isolateCompilers[isolateGroupId] = compiler;
   }
@@ -513,6 +527,7 @@ Future _processExpressionCompilationRequest(request) async {
   final bool enableAsserts = request[16];
   final List<String>? experimentalFlags =
       request[17] != null ? request[17].cast<String>() : null;
+  final bool enableMirrors = request[18];
 
   IncrementalCompilerWrapper? compiler = isolateCompilers[isolateGroupId];
 
@@ -595,7 +610,8 @@ Future _processExpressionCompilationRequest(request) async {
             component, isolateGroupId, fileSystem, null,
             enableAsserts: enableAsserts,
             experimentalFlags: experimentalFlags,
-            packageConfig: dotPackagesFile);
+            packageConfig: dotPackagesFile,
+            enableMirrors: enableMirrors);
         isolateCompilers[isolateGroupId] = compiler;
         await compiler.compile(
             component.mainMethod?.enclosingLibrary.importUri ??
@@ -776,6 +792,7 @@ Future _processLoadRequest(request) async {
   final String? multirootScheme = request[13];
   final String? workingDirectory = request[14];
   final String verbosityLevel = request[15];
+  final bool enableMirrors = request[16];
   Uri platformKernelPath;
   List<int>? platformKernel = null;
   if (request[3] is String) {
@@ -844,7 +861,8 @@ Future _processLoadRequest(request) async {
         errorsPlain,
         errorsColorized,
         invocationModes,
-        verbosityLevel);
+        verbosityLevel,
+        false);
 
     // script should only be null for kUpdateSourcesTag.
     await autoDetectNullSafetyMode(script!, options);
@@ -870,7 +888,8 @@ Future _processLoadRequest(request) async {
         multirootFilepaths: multirootFilepaths,
         multirootScheme: multirootScheme,
         invocationModes: invocationModes,
-        verbosityLevel: verbosityLevel);
+        verbosityLevel: verbosityLevel,
+        enableMirrors: enableMirrors);
   } else {
     FileSystem fileSystem = _buildFileSystem(
         sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
@@ -882,7 +901,8 @@ Future _processLoadRequest(request) async {
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
         invocationModes: invocationModes,
-        verbosityLevel: verbosityLevel);
+        verbosityLevel: verbosityLevel,
+        enableMirrors: enableMirrors);
   }
 
   CompilationResult result;
@@ -1044,6 +1064,7 @@ Future trainInternal(String scriptUri, String? platformKernelPath) async {
     null /* multirootScheme */,
     null /* original working directory */,
     'all' /* CFE logging mode */,
+    true /* enableMirrors */,
   ];
   await _processLoadRequest(request);
 }
