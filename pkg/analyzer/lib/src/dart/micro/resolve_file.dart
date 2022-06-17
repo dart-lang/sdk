@@ -37,8 +37,8 @@ import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -735,16 +735,6 @@ class FileResolver {
     }
   }
 
-  File? _findOptionsFile(Folder folder) {
-    for (var current in folder.withAncestors) {
-      var file = _getFile(current, file_paths.analysisOptionsYaml);
-      if (file != null) {
-        return file;
-      }
-    }
-    return null;
-  }
-
   /// Return the analysis options.
   ///
   /// If the [path] is not `null`, read it.
@@ -766,9 +756,9 @@ class FileResolver {
 
     File? optionsFile;
     if (!isThirdParty) {
-      optionsFile = performance.run('findOptionsFile', (_) {
+      optionsFile = performance.run('findAnalysisOptionsYamlFile', (_) {
         var folder = resourceProvider.getFile(path).parent;
-        return _findOptionsFile(folder);
+        return folder.findAnalysisOptionsYamlFile();
       });
     }
 
@@ -777,9 +767,7 @@ class FileResolver {
         try {
           var optionsProvider = AnalysisOptionsProvider(sourceFactory);
           optionMap = optionsProvider.getOptionsFromFile(optionsFile!);
-        } catch (e) {
-          // ignored
-        }
+        } catch (_) {}
       });
     } else {
       var source = performance.run('defaultOptions', (_) {
@@ -802,9 +790,7 @@ class FileResolver {
           try {
             var optionsProvider = AnalysisOptionsProvider(sourceFactory);
             optionMap = optionsProvider.getOptionsFromSource(source);
-          } catch (e) {
-            // ignored
-          }
+          } catch (_) {}
         });
       }
     }
@@ -852,11 +838,6 @@ class FileResolver {
         'Only normalized paths are supported: $path',
       );
     }
-  }
-
-  static File? _getFile(Folder directory, String name) {
-    var file = directory.getChildAssumingFile(name);
-    return file.exists ? file : null;
   }
 }
 
