@@ -44,12 +44,20 @@ library.
 ''';
 
 class FileNames extends LintRule {
+  static const LintCode code = LintCode(
+      'file_names', "The file name '{0}' isn't a snake_case identifier.",
+      correctionMessage:
+          'Try changing the name to follow the snake_case style.');
+
   FileNames()
       : super(
             name: 'file_names',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -70,7 +78,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (declaredElement != null) {
       var fileName = declaredElement.source.shortName;
       if (!isValidDartFileName(fileName)) {
-        rule.reportLintForOffset(0, 0);
+        rule.reportLintForOffset(0, 0, arguments: [fileName]);
       }
     }
   }

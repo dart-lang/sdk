@@ -131,7 +131,7 @@ class ListRemoveUnrelatedType extends LintRule {
             group: Group.errors);
 
   @override
-  LintCode get lintCode => ListRemoveUnrelatedType.code;
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

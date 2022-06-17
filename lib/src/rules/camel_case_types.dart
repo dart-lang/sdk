@@ -35,12 +35,20 @@ typedef num Adder(num x, num y);
 ''';
 
 class CamelCaseTypes extends LintRule {
+  static const LintCode code = LintCode('camel_case_types',
+      "The type name '{0}' isn't an UpperCamelCase identifier.",
+      correctionMessage:
+          'Try changing the name to follow the UpperCamelCase style.');
+
   CamelCaseTypes()
       : super(
             name: 'camel_case_types',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -61,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void check(SimpleIdentifier name) {
     if (!isCamelCase(name.toString())) {
-      rule.reportLint(name);
+      rule.reportLint(name, arguments: [name.name]);
     }
   }
 
@@ -76,17 +84,17 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    check(node.name);
+  }
+
+  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     check(node.name);
   }
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    check(node.name);
-  }
-
-  @override
-  void visitEnumDeclaration(EnumDeclaration node) {
     check(node.name);
   }
 }

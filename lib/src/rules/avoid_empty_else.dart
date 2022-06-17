@@ -30,7 +30,7 @@ class AvoidEmptyElse extends LintRule {
           'Try removing the empty statement or removing the else clause.');
 
   @override
-  LintCode get lintCode => AvoidEmptyElse.code;
+  LintCode get lintCode => code;
 
   AvoidEmptyElse()
       : super(

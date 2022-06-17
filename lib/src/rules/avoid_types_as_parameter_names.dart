@@ -33,15 +33,15 @@ class AvoidTypesAsParameterNames extends LintRule {
           'Try adding a name for the parameter or changing the parameter name '
           'to not match an existing type.');
 
-  @override
-  LintCode get lintCode => AvoidTypesAsParameterNames.code;
-
   AvoidTypesAsParameterNames()
       : super(
             name: 'avoid_types_as_parameter_names',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

@@ -36,13 +36,13 @@ void main() {
       expect(
           output,
           stringContainsInOrder([
-            'Depend on referenced packages.',
+            "isn't a dependency of the importing package.",
             "import 'package:private_dep/private_dep.dart'; // LINT",
-            'Depend on referenced packages.',
+            "isn't a dependency of the importing package.",
             "import 'package:transitive_dep/transitive_dep.dart'; // LINT",
-            'Depend on referenced packages.',
+            "isn't a dependency of the importing package.",
             "export 'package:private_dep/private_dep.dart'; // LINT",
-            'Depend on referenced packages.',
+            "isn't a dependency of the importing package.",
             "export 'package:transitive_dep/transitive_dep.dart'; // LINT",
           ]));
       expect(output, isNot(contains('// OK')));
@@ -60,13 +60,13 @@ void main() {
       expect(
           output,
           stringContainsInOrder([
-            'Depend on referenced packages.',
+            "isn't a dependency of the importing package.",
             "import 'package:private_dep/private_dep.dart'; // LINT",
-            'Depend on referenced packages.',
+            "isn't a dependency of the importing package.",
             "import 'package:transitive_dep/transitive_dep.dart'; // LINT",
-            'Depend on referenced packages.',
+            "isn't a dependency of the importing package.",
             "export 'package:private_dep/private_dep.dart'; // LINT",
-            'Depend on referenced packages.',
+            "isn't a dependency of the importing package.",
             "export 'package:transitive_dep/transitive_dep.dart'; // LINT",
           ]));
       expect(output, isNot(contains('// OK')));
@@ -84,9 +84,9 @@ void main() {
       expect(
           output,
           stringContainsInOrder([
-            'Depend on referenced packages.',
+            "isn't a dependency of the importing package.",
             "import 'package:transitive_dep/transitive_dep.dart'; // LINT",
-            'Depend on referenced packages.',
+            "isn't a dependency of the importing package.",
             "export 'package:transitive_dep/transitive_dep.dart'; // LINT",
           ]));
       expect(output, isNot(contains('// OK')));

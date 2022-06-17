@@ -30,12 +30,19 @@ print(RegExp(r'\(').hasMatch('foo()'));
 ''';
 
 class ValidRegExps extends LintRule {
+  static const LintCode code = LintCode(
+      'valid_regexps', 'Invalid regular expression syntax.',
+      correctionMessage: 'Try correcting the regular expression.');
+
   ValidRegExps()
       : super(
             name: 'valid_regexps',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

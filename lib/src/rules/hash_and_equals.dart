@@ -63,7 +63,7 @@ class HashAndEquals extends LintRule {
             group: Group.errors);
 
   @override
-  LintCode get lintCode => HashAndEquals.code;
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
