@@ -81,6 +81,21 @@ class WasmTarget extends Target {
       ..parent = host;
   }
 
+  StaticInteropClassEraser _staticInteropClassEraser(CoreTypes coreTypes) =>
+      StaticInteropClassEraser(coreTypes,
+          libraryForJavaScriptObject: 'dart:_js_helper',
+          classNameOfJavaScriptObject: 'JSValue');
+
+  void _performJSInteropTransformations(CoreTypes coreTypes,
+      ClassHierarchy hierarchy, List<Library> interopDependentLibraries) {
+    final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
+    final staticInteropClassEraser = _staticInteropClassEraser(coreTypes);
+    for (Library library in interopDependentLibraries) {
+      jsUtilOptimizer.visitLibrary(library);
+      staticInteropClassEraser.visitLibrary(library);
+    }
+  }
+
   @override
   void performPreConstantEvaluationTransformations(
       Component component,
@@ -90,6 +105,12 @@ class WasmTarget extends Target {
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
     _patchHostEndian(coreTypes);
+  }
+
+  @override
+  void performOutlineTransformations(Component component, CoreTypes coreTypes) {
+    component
+        .accept(StaticInteropStubCreator(_staticInteropClassEraser(coreTypes)));
   }
 
   @override
@@ -109,7 +130,7 @@ class WasmTarget extends Target {
     if (transitiveImportingJSInterop == null) {
       logger?.call("Skipped JS interop transformations");
     } else {
-      performJSInteropTransformations(
+      _performJSInteropTransformations(
           coreTypes, hierarchy, transitiveImportingJSInterop);
       logger?.call("Transformed JS interop classes");
     }
@@ -241,16 +262,4 @@ class WasmTarget extends Target {
 
   @override
   bool isSupportedPragma(String pragmaName) => pragmaName.startsWith("wasm:");
-}
-
-void performJSInteropTransformations(CoreTypes coreTypes,
-    ClassHierarchy hierarchy, List<Library> interopDependentLibraries) {
-  final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
-  final staticInteropClassEraser = StaticInteropClassEraser(coreTypes,
-      libraryForJavaScriptObject: 'dart:_js_helper',
-      classNameOfJavaScriptObject: 'JSValue');
-  for (Library library in interopDependentLibraries) {
-    jsUtilOptimizer.visitLibrary(library);
-    staticInteropClassEraser.visitLibrary(library);
-  }
 }

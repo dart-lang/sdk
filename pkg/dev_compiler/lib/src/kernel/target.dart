@@ -153,6 +153,12 @@ class DevCompilerTarget extends Target {
   bool get enableNoSuchMethodForwarders => true;
 
   @override
+  void performOutlineTransformations(Component component, CoreTypes coreTypes) {
+    component
+        .accept(StaticInteropStubCreator(StaticInteropClassEraser(coreTypes)));
+  }
+
+  @override
   void performModularTransformationsOnLibraries(
       Component component,
       CoreTypes coreTypes,

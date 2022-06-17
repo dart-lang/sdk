@@ -138,6 +138,13 @@ class Dart2jsTarget extends Target {
   bool get errorOnUnexactWebIntLiterals => true;
 
   @override
+  void performOutlineTransformations(
+      ir.Component component, CoreTypes coreTypes) {
+    component
+        .accept(StaticInteropStubCreator(StaticInteropClassEraser(coreTypes)));
+  }
+
+  @override
   void performModularTransformationsOnLibraries(
       ir.Component component,
       CoreTypes coreTypes,

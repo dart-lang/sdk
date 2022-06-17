@@ -6,5 +6,5 @@ import 'static_interop.dart';
 
 void main() {
   setUp();
-  var staticJs = StaticJSClass.factory();
+  var staticJs = StaticJSClass.factory(StaticJSClass());
 }

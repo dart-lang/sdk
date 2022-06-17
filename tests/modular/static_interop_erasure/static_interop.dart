@@ -14,7 +14,7 @@ external void eval(String code);
 @staticInterop
 class StaticJSClass {
   external StaticJSClass();
-  factory StaticJSClass.factory() {
+  factory StaticJSClass.factory(StaticJSClass _) {
     return StaticJSClass();
   }
 }
