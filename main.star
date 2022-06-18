@@ -109,6 +109,13 @@ luci.console_view(
     refs = ["refs/heads/master"],
 )
 
+luci.console_view(
+    name = "flutter-hhh-web",
+    repo = "https://dart.googlesource.com/linear_sdk_flutter_engine",
+    title = "Dart/Flutter Web Linear History Console",
+    refs = ["refs/heads/master"],
+)
+
 luci.list_view(
     name = "iso-stress",
     title = "VM Isolate Stress Test Console",
@@ -631,7 +638,7 @@ luci.console_view_entry(
 luci.console_view_entry(
     builder = "flutter-engine-linux-web_tests",
     short_name = "web",
-    console_view = "flutter-hhh",
+    console_view = "flutter-hhh-web",
 )
 
 # VM isolate stress test console
