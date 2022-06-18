@@ -50,6 +50,10 @@ class FlutterTarget extends VmTarget {
   List<String> get extraRequiredLibrariesPlatform => const <String>[];
 
   @override
+  DartLibrarySupport get dartLibrarySupport =>
+      const CustomizedDartLibrarySupport(unsupported: {'mirrors'});
+
+  @override
   void performPreConstantEvaluationTransformations(
       Component component,
       CoreTypes coreTypes,

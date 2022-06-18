@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.11
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -35,14 +33,14 @@ main() {
 
       final entrypoint = infoMap[proto.program.entrypointId];
       expect(entrypoint, isNotNull);
-      expect(entrypoint.hasFunctionInfo(), isTrue);
+      expect(entrypoint!.hasFunctionInfo(), isTrue);
       expect(entrypoint.outputUnitId, isNotNull);
 
       // The output unit of the entrypoint function should be the default
       // entrypoint, which should have no imports.
       final defaultOutputUnit = infoMap[entrypoint.outputUnitId];
       expect(defaultOutputUnit, isNotNull);
-      expect(defaultOutputUnit.hasOutputUnitInfo(), isTrue);
+      expect(defaultOutputUnit!.hasOutputUnitInfo(), isTrue);
       expect(defaultOutputUnit.outputUnitInfo.imports, isEmpty);
     });
   });

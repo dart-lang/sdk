@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.11
-
 /// Command-line tool to show the size distribution of generated code among
 /// libraries. Libraries can be grouped using regular expressions. You can
 /// specify what regular expressions to use by providing a `grouping.yaml` file.
@@ -86,30 +84,31 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    var args = argResults.rest;
+    final argRes = argResults!;
+    final args = argRes.rest;
     if (args.isEmpty) {
       usageException('Missing argument: info.data');
     }
 
-    var info = await infoFromFile(args.first);
+    final info = await infoFromFile(args.first);
 
-    var groupingFile = argResults['grouping'];
-    var groupingText = groupingFile != null
+    final groupingFile = argRes['grouping'];
+    final groupingText = groupingFile != null
         ? File(groupingFile).readAsStringSync()
         : defaultGrouping;
-    var groupingYaml = loadYaml(groupingText);
-    var groups = [];
+    final groupingYaml = loadYaml(groupingText);
+    final groups = [];
     for (var group in groupingYaml['groups']) {
       groups.add(_Group(
           group['name'], RegExp(group['regexp']), group['cluster'] ?? 0));
     }
 
-    var sizes = {};
+    final sizes = {};
     var allLibs = 0;
     for (LibraryInfo lib in info.libraries) {
       allLibs += lib.size;
       for (var group in groups) {
-        var match = group.matcher.firstMatch('${lib.uri}');
+        final match = group.matcher.firstMatch('${lib.uri}');
         if (match != null) {
           var name = group.name;
           if (name == null && match.groupCount > 0) name = match.group(1);
@@ -125,11 +124,11 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
       allConstants += constant.size;
     }
 
-    var all = sizes.keys.toList();
+    final all = sizes.keys.toList();
     all.sort((a, b) => sizes[a].compareTo(sizes[b]));
-    var realTotal = info.program.size;
+    final realTotal = info.program!.size;
     var longest = 0;
-    var rows = <_Row>[];
+    final rows = <_Row>[];
     addRow(String label, int value) {
       rows.add(_Row(label, value));
       longest = max(longest, label.length);
@@ -150,12 +149,12 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
 
     var lastCluster = 0;
     for (var name in all) {
-      var entry = sizes[name];
+      final entry = sizes[name];
       if (lastCluster < entry.cluster) {
         rows.add(const _Divider());
         lastCluster = entry.cluster;
       }
-      var size = entry.size;
+      final size = entry.size;
       addRow(name, size);
     }
     rows.add(const _Divider());
@@ -207,7 +206,7 @@ class _Divider extends _Row {
 }
 
 _pad(value, n, {bool right = false}) {
-  var s = '$value';
+  final s = '$value';
   if (s.length >= n) return s;
   var pad = ' ' * (n - s.length);
   return right ? '$s$pad' : '$pad$s';
