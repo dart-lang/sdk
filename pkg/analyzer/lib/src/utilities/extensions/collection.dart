@@ -9,3 +9,11 @@ extension ListExtension<E> on List<E> {
     }
   }
 }
+
+extension SetExtension<E> on Set<E> {
+  void addIfNotNull(E? element) {
+    if (element != null) {
+      add(element);
+    }
+  }
+}
