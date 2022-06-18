@@ -5,6 +5,8 @@
 import 'package:analyzer/dart/element/element.dart';
 
 /// Scopes are used to resolve names to elements.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class Scope {
   /// Return the result of lexical lookup for the given [id], not `null`.
   ///
@@ -14,9 +16,10 @@ abstract class Scope {
   ScopeLookupResult lookup(String id);
 }
 
-class ScopeLookupResult {
-  final Element? getter;
-  final Element? setter;
-
-  ScopeLookupResult(this.getter, this.setter);
+/// The result of a single name lookup.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ScopeLookupResult {
+  Element? get getter;
+  Element? get setter;
 }

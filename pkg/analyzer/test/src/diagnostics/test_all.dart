@@ -137,6 +137,7 @@ import 'default_value_on_required_parameter_test.dart'
 import 'deferred_import_of_extension_test.dart' as deferred_import_of_extension;
 import 'definitely_unassigned_late_local_variable_test.dart'
     as definitely_unassigned_late_local_variable;
+import 'deprecated_export_use_test.dart' as deprecated_export_use;
 import 'deprecated_extends_function_test.dart' as deprecated_extends_function;
 import 'deprecated_function_class_declaration_test.dart'
     as deprecated_function_class_declaration;
@@ -888,6 +889,7 @@ main() {
     default_value_on_required_parameter.main();
     deferred_import_of_extension.main();
     definitely_unassigned_late_local_variable.main();
+    deprecated_export_use.main();
     deprecated_extends_function.main();
     deprecated_function_class_declaration.main();
     deprecated_implements_function.main();

@@ -26,3 +26,18 @@ class ListExtensionTest {
     expect(elements, [0, 1]);
   }
 }
+
+@reflectiveTest
+class SetExtensionTest {
+  test_addIfNotNull_notNull() {
+    var elements = {0, 1};
+    elements.addIfNotNull(2);
+    expect(elements, {0, 1, 2});
+  }
+
+  test_addIfNotNull_null() {
+    var elements = {0, 1};
+    elements.addIfNotNull(null);
+    expect(elements, {0, 1});
+  }
+}

@@ -1223,6 +1223,8 @@ HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH:
   status: hasFix
 HintCode.DEAD_CODE_ON_CATCH_SUBTYPE:
   status: hasFix
+HintCode.DEPRECATED_EXPORT_USE:
+  status: needsEvaluation
 HintCode.DEPRECATED_EXTENDS_FUNCTION:
   status: needsFix
   notes: |-

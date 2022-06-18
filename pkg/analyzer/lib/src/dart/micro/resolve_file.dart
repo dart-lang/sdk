@@ -38,6 +38,7 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
@@ -1030,15 +1031,9 @@ class LibraryContext {
 
     var removedSet = removed.toSet();
 
-    void addIfNotNull(String? key) {
-      if (key != null) {
-        removedKeys.add(key);
-      }
-    }
-
     loadedBundles.removeWhere((cycle) {
       if (cycle.libraries.any(removedSet.contains)) {
-        addIfNotNull(cycle.resolutionKey);
+        removedKeys.addIfNotNull(cycle.resolutionKey);
         return true;
       }
       return false;
@@ -1052,14 +1047,8 @@ class LibraryContext {
     final keySet = <String>{};
     final uriSet = <Uri>{};
 
-    void addIfNotNull(String? key) {
-      if (key != null) {
-        keySet.add(key);
-      }
-    }
-
     for (var cycle in loadedBundles) {
-      addIfNotNull(cycle.resolutionKey);
+      keySet.addIfNotNull(cycle.resolutionKey);
       uriSet.addAll(cycle.libraries.map((e) => e.uri));
     }
 

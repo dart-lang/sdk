@@ -1886,6 +1886,7 @@ libraryCycles
     put: [k07]
 elementFactory
   hasElement
+    dart:_internal
     dart:async
     dart:core
     package:dart.test/test.dart

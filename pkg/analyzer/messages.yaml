@@ -17677,6 +17677,12 @@ HintCode:
     problemMessage: "Declaring a class named 'Function' is deprecated."
     correctionMessage: Try renaming the class.
     comment: Users should not create a class named `Function` anymore.
+  DEPRECATED_EXPORT_USE:
+    problemMessage: "The ability to import '{0}' indirectly has been deprecated."
+    correctionMessage: "Try importing '{0}' directly."
+    comment: |-
+      Parameters:
+      0: the name of the element
   DEPRECATED_MEMBER_USE:
     problemMessage: "'{0}' is deprecated and shouldn't be used."
     correctionMessage: Try replacing the use of the deprecated member with the replacement.
