@@ -94,6 +94,14 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the element
+  static const HintCode DEPRECATED_EXPORT_USE = HintCode(
+    'DEPRECATED_EXPORT_USE',
+    "The ability to import '{0}' indirectly has been deprecated.",
+    correctionMessage: "Try importing '{0}' directly.",
+  );
+
   ///  No parameters.
   static const HintCode DEPRECATED_EXTENDS_FUNCTION = HintCode(
     'DEPRECATED_SUBTYPE_OF_FUNCTION',

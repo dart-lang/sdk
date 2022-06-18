@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -19,10 +20,11 @@ import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
-class MethodInvocationResolver {
+class MethodInvocationResolver with ScopeHelpers {
   /// Resolver visitor is separated from the elements resolver, which calls
   /// this method resolver. If we rewrite a [MethodInvocation] node, we put
   /// the resulting [FunctionExpressionInvocation] into the original node
@@ -74,6 +76,9 @@ class MethodInvocationResolver {
         _localVariableTypeProvider = _resolver.localVariableTypeProvider,
         _extensionResolver = _resolver.extensionResolver,
         _inferenceHelper = inferenceHelper;
+
+  @override
+  ErrorReporter get errorReporter => _resolver.errorReporter;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
@@ -584,7 +589,13 @@ class MethodInvocationResolver {
       String name,
       List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
-    var element = nameNode.scopeLookupResult!.getter;
+    final scopeLookupResult = nameNode.scopeLookupResult!;
+    reportDeprecatedExportUseGetter(
+      scopeLookupResult: scopeLookupResult,
+      node: nameNode,
+    );
+
+    var element = scopeLookupResult.getter;
     if (element != null) {
       element = _resolver.toLegacyElement(element);
       nameNode.staticElement = element;
@@ -668,7 +679,13 @@ class MethodInvocationResolver {
       }
     }
 
-    var element = prefix.scope.lookup(name).getter;
+    final scopeLookupResult = prefix.scope.lookup(name);
+    reportDeprecatedExportUseGetter(
+      scopeLookupResult: scopeLookupResult,
+      node: nameNode,
+    );
+
+    var element = scopeLookupResult.getter;
     element = _resolver.toLegacyElement(element);
     nameNode.staticElement = element;
 
