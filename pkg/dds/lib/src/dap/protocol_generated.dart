@@ -641,8 +641,7 @@ class Capabilities {
         supportTerminateDebuggee = obj['supportTerminateDebuggee'] as bool?,
         supportedChecksumAlgorithms =
             (obj['supportedChecksumAlgorithms'] as List?)
-                ?.map((item) =>
-                    ChecksumAlgorithm.fromJson(item as Map<String, Object?>))
+                ?.map((item) => item as ChecksumAlgorithm)
                 .toList(),
         supportsBreakpointLocationsRequest =
             obj['supportsBreakpointLocationsRequest'] as bool?,
@@ -716,7 +715,7 @@ class Capabilities {
     }
     if ((obj['supportedChecksumAlgorithms'] is! List ||
         (obj['supportedChecksumAlgorithms']
-            .any((item) => !ChecksumAlgorithm.canParse(item))))) {
+            .any((item) => item is! ChecksumAlgorithm)))) {
       return false;
     }
     if (obj['supportsBreakpointLocationsRequest'] is! bool?) {
@@ -909,15 +908,14 @@ class Checksum {
   });
 
   Checksum.fromMap(Map<String, Object?> obj)
-      : algorithm = ChecksumAlgorithm.fromJson(
-            obj['algorithm'] as Map<String, Object?>),
+      : algorithm = obj['algorithm'] as ChecksumAlgorithm,
         checksum = obj['checksum'] as String;
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
       return false;
     }
-    if (!ChecksumAlgorithm.canParse(obj['algorithm'])) {
+    if (obj['algorithm'] is! ChecksumAlgorithm) {
       return false;
     }
     if (obj['checksum'] is! String) {
@@ -933,23 +931,7 @@ class Checksum {
 }
 
 /// Names of checksum algorithms that may be supported by a debug adapter.
-class ChecksumAlgorithm {
-  static ChecksumAlgorithm fromJson(Map<String, Object?> obj) =>
-      ChecksumAlgorithm.fromMap(obj);
-
-  ChecksumAlgorithm();
-
-  ChecksumAlgorithm.fromMap(Map<String, Object?> obj);
-
-  static bool canParse(Object? obj) {
-    if (obj is! Map<String, dynamic>) {
-      return false;
-    }
-    return true;
-  }
-
-  Map<String, Object?> toJson() => {};
-}
+typedef ChecksumAlgorithm = String;
 
 /// A ColumnDescriptor specifies what module attribute to show in a column of
 /// the ModulesView, how to format it,
@@ -1085,9 +1067,7 @@ class CompletionItem {
         sortText = obj['sortText'] as String?,
         start = obj['start'] as int?,
         text = obj['text'] as String?,
-        type = obj['type'] == null
-            ? null
-            : CompletionItemType.fromJson(obj['type'] as Map<String, Object?>);
+        type = obj['type'] as CompletionItemType?;
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -1114,7 +1094,7 @@ class CompletionItem {
     if (obj['text'] is! String?) {
       return false;
     }
-    if (!CompletionItemType.canParse(obj['type'])) {
+    if (obj['type'] is! CompletionItemType?) {
       return false;
     }
     return true;
@@ -1134,23 +1114,7 @@ class CompletionItem {
 
 /// Some predefined types for the CompletionItem. Please note that not all
 /// clients have specific icons for all of them.
-class CompletionItemType {
-  static CompletionItemType fromJson(Map<String, Object?> obj) =>
-      CompletionItemType.fromMap(obj);
-
-  CompletionItemType();
-
-  CompletionItemType.fromMap(Map<String, Object?> obj);
-
-  static bool canParse(Object? obj) {
-    if (obj is! Map<String, dynamic>) {
-      return false;
-    }
-    return true;
-  }
-
-  Map<String, Object?> toJson() => {};
-}
+typedef CompletionItemType = String;
 
 /// Arguments for 'completions' request.
 class CompletionsArguments extends RequestArguments {
@@ -1408,10 +1372,7 @@ class DataBreakpoint {
   });
 
   DataBreakpoint.fromMap(Map<String, Object?> obj)
-      : accessType = obj['accessType'] == null
-            ? null
-            : DataBreakpointAccessType.fromJson(
-                obj['accessType'] as Map<String, Object?>),
+      : accessType = obj['accessType'] as DataBreakpointAccessType?,
         condition = obj['condition'] as String?,
         dataId = obj['dataId'] as String,
         hitCondition = obj['hitCondition'] as String?;
@@ -1420,7 +1381,7 @@ class DataBreakpoint {
     if (obj is! Map<String, dynamic>) {
       return false;
     }
-    if (!DataBreakpointAccessType.canParse(obj['accessType'])) {
+    if (obj['accessType'] is! DataBreakpointAccessType?) {
       return false;
     }
     if (obj['condition'] is! String?) {
@@ -1444,23 +1405,7 @@ class DataBreakpoint {
 }
 
 /// This enumeration defines all possible access types for data breakpoints.
-class DataBreakpointAccessType {
-  static DataBreakpointAccessType fromJson(Map<String, Object?> obj) =>
-      DataBreakpointAccessType.fromMap(obj);
-
-  DataBreakpointAccessType();
-
-  DataBreakpointAccessType.fromMap(Map<String, Object?> obj);
-
-  static bool canParse(Object? obj) {
-    if (obj is! Map<String, dynamic>) {
-      return false;
-    }
-    return true;
-  }
-
-  Map<String, Object?> toJson() => {};
-}
+typedef DataBreakpointAccessType = String;
 
 /// Arguments for 'dataBreakpointInfo' request.
 class DataBreakpointInfoArguments extends RequestArguments {
@@ -2056,23 +2001,7 @@ class Event extends ProtocolMessage {
 /// always: always breaks,
 /// unhandled: breaks when exception unhandled,
 /// userUnhandled: breaks if the exception is not handled by user code.
-class ExceptionBreakMode {
-  static ExceptionBreakMode fromJson(Map<String, Object?> obj) =>
-      ExceptionBreakMode.fromMap(obj);
-
-  ExceptionBreakMode();
-
-  ExceptionBreakMode.fromMap(Map<String, Object?> obj);
-
-  static bool canParse(Object? obj) {
-    if (obj is! Map<String, dynamic>) {
-      return false;
-    }
-    return true;
-  }
-
-  Map<String, Object?> toJson() => {};
-}
+typedef ExceptionBreakMode = String;
 
 /// An ExceptionBreakpointsFilter is shown in the UI as an filter option for
 /// configuring how exceptions are dealt with.
@@ -2370,8 +2299,7 @@ class ExceptionOptions {
   });
 
   ExceptionOptions.fromMap(Map<String, Object?> obj)
-      : breakMode = ExceptionBreakMode.fromJson(
-            obj['breakMode'] as Map<String, Object?>),
+      : breakMode = obj['breakMode'] as ExceptionBreakMode,
         path = (obj['path'] as List?)
             ?.map((item) =>
                 ExceptionPathSegment.fromJson(item as Map<String, Object?>))
@@ -2381,7 +2309,7 @@ class ExceptionOptions {
     if (obj is! Map<String, dynamic>) {
       return false;
     }
-    if (!ExceptionBreakMode.canParse(obj['breakMode'])) {
+    if (obj['breakMode'] is! ExceptionBreakMode) {
       return false;
     }
     if ((obj['path'] is! List ||
@@ -3002,23 +2930,7 @@ class InstructionBreakpoint {
 }
 
 /// Logical areas that can be invalidated by the 'invalidated' event.
-class InvalidatedAreas {
-  static InvalidatedAreas fromJson(Map<String, Object?> obj) =>
-      InvalidatedAreas.fromMap(obj);
-
-  InvalidatedAreas();
-
-  InvalidatedAreas.fromMap(Map<String, Object?> obj);
-
-  static bool canParse(Object? obj) {
-    if (obj is! Map<String, dynamic>) {
-      return false;
-    }
-    return true;
-  }
-
-  Map<String, Object?> toJson() => {};
-}
+typedef InvalidatedAreas = String;
 
 /// Arguments for 'launch' request. Additional attributes are implementation
 /// specific.
@@ -3508,17 +3420,14 @@ class NextArguments extends RequestArguments {
   });
 
   NextArguments.fromMap(Map<String, Object?> obj)
-      : granularity = obj['granularity'] == null
-            ? null
-            : SteppingGranularity.fromJson(
-                obj['granularity'] as Map<String, Object?>),
+      : granularity = obj['granularity'] as SteppingGranularity?,
         threadId = obj['threadId'] as int;
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
       return false;
     }
-    if (!SteppingGranularity.canParse(obj['granularity'])) {
+    if (obj['granularity'] is! SteppingGranularity?) {
       return false;
     }
     if (obj['threadId'] is! int) {
@@ -5686,17 +5595,14 @@ class StepBackArguments extends RequestArguments {
   });
 
   StepBackArguments.fromMap(Map<String, Object?> obj)
-      : granularity = obj['granularity'] == null
-            ? null
-            : SteppingGranularity.fromJson(
-                obj['granularity'] as Map<String, Object?>),
+      : granularity = obj['granularity'] as SteppingGranularity?,
         threadId = obj['threadId'] as int;
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
       return false;
     }
-    if (!SteppingGranularity.canParse(obj['granularity'])) {
+    if (obj['granularity'] is! SteppingGranularity?) {
       return false;
     }
     if (obj['threadId'] is! int) {
@@ -5770,10 +5676,7 @@ class StepInArguments extends RequestArguments {
   });
 
   StepInArguments.fromMap(Map<String, Object?> obj)
-      : granularity = obj['granularity'] == null
-            ? null
-            : SteppingGranularity.fromJson(
-                obj['granularity'] as Map<String, Object?>),
+      : granularity = obj['granularity'] as SteppingGranularity?,
         targetId = obj['targetId'] as int?,
         threadId = obj['threadId'] as int;
 
@@ -5781,7 +5684,7 @@ class StepInArguments extends RequestArguments {
     if (obj is! Map<String, dynamic>) {
       return false;
     }
-    if (!SteppingGranularity.canParse(obj['granularity'])) {
+    if (obj['granularity'] is! SteppingGranularity?) {
       return false;
     }
     if (obj['targetId'] is! int?) {
@@ -5964,17 +5867,14 @@ class StepOutArguments extends RequestArguments {
   });
 
   StepOutArguments.fromMap(Map<String, Object?> obj)
-      : granularity = obj['granularity'] == null
-            ? null
-            : SteppingGranularity.fromJson(
-                obj['granularity'] as Map<String, Object?>),
+      : granularity = obj['granularity'] as SteppingGranularity?,
         threadId = obj['threadId'] as int;
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
       return false;
     }
-    if (!SteppingGranularity.canParse(obj['granularity'])) {
+    if (obj['granularity'] is! SteppingGranularity?) {
       return false;
     }
     if (obj['threadId'] is! int) {
@@ -6028,23 +5928,7 @@ class StepOutResponse extends Response {
 
 /// The granularity of one 'step' in the stepping requests 'next', 'stepIn',
 /// 'stepOut', and 'stepBack'.
-class SteppingGranularity {
-  static SteppingGranularity fromJson(Map<String, Object?> obj) =>
-      SteppingGranularity.fromMap(obj);
-
-  SteppingGranularity();
-
-  SteppingGranularity.fromMap(Map<String, Object?> obj);
-
-  static bool canParse(Object? obj) {
-    if (obj is! Map<String, dynamic>) {
-      return false;
-    }
-    return true;
-  }
-
-  Map<String, Object?> toJson() => {};
-}
+typedef SteppingGranularity = String;
 
 /// Arguments for 'terminate' request.
 class TerminateArguments extends RequestArguments {
@@ -6887,8 +6771,7 @@ class DataBreakpointInfoResponseBody {
 
   DataBreakpointInfoResponseBody.fromMap(Map<String, Object?> obj)
       : accessTypes = (obj['accessTypes'] as List?)
-            ?.map((item) =>
-                DataBreakpointAccessType.fromJson(item as Map<String, Object?>))
+            ?.map((item) => item as DataBreakpointAccessType)
             .toList(),
         canPersist = obj['canPersist'] as bool?,
         dataId = obj['dataId'] is String
@@ -6902,7 +6785,7 @@ class DataBreakpointInfoResponseBody {
     }
     if ((obj['accessTypes'] is! List ||
         (obj['accessTypes']
-            .any((item) => !DataBreakpointAccessType.canParse(item))))) {
+            .any((item) => item is! DataBreakpointAccessType)))) {
       return false;
     }
     if (obj['canPersist'] is! bool?) {
@@ -7138,8 +7021,7 @@ class ExceptionInfoResponseBody {
   });
 
   ExceptionInfoResponseBody.fromMap(Map<String, Object?> obj)
-      : breakMode = ExceptionBreakMode.fromJson(
-            obj['breakMode'] as Map<String, Object?>),
+      : breakMode = obj['breakMode'] as ExceptionBreakMode,
         description = obj['description'] as String?,
         details = obj['details'] == null
             ? null
@@ -7150,7 +7032,7 @@ class ExceptionInfoResponseBody {
     if (obj is! Map<String, dynamic>) {
       return false;
     }
-    if (!ExceptionBreakMode.canParse(obj['breakMode'])) {
+    if (obj['breakMode'] is! ExceptionBreakMode) {
       return false;
     }
     if (obj['description'] is! String?) {
@@ -7319,8 +7201,7 @@ class InvalidatedEventBody extends EventBody {
 
   InvalidatedEventBody.fromMap(Map<String, Object?> obj)
       : areas = (obj['areas'] as List?)
-            ?.map((item) =>
-                InvalidatedAreas.fromJson(item as Map<String, Object?>))
+            ?.map((item) => item as InvalidatedAreas)
             .toList(),
         stackFrameId = obj['stackFrameId'] as int?,
         threadId = obj['threadId'] as int?;
@@ -7330,7 +7211,7 @@ class InvalidatedEventBody extends EventBody {
       return false;
     }
     if ((obj['areas'] is! List ||
-        (obj['areas'].any((item) => !InvalidatedAreas.canParse(item))))) {
+        (obj['areas'].any((item) => item is! InvalidatedAreas)))) {
       return false;
     }
     if (obj['stackFrameId'] is! int?) {

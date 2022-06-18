@@ -261,10 +261,14 @@ class DapTestClient {
 
   /// Sends a next (step over) request for the given thread.
   ///
+  /// [granularity] is always ignored because the Dart debugger does not support
+  /// it (indicated in its capabilities), but it is used by tests to ensure the
+  /// adapter does not crash on the presence of it.
+  ///
   /// Returns a Future that completes when the server returns a corresponding
   /// response.
-  Future<Response> next(int threadId) =>
-      sendRequest(NextArguments(threadId: threadId));
+  Future<Response> next(int threadId, {SteppingGranularity? granularity}) =>
+      sendRequest(NextArguments(threadId: threadId, granularity: granularity));
 
   /// Sends a request to the server for variables scopes available for a given
   /// stack frame.

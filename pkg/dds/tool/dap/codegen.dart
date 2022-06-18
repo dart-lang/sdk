@@ -178,6 +178,15 @@ class CodeGenerator {
     JsonType? resolvedBaseType, {
     Map<String, String> additionalValues = const {},
   }) {
+    _writeTypeDescription(buffer, type);
+
+    // Types that are just aliases to simple value types should be written as
+    // typedefs.
+    if (type.isSimpleValue) {
+      buffer.writeln('typedef $name = ${type.asDartType()};');
+      return;
+    }
+
     // Some properties are defined in both the base and the class, because the
     // type may be narrowed, but sometimes we only want those that are defined
     // only in this class.
@@ -186,7 +195,6 @@ class CodeGenerator {
         if (!baseProperties.containsKey(property.key))
           property.key: property.value,
     };
-    _writeTypeDescription(buffer, type);
     buffer.write('class $name ');
     if (baseType != null) {
       buffer.write('extends ${baseType.refName} ');
@@ -466,11 +474,12 @@ class CodeGenerator {
   void _writeFromJsonExpression(
       IndentableStringBuffer buffer, JsonType type, String valueCode,
       {bool isOptional = false}) {
+    final baseType = type.aliasFor ?? type;
     final dartType = type.asDartType(isOptional: isOptional);
     final dartTypeNotNullable = type.asDartType();
     final nullOp = isOptional ? '?' : '';
 
-    if (type.isAny || type.isSimple) {
+    if (baseType.isAny || baseType.isSimple) {
       buffer.write('$valueCode');
       if (dartType != 'Object?') {
         buffer.write(' as $dartType');
@@ -605,6 +614,7 @@ class CodeGenerator {
   void _writeTypeCheckCondition(
       IndentableStringBuffer buffer, JsonType type, String valueCode,
       {required bool isOptional, bool invert = false}) {
+    final baseType = type.aliasFor ?? type;
     final dartType = type.asDartType(isOptional: isOptional);
 
     // When the expression is inverted, invert the operators so the generated
@@ -617,11 +627,11 @@ class CodeGenerator {
     final opOr = invert ? '&&' : '||';
     final opEvery = invert ? 'any' : 'every';
 
-    if (type.isAny) {
+    if (baseType.isAny) {
       buffer.write(opTrue);
     } else if (dartType == 'Null') {
       buffer.write('$valueCode $opEquals null');
-    } else if (type.isSimple) {
+    } else if (baseType.isSimple) {
       buffer.write('$valueCode $opIs $dartType');
     } else if (type.isList) {
       buffer.write('($valueCode $opIs List');

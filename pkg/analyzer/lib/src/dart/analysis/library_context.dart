@@ -59,9 +59,11 @@ class LibraryContext {
     required this.macroExecutor,
     required SummaryDataStore? externalSummaries,
   }) {
-    var synchronousSession =
-        SynchronousSession(analysisOptions, declaredVariables);
-    analysisContext = AnalysisContextImpl(synchronousSession, sourceFactory);
+    analysisContext = AnalysisContextImpl(
+      analysisOptions: analysisOptions,
+      declaredVariables: declaredVariables,
+      sourceFactory: sourceFactory,
+    );
 
     elementFactory = LinkedElementFactory(
       analysisContext,

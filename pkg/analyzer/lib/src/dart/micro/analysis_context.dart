@@ -30,14 +30,11 @@ MicroContextObjects createMicroContextObjects({
   required ResourceProvider resourceProvider,
 }) {
   var declaredVariables = DeclaredVariables();
-  var synchronousSession = SynchronousSession(
-    analysisOptions,
-    declaredVariables,
-  );
 
   var analysisContext = AnalysisContextImpl(
-    synchronousSession,
-    sourceFactory,
+    analysisOptions: analysisOptions,
+    declaredVariables: declaredVariables,
+    sourceFactory: sourceFactory,
   );
 
   var analysisSession = _MicroAnalysisSessionImpl(
@@ -48,7 +45,7 @@ MicroContextObjects createMicroContextObjects({
 
   var analysisContext2 = _MicroAnalysisContextImpl(
     fileResolver,
-    synchronousSession,
+    analysisOptions,
     root,
     declaredVariables,
     sourceFactory,
@@ -66,7 +63,6 @@ MicroContextObjects createMicroContextObjects({
 
   return MicroContextObjects._(
     declaredVariables: declaredVariables,
-    synchronousSession: synchronousSession,
     analysisSession: analysisSession,
     analysisContext: analysisContext,
   );
@@ -74,19 +70,17 @@ MicroContextObjects createMicroContextObjects({
 
 class MicroContextObjects {
   final DeclaredVariables declaredVariables;
-  final SynchronousSession synchronousSession;
   final _MicroAnalysisSessionImpl analysisSession;
   final AnalysisContextImpl analysisContext;
 
   MicroContextObjects._({
     required this.declaredVariables,
-    required this.synchronousSession,
     required this.analysisSession,
     required this.analysisContext,
   });
 
   set analysisOptions(AnalysisOptionsImpl analysisOptions) {
-    synchronousSession.analysisOptions = analysisOptions;
+    analysisContext.analysisOptions = analysisOptions;
   }
 
   InheritanceManager3 get inheritanceManager {
@@ -114,7 +108,9 @@ class _FakeAnalysisDriver implements AnalysisDriver {
 
 class _MicroAnalysisContextImpl implements AnalysisContext {
   final FileResolver fileResolver;
-  final SynchronousSession synchronousSession;
+
+  @override
+  AnalysisOptionsImpl analysisOptions;
 
   final ResourceProvider resourceProvider;
 
@@ -130,17 +126,12 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
 
   _MicroAnalysisContextImpl(
     this.fileResolver,
-    this.synchronousSession,
+    this.analysisOptions,
     this.contextRoot,
     this.declaredVariables,
     this.sourceFactory,
     this.resourceProvider,
   );
-
-  @override
-  AnalysisOptionsImpl get analysisOptions {
-    return synchronousSession.analysisOptions;
-  }
 
   @override
   Folder? get sdkRoot => null;

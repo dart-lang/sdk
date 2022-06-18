@@ -75,6 +75,28 @@ void main(List<String> args) async {
     });
 
     test(
+        'stops at a line breakpoint and can step over (next) '
+        'when stepping granularity was included', () async {
+      final testFile = dap.createTestFile('''
+void main(List<String> args) async {
+  print('Hello!'); $breakpointMarker
+  print('Hello!'); $stepMarker
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stepLine = lineWith(testFile, stepMarker);
+
+      // Hit the initial breakpoint.
+      final stop = await dap.client.hitBreakpoint(testFile, breakpointLine);
+
+      // Step and expect stopping on the next line with a 'step' stop type.
+      await Future.wait([
+        dap.client.expectStop('step', file: testFile, line: stepLine),
+        dap.client.next(stop.threadId!, granularity: 'statement'),
+      ], eagerError: true);
+    });
+
+    test(
         'stops at a line breakpoint and can step over (next) an async boundary',
         () async {
       final client = dap.client;
