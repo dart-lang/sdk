@@ -964,6 +964,26 @@ abstract class _StringBase implements String {
   external static String _concatRangeNative(List strings, int start, int end);
 }
 
+/// Product of two positive integers, clamped to the maximum int value on
+/// overflow or non-positive inputs.
+int _clampedPositiveProduct(int a, int b) {
+  const MAX_INT64 = (-1) >>> 1;
+
+  int product = a * b;
+
+  // `(a | b)` is negative if either is negative.
+  // `product <= 0` if `a` or `b` is zero, and in some cases of overflow.
+  if ((a | b) < 0 || product <= 0) return MAX_INT64;
+
+  // Both values are small enough that the product has no overflow.
+  if ((a | b) < (1 << 30)) return product;
+
+  // Check the product.
+  if (product ~/ a != b) return MAX_INT64;
+
+  return product;
+}
+
 @pragma("vm:entry-point")
 class _OneByteString extends _StringBase {
   factory _OneByteString._uninstantiable() {
@@ -1094,14 +1114,17 @@ class _OneByteString extends _StringBase {
   String operator *(int times) {
     if (times <= 0) return "";
     if (times == 1) return this;
-    int length = this.length;
     if (this.isEmpty) return this; // Don't clone empty string.
-    _OneByteString result = _OneByteString._allocate(length * times);
-    int index = 0;
-    for (int i = 0; i < times; i++) {
-      for (int j = 0; j < length; j++) {
-        result._setAt(index++, this.codeUnitAt(j));
-      }
+    int length = this.length;
+    int resultLength = _clampedPositiveProduct(length, times);
+    _OneByteString result = _OneByteString._allocate(resultLength);
+    // Copy `this` into `result`.
+    for (int i = 0; i < length; i++) {
+      result._setAt(i, this.codeUnitAt(i));
+    }
+    // Make more copies by copying within `result`.
+    for (int i = length; i < resultLength; i++) {
+      result._setAt(i, result.codeUnitAt(i - length));
     }
     return result;
   }
@@ -1340,6 +1363,24 @@ class _TwoByteString extends _StringBase {
   @pragma('vm:never-inline')
   bool operator ==(Object other) {
     return super == other;
+  }
+
+  String operator *(int times) {
+    if (times <= 0) return "";
+    if (times == 1) return this;
+    if (this.isEmpty) return this; // Don't clone empty string.
+    int length = this.length;
+    int resultLength = _clampedPositiveProduct(length, times);
+    _TwoByteString result = _TwoByteString._allocate(resultLength);
+    // Copy `this` into `result`.
+    for (int i = 0; i < length; i++) {
+      result._setAt(i, this.codeUnitAt(i));
+    }
+    // Make more copies by copying within `result`.
+    for (int i = length; i < resultLength; i++) {
+      result._setAt(i, result.codeUnitAt(i - length));
+    }
+    return result;
   }
 }
 
