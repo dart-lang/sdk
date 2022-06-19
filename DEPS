@@ -107,7 +107,7 @@ vars = {
 
   "dartdoc_rev": "58348a98b992ce99b95d23131b67227bdb2b4875",
   "devtools_rev": "51ac983d2db7eb19b3ce5956cb70b769d74fe784",
-  "ffi_rev": "0c8364a728cfe4e4ba859c53b99d56b3dbe3add4", # dart-lang/ffi/issues/148
+  "ffi_rev": "18b2b549d55009ff594600b04705ff6161681e07",
   "file_rev": "0132eeedea2933513bf230513a766a8baeab0c4f",
   "fixnum_rev": "164712f6547cdfb2709b752188186baf31fd1730",
   "glob_rev": "e10eb2407c58427144004458ef85c9bbf7286e56",
