@@ -109,6 +109,7 @@ import "dart:_internal"
         CastStreamTransformer,
         checkNotNullable,
         EmptyIterator,
+        isNullFuture,
         IterableElementError,
         nullFuture,
         printToZone,
