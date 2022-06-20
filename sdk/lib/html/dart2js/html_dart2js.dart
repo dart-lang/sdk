@@ -37302,7 +37302,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   Future cancel() {
-    if (_canceled) return nullFuture;
+    if (_canceled) return Future<void>.value(null);
 
     _unlisten();
     // Clear out the target to indicate this is complete.
