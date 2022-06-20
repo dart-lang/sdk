@@ -110,7 +110,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
 
   final InstanceTypeVariableAccessState _instanceTypeVariableAccess;
 
-  final bool _forTypeLiteral;
+  final bool _performTypeCanonicalization;
 
   final bool hasExplicitTypeArguments;
 
@@ -119,7 +119,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
       Uri? fileUri,
       int? charOffset,
       required InstanceTypeVariableAccessState instanceTypeVariableAccess,
-      bool forTypeLiteral: false}) {
+      bool performTypeCanonicalization: false}) {
     bool isExplicit = true;
     if (arguments != null) {
       for (TypeBuilder argument in arguments) {
@@ -134,13 +134,13 @@ abstract class NamedTypeBuilder extends TypeBuilder {
             fileUri: fileUri,
             charOffset: charOffset,
             instanceTypeVariableAccess: instanceTypeVariableAccess,
-            forTypeLiteral: forTypeLiteral)
+            performTypeCanonicalization: performTypeCanonicalization)
         : new _InferredNamedTypeBuilder(name, nullabilityBuilder,
             arguments: arguments,
             fileUri: fileUri,
             charOffset: charOffset,
             instanceTypeVariableAccess: instanceTypeVariableAccess,
-            forTypeLiteral: forTypeLiteral);
+            performTypeCanonicalization: performTypeCanonicalization);
   }
 
   NamedTypeBuilder._(
@@ -150,11 +150,11 @@ abstract class NamedTypeBuilder extends TypeBuilder {
       this.fileUri,
       this.charOffset,
       required InstanceTypeVariableAccessState instanceTypeVariableAccess,
-      bool forTypeLiteral: false,
+      bool performTypeCanonicalization: false,
       TypeDeclarationBuilder? declaration})
       : assert(name is String || name is QualifiedName),
         this._instanceTypeVariableAccess = instanceTypeVariableAccess,
-        this._forTypeLiteral = forTypeLiteral,
+        this._performTypeCanonicalization = performTypeCanonicalization,
         this.hasExplicitTypeArguments = arguments != null,
         this._declaration = declaration;
 
@@ -401,7 +401,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
     DartType aliasedType = _buildAliasedInternal(library, typeUse, hierarchy);
     return unalias(aliasedType,
         legacyEraseAliases:
-            !_forTypeLiteral && !library.isNonNullableByDefault);
+            !_performTypeCanonicalization && !library.isNonNullableByDefault);
   }
 
   @override
@@ -631,7 +631,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilder {
       Uri? fileUri,
       int? charOffset,
       required InstanceTypeVariableAccessState instanceTypeVariableAccess,
-      bool forTypeLiteral: false})
+      bool performTypeCanonicalization: false})
       : super._(
             name: name,
             nullabilityBuilder: nullabilityBuilder,
@@ -639,7 +639,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilder {
             fileUri: fileUri,
             charOffset: charOffset,
             instanceTypeVariableAccess: instanceTypeVariableAccess,
-            forTypeLiteral: forTypeLiteral);
+            performTypeCanonicalization: performTypeCanonicalization);
 
   _ExplicitNamedTypeBuilder.forDartType(DartType type,
       TypeDeclarationBuilder declaration, NullabilityBuilder nullabilityBuilder,
@@ -654,7 +654,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilder {
                 InstanceTypeVariableAccessState.Unexpected,
             fileUri: null,
             charOffset: null,
-            forTypeLiteral: false);
+            performTypeCanonicalization: false);
 
   _ExplicitNamedTypeBuilder.fromTypeDeclarationBuilder(
       TypeDeclarationBuilder declaration, NullabilityBuilder nullabilityBuilder,
@@ -671,7 +671,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilder {
             arguments: arguments,
             fileUri: fileUri,
             charOffset: charOffset,
-            forTypeLiteral: false,
+            performTypeCanonicalization: false,
             instanceTypeVariableAccess: instanceTypeVariableAccess);
 
   _ExplicitNamedTypeBuilder.forInvalidType(String name,
@@ -687,7 +687,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilder {
             charOffset: message.charOffset,
             instanceTypeVariableAccess:
                 InstanceTypeVariableAccessState.Unexpected,
-            forTypeLiteral: false);
+            performTypeCanonicalization: false);
 
   @override
   bool get isExplicit => true;
@@ -710,7 +710,7 @@ class _InferredNamedTypeBuilder extends NamedTypeBuilder
       Uri? fileUri,
       int? charOffset,
       required InstanceTypeVariableAccessState instanceTypeVariableAccess,
-      bool forTypeLiteral: false})
+      bool performTypeCanonicalization: false})
       : super._(
             name: name,
             nullabilityBuilder: nullabilityBuilder,
@@ -718,7 +718,7 @@ class _InferredNamedTypeBuilder extends NamedTypeBuilder
             fileUri: fileUri,
             charOffset: charOffset,
             instanceTypeVariableAccess: instanceTypeVariableAccess,
-            forTypeLiteral: forTypeLiteral);
+            performTypeCanonicalization: performTypeCanonicalization);
 
   @override
   bool get isExplicit => false;
