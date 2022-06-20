@@ -256,7 +256,7 @@ abstract class Generator {
   TypeBuilder buildTypeWithResolvedArguments(
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
       {required bool allowPotentiallyConstantType,
-      required bool forTypeCanonicalization}) {
+      required bool performTypeCanonicalization}) {
     Message message = templateNotAType.withArguments(token.lexeme);
     _helper.libraryBuilder
         .addProblem(message, fileOffset, lengthForToken(token), _uri);
@@ -2931,13 +2931,13 @@ class DeferredAccessGenerator extends Generator {
   TypeBuilder buildTypeWithResolvedArguments(
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
       {required bool allowPotentiallyConstantType,
-      required bool forTypeCanonicalization}) {
+      required bool performTypeCanonicalization}) {
     String name = "${prefixGenerator._plainNameForRead}."
         "${suffixGenerator._plainNameForRead}";
     TypeBuilder type = suffixGenerator.buildTypeWithResolvedArguments(
         nullabilityBuilder, arguments,
         allowPotentiallyConstantType: allowPotentiallyConstantType,
-        forTypeCanonicalization: forTypeCanonicalization);
+        performTypeCanonicalization: performTypeCanonicalization);
     LocatedMessage message;
     if (type is NamedTypeBuilder &&
         type.declaration is InvalidTypeDeclarationBuilder) {
@@ -3058,7 +3058,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
   TypeBuilder buildTypeWithResolvedArguments(
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
       {required bool allowPotentiallyConstantType,
-      required bool forTypeCanonicalization}) {
+      required bool performTypeCanonicalization}) {
     if (declaration is OmittedTypeDeclarationBuilder) {
       // TODO(johnniwinther): Report errors when this occurs in-body or with
       // type arguments.
@@ -3071,7 +3071,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         fileUri: _uri,
         charOffset: fileOffset,
         instanceTypeVariableAccess: _helper.instanceTypeVariableAccessState,
-        forTypeLiteral: forTypeCanonicalization)
+        performTypeCanonicalization: performTypeCanonicalization)
       ..bind(_helper.libraryBuilder, declaration);
   }
 
@@ -3119,7 +3119,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 buildTypeWithResolvedArguments(
                     _helper.libraryBuilder.nonNullableBuilder, typeArguments,
                     allowPotentiallyConstantType: true,
-                    forTypeCanonicalization: true),
+                    performTypeCanonicalization: true),
                 TypeUse.typeLiteral,
                 allowPotentiallyConstantType:
                     _helper.libraryFeatures.constructorTearoffs.isEnabled));
@@ -4195,7 +4195,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
   TypeBuilder buildTypeWithResolvedArguments(
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
       {required bool allowPotentiallyConstantType,
-      required bool forTypeCanonicalization}) {
+      required bool performTypeCanonicalization}) {
     Template<Message Function(String, String)> template = isUnresolved
         ? templateUnresolvedPrefixInTypeAnnotation
         : templateNotAPrefixInTypeAnnotation;
@@ -4315,7 +4315,7 @@ class ParserErrorGenerator extends Generator {
   TypeBuilder buildTypeWithResolvedArguments(
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
       {required bool allowPotentiallyConstantType,
-      required bool forTypeCanonicalization}) {
+      required bool performTypeCanonicalization}) {
     _helper.libraryBuilder.addProblem(message, fileOffset, noLength, _uri);
     return new NamedTypeBuilder.forInvalidType(token.lexeme, nullabilityBuilder,
         message.withLocation(_uri, fileOffset, noLength));

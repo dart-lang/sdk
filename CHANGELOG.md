@@ -167,7 +167,7 @@ Updated the Linter to `1.25.0`, which includes changes that
 - fix `unawaited_futures` to handle string interpolated
   futures.
 - update `use_colored_box` to not flag nullable colors,
-- add new lint: 
+- add new lint:
   `unnecessary_null_aware_operator_on_extension_on_nullable`.
 - fix `no_leading_underscores_for_local_identifiers`
   to lint local function declarations.
@@ -191,6 +191,16 @@ Updated the Linter to `1.25.0`, which includes changes that
   It can still be created with the `--legacy-packages-file` flag.
 * `dart pub outdated` now shows which of your dependencies are discontinued.
 * `dart pub publish` will now list all the files it is about to publish.
+
+## 2.17.4 - 2022-06-20
+
+This is a patch release that fixes:
+
+- Improve analysis of enums and switch (issue [#49188]).
+- Fix compiler crash when initializing Finalizable objects (issue [#49075]).
+
+[#49188]: https://github.com/dart-lang/sdk/issues/49188
+[#49075]: https://github.com/dart-lang/sdk/issues/49075
 
 ## 2.17.3 - 2022-06-01
 
