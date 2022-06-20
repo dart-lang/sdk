@@ -4211,7 +4211,7 @@ class BodyBuilder extends StackListenerImpl
       result = name.buildTypeWithResolvedArguments(
           libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), arguments,
           allowPotentiallyConstantType: allowPotentiallyConstantType,
-          forTypeLiteral: false);
+          forTypeCanonicalization: constantContext != ConstantContext.none);
       // ignore: unnecessary_null_comparison
       if (result == null) {
         unhandled("null", "result", beginToken.charOffset, uri);
