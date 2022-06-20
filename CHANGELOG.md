@@ -1,3 +1,14 @@
+<<<<<<< HEAD
+## 2.17.4 - 2022-06-20
+
+This is a patch release that fixes:
+
+- Improve analysis of enums and switch (issue [#49188]).
+- Fix compiler crash when initializing Finalizable objects (issue [#49075]).
+
+[#49188]: https://github.com/dart-lang/sdk/issues/49188
+[#49075]: https://github.com/dart-lang/sdk/issues/49075
+
 ## 2.17.3 - 2022-06-01
 
 This is a patch release that fixes:

@@ -17,6 +17,25 @@ main() {
 @reflectiveTest
 class MissingEnumConstantInSwitchTest extends PubPackageResolutionTest
     with MissingEnumConstantInSwitchTestCases {
+  test_all_enhanced() async {
+    await assertNoErrorsInCode('''
+enum E {
+  one, two;
+
+  static const x = 0;
+}
+
+void f(E e) {
+  switch (e) {
+    case E.one:
+      break;
+    case E.two:
+      break;
+  }
+}
+''');
+  }
+
   test_nullable() async {
     await assertErrorsInCode('''
 enum E { one, two }
