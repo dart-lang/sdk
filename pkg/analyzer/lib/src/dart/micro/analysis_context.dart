@@ -10,7 +10,6 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
@@ -20,7 +19,6 @@ import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
-import 'package:analyzer/src/summary2/reference.dart';
 
 MicroContextObjects createMicroContextObjects({
   required FileResolver fileResolver,
@@ -30,12 +28,6 @@ MicroContextObjects createMicroContextObjects({
   required ResourceProvider resourceProvider,
 }) {
   var declaredVariables = DeclaredVariables();
-
-  var analysisContext = AnalysisContextImpl(
-    analysisOptions: analysisOptions,
-    declaredVariables: declaredVariables,
-    sourceFactory: sourceFactory,
-  );
 
   var analysisSession = _MicroAnalysisSessionImpl(
     fileResolver,
@@ -55,33 +47,23 @@ MicroContextObjects createMicroContextObjects({
   analysisContext2.currentSession = analysisSession;
   analysisSession.analysisContext = analysisContext2;
 
-  analysisSession.elementFactory = LinkedElementFactory(
-    analysisContext,
-    analysisSession,
-    Reference.root(),
-  );
-
   return MicroContextObjects._(
     declaredVariables: declaredVariables,
+    analysisOptions: analysisOptions,
     analysisSession: analysisSession,
-    analysisContext: analysisContext,
   );
 }
 
 class MicroContextObjects {
   final DeclaredVariables declaredVariables;
+  final AnalysisOptionsImpl analysisOptions;
   final _MicroAnalysisSessionImpl analysisSession;
-  final AnalysisContextImpl analysisContext;
 
   MicroContextObjects._({
     required this.declaredVariables,
+    required this.analysisOptions,
     required this.analysisSession,
-    required this.analysisContext,
   });
-
-  set analysisOptions(AnalysisOptionsImpl analysisOptions) {
-    analysisContext.analysisOptions = analysisOptions;
-  }
 
   InheritanceManager3 get inheritanceManager {
     return analysisSession.inheritanceManager;

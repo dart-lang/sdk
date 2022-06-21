@@ -276,6 +276,11 @@ abstract class ContextResolutionTest
       updateAnalysisOptions2: updateAnalysisOptions,
     );
 
+    for (final analysisContext in _analysisContextCollection!.contexts) {
+      final analysisDriver = analysisContext.driver;
+      analysisDriver.testView ??= AnalysisDriverTestView(analysisDriver);
+    }
+
     verifyCreatedCollection();
   }
 }

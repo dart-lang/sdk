@@ -57,7 +57,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
       'aaa': [getFolder('/aaa/lib')],
       'bbb': [getFolder('/bbb/lib')],
     };
-    return AnalysisDriver(
+    final analysisDriver = AnalysisDriver(
       scheduler: scheduler,
       logger: logger,
       resourceProvider: resourceProvider,
@@ -92,6 +92,8 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
       enableIndex: true,
       externalSummaries: externalSummaries,
     );
+    analysisDriver.testView = AnalysisDriverTestView(analysisDriver);
+    return analysisDriver;
   }
 
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()

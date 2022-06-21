@@ -29,7 +29,7 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
 
   List<Set<String>> get _linkedCycles {
     var driver = driverFor(testFilePath);
-    return driver.test.libraryContextTestView.linkedCycles;
+    return driver.testView!.libraryContextTestView.linkedCycles;
   }
 
   @override

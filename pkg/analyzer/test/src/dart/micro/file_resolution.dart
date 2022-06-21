@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -198,7 +199,7 @@ class ResolverStatePrinter {
 
     _writelnWithIndent('libraryCycles');
     _withIndent(() {
-      final entries = testData.libraryCycles.entries
+      final entries = testData.libraryContext.libraryCycles.entries
           .mapKey((key) => key.map(_posixPath).join(' '))
           .toList();
       entries.sortBy((e) => e.key);

@@ -217,7 +217,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The instance of the [Search] helper.
   late final Search _search;
 
-  late final AnalysisDriverTestView _testView;
+  AnalysisDriverTestView? testView;
 
   late FeatureSetProvider featureSetProvider;
 
@@ -278,7 +278,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         testingData = retainDataForTesting ? TestingData() : null {
     analysisContext?.driver = this;
     _onResults = _resultController.stream.asBroadcastStream();
-    _testView = AnalysisDriverTestView(this);
 
     _fileContentStrategy = StoredFileContentStrategy(_fileContentCache);
 
@@ -322,7 +321,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the context in which libraries should be analyzed.
   LibraryContext get libraryContext {
     return _libraryContext ??= LibraryContext(
-      testView: _testView.libraryContextTestView,
+      testView: testView?.libraryContextTestView,
       analysisSession: AnalysisSessionImpl(this),
       logger: _logger,
       byteStore: _byteStore,
@@ -394,9 +393,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the source factory used to resolve URIs to paths and restore URIs
   /// from file paths.
   SourceFactory get sourceFactory => _sourceFactory;
-
-  @visibleForTesting
-  AnalysisDriverTestView get test => _testView;
 
   @override
   AnalysisDriverPriority get workPriority {
@@ -1244,6 +1240,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           break;
         case _FileChangeKind.remove:
           _fileTracker.removeFile(path);
+          // TODO(scheglov) We have to do this because we discard files.
+          // But this is not right, we need to handle removing better.
+          clearLibraryContext();
           break;
       }
     }
@@ -1313,7 +1312,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return _logger.runAsync('Compute analysis result for $path', () async {
       _logger.writeln('Work in $name');
       try {
-        _testView.numOfAnalyzedLibraries++;
+        testView?.numOfAnalyzedLibraries++;
 
         if (!_hasLibraryByUri('dart:core')) {
           return _newMissingDartLibraryResult(file, 'dart:core');
@@ -1323,7 +1322,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           return _newMissingDartLibraryResult(file, 'dart:async');
         }
 
-        await libraryContext.load(library);
+        await libraryContext.load(
+          targetLibrary: library,
+          performance: OperationPerformanceImpl('<root>'),
+        );
 
         var results = LibraryAnalyzer(
           analysisOptions as AnalysisOptionsImpl,
@@ -1386,8 +1388,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ) async {
     final path = library.file.path;
     return _logger.runAsync('Compute resolved library $path', () async {
-      _testView.numOfAnalyzedLibraries++;
-      await libraryContext.load(library);
+      testView?.numOfAnalyzedLibraries++;
+      await libraryContext.load(
+        targetLibrary: library,
+        performance: OperationPerformanceImpl('<root>'),
+      );
 
       var unitResults = LibraryAnalyzer(
               analysisOptions as AnalysisOptionsImpl,
@@ -1434,7 +1439,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     return _logger.runAsync('Compute unit element for $path', () async {
       _logger.writeln('Work in $name');
-      await libraryContext.load(library);
+      await libraryContext.load(
+        targetLibrary: library,
+        performance: OperationPerformanceImpl('<root>'),
+      );
       var element = libraryContext.computeUnitElement(library, file);
       return UnitElementResultImpl(
         currentSession,
@@ -1667,14 +1675,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var affected = <FileState>{};
     _fsState.collectAffected(path, affected);
 
+    final removedKeys = <String>{};
+    _libraryContext?.remove(affected.toList(), removedKeys);
+
     for (var file in affected) {
       file.invalidateLibraryCycle();
       accumulatedAffected.add(file.path);
     }
-
-    _libraryContext?.elementFactory.removeLibraries(
-      affected.map((e) => e.uri).toSet(),
-    );
 
     _libraryContext?.elementFactory.replaceAnalysisSession(
       AnalysisSessionImpl(this),
@@ -1739,7 +1746,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     final kind = file.kind;
     final library = kind.library ?? kind.asLibrary;
 
-    await libraryContext.load(library);
+    await libraryContext.load(
+      targetLibrary: library,
+      performance: OperationPerformanceImpl('<root>'),
+    );
     var unitElement = libraryContext.computeUnitElement(library, file);
 
     var analysisResult = LibraryAnalyzer(
