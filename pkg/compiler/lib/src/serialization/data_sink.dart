@@ -25,6 +25,10 @@ abstract class DataSink {
   /// Serialization of a section end tag. May be omitted by some writers.
   void endTag(String tag);
 
+  /// Writes a deferred entity which can be skipped when reading and read later
+  /// via an offset read.
+  void writeDeferred(void writer());
+
   /// Closes any underlying data sinks.
   void close();
 }

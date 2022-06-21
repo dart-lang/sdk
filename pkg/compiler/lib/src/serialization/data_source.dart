@@ -22,8 +22,15 @@ abstract class DataSource {
   /// Deserialization of an enum value in [values].
   E readEnum<E>(List<E> values);
 
+  /// Returns the offset for a deferred entity and skips it in the read queue.
+  /// The offset can later be passed to [readAtOffset] to get the value.
+  int readDeferred();
+
+  /// Eagerly reads and returns the value for a deferred entity.
+  E readDeferredAsEager<E>(E reader());
+
   /// Calls [reader] to read a value at the provided offset in the underlying
-  /// data stream.
+  /// data stream. Use with [readDeferred] to read a deferred value.
   E readAtOffset<E>(int offset, E reader());
 
   /// The length of the underlying data source.

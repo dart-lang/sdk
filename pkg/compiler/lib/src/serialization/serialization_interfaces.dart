@@ -9,6 +9,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart' show DartType;
 import '../inferrer/abstract_value_domain.dart' show AbstractValue;
 
+import 'deferrable.dart';
 export 'tags.dart';
 
 abstract class StringInterner {
@@ -113,6 +114,8 @@ abstract class DataSinkWriter {
       {bool allowNull = false});
 
   void writeAbstractValue(AbstractValue value);
+
+  void writeDeferrable(void f());
 }
 
 /// Migrated interface for methods of DataSourceReader.
@@ -192,4 +195,5 @@ abstract class DataSourceReader {
 
   E readWithSource<E>(DataSourceReader source, E f());
   E readWithOffset<E>(int offset, E f());
+  Deferrable<E> readDeferrable<E>(E f(), {bool cacheData = true});
 }

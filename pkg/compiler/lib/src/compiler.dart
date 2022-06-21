@@ -559,7 +559,10 @@ class Compiler implements CompilerDiagnosticsFacade {
       }
     } else {
       closedWorldAndIndices = await serializationTask.deserializeClosedWorld(
-          environment, abstractValueStrategy, component);
+          environment,
+          abstractValueStrategy,
+          component,
+          useDeferredSourceReads);
     }
     if (closedWorldAndIndices != null && retainDataForTesting) {
       backendClosedWorldForTesting = closedWorldAndIndices.data;
@@ -568,13 +571,16 @@ class Compiler implements CompilerDiagnosticsFacade {
     return closedWorldAndIndices;
   }
 
+  bool get shouldStopAfterClosedWorldFromFlags =>
+      stopAfterClosedWorldForTesting ||
+      options.stopAfterProgramSplit ||
+      options.writeClosedWorldUri != null;
+
   bool shouldStopAfterClosedWorld(
           DataAndIndices<JsClosedWorld> closedWorldAndIndices) =>
       closedWorldAndIndices == null ||
       closedWorldAndIndices.data == null ||
-      stopAfterClosedWorldForTesting ||
-      options.stopAfterProgramSplit ||
-      options.writeClosedWorldUri != null;
+      shouldStopAfterClosedWorldFromFlags;
 
   Future<DataAndIndices<GlobalTypeInferenceResults>>
       produceGlobalTypeInferenceResults(
@@ -597,7 +603,8 @@ class Compiler implements CompilerDiagnosticsFacade {
               environment,
               abstractValueStrategy,
               closedWorld.elementMap.programEnv.mainComponent,
-              closedWorldAndIndices);
+              closedWorldAndIndices,
+              useDeferredSourceReads);
     }
     return globalTypeInferenceResults;
   }
@@ -631,12 +638,19 @@ class Compiler implements CompilerDiagnosticsFacade {
           backendStrategy,
           globalTypeInferenceResults.data,
           codegenInputs,
-          globalTypeInferenceResults.indices);
+          globalTypeInferenceResults.indices,
+          useDeferredSourceReads);
     }
     return codegenResults;
   }
 
   bool get shouldStopAfterCodegen => options.writeCodegenUri != null;
+
+  bool get useDeferredSourceReads =>
+      !shouldStopAfterClosedWorldFromFlags &&
+      !shouldStopAfterGlobalTypeInference &&
+      !shouldStopAfterCodegen &&
+      !shouldStopAfterModularAnalysis;
 
   void runSequentialPhases() async {
     // Load kernel.

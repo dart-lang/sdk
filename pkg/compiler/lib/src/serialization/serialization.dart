@@ -26,6 +26,7 @@ import '../js_model/type_recipe.dart' show TypeRecipe;
 import '../options.dart';
 import 'data_sink.dart';
 import 'data_source.dart';
+import 'deferrable.dart';
 import 'member_data.dart';
 import 'serialization_interfaces.dart' as migrated
     show DataSourceReader, DataSinkWriter;

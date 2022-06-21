@@ -245,7 +245,8 @@ class SerializationTask extends CompilerTask {
   Future<DataAndIndices<JsClosedWorld>> deserializeClosedWorld(
       Environment environment,
       AbstractValueStrategy abstractValueStrategy,
-      ir.Component component) async {
+      ir.Component component,
+      bool useDeferredSourceReads) async {
     return await measureIoSubtask('deserialize closed world', () async {
       _reporter.log('Reading data from ${_options.readClosedWorldUri}');
       api.Input<List<int>> dataInput = await _provider.readFromUri(
@@ -254,7 +255,8 @@ class SerializationTask extends CompilerTask {
       DataSourceReader source = DataSourceReader(
           BinaryDataSource(dataInput.data, stringInterner: _stringInterner),
           _options,
-          interner: _valueInterner);
+          interner: _valueInterner,
+          useDeferredStrategy: useDeferredSourceReads);
       var closedWorld = deserializeClosedWorldFromSource(_options, _reporter,
           environment, abstractValueStrategy, component, source);
       return DataAndIndices(closedWorld, source.exportIndices());
@@ -283,7 +285,8 @@ class SerializationTask extends CompilerTask {
           Environment environment,
           AbstractValueStrategy abstractValueStrategy,
           ir.Component component,
-          DataAndIndices<JsClosedWorld> closedWorldAndIndices) async {
+          DataAndIndices<JsClosedWorld> closedWorldAndIndices,
+          bool useDeferredSourceReads) async {
     return await measureIoSubtask('deserialize data', () async {
       _reporter.log('Reading data from ${_options.readDataUri}');
       api.Input<List<int>> dataInput = await _provider
@@ -292,7 +295,8 @@ class SerializationTask extends CompilerTask {
           BinaryDataSource(dataInput.data, stringInterner: _stringInterner),
           _options,
           interner: _valueInterner,
-          importedIndices: closedWorldAndIndices.indices);
+          importedIndices: closedWorldAndIndices.indices,
+          useDeferredStrategy: useDeferredSourceReads);
       return DataAndIndices(
           deserializeGlobalTypeInferenceResultsFromSource(
               _options,
@@ -346,7 +350,8 @@ class SerializationTask extends CompilerTask {
       JsBackendStrategy backendStrategy,
       GlobalTypeInferenceResults globalTypeInferenceResults,
       CodegenInputs codegenInputs,
-      DataSourceIndices indices) async {
+      DataSourceIndices indices,
+      bool useDeferredSourceReads) async {
     int shards = _options.codegenShards;
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
     Map<MemberEntity, CodegenResult> results = {};
@@ -358,8 +363,8 @@ class SerializationTask extends CompilerTask {
             await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
         // TODO(36983): This code is extracted because there appeared to be a
         // memory leak for large buffer held by `source`.
-        _deserializeCodegenInput(
-            backendStrategy, closedWorld, uri, dataInput, indices, results);
+        _deserializeCodegenInput(backendStrategy, closedWorld, uri, dataInput,
+            indices, results, useDeferredSourceReads);
         dataInput.release();
       });
     }
@@ -373,12 +378,14 @@ class SerializationTask extends CompilerTask {
       Uri uri,
       api.Input<List<int>> dataInput,
       DataSourceIndices importedIndices,
-      Map<MemberEntity, CodegenResult> results) {
+      Map<MemberEntity, CodegenResult> results,
+      bool useDeferredSourceReads) {
     DataSourceReader source = DataSourceReader(
         BinaryDataSource(dataInput.data, stringInterner: _stringInterner),
         _options,
         interner: _valueInterner,
-        importedIndices: importedIndices);
+        importedIndices: importedIndices,
+        useDeferredStrategy: useDeferredSourceReads);
     backendStrategy.prepareCodegenReader(source);
     Map<MemberEntity, CodegenResult> codegenResults =
         source.readMemberMap((MemberEntity member) {

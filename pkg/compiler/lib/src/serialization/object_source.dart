@@ -60,6 +60,19 @@ class ObjectDataSource implements DataSource {
   }
 
   @override
+  int readDeferred() {
+    final dataOffset = _index;
+    _index += readInt();
+    return dataOffset;
+  }
+
+  @override
+  E readDeferredAsEager<E>(E reader()) {
+    readInt(); // Read and throw away the length.
+    return reader();
+  }
+
+  @override
   int get length => _data.length;
 
   @override

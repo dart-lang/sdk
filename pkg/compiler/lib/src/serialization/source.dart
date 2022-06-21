@@ -20,6 +20,7 @@ class DataSourceReader implements migrated.DataSourceReader {
       List<ir.DartType>.empty();
 
   final bool enableDeferredStrategy;
+  final bool useDeferredStrategy;
   final bool useDataKinds;
   final ValueInterner /*?*/ interner;
   DataSourceIndices importedIndices;
@@ -96,7 +97,10 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   DataSourceReader(this._sourceReader, CompilerOptions options,
-      {this.useDataKinds = false, this.importedIndices, this.interner})
+      {this.useDataKinds = false,
+      this.importedIndices,
+      this.interner,
+      this.useDeferredStrategy = false})
       : enableDeferredStrategy =
             (options?.features?.deferredSerialization?.isEnabled ?? false),
         endOffset = (importedIndices?.previousSourceReader?.endOffset ?? 0) +
@@ -226,6 +230,16 @@ class DataSourceReader implements migrated.DataSourceReader {
   @override
   E readWithOffset<E>(int offset, E f()) {
     return _sourceReader.readAtOffset(offset, f);
+  }
+
+  @override
+  Deferrable<E> readDeferrable<E>(E f(), {bool cacheData = true}) {
+    return enableDeferredStrategy
+        ? (useDeferredStrategy
+            ? Deferrable<E>.deferred(this, f, _sourceReader.readDeferred(),
+                cacheData: cacheData)
+            : Deferrable<E>.eager(_sourceReader.readDeferredAsEager(f)))
+        : Deferrable<E>.eager(f());
   }
 
   /// Invoke [f] in the context of [member]. This sets up support for
