@@ -20,6 +20,7 @@ import '../ir/util.dart';
 import '../js_model/class_type_variable_access.dart';
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/behavior.dart';
+import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
@@ -413,25 +414,30 @@ class SpecialMemberDefinition implements MemberDefinition {
   static const String tag = 'special-member-definition';
 
   @override
-  final ir.TreeNode node;
+  ir.TreeNode get node => _node.loaded();
+  final Deferrable<ir.TreeNode> _node;
   @override
   final MemberKind kind;
 
-  SpecialMemberDefinition(this.node, this.kind);
+  SpecialMemberDefinition(ir.TreeNode node, this.kind)
+      : _node = Deferrable.eager(node);
+
+  SpecialMemberDefinition._deserialized(this._node, this.kind);
 
   factory SpecialMemberDefinition.readFromDataSource(
       DataSourceReader source, MemberKind kind) {
     source.begin(tag);
-    ir.TreeNode node = source.readTreeNode();
+    Deferrable<ir.TreeNode> node =
+        source.readDeferrable(() => source.readTreeNode());
     source.end(tag);
-    return SpecialMemberDefinition(node, kind);
+    return SpecialMemberDefinition._deserialized(node, kind);
   }
 
   @override
   void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(kind);
     sink.begin(tag);
-    sink.writeTreeNode(node);
+    sink.writeDeferrable(() => sink.writeTreeNode(node));
     sink.end(tag);
   }
 

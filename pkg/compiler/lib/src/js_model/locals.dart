@@ -14,6 +14,7 @@ import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
+import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 
 import 'element_map.dart';
@@ -43,18 +44,19 @@ class GlobalLocalsMap implements interfaces.GlobalLocalsMap {
       MemberEntity Function(MemberEntity) localMapKeyLookup,
       DataSourceReader source) {
     source.begin(tag);
-    Map<MemberEntity, KernelToLocalsMap> _localsMaps = {};
+    Map<MemberEntity, Deferrable<KernelToLocalsMap>> _localsMaps = {};
     int mapCount = source.readInt();
     for (int i = 0; i < mapCount; i++) {
-      KernelToLocalsMap localsMap =
-          KernelToLocalsMapImpl.readFromDataSource(source);
+      Deferrable<KernelToLocalsMap> localsMap = source.readDeferrable(
+          () => KernelToLocalsMapImpl.readFromDataSource(source));
       List<MemberEntity> members = source.readMembers();
       for (MemberEntity member in members) {
         _localsMaps[member] = localsMap;
       }
     }
     source.end(tag);
-    return GlobalLocalsMap.internal(localMapKeyLookup, _localsMaps);
+    return GlobalLocalsMap.internal(
+        localMapKeyLookup, DeferrableValueMap(_localsMaps));
   }
 
   /// Serializes this [GlobalLocalsMap] to [sink].
@@ -72,7 +74,7 @@ class GlobalLocalsMap implements interfaces.GlobalLocalsMap {
     sink.writeInt(reverseMap.length);
     reverseMap
         .forEach((KernelToLocalsMap localsMap, List<MemberEntity> members) {
-      localsMap.writeToDataSink(sink);
+      sink.writeDeferrable(() => localsMap.writeToDataSink(sink));
       sink.writeMembers(members);
     });
     sink.end(tag);
