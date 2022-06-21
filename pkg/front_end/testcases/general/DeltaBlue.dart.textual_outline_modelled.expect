@@ -14,6 +14,7 @@ abstract class BinaryConstraint extends Constraint {
   void recalculate() {}
   void removeFromGraph() {}
 }
+
 abstract class Constraint {
   Constraint? satisfy(mark) {}
   Variable output();
@@ -32,6 +33,7 @@ abstract class Constraint {
   void recalculate();
   void removeFromGraph();
 }
+
 abstract class UnaryConstraint extends Constraint {
   UnaryConstraint(this.myOutput, Strength strength) : super(strength) {}
   Variable output() => myOutput;
@@ -46,24 +48,30 @@ abstract class UnaryConstraint extends Constraint {
   void recalculate() {}
   void removeFromGraph() {}
 }
+
 class DeltaBlue {
   void run() {}
 }
+
 class EditConstraint extends UnaryConstraint {
   EditConstraint(Variable v, Strength str) : super(v, str);
   bool isInput() => true;
   void execute() {}
 }
+
 class EqualityConstraint extends BinaryConstraint {
-  EqualityConstraint(Variable v1, Variable v2, Strength strength) : super(v1, v2, strength);
+  EqualityConstraint(Variable v1, Variable v2, Strength strength)
+      : super(v1, v2, strength);
   void execute() {}
 }
+
 class Plan {
   List<Constraint> list = <Constraint>[];
   int size() => list.length;
   void addConstraint(Constraint c) {}
   void execute() {}
 }
+
 class Planner {
   List<Constraint> removePropagateFrom(Variable out) {}
   Plan extractPlanFromConstraints(List<Constraint> constraints) {}
@@ -75,8 +83,11 @@ class Planner {
   void incrementalAdd(Constraint c) {}
   void incrementalRemove(Constraint c) {}
 }
+
 class ScaleConstraint extends BinaryConstraint {
-  ScaleConstraint( Variable src, this.scale, this.offset, Variable dest, Strength strength) : super(src, dest, strength);
+  ScaleConstraint(
+      Variable src, this.scale, this.offset, Variable dest, Strength strength)
+      : super(src, dest, strength);
   final Variable offset;
   final Variable scale;
   void addToGraph() {}
@@ -85,12 +96,21 @@ class ScaleConstraint extends BinaryConstraint {
   void recalculate() {}
   void removeFromGraph() {}
 }
+
 class StayConstraint extends UnaryConstraint {
   StayConstraint(Variable v, Strength str) : super(v, str);
   void execute() {}
 }
+
 class Strength {
-  Strength nextWeaker() => const <Strength>[ STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST ][value];
+  Strength nextWeaker() => const <Strength>[
+        STRONG_PREFERRED,
+        PREFERRED,
+        STRONG_DEFAULT,
+        NORMAL,
+        WEAK_DEFAULT,
+        WEAKEST
+      ][value];
   const Strength(this.value, this.name);
   final String name;
   final int value;
@@ -99,6 +119,7 @@ class Strength {
   static bool stronger(Strength s1, Strength s2) {}
   static bool weaker(Strength s1, Strength s2) {}
 }
+
 class Variable {
   Constraint? determinedBy;
   List<Constraint> constraints = <Constraint>[];
@@ -111,6 +132,7 @@ class Variable {
   void addConstraint(Constraint c) {}
   void removeConstraint(Constraint c) {}
 }
+
 const NORMAL = const Strength(4, "normal");
 const PREFERRED = const Strength(2, "preferred");
 const REQUIRED = const Strength(0, "required");
@@ -121,11 +143,8 @@ const WEAK_DEFAULT = const Strength(5, "weakDefault");
 const int BACKWARD = 0;
 const int FORWARD = 2;
 const int NONE = 1;
+late Planner planner;
 main() {}
 void chainTest(int n) {}
 void change(Variable v, int newValue) {}
 void projectionTest(int n) {}
----- unknown chunk starts ----
-late
----- unknown chunk ends ----
-Planner planner;

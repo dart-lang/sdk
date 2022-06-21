@@ -1,4 +1,5 @@
 var result;
+
 extension Extension on int {
   static int staticMethod() => 1;
   static int staticMethod() => 2;
@@ -12,12 +13,10 @@ extension Extension on int {
   static void set staticFieldAndSetter1(int value) {}
   static void set staticFieldAndSetter2(int value) {}
   static int staticFieldAndSetter2 = 1;
-  static late ;
-  final int staticLateFinalFieldAndSetter1;
+  static late final int staticLateFinalFieldAndSetter1;
   static void set staticLateFinalFieldAndSetter1(int value) {}
   static void set staticLateFinalFieldAndSetter2(int value) {}
-  static late ;
-  final int staticLateFinalFieldAndSetter2;
+  static late final int staticLateFinalFieldAndSetter2;
   static final int staticDuplicateFieldAndSetter = 1;
   static final int staticDuplicateFieldAndSetter = 2;
   static void set staticDuplicateFieldAndSetter(int value) {}
@@ -33,6 +32,7 @@ extension Extension on int {
   static void set staticMethodAndSetter2(int value) {}
   static int staticMethodAndSetter2() => 1;
 }
+
 test() {}
 main() {}
 expect(expected, actual) {}

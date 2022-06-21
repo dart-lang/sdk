@@ -2,10 +2,8 @@ abstract class Foo<T> {
   List<T> get list;
   void setList<T>(List<T> value);
 }
+
 class Bar implements Foo<int> {
-  ---- unknown chunk starts ----
-late
----- unknown chunk ends ----
-  List<int> list;
+  late List<int> list;
   void setList<int>(List<int> value) {}
 }

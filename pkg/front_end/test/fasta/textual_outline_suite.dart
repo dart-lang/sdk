@@ -89,7 +89,11 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       // TODO(jensj): NNBD should be configured correctly.
       String? result = textualOutline(
         bytes,
-        const ScannerConfiguration(enableExtensionMethods: true),
+        const ScannerConfiguration(
+          enableExtensionMethods: true,
+          enableNonNullable: true,
+          enableTripleShift: true,
+        ),
         throwOnUnexpected: true,
         performModelling: modelled,
         addMarkerForUnknownForTest: modelled,

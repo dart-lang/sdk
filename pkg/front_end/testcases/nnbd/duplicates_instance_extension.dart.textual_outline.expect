@@ -12,12 +12,10 @@ extension Extension on int {
   void set instanceFieldAndSetter1(int value) {}
   void set instanceFieldAndSetter2(int value) {}
   int instanceFieldAndSetter2 = 1;
-  late
-  final int instanceLateFinalFieldAndSetter1;
+  late final int instanceLateFinalFieldAndSetter1;
   void set instanceLateFinalFieldAndSetter1(int value) {}
   void set instanceLateFinalFieldAndSetter2(int value) {}
-  late
-  final int instanceLateFinalFieldAndSetter2;
+  late final int instanceLateFinalFieldAndSetter2;
   final int instanceDuplicateFieldAndSetter = 1;
   final int instanceDuplicateFieldAndSetter = 2;
   void set instanceDuplicateFieldAndSetter(int value) {}

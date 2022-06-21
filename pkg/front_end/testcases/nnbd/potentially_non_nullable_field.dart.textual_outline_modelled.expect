@@ -1,0 +1,23 @@
+class A<T extends Object?> {
+  A(this.lv, this.lp, T t)
+      : this.lu = 42,
+        this.lq = t;
+  T? ls;
+  T lp;
+  T lq;
+  T lt;
+  int? ly;
+  int lu;
+  int lv;
+  int lx;
+  late T lr;
+  late int? lz;
+  static int? y;
+  static int x;
+  static late int z;
+}
+
+int? y;
+int x;
+late int z;
+main() {}

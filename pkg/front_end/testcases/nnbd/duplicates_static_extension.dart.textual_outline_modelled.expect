@@ -1,0 +1,39 @@
+expect(expected, actual) {}
+
+extension Extension on int {
+  static final int staticDuplicateFieldAndDuplicateSetter = 1;
+  static final int staticDuplicateFieldAndDuplicateSetter = 2;
+  static final int staticDuplicateFieldAndSetter = 1;
+  static final int staticDuplicateFieldAndSetter = 2;
+  static final int staticFieldAndDuplicateSetter = 1;
+  static int get staticGetter => 1;
+  static int get staticGetter => 2;
+  static int staticField = 1;
+  static int staticField = 2;
+  static int staticFieldAndSetter1 = 1;
+  static int staticFieldAndSetter2 = 1;
+  static int staticMethod() => 1;
+  static int staticMethod() => 2;
+  static int staticMethodAndSetter1() => 1;
+  static int staticMethodAndSetter2() => 1;
+  static late final int staticLateFinalFieldAndSetter1;
+  static late final int staticLateFinalFieldAndSetter2;
+  static void set staticDuplicateFieldAndDuplicateSetter(int value) {}
+  static void set staticDuplicateFieldAndDuplicateSetter(int value) {}
+  static void set staticDuplicateFieldAndSetter(int value) {}
+  static void set staticFieldAndDuplicateSetter(int value) {}
+  static void set staticFieldAndDuplicateSetter(int value) {}
+  static void set staticFieldAndSetter1(int value) {}
+  static void set staticFieldAndSetter2(int value) {}
+  static void set staticLateFinalFieldAndSetter1(int value) {}
+  static void set staticLateFinalFieldAndSetter2(int value) {}
+  static void set staticMethodAndSetter1(int value) {}
+  static void set staticMethodAndSetter2(int value) {}
+  static void set staticSetter(value) {}
+  static void set staticSetter(value) {}
+}
+
+main() {}
+test() {}
+throws(dynamic Function() f) {}
+var result;
