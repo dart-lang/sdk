@@ -264,7 +264,7 @@ class ServerPluginTest extends AbstractPluginTest {
     expect(result, isNotNull);
 
     expect(plugin.invoked_afterNewContextCollection, isTrue);
-    expect(analyzedPaths, ['/package1/lib/test.dart']);
+    expect(analyzedPaths, [getFile('/package1/lib/test.dart').path]);
   }
 
   Future<void> test_onRequest_analysisSetPriorityFiles() async {
