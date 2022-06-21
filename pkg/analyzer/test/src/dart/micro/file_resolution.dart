@@ -18,12 +18,11 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
-import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
-import 'package:path/path.dart';
 import 'package:test/test.dart';
 
+import '../analysis/analyzer_state_printer.dart' as printer;
 import '../resolution/resolution.dart';
 
 /// [FileResolver] based implementation of [ResolutionTest].
@@ -32,14 +31,14 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   final MemoryByteStore byteStore = MemoryByteStore();
 
-  final FileResolverTestView testData = FileResolverTestView();
+  final FileResolverTestData testData = FileResolverTestData();
 
   final StringBuffer logBuffer = StringBuffer();
   late PerformanceLog logger;
 
   late FileResolver fileResolver;
 
-  final _KeyShorter _keyShorter = _KeyShorter();
+  final printer.KeyShorter _keyShorter = printer.KeyShorter();
 
   FileSystemState get fsState => fileResolver.fsState!;
 
@@ -67,8 +66,13 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   void assertStateString(String expected) {
     final buffer = StringBuffer();
-    ResolverStatePrinter(resourceProvider, buffer, _keyShorter)
-        .write(byteStore, fileResolver.fsState!, libraryContext, testData);
+    printer.AnalyzerStatePrinter(
+      byteStore: byteStore,
+      keyShorter: _keyShorter,
+      libraryContext: libraryContext,
+      resourceProvider: resourceProvider,
+      sink: buffer,
+    ).writeFileResolver(testData);
     final actual = buffer.toString();
 
     if (actual != expected) {
@@ -98,8 +102,8 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       workspace: workspace,
       prefetchFiles: null,
       isGenerated: (_) => false,
+      testData: testData,
     );
-    fileResolver.testView = testData;
   }
 
   Future<ErrorsResult> getTestErrors() async {
@@ -153,178 +157,5 @@ dart_package(
     } catch (_) {
       return '';
     }
-  }
-}
-
-class ResolverStatePrinter {
-  final ResourceProvider _resourceProvider;
-
-  /// The target sink to print.
-  final StringSink _sink;
-
-  final _KeyShorter _keyShorter;
-
-  String _indent = '';
-
-  ResolverStatePrinter(this._resourceProvider, this._sink, this._keyShorter);
-
-  void write(MemoryByteStore byteStore, FileSystemState fileSystemState,
-      LibraryContext libraryContext, FileResolverTestView testData) {
-    _writelnWithIndent('files');
-    _withIndent(() {
-      final fileMap = testData.fileSystemTestData.files;
-      final fileDataList = fileMap.values.toList();
-      fileDataList.sortBy((fileData) => fileData.file.path);
-
-      for (final fileData in fileDataList) {
-        final file = fileData.file;
-        _writelnWithIndent(_posixPath(file));
-        _withIndent(() {
-          final current = fileSystemState.getExistingFileForResource(file);
-          if (current != null) {
-            _writelnWithIndent('current');
-            _withIndent(() {
-              final unlinkedShort = _keyShorter.shortKey(current.unlinkedKey);
-              _writelnWithIndent('unlinkedKey: $unlinkedShort');
-            });
-          }
-
-          final shortGets = _keyShorter.shortKeys(fileData.unlinkedKeyGet);
-          final shortPuts = _keyShorter.shortKeys(fileData.unlinkedKeyPut);
-          _writelnWithIndent('unlinkedGet: $shortGets');
-          _writelnWithIndent('unlinkedPut: $shortPuts');
-        });
-      }
-    });
-
-    _writelnWithIndent('libraryCycles');
-    _withIndent(() {
-      final entries = testData.libraryContext.libraryCycles.entries
-          .mapKey((key) => key.map(_posixPath).join(' '))
-          .toList();
-      entries.sortBy((e) => e.key);
-
-      final loadedBundlesMap = Map.fromEntries(
-        libraryContext.loadedBundles.map((cycle) {
-          final key = cycle.libraries
-              .map((fileState) => fileState.resource)
-              .map(_posixPath)
-              .join(' ');
-          return MapEntry(key, cycle);
-        }),
-      );
-
-      for (final entry in entries) {
-        _writelnWithIndent(entry.key);
-        _withIndent(() {
-          final current = loadedBundlesMap[entry.key];
-          if (current != null) {
-            _writelnWithIndent('current');
-            _withIndent(() {
-              final short = _keyShorter.shortKey(current.resolutionKey!);
-              _writelnWithIndent('key: $short');
-            });
-          }
-
-          final shortGets = _keyShorter.shortKeys(entry.value.getKeys);
-          final shortPuts = _keyShorter.shortKeys(entry.value.putKeys);
-          _writelnWithIndent('get: $shortGets');
-          _writelnWithIndent('put: $shortPuts');
-        });
-      }
-    });
-
-    _writelnWithIndent('elementFactory');
-    _withIndent(() {
-      final elementFactory = libraryContext.elementFactory;
-      _writeUriList(
-        'hasElement',
-        elementFactory.uriListWithLibraryElements,
-      );
-      _writeUriList(
-        'hasReader',
-        elementFactory.uriListWithLibraryReaders,
-      );
-    });
-
-    _writelnWithIndent('byteStore');
-    _withIndent(() {
-      final groups = byteStore.map.entries.groupListsBy((element) {
-        return element.value.refCount;
-      });
-
-      for (final groupEntry in groups.entries) {
-        final keys = groupEntry.value.map((e) => e.key).toList();
-        final shortKeys = _keyShorter.shortKeys(keys)..sort();
-        _writelnWithIndent('${groupEntry.key}: $shortKeys');
-      }
-    });
-  }
-
-  /// If the path style is `Windows`, returns the corresponding Posix path.
-  /// Otherwise the path is already a Posix path, and it is returned as is.
-  String _posixPath(File file) {
-    final pathContext = _resourceProvider.pathContext;
-    if (pathContext.style == Style.windows) {
-      final components = pathContext.split(file.path);
-      return '/${components.skip(1).join('/')}';
-    } else {
-      return file.path;
-    }
-  }
-
-  void _withIndent(void Function() f) {
-    var indent = _indent;
-    _indent = '$_indent  ';
-    f();
-    _indent = indent;
-  }
-
-  void _writelnWithIndent(String line) {
-    _sink.write(_indent);
-    _sink.writeln(line);
-  }
-
-  void _writeUriList(String name, Iterable<Uri> uriIterable) {
-    final uriStrList = uriIterable.map((uri) => '$uri').toList();
-    if (uriStrList.isNotEmpty) {
-      uriStrList.sort();
-      _writelnWithIndent(name);
-      _withIndent(() {
-        for (final uriStr in uriStrList) {
-          _writelnWithIndent(uriStr);
-        }
-      });
-    }
-  }
-}
-
-/// Keys in the byte store are long hashes, which are hard to read.
-/// So, we generate short unique versions for them.
-class _KeyShorter {
-  final Map<String, String> _keyToShort = {};
-  final Map<String, String> _shortToKey = {};
-
-  String shortKey(String key) {
-    var short = _keyToShort[key];
-    if (short == null) {
-      short = 'k${_keyToShort.length.toString().padLeft(2, '0')}';
-      _keyToShort[key] = short;
-      _shortToKey[short] = key;
-    }
-    return short;
-  }
-
-  List<String> shortKeys(List<String> keys) {
-    return keys.map(shortKey).toList();
-  }
-}
-
-extension<K, V> on Iterable<MapEntry<K, V>> {
-  Iterable<MapEntry<K2, V>> mapKey<K2>(K2 Function(K key) convertKey) {
-    return map((e) {
-      final newKey = convertKey(e.key);
-      return MapEntry(newKey, e.value);
-    });
   }
 }

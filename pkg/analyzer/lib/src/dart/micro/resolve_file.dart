@@ -172,7 +172,7 @@ class FileResolver {
   final Workspace workspace;
 
   /// This field gets value only during testing.
-  FileResolverTestView? testView;
+  final FileResolverTestData? testData;
 
   FileSystemState? fsState;
 
@@ -206,6 +206,7 @@ class FileResolver {
     required this.workspace,
     required this.isGenerated,
     required this.byteStore,
+    this.testData,
   });
 
   /// Update the resolver to reflect the fact that the files with the given
@@ -602,7 +603,7 @@ class FileResolver {
         );
       });
 
-      testView?.addResolvedLibrary(path);
+      testData?.addResolvedLibrary(path);
 
       late Map<FileState, UnitAnalysisResult> results;
 
@@ -705,7 +706,8 @@ class FileResolver {
         ),
         prefetchFiles: prefetchFiles,
         isGenerated: isGenerated,
-      )..testData = testView?.fileSystemTestData;
+        testData: testData?.fileSystem,
+      );
     }
 
     if (contextObjects == null) {
@@ -732,7 +734,7 @@ class FileResolver {
         externalSummaries: SummaryDataStore(),
         macroExecutor: null,
         macroKernelBuilder: null,
-        testView: testView?.libraryContext,
+        testData: testData?.libraryContext,
       );
 
       contextObjects!.analysisSession.elementFactory =
@@ -846,9 +848,9 @@ class FileResolver {
   }
 }
 
-class FileResolverTestView {
-  final fileSystemTestData = FileSystemTestData();
-  final libraryContext = LibraryContextTestView();
+class FileResolverTestData {
+  final fileSystem = FileSystemTestData();
+  final libraryContext = LibraryContextTestData();
 
   /// The paths of libraries which were resolved.
   ///

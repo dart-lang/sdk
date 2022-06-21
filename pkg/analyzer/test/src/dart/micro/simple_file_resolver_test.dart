@@ -2716,7 +2716,7 @@ import 'foo:bar';
     List<File> expected, {
     bool andClear = true,
   }) {
-    final actual = fileResolver.testView!.resolvedLibraries;
+    final actual = fileResolver.testData!.resolvedLibraries;
     expect(actual, expected.map((e) => e.path).toList());
     if (andClear) {
       actual.clear();

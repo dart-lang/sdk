@@ -48,7 +48,6 @@ import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:meta/meta.dart';
 
 /// This class computes [AnalysisResult]s for Dart files.
 ///
@@ -217,7 +216,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The instance of the [Search] helper.
   late final Search _search;
 
-  AnalysisDriverTestView? testView;
+  final AnalysisDriverTestView? testView;
 
   late FeatureSetProvider featureSetProvider;
 
@@ -264,6 +263,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     SummaryDataStore? externalSummaries,
     DeclaredVariables? declaredVariables,
     bool retainDataForTesting = false,
+    this.testView,
   })  : _scheduler = scheduler,
         _resourceProvider = resourceProvider,
         _byteStore = byteStore,
@@ -277,6 +277,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         declaredVariables = declaredVariables ?? DeclaredVariables(),
         testingData = retainDataForTesting ? TestingData() : null {
     analysisContext?.driver = this;
+    testView?.driver = this;
     _onResults = _resultController.stream.asBroadcastStream();
 
     _fileContentStrategy = StoredFileContentStrategy(_fileContentCache);
@@ -321,7 +322,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the context in which libraries should be analyzed.
   LibraryContext get libraryContext {
     return _libraryContext ??= LibraryContext(
-      testView: testView?.libraryContextTestView,
+      testData: testView?.libraryContext,
       analysisSession: AnalysisSessionImpl(this),
       logger: _logger,
       byteStore: _byteStore,
@@ -1486,6 +1487,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       fileContentStrategy: _fileContentStrategy,
       prefetchFiles: null,
       isGenerated: (_) => false,
+      testData: testView?.fileSystem,
     );
     _fileTracker = FileTracker(_logger, _fsState, _fileContentStrategy);
   }
@@ -2106,15 +2108,13 @@ class AnalysisDriverScheduler {
   }
 }
 
-@visibleForTesting
 class AnalysisDriverTestView {
-  final AnalysisDriver driver;
-  final LibraryContextTestView libraryContextTestView =
-      LibraryContextTestView();
+  final fileSystem = FileSystemTestData();
+  final libraryContext = LibraryContextTestData();
+
+  late final AnalysisDriver driver;
 
   int numOfAnalyzedLibraries = 0;
-
-  AnalysisDriverTestView(this.driver);
 
   FileTracker get fileTracker => driver._fileTracker;
 

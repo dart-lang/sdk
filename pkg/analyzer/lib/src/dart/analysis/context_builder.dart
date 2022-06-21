@@ -15,7 +15,7 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart'
     show ByteStore, MemoryByteStore;
 import 'package:analyzer/src/dart/analysis/driver.dart'
-    show AnalysisDriver, AnalysisDriverScheduler;
+    show AnalysisDriver, AnalysisDriverScheduler, AnalysisDriverTestView;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
@@ -145,6 +145,7 @@ class ContextBuilderImpl implements ContextBuilder {
       macroKernelBuilder: macroKernelBuilder,
       macroExecutor: macroExecutor,
       declaredVariables: declaredVariables,
+      testView: retainDataForTesting ? AnalysisDriverTestView() : null,
     );
 
     // AnalysisDriver reports results into streams.

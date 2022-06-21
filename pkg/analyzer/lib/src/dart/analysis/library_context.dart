@@ -39,7 +39,7 @@ import 'package:path/src/context.dart';
 ///
 /// Currently this is implemented as a wrapper around [AnalysisContext].
 class LibraryContext {
-  final LibraryContextTestView? testView;
+  final LibraryContextTestData? testData;
   final PerformanceLog logger;
   final ByteStore byteStore;
   final FileSystemState fileSystemState;
@@ -53,7 +53,7 @@ class LibraryContext {
   Set<LibraryCycle> loadedBundles = Set.identity();
 
   LibraryContext({
-    required this.testView,
+    required this.testData,
     required AnalysisSessionImpl analysisSession,
     required this.logger,
     required this.byteStore,
@@ -174,7 +174,7 @@ class LibraryContext {
       if (resolutionBytes == null) {
         librariesLinkedTimer.start();
 
-        testView?.linkedCycles.add(
+        testData?.linkedCycles.add(
           cycle.libraries.map((e) => e.path).toSet(),
         );
 
@@ -236,12 +236,12 @@ class LibraryContext {
         resolutionBytes = linkResult.resolutionBytes;
         byteStore.putGet(resolutionKey, resolutionBytes);
         performance.getDataInt('bytesPut').add(resolutionBytes.length);
-        testView?.forCycle(cycle).putKeys.add(resolutionKey);
+        testData?.forCycle(cycle).putKeys.add(resolutionKey);
         bytesPut += resolutionBytes.length;
 
         librariesLinkedTimer.stop();
       } else {
-        testView?.forCycle(cycle).getKeys.add(resolutionKey);
+        testData?.forCycle(cycle).getKeys.add(resolutionKey);
         performance.getDataInt('bytesGet').add(resolutionBytes.length);
         performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
         // TODO(scheglov) Take / clear parsed units in files.
@@ -372,7 +372,7 @@ class LibraryContext {
   }
 }
 
-class LibraryContextTestView {
+class LibraryContextTestData {
   /// TODO(scheglov) Use [libraryCycles] and textual dumps for the driver too.
   final List<Set<String>> linkedCycles = [];
 

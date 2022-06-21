@@ -15,6 +15,8 @@ import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
 
 class CiderServiceTest with ResourceProviderMixin {
+  final FileResolverTestData testData = FileResolverTestData();
+
   final StringBuffer logBuffer = StringBuffer();
   late PerformanceLog logger;
 
@@ -45,8 +47,8 @@ class CiderServiceTest with ResourceProviderMixin {
       workspace: workspace,
       byteStore: MemoryByteStore(),
       isGenerated: (_) => false,
+      testData: testData,
     );
-    fileResolver.testView = FileResolverTestView();
   }
 
   void setUp() {
