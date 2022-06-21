@@ -10,6 +10,8 @@ nnbd_mixed/mixed_mixin: SemiFuzzFailure
 no_such_method_forwarders/abstract_override_abstract_different_type: SemiFuzzFailure
 no_such_method_forwarders/abstract_override_with_different_signature: SemiFuzzFailure
 
+dartdevc/static_interop_erasure/main: SemiFuzzCrash # https://github.com/dart-lang/sdk/issues/49301
+
 dart2js/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/constants/with_unevaluated_agnostic/various_2: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
 general/no_such_method_forwarder: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242444

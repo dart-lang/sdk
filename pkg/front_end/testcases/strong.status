@@ -13,6 +13,8 @@ dart2js/late_from_dill/main: SemiFuzzFailure
 dart2js/late_statics: SemiFuzzFailure
 static_field_lowering/opt_in: SemiFuzzFailure
 
+dartdevc/static_interop_erasure/main: SemiFuzzCrash # https://github.com/dart-lang/sdk/issues/49301
+
 const_functions/const_functions_list: SemiFuzzCrash
 generic_metadata/typedef_generic_types_in_arguments_and_bounds: SemiFuzzCrash
 

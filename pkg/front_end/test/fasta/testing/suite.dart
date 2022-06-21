@@ -1248,6 +1248,9 @@ class FuzzCompiles
       }
 
       return pass(result);
+    } catch (e, st) {
+      return new Result<ComponentResult>(result, semiFuzzCrash,
+          "Crashed with '$e' when fuzz compiling.\n\n$st");
     } finally {
       if (originalFlag != null) {
         context.explicitExperimentalFlags[
