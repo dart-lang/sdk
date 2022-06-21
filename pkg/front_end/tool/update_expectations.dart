@@ -9,7 +9,6 @@ const List<String> standardSuites = <String>[
   'outline',
   'strong',
   'modular',
-  'text_serialization',
   'textual_outline',
 ];
 

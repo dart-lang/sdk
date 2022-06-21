@@ -11,7 +11,7 @@ import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
+    show DiagnosticMessage;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -21,15 +21,13 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/fasta_codes.dart' show templateUnspecified;
-
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 
 import 'package:front_end/src/fasta/messages.dart'
-    show DiagnosticMessageFromJson, LocatedMessage, Message;
+    show DiagnosticMessageFromJson;
 
 import 'package:kernel/ast.dart'
     show
@@ -53,9 +51,6 @@ import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 import 'package:kernel/naive_type_checker.dart' show NaiveTypeChecker;
 
 import 'package:kernel/text/ast_to_text.dart' show Printer;
-
-import 'package:kernel/text/text_serialization_verifier.dart'
-    show RoundTripStatus, TextSerializationVerifier;
 
 import 'package:testing/testing.dart'
     show
@@ -356,77 +351,6 @@ class MatchExpectation
             ? context.expectationFileMismatchSerialized
             : context.expectationFileMismatch,
         overwriteUpdateExpectationsWith: serializeFirst ? false : null);
-  }
-}
-
-class KernelTextSerialization
-    extends Step<ComponentResult, ComponentResult, ChainContext> {
-  static const bool writeRoundTripStatus = bool.fromEnvironment(
-      "text_serialization.writeRoundTripStatus",
-      defaultValue: false);
-
-  static const String suffix = ".roundtrip";
-
-  const KernelTextSerialization();
-
-  @override
-  String get name => "kernel text serialization";
-
-  @override
-  Future<Result<ComponentResult>> run(
-      ComponentResult result, ChainContext context) async {
-    Component component = result.component;
-    StringBuffer messages = new StringBuffer();
-    ProcessedOptions options = new ProcessedOptions(
-        options: new CompilerOptions()
-          ..onDiagnostic = (DiagnosticMessage message) {
-            if (messages.isNotEmpty) {
-              messages.write("\n");
-            }
-            messages.writeAll(message.plainTextFormatted, "\n");
-          });
-    return await CompilerContext.runWithOptions(options,
-        (compilerContext) async {
-      component.computeCanonicalNames();
-      compilerContext.uriToSource.addAll(component.uriToSource);
-      TextSerializationVerifier verifier =
-          new TextSerializationVerifier(root: component.root);
-      for (Library library in component.libraries) {
-        if (!library.importUri.isScheme("dart") &&
-            !library.importUri.isScheme("package")) {
-          verifier.verify(library);
-        }
-      }
-
-      List<RoundTripStatus> failures = verifier.failures;
-      for (RoundTripStatus failure in failures) {
-        Message message = templateUnspecified.withArguments("\n${failure}");
-        LocatedMessage locatedMessage = failure.uri != null
-            ? message.withLocation(failure.uri!, failure.offset, 1)
-            : message.withoutLocation();
-        options.report(locatedMessage, locatedMessage.code.severity);
-      }
-
-      if (writeRoundTripStatus) {
-        Uri uri = component.uriToSource.keys
-            .firstWhere((uri) => uri.isScheme("file"));
-        String filename = "${uri.toFilePath()}${suffix}";
-        uri = new File(filename).uri;
-        StringBuffer buffer = new StringBuffer();
-        for (RoundTripStatus status in verifier.takeStatus()) {
-          status.printOn(buffer);
-        }
-        await openWrite(uri, (IOSink sink) {
-          sink.write(buffer.toString());
-        });
-      }
-
-      if (failures.isNotEmpty) {
-        return new Result<ComponentResult>(null,
-            context.expectationSet["TextSerializationFailure"], "$messages");
-      }
-      return pass(result);
-    });
   }
 }
 
