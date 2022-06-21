@@ -1,3 +1,6 @@
+# 2.2.3
+- Internal DAP changes.
+
 # 2.2.2
 - Updated `vm_service` version to 9.0.0.
 
