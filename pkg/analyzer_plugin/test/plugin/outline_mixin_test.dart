@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/plugin/outline_mixin.dart';
+import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
@@ -16,29 +16,30 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'mocks.dart';
+import 'plugin_test.dart';
 
 void main() {
   defineReflectiveTests(OutlineMixinTest);
 }
 
 @reflectiveTest
-class OutlineMixinTest with ResourceProviderMixin {
+class OutlineMixinTest extends AbstractPluginTest {
   late String packagePath1;
   late String filePath1;
   late ContextRoot contextRoot1;
 
-  late MockChannel channel;
-  late _TestServerPlugin plugin;
+  @override
+  ServerPlugin createPlugin() {
+    return _TestServerPlugin(resourceProvider);
+  }
 
-  void setUp() {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
     packagePath1 = convertPath('/package1');
     filePath1 = join(packagePath1, 'lib', 'test.dart');
     newFile(filePath1, '');
     contextRoot1 = ContextRoot(packagePath1, <String>[]);
-
-    channel = MockChannel();
-    plugin = _TestServerPlugin(resourceProvider);
-    plugin.start(channel);
   }
 
   Future<void> test_sendOutlineNotification() async {

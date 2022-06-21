@@ -2,23 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart'
-    show AnalysisDriver, AnalysisDriverGeneric, AnalysisDriverScheduler;
-import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
-import 'package:analyzer_plugin/src/utilities/null_string_sink.dart';
 import 'package:analyzer_plugin/utilities/subscriptions/subscription_manager.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -28,9 +25,6 @@ import 'package:pub_semver/pub_semver.dart';
 /// Clients may not implement or mix-in this class, but are expected to extend
 /// it.
 abstract class ServerPlugin {
-  /// A megabyte.
-  static const int M = 1024 * 1024;
-
   /// The communication channel being used to communicate with the analysis
   /// server.
   late PluginCommunicationChannel _channel;
@@ -38,48 +32,31 @@ abstract class ServerPlugin {
   /// The resource provider used to access the file system.
   final OverlayResourceProvider resourceProvider;
 
+  late final ByteStore _byteStore = createByteStore();
+
+  AnalysisContextCollectionImpl? _contextCollection;
+
   /// The next modification stamp for a changed file in the [resourceProvider].
   int _overlayModificationStamp = 0;
+
+  /// The path to the Dart SDK, set by the analysis server.
+  String? _sdkPath;
+
+  /// Paths of priority files.
+  Set<String> priorityPaths = {};
 
   /// The object used to manage analysis subscriptions.
   final SubscriptionManager subscriptionManager = SubscriptionManager();
 
-  /// The scheduler used by any analysis drivers that are created.
-  late AnalysisDriverScheduler analysisDriverScheduler;
-
-  /// A table mapping the current context roots to the analysis driver created
-  /// for that root.
-  final Map<ContextRoot, AnalysisDriverGeneric> driverMap =
-      <ContextRoot, AnalysisDriverGeneric>{};
-
-  /// The performance log used by any analysis drivers that are created.
-  final PerformanceLog performanceLog = PerformanceLog(NullStringSink());
-
-  /// The byte store used by any analysis drivers that are created, or `null` if
-  /// the cache location isn't known because the 'plugin.version' request has not
-  /// yet been received.
-  late ByteStore _byteStore;
-
-  /// The SDK manager used to manage SDKs.
-  late DartSdkManager _sdkManager;
-
-  /// Initialize a newly created analysis server plugin. If a resource [provider]
+  /// Initialize a newly created analysis server plugin. If a resource [resourceProvider]
   /// is given, then it will be used to access the file system. Otherwise a
   /// resource provider that accesses the physical file system will be used.
-  ServerPlugin(ResourceProvider? provider)
-      : resourceProvider = OverlayResourceProvider(
-            provider ?? PhysicalResourceProvider.INSTANCE) {
-    analysisDriverScheduler = AnalysisDriverScheduler(performanceLog);
-    analysisDriverScheduler.start();
-  }
-
-  /// Return the byte store used by any analysis drivers that are created, or
-  /// `null` if the cache location isn't known because the 'plugin.version'
-  /// request has not yet been received.
-  ByteStore get byteStore => _byteStore;
+  ServerPlugin({
+    required ResourceProvider resourceProvider,
+  }) : resourceProvider = OverlayResourceProvider(resourceProvider);
 
   /// Return the communication channel being used to communicate with the
-  /// analysis server, or `null` if the plugin has not been started.
+  /// analysis server.
   PluginCommunicationChannel get channel => _channel;
 
   /// Return the user visible information about how to contact the plugin authors
@@ -93,88 +70,150 @@ abstract class ServerPlugin {
   /// Return the user visible name of this plugin.
   String get name;
 
-  /// Return the SDK manager used to manage SDKs.
-  DartSdkManager get sdkManager => _sdkManager;
-
   /// Return the version number of the plugin spec required by this plugin,
   /// encoded as a string.
   String get version;
 
-  /// Handle the fact that the file with the given [path] has been modified.
-  void contentChanged(String path) {
-    // Ignore changes to files.
+  /// This method is invoked when a new instance of [AnalysisContextCollection]
+  /// is created, so the plugin can perform initial analysis of analyzed files.
+  ///
+  /// By default analyzes every [AnalysisContext] with [analyzeFiles].
+  Future<void> afterNewContextCollection({
+    required AnalysisContextCollection contextCollection,
+  }) async {
+    await _forAnalysisContexts(contextCollection, (analysisContext) async {
+      final paths = analysisContext.contextRoot.analyzedFiles().toList();
+      await analyzeFiles(
+        analysisContext: analysisContext,
+        paths: paths,
+      );
+    });
   }
 
-  /// Return the context root containing the file at the given [filePath].
-  ContextRoot? contextRootContaining(String filePath) {
-    var pathContext = resourceProvider.pathContext;
+  /// Analyzes the given file.
+  Future<void> analyzeFile({
+    required AnalysisContext analysisContext,
+    required String path,
+  });
 
-    /// Return `true` if the given [child] is either the same as or within the
-    /// given [parent].
-    bool isOrWithin(String parent, String child) {
-      return parent == child || pathContext.isWithin(parent, child);
+  /// Analyzes the given files.
+  /// By default invokes [analyzeFile] for every file.
+  /// Implementations may override to optimize for batch analysis.
+  Future<void> analyzeFiles({
+    required AnalysisContext analysisContext,
+    required List<String> paths,
+  }) async {
+    final pathSet = paths.toSet();
+
+    // First analyze priority files.
+    for (final path in priorityPaths) {
+      pathSet.remove(path);
+      await analyzeFile(
+        analysisContext: analysisContext,
+        path: path,
+      );
     }
 
-    /// Return `true` if the given context [root] contains the target [file].
-    bool ownsFile(ContextRoot root) {
-      if (isOrWithin(root.root, filePath)) {
-        var excludedPaths = root.exclude;
-        for (var excludedPath in excludedPaths) {
-          if (isOrWithin(excludedPath, filePath)) {
-            return false;
-          }
+    // Then analyze the remaining files.
+    for (final path in pathSet) {
+      await analyzeFile(
+        analysisContext: analysisContext,
+        path: path,
+      );
+    }
+  }
+
+  /// This method is invoked immediately before the current
+  /// [AnalysisContextCollection] is disposed.
+  Future<void> beforeContextCollectionDispose({
+    required AnalysisContextCollection contextCollection,
+  }) async {}
+
+  /// Handle the fact that files with [paths] were changed.
+  Future<void> contentChanged(List<String> paths) async {
+    final contextCollection = _contextCollection;
+    if (contextCollection != null) {
+      await _forAnalysisContexts(contextCollection, (analysisContext) async {
+        for (final path in paths) {
+          analysisContext.changeFile(path);
         }
-        return true;
-      }
-      return false;
+        final affected = await analysisContext.applyPendingFileChanges();
+        await handleAffectedFiles(
+          analysisContext: analysisContext,
+          paths: affected,
+        );
+      });
     }
-
-    for (var root in driverMap.keys) {
-      if (ownsFile(root)) {
-        return root;
-      }
-    }
-    return null;
   }
 
-  /// Create an analysis driver that can analyze the files within the given
-  /// [contextRoot].
-  AnalysisDriverGeneric createAnalysisDriver(ContextRoot contextRoot);
+  /// This method is invoked once to create the [ByteStore] that is used for
+  /// all [AnalysisContextCollection] instances, and reused when new instances
+  /// are created (and so can perform analysis faster).
+  ByteStore createByteStore() {
+    return MemoryCachingByteStore(
+      NullByteStore(),
+      1024 * 1024 * 256,
+    );
+  }
 
-  /// Return the driver being used to analyze the file with the given [path].
-  AnalysisDriverGeneric? driverForPath(String path) {
-    var contextRoot = contextRootContaining(path);
-    if (contextRoot == null) {
-      return null;
+  /// Plugin implementations can use this method to flush the state of
+  /// analysis, so reduce the used heap size, after performing a set of
+  /// operations, e.g. in [afterNewContextCollection] or [handleAffectedFiles].
+  ///
+  /// The next analysis operation will be slower, because it will restore
+  /// the state from the byte store cache, or recompute.
+  Future<void> flushAnalysisState({
+    bool elementModels = true,
+  }) async {
+    final contextCollection = _contextCollection;
+    if (contextCollection != null) {
+      for (final analysisContext in contextCollection.contexts) {
+        if (elementModels) {
+          analysisContext.driver.clearLibraryContext();
+        }
+      }
     }
-    return driverMap[contextRoot];
   }
 
   /// Return the result of analyzing the file with the given [path].
   ///
-  /// Throw a [RequestFailure] is the file cannot be analyzed or if the driver
-  /// associated with the file is not an [AnalysisDriver].
+  /// Throw a [RequestFailure] is the file cannot be analyzed.
   Future<ResolvedUnitResult> getResolvedUnitResult(String path) async {
-    var driver = driverForPath(path);
-    if (driver is! AnalysisDriver) {
-      // Return an error from the request.
-      throw RequestFailure(
-          RequestErrorFactory.pluginError('Failed to analyze $path', null));
+    final contextCollection = _contextCollection;
+    if (contextCollection != null) {
+      final analysisContext = contextCollection.contextFor(path);
+      final analysisSession = analysisContext.currentSession;
+      final unitResult = await analysisSession.getResolvedUnit(path);
+      if (unitResult is ResolvedUnitResult) {
+        return unitResult;
+      }
     }
-    var result = await driver.getResult(path);
-    if (result is! ResolvedUnitResult) {
-      // Return an error from the request.
-      throw RequestFailure(
-          RequestErrorFactory.pluginError('Failed to analyze $path', null));
-    }
-    return result;
+    // Return an error from the request.
+    throw RequestFailure(
+      RequestErrorFactory.pluginError('Failed to analyze $path', null),
+    );
+  }
+
+  /// Handles files that might have been affected by a content change of
+  /// one or more files. The implementation may check if these files should
+  /// be analyzed, do such analysis, and send diagnostics.
+  ///
+  /// By default invokes [analyzeFiles].
+  Future<void> handleAffectedFiles({
+    required AnalysisContext analysisContext,
+    required List<String> paths,
+  }) async {
+    await analyzeFiles(
+      analysisContext: analysisContext,
+      paths: paths,
+    );
   }
 
   /// Handle an 'analysis.getNavigation' request.
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<AnalysisGetNavigationResult> handleAnalysisGetNavigation(
-      AnalysisGetNavigationParams params) async {
+      AnalysisGetNavigationParams parameters) async {
     return AnalysisGetNavigationResult(
         <String>[], <NavigationTarget>[], <NavigationRegion>[]);
   }
@@ -190,7 +229,7 @@ abstract class ServerPlugin {
           // TODO(brianwilkerson) Handle the event.
           break;
         case WatchEventType.MODIFY:
-          contentChanged(event.path);
+          await contentChanged([event.path]);
           break;
         case WatchEventType.REMOVE:
           // TODO(brianwilkerson) Handle the event.
@@ -208,27 +247,27 @@ abstract class ServerPlugin {
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<AnalysisSetContextRootsResult> handleAnalysisSetContextRoots(
       AnalysisSetContextRootsParams parameters) async {
-    var contextRoots = parameters.roots;
-    var oldRoots = driverMap.keys.toList();
-    for (var contextRoot in contextRoots) {
-      if (!oldRoots.remove(contextRoot)) {
-        // The context is new, so we create a driver for it. Creating the driver
-        // has the side-effect of adding it to the analysis driver scheduler.
-        var driver = createAnalysisDriver(contextRoot);
-        driverMap[contextRoot] = driver;
-        _addFilesToDriver(
-            driver,
-            resourceProvider.getResource(contextRoot.root),
-            contextRoot.exclude);
-      }
+    final currentContextCollection = _contextCollection;
+    if (currentContextCollection != null) {
+      _contextCollection = null;
+      await beforeContextCollectionDispose(
+        contextCollection: currentContextCollection,
+      );
+      currentContextCollection.dispose();
     }
-    for (var contextRoot in oldRoots) {
-      // The context has been removed, so we remove its driver.
-      var driver = driverMap.remove(contextRoot);
-      // The `dispose` method has the side-effect of removing the driver from
-      // the analysis driver scheduler.
-      driver?.dispose();
-    }
+
+    final includedPaths = parameters.roots.map((e) => e.root).toList();
+    final contextCollection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      includedPaths: includedPaths,
+      byteStore: _byteStore,
+      sdkPath: _sdkPath,
+      fileContentCache: FileContentCache(resourceProvider),
+    );
+    _contextCollection = contextCollection;
+    await afterNewContextCollection(
+      contextCollection: contextCollection,
+    );
     return AnalysisSetContextRootsResult();
   }
 
@@ -237,19 +276,7 @@ abstract class ServerPlugin {
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<AnalysisSetPriorityFilesResult> handleAnalysisSetPriorityFiles(
       AnalysisSetPriorityFilesParams parameters) async {
-    var files = parameters.files;
-    var filesByDriver = <AnalysisDriverGeneric, List<String>>{};
-    for (var file in files) {
-      var contextRoot = contextRootContaining(file);
-      if (contextRoot != null) {
-        // TODO(brianwilkerson) Which driver should we use if there is no context root?
-        var driver = driverMap[contextRoot]!;
-        filesByDriver.putIfAbsent(driver, () => <String>[]).add(file);
-      }
-    }
-    filesByDriver.forEach((AnalysisDriverGeneric driver, List<String> files) {
-      driver.priorityFiles = files;
-    });
+    priorityPaths = parameters.files.toSet();
     return AnalysisSetPriorityFilesResult();
   }
 
@@ -273,13 +300,14 @@ abstract class ServerPlugin {
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<AnalysisUpdateContentResult> handleAnalysisUpdateContent(
       AnalysisUpdateContentParams parameters) async {
-    var files = parameters.files;
-    files.forEach((String filePath, Object? overlay) {
+    final changedPaths = <String>{};
+    var paths = parameters.files;
+    paths.forEach((String path, Object? overlay) {
       // Prepare the old overlay contents.
       String? oldContents;
       try {
-        if (resourceProvider.hasOverlay(filePath)) {
-          var file = resourceProvider.getFile(filePath);
+        if (resourceProvider.hasOverlay(path)) {
+          var file = resourceProvider.getFile(path);
           oldContents = file.readAsStringSync();
         }
       } catch (_) {}
@@ -307,16 +335,17 @@ abstract class ServerPlugin {
 
       if (newContents != null) {
         resourceProvider.setOverlay(
-          filePath,
+          path,
           content: newContents,
           modificationStamp: _overlayModificationStamp++,
         );
       } else {
-        resourceProvider.removeOverlay(filePath);
+        resourceProvider.removeOverlay(path);
       }
 
-      contentChanged(filePath);
+      changedPaths.add(path);
     });
+    await contentChanged(changedPaths.toList());
     return AnalysisUpdateContentResult();
   }
 
@@ -386,15 +415,9 @@ abstract class ServerPlugin {
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<PluginVersionCheckResult> handlePluginVersionCheck(
       PluginVersionCheckParams parameters) async {
-    var byteStorePath = parameters.byteStorePath;
-    var sdkPath = parameters.sdkPath;
+    _sdkPath = parameters.sdkPath;
     var versionString = parameters.version;
     var serverVersion = Version.parse(versionString);
-    _byteStore = MemoryCachingByteStore(
-        FileByteStore(byteStorePath,
-            tempNameSuffix: DateTime.now().millisecondsSinceEpoch.toString()),
-        64 * M);
-    _sdkManager = DartSdkManager(sdkPath);
     return PluginVersionCheckResult(
         isCompatibleWith(serverVersion), name, version, fileGlobsToAnalyze,
         contactInfo: contactInfo);
@@ -479,24 +502,22 @@ abstract class ServerPlugin {
     _channel.listen(_onRequest, onError: onError, onDone: onDone);
   }
 
-  /// Add all of the files contained in the given [resource] that are not in the
-  /// list of [excluded] resources to the given [driver].
-  void _addFilesToDriver(
-      AnalysisDriverGeneric driver, Resource resource, List<String> excluded) {
-    var path = resource.path;
-    if (excluded.contains(path)) {
-      return;
-    }
-    if (resource is File) {
-      driver.addFile(path);
-    } else if (resource is Folder) {
-      try {
-        for (var child in resource.getChildren()) {
-          _addFilesToDriver(driver, child, excluded);
-        }
-      } on FileSystemException {
-        // The folder does not exist, so ignore it.
+  /// Invokes [f] first for priority analysis contexts, then for the rest.
+  Future<void> _forAnalysisContexts(
+    AnalysisContextCollection contextCollection,
+    Future<void> Function(AnalysisContext analysisContext) f,
+  ) async {
+    final nonPriorityAnalysisContexts = <AnalysisContext>[];
+    for (final analysisContext in contextCollection.contexts) {
+      if (_isPriorityAnalysisContext(analysisContext)) {
+        await f(analysisContext);
+      } else {
+        nonPriorityAnalysisContexts.add(analysisContext);
       }
+    }
+
+    for (final analysisContext in nonPriorityAnalysisContexts) {
+      await f(analysisContext);
     }
   }
 
@@ -569,6 +590,10 @@ abstract class ServerPlugin {
           error: RequestErrorFactory.unknownRequest(request.method));
     }
     return result.toResponse(request.id, requestTime);
+  }
+
+  bool _isPriorityAnalysisContext(AnalysisContext analysisContext) {
+    return priorityPaths.any(analysisContext.contextRoot.isAnalyzed);
   }
 
   /// The method that is called when a [request] is received from the analysis

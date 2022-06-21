@@ -563,7 +563,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// library that was resynthesized, but after some initial analysis we might
   /// not get again to many of these libraries. So, we should clear the context
   /// periodically.
-  @visibleForTesting
   void clearLibraryContext() {
     _libraryContext?.dispose();
     _libraryContext = null;
