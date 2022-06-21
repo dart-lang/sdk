@@ -1,6 +1,6 @@
 // @dart = 2.13
 class Foo {
-  Foo operator >>> (_) => this;
+  Foo operator >>>(_) => this;
 }
 extension on Symbol {
   String operator >(_) => "Greater Than used";

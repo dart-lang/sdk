@@ -4,51 +4,37 @@ abstract class AbstractA {
   external final dynamic fieldExternalFinalDynamicOfAbstractA;
   external num fieldExternalNonNullableOfAbstractA;
 }
+
 abstract class AbstractB {
   abstract final dynamic fieldAbstractFinalDynamicOfAbstractB;
   abstract num fieldAbstractNonNullableOfAbstractB;
   external final dynamic fieldExternalFinalDynamicOfAbstractB;
   external num fieldExternalNonNullableOfAbstractB;
 }
+
 class A {
-  num fieldNonNullableOfA;
-  ---- unknown chunk starts ----
-late
----- unknown chunk ends ----
   final dynamic fieldFinalDynamicOfA;
-  num fieldLateNonNullableOfA;
-  ---- unknown chunk starts ----
-late
----- unknown chunk ends ----
-  final dynamic fieldLateFinalDynamicOfA;
+  late final dynamic fieldLateFinalDynamicOfA;
+  late num fieldLateNonNullableOfA;
+  num fieldNonNullableOfA;
 }
+
 class B {
-  num fieldNonNullableOfB;
-  ---- unknown chunk starts ----
-late
----- unknown chunk ends ----
-  final dynamic fieldFinalDynamicOfB;
-  num fieldLateNonNullableOfB;
-  ---- unknown chunk starts ----
-late
----- unknown chunk ends ----
   factory B() => throw 42;
-  final dynamic fieldLateFinalDynamicOfB;
+  final dynamic fieldFinalDynamicOfB;
+  late final dynamic fieldLateFinalDynamicOfB;
+  late num fieldLateNonNullableOfB;
+  num fieldNonNullableOfB;
 }
+
 main() {}
 mixin M {
-  num fieldNonNullableOfM;
-  ---- unknown chunk starts ----
-late
----- unknown chunk ends ----
+  abstract final dynamic fieldAbstractFinalDynamicOfM;
   abstract num fieldAbstractNonNullableOfM;
+  external final dynamic fieldExternalFinalDynamicOfM;
   external num fieldExternalNonNullableOfM;
   final dynamic fieldFinalDynamicOfM;
-  num fieldLateNonNullableOfM;
-  ---- unknown chunk starts ----
-late
----- unknown chunk ends ----
-  abstract final dynamic fieldAbstractFinalDynamicOfM;
-  external final dynamic fieldExternalFinalDynamicOfM;
-  final dynamic fieldLateFinalDynamicOfM;
+  late final dynamic fieldLateFinalDynamicOfM;
+  late num fieldLateNonNullableOfM;
+  num fieldNonNullableOfM;
 }

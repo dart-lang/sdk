@@ -15,13 +15,10 @@ class Foo<U> {
   static void foo12Prime(void Function(List<U>) b) {}
   static void foo13(void Function(U b)) {}
   static void foo13Prime(void Function(List<U> b)) {}
-  static late U ;
-  foo14;
-  static late List<U> (){}
-  foo14Prime;
-  static late U ;
-  Function(U) foo15;
-  static late List<U> (){}
-  Function(List<U>) foo15Prime;
+  static late U foo14;
+  static late List<U> foo14Prime;
+  static late U Function(U) foo15;
+  static late List<U> Function(List<U>) foo15Prime;
 }
+
 main() {}

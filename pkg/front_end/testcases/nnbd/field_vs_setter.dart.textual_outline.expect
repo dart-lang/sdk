@@ -9,11 +9,9 @@ void set duplicateTopLevelFieldAndSetter1(int? value) {}
 final int? duplicateTopLevelFieldAndSetter2 = null;
 int? duplicateTopLevelFieldAndSetter2;
 void set duplicateTopLevelFieldAndSetter2(int? value) {}
-late
-final int? topLevelLateFinalFieldAndSetter;
+late final int? topLevelLateFinalFieldAndSetter;
 void set topLevelLateFinalFieldAndSetter(int? value) {}
-late
-final int? topLevelLateFinalFieldAndDuplicateSetter;
+late final int? topLevelLateFinalFieldAndDuplicateSetter;
 void set topLevelLateFinalFieldAndDuplicateSetter(int? value) {}
 void set topLevelLateFinalFieldAndDuplicateSetter(int? value) {}
 class Class {
@@ -28,11 +26,9 @@ class Class {
   final int? duplicateInstanceFieldAndSetter2 = null;
   int? duplicateInstanceFieldAndSetter2;
   void set duplicateInstanceFieldAndSetter2(int? value) {}
-  late
-  final int? instanceLateFinalFieldAndSetter;
+  late final int? instanceLateFinalFieldAndSetter;
   void set instanceLateFinalFieldAndSetter(int? value) {}
-  late
-  final int? instanceLateFinalFieldAndDuplicateSetter;
+  late final int? instanceLateFinalFieldAndDuplicateSetter;
   void set instanceLateFinalFieldAndDuplicateSetter(int? value) {}
   void set instanceLateFinalFieldAndDuplicateSetter(int? value) {}
   static int? staticFieldAndSetter;
@@ -46,11 +42,9 @@ class Class {
   static final int? duplicateStaticFieldAndSetter2 = null;
   static int? duplicateStaticFieldAndSetter2;
   static void set duplicateStaticFieldAndSetter2(int? value) {}
-  static late ;
-  final int? staticLateFinalFieldAndSetter;
+  static late final int? staticLateFinalFieldAndSetter;
   static void set staticLateFinalFieldAndSetter(int? value) {}
-  static late ;
-  final int? staticLateFinalFieldAndDuplicateSetter;
+  static late final int? staticLateFinalFieldAndDuplicateSetter;
   static void set staticLateFinalFieldAndDuplicateSetter(int? value) {}
   static void set staticLateFinalFieldAndDuplicateSetter(int? value) {}
   static int? staticFieldAndInstanceSetter;
@@ -99,11 +93,9 @@ extension Extension on int? {
   static final int? duplicateExtensionStaticFieldAndSetter2 = null;
   static int? duplicateExtensionStaticFieldAndSetter2;
   static void set duplicateExtensionStaticFieldAndSetter2(int? value) {}
-  static late ;
-  final int? extensionStaticLateFinalFieldAndSetter;
+  static late final int? extensionStaticLateFinalFieldAndSetter;
   static void set extensionStaticLateFinalFieldAndSetter(int? value) {}
-  static late ;
-  final int? extensionStaticLateFinalFieldAndDuplicateSetter;
+  static late final int? extensionStaticLateFinalFieldAndDuplicateSetter;
   static void set extensionStaticLateFinalFieldAndDuplicateSetter(int? value) {}
   static void set extensionStaticLateFinalFieldAndDuplicateSetter(int? value) {}
   static int? extensionStaticFieldAndInstanceSetter;

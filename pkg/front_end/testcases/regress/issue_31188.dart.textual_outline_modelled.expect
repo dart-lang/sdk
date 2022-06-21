@@ -1,2 +1,0 @@
-main() {}
-type T = Map<A, B>;

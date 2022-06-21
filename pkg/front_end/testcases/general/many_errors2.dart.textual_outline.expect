@@ -6,8 +6,7 @@ class A {
 external foo(String x) {}
 class B {}
 class C {
-  late
-  B b;
+  late B b;
 }
 abstract class AbstractClass {
   const AbstractClass.id();

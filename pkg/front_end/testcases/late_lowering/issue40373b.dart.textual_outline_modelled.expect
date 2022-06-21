@@ -1,0 +1,8 @@
+class C {
+  late final v;
+  static late final s;
+}
+
+expect(expected, actual) {}
+late final g;
+main() {}
