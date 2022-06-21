@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-## 2.17.4 - 2022-06-20
+## 2.17.5 - 2022-06-22
 
 This is a patch release that fixes:
 
