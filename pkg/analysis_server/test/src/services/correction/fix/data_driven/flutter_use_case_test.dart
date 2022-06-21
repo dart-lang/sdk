@@ -1998,7 +1998,7 @@ void f() {
     toggleableActiveColor: Colors.black,
     hoverColor: Colors.white,
     primaryColor: Colors.white,
-    sliderTheme: SliderThemeData(),
+    sliderTheme: SliderThemeData()
   );
   print(themeData);
 }
@@ -2012,7 +2012,7 @@ void f() {
     focusColor: Colors.black,
     hoverColor: Colors.white,
     primaryColor: Colors.white,
-    sliderTheme: SliderThemeData(), checkboxTheme: CheckboxThemeData(), radioTheme: RadioThemeData(),
+    sliderTheme: SliderThemeData(), checkboxTheme: CheckboxThemeData(), radioTheme: RadioThemeData()
   );
   print(themeData);
 }
@@ -2183,7 +2183,7 @@ void f() {
     toggleableActiveColor: Colors.black,
     hoverColor: Colors.white,
     primaryColor: Colors.white,
-    sliderTheme: SliderThemeData(),
+    sliderTheme: SliderThemeData()
   );
   print(themeData);
 }
@@ -2197,7 +2197,7 @@ void f() {
     focusColor: Colors.black,
     hoverColor: Colors.white,
     primaryColor: Colors.white,
-    sliderTheme: SliderThemeData(), checkboxTheme: CheckboxThemeData(), radioTheme: RadioThemeData(),
+    sliderTheme: SliderThemeData(), checkboxTheme: CheckboxThemeData(), radioTheme: RadioThemeData()
   );
   print(themeData);
 }
