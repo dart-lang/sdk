@@ -108,10 +108,10 @@ class ImportedElement {
 }
 
 class LibraryScope extends EnclosedScope {
-  final LibraryElement _element;
+  final LibraryElementImpl _element;
   final List<ExtensionElement> extensions = [];
 
-  LibraryScope(LibraryElement element)
+  LibraryScope(LibraryElementImpl element)
       : _element = element,
         super(_LibraryImportScope(element)) {
     extensions.addAll((_parent as _LibraryImportScope).extensions);
@@ -147,19 +147,18 @@ class LocalScope extends EnclosedScope {
 }
 
 class PrefixScope implements Scope {
-  final LibraryOrAugmentationElement _library;
+  final LibraryOrAugmentationElementImpl _library;
   final Map<String, ImportedElement> _getters = {};
   final Map<String, ImportedElement> _setters = {};
   final Set<ExtensionElement> _extensions = {};
   LibraryElement? _deferredLibrary;
 
   PrefixScope(this._library, PrefixElement? prefix) {
-    for (var import in _library.imports) {
+    final elementFactory = _library.session.elementFactory;
+    for (final import in _library.imports) {
       if (import.prefix == prefix) {
         final importedLibrary = import.importedLibrary;
         if (importedLibrary is LibraryElementImpl) {
-          // TODO(scheglov) Ask it from `_library`.
-          final elementFactory = importedLibrary.session.elementFactory;
           final combinators = import.combinators.build();
           for (final exportedReference in importedLibrary.exportedReferences) {
             final reference = exportedReference.reference;
@@ -330,11 +329,11 @@ class TypeParameterScope extends EnclosedScope {
 }
 
 class _LibraryImportScope implements Scope {
-  final LibraryElement _library;
+  final LibraryElementImpl _library;
   final PrefixScope _nullPrefixScope;
   List<ExtensionElement>? _extensions;
 
-  _LibraryImportScope(LibraryElement library)
+  _LibraryImportScope(LibraryElementImpl library)
       : _library = library,
         _nullPrefixScope = PrefixScope(library, null);
 
