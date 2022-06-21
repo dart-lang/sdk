@@ -580,15 +580,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final vmService = await _vmServiceConnectUri(uri.toString());
     logger?.call('Connected to debugger at $uri!');
 
-    // Send a custom event with the VM Service URI as the editor might want to
-    // know about this (for example so it can connect an embedded DevTools to
-    // this app).
-    sendEvent(
-      RawEventBody({
-        'vmServiceUri': uri.toString(),
-      }),
-      eventType: 'dart.debuggerUris',
-    );
+    // Send debugger URI to the client.
+    sendDebuggerUris(uri);
 
     this.vmService = vmService;
 
@@ -629,6 +622,18 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     );
 
     _debuggerInitializedCompleter.complete();
+  }
+
+  void sendDebuggerUris(Uri uri) {
+    // Send a custom event with the VM Service URI as the editor might want to
+    // know about this (for example so it can connect an embedded DevTools to
+    // this app).
+    sendEvent(
+      RawEventBody({
+        'vmServiceUri': uri.toString(),
+      }),
+      eventType: 'dart.debuggerUris',
+    );
   }
 
   /// Process any existing isolates that may have been created before the
