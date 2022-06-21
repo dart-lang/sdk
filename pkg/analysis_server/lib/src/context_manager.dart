@@ -7,6 +7,7 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -46,6 +47,9 @@ var experimentalEnableBazelWatching = true;
 /// Class that maintains a mapping from included/excluded paths to a set of
 /// folders that should correspond to analysis contexts.
 abstract class ContextManager {
+  /// Return the analysis contexts that are currently defined.
+  List<AnalysisContext> get analysisContexts;
+
   /// Get the callback interface used to create, destroy, and update contexts.
   ContextManagerCallbacks get callbacks;
 
@@ -235,6 +239,10 @@ class ContextManagerImpl implements ContextManager {
           .listen((events) => _handleBazelWatchEvents(events));
     }
   }
+
+  @override
+  List<AnalysisContext> get analysisContexts =>
+      _collection?.contexts.cast<AnalysisContext>() ?? const [];
 
   @override
   DriverBasedAnalysisContext? getContextFor(String path) {
