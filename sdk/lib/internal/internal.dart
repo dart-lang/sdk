@@ -136,7 +136,7 @@ int parseHexByte(String source, int index) {
   return digit1 * 16 + digit2 - (digit2 & 256);
 }
 
-/// A reusable `null`-valued future per zone used by `dart:async`.
+/// A reusable `null`-valued future used by `dart:async`.
 ///
 /// **DO NOT USE.**
 ///
@@ -156,14 +156,7 @@ int parseHexByte(String source, int index) {
 /// This future will be removed again if we can ever do so.
 /// Do not use it for anything other than preserving timing
 /// during the null safety migration.
-Future<Null> get nullFuture => _nullFutures[Zone.current] ??= 
-    Future<Null>.value(null);
-
-/// Whether [future] is the null future of the current zone.
-bool isNullFuture(Zone zone, Future future) =>
-    identical(_nullFutures[zone], future);
-
-final Expando<Future<Null>> _nullFutures = Expando<Future<Null>>();
+final Future<Null> nullFuture = Zone.root.run(() => Future<Null>.value(null));
 
 /// A default hash function used by the platform in various places.
 ///
