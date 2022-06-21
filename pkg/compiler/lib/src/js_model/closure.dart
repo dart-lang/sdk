@@ -22,6 +22,7 @@ import '../ordered_typeset.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import 'elements.dart';
+import 'jrecord_field_interface.dart';
 import 'js_world_builder.dart' show JsClosedWorldBuilder;
 
 class ClosureDataImpl implements ClosureData {
@@ -1065,7 +1066,7 @@ class JRecord extends JClass {
 /// A variable that has been "boxed" to prevent name shadowing with the
 /// original variable and ensure that this variable is updated/read with the
 /// most recent value.
-class JRecordField extends JField {
+class JRecordField extends JField implements JRecordFieldInterface {
   /// Tag used for identifying serialized [JRecordField] objects in a
   /// debugging data stream.
   static const String tag = 'record-field';
