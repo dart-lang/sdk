@@ -135,7 +135,6 @@ import '../../testing_utils.dart' show checkEnvironment;
 import '../../utils/kernel_chain.dart'
     show
         ComponentResult,
-        KernelTextSerialization,
         MatchContext,
         MatchExpectation,
         Print,
@@ -199,8 +198,6 @@ const String EXPECTATIONS = '''
   }
 ]
 ''';
-
-const String KERNEL_TEXT_SERIALIZATION = " kernel text serialization ";
 
 final Expectation runtimeError = ExpectationSet.Default["RuntimeError"];
 
@@ -358,7 +355,6 @@ class FastaContext extends ChainContext with MatchContext {
       bool updateComments,
       this.skipVm,
       this.semiFuzz,
-      bool kernelTextSerialization,
       CompileMode compileMode,
       this.verify,
       this.soundNullSafety)
@@ -402,9 +398,6 @@ class FastaContext extends ChainContext with MatchContext {
     }
     steps.add(const TypeCheck());
     steps.add(const EnsureNoErrors());
-    if (kernelTextSerialization) {
-      steps.add(const KernelTextSerialization());
-    }
     switch (compileMode) {
       case CompileMode.full:
         steps.add(const Transform());
@@ -758,7 +751,6 @@ class FastaContext extends ChainContext with MatchContext {
       "skipVm",
       "semiFuzz",
       "verify",
-      KERNEL_TEXT_SERIALIZATION,
       "platformBinaries",
       COMPILATION_MODE,
     };
@@ -788,8 +780,6 @@ class FastaContext extends ChainContext with MatchContext {
     bool skipVm = environment["skipVm"] == "true";
     bool semiFuzz = environment["semiFuzz"] == "true";
     bool verify = environment["verify"] != "false";
-    bool kernelTextSerialization =
-        environment.containsKey(KERNEL_TEXT_SERIALIZATION);
     String? platformBinaries = environment["platformBinaries"];
     if (platformBinaries != null && !platformBinaries.endsWith('/')) {
       platformBinaries = '$platformBinaries/';
@@ -807,7 +797,6 @@ class FastaContext extends ChainContext with MatchContext {
         updateComments,
         skipVm,
         semiFuzz,
-        kernelTextSerialization,
         compileModeFromName(environment[COMPILATION_MODE]),
         verify,
         soundNullSafety));
@@ -1248,6 +1237,9 @@ class FuzzCompiles
       }
 
       return pass(result);
+    } catch (e, st) {
+      return new Result<ComponentResult>(result, semiFuzzCrash,
+          "Crashed with '$e' when fuzz compiling.\n\n$st");
     } finally {
       if (originalFlag != null) {
         context.explicitExperimentalFlags[

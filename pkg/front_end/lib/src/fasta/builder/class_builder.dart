@@ -16,11 +16,11 @@ import 'package:kernel/ast.dart'
         NullType,
         Nullability,
         Supertype,
+        TreeNode,
         getAsTypeArguments;
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/src/unaliasing.dart';
-import 'package:kernel/text/text_serialization_verifier.dart';
 
 import '../fasta_codes.dart';
 import '../modifier.dart';
@@ -36,6 +36,8 @@ import 'metadata_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
+
+const Uri? noUri = null;
 
 abstract class ClassBuilder implements DeclarationBuilder {
   /// The type variables declared on a class, extension or mixin declaration.
@@ -304,7 +306,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         return nonNullableRawType;
       case Nullability.undetermined:
       default:
-        return unhandled("$nullability", "rawType", noOffset, noUri);
+        return unhandled("$nullability", "rawType", TreeNode.noOffset, noUri);
     }
   }
 
