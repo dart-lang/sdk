@@ -312,8 +312,8 @@ class DynamicVisitor extends StaticTypeVisitorBase {
   }
 
   @override
-  ir.DartType visitNode(ir.Node node) {
-    ir.DartType staticType = node?.accept(this);
+  ir.DartType visitNode(ir.TreeNode node) {
+    ir.DartType staticType = node.accept(this);
     assert(
         node is! ir.Expression ||
             staticType is ir.NullType ||

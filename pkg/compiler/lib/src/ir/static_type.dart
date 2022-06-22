@@ -166,10 +166,6 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   }
 
   @override
-  ir.DartType defaultNode(ir.Node node) =>
-      throw UnsupportedError('Unhandled node $node (${node.runtimeType})');
-
-  @override
   Null visitComponent(ir.Component node) {
     visitNodes(node.libraries);
   }
@@ -461,7 +457,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     for (ir.Member member in cls.members) {
       if (member.name.text == name) return member;
     }
-    throw fail("Member '$name' not found in $cls");
+    throw StateError("Member '$name' not found in $cls");
   }
 
   ir.Procedure _objectEquals;
@@ -1217,7 +1213,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.DartType thenType = visitNode(then);
     TypeMap afterThen = typeMap;
     typeMap = afterConditionWhenFalse;
-    ir.DartType otherwiseType = visitNode(otherwise);
+    ir.DartType otherwiseType = visitNodeOrNull(otherwise);
     TypeMap afterOtherwise = typeMap;
     if (completes(thenType) && completes(otherwiseType)) {
       typeMap = afterThen.join(afterOtherwise);
@@ -1438,7 +1434,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     Set<ir.VariableDeclaration> _oldVariables = _currentVariables;
     _currentVariables = {};
     visitSignature(node.function);
-    visitNode(node.function.body);
+    visitNodeOrNull(node.function.body);
     handleFunctionExpression(node);
     _invalidatedVariables.removeAll(_currentVariables);
     _currentVariables = _oldVariables;
@@ -1529,7 +1525,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     visitNodes(node.variables);
     TypeMap beforeLoop = typeMap =
         typeMap.remove(variableScopeModel.getScopeFor(node).assignedVariables);
-    visitNode(node.condition);
+    visitNodeOrNull(node.condition);
     typeMap = typeMapWhenTrue;
     visitNode(node.body);
     visitNodes(node.updates);
@@ -1621,7 +1617,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitReturnStatement(ir.ReturnStatement node) {
-    visitNode(node.expression);
+    visitNodeOrNull(node.expression);
     return const DoesNotCompleteType();
   }
 
@@ -1675,7 +1671,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     TypeMap afterConditionWhenTrue = typeMapWhenTrue;
     TypeMap afterConditionWhenFalse = typeMapWhenFalse;
     typeMap = afterConditionWhenFalse;
-    visitNode(node.message);
+    visitNodeOrNull(node.message);
     handleAssertStatement(node);
     typeMap = useAsserts ? afterConditionWhenTrue : beforeCondition;
   }
@@ -1690,7 +1686,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     Set<ir.VariableDeclaration> _oldVariables = _currentVariables;
     _currentVariables = {};
     visitSignature(node.function);
-    visitNode(node.function.body);
+    visitNodeOrNull(node.function.body);
     handleFunctionDeclaration(node);
     _invalidatedVariables.removeAll(_currentVariables);
     _currentVariables = _oldVariables;
@@ -1701,7 +1697,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   void visitParameter(ir.VariableDeclaration node) {
     _currentVariables.add(node);
-    visitNode(node.initializer);
+    visitNodeOrNull(node.initializer);
     handleParameter(node);
   }
 
@@ -1722,7 +1718,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     _currentVariables = {};
     currentLibrary = node.enclosingLibrary;
     visitSignature(node.function);
-    visitNode(node.function.body);
+    visitNodeOrNull(node.function.body);
     handleProcedure(node);
     _invalidatedVariables.removeAll(_currentVariables);
     _currentVariables = null;
@@ -1740,7 +1736,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     currentLibrary = node.enclosingLibrary;
     visitSignature(node.function);
     visitNodes(node.initializers);
-    visitNode(node.function.body);
+    visitNodeOrNull(node.function.body);
     handleConstructor(node);
     _invalidatedVariables.removeAll(_currentVariables);
     _currentVariables = null;
@@ -1756,7 +1752,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         typeEnvironment.coreTypes, node.enclosingLibrary.nonNullable));
     _currentVariables = {};
     currentLibrary = node.enclosingLibrary;
-    visitNode(node.initializer);
+    visitNodeOrNull(node.initializer);
     handleField(node);
     _invalidatedVariables.removeAll(_currentVariables);
     _currentVariables = null;
@@ -1768,7 +1764,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   void _processLocalVariable(ir.VariableDeclaration node) {
     _currentVariables.add(node);
-    ir.DartType type = visitNode(node.initializer);
+    ir.DartType type = visitNodeOrNull(node.initializer);
     if (node.initializer != null &&
         variableScopeModel.isEffectivelyFinal(node) &&
         inferEffectivelyFinalVariableTypes) {
