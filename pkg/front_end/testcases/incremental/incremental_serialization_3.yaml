@@ -46,10 +46,24 @@ worlds:
         lib3() {
           print("lib3");
         }
-      .packages: |
-        package1:package1
-        package2:package2
-        package3:package3
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "package1",
+              "rootUri": "../package1"
+            },
+            {
+              "name": "package2",
+              "rootUri": "../package2"
+            },
+            {
+              "name": "package3",
+              "rootUri": "../package3"
+            }
+          ]
+        }
     expectedLibraryCount: 5
     incrementalSerializationDoesWork: true
   - entry: main.dart
@@ -89,9 +103,23 @@ worlds:
         lib3() {
           print("lib3");
         }
-      .packages: |
-        package1:package1
-        package2:package2
-        package3:package3
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "package1",
+              "rootUri": "../package1"
+            },
+            {
+              "name": "package2",
+              "rootUri": "../package2"
+            },
+            {
+              "name": "package3",
+              "rootUri": "../package3"
+            }
+          ]
+        }
     expectedLibraryCount: 5
     incrementalSerializationDoesWork: true

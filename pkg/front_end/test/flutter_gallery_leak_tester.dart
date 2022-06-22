@@ -182,7 +182,7 @@ Future<void> main(List<String> args) async {
     "--output-dill",
     "$rootPath/flutter_server_tmp.dill",
     "--packages",
-    "$rootPath/gallery/.packages",
+    "$rootPath/gallery/.dart_tool/package_config.json",
     "-Ddart.vm.profile=false",
     "-Ddart.vm.product=false",
     "--enable-asserts",

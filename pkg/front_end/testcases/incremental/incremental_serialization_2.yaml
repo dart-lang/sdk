@@ -36,8 +36,16 @@ worlds:
         lib3() {
           return lib1();
         }
-      .packages: |
-        package1:package1
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "package1",
+              "rootUri": "../package1"
+            }
+          ]
+        }
     expectedLibraryCount: 4
     incrementalSerializationDoesWork: true
   - entry: main.dart

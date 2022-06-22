@@ -2,9 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-# Compile an application with a .packages file.
-# Then change which file should be the .packages file to use, and everything
-# should now be relative to the new .packages file.
+# Compile an application with a .dart_tool/package_config.json file.
+# Then change which file should be the package_config.json file to
+# use, and everything should now be relative to the new
+# package_config.json file.
 
 type: newworld
 worlds:
@@ -31,7 +32,16 @@ worlds:
         b() {
           a();
         }
-      .packages: example:package_0.1.0
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "example",
+              "rootUri": "../package_0.1.0"
+            }
+          ]
+        }
     expectedLibraryCount: 3
   - entry: main.dart
     worldType: updated
@@ -42,6 +52,15 @@ worlds:
         b() {
           print("hello from v0.1.1");
         }
-      .packages2: example:package_0.1.1
-    dotPackagesFile: .packages2
+      .dart_tool/package_config2.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "example",
+              "rootUri": "../package_0.1.1"
+            }
+          ]
+        }
+    packageConfigFile: .dart_tool/package_config2.json
     expectedLibraryCount: 2

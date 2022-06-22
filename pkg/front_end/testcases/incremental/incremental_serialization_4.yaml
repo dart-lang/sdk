@@ -45,9 +45,20 @@ worlds:
           p1();
           print("Package 2");
         }
-      .packages: |
-        package1:package1
-        package2:package2
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "package1",
+              "rootUri": "../package1"
+            },
+            {
+              "name": "package2",
+              "rootUri": "../package2"
+            }
+          ]
+        }
     expectedLibraryCount: 3
     incrementalSerializationDoesWork: true
   - entry: main.dart
@@ -86,8 +97,19 @@ worlds:
           p1();
           print("Package 2");
         }
-      .packages: |
-        package1:package1v2
-        package2:package2
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "package1",
+              "rootUri": "../package1v2"
+            },
+            {
+              "name": "package2",
+              "rootUri": "../package2"
+            }
+          ]
+        }
     expectedLibraryCount: 3
     incrementalSerializationDoesWork: true
