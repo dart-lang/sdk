@@ -84,7 +84,7 @@ typedef DocumentSelector = List<Either2<TextDocumentFilterWithScheme, String>>;
 /// The glob pattern. Either a string pattern or a relative pattern.
 ///
 /// @since 3.17.0
-typedef GlobPattern = Either2<Pattern, RelativePattern>;
+typedef GlobPattern = Either2<LspPattern, RelativePattern>;
 
 /// Inline value information can be provided by different means:
 /// - directly as a text value (class InlineValueText).
@@ -100,19 +100,6 @@ typedef InlineValue = Either3<InlineValueEvaluatableExpression, InlineValueText,
 /// @since 3.17.0
 typedef LSPArray = List<LSPAny>;
 
-/// A tagging type for string properties that are actually URIs
-///
-/// @since 3.16.0
-typedef LspUri = String;
-
-/// A notebook document filter denotes a notebook document by different
-/// properties. The properties will be match against the notebook's URI (same as
-/// with documents)
-///
-/// @since 3.17.0
-typedef NotebookDocumentFilter = Either3<NotebookDocumentFilter1,
-    NotebookDocumentFilter2, NotebookDocumentFilter3>;
-
 /// The glob pattern to watch relative to the base path. Glob patterns can have
 /// the following syntax:
 /// - `*` to match one or more characters in a path segment
@@ -126,7 +113,20 @@ typedef NotebookDocumentFilter = Either3<NotebookDocumentFilter1,
 /// `example.[!0-9]` to match on `example.a`, `example.b`, but not `example.0`)
 ///
 /// @since 3.17.0
-typedef Pattern = String;
+typedef LspPattern = String;
+
+/// A tagging type for string properties that are actually URIs
+///
+/// @since 3.16.0
+typedef LspUri = String;
+
+/// A notebook document filter denotes a notebook document by different
+/// properties. The properties will be match against the notebook's URI (same as
+/// with documents)
+///
+/// @since 3.17.0
+typedef NotebookDocumentFilter = Either3<NotebookDocumentFilter1,
+    NotebookDocumentFilter2, NotebookDocumentFilter3>;
 typedef PrepareRenameResult
     = Either3<PlaceholderAndRange, PrepareRenameResult2, Range>;
 typedef ProgressToken = Either2<int, String>;
@@ -23298,7 +23298,7 @@ class RelativePattern implements ToJsonable {
   final Either2<LspUri, WorkspaceFolder> baseUri;
 
   /// The actual glob pattern;
-  final Pattern pattern;
+  final LspPattern pattern;
 
   @override
   Map<String, Object?> toJson() {
@@ -41631,7 +41631,8 @@ bool _canParseStringRelativePattern(
     }
     if ((!nullCheck || value != null) &&
         (value is! String && !RelativePattern.canParse(value, reporter))) {
-      reporter.reportError('must be of type Either2<Pattern, RelativePattern>');
+      reporter
+          .reportError('must be of type Either2<LspPattern, RelativePattern>');
       return false;
     }
   } finally {
@@ -42900,12 +42901,13 @@ Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>
           : throw '$value was not one of (SemanticTokensOptions, SemanticTokensRegistrationOptions)';
 }
 
-Either2<Pattern, RelativePattern> _eitherStringRelativePattern(Object? value) {
+Either2<LspPattern, RelativePattern> _eitherStringRelativePattern(
+    Object? value) {
   return value is String
       ? Either2.t1(value)
       : RelativePattern.canParse(value, nullLspJsonReporter)
           ? Either2.t2(RelativePattern.fromJson(value as Map<String, Object?>))
-          : throw '$value was not one of (Pattern, RelativePattern)';
+          : throw '$value was not one of (LspPattern, RelativePattern)';
 }
 
 Either2<LspUri, WorkspaceFolder> _eitherStringWorkspaceFolder(Object? value) {
