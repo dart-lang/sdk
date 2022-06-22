@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../common.dart';
 import '../common/elements.dart' show KElementEnvironment;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../js_backend/native_data.dart';
+import '../js_backend/native_data_interfaces.dart';
 
 /// Determines all native classes in a set of libraries.
 class NativeClassFinder {
@@ -24,7 +22,7 @@ class NativeClassFinder {
   Iterable<ClassEntity> computeNativeClasses(Iterable<Uri> libraries) {
     Set<ClassEntity> nativeClasses = {};
     libraries.forEach((uri) => _processNativeClassesInLibrary(
-        _elementEnvironment.lookupLibrary(uri), nativeClasses));
+        _elementEnvironment.lookupLibrary(uri)!, nativeClasses));
     _processSubclassesOfNativeClasses(libraries, nativeClasses);
     return nativeClasses;
   }
@@ -49,7 +47,7 @@ class NativeClassFinder {
     // Since we map from dispatch tags to classes, a dispatch tag must be used
     // on only one native class.
     for (String tag in _nativeBasicData.getNativeTagsOfClass(cls)) {
-      ClassEntity owner = _tagOwner[tag];
+      ClassEntity? owner = _tagOwner[tag];
       if (owner != null) {
         if (owner != cls) {
           failedAt(cls, "Tag '$tag' already in use by '${owner.name}'");
@@ -62,7 +60,7 @@ class NativeClassFinder {
 
   /// Returns the name of the super class of [cls] or `null` of [cls] has
   /// no explicit superclass.
-  String _findExtendsNameOfClass(covariant ClassEntity cls) {
+  String? _findExtendsNameOfClass(covariant ClassEntity cls) {
     return _elementEnvironment
         .getSuperClass(cls, skipUnnamedMixinApplications: true)
         ?.name;
@@ -82,9 +80,9 @@ class NativeClassFinder {
     Map<String, Set<ClassEntity>> potentialExtends = {};
 
     libraries.forEach((Uri uri) {
-      LibraryEntity library = _elementEnvironment.lookupLibrary(uri);
+      LibraryEntity library = _elementEnvironment.lookupLibrary(uri)!;
       _elementEnvironment.forEachClass(library, (ClassEntity cls) {
-        String extendsName = _findExtendsNameOfClass(cls);
+        String? extendsName = _findExtendsNameOfClass(cls);
         if (extendsName != null) {
           Set<ClassEntity> potentialSubclasses =
               potentialExtends.putIfAbsent(extendsName, () => {});
@@ -97,22 +95,20 @@ class NativeClassFinder {
     // [potentialExtends], and then check that the properly resolved class is in
     // fact a subclass of a native class.
 
-    ClassEntity nativeSuperclassOf(ClassEntity cls) {
+    ClassEntity? nativeSuperclassOf(ClassEntity cls) {
       if (_nativeBasicData.isNativeClass(cls)) return cls;
-      ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
+      ClassEntity? superclass = _elementEnvironment.getSuperClass(cls);
       if (superclass == null) return null;
       return nativeSuperclassOf(superclass);
     }
 
     void walkPotentialSubclasses(ClassEntity element) {
       if (nativeClassesAndSubclasses.contains(element)) return;
-      ClassEntity nativeSuperclass = nativeSuperclassOf(element);
+      ClassEntity? nativeSuperclass = nativeSuperclassOf(element);
       if (nativeSuperclass != null) {
         nativeClassesAndSubclasses.add(element);
-        Set<ClassEntity> potentialSubclasses = potentialExtends[element.name];
-        if (potentialSubclasses != null) {
-          potentialSubclasses.forEach(walkPotentialSubclasses);
-        }
+        Set<ClassEntity>? potentialSubclasses = potentialExtends[element.name];
+        potentialSubclasses?.forEach(walkPotentialSubclasses);
       }
     }
 
@@ -121,20 +117,11 @@ class NativeClassFinder {
   }
 }
 
-/// Returns `true` if [value] is named annotation based on [annotationClass].
-bool isAnnotation(
-    Spannable spannable, ConstantValue value, ClassEntity annotationClass) {
-  if (value is ConstructedConstantValue) {
-    return value.type.element == annotationClass;
-  }
-  return null;
-}
-
 /// Extracts the name if [value] is a named annotation based on
 /// [annotationClass], otherwise returns `null`.
-String readAnnotationName(DartTypes dartTypes, Spannable spannable,
+String? readAnnotationName(DartTypes dartTypes, Spannable spannable,
     ConstantValue value, ClassEntity annotationClass,
-    {String defaultValue}) {
+    {String? defaultValue}) {
   if (value is ConstructedConstantValue) {
     if (value.type.element != annotationClass) return null;
 
@@ -144,10 +131,11 @@ String readAnnotationName(DartTypes dartTypes, Spannable spannable,
       failedAt(spannable,
           'Annotations needs one string: ${value.toStructuredText(dartTypes)}');
       return null;
-    } else if (fields.single is StringConstantValue) {
-      StringConstantValue specStringConstant = fields.single;
-      return specStringConstant.stringValue;
-    } else if (defaultValue != null && fields.single is NullConstantValue) {
+    }
+    final field = fields.single;
+    if (field is StringConstantValue) {
+      return field.stringValue;
+    } else if (defaultValue != null && field is NullConstantValue) {
       return defaultValue;
     } else {
       failedAt(spannable,

@@ -11,4 +11,6 @@ abstract class NativeBasicData {
   bool isJsInteropClass(ClassEntity element);
 
   bool isNativeClass(ClassEntity element);
+
+  List<String> getNativeTagsOfClass(ClassEntity cls);
 }

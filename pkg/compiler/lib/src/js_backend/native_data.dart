@@ -270,6 +270,7 @@ class NativeBasicData implements interfaces.NativeBasicData {
   }
 
   /// Returns the list of non-directive native tag words for [cls].
+  @override
   List<String> getNativeTagsOfClass(ClassEntity cls) {
     return _nativeClassTagInfo[cls].names;
   }

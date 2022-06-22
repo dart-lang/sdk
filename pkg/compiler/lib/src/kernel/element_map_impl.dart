@@ -1448,14 +1448,16 @@ class KernelToElementMap implements IrToElementMap {
 
   /// NativeBasicData is need for computation of the default super class.
   NativeBasicData get nativeBasicData {
-    if (_nativeBasicData == null) {
-      _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
+    var data = _nativeBasicData;
+    if (data == null) {
+      data =
+          _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
       assert(
           _nativeBasicData != null,
           failedAt(NO_LOCATION_SPANNABLE,
               "NativeBasicData has not been computed yet."));
     }
-    return _nativeBasicData;
+    return data;
   }
 
   /// Adds libraries in [component] to the set of libraries.
