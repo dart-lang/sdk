@@ -32,7 +32,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
   Future<void> checkCompleteFunctionCallInsertText(
       String content, String completion,
-      {required String? insertText, InsertTextFormat? insertTextFormat}) async {
+      {required String? editText, InsertTextFormat? insertTextFormat}) async {
     await provideConfig(
       () => initialize(
         textDocumentCapabilities: withCompletionItemSnippetSupport(
@@ -51,12 +51,13 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     );
 
     expect(item.insertTextFormat, equals(insertTextFormat));
-    expect(item.insertText, equals(insertText));
+    // We always expect `insertText` to be `null` now, as we always use
+    // `textEdit`.
+    expect(item.insertText, isNull);
 
+    // And the expected text should be in the `textEdit`.
     final textEdit = toTextEdit(item.textEdit!);
-    // newText in the edit will always be set, so if insertText is null we need
-    // fall back to item.label for the expected value.
-    expect(textEdit.newText, equals(item.insertText ?? item.label));
+    expect(textEdit.newText, equals(editText));
     expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
 
@@ -188,7 +189,7 @@ void f() {
         ''',
         'Aaaaa(…)',
         insertTextFormat: InsertTextFormat.Snippet,
-        insertText: r'Aaaaa(${0:a})',
+        editText: r'Aaaaa(${0:a})',
       );
 
   Future<void> test_completeFunctionCalls_escapesDollarArgs() =>
@@ -201,7 +202,7 @@ void f() {
         'myFunction(…)',
         insertTextFormat: InsertTextFormat.Snippet,
         // The dollar should have been escaped.
-        insertText: r'myFunction(${1:a\$a}, ${2:b})',
+        editText: r'myFunction(${1:a\$a}, ${2:b})',
       );
 
   Future<void> test_completeFunctionCalls_escapesDollarName() =>
@@ -214,7 +215,7 @@ void f() {
         r'myFunc$tion(…)',
         insertTextFormat: InsertTextFormat.Snippet,
         // The dollar should have been escaped.
-        insertText: r'myFunc\$tion(${1:a}, ${2:b})',
+        editText: r'myFunc\$tion(${1:a}, ${2:b})',
       );
 
   Future<void> test_completeFunctionCalls_existingArgList_constructor() =>
@@ -228,7 +229,7 @@ void f() {
         }
         ''',
         'Aaaaa(…)',
-        insertText: 'Aaaaa',
+        editText: 'Aaaaa',
       );
 
   Future<void> test_completeFunctionCalls_existingArgList_expression() =>
@@ -239,7 +240,7 @@ void f() {
         }
         ''',
         'myFunction(…)',
-        insertText: 'myFunction',
+        editText: 'myFunction',
       );
 
   Future<void> test_completeFunctionCalls_existingArgList_member_noPrefix() =>
@@ -254,7 +255,7 @@ void f() {
         }
         ''',
         'foo(…)',
-        insertText: 'foo',
+        editText: 'foo',
       );
 
   Future<void> test_completeFunctionCalls_existingArgList_namedConstructor() =>
@@ -268,7 +269,7 @@ void f() {
         }
         ''',
         'foo(…)',
-        insertText: 'foo',
+        editText: 'foo',
       );
 
   Future<void> test_completeFunctionCalls_existingArgList_statement() =>
@@ -279,7 +280,7 @@ void f() {
         }
         ''',
         'f(…)',
-        insertText: 'f',
+        editText: 'f',
       );
 
   Future<void> test_completeFunctionCalls_existingArgList_suggestionSets() =>
@@ -290,7 +291,7 @@ void f() {
         }
         ''',
         'print(…)',
-        insertText: 'print',
+        editText: 'print',
       );
 
   Future<void> test_completeFunctionCalls_existingPartialArgList() =>
@@ -304,7 +305,7 @@ void f() {
         }
         ''',
         'Aaaaa(…)',
-        insertText: 'Aaaaa',
+        editText: 'Aaaaa',
       );
 
   Future<void> test_completeFunctionCalls_expression() =>
@@ -316,7 +317,7 @@ void f() {
         ''',
         'myFunction(…)',
         insertTextFormat: InsertTextFormat.Snippet,
-        insertText: r'myFunction(${1:a}, ${2:b})',
+        editText: r'myFunction(${1:a}, ${2:b})',
       );
 
   Future<void> test_completeFunctionCalls_flutterSetState() async {
@@ -360,9 +361,9 @@ class _MyWidgetState extends State<MyWidget> {
     // Ensure the snippet comes through in the expected format with the expected
     // placeholders.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals('setState(() {\n      \$0\n    });'));
+    expect(item.insertText, isNull);
     final textEdit = toTextEdit(item.textEdit!);
-    expect(textEdit.newText, equals(item.insertText));
+    expect(textEdit.newText, 'setState(() {\n      \$0\n    });');
     expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
 
@@ -378,7 +379,7 @@ class _MyWidgetState extends State<MyWidget> {
         ''',
         'foo(…)',
         insertTextFormat: InsertTextFormat.Snippet,
-        insertText: r'foo(${0:a})',
+        editText: r'foo(${0:a})',
       );
 
   Future<void> test_completeFunctionCalls_noParameters() async {
@@ -393,10 +394,7 @@ class _MyWidgetState extends State<MyWidget> {
     await checkCompleteFunctionCallInsertText(
       content,
       'myFunction()',
-      // With no params, we don't put a tab stop inside the parens. This results
-      // in the insertText being the same as the label, which means it will be
-      // set to null so that it falls back without needing to repeat the value.
-      insertText: null,
+      editText: 'myFunction()',
       insertTextFormat: InsertTextFormat.Snippet,
     );
   }
@@ -414,7 +412,7 @@ class _MyWidgetState extends State<MyWidget> {
       content,
       'myFunction(…)',
       // With optional params, there should still be parens/tab stop inside.
-      insertText: r'myFunction($0)',
+      editText: r'myFunction($0)',
       insertTextFormat: InsertTextFormat.Snippet,
     );
   }
@@ -443,9 +441,9 @@ class _MyWidgetState extends State<MyWidget> {
     // Ensure the snippet comes through in the expected format with the expected
     // placeholders.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
+    expect(item.insertText, isNull);
     final textEdit = toTextEdit(item.textEdit!);
-    expect(textEdit.newText, equals(item.insertText));
+    expect(textEdit.newText, r'myFunction(${1:a}, ${2:b}, c: ${3:c})');
     expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
 
@@ -479,17 +477,65 @@ class _MyWidgetState extends State<MyWidget> {
     // Ensure the snippet comes through in the expected format with the expected
     // placeholders.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
+    expect(item.insertText, isNull);
     expect(item.textEdit, isNotNull);
     final originalTextEdit = item.textEdit;
 
     // Ensure the item can be resolved and retains the correct textEdit (since
     // textEdit may be recomputed during resolve).
     final resolved = await resolveCompletion(item);
+    expect(resolved.insertText, isNull);
     expect(resolved.textEdit, originalTextEdit);
     final textEdit = toTextEdit(resolved.textEdit!);
-    expect(textEdit.newText, equals(item.insertText));
+    expect(textEdit.newText, r'myFunction(${1:a}, ${2:b}, c: ${3:c})');
     expect(textEdit.range, equals(rangeFromMarkers(content)));
+  }
+
+  Future<void>
+      test_completeFunctionCalls_resolve_producesCorrectEditWithoutInsertText() async {
+    // Ensure our `resolve` call does not rely on the presence of `insertText`
+    // to compute the correct edits. This is something we did incorrectly in the
+    // past and broke with
+    // https://github.com/dart-lang/sdk/commit/40e25ebad0bd008615b1c1d8021cb27839f00dcd
+    // because the way these are combined in the VS Code LSP client means we are
+    // not provided both `insertText` and `textEdit` back in the resolve call.
+    //
+    // Now, we never supply `insertText` and always use `textEdit`.
+    final content = '''
+final a = Stri^
+    ''';
+
+    /// Helper to verify a completion is as expected.
+    void expectCorrectCompletion(CompletionItem item) {
+      // Ensure this completion looks as we'd expect.
+      expect(item.label, 'String.fromCharCode(…)');
+      expect(item.insertText, isNull);
+      expect(
+        item.textEdit!.map((edit) => edit.newText, (edit) => edit.newText),
+        r'String.fromCharCode(${0:charCode})',
+      );
+    }
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities:
+            withConfigurationSupport(emptyWorkspaceClientCapabilities),
+      ),
+      {'completeFunctionCalls': true},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final completion =
+        res.singleWhere((c) => c.label == 'String.fromCharCode(…)');
+    expectCorrectCompletion(completion);
+
+    final resolved = await resolveCompletion(completion);
+    expectCorrectCompletion(resolved);
   }
 
   Future<void> test_completeFunctionCalls_show() async {
@@ -512,9 +558,9 @@ class _MyWidgetState extends State<MyWidget> {
     // The insert text should be a simple string with no parens/args and
     // no need for snippets.
     expect(item.insertTextFormat, isNull);
-    expect(item.insertText, equals(r'min'));
+    expect(item.insertText, isNull);
     final textEdit = toTextEdit(item.textEdit!);
-    expect(textEdit.newText, equals(item.insertText));
+    expect(textEdit.newText, r'min');
   }
 
   Future<void> test_completeFunctionCalls_statement() =>
@@ -526,7 +572,7 @@ class _MyWidgetState extends State<MyWidget> {
         ''',
         'f(…)',
         insertTextFormat: InsertTextFormat.Snippet,
-        insertText: r'f(${0:a})',
+        editText: r'f(${0:a})',
       );
 
   Future<void> test_completeFunctionCalls_suggestionSets() =>
@@ -538,7 +584,7 @@ class _MyWidgetState extends State<MyWidget> {
         ''',
         'print(…)',
         insertTextFormat: InsertTextFormat.Snippet,
-        insertText: r'print(${0:object})',
+        editText: r'print(${0:object})',
       );
 
   Future<void> test_completionKinds_default() async {
@@ -726,7 +772,9 @@ class _MyWidgetState extends State<MyWidget> {
     expect(item, isNotNull);
     expect(item!.label, equals('name => …'));
     expect(item.filterText, isNull); // Falls back to label
-    expect(item.insertText, equals('''@override
+    expect(item.insertText, isNull);
+    final textEdit = toTextEdit(item.textEdit!);
+    expect(textEdit.newText, equals('''@override
   // TODO: implement name
   String get name => throw UnimplementedError();'''));
   }
@@ -936,7 +984,9 @@ class _MyWidgetState extends State<MyWidget> {
     final item = res.singleWhere((c) => c.label.startsWith('setState'));
 
     // Multiline completions should always set insertTextMode.asIs.
-    expect(item.insertText, contains('\n'));
+    expect(item.insertText, isNull);
+    final textEdit = toTextEdit(item.textEdit!);
+    expect(textEdit.newText, contains('\n'));
     expect(item.insertTextMode, equals(InsertTextMode.asIs));
   }
 
@@ -956,7 +1006,9 @@ class _MyWidgetState extends State<MyWidget> {
 
     // Single line completions should never set insertTextMode.asIs to
     // avoid bloating payload size where it wouldn't matter.
-    expect(item.insertText, isNot(contains('\n')));
+    expect(item.insertText, isNull);
+    final textEdit = toTextEdit(item.textEdit!);
+    expect(textEdit.newText, isNot(contains('\n')));
     expect(item.insertTextMode, isNull);
   }
 
@@ -1386,7 +1438,9 @@ void f() { }
     final item = res.singleWhere((c) => c.label == 'one: ');
     expect(item.insertTextFormat,
         anyOf(equals(InsertTextFormat.PlainText), isNull));
-    expect(item.insertText, anyOf(equals('test'), isNull));
+    expect(item.insertText, isNull);
+    final textEdit = toTextEdit(item.textEdit!);
+    expect(textEdit.newText, item.label);
     final updated = applyTextEdits(
       withoutMarkers(content),
       [toTextEdit(item.textEdit!)],
@@ -1444,7 +1498,7 @@ void f() { }
     // Ensure the snippet comes through in the expected format with the expected
     // placeholder.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'one: $0,'));
+    expect(item.insertText, isNull);
     final textEdit = toTextEdit(item.textEdit!);
     expect(textEdit.newText, equals(r'one: $0,'));
     expect(
@@ -1483,7 +1537,7 @@ void f() { }
     expect(completion.detail, '(int? a, [int b = 1]) → String?');
   }
 
-  Future<void> test_parensNotInFilterTextInsertText() async {
+  Future<void> test_parensNotInFilterTextOrEditText() async {
     final content = '''
     class MyClass {}
 
@@ -1497,8 +1551,10 @@ void f() { }
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     expect(res.any((c) => c.label == 'MyClass()'), isTrue);
     final item = res.singleWhere((c) => c.label == 'MyClass()');
-    expect(item.filterText, equals('MyClass'));
-    expect(item.insertText, equals('MyClass'));
+    expect(item.filterText, 'MyClass');
+    expect(item.insertText, isNull);
+    final textEdit = toTextEdit(item.textEdit!);
+    expect(textEdit.newText, 'MyClass');
   }
 
   Future<void> test_plainText() async {

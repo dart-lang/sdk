@@ -360,9 +360,6 @@ lsp.CompletionItem declarationToCompletionItem(
     filterText: completion != label
         ? completion
         : null, // filterText uses label if not set
-    insertText: insertText != label
-        ? insertText
-        : null, // insertText uses label if not set
     insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
         ? insertTextFormat
         : null, // Defaults to PlainText if not supplied
@@ -1124,8 +1121,8 @@ lsp.CompletionItem toCompletionItem(
   LspClientCapabilities capabilities,
   server.LineInfo lineInfo,
   server.CompletionSuggestion suggestion, {
-  Range? replacementRange,
-  Range? insertionRange,
+  required Range replacementRange,
+  required Range insertionRange,
   required bool includeCommitCharacters,
   required bool completeFunctionCalls,
   CompletionItemResolutionInfo? resolutionData,
@@ -1234,31 +1231,26 @@ lsp.CompletionItem toCompletionItem(
     filterText: filterText != label
         ? filterText
         : null, // filterText uses label if not set
-    insertText: insertText != label
-        ? insertText
-        : null, // insertText uses label if not set
     insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
         ? insertTextFormat
         : null, // Defaults to PlainText if not supplied
     insertTextMode: supportsAsIsInsertMode && isMultilineCompletion
         ? InsertTextMode.asIs
         : null,
-    textEdit: (insertionRange == null || replacementRange == null)
-        ? null
-        : supportsInsertReplace && insertionRange != replacementRange
-            ? Either2<InsertReplaceEdit, TextEdit>.t1(
-                InsertReplaceEdit(
-                  insert: insertionRange,
-                  replace: replacementRange,
-                  newText: insertText,
-                ),
-              )
-            : Either2<InsertReplaceEdit, TextEdit>.t2(
-                TextEdit(
-                  range: replacementRange,
-                  newText: insertText,
-                ),
-              ),
+    textEdit: supportsInsertReplace && insertionRange != replacementRange
+        ? Either2<InsertReplaceEdit, TextEdit>.t1(
+            InsertReplaceEdit(
+              insert: insertionRange,
+              replace: replacementRange,
+              newText: insertText,
+            ),
+          )
+        : Either2<InsertReplaceEdit, TextEdit>.t2(
+            TextEdit(
+              range: replacementRange,
+              newText: insertText,
+            ),
+          ),
   );
 }
 
