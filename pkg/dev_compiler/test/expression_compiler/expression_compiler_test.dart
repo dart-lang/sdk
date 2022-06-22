@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show Directory, File;
 
-import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/compiler/js_names.dart';
 import 'package:dev_compiler/src/compiler/module_builder.dart';
+import 'package:dev_compiler/src/compiler/shared_command.dart'
+    show SharedCompilerOptions;
 import 'package:dev_compiler/src/js_ast/js_ast.dart';
+import 'package:dev_compiler/src/kernel/compiler.dart' show ProgramCompiler;
+import 'package:dev_compiler/src/kernel/expression_compiler.dart'
+    show ExpressionCompiler;
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:test/test.dart';
 import 'package:vm/transformations/type_flow/utils.dart';
@@ -67,12 +69,12 @@ class TestCompiler {
   TestCompiler(this.setup);
 
   Future<TestCompilationResult> compile(
-      {Uri input,
-      Uri packages,
-      int line,
-      int column,
-      Map<String, String> scope,
-      String expression}) async {
+      {required Uri input,
+      required Uri packages,
+      required int line,
+      required int column,
+      required Map<String, String> scope,
+      required String expression}) async {
     // initialize incremental compiler and create component
     setup.options.packagesFileUri = packages;
     var compiler = DevelopmentIncrementalCompiler(setup.options, input);
@@ -97,7 +99,7 @@ class TestCompiler {
     }
     summaryToModule[component] = moduleName;
 
-    var kernel2jsCompiler = ProgramCompiler(component, classHierarchy,
+    var kernel2jsCompiler = ProgramCompiler(component, classHierarchy!,
         compilerOptions, importToSummary, summaryToModule,
         coreTypes: coreTypes);
     var moduleTree = kernel2jsCompiler.emitModule(component);
@@ -125,7 +127,7 @@ class TestCompiler {
 
     // collect all module names and paths
     var moduleInfo = _collectModules(component);
-    var module = moduleInfo[input];
+    var module = moduleInfo[input]!;
 
     setup.errors.clear();
 
@@ -142,7 +144,7 @@ class TestCompiler {
       return TestCompilationResult(jsExpression, false);
     }
 
-    return TestCompilationResult(jsExpression, true);
+    return TestCompilationResult(jsExpression!, true);
   }
 
   Map<Uri, Module> _collectModules(Component component) {
@@ -157,18 +159,17 @@ class TestCompiler {
 
 class TestDriver {
   final SetupCompilerOptions options;
-  Directory tempDir;
+  late Directory tempDir;
   final String source;
-  Uri input;
-  Uri packages;
-  File file;
+  late Uri input;
+  late Uri packages;
+  late File file;
   int line;
 
-  TestDriver(this.options, this.source) {
+  TestDriver(this.options, this.source) : line = _getEvaluationLine(source) {
     var systemTempDir = Directory.systemTemp;
     tempDir = systemTempDir.createTempSync('foo bar');
 
-    line = _getEvaluationLine(source);
     input = tempDir.uri.resolve('foo.dart');
     file = File.fromUri(input)..createSync();
     file.writeAsStringSync(source);
@@ -194,10 +195,10 @@ class TestDriver {
   }
 
   Future<void> check(
-      {Map<String, String> scope,
-      String expression,
-      String expectedError,
-      String expectedResult}) async {
+      {required Map<String, String> scope,
+      required String expression,
+      String? expectedError,
+      String? expectedResult}) async {
     var result = await TestCompiler(options).compile(
         input: input,
         packages: packages,
@@ -207,7 +208,7 @@ class TestDriver {
         expression: expression);
 
     var success = expectedError == null;
-    var message = success ? expectedResult : expectedError;
+    var message = success ? expectedResult! : expectedError;
 
     expect(
         result,
@@ -227,7 +228,7 @@ class TestDriver {
     return matches(RegExp(unindented, multiLine: true));
   }
 
-  int _getEvaluationLine(String source) {
+  static int _getEvaluationLine(String source) {
     var placeholderRegExp = RegExp(r'/\* evaluation placeholder \*/');
 
     var lines = source.split('\n');
@@ -266,7 +267,7 @@ void main() {
           }
           ''';
 
-          TestDriver driver;
+          late TestDriver driver;
 
           setUp(() {
             driver = TestDriver(options, source);
@@ -345,7 +346,7 @@ void main() {
           void main() => foo();
           ''';
 
-          TestDriver driver;
+          late TestDriver driver;
           setUp(() {
             driver = TestDriver(options, source);
           });
@@ -465,7 +466,7 @@ void main() {
           void main() => bar();
           ''';
 
-          TestDriver driver;
+          late TestDriver driver;
           setUp(() {
             driver = TestDriver(options, source);
           });
@@ -528,7 +529,7 @@ void main() {
           }
           ''';
 
-          TestDriver driver;
+          late TestDriver driver;
 
           setUp(() {
             driver = TestDriver(options, source);
@@ -597,7 +598,7 @@ void main() {
           void main() => bar();
           ''';
 
-          TestDriver driver;
+          late TestDriver driver;
           setUp(() {
             driver = TestDriver(options, source);
           });

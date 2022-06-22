@@ -18,6 +18,8 @@ import 'package:kernel/type_environment.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+import 'shared_test_options.dart' show getSdkPath;
+
 const AstTextStrategy astTextStrategy = AstTextStrategy(
     includeLibraryNamesInTypes: true,
     includeLibraryNamesInMembers: true,
@@ -655,16 +657,16 @@ Future<CompileResult> kernelCompile(String code) async {
   var sdkUri = Uri.file('/memory/dart_sdk.dill');
   var sdkFile = _fileSystem.entityForUri(sdkUri);
   if (!await sdkFile.exists()) {
-    // TODO(46617) Call defaultSdkSummaryPath() to get the outlineDill path.
-    var sdkPath = p.dirname(p.dirname(Platform.resolvedExecutable));
+    // TODO(46617) Call getSdkPath() from command.dart instead.
+    var sdkPath = getSdkPath();
     var outlineDill = p.join(sdkPath, 'lib', '_internal', 'ddc_sdk.dill');
     sdkFile.writeAsBytesSync(File(outlineDill).readAsBytesSync());
   }
   var librariesUri = Uri.file('/memory/libraries.json');
   var librariesFile = _fileSystem.entityForUri(librariesUri);
   if (!await librariesFile.exists()) {
-    // TODO(46617) Call getSdkPath() to get the SDK path.
-    var sdkPath = p.dirname(p.dirname(Platform.resolvedExecutable));
+    // TODO(46617) Call getSdkPath() from command.dart instead.
+    var sdkPath = getSdkPath();
     var librariesJson = p.join(sdkPath, 'lib', 'libraries.json');
     librariesFile.writeAsBytesSync(File(librariesJson).readAsBytesSync());
   }
