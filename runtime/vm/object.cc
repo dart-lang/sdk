@@ -25878,12 +25878,6 @@ const char* StackTrace::ToCString() const {
         isolate_instructions_image.instructions_relocated_address();
     auto const vm_relocated_address =
         vm_instructions_image.instructions_relocated_address();
-    // The Dart standard requires the output of StackTrace.toString to include
-    // all pending activations with precise source locations (i.e., to expand
-    // inlined frames and provide line and column numbers).
-    buffer.Printf(
-        "Warning: This VM has been configured to produce stack traces "
-        "that violate the Dart standard.\n");
     // This prologue imitates Android's debuggerd to make it possible to paste
     // the stack trace into ndk-stack.
     buffer.Printf(
