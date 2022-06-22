@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -84,7 +82,7 @@ class SharedCompilerOptions {
   final String multiRootScheme;
 
   /// Path to set multi-root files relative to when generating source-maps.
-  final String multiRootOutputPath;
+  final String? multiRootOutputPath;
 
   /// Experimental language features that are enabled/disabled, see
   /// [the spec](https://github.com/dart-lang/sdk/blob/master/docs/process/experimental-flags.md)
@@ -107,8 +105,8 @@ class SharedCompilerOptions {
       this.emitFullCompiledKernel = false,
       this.summaryModules = const {},
       this.moduleFormats = const [],
-      this.moduleName,
-      this.multiRootScheme,
+      required this.moduleName,
+      this.multiRootScheme = 'org-dartlang-app',
       this.multiRootOutputPath,
       this.experiments = const {},
       this.soundNullSafety = false,
@@ -132,7 +130,7 @@ class SharedCompilerOptions {
             moduleFormats: parseModuleFormatOption(args),
             moduleName: _getModuleName(args),
             multiRootScheme: args['multi-root-scheme'] as String,
-            multiRootOutputPath: args['multi-root-output-path'] as String,
+            multiRootOutputPath: args['multi-root-output-path'] as String?,
             experiments: parseExperimentalArguments(
                 args['enable-experiment'] as List<String>),
             soundNullSafety: args['sound-null-safety'] as bool,
@@ -147,7 +145,7 @@ class SharedCompilerOptions {
             moduleName:
                 args['module-name'] != null ? _getModuleName(args) : 'dart_sdk',
             multiRootScheme: args['multi-root-scheme'] as String,
-            multiRootOutputPath: args['multi-root-output-path'] as String,
+            multiRootOutputPath: args['multi-root-output-path'] as String?,
             experiments: parseExperimentalArguments(
                 args['enable-experiment'] as List<String>),
             soundNullSafety: args['sound-null-safety'] as bool,
@@ -230,18 +228,15 @@ class SharedCompilerOptions {
   }
 
   static String _getModuleName(ArgResults args) {
-    var moduleName = args['module-name'] as String;
+    var moduleName = args['module-name'] as String?;
     if (moduleName == null) {
-      var outPaths = args['out'];
-      var outPath = outPaths is String
-          ? outPaths
-          : (outPaths as List<String>)
-              .firstWhere((_) => true, orElse: () => null);
-
-      // TODO(jmesserly): fix the debugger console so it's not passing invalid
-      // options.
-      if (outPath == null) return null;
-
+      var outPaths = args['out'] as List<String>;
+      if (outPaths.isEmpty) {
+        throw UnsupportedError(
+            'No module name provided and unable to synthesize one without any '
+            'output paths.');
+      }
+      var outPath = outPaths.first;
       moduleName = p.basenameWithoutExtension(outPath);
     }
     // TODO(jmesserly): this should probably use sourcePathToUri.
@@ -260,9 +255,8 @@ class SharedCompilerOptions {
 /// allow working with summaries whose physical location is outside of the
 /// module root directory.
 Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
-    [String moduleRoot, String summaryExt]) {
+    [String? moduleRoot, String? summaryExt]) {
   var pathToModule = <String, String>{};
-  if (summaryPaths == null) return pathToModule;
   for (var summaryPath in summaryPaths) {
     var equalSign = summaryPath.indexOf('=');
     String modulePath;
@@ -299,7 +293,7 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
     if (abbreviation != null) {
       knownAbbreviations.add(abbreviation);
     }
-    if (option.negatable) {
+    if (option.negatable != null && option.negatable!) {
       knownOptions.add('no-$name');
     }
   });
@@ -331,10 +325,7 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
 
 /// Convert a [source] string to a Uri, where the source may be a
 /// dart/file/package URI or a local win/mac/linux path.
-///
-/// If [source] is null, this will return null.
-Uri sourcePathToUri(String source, {bool windows}) {
-  if (source == null) return null;
+Uri sourcePathToUri(String source, {bool? windows}) {
   if (windows == null) {
     // Running on the web the Platform check will fail, and we can't use
     // fromEnvironment because internally it's set to true for dart.library.io.
@@ -358,7 +349,7 @@ Uri sourcePathToUri(String source, {bool windows}) {
   return result;
 }
 
-Uri sourcePathToRelativeUri(String source, {bool windows}) {
+Uri sourcePathToRelativeUri(String source, {bool? windows}) {
   var uri = sourcePathToUri(source, windows: windows);
   if (uri.isScheme('file')) {
     var uriPath = uri.path;
@@ -388,8 +379,8 @@ Uri sourcePathToRelativeUri(String source, {bool windows}) {
 // TODO(#40251): Remove this logic from dev_compiler itself, push it to the
 // invokers of dev_compiler which have more knowledge about how they want
 // source paths to look.
-Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
-    {String multiRootOutputPath, String sourceMapBase}) {
+Map placeSourceMap(Map sourceMap, String sourceMapPath, String? multiRootScheme,
+    {String? multiRootOutputPath, String? sourceMapBase}) {
   var map = Map.from(sourceMap);
   // Convert to a local file path if it's not.
   sourceMapPath = sourcePathToUri(p.absolute(p.fromUri(sourceMapPath))).path;
@@ -446,7 +437,7 @@ class CompilerResult {
   /// Optionally provides the front_end state from the previous compilation,
   /// which can be passed to [compile] to potentially speed up the next
   /// compilation.
-  final InitializedCompilerState kernelState;
+  final InitializedCompilerState? kernelState;
 
   /// The process exit code of the compiler.
   final int exitCode;
@@ -454,7 +445,7 @@ class CompilerResult {
   CompilerResult(this.exitCode, {this.kernelState});
 
   /// Gets the kernel compiler state, if any.
-  Object get compilerState => kernelState;
+  Object? get compilerState => kernelState;
 
   /// Whether the program compiled without any fatal errors (equivalent to
   /// [exitCode] == 0).

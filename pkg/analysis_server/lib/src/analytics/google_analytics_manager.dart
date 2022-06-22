@@ -11,6 +11,7 @@ import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:telemetry/telemetry.dart';
 
 /// An implementation of [AnalyticsManager] that's appropriate to use when
@@ -36,6 +37,10 @@ class GoogleAnalyticsManager implements AnalyticsManager {
   /// that have been handled.
   final Map<String, _NotificationData> _completedNotifications = {};
 
+  /// A map from the name of a lint to the number of contexts in which the lint
+  /// was enabled.
+  final Map<String, int> _lintUsageCounts = {};
+
   /// Initialize a newly created analytics manager to report to the [analytics]
   /// service.
   GoogleAnalyticsManager(this.analytics);
@@ -52,6 +57,22 @@ class GoogleAnalyticsManager implements AnalyticsManager {
         _getRequestData(Method.workspace_didChangeWorkspaceFolders.toString());
     requestData.addValue('added', added.length);
     requestData.addValue('removed', removed.length);
+  }
+
+  @override
+  void createdAnalysisContexts(List<AnalysisContext> contexts) {
+    for (var context in contexts) {
+      for (var rule in context.analysisOptions.lintRules) {
+        var name = rule.name;
+        _lintUsageCounts[name] = (_lintUsageCounts[name] ?? 0) + 1;
+      }
+      // TODO(brianwilkerson) Collect other context-dependent information, such
+      //  as which codes have a different severity assigned to them:
+      // for (var processor in context.analysisOptions.errorProcessors) {
+      //   processor.code;
+      //   processor.severity;
+      // }
+    }
   }
 
   @override
@@ -118,6 +139,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
     _sendServerResponseTimes();
     _sendPluginResponseTimes();
     _sendNotificationHandlingTimes();
+    _sendLintUsageCounts();
 
     analytics.waitForLastPing(timeout: Duration(milliseconds: 200)).then((_) {
       analytics.close();
@@ -202,6 +224,12 @@ class GoogleAnalyticsManager implements AnalyticsManager {
 
     var responseTime = sendTime.millisecondsSinceEpoch - startTime;
     requestData.responseTimes.addValue(responseTime);
+  }
+
+  void _sendLintUsageCounts() {
+    analytics.sendEvent('language_server', 'lintUsageCounts', parameters: {
+      'usageCounts': _lintUsageCounts.toString(),
+    });
   }
 
   /// Send information about the notifications handled by the server.

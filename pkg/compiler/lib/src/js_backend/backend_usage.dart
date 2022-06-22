@@ -9,7 +9,7 @@ import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/runtime_type_analysis.dart';
-import '../kernel/kernel_strategy.dart';
+import '../kernel/kernel_strategy.dart' show KernelFrontendStrategy;
 import '../serialization/serialization_interfaces.dart';
 import '../universe/feature.dart';
 import '../util/util.dart' show Setlet;

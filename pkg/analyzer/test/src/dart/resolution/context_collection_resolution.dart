@@ -30,6 +30,7 @@ import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
 import '../../summary/macros_environment.dart';
+import '../analysis/analyzer_state_printer.dart';
 import 'context_collection_resolution_caching.dart';
 import 'resolution.dart';
 
@@ -122,7 +123,7 @@ abstract class ContextResolutionTest
     with ResourceProviderMixin, ResolutionTest {
   static bool _lintRulesAreRegistered = false;
 
-  ByteStore _byteStore = getContextResolutionTestByteStore();
+  MemoryByteStore _byteStore = getContextResolutionTestByteStore();
 
   Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
@@ -136,6 +137,8 @@ abstract class ContextResolutionTest
 
   /// Optional summaries to provide for the collection.
   List<File>? librarySummaryFiles;
+
+  final KeyShorter _keyShorter = KeyShorter();
 
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
@@ -161,6 +164,25 @@ abstract class ContextResolutionTest
   void assertBazelWorkspaceFor(String path) {
     var workspace = contextFor(path).contextRoot.workspace;
     expect(workspace, TypeMatcher<BazelWorkspace>());
+  }
+
+  void assertDriverStateString(File file, String expected) {
+    final analysisDriver = driverFor(file.path);
+
+    final buffer = StringBuffer();
+    AnalyzerStatePrinter(
+      byteStore: _byteStore,
+      keyShorter: _keyShorter,
+      libraryContext: analysisDriver.libraryContext,
+      resourceProvider: resourceProvider,
+      sink: buffer,
+    ).writeAnalysisDriver(analysisDriver.testView!);
+    final actual = buffer.toString();
+
+    if (actual != expected) {
+      print(actual);
+    }
+    expect(actual, expected);
   }
 
   void assertGnWorkspaceFor(String path) {

@@ -122,6 +122,9 @@ class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
 
 @reflectiveTest
 class FileSystemState_PubPackageTest extends PubPackageResolutionTest {
+  @override
+  bool get retainDataForTesting => true;
+
   FileState get _dartAsyncState {
     return fileStateForUriStr('dart:async');
   }
@@ -2245,6 +2248,7 @@ class FileSystemStateTest with ResourceProviderMixin {
       ),
       prefetchFiles: null,
       isGenerated: (_) => false,
+      testData: null,
     );
   }
 

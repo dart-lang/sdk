@@ -394,6 +394,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
     source.begin(typeVariableDataTag);
     entityLookup.forEachTypeVariable((int index, JTypeVariable typeVariable) {
+      // TODO(natebiggs): Defer reading these type variables as they trigger
+      //   loading of some method bodies in the Kernel AST.
       JTypeVariableData data = JTypeVariableData.readFromDataSource(source);
       typeVariableMap[data.node] =
           typeVariables.registerByIndex(index, typeVariable, data);

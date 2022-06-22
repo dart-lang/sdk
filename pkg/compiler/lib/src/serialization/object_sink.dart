@@ -44,6 +44,17 @@ class ObjectDataSink implements DataSink {
   }
 
   @override
+  void writeDeferred(void writer()) {
+    assert((writer as dynamic) != null); // TODO(48820): Remove when sound.
+    final sizeIndex = length;
+    writeInt(0); // placeholder
+    final startIndex = length;
+    writer();
+    final endIndex = length;
+    _data![sizeIndex] = endIndex - startIndex;
+  }
+
+  @override
   void close() {
     _data = null;
   }

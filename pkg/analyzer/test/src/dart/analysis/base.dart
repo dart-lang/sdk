@@ -91,6 +91,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
       }),
       enableIndex: true,
       externalSummaries: externalSummaries,
+      testView: AnalysisDriverTestView(),
     );
   }
 

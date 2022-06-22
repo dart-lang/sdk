@@ -7,6 +7,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 
 /// An implementation of [AnalyticsManager] that's appropriate to use when
 /// analytics have not been enabled.
@@ -17,6 +18,9 @@ class NoopAnalyticsManager implements AnalyticsManager {
   @override
   void changedWorkspaceFolders(
       {required List<String> added, required List<String> removed}) {}
+
+  @override
+  void createdAnalysisContexts(List<AnalysisContext> contexts) {}
 
   @override
   void handledNotificationMessage(

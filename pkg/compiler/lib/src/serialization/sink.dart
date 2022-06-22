@@ -137,6 +137,15 @@ class DataSinkWriter implements migrated.DataSinkWriter {
     }
   }
 
+  @override
+  void writeDeferrable(void f()) {
+    if (enableDeferredStrategy) {
+      _sinkWriter.writeDeferred(f);
+    } else {
+      f();
+    }
+  }
+
   /// Writes a reference to [value] to this data sink. If [value] has not yet
   /// been serialized, [f] is called to serialize the value itself.
   @override

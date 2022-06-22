@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../common.dart';
 import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../constants/values.dart';
@@ -20,7 +18,7 @@ import 'js.dart';
 import 'native_throw_behavior.dart';
 export 'native_throw_behavior.dart';
 
-typedef TypeLookup = Object /*DartType|SpecialType*/
+typedef TypeLookup = Object? /*DartType|SpecialType*/
     Function(String typeString, {bool required});
 
 /// This class is a temporary work-around until we get a more powerful DartType.
@@ -87,10 +85,10 @@ class NativeBehavior {
   /// element.
   final List<Object> typesInstantiated = [];
 
-  String codeTemplateText;
+  String? codeTemplateText;
   // If this behavior is for a JS expression, [codeTemplate] contains the
   // parsed tree.
-  js.Template codeTemplate;
+  js.Template? codeTemplate;
 
   final SideEffects sideEffects;
 
@@ -128,7 +126,7 @@ class NativeBehavior {
 
     List<Object> typesReturned = readTypes();
     List<Object> typesInstantiated = readTypes();
-    String codeTemplateText = source.readStringOrNull();
+    String? codeTemplateText = source.readStringOrNull();
     SideEffects sideEffects = SideEffects.readFromDataSource(source);
     int throwBehavior = source.readInt();
     bool isAllocation = source.readBool();
@@ -160,7 +158,7 @@ class NativeBehavior {
         if (type is DartType) {
           dartTypes.add(type);
         } else {
-          specialTypes.add(type);
+          specialTypes.add(type as SpecialType);
         }
       }
       sink.writeDartTypes(dartTypes);
@@ -284,14 +282,14 @@ class NativeBehavior {
   /// [validTags] can be used to restrict which tags are accepted.
   static void processSpecString(DartTypes dartTypes,
       DiagnosticReporter reporter, Spannable spannable, String specString,
-      {Iterable<String> validTags,
-      void setSideEffects(SideEffects newEffects),
-      void setThrows(NativeThrowBehavior throwKind),
-      void setIsAllocation(bool isAllocation),
-      void setUseGvn(bool useGvn),
-      TypeLookup lookupType,
-      List<Object> typesReturned,
-      List<Object> typesInstantiated,
+      {Iterable<String>? validTags,
+      required void setSideEffects(SideEffects newEffects),
+      void Function(NativeThrowBehavior)? setThrows,
+      void Function(bool)? setIsAllocation,
+      void Function(bool)? setUseGvn,
+      required TypeLookup lookupType,
+      required List<Object> typesReturned,
+      required List<Object> typesInstantiated,
       objectType,
       nullType}) {
     bool seenError = false;
@@ -317,7 +315,9 @@ class NativeBehavior {
     /// *  '' or 'var' - in which case [onVar] is called,
     /// *  'T1|...|Tn' - in which case [onType] is called for each resolved Ti.
     void resolveTypesString(DartTypes dartTypes, String typesString,
-        {onVoid(), onVar(), onType(type)}) {
+        {void Function()? onVoid,
+        void Function()? onVar,
+        required void Function(Object) onType}) {
       // Various things that are not in fact types.
       if (typesString == 'void') {
         if (onVoid != null) {
@@ -382,11 +382,8 @@ class NativeBehavior {
     }
 
     // Enum-like tags are looked up in a map. True signature is:
-    //
-    //  T tagValueLookup<T>(String tag, Map<String, T> map);
-    //
-    dynamic tagValueLookup(String tag, Map<String, dynamic> map) {
-      String tagString = values[tag];
+    T? tagValueLookup<T>(String tag, Map<String, T> map) {
+      String? tagString = values[tag];
       if (tagString == null) return null;
       var value = map[tagString];
       if (value == null) {
@@ -395,7 +392,7 @@ class NativeBehavior {
       return value;
     }
 
-    String returns = values['returns'];
+    String? returns = values['returns'];
     if (returns != null) {
       resolveTypesString(dartTypes, returns, onVar: () {
         typesReturned.add(objectType);
@@ -405,7 +402,7 @@ class NativeBehavior {
       });
     }
 
-    String creates = values['creates'];
+    String? creates = values['creates'];
     if (creates != null) {
       resolveTypesString(dartTypes, creates, onVoid: () {
         reportError("Invalid type string 'creates:$creates'");
@@ -427,11 +424,11 @@ class NativeBehavior {
 
     const boolOptions = <String, bool>{'true': true, 'false': false};
 
-    SideEffects sideEffects =
+    SideEffects? sideEffects =
         processEffects(reportError, values['effects'], values['depends']);
-    NativeThrowBehavior throwsKind = tagValueLookup('throws', throwsOption);
-    bool isAllocation = tagValueLookup('new', boolOptions);
-    bool useGvn = tagValueLookup('gvn', boolOptions);
+    NativeThrowBehavior? throwsKind = tagValueLookup('throws', throwsOption);
+    bool? isAllocation = tagValueLookup('new', boolOptions);
+    bool? useGvn = tagValueLookup('gvn', boolOptions);
 
     if (isAllocation == true && useGvn == true) {
       reportError("'new' and 'gvn' are incompatible");
@@ -442,13 +439,31 @@ class NativeBehavior {
     // TODO(sra): Simplify [throwBehavior] using [sideEffects].
 
     if (sideEffects != null) setSideEffects(sideEffects);
-    if (throwsKind != null) setThrows(throwsKind);
-    if (isAllocation != null) setIsAllocation(isAllocation);
-    if (useGvn != null) setUseGvn(useGvn);
+    if (throwsKind != null) {
+      if (setThrows == null) {
+        reportError("'throws' not allowed here");
+      } else {
+        setThrows(throwsKind);
+      }
+    }
+    if (isAllocation != null) {
+      if (setIsAllocation == null) {
+        reportError("'allocation' not allowed here");
+      } else {
+        setIsAllocation(isAllocation);
+      }
+    }
+    if (useGvn != null) {
+      if (setUseGvn == null) {
+        reportError("'gvn' not allowed here");
+      } else {
+        setUseGvn(useGvn);
+      }
+    }
   }
 
-  static SideEffects processEffects(
-      void reportError(String message), String effects, String depends) {
+  static SideEffects? processEffects(
+      void reportError(String message), String? effects, String? depends) {
     if (effects == null && depends == null) return null;
 
     if (effects == null || depends == null) {
@@ -530,7 +545,7 @@ class NativeBehavior {
     NativeBehavior behavior = NativeBehavior();
 
     behavior.codeTemplateText = codeString;
-    behavior.codeTemplate = js.js.parseForeignJS(behavior.codeTemplateText);
+    behavior.codeTemplate = js.js.parseForeignJS(codeString);
 
     bool sideEffectsAreEncodedInSpecString = false;
 
@@ -565,11 +580,12 @@ class NativeBehavior {
         nullType: commonElements.nullType);
 
     if (!sideEffectsAreEncodedInSpecString) {
-      SideEffectsVisitor(behavior.sideEffects).visit(behavior.codeTemplate.ast);
+      SideEffectsVisitor(behavior.sideEffects)
+          .visit(behavior.codeTemplate!.ast);
     }
     if (!throwBehaviorFromSpecString) {
       behavior.throwBehavior =
-          ThrowBehaviorVisitor().analyze(behavior.codeTemplate.ast);
+          ThrowBehaviorVisitor().analyze(behavior.codeTemplate!.ast);
     }
 
     return behavior;
@@ -582,7 +598,7 @@ class NativeBehavior {
       TypeLookup lookupType,
       DiagnosticReporter reporter,
       CommonElements commonElements,
-      {List<String> validTags}) {
+      {List<String>? validTags}) {
     void setSideEffects(SideEffects newEffects) {
       behavior.sideEffects.setTo(newEffects);
     }
@@ -628,7 +644,7 @@ class NativeBehavior {
     return behavior;
   }
 
-  static dynamic /*DartType|SpecialType*/ _parseType(
+  static Object /*DartType|SpecialType*/ _parseType(
       DartTypes dartTypes, String typeString, TypeLookup lookupType) {
     if (typeString == '=Object') return SpecialType.JsObject;
     if (typeString == 'dynamic') {
@@ -685,7 +701,7 @@ class BehaviorBuilder {
   final CompilerOptions options;
   DartTypes get dartTypes => commonElements.dartTypes;
 
-  NativeBehavior _behavior;
+  late NativeBehavior _behavior;
 
   BehaviorBuilder(this.elementEnvironment, this.commonElements,
       this.nativeBasicData, this.reporter, this.options);
@@ -694,8 +710,8 @@ class BehaviorBuilder {
       Iterable<String> returnsAnnotations, TypeLookup lookupType) {
     if (createsAnnotations.isEmpty && returnsAnnotations.isEmpty) return;
 
-    List<Object> creates = _collect(createsAnnotations, lookupType);
-    List<Object> returns = _collect(returnsAnnotations, lookupType);
+    List<Object>? creates = _collect(createsAnnotations, lookupType);
+    List<Object>? returns = _collect(returnsAnnotations, lookupType);
 
     if (creates != null) {
       _behavior.typesInstantiated
@@ -712,14 +728,13 @@ class BehaviorBuilder {
   /// Returns a list of type constraints from the annotations of
   /// [annotationClass].
   /// Returns `null` if no constraints.
-  List<dynamic> _collect(Iterable<String> annotations, TypeLookup lookupType) {
-    List<dynamic> types = null;
+  List<Object>? _collect(Iterable<String> annotations, TypeLookup lookupType) {
+    List<Object>? types = null;
     for (String specString in annotations) {
       for (final typeString in specString.split('|')) {
         var type = NativeBehavior._parseType(
             commonElements.dartTypes, typeString, lookupType);
-        if (types == null) types = [];
-        types.add(type);
+        (types ??= []).add(type);
       }
     }
     return types;
@@ -804,7 +819,7 @@ class BehaviorBuilder {
       Iterable<String> createsAnnotations,
       Iterable<String> returnsAnnotations,
       TypeLookup lookupType,
-      {bool isJsInterop}) {
+      {required bool isJsInterop}) {
     _behavior = NativeBehavior();
     // TODO(sigmund,sra): consider doing something better for numeric types.
     _addReturnType(!isJsInterop ? type : commonElements.dynamicType);
@@ -829,7 +844,7 @@ class BehaviorBuilder {
       Iterable<String> createAnnotations,
       Iterable<String> returnsAnnotations,
       TypeLookup lookupType,
-      {bool isJsInterop}) {
+      {required bool isJsInterop}) {
     _behavior = NativeBehavior();
     DartType returnType = type.returnType;
     // Note: For dart:html and other internal libraries we maintain, we can

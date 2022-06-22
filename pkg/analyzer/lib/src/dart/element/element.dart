@@ -3649,7 +3649,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
 class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
     implements LibraryAugmentationElement {
   @override
-  final LibraryOrAugmentationElement augmented;
+  final LibraryOrAugmentationElementImpl augmented;
 
   LibraryAugmentationElementImpl({
     required this.augmented,
@@ -3677,7 +3677,7 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   Scope get scope => throw UnimplementedError();
 
   @override
-  AnalysisSession get session => augmented.session;
+  AnalysisSessionImpl get session => augmented.session;
 
   @override
   TypeProvider get typeProvider => augmented.typeProvider;
@@ -4229,6 +4229,9 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   @override
   List<PrefixElement> get prefixes =>
       _prefixes ??= buildPrefixesFromImports(imports);
+
+  @override
+  AnalysisSessionImpl get session;
 
   @override
   Source get source {
@@ -5098,8 +5101,8 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
       super.enclosingElement as LibraryElement;
 
   @override
-  LibraryOrAugmentationElement get enclosingElement2 =>
-      super.enclosingElement as LibraryOrAugmentationElement;
+  LibraryOrAugmentationElementImpl get enclosingElement2 =>
+      super.enclosingElement as LibraryOrAugmentationElementImpl;
 
   @override
   List<ImportElement> get imports {

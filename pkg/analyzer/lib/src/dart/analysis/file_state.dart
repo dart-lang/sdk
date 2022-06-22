@@ -1144,7 +1144,7 @@ class FileSystemState {
 
   late final FileSystemStateTestView _testView;
 
-  FileSystemTestData? testData;
+  final FileSystemTestData? testData;
 
   FileSystemState(
     this._logger,
@@ -1162,6 +1162,7 @@ class FileSystemState {
     required this.fileContentStrategy,
     required this.prefetchFiles,
     required this.isGenerated,
+    required this.testData,
   }) {
     _testView = FileSystemStateTestView(this);
   }

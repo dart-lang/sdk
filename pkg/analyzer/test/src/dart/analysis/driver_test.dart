@@ -748,7 +748,7 @@ part 'part.dart';
     driver.priorityFiles = [a];
 
     ResolvedUnitResult result1 = await driver.getResultValid(a);
-    expect(driver.test.priorityResults, containsPair(a, result1));
+    expect(driver.testView!.priorityResults, containsPair(a, result1));
 
     await waitForIdleWithoutExceptions();
     allResults.clear();
@@ -779,26 +779,26 @@ part 'part.dart';
     driver.priorityFiles = [a];
 
     ResolvedUnitResult result1 = await driver.getResultValid(a);
-    expect(driver.test.priorityResults, containsPair(a, result1));
+    expect(driver.testView!.priorityResults, containsPair(a, result1));
 
     // Change a file.
     // The cache is flushed.
     driver.changeFile(a);
-    expect(driver.test.priorityResults, isEmpty);
+    expect(driver.testView!.priorityResults, isEmpty);
     ResolvedUnitResult result2 = await driver.getResultValid(a);
-    expect(driver.test.priorityResults, containsPair(a, result2));
+    expect(driver.testView!.priorityResults, containsPair(a, result2));
 
     // Add a file.
     // The cache is flushed.
     driver.addFile(b);
-    expect(driver.test.priorityResults, isEmpty);
+    expect(driver.testView!.priorityResults, isEmpty);
     ResolvedUnitResult result3 = await driver.getResultValid(a);
-    expect(driver.test.priorityResults, containsPair(a, result3));
+    expect(driver.testView!.priorityResults, containsPair(a, result3));
 
     // Remove a file.
     // The cache is flushed.
     driver.removeFile(b);
-    expect(driver.test.priorityResults, isEmpty);
+    expect(driver.testView!.priorityResults, isEmpty);
   }
 
   test_cachedPriorityResults_flush_onPrioritySetChange() async {
@@ -810,26 +810,26 @@ part 'part.dart';
     driver.priorityFiles = [a];
 
     ResolvedUnitResult result1 = await driver.getResultValid(a);
-    expect(driver.test.priorityResults, hasLength(1));
-    expect(driver.test.priorityResults, containsPair(a, result1));
+    expect(driver.testView!.priorityResults, hasLength(1));
+    expect(driver.testView!.priorityResults, containsPair(a, result1));
 
     // Make "a" and "b" priority.
     // We still have the result for "a" cached.
     driver.priorityFiles = [a, b];
-    expect(driver.test.priorityResults, hasLength(1));
-    expect(driver.test.priorityResults, containsPair(a, result1));
+    expect(driver.testView!.priorityResults, hasLength(1));
+    expect(driver.testView!.priorityResults, containsPair(a, result1));
 
     // Get the result for "b".
     ResolvedUnitResult result2 = await driver.getResultValid(b);
-    expect(driver.test.priorityResults, hasLength(2));
-    expect(driver.test.priorityResults, containsPair(a, result1));
-    expect(driver.test.priorityResults, containsPair(b, result2));
+    expect(driver.testView!.priorityResults, hasLength(2));
+    expect(driver.testView!.priorityResults, containsPair(a, result1));
+    expect(driver.testView!.priorityResults, containsPair(b, result2));
 
     // Only "b" is priority.
     // The result for "a" is flushed.
     driver.priorityFiles = [b];
-    expect(driver.test.priorityResults, hasLength(1));
-    expect(driver.test.priorityResults, containsPair(b, result2));
+    expect(driver.testView!.priorityResults, hasLength(1));
+    expect(driver.testView!.priorityResults, containsPair(b, result2));
   }
 
   test_cachedPriorityResults_notPriority() async {
@@ -837,7 +837,7 @@ part 'part.dart';
     newFile(a, 'var a = 1;');
 
     ResolvedUnitResult result1 = await driver.getResultValid(a);
-    expect(driver.test.priorityResults, isEmpty);
+    expect(driver.testView!.priorityResults, isEmpty);
 
     // The file is not priority, so its result is not cached.
     ResolvedUnitResult result2 = await driver.getResultValid(a);
@@ -872,7 +872,7 @@ var A = B;
     driver.changeFile(b);
 
     // "b" is not an added file, so it is not scheduled for analysis.
-    expect(driver.test.fileTracker.hasPendingFiles, isFalse);
+    expect(driver.testView!.fileTracker.hasPendingFiles, isFalse);
 
     // While "b" is not analyzed explicitly, it is analyzed implicitly.
     // The change causes "a" to be reanalyzed.
@@ -3585,7 +3585,7 @@ extension on AnalysisDriver {
     Iterable<String>? included,
     Iterable<String>? excluded,
   }) {
-    var uriSet = this.test.loadedLibraryUriSet;
+    var uriSet = testView!.loadedLibraryUriSet;
     if (included != null) {
       expect(uriSet, containsAll(included));
     }

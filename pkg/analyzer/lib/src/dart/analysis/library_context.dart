@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
@@ -9,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -28,6 +30,8 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:collection/collection.dart';
 import 'package:path/src/context.dart';
 
 /// Context information necessary to analyze one or more libraries within an
@@ -35,7 +39,7 @@ import 'package:path/src/context.dart';
 ///
 /// Currently this is implemented as a wrapper around [AnalysisContext].
 class LibraryContext {
-  final LibraryContextTestView testView;
+  final LibraryContextTestData? testData;
   final PerformanceLog logger;
   final ByteStore byteStore;
   final FileSystemState fileSystemState;
@@ -46,8 +50,10 @@ class LibraryContext {
   late final AnalysisContextImpl analysisContext;
   late LinkedElementFactory elementFactory;
 
+  Set<LibraryCycle> loadedBundles = Set.identity();
+
   LibraryContext({
-    required this.testView,
+    required this.testData,
     required AnalysisSessionImpl analysisSession,
     required this.logger,
     required this.byteStore,
@@ -96,8 +102,13 @@ class LibraryContext {
     return element as CompilationUnitElementImpl;
   }
 
-  void dispose() {
+  /// Notifies this object that it is about to be discarded.
+  ///
+  /// Returns the keys of the artifacts that are no longer used.
+  Set<String> dispose() {
+    final keys = unloadAll();
     elementFactory.dispose();
+    return keys;
   }
 
   /// Get the [LibraryElement] for the given library.
@@ -107,7 +118,10 @@ class LibraryContext {
   }
 
   /// Load data required to access elements of the given [targetLibrary].
-  Future<void> load(LibraryFileStateKind targetLibrary) async {
+  Future<void> load({
+    required LibraryFileStateKind targetLibrary,
+    required OperationPerformanceImpl performance,
+  }) async {
     var librariesTotal = 0;
     var librariesLoaded = 0;
     var librariesLinked = 0;
@@ -117,10 +131,10 @@ class LibraryContext {
     var bytesPut = 0;
 
     Future<void> loadBundle(LibraryCycle cycle) async {
-      if (cycle.libraries.isEmpty ||
-          elementFactory.hasLibrary(cycle.libraries.first.uri)) {
-        return;
-      }
+      if (!loadedBundles.add(cycle)) return;
+
+      performance.getDataInt('cycleCount').increment();
+      performance.getDataInt('libraryCount').add(cycle.libraries.length);
 
       librariesTotal += cycle.libraries.length;
 
@@ -160,7 +174,7 @@ class LibraryContext {
       if (resolutionBytes == null) {
         librariesLinkedTimer.start();
 
-        testView.linkedCycles.add(
+        testData?.linkedCycles.add(
           cycle.libraries.map((e) => e.path).toSet(),
         );
 
@@ -174,6 +188,9 @@ class LibraryContext {
           for (var file in libraryFile.libraryFiles) {
             var isSynthetic = !file.exists;
             var unit = file.parse();
+
+            performance.getDataInt('parseCount').increment();
+            performance.getDataInt('parseLength').add(unit.length);
 
             String? partUriStr;
             if (partIndex >= 0) {
@@ -218,10 +235,15 @@ class LibraryContext {
 
         resolutionBytes = linkResult.resolutionBytes;
         byteStore.putGet(resolutionKey, resolutionBytes);
+        performance.getDataInt('bytesPut').add(resolutionBytes.length);
+        testData?.forCycle(cycle).putKeys.add(resolutionKey);
         bytesPut += resolutionBytes.length;
 
         librariesLinkedTimer.stop();
       } else {
+        testData?.forCycle(cycle).getKeys.add(resolutionKey);
+        performance.getDataInt('bytesGet').add(resolutionBytes.length);
+        performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
         // TODO(scheglov) Take / clear parsed units in files.
         bytesGet += resolutionBytes.length;
         librariesLoaded += cycle.libraries.length;
@@ -233,6 +255,8 @@ class LibraryContext {
           ),
         );
       }
+      // TODO(scheglov) We probably should set this key when create the cycle
+      cycle.resolutionKey = resolutionKey;
 
       final macroKernelBuilder = this.macroKernelBuilder;
       if (macroKernelBuilder != null && macroLibraries.isNotEmpty) {
@@ -284,6 +308,42 @@ class LibraryContext {
     _createElementFactoryTypeProvider();
   }
 
+  /// Remove libraries represented by the [removed] files.
+  /// If we need these libraries later, we will relink and reattach them.
+  void remove(List<FileState> removed, Set<String> removedKeys) {
+    elementFactory.removeLibraries(
+      removed.map((e) => e.uri).toSet(),
+    );
+
+    final removedSet = removed.toSet();
+
+    loadedBundles.removeWhere((cycle) {
+      if (cycle.libraries.any(removedSet.contains)) {
+        removedKeys.addIfNotNull(cycle.resolutionKey);
+        return true;
+      }
+      return false;
+    });
+  }
+
+  /// Unloads all loaded bundles.
+  ///
+  /// Returns the keys of the artifacts that are no longer used.
+  Set<String> unloadAll() {
+    final keySet = <String>{};
+    final uriSet = <Uri>{};
+
+    for (final cycle in loadedBundles) {
+      keySet.addIfNotNull(cycle.resolutionKey);
+      uriSet.addAll(cycle.libraries.map((e) => e.uri));
+    }
+
+    elementFactory.removeLibraries(uriSet);
+    loadedBundles.clear();
+
+    return keySet;
+  }
+
   /// Ensure that type provider is created.
   void _createElementFactoryTypeProvider() {
     if (!analysisContext.hasTypeProvider) {
@@ -312,8 +372,27 @@ class LibraryContext {
   }
 }
 
-class LibraryContextTestView {
+class LibraryContextTestData {
+  /// TODO(scheglov) Use [libraryCycles] and textual dumps for the driver too.
   final List<Set<String>> linkedCycles = [];
+
+  /// Keys: the sorted list of library files.
+  final Map<List<File>, LibraryCycleTestData> libraryCycles = LinkedHashMap(
+    hashCode: Object.hashAll,
+    equals: const ListEquality<File>().equals,
+  );
+
+  LibraryCycleTestData forCycle(LibraryCycle cycle) {
+    final files = cycle.libraries.map((e) => e.resource).toList();
+    files.sortBy((file) => file.path);
+
+    return libraryCycles[files] ??= LibraryCycleTestData();
+  }
+}
+
+class LibraryCycleTestData {
+  final List<String> getKeys = [];
+  final List<String> putKeys = [];
 }
 
 class _MacroFileEntry implements MacroFileEntry {

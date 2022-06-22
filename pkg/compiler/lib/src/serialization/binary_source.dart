@@ -14,10 +14,22 @@ class BinaryDataSource implements DataSource {
   int _byteOffset = 0;
   final List<int> _bytes;
   final StringInterner? _stringInterner;
+  late final Map<int, int> _deferredOffsetToSize;
 
   BinaryDataSource(this._bytes, {StringInterner? stringInterner})
       : _stringInterner = stringInterner {
     assert((_bytes as dynamic) != null); // TODO(48820): Remove when sound.
+    final deferredDataStart = readAtOffset(_bytes.length - 4, _readUint32);
+    _deferredOffsetToSize = readAtOffset(deferredDataStart, () {
+      final deferredSizesCount = readInt();
+      final result = <int, int>{};
+      for (var i = 0; i < deferredSizesCount; i++) {
+        final offset = readInt();
+        final size = readInt();
+        result[offset] = size;
+      }
+      return result;
+    });
   }
 
   @override
@@ -74,6 +86,29 @@ class BinaryDataSource implements DataSource {
     final value = reader();
     _byteOffset = offsetBefore;
     return value;
+  }
+
+  int _readUint32() {
+    return (_readByte() << 24) |
+        (_readByte() << 16) |
+        (_readByte() << 8) |
+        _readByte();
+  }
+
+  @override
+  int readDeferred() {
+    final indexOffset = _byteOffset;
+    readInt(); // Read collision padding.
+    final dataOffset = _byteOffset;
+    final dataLength = _deferredOffsetToSize[indexOffset]!;
+    _byteOffset += dataLength;
+    return dataOffset;
+  }
+
+  @override
+  E readDeferredAsEager<E>(E reader()) {
+    readInt(); // Read collision padding.
+    return reader();
   }
 
   @override

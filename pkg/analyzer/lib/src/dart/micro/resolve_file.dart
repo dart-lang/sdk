@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -21,7 +19,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/library_graph.dart';
+import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
@@ -33,12 +31,9 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/bundle_reader.dart';
-import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
@@ -177,7 +172,7 @@ class FileResolver {
   final Workspace workspace;
 
   /// This field gets value only during testing.
-  FileResolverTestView? testView;
+  final FileResolverTestData? testData;
 
   FileSystemState? fsState;
 
@@ -211,6 +206,7 @@ class FileResolver {
     required this.workspace,
     required this.isGenerated,
     required this.byteStore,
+    this.testData,
   });
 
   /// Update the resolver to reflect the fact that the files with the given
@@ -421,7 +417,7 @@ class FileResolver {
 
     await performance.runAsync('libraryContext', (performance) async {
       await libraryContext!.load(
-        targetLibrary: file,
+        targetLibrary: kind,
         performance: performance,
       );
     });
@@ -474,11 +470,11 @@ class FileResolver {
       performance: performance,
     );
     var file = fileContext.file;
-    var libraryFile = file.kind.library!.file;
+    final libraryKind = file.kind.library ?? file.kind.asLibrary;
 
     // Load the library, link if necessary.
     await libraryContext!.load(
-      targetLibrary: libraryFile,
+      targetLibrary: libraryKind,
       performance: performance,
     );
 
@@ -488,7 +484,7 @@ class FileResolver {
 
     // Load the library again, the reference count is `>= 2`.
     await libraryContext!.load(
-      targetLibrary: libraryFile,
+      targetLibrary: libraryKind,
       performance: performance,
     );
 
@@ -602,12 +598,12 @@ class FileResolver {
 
       await performance.runAsync('libraryContext', (performance) async {
         await libraryContext!.load(
-          targetLibrary: libraryFile,
+          targetLibrary: libraryKind,
           performance: performance,
         );
       });
 
-      testView?.addResolvedLibrary(path);
+      testData?.addResolvedLibrary(path);
 
       late Map<FileState, UnitAnalysisResult> results;
 
@@ -617,7 +613,7 @@ class FileResolver {
           contextObjects!.declaredVariables,
           sourceFactory,
           (_) => true, // _isLibraryUri
-          contextObjects!.analysisContext,
+          libraryContext!.analysisContext,
           libraryContext!.elementFactory,
           contextObjects!.inheritanceManager,
           libraryFile,
@@ -674,7 +670,7 @@ class FileResolver {
   /// for another.
   void _createContext(String path, AnalysisOptionsImpl fileAnalysisOptions) {
     if (contextObjects != null) {
-      contextObjects!.analysisOptions = fileAnalysisOptions;
+      libraryContext!.analysisContext.analysisOptions = fileAnalysisOptions;
       return;
     }
 
@@ -710,7 +706,8 @@ class FileResolver {
         ),
         prefetchFiles: prefetchFiles,
         isGenerated: isGenerated,
-      )..testData = testView?.fileSystemTestData;
+        testData: testData?.fileSystem,
+      );
     }
 
     if (contextObjects == null) {
@@ -727,12 +724,21 @@ class FileResolver {
       );
 
       libraryContext = LibraryContext(
-        testView,
-        logger,
-        resourceProvider,
-        byteStore,
-        contextObjects!,
+        declaredVariables: contextObjects!.declaredVariables,
+        byteStore: byteStore,
+        analysisOptions: contextObjects!.analysisOptions,
+        analysisSession: contextObjects!.analysisSession,
+        logger: logger,
+        fileSystemState: fsState!,
+        sourceFactory: sourceFactory,
+        externalSummaries: SummaryDataStore(),
+        macroExecutor: null,
+        macroKernelBuilder: null,
+        testData: testData?.libraryContext,
       );
+
+      contextObjects!.analysisSession.elementFactory =
+          libraryContext!.elementFactory;
     }
   }
 
@@ -842,14 +848,9 @@ class FileResolver {
   }
 }
 
-class FileResolverTestView {
-  final FileSystemTestData fileSystemTestData = FileSystemTestData();
-
-  /// Keys: the sorted list of library files.
-  final Map<List<File>, LibraryCycleTestData> libraryCycles = LinkedHashMap(
-    hashCode: Object.hashAll,
-    equals: const ListEquality<File>().equals,
-  );
+class FileResolverTestData {
+  final fileSystem = FileSystemTestData();
+  final libraryContext = LibraryContextTestData();
 
   /// The paths of libraries which were resolved.
   ///
@@ -859,220 +860,6 @@ class FileResolverTestView {
   void addResolvedLibrary(String path) {
     resolvedLibraries.add(path);
   }
-
-  LibraryCycleTestData forCycle(LibraryCycle cycle) {
-    final files = cycle.libraries.map((e) => e.resource).toList();
-    files.sortBy((file) => file.path);
-
-    return libraryCycles[files] ??= LibraryCycleTestData();
-  }
-}
-
-class LibraryContext {
-  final FileResolverTestView? testData;
-  final PerformanceLog logger;
-  final ResourceProvider resourceProvider;
-  final ByteStore byteStore;
-  final MicroContextObjects contextObjects;
-
-  Set<LibraryCycle> loadedBundles = Set.identity();
-
-  LibraryContext(
-    this.testData,
-    this.logger,
-    this.resourceProvider,
-    this.byteStore,
-    this.contextObjects,
-  );
-
-  LinkedElementFactory get elementFactory {
-    return contextObjects.analysisSession.elementFactory;
-  }
-
-  /// Notifies this object that it is about to be discarded.
-  ///
-  /// Returns the keys of the artifacts that are no longer used.
-  Set<String> dispose() {
-    return unloadAll();
-  }
-
-  /// Load data required to access elements of the given [targetLibrary].
-  Future<void> load({
-    required FileState targetLibrary,
-    required OperationPerformanceImpl performance,
-  }) async {
-    var librariesLinked = 0;
-    var librariesLinkedTimer = Stopwatch();
-    var inputsTimer = Stopwatch();
-
-    Future<void> loadBundle(LibraryCycle cycle) async {
-      if (!loadedBundles.add(cycle)) return;
-
-      performance.getDataInt('cycleCount').increment();
-      performance.getDataInt('libraryCount').add(cycle.libraries.length);
-
-      for (var directDependency in cycle.directDependencies) {
-        await loadBundle(directDependency);
-      }
-
-      var resolutionKey = '${cycle.apiSignature}.linked_bundle';
-      var resolutionBytes = byteStore.get(resolutionKey);
-
-      var unitsInformativeBytes = <Uri, Uint8List>{};
-      for (var library in cycle.libraries) {
-        for (var file in library.libraryFiles) {
-          unitsInformativeBytes[file.uri] = file.unlinked2.informativeBytes;
-        }
-      }
-
-      if (resolutionBytes == null) {
-        librariesLinkedTimer.start();
-
-        inputsTimer.start();
-        var inputLibraries = <LinkInputLibrary>[];
-        for (var libraryFile in cycle.libraries) {
-          var librarySource = libraryFile.source;
-
-          var inputUnits = <LinkInputUnit>[];
-          var partIndex = -1;
-          for (var file in libraryFile.libraryFiles) {
-            var isSynthetic = !file.exists;
-
-            var content = file.getContent();
-            performance.getDataInt('parseCount').increment();
-            performance.getDataInt('parseLength').add(content.length);
-
-            var unit = file.parse2(
-              AnalysisErrorListener.NULL_LISTENER,
-              content,
-            );
-
-            String? partUriStr;
-            if (partIndex >= 0) {
-              partUriStr = libraryFile.unlinked2.parts[partIndex];
-            }
-            partIndex++;
-
-            inputUnits.add(
-              LinkInputUnit(
-                // TODO(scheglov) bad, group part data
-                partDirectiveIndex: partIndex - 1,
-                partUriStr: partUriStr,
-                source: file.source,
-                isSynthetic: isSynthetic,
-                unit: unit,
-              ),
-            );
-          }
-
-          inputLibraries.add(
-            LinkInputLibrary(
-              source: librarySource,
-              units: inputUnits,
-            ),
-          );
-        }
-        inputsTimer.stop();
-
-        var linkResult = await performance.runAsync(
-          'link',
-          (performance) async {
-            return await link2(
-              elementFactory: elementFactory,
-              performance: performance,
-              inputLibraries: inputLibraries,
-            );
-          },
-        );
-
-        librariesLinked += cycle.libraries.length;
-
-        resolutionBytes = linkResult.resolutionBytes;
-        resolutionBytes = byteStore.putGet(resolutionKey, resolutionBytes);
-        performance.getDataInt('bytesPut').add(resolutionBytes.length);
-        testData?.forCycle(cycle).putKeys.add(resolutionKey);
-
-        librariesLinkedTimer.stop();
-      } else {
-        testData?.forCycle(cycle).getKeys.add(resolutionKey);
-        performance.getDataInt('bytesGet').add(resolutionBytes.length);
-        performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
-        elementFactory.addBundle(
-          BundleReader(
-            elementFactory: elementFactory,
-            unitsInformativeBytes: unitsInformativeBytes,
-            resolutionBytes: resolutionBytes,
-          ),
-        );
-      }
-      cycle.resolutionKey = resolutionKey;
-
-      // We might have just linked dart:core, ensure the type provider.
-      _createElementFactoryTypeProvider();
-    }
-
-    await logger.runAsync('Prepare linked bundles', () async {
-      var libraryCycle = targetLibrary.libraryCycle;
-      await loadBundle(libraryCycle);
-      logger.writeln(
-        '[inputsTimer: ${inputsTimer.elapsedMilliseconds} ms]'
-        '[librariesLinked: $librariesLinked]'
-        '[librariesLinkedTimer: ${librariesLinkedTimer.elapsedMilliseconds} ms]',
-      );
-    });
-  }
-
-  /// Remove libraries represented by the [removed] files.
-  /// If we need these libraries later, we will relink and reattach them.
-  void remove(List<FileState> removed, Set<String> removedKeys) {
-    elementFactory.removeLibraries(
-      removed.map((e) => e.uri).toSet(),
-    );
-
-    var removedSet = removed.toSet();
-
-    loadedBundles.removeWhere((cycle) {
-      if (cycle.libraries.any(removedSet.contains)) {
-        removedKeys.addIfNotNull(cycle.resolutionKey);
-        return true;
-      }
-      return false;
-    });
-  }
-
-  /// Unloads all loaded bundles.
-  ///
-  /// Returns the keys of the artifacts that are no longer used.
-  Set<String> unloadAll() {
-    final keySet = <String>{};
-    final uriSet = <Uri>{};
-
-    for (var cycle in loadedBundles) {
-      keySet.addIfNotNull(cycle.resolutionKey);
-      uriSet.addAll(cycle.libraries.map((e) => e.uri));
-    }
-
-    elementFactory.removeLibraries(uriSet);
-    loadedBundles.clear();
-
-    return keySet;
-  }
-
-  /// Ensure that type provider is created.
-  void _createElementFactoryTypeProvider() {
-    var analysisContext = contextObjects.analysisContext;
-    if (!analysisContext.hasTypeProvider) {
-      elementFactory.createTypeProviders(
-        elementFactory.dartCoreElement,
-        elementFactory.dartAsyncElement,
-      );
-    }
-  }
-}
-
-class LibraryCycleTestData {
-  final List<String> getKeys = [];
-  final List<String> putKeys = [];
 }
 
 class _ContentWithDigest {

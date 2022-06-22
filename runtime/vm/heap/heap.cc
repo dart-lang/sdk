@@ -485,6 +485,11 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
   }
   {
     GcSafepointOperationScope safepoint_operation(thread);
+    if (reason == GCReason::kFinalize &&
+        old_space_.phase() != PageSpace::kAwaitingFinalization) {
+      return;  // Lost race.
+    }
+
     thread->isolate_group()->ForEachIsolate(
         [&](Isolate* isolate) {
           // Discard regexp backtracking stacks to further reduce memory usage.

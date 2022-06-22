@@ -19,9 +19,11 @@ import '../js_model/class_type_variable_access.dart';
 import '../js_model/element_map.dart';
 import '../js_model/env.dart';
 import '../ordered_typeset.dart';
+import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import 'elements.dart';
+import 'jrecord_field_interface.dart';
 import 'js_world_builder.dart' show JsClosedWorldBuilder;
 
 class ClosureDataImpl implements ClosureData {
@@ -32,18 +34,34 @@ class ClosureDataImpl implements ClosureData {
   final JsToElementMap _elementMap;
 
   /// Map of the scoping information that corresponds to a particular entity.
-  final Map<MemberEntity, ScopeInfo> _scopeMap;
-  final Map<ir.TreeNode, CapturedScope> _capturedScopesMap;
+  final Deferrable<Map<MemberEntity, ScopeInfo>> _scopeMap;
+  final Deferrable<Map<ir.TreeNode, CapturedScope>> _capturedScopesMap;
   // Indicates the type variables (if any) that are captured in a given
   // Signature function.
-  final Map<MemberEntity, CapturedScope> _capturedScopeForSignatureMap;
+  final Deferrable<Map<MemberEntity, CapturedScope>>
+      _capturedScopeForSignatureMap;
 
-  final Map<ir.LocalFunction, ClosureRepresentationInfo>
+  final Deferrable<Map<ir.LocalFunction, ClosureRepresentationInfo>>
       _localClosureRepresentationMap;
 
   final Map<MemberEntity, MemberEntity> _enclosingMembers;
 
   ClosureDataImpl(
+      this._elementMap,
+      Map<MemberEntity, ScopeInfo> scopeMap,
+      Map<ir.TreeNode, CapturedScope> capturedScopesMap,
+      Map<MemberEntity, CapturedScope> capturedScopeForSignatureMap,
+      Map<ir.LocalFunction, ClosureRepresentationInfo>
+          localClosureRepresentationMap,
+      this._enclosingMembers)
+      : _scopeMap = Deferrable.eager(scopeMap),
+        _capturedScopesMap = Deferrable.eager(capturedScopesMap),
+        _capturedScopeForSignatureMap =
+            Deferrable.eager(capturedScopeForSignatureMap),
+        _localClosureRepresentationMap =
+            Deferrable.eager(localClosureRepresentationMap);
+
+  ClosureDataImpl._deserialized(
       this._elementMap,
       this._scopeMap,
       this._capturedScopesMap,
@@ -56,20 +74,20 @@ class ClosureDataImpl implements ClosureData {
       JsToElementMap elementMap, DataSourceReader source) {
     source.begin(tag);
     // TODO(johnniwinther): Support shared [ScopeInfo].
-    Map<MemberEntity, ScopeInfo> scopeMap = source.readMemberMap(
-        (MemberEntity member) => ScopeInfo.readFromDataSource(source));
-    Map<ir.TreeNode, CapturedScope> capturedScopesMap =
-        source.readTreeNodeMap(() => CapturedScope.readFromDataSource(source));
-    Map<MemberEntity, CapturedScope> capturedScopeForSignatureMap =
+    final scopeMap = source.readDeferrable(() => source.readMemberMap(
+        (MemberEntity member) => ScopeInfo.readFromDataSource(source)));
+    final capturedScopesMap = source.readDeferrable(() =>
+        source.readTreeNodeMap(() => CapturedScope.readFromDataSource(source)));
+    final capturedScopeForSignatureMap = source.readDeferrable(() =>
         source.readMemberMap(
-            (MemberEntity member) => CapturedScope.readFromDataSource(source));
-    Map<ir.LocalFunction, ClosureRepresentationInfo>
-        localClosureRepresentationMap = source.readTreeNodeMap(
-            () => ClosureRepresentationInfo.readFromDataSource(source));
+            (MemberEntity member) => CapturedScope.readFromDataSource(source)));
+    final localClosureRepresentationMap = source.readDeferrable(() =>
+        source.readTreeNodeMap<ir.LocalFunction, ClosureRepresentationInfo>(
+            () => ClosureRepresentationInfo.readFromDataSource(source)));
     Map<MemberEntity, MemberEntity> enclosingMembers =
         source.readMemberMap((member) => source.readMember());
     source.end(tag);
-    return ClosureDataImpl(
+    return ClosureDataImpl._deserialized(
         elementMap,
         scopeMap,
         capturedScopesMap,
@@ -82,19 +100,21 @@ class ClosureDataImpl implements ClosureData {
   @override
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
-    sink.writeMemberMap(_scopeMap,
-        (MemberEntity member, ScopeInfo info) => info.writeToDataSink(sink));
-    sink.writeTreeNodeMap(_capturedScopesMap, (CapturedScope scope) {
-      scope.writeToDataSink(sink);
-    });
-    sink.writeMemberMap(
-        _capturedScopeForSignatureMap,
+    sink.writeDeferrable(() => sink.writeMemberMap(_scopeMap.loaded(),
+        (MemberEntity member, ScopeInfo info) => info.writeToDataSink(sink)));
+    sink.writeDeferrable(() => sink.writeTreeNodeMap(
+            _capturedScopesMap.loaded(), (CapturedScope scope) {
+          scope.writeToDataSink(sink);
+        }));
+    sink.writeDeferrable(() => sink.writeMemberMap(
+        _capturedScopeForSignatureMap.loaded(),
         (MemberEntity member, CapturedScope scope) =>
-            scope.writeToDataSink(sink));
-    sink.writeTreeNodeMap(_localClosureRepresentationMap,
-        (ClosureRepresentationInfo info) {
-      info.writeToDataSink(sink);
-    });
+            scope.writeToDataSink(sink)));
+    sink.writeDeferrable(() => sink
+            .writeTreeNodeMap(_localClosureRepresentationMap.loaded(),
+                (ClosureRepresentationInfo info) {
+          info.writeToDataSink(sink);
+        }));
     sink.writeMemberMap(_enclosingMembers,
         (MemberEntity member, MemberEntity value) {
       sink.writeMember(value);
@@ -112,7 +132,7 @@ class ClosureDataImpl implements ClosureData {
       entity = constructorBody.constructor;
     }
 
-    ScopeInfo scopeInfo = _scopeMap[entity];
+    ScopeInfo scopeInfo = _scopeMap.loaded()[entity];
     assert(
         scopeInfo != null, failedAt(entity, "Missing scope info for $entity."));
     return scopeInfo;
@@ -128,9 +148,11 @@ class ClosureDataImpl implements ClosureData {
       case MemberKind.constructor:
       case MemberKind.constructorBody:
       case MemberKind.closureCall:
-        return _capturedScopesMap[definition.node] ?? const CapturedScope();
+        return _capturedScopesMap.loaded()[definition.node] ??
+            const CapturedScope();
       case MemberKind.signature:
-        return _capturedScopeForSignatureMap[entity] ?? const CapturedScope();
+        return _capturedScopeForSignatureMap.loaded()[entity] ??
+            const CapturedScope();
       default:
         throw failedAt(entity, "Unexpected member definition $definition");
     }
@@ -140,15 +162,15 @@ class ClosureDataImpl implements ClosureData {
   // TODO(efortuna): Eventually capturedScopesMap[node] should always
   // be non-null, and we should just test that with an assert.
   CapturedLoopScope getCapturedLoopScope(ir.Node loopNode) =>
-      _capturedScopesMap[loopNode] ?? const CapturedLoopScope();
+      _capturedScopesMap.loaded()[loopNode] ?? const CapturedLoopScope();
 
   @override
   ClosureRepresentationInfo getClosureInfo(ir.LocalFunction node) {
-    var closure = _localClosureRepresentationMap[node];
+    var closure = _localClosureRepresentationMap.loaded()[node];
     assert(
         closure != null,
         "Corresponding closure class not found for $node. "
-        "Closures found for ${_localClosureRepresentationMap.keys}");
+        "Closures found for ${_localClosureRepresentationMap.loaded().keys}");
     return closure;
   }
 
@@ -1065,7 +1087,7 @@ class JRecord extends JClass {
 /// A variable that has been "boxed" to prevent name shadowing with the
 /// original variable and ensure that this variable is updated/read with the
 /// most recent value.
-class JRecordField extends JField {
+class JRecordField extends JField implements JRecordFieldInterface {
   /// Tag used for identifying serialized [JRecordField] objects in a
   /// debugging data stream.
   static const String tag = 'record-field';
@@ -1209,7 +1231,8 @@ class ClosureFunctionData extends ClosureMemberData
 
   final FunctionType functionType;
   @override
-  final ir.FunctionNode functionNode;
+  ir.FunctionNode get functionNode => _functionNode.loaded();
+  final Deferrable<ir.FunctionNode> _functionNode;
   @override
   final ClassTypeVariableAccess classTypeVariableAccess;
 
@@ -1219,7 +1242,16 @@ class ClosureFunctionData extends ClosureMemberData
       ClosureMemberDefinition definition,
       InterfaceType memberThisType,
       this.functionType,
-      this.functionNode,
+      ir.FunctionNode functionNode,
+      this.classTypeVariableAccess)
+      : _functionNode = Deferrable.eager(functionNode),
+        super(definition, memberThisType);
+
+  ClosureFunctionData._deserialized(
+      ClosureMemberDefinition definition,
+      InterfaceType memberThisType,
+      this.functionType,
+      this._functionNode,
       this.classTypeVariableAccess)
       : super(definition, memberThisType);
 
@@ -1230,12 +1262,13 @@ class ClosureFunctionData extends ClosureMemberData
     InterfaceType /*?*/ memberThisType =
         source.readDartTypeOrNull() as InterfaceType /*?*/;
     FunctionType functionType = source.readDartType();
-    ir.FunctionNode functionNode = source.readTreeNode();
+    Deferrable<ir.FunctionNode> functionNode =
+        source.readDeferrable(() => source.readTreeNode());
     ClassTypeVariableAccess classTypeVariableAccess =
         source.readEnum(ClassTypeVariableAccess.values);
     source.end(tag);
-    return ClosureFunctionData(definition, memberThisType, functionType,
-        functionNode, classTypeVariableAccess);
+    return ClosureFunctionData._deserialized(definition, memberThisType,
+        functionType, functionNode, classTypeVariableAccess);
   }
 
   @override
@@ -1245,7 +1278,7 @@ class ClosureFunctionData extends ClosureMemberData
     definition.writeToDataSink(sink);
     sink.writeDartTypeOrNull(memberThisType);
     sink.writeDartType(functionType);
-    sink.writeTreeNode(functionNode);
+    sink.writeDeferrable(() => sink.writeTreeNode(functionNode));
     sink.writeEnum(classTypeVariableAccess);
     sink.end(tag);
   }
@@ -1338,9 +1371,15 @@ class ClosureMemberDefinition implements MemberDefinition {
   @override
   final MemberKind kind;
   @override
-  final ir.TreeNode node;
+  ir.TreeNode get node => _node.loaded();
+  final Deferrable<ir.TreeNode> _node;
 
-  ClosureMemberDefinition(this.location, this.kind, this.node)
+  ClosureMemberDefinition(this.location, this.kind, ir.TreeNode node)
+      : _node = Deferrable.eager(node),
+        assert(
+            kind == MemberKind.closureCall || kind == MemberKind.closureField);
+
+  ClosureMemberDefinition._deserialized(this.location, this.kind, this._node)
       : assert(
             kind == MemberKind.closureCall || kind == MemberKind.closureField);
 
@@ -1348,9 +1387,10 @@ class ClosureMemberDefinition implements MemberDefinition {
       DataSourceReader source, MemberKind kind) {
     source.begin(tag);
     SourceSpan location = source.readSourceSpan();
-    ir.TreeNode node = source.readTreeNode();
+    Deferrable<ir.TreeNode> node =
+        source.readDeferrable(() => source.readTreeNode());
     source.end(tag);
-    return ClosureMemberDefinition(location, kind, node);
+    return ClosureMemberDefinition._deserialized(location, kind, node);
   }
 
   @override
@@ -1358,7 +1398,7 @@ class ClosureMemberDefinition implements MemberDefinition {
     sink.writeEnum(kind);
     sink.begin(tag);
     sink.writeSourceSpan(location);
-    sink.writeTreeNode(node);
+    sink.writeDeferrable(() => sink.writeTreeNode(node));
     sink.end(tag);
   }
 

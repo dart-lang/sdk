@@ -7,6 +7,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analytics/google_analytics_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:telemetry/telemetry.dart';
 
 /// An interface for managing and reporting analytics.
@@ -27,6 +28,9 @@ abstract class AnalyticsManager {
   /// Record the number of [added] folders and [removed] folders.
   void changedWorkspaceFolders(
       {required List<String> added, required List<String> removed});
+
+  /// Record that the [contexts] have been created.
+  void createdAnalysisContexts(List<AnalysisContext> contexts);
 
   /// Record that the given [notification] was received and has been handled.
   void handledNotificationMessage(

@@ -10,7 +10,9 @@ import 'package:analysis_server/src/analytics/google_analytics_manager.dart';
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:telemetry/telemetry.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,9 +24,30 @@ void main() {
 }
 
 @reflectiveTest
-class GoogleAnalyticsManagerTest {
+class GoogleAnalyticsManagerTest with ResourceProviderMixin {
   final analytics = _MockAnalytics();
   late final manager = GoogleAnalyticsManager(analytics);
+
+  String get testPackageRootPath => '/home/package';
+
+  void test_createAnalysisContexts_single() {
+    _createAnalysisOptionsFile(lints: [
+      'avoid_dynamic_calls',
+      'await_only_futures',
+      'unawaited_futures'
+    ]);
+    var collection =
+        AnalysisContextCollection(includedPaths: [testPackageRootPath]);
+    _defaultStartup();
+    manager.createdAnalysisContexts(collection.contexts);
+    manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.lintUsageCounts(parameters: {
+        'usageCounts': '{}',
+      }),
+    ]);
+  }
 
   void test_plugin_request() {
     _defaultStartup();
@@ -39,6 +62,7 @@ class GoogleAnalyticsManagerTest {
         'method': 'analysis.getNavigation',
         'duration': _IsPercentiles(),
       }),
+      _ExpectedEvent.lintUsageCounts(),
     ]);
     PluginManager.pluginResponseTimes.clear();
   }
@@ -60,6 +84,7 @@ class GoogleAnalyticsManagerTest {
         'method': Method.workspace_didCreateFiles.toString(),
         'duration': _IsPercentiles(),
       }),
+      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -89,6 +114,7 @@ class GoogleAnalyticsManagerTest {
         'removed':
             '{"count":1,"percentiles":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]}',
       }),
+      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -112,6 +138,7 @@ class GoogleAnalyticsManagerTest {
         ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_EXCLUDED:
             '{"count":1,"percentiles":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]}',
       }),
+      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -133,6 +160,7 @@ class GoogleAnalyticsManagerTest {
         ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES:
             '{"count":1,"percentiles":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]}',
       }),
+      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -153,6 +181,7 @@ class GoogleAnalyticsManagerTest {
         'duration': _IsPercentiles(),
         EDIT_REQUEST_GET_REFACTORING_KIND: '{"RENAME":1}',
       }),
+      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -172,6 +201,7 @@ class GoogleAnalyticsManagerTest {
         'parameters':
             'closingLabels,onlyAnalyzeProjectsWithOpenFiles,suggestFromUnimportedLibraries',
       }),
+      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -197,6 +227,7 @@ class GoogleAnalyticsManagerTest {
         'openWorkspacePaths':
             '{"count":1,"percentiles":[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]}',
       }),
+      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -213,6 +244,7 @@ class GoogleAnalyticsManagerTest {
         'method': SERVER_REQUEST_SHUTDOWN,
         'duration': _IsPercentiles(),
       }),
+      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -240,6 +272,7 @@ class GoogleAnalyticsManagerTest {
         'sdkVersion': sdkVersion,
         'duration': _IsStringEncodedPositiveInt(),
       }),
+      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -256,6 +289,7 @@ class GoogleAnalyticsManagerTest {
       _ExpectedEvent.session(parameters: {
         'plugins': '{"recordCount":1,"rootCounts":{"a":$counts,"b":$counts}}'
       }),
+      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -280,7 +314,45 @@ class GoogleAnalyticsManagerTest {
         'sdkVersion': sdkVersion,
         'duration': _IsStringEncodedPositiveInt(),
       }),
+      _ExpectedEvent.lintUsageCounts(),
     ]);
+  }
+
+  /// Create an analysis options file based on the given arguments.
+  void _createAnalysisOptionsFile({
+    String? path,
+    List<String>? experiments,
+    bool? implicitCasts,
+    List<String>? lints,
+  }) {
+    path ??= '$testPackageRootPath/analysis_options.yaml';
+    var buffer = StringBuffer();
+
+    if (experiments != null || implicitCasts != null) {
+      buffer.writeln('analyzer:');
+    }
+
+    if (experiments != null) {
+      buffer.writeln('  enable-experiment:');
+      for (var experiment in experiments) {
+        buffer.writeln('    - $experiment');
+      }
+    }
+
+    if (implicitCasts != null) {
+      buffer.writeln('  strong-mode:');
+      buffer.writeln('    implicit-casts: $implicitCasts');
+    }
+
+    if (lints != null) {
+      buffer.writeln('linter:');
+      buffer.writeln('  rules:');
+      for (var lint in lints) {
+        buffer.writeln('    - $lint');
+      }
+    }
+
+    newFile(path, buffer.toString());
   }
 
   void _defaultStartup() {
@@ -318,6 +390,9 @@ class _ExpectedEvent {
       {this.label, // ignore: unused_element
       this.value, // ignore: unused_element
       this.parameters});
+
+  _ExpectedEvent.lintUsageCounts({Map<String, Object>? parameters})
+      : this('language_server', 'lintUsageCounts', parameters: parameters);
 
   _ExpectedEvent.notification({Map<String, Object>? parameters})
       : this('language_server', 'notification', parameters: parameters);

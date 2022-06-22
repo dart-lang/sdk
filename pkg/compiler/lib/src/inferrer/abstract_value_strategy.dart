@@ -4,7 +4,7 @@
 
 // @dart = 2.10
 
-import '../universe/world_builder.dart';
+import '../universe/world_builder.dart' show SelectorConstraintsStrategy;
 import '../world.dart';
 import 'abstract_value_domain.dart';
 

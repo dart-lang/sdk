@@ -1997,6 +1997,42 @@ void Simulator::InterpretFNMADD(Instr instr) {
   pc_ += instr.length();
 }
 
+// "For the purposes of these instructions only, the value −0.0 is considered to
+//  be less than the value +0.0. If both inputs are NaNs, the result is the
+//  canonical NaN. If only one operand is a NaN, the result is the non-NaN
+//  operand."
+static double rv_fmin(double x, double y) {
+  if (isnan(x) && isnan(y)) return std::numeric_limits<double>::quiet_NaN();
+  if (isnan(x)) return y;
+  if (isnan(y)) return x;
+  if (x == y) return signbit(x) ? x : y;
+  return fmin(x, y);
+}
+
+static double rv_fmax(double x, double y) {
+  if (isnan(x) && isnan(y)) return std::numeric_limits<double>::quiet_NaN();
+  if (isnan(x)) return y;
+  if (isnan(y)) return x;
+  if (x == y) return signbit(x) ? y : x;
+  return fmax(x, y);
+}
+
+static float rv_fminf(float x, float y) {
+  if (isnan(x) && isnan(y)) return std::numeric_limits<float>::quiet_NaN();
+  if (isnan(x)) return y;
+  if (isnan(y)) return x;
+  if (x == y) return signbit(x) ? x : y;
+  return fminf(x, y);
+}
+
+static float rv_fmaxf(float x, float y) {
+  if (isnan(x) && isnan(y)) return std::numeric_limits<float>::quiet_NaN();
+  if (isnan(x)) return y;
+  if (isnan(y)) return x;
+  if (x == y) return signbit(x) ? y : x;
+  return fmaxf(x, y);
+}
+
 static bool is_quiet(float x) {
   // Warning: This is true on Intel/ARM, but not everywhere.
   return (bit_cast<uint32_t>(x) & (static_cast<uint32_t>(1) << 22)) != 0;
@@ -2258,10 +2294,10 @@ void Simulator::InterpretOPFP(Instr instr) {
       float rs2 = get_fregs(instr.frs2());
       switch (instr.funct3()) {
         case MIN:
-          set_fregs(instr.frd(), fminf(rs1, rs2));
+          set_fregs(instr.frd(), rv_fminf(rs1, rs2));
           break;
         case MAX:
-          set_fregs(instr.frd(), fmaxf(rs1, rs2));
+          set_fregs(instr.frd(), rv_fmaxf(rs1, rs2));
           break;
         default:
           IllegalInstruction(instr);
@@ -2412,10 +2448,10 @@ void Simulator::InterpretOPFP(Instr instr) {
       double rs2 = get_fregd(instr.frs2());
       switch (instr.funct3()) {
         case MIN:
-          set_fregd(instr.frd(), fmin(rs1, rs2));
+          set_fregd(instr.frd(), rv_fmin(rs1, rs2));
           break;
         case MAX:
-          set_fregd(instr.frd(), fmax(rs1, rs2));
+          set_fregd(instr.frd(), rv_fmax(rs1, rs2));
           break;
         default:
           IllegalInstruction(instr);

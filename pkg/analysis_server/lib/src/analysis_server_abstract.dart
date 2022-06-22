@@ -539,6 +539,9 @@ abstract class AbstractAnalysisServer {
     // every time the set of plugins changes, in which case we'll need to listen
     // to the `PluginManager.pluginsChanged` stream.
     analyticsManager.changedPlugins(pluginManager);
+    // For now we record context-dependent information only on shutdown. We
+    // might want to record it on start-up as well.
+    analyticsManager.createdAnalysisContexts(contextManager.analysisContexts);
 
     pubPackageService.shutdown();
     analyticsManager.shutdown();
