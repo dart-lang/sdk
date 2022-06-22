@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:dev_compiler/src/compiler/shared_command.dart';
@@ -24,11 +22,11 @@ class SourceMapContext extends ChainContextWithCleanupHelper
     implements WithCompilerState {
   final Map<String, String> environment;
   @override
-  fe.InitializedCompilerState compilerState;
+  fe.InitializedCompilerState? compilerState;
 
   SourceMapContext(this.environment);
 
-  List<Step> _steps;
+  List<Step>? _steps;
 
   @override
   List<Step> get steps {
@@ -61,7 +59,7 @@ class DevCompilerRunner implements CompilerRunner {
     var ddcSdkSummary = findInOutDir('ddc_outline.dill');
 
     var packageConfigPath =
-        sdkRoot.uri.resolve('.dart_tool/package_config.json').toFilePath();
+        sdkRoot!.uri.resolve('.dart_tool/package_config.json').toFilePath();
     var args = <String>[
       '--batch',
       '--packages=$packageConfigPath',
@@ -77,7 +75,7 @@ class DevCompilerRunner implements CompilerRunner {
       var result = await compile(ParsedArguments.from(args),
           compilerState: context.compilerState);
       context.compilerState =
-          result.compilerState as fe.InitializedCompilerState;
+          result.compilerState as fe.InitializedCompilerState?;
       succeeded = result.success;
     } catch (e, s) {
       print('Unhandled exception:');
