@@ -364,6 +364,7 @@ class LspMetaModelCleaner {
           'SignatureInformationParameterInformation',
       'TextDocumentFilter2': 'TextDocumentFilterWithScheme',
       'PrepareRenameResult1': 'PlaceholderAndRange',
+      'Pattern': 'LspPattern',
       'URI': 'LspUri',
     };
 
