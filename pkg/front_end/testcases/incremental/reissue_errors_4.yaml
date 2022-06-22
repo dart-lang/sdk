@@ -10,7 +10,16 @@ type: newworld
 worlds:
   - entry: main.dart
     sources:
-      .packages: mypackage:mypackage
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "mypackage",
+              "rootUri": "../mypackage"
+            }
+          ]
+        }
       main.dart: |
         // @dart=2.9
         import "package:mypackage/a.dart";
@@ -38,7 +47,16 @@ worlds:
     expectedLibraryCount: 3
   - entry: main.dart
     sources:
-      .packages: mypackage:mypackage
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "mypackage",
+              "rootUri": "../mypackage"
+            }
+          ]
+        }
       main.dart: |
         // @dart=2.9
         import "package:mypackage/a.dart";

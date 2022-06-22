@@ -36,9 +36,18 @@ modules:
         String str() {}
       }
     module/lib4.dart: |
+      // @dart=2.9
       class Class4 {}
-    module/.packages: |
-      module:.
+    module/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "module",
+            "rootUri": ".."
+          }
+        ]
+      }
 worlds:
   - entry: compileme.dart
     fromComponent: true
@@ -60,8 +69,16 @@ worlds:
             return class1;
           }
         }
-      .packages: |
-        module:module
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "module",
+              "rootUri": "../module"
+            }
+          ]
+        }
     modules:
       - module
     expectedLibraryCount: 5
@@ -105,8 +122,16 @@ worlds:
             return class1;
           }
         }
-      .packages: |
-        module:module
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "module",
+              "rootUri": "../module"
+            }
+          ]
+        }
     modules:
       - module
     expectedLibraryCount: 5

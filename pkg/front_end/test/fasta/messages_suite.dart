@@ -785,14 +785,13 @@ class Compile extends Step<Example?, Null, MessageTestSuite> {
     Uri output =
         suite.fileSystem.currentDirectory.resolve("$dir/main.dart.dill");
 
-    // Setup .packages if it (or package_config.json) doesn't exist.
-    Uri dotPackagesUri =
-        suite.fileSystem.currentDirectory.resolve("$dir/.packages");
-    Uri packageConfigJsonUri = suite.fileSystem.currentDirectory
+    // Setup .dart_tool/package_config.json if it doesn't exist.
+    Uri packageConfigUri = suite.fileSystem.currentDirectory
         .resolve("$dir/.dart_tool/package_config.json");
-    if (!await suite.fileSystem.entityForUri(dotPackagesUri).exists() &&
-        !await suite.fileSystem.entityForUri(packageConfigJsonUri).exists()) {
-      suite.fileSystem.entityForUri(dotPackagesUri).writeAsBytesSync([]);
+    if (!await suite.fileSystem.entityForUri(packageConfigUri).exists()) {
+      suite.fileSystem
+          .entityForUri(packageConfigUri)
+          .writeAsStringSync('{"configVersion": 2, "packages": []}');
     }
 
     print("Compiling $main");
@@ -805,7 +804,7 @@ class Compile extends Step<Example?, Null, MessageTestSuite> {
           ..explicitExperimentalFlags = example.experimentalFlags ?? {}
           ..target = new VmTarget(new TargetFlags())
           ..fileSystem = new HybridFileSystem(suite.fileSystem)
-          ..packagesFileUri = dotPackagesUri
+          ..packagesFileUri = packageConfigUri
           ..onDiagnostic = messages.add
           ..environmentDefines = const {}),
         main,

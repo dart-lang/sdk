@@ -23,7 +23,7 @@ static const field core::List<core::int> listConcatenation = #C11;
 static const field core::Set<core::int> setConcatenation = #C13;
 static const field core::Map<core::int, core::String> mapConcatenation = #C16;
 static const field core::bool objectTypeLiteralIdentical = #C19;
-static const field core::bool partialInstantiationIdentical = #C21;
+static const field core::bool partialInstantiationIdentical = #C25;
 static const field core::bool instanceIdentical = #C19;
 static const field core::bool instance2Identical = #C19;
 static const field core::bool functionTypeLiteralIdentical = #C19;
@@ -39,7 +39,7 @@ static const field core::bool setConcatenationIdentical = #C19;
 static const field core::bool mapConcatenationIdentical = #C19;
 static method main() → dynamic {
   self::test(#C1, #C1);
-  self::test(#C3, #C22);
+  self::test(#C3, #C24);
   self::test(#C5, #C5);
   self::test(#C9, #C9);
   self::test(#C10, #C10);
@@ -50,7 +50,7 @@ static method main() → dynamic {
   self::test(#C13, #C13);
   self::test(#C16, #C16);
   self::test(true, #C19);
-  self::test(true, #C23);
+  self::test(true, #C25);
   self::test(true, #C19);
   self::test(true, #C19);
   self::test(true, #C19);
@@ -81,8 +81,8 @@ class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstCo
     ;
 }
 static const field core::Type objectTypeLiteral = #C1;
-static const field (core::Object?, core::Object?) → core::bool c2 = #C24;
-static const field (core::int) → core::int partialInstantiation = #C25;
+static const field (core::Object?, core::Object?) → core::bool c2 = #C26;
+static const field (core::int) → core::int partialInstantiation = #C24;
 static const field var::Class<core::int> instance = #C5;
 static const field var::Class<dynamic> instance2 = #C8;
 static const field core::Type functionTypeLiteral = #C9;
@@ -121,17 +121,18 @@ constants  {
   #C17 = null
   #C18 = <dynamic, dynamic>{#C7:#C15, #C17:#C7)
   #C19 = true
-  #C20 = static-tearoff var::id2
-  #C21 = eval const core::identical(#C3, const core::bool::fromEnvironment(#C15) ?{(core::int) → core::int} #C2<core::int> : #C20<core::int>)
-  #C22 = eval const core::bool::fromEnvironment(#C15) ?{(core::int) → core::int} #C2<core::int> : #C20<core::int>
-  #C23 = eval const core::identical(#C3, const core::bool::fromEnvironment(#C15) ?{(core::int) → core::int} #C2<core::int> : #C20<core::int>)
-  #C24 = static-tearoff core::identical
-  #C25 = eval const core::bool::fromEnvironment(#C15) ?{(core::int) → core::int} #C2<core::int> : #C20<core::int>
+  #C20 = eval const core::bool::fromEnvironment(#C15)
+  #C21 = eval #C2<core::int>
+  #C22 = static-tearoff var::id2
+  #C23 = eval #C22<core::int>
+  #C24 = eval #C20 ?{(core::int) → core::int} #C21 : #C23
+  #C25 = eval const core::identical(#C3, #C24)
+  #C26 = static-tearoff core::identical
 }
 
 Extra constant evaluation status:
-Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2.dart:15:28 -> InstantiationConstant(id2<int*>)
-Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2.dart:37:5 -> BoolConstant(false)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2.dart:59:34 -> InstantiationConstant(id2<int*>)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2.dart:71:14 -> BoolConstant(false)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2.dart:37:5 -> BoolConstant(false)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2_lib.dart:20:39 -> InstantiationConstant(id2<int*>)
 Extra constant evaluation: evaluated: 41, effectively constant: 4

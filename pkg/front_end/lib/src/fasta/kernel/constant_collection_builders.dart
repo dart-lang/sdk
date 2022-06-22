@@ -26,7 +26,7 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
     if (constant is AbortConstant) return constant;
     if (evaluator.shouldBeUnevaluated) {
       parts.add(evaluator.unevaluated(
-          element, makeLiteral([evaluator.extract(constant)])));
+          element, makeLiteral([evaluator._wrap(constant)])));
       return null;
     } else {
       return addConstant(constant, element);
@@ -134,7 +134,7 @@ class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
         if (part.isEmpty) continue;
         lists.add(new ConstantExpression(new ListConstant(elementType, part)));
       } else if (part is Constant) {
-        lists.add(evaluator.extract(part));
+        lists.add(evaluator._wrap(part));
       } else {
         throw 'Non-constant in constant list';
       }
@@ -208,7 +208,7 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
         if (part.isEmpty) continue;
         sets.add(new ConstantExpression(new SetConstant(elementType, part)));
       } else if (part is Constant) {
-        sets.add(evaluator.extract(part));
+        sets.add(evaluator._wrap(part));
       } else {
         throw 'Non-constant in constant set';
       }
@@ -247,8 +247,7 @@ class MapConstantBuilder {
       parts.add(evaluator.unevaluated(
           element.key,
           new MapLiteral([
-            new MapLiteralEntry(
-                evaluator.extract(key), evaluator.extract(value))
+            new MapLiteralEntry(evaluator._wrap(key), evaluator._wrap(value))
           ], isConst: true)));
       return null;
     } else {
@@ -347,7 +346,7 @@ class MapConstantBuilder {
         maps.add(
             new ConstantExpression(new MapConstant(keyType, valueType, part)));
       } else if (part is Constant) {
-        maps.add(evaluator.extract(part));
+        maps.add(evaluator._wrap(part));
       } else {
         throw 'Non-constant in constant map';
       }

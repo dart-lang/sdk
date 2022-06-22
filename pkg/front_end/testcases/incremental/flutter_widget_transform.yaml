@@ -51,8 +51,16 @@ worlds:
           /// Optional locations of the parameters of the member at this location.
           final List<_Location> parameterLocations;
         }
-      .packages: |
-        flutter:flutter/lib
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "flutter",
+              "rootUri": "../flutter/lib"
+            }
+          ]
+        }
     expectedLibraryCount: 3
   - entry: main.dart
     worldType: updated

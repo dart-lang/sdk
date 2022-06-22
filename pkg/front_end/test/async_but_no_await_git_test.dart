@@ -33,7 +33,7 @@ Future<void> main(List<String> args) async {
 
   Uri packageConfigUri = repoDir.resolve(".dart_tool/package_config.json");
   if (!new File.fromUri(packageConfigUri).existsSync()) {
-    throw "Couldn't find .packages";
+    throw "Couldn't find .dart_tool/package_config.json";
   }
   compilerOptions.packagesFileUri = packageConfigUri;
 

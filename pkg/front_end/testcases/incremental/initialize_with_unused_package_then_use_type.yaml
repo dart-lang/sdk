@@ -27,7 +27,16 @@ worlds:
             print("Foo!");
           }
         }
-      .packages: mypackage:mypackage
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "mypackage",
+              "rootUri": "../mypackage"
+            }
+          ]
+        }
     expectedLibraryCount: 2
   - entry: main.dart
     invalidate:
@@ -45,7 +54,16 @@ worlds:
             print("Foo!");
           }
         }
-      .packages: mypackage:mypackage
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "mypackage",
+              "rootUri": "../mypackage"
+            }
+          ]
+        }
     expectedLibraryCount: 1
     expectInitializeFromDill: true
   - entry: main.dart

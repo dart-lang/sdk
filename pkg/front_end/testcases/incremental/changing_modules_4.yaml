@@ -19,10 +19,24 @@ modules:
       class A2 extends A3 {
         int bar = 42;
       }
-    moduleB/.packages: |
-      moduleB:.
-      moduleC:../moduleC
-      moduleD:../moduleD
+    moduleB/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "moduleB",
+            "rootUri": ".."
+          },
+          {
+            "name": "moduleC",
+            "rootUri": "../../moduleC"
+          },
+          {
+            "name": "moduleD",
+            "rootUri": "../../moduleD"
+          }
+        ]
+      }
   moduleC:
     moduleC/c.dart: |
       // @dart=2.9
@@ -34,15 +48,34 @@ modules:
       class A3 {
         int foo = 42;
       }
-    moduleC/.packages: |
-      moduleC:.
-      moduleD:../moduleD
+    moduleC/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "moduleC",
+            "rootUri": ".."
+          },
+          {
+            "name": "moduleD",
+            "rootUri": "../../moduleD"
+          }
+        ]
+      }
   moduleD:
     moduleD/d.dart: |
       // @dart=2.9
       String baz3 = "baz3";
-    moduleD/.packages: |
-      moduleD:.
+    moduleD/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "moduleD",
+            "rootUri": ".."
+          }
+        ]
+      }
 worlds:
   - entry: a.dart
     fromComponent: true
@@ -53,10 +86,24 @@ worlds:
 
         String foo = baz;
         var x = mya2.bar;
-      .packages: |
-        moduleB:moduleB
-        moduleC:moduleC
-        moduleD:moduleD
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "moduleB",
+              "rootUri": "../moduleB"
+            },
+            {
+              "name": "moduleC",
+              "rootUri": "../moduleC"
+            },
+            {
+              "name": "moduleD",
+              "rootUri": "../moduleD"
+            }
+          ]
+        }
     modules:
       - moduleB
       - moduleC

@@ -23,4 +23,13 @@ sources:
     b() {
       print("b1");
     }
-  .packages: example:pkg/example
+  .dart_tool/package_config.json: |
+    {
+      "configVersion": 2,
+      "packages": [
+        {
+          "name": "example",
+          "rootUri": "../pkg/example"
+        }
+      ]
+    }

@@ -31,8 +31,16 @@ modules:
       class XIdentityHashSet implements XLinkedHashSet {
         XIdentityHashSet();
       }
-    module/.packages: |
-      module:.
+    module/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "module",
+            "rootUri": ".."
+          }
+        ]
+      }
 worlds:
   - entry: compileme.dart
     fromComponent: true
@@ -44,8 +52,16 @@ worlds:
         main() {
           XSet history = new XSet.identity();
         }
-      .packages: |
-        module:module
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "module",
+              "rootUri": "../module"
+            }
+          ]
+        }
     modules:
       - module
     expectedLibraryCount: 4

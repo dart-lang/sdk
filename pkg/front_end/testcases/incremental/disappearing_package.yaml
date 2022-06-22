@@ -3,8 +3,8 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 # Compile an application with a package and use it.
-# Then remove the package from .packages and remove any use of it.
-# The package is still included in the dill file we initialize from,
+# Then remove the package from .dart_tool/package_config.json and remove any use
+# of it. The package is still included in the dill file we initialize from,
 # but shouldn't cause trouble, nor be included in the output.
 
 type: newworld
@@ -23,7 +23,16 @@ worlds:
         b() {
           print("b");
         }
-      .packages: example:pkg/example
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "example",
+              "rootUri": "../pkg/example"
+            }
+          ]
+        }
     expectedLibraryCount: 2
   - entry: main.dart
     # TODO(jensj): For now we don't initialize from dill when a package was
@@ -37,5 +46,9 @@ worlds:
         main() {
           print("hello");
         }
-      .packages:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": []
+        }
     expectedLibraryCount: 1

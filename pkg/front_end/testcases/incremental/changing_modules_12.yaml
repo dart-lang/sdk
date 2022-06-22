@@ -24,8 +24,16 @@ modules:
       // @dart=2.9
       import 'package:module/c.dart';
       class D { }
-    module/.packages: |
-      module:.
+    module/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "module",
+            "rootUri": ".."
+          }
+        ]
+      }
 worlds:
   - entry: main.dart
     fromComponent: true
@@ -33,8 +41,16 @@ worlds:
       main.dart: |
         // @dart=2.9
         class Foo {}
-      .packages: |
-        module:module
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "module",
+              "rootUri": "../module"
+            }
+          ]
+        }
     modules:
       - module
     expectedLibraryCount: 1

@@ -400,7 +400,7 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint,
       invalidateFilenames.remove(filename);
     }
     String source = sourceFiles[filename];
-    if (filename == ".packages") {
+    if (filename == ".dart_tool/package_config.json") {
       packagesUri = uri;
     }
     File file = new File.fromUri(uri);
@@ -477,7 +477,7 @@ Future<Map<String, List<int>>> createModules(
     Uri? packagesUri;
     for (String filename in module[moduleName].keys) {
       Uri uri = base.resolve(filename);
-      if (uri.pathSegments.last == ".packages") {
+      if (uri.pathSegments.last == "package_config.json") {
         packagesUri = uri;
       } else {
         moduleSources.add(uri);
@@ -683,9 +683,7 @@ class NewWorldTest {
       for (String filename in sourceFiles.keys) {
         String data = sourceFiles[filename] ?? "";
         Uri uri = base.resolve(filename);
-        if (filename == ".packages") {
-          packagesUri = uri;
-        } else if (filename == ".dart_tool/package_config.json") {
+        if (filename == ".dart_tool/package_config.json") {
           packagesUri = uri;
         }
         if (world["enableStringReplacement"] == true) {
@@ -693,8 +691,8 @@ class NewWorldTest {
         }
         fs.entityForUri(uri).writeAsStringSync(data);
       }
-      if (world["dotPackagesFile"] != null) {
-        packagesUri = base.resolve(world["dotPackagesFile"]);
+      if (world["packageConfigFile"] != null) {
+        packagesUri = base.resolve(world["packageConfigFile"]);
       }
 
       if (brandNewWorld) {

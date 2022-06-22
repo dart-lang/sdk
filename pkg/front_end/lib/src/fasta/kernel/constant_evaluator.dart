@@ -22,7 +22,6 @@ import 'dart:io' as io;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/const_canonical_type.dart';
 import 'package:kernel/src/legacy_erasure.dart';
@@ -835,7 +834,7 @@ class ConstantsTransformer extends RemovingTransformer {
   TreeNode visitConstantExpression(
       ConstantExpression node, TreeNode? removalSentinel) {
     Constant constant = node.constant;
-    if (constant is UnevaluatedConstant) {
+    if (constant is UnevaluatedConstant && constantEvaluator.hasEnvironment) {
       Expression expression = constant.expression;
       return evaluateAndTransformWithContext(expression, expression);
     } else {
@@ -898,7 +897,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   final Map<Constant, Constant> canonicalizationCache;
   final Map<Node, Constant?> nodeCache;
-  final CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
 
   late Map<Class, bool> primitiveEqualCache;
 
@@ -910,7 +908,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   InstanceBuilder? instanceBuilder;
   EvaluationEnvironment env;
-  Set<Expression> replacementNodes = new Set<Expression>.identity();
   Map<Constant, Constant> lowered = new Map<Constant, Constant>.identity();
 
   bool seenUnevaluatedChild = false; // Any children that were left unevaluated?
@@ -1209,17 +1206,11 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     return node.accept(new RedundantFileUriExpressionRemover()) as Expression;
   }
 
-  /// Extract an expression from a (possibly unevaluated) constant to become
-  /// part of the expression tree of another unevaluated constant.
-  /// Makes sure a particular expression occurs only once in the tree by
-  /// cloning further instances.
-  Expression extract(Constant constant) {
-    Expression expression = constant.asExpression();
-    if (!replacementNodes.add(expression)) {
-      expression = cloner.clone(expression);
-      replacementNodes.add(expression);
-    }
-    return expression;
+  /// Wrap a constant in a ConstantExpression.
+  ///
+  /// For use with unevaluated constants.
+  ConstantExpression _wrap(Constant constant) {
+    return new ConstantExpression(constant);
   }
 
   /// Enter a region of lazy evaluation. All leaf nodes are evaluated normally
@@ -1754,7 +1745,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           return error;
         }
         if (constant is UnevaluatedConstant) {
-          instanceBuilder!.unusedArguments.add(extract(constant));
+          instanceBuilder!.unusedArguments.add(_wrap(constant));
         }
       }
       if (error != null) return error;
@@ -2040,7 +2031,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       }
 
       for (UnevaluatedConstant constant in env.unevaluatedUnreadConstants) {
-        instanceBuilder!.unusedArguments.add(extract(constant));
+        instanceBuilder!.unusedArguments.add(_wrap(constant));
       }
 
       // ignore: unnecessary_null_comparison
@@ -2065,10 +2056,10 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         enterLazy();
         Constant constant = _evaluateSubexpression(statement.message!);
         if (constant is AbortConstant) return constant;
-        message = extract(constant);
+        message = _wrap(constant);
         leaveLazy();
       }
-      instanceBuilder!.asserts.add(new AssertStatement(extract(condition),
+      instanceBuilder!.asserts.add(new AssertStatement(_wrap(condition),
           message: message,
           conditionStartOffset: statement.conditionStartOffset,
           conditionEndOffset: statement.conditionEndOffset));
@@ -2081,8 +2072,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         final Constant message = _evaluateSubexpression(statement.message!);
         if (message is AbortConstant) return message;
         if (shouldBeUnevaluated) {
-          instanceBuilder!.asserts.add(new AssertStatement(extract(condition),
-              message: extract(message),
+          instanceBuilder!.asserts.add(new AssertStatement(_wrap(condition),
+              message: _wrap(message),
               conditionStartOffset: statement.conditionStartOffset,
               conditionEndOffset: statement.conditionEndOffset));
         } else if (message is StringConstant) {
@@ -2150,7 +2141,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           node,
           new DynamicInvocation(
               node.kind,
-              extract(receiver),
+              _wrap(receiver),
               node.name,
               unevaluatedArguments(
                   positionalArguments, {}, node.arguments.types))
@@ -2195,7 +2186,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           node,
           new InstanceInvocation(
               node.kind,
-              extract(receiver),
+              _wrap(receiver),
               node.name,
               unevaluatedArguments(
                   positionalArguments, {}, node.arguments.types),
@@ -2293,11 +2284,10 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (left is AbortConstant) return left;
     final Constant right = _evaluateSubexpression(node.right);
     if (right is AbortConstant) return right;
-
     if (shouldBeUnevaluated) {
       return unevaluated(
           node,
-          new EqualsCall(extract(left), extract(right),
+          new EqualsCall(_wrap(left), _wrap(right),
               functionType: node.functionType,
               interfaceTarget: node.interfaceTarget)
             ..fileOffset = node.fileOffset);
@@ -2313,7 +2303,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
     if (shouldBeUnevaluated) {
       return unevaluated(node,
-          new EqualsNull(extract(expression))..fileOffset = node.fileOffset);
+          new EqualsNull(_wrap(expression))..fileOffset = node.fileOffset);
     }
 
     return _handleEquals(node, expression, nullConstant);
@@ -2604,10 +2594,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       Constant right = _evaluateSubexpression(node.right);
       if (right is AbortConstant) return right;
       leaveLazy();
-      return unevaluated(
-          node,
-          new LogicalExpression(
-              extract(left), node.operatorEnum, extract(right)));
+      return unevaluated(node,
+          new LogicalExpression(_wrap(left), node.operatorEnum, _wrap(right)));
     }
     switch (node.operatorEnum) {
       case LogicalExpressionOperator.OR:
@@ -2688,8 +2676,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       leaveLazy();
       return unevaluated(
           node,
-          new ConditionalExpression(extract(condition), extract(then),
-              extract(otherwise), env.substituteType(node.staticType)));
+          new ConditionalExpression(_wrap(condition), _wrap(then),
+              _wrap(otherwise), env.substituteType(node.staticType)));
     } else {
       return createEvaluationErrorConstant(
           node.condition,
@@ -2737,7 +2725,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     } else if (shouldBeUnevaluated) {
       return unevaluated(
           node,
-          new InstanceGet(node.kind, extract(receiver), node.name,
+          new InstanceGet(node.kind, _wrap(receiver), node.name,
               resultType: node.resultType,
               interfaceTarget: node.interfaceTarget));
     } else if (receiver is NullConstant) {
@@ -2797,7 +2785,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       return canonicalize(intFolder.makeIntConstant(receiver.value.length));
     } else if (shouldBeUnevaluated) {
       return unevaluated(
-          node, new DynamicGet(node.kind, extract(receiver), node.name));
+          node, new DynamicGet(node.kind, _wrap(receiver), node.name));
     } else if (receiver is NullConstant) {
       return createEvaluationErrorConstant(node, messageConstEvalNullValue);
     }
@@ -2979,7 +2967,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         } else {
           // The value is either unevaluated constant or a non-primitive
           // constant in an unevaluated expression.
-          return extract(value as Constant);
+          return _wrap(value as Constant);
         }
       }, growable: false);
       return unevaluated(node, new StringConcatenation(expressions));
@@ -3254,7 +3242,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (shouldBeUnevaluated) {
       return unevaluated(
           node,
-          new AsExpression(extract(constant), env.substituteType(node.type))
+          new AsExpression(_wrap(constant), env.substituteType(node.type))
             ..isForNonNullableByDefault =
                 _staticTypeContext!.isNonNullableByDefault);
     }
@@ -3277,7 +3265,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (shouldBeUnevaluated) {
       return unevaluated(
           node,
-          new IsExpression(extract(constant), node.type)
+          new IsExpression(_wrap(constant), env.substituteType(node.type))
             ..fileOffset = node.fileOffset
             ..flags = node.flags);
     }
@@ -3349,7 +3337,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       return makeBoolConstant(constant != trueConstant);
     }
     if (shouldBeUnevaluated) {
-      return unevaluated(node, new Not(extract(constant)));
+      return unevaluated(node, new Not(_wrap(constant)));
     }
     return createEvaluationErrorConstant(
         node,
@@ -3368,7 +3356,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       return createEvaluationErrorConstant(node, messageConstEvalNonNull);
     }
     if (shouldBeUnevaluated) {
-      return unevaluated(node, new NullCheck(extract(constant)));
+      return unevaluated(node, new NullCheck(_wrap(constant)));
     }
     return constant;
   }
@@ -3397,7 +3385,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (shouldBeUnevaluated) {
       return unevaluated(
           node,
-          new Instantiation(extract(constant),
+          new Instantiation(_wrap(constant),
               node.typeArguments.map((t) => env.substituteType(t)).toList()));
     }
     List<TypeParameter>? typeParameters;
@@ -3691,11 +3679,11 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     final List<NamedExpression> named = new List<NamedExpression>.filled(
         namedArgs.length, dummyNamedExpression);
     for (int i = 0; i < positionalArgs.length; ++i) {
-      positional[i] = extract(positionalArgs[i]);
+      positional[i] = _wrap(positionalArgs[i]);
     }
     int i = 0;
     namedArgs.forEach((String name, Constant value) {
-      named[i++] = new NamedExpression(name, extract(value));
+      named[i++] = new NamedExpression(name, _wrap(value));
     });
     return new Arguments(positional, named: named, types: types);
   }
@@ -4146,7 +4134,7 @@ class InstanceBuilder {
   InstanceCreation buildUnevaluatedInstance() {
     final Map<Reference, Expression> fieldValues = <Reference, Expression>{};
     fields.forEach((Field field, Constant value) {
-      fieldValues[field.fieldReference] = evaluator.extract(value);
+      fieldValues[field.fieldReference] = evaluator._wrap(value);
     });
     return new InstanceCreation(
         klass.reference, typeArguments, fieldValues, asserts, unusedArguments);
@@ -4327,11 +4315,6 @@ class FunctionValue implements Constant {
   }
 
   @override
-  Expression asExpression() {
-    throw new UnimplementedError();
-  }
-
-  @override
   DartType getType(StaticTypeContext context) {
     throw new UnimplementedError();
   }
@@ -4399,11 +4382,6 @@ class _AbortDueToErrorConstant extends AbortConstant {
   }
 
   @override
-  Expression asExpression() {
-    throw new UnimplementedError();
-  }
-
-  @override
   DartType getType(StaticTypeContext context) {
     throw new UnimplementedError();
   }
@@ -4461,11 +4439,6 @@ class _AbortDueToInvalidExpressionConstant extends AbortConstant {
 
   @override
   R acceptReference1<R, A>(Visitor1<R, A> v, A arg) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  Expression asExpression() {
     throw new UnimplementedError();
   }
 
@@ -4528,11 +4501,6 @@ class _AbortDueToThrowConstant extends AbortConstant {
 
   @override
   R acceptReference1<R, A>(Visitor1<R, A> v, A arg) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  Expression asExpression() {
     throw new UnimplementedError();
   }
 
