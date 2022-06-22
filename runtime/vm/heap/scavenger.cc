@@ -1680,7 +1680,7 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
 
   if (can_safepoint) {
     ASSERT(thread->no_safepoint_scope_depth() == 0);
-    heap_->CheckConcurrentMarking(thread, GCReason::kNewSpace);
+    heap_->CheckConcurrentMarking(thread, GCReason::kNewSpace, kNewPageSize);
   }
 
   MutexLocker ml(&space_lock_);

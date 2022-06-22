@@ -193,7 +193,7 @@ void Heap::CheckExternalGC(Thread* thread) {
     }
     CollectGarbage(thread, GCType::kMarkSweep, GCReason::kExternal);
   } else {
-    CheckConcurrentMarking(thread, GCReason::kExternal);
+    CheckConcurrentMarking(thread, GCReason::kExternal, 0);
   }
 }
 
@@ -459,7 +459,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
         CollectOldSpaceGarbage(thread, GCType::kMarkSweep,
                                GCReason::kPromotion);
       } else {
-        CheckConcurrentMarking(thread, GCReason::kPromotion);
+        CheckConcurrentMarking(thread, GCReason::kPromotion, 0);
       }
     }
   }
@@ -561,7 +561,9 @@ void Heap::CollectAllGarbage(GCReason reason, bool compact) {
   WaitForSweeperTasks(thread);
 }
 
-void Heap::CheckConcurrentMarking(Thread* thread, GCReason reason) {
+void Heap::CheckConcurrentMarking(Thread* thread,
+                                  GCReason reason,
+                                  intptr_t size) {
   PageSpace::Phase phase;
   {
     MonitorLocker ml(old_space_.tasks_lock());
@@ -570,11 +572,9 @@ void Heap::CheckConcurrentMarking(Thread* thread, GCReason reason) {
 
   switch (phase) {
     case PageSpace::kMarking:
-      // TODO(rmacnak): Make the allocator of a large page mark size equals to
-      // the large page?
-      COMPILE_ASSERT(kOldPageSize == 512 * KB);
-      COMPILE_ASSERT(kNewPageSize == 512 * KB);
-      old_space_.IncrementalMarkWithSizeBudget(512 * KB);
+      if (size != 0) {
+        old_space_.IncrementalMarkWithSizeBudget(size);
+      }
       return;
     case PageSpace::kSweepingLarge:
     case PageSpace::kSweepingRegular:
