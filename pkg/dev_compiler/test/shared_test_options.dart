@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:dev_compiler/src/compiler/module_builder.dart'
     show ModuleFormat;
+import 'package:dev_compiler/src/kernel/command.dart' show getSdkPath;
 import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
@@ -92,5 +91,3 @@ class SetupCompilerOptions {
     }
   }
 }
-
-String getSdkPath() => p.dirname(p.dirname(Platform.resolvedExecutable));
