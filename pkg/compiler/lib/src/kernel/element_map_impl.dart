@@ -1013,7 +1013,7 @@ class KernelToElementMap implements IrToElementMap {
     return lookup;
   }
 
-  String _getStringArgument(ir.StaticInvocation node, int index) {
+  String /*?*/ _getStringArgument(ir.StaticInvocation node, int index) {
     return node.arguments.positional[index].accept(Stringifier());
   }
 
