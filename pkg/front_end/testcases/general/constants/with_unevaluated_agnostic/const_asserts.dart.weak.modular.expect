@@ -95,9 +95,9 @@ class Bar extends core::Object /*hasConstConstructor*/  {
     : self::Bar::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}), super core::Object::•()
     ;
 }
-static const field self::Foo foo1 = #C9;
+static const field self::Foo foo1 = #C12;
 static const field self::Foo foo2 = invalid-expression "This assertion failed with message: x is not positive";
-static const field self::Foo foo3 = #C12;
+static const field self::Foo foo3 = #C16;
 static const field self::Foo foo4 = invalid-expression "This assertion failed with a non-String message.";
 static const field self::Foo foo5 = invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:16:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
   const Foo.withInvalidCondition(this.x) : assert(x);
@@ -107,7 +107,7 @@ static const field self::Bar bar2 = invalid-expression "This assertion failed wi
 static const field self::Bar bar3 = invalid-expression "This assertion failed.";
 static const field self::Bar bar4 = invalid-expression "This assertion failed.";
 static method main() → dynamic {
-  core::print(#C9);
+  core::print(#C12);
 }
 
 constants  {
@@ -118,11 +118,15 @@ constants  {
   #C5 = eval const core::bool::fromEnvironment(#C1)
   #C6 = 1
   #C7 = false
-  #C8 = "foo was "
-  #C9 = eval self::Foo{x:#C6, assert(const core::bool::fromEnvironment(#C1) =={core::Object::==}{(core::Object) → core::bool} #C7, "${#C8}${const core::bool::fromEnvironment(#C1)}"), assert(const core::bool::fromEnvironment(#C1) =={core::Object::==}{(core::Object) → core::bool} #C7)}
-  #C10 = 42
-  #C11 = "btw foo was "
-  #C12 = eval self::Foo{x:#C10, assert(#C7, "${#C11}${const core::bool::fromEnvironment(#C1)}")}
+  #C8 = eval #C2 =={core::Object::==}{(core::Object) → core::bool} #C7
+  #C9 = "foo was "
+  #C10 = eval "${#C9}${#C3}"
+  #C11 = eval #C4 =={core::Object::==}{(core::Object) → core::bool} #C7
+  #C12 = eval self::Foo{x:#C6, assert(#C8, #C10), assert(#C11)}
+  #C13 = 42
+  #C14 = "btw foo was "
+  #C15 = eval "${#C14}${#C5}"
+  #C16 = eval self::Foo{x:#C13, assert(#C7, #C15)}
 }
 
 

@@ -25,7 +25,7 @@ import 'log.dart' show Logger, StdoutLogger, splitLines;
 
 import 'multitest.dart' show MultitestTransformer, isError;
 
-import 'expectation.dart' show Expectation, ExpectationSet;
+import 'expectation.dart' show Expectation, ExpectationGroup, ExpectationSet;
 
 typedef Future<ChainContext> CreateContext(
     Chain suite, Map<String, String> environment);
@@ -148,6 +148,14 @@ abstract class ChainContext {
       }
       final Set<Expectation> expectedOutcomes = processExpectedOutcomes(
           expectations.expectations(description.shortName), description);
+      bool shouldSkip = false;
+      for (Expectation expectation in expectedOutcomes) {
+        if (expectation.group == ExpectationGroup.Skip) {
+          shouldSkip = true;
+          break;
+        }
+      }
+      if (shouldSkip) continue;
       final StringBuffer sb = new StringBuffer();
       final Step? lastStep = steps.isNotEmpty ? steps.last : null;
       final Iterator<Step> iterator = steps.iterator;

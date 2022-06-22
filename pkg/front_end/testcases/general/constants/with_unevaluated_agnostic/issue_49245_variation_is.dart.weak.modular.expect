@@ -9,9 +9,9 @@ class Foo<T extends core::Object? = dynamic> extends core::Object /*hasConstCons
     ;
 }
 static method main() → dynamic {
-  const self::Foo<core::int> foo = #C6;
-  core::print(#C6);
-  core::print(#C6);
+  const self::Foo<core::int> foo = #C14;
+  core::print(#C14);
+  core::print(#C14);
 }
 
 constants  {
@@ -20,7 +20,15 @@ constants  {
   #C3 = 2
   #C4 = <core::int*>[#C3]
   #C5 = "foo"
-  #C6 = eval self::Foo<core::int*>{foo:(const core::bool::fromEnvironment(#C5) ?{core::List<dynamic>} const <dynamic>[#C1] : const <dynamic>[#C3]) is{ForNonNullableByDefault} core::List<core::int*> ?{core::List<core::int>} #C2 : #C4}
+  #C6 = eval const core::bool::fromEnvironment(#C5)
+  #C7 = eval const <dynamic>[#C1]
+  #C8 = eval #C7
+  #C9 = eval const <dynamic>[#C3]
+  #C10 = eval #C9
+  #C11 = eval #C6 ?{core::List<dynamic>} #C8 : #C10
+  #C12 = eval #C11 is{ForNonNullableByDefault} core::List<core::int*>
+  #C13 = eval #C12 ?{core::List<core::int>} #C2 : #C4
+  #C14 = eval self::Foo<core::int*>{foo:#C13}
 }
 
 

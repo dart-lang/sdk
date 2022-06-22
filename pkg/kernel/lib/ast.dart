@@ -12939,10 +12939,6 @@ abstract class Constant extends Node {
 
   /// Gets the type of this constant.
   DartType getType(StaticTypeContext context);
-
-  Expression asExpression() {
-    return new ConstantExpression(this);
-  }
 }
 
 abstract class PrimitiveConstant<T> extends Constant {
@@ -13885,9 +13881,6 @@ class UnevaluatedConstant extends Constant {
   @override
   DartType getType(StaticTypeContext context) =>
       expression.getStaticType(context);
-
-  @override
-  Expression asExpression() => expression;
 
   @override
   void toTextInternal(AstPrinter printer) {

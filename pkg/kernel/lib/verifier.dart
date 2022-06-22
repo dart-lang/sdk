@@ -834,9 +834,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitUnevaluatedConstant(UnevaluatedConstant constant) {
-    if (inUnevaluatedConstant) {
-      problem(currentParent, "UnevaluatedConstant in UnevaluatedConstant.");
-    }
     bool savedInUnevaluatedConstant = inUnevaluatedConstant;
     inUnevaluatedConstant = true;
     TreeNode? oldParent = currentParent;

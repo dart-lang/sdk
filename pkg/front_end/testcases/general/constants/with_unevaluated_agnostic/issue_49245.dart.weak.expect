@@ -11,15 +11,20 @@ class Foo<T extends core::Object? = dynamic> extends core::Object /*hasConstCons
 static method bar<T extends core::Object? = dynamic>(core::String o) → self::bar::T%
   return o as{ForNonNullableByDefault} self::bar::T%;
 static method main() → void {
-  const self::Foo<core::int> myValue = #C5;
+  const self::Foo<core::int> myValue = #C10;
 }
 
 constants  {
   #C1 = static-tearoff self::bar
   #C2 = "baz"
-  #C3 = static-tearoff core::int::parse
-  #C4 = null
-  #C5 = eval self::Foo<core::int*>{_foo:(const core::bool::fromEnvironment(#C2) ?{(core::String, {onError: (core::String) →? core::int, radix: core::int?}) →? core::int} #C3 : #C4) == null ?{(core::String) → core::int*} #C1<core::int*> : const core::bool::fromEnvironment(#C2) ?{(core::String, {onError: (core::String) →? core::int, radix: core::int?}) →? core::int} #C3 : #C4}
+  #C3 = eval const core::bool::fromEnvironment(#C2)
+  #C4 = static-tearoff core::int::parse
+  #C5 = null
+  #C6 = eval #C3 ?{(core::String, {onError: (core::String) →? core::int, radix: core::int?}) →? core::int} #C4 : #C5
+  #C7 = eval #C6 == null
+  #C8 = eval #C1<core::int*>
+  #C9 = eval #C7 ?{(core::String) → core::int*} #C8 : #C6
+  #C10 = eval self::Foo<core::int*>{_foo:#C9}
 }
 
 
