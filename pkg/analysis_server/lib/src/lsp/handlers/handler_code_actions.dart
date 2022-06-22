@@ -612,7 +612,10 @@ class CodeActionHandler
         final node = NodeLocator(offset).searchWithin(unit.unit);
         final element = server.getElementOfNode(node);
         // Getter to Method
-        if (element is PropertyAccessorElement) {
+        if (element is PropertyAccessorElement &&
+            ConvertGetterToMethodRefactoring(
+                    server.searchEngine, unit.session, element)
+                .isAvailable()) {
           refactorActions.add(createRefactor(
               CodeActionKind.RefactorRewrite,
               'Convert Getter to Method',
@@ -621,7 +624,9 @@ class CodeActionHandler
 
         // Method to Getter
         if (element is ExecutableElement &&
-            element is! PropertyAccessorElement) {
+            ConvertMethodToGetterRefactoring(
+                    server.searchEngine, unit.session, element)
+                .isAvailable()) {
           refactorActions.add(createRefactor(
               CodeActionKind.RefactorRewrite,
               'Convert Method to Getter',

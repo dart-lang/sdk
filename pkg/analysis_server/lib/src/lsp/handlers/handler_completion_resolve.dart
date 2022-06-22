@@ -85,7 +85,9 @@ class CompletionResolveHandler
           return cancelled();
         }
 
-        var newInsertText = item.insertText ?? item.label;
+        var newInsertText = item.textEdit
+                ?.map((edit) => edit.newText, (edit) => edit.newText) ??
+            item.label;
         final builder = ChangeBuilder(session: session);
         await builder.addDartFileEdit(file, (builder) {
           final result = builder.importLibraryElement(libraryUri);
@@ -151,7 +153,6 @@ class CompletionResolveHandler
           preselect: item.preselect,
           sortText: item.sortText,
           filterText: item.filterText,
-          insertText: newInsertText,
           insertTextFormat: item.insertTextFormat,
           insertTextMode: item.insertTextMode,
           textEdit: supportsInsertReplace && insertionRange != replacementRange
@@ -262,7 +263,6 @@ class CompletionResolveHandler
       preselect: item.preselect,
       sortText: item.sortText,
       filterText: item.filterText,
-      insertText: item.insertText,
       insertTextFormat: item.insertTextFormat,
       textEdit: item.textEdit,
       additionalTextEdits: item.additionalTextEdits,

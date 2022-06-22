@@ -125,7 +125,7 @@ class Heap {
   void CollectAllGarbage(GCReason reason = GCReason::kFull,
                          bool compact = false);
 
-  void CheckConcurrentMarking(Thread* thread, GCReason reason);
+  void CheckConcurrentMarking(Thread* thread, GCReason reason, intptr_t size);
   void StartConcurrentMarking(Thread* thread, GCReason reason);
   void WaitForMarkerTasks(Thread* thread);
   void WaitForSweeperTasks(Thread* thread);

@@ -473,7 +473,8 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
   if (growth_policy != kForceGrowth) {
     ASSERT(GrowthControlState());
     if (heap_ != nullptr) {  // Some unit tests.
-      heap_->CheckConcurrentMarking(Thread::Current(), GCReason::kOldSpace);
+      heap_->CheckConcurrentMarking(Thread::Current(), GCReason::kOldSpace,
+                                    kOldPageSize);
     }
   }
 
@@ -514,7 +515,8 @@ uword PageSpace::TryAllocateInFreshLargePage(intptr_t size,
   if (growth_policy != kForceGrowth) {
     ASSERT(GrowthControlState());
     if (heap_ != nullptr) {  // Some unit tests.
-      heap_->CheckConcurrentMarking(Thread::Current(), GCReason::kOldSpace);
+      heap_->CheckConcurrentMarking(Thread::Current(), GCReason::kOldSpace,
+                                    size);
     }
   }
 
