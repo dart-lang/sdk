@@ -39,6 +39,37 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
+    return _checkElement();
+  }
+
+  @override
+  Future<SourceChange> createChange() async {
+    change = SourceChange(refactoringName);
+    // FunctionElement
+    final element = this.element;
+    if (element is FunctionElement) {
+      await _updateElementDeclaration(element);
+      await _updateElementReferences(element);
+    }
+    // MethodElement
+    if (element is MethodElement) {
+      var elements = await getHierarchyMembers(searchEngine, element);
+      await Future.forEach(elements, (Element element) async {
+        await _updateElementDeclaration(element);
+        return _updateElementReferences(element);
+      });
+    }
+    // done
+    return change;
+  }
+
+  @override
+  bool isAvailable() {
+    return !_checkElement().hasFatalError;
+  }
+
+  /// Checks if [element] is valid to perform this refactor.
+  RefactoringStatus _checkElement() {
     // check Element type
     if (element is FunctionElement) {
       if (element.enclosingElement is! CompilationUnitElement) {
@@ -61,27 +92,6 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     }
     // OK
     return RefactoringStatus();
-  }
-
-  @override
-  Future<SourceChange> createChange() async {
-    change = SourceChange(refactoringName);
-    // FunctionElement
-    final element = this.element;
-    if (element is FunctionElement) {
-      await _updateElementDeclaration(element);
-      await _updateElementReferences(element);
-    }
-    // MethodElement
-    if (element is MethodElement) {
-      var elements = await getHierarchyMembers(searchEngine, element);
-      await Future.forEach(elements, (Element element) async {
-        await _updateElementDeclaration(element);
-        return _updateElementReferences(element);
-      });
-    }
-    // done
-    return change;
   }
 
   Future<void> _updateElementDeclaration(Element element) async {
