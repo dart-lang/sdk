@@ -2293,7 +2293,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (left is AbortConstant) return left;
     final Constant right = _evaluateSubexpression(node.right);
     if (right is AbortConstant) return right;
-
     if (shouldBeUnevaluated) {
       return unevaluated(
           node,
@@ -3277,7 +3276,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (shouldBeUnevaluated) {
       return unevaluated(
           node,
-          new IsExpression(extract(constant), node.type)
+          new IsExpression(extract(constant), env.substituteType(node.type))
             ..fileOffset = node.fileOffset
             ..flags = node.flags);
     }
