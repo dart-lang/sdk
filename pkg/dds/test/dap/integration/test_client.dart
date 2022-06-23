@@ -494,18 +494,24 @@ extension DapTestClientExtension on DapTestClient {
   Future<StoppedEventBody> hitBreakpoint(
     File file,
     int line, {
+    List<int>? additionalBreakpoints,
     File? entryFile,
     String? condition,
     String? cwd,
     List<String>? args,
     Future<Response> Function()? launch,
   }) async {
+    assert(condition == null || additionalBreakpoints == null,
+        'Only one of condition/additionalBreakpoints can be sent');
     entryFile ??= file;
     final stop = expectStop('breakpoint', file: file, line: line);
 
     await Future.wait([
       initialize(),
-      setBreakpoint(file, line, condition: condition),
+      if (additionalBreakpoints != null)
+        setBreakpoints(file, [line, ...additionalBreakpoints])
+      else
+        setBreakpoint(file, line, condition: condition),
       launch?.call() ?? this.launch(entryFile.path, cwd: cwd, args: args),
     ], eagerError: true);
 
@@ -518,6 +524,16 @@ extension DapTestClientExtension on DapTestClient {
       SetBreakpointsArguments(
         source: Source(path: file.path),
         breakpoints: [SourceBreakpoint(line: line, condition: condition)],
+      ),
+    );
+  }
+
+  /// Sets breakpoints at [lines] in [file].
+  Future<void> setBreakpoints(File file, List<int> lines) async {
+    await sendRequest(
+      SetBreakpointsArguments(
+        source: Source(path: file.path),
+        breakpoints: lines.map((line) => SourceBreakpoint(line: line)).toList(),
       ),
     );
   }

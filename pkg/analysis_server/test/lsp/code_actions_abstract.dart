@@ -13,10 +13,13 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     Uri uri,
     String command,
     String title, {
+    Range? range,
+    Position? position,
     bool asCodeActionLiteral = false,
     bool asCommand = false,
   }) async {
-    final codeActions = await getCodeActions(uri.toString());
+    final codeActions =
+        await getCodeActions(uri.toString(), range: range, position: position);
     final codeAction = findCommand(codeActions, command)!;
 
     codeAction.map(

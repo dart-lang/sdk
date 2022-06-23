@@ -354,10 +354,11 @@ import 'dart:convert';
 ^
 void f() {}
     ''';
-    newFile(mainFilePath, content);
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString());
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
     expect(codeAction, isNull);
@@ -743,10 +744,11 @@ import 'dart:convert';
 ^
 void f() {}
     ''';
-    newFile(mainFilePath, content);
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString());
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractWidgetTitle);
     expect(codeAction, isNull);

@@ -624,7 +624,12 @@ class IsolateManager {
           _vmBreakpointsByIsolateIdAndUri.putIfAbsent(isolateId, () => {});
       final existingBreakpointsForIsolateAndUri =
           existingBreakpointsForIsolate.putIfAbsent(uri, () => []);
-      await Future.forEach<vm.Breakpoint>(existingBreakpointsForIsolateAndUri,
+      // Before doing async work, take a copy of the breakpoints to remove
+      // and remove them from the list, so any subsequent calls here don't
+      // try to remove the same ones.
+      final breakpointsToRemove = existingBreakpointsForIsolateAndUri.toList();
+      existingBreakpointsForIsolateAndUri.clear();
+      await Future.forEach<vm.Breakpoint>(breakpointsToRemove,
           (bp) => service.removeBreakpoint(isolateId, bp.id!));
 
       // Set new breakpoints.
