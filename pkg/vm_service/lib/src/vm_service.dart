@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.58.0';
+const String vmServiceVersion = '3.59.0';
 
 /// @optional
 const String optional = 'optional';
@@ -4675,6 +4675,9 @@ class FuncRef extends ObjRef {
   /// Is this function implicitly defined (e.g., implicit getter/setter)?
   bool? implicit;
 
+  /// Is this function an abstract method?
+  bool? isAbstract;
+
   /// The location of this function in the source code.
   ///
   /// Note: this may not agree with the location of `owner` if this is a
@@ -4689,6 +4692,7 @@ class FuncRef extends ObjRef {
     required this.isStatic,
     required this.isConst,
     required this.implicit,
+    required this.isAbstract,
     required String id,
     this.location,
   }) : super(
@@ -4702,6 +4706,7 @@ class FuncRef extends ObjRef {
     isStatic = json['static'] ?? false;
     isConst = json['const'] ?? false;
     implicit = json['implicit'] ?? false;
+    isAbstract = json['abstract'] ?? false;
     location = createServiceObject(json['location'], const ['SourceLocation'])
         as SourceLocation?;
   }
@@ -4719,6 +4724,7 @@ class FuncRef extends ObjRef {
       'static': isStatic,
       'const': isConst,
       'implicit': implicit,
+      'abstract': isAbstract,
     });
     _setIfNotNull(json, 'location', location?.toJson());
     return json;
@@ -4730,7 +4736,7 @@ class FuncRef extends ObjRef {
 
   String toString() => '[FuncRef ' //
       'id: ${id}, name: ${name}, owner: ${owner}, isStatic: ${isStatic}, ' //
-      'isConst: ${isConst}, implicit: ${implicit}]';
+      'isConst: ${isConst}, implicit: ${implicit}, isAbstract: ${isAbstract}]';
 }
 
 /// A `Func` represents a Dart language function.
@@ -4759,6 +4765,9 @@ class Func extends Obj implements FuncRef {
   /// Is this function implicitly defined (e.g., implicit getter/setter)?
   bool? implicit;
 
+  /// Is this function an abstract method?
+  bool? isAbstract;
+
   /// The location of this function in the source code.
   ///
   /// Note: this may not agree with the location of `owner` if this is a
@@ -4780,6 +4789,7 @@ class Func extends Obj implements FuncRef {
     required this.isStatic,
     required this.isConst,
     required this.implicit,
+    required this.isAbstract,
     required this.signature,
     required String id,
     this.location,
@@ -4795,6 +4805,7 @@ class Func extends Obj implements FuncRef {
     isStatic = json['static'] ?? false;
     isConst = json['const'] ?? false;
     implicit = json['implicit'] ?? false;
+    isAbstract = json['abstract'] ?? false;
     location = createServiceObject(json['location'], const ['SourceLocation'])
         as SourceLocation?;
     signature = createServiceObject(json['signature'], const ['InstanceRef'])
@@ -4815,6 +4826,7 @@ class Func extends Obj implements FuncRef {
       'static': isStatic,
       'const': isConst,
       'implicit': implicit,
+      'abstract': isAbstract,
       'signature': signature?.toJson(),
     });
     _setIfNotNull(json, 'location', location?.toJson());
@@ -4828,7 +4840,7 @@ class Func extends Obj implements FuncRef {
 
   String toString() => '[Func ' //
       'id: ${id}, name: ${name}, owner: ${owner}, isStatic: ${isStatic}, ' //
-      'isConst: ${isConst}, implicit: ${implicit}, signature: ${signature}]';
+      'isConst: ${isConst}, implicit: ${implicit}, isAbstract: ${isAbstract}, signature: ${signature}]';
 }
 
 /// `InstanceRef` is a reference to an `Instance`.
@@ -6322,7 +6334,9 @@ class LogRecord extends Response {
     return json;
   }
 
-  String toString() => '[LogRecord]';
+  String toString() => '[LogRecord ' //
+      'message: ${message}, time: ${time}, level: ${level}, sequenceNumber: ${sequenceNumber}, ' //
+      'loggerName: ${loggerName}, zone: ${zone}, error: ${error}, stackTrace: ${stackTrace}]';
 }
 
 class MapAssociation {

@@ -1,5 +1,9 @@
 # Changelog
 
+## 9.1.0
+- Update to version `3.59` of the spec.
+- Add `abstract` flag to `FuncRef`.
+
 ## 9.0.0
 - Update to version `3.58` of the spec.
 - Added optional `local` parameter to `lookupResolvedPackageUris` RPC.

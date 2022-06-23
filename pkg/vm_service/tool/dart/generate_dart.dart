@@ -1611,7 +1611,7 @@ Map<String, dynamic> toJson() {
     // toString()
     Iterable<TypeField> toStringFields =
         getAllFields().where((f) => !f.optional);
-    if (toStringFields.length <= 7) {
+    if (toStringFields.length <= 8) {
       String properties = toStringFields
           .map(
               (TypeField f) => "${f.generatableName}: \${${f.generatableName}}")
