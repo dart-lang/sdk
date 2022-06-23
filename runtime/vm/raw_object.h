@@ -158,11 +158,11 @@ class UntaggedObject {
   // bit fields for storing tags.
   enum TagBits {
     kCardRememberedBit = 0,
-    kOldAndNotMarkedBit = 1,      // Incremental barrier target.
-    kNewBit = 2,                  // Generational barrier target.
-    kOldBit = 3,                  // Incremental barrier source.
-    kOldAndNotRememberedBit = 4,  // Generational barrier source.
-    kCanonicalBit = 5,
+    kCanonicalBit = 1,
+    kOldAndNotMarkedBit = 2,      // Incremental barrier target.
+    kNewBit = 3,                  // Generational barrier target.
+    kOldBit = 4,                  // Incremental barrier source.
+    kOldAndNotRememberedBit = 5,  // Generational barrier source.
     kReservedTagPos = 6,
     kReservedTagSize = 2,
 

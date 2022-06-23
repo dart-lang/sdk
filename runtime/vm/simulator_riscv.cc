@@ -463,7 +463,9 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   pp -= kHeapObjectTag;  // In the PP register, the pool pointer is untagged.
   set_xreg(CODE_REG, code);
   set_xreg(PP, pp);
-  set_xreg(WRITE_BARRIER_MASK, thread->write_barrier_mask());
+  set_xreg(WRITE_BARRIER_STATE,
+           thread->write_barrier_mask() ^
+               ((UntaggedObject::kGenerationalBarrierMask << 1) - 1));
   set_xreg(NULL_REG, static_cast<uintx_t>(Object::null()));
   if (FLAG_precompiled_mode) {
     set_xreg(DISPATCH_TABLE_REG,

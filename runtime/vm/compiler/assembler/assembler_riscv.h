@@ -1257,7 +1257,7 @@ class Assembler : public MicroAssembler {
   void RestorePoolPointer();
 
   // Restores the values of the registers that are blocked to cache some values
-  // e.g. BARRIER_MASK and NULL_REG.
+  // e.g. WRITE_BARRIER_STATE and NULL_REG.
   void RestorePinnedRegisters();
 
   void SetupGlobalPoolAndDispatchTable();
