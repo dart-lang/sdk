@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 void main() {
   var bar = Bar();
   bar.doStuff();
@@ -22,7 +20,7 @@ class Foo {
 
 class Bar extends Foo {
   final List<String> /*s:2*/ /*s:4*/ data2;
-  Foo data3;
+  Foo? data3;
 
   Bar() : data2 = ['d', 'e', 'f'] {
     data3 = this;

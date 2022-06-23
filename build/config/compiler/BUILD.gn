@@ -545,6 +545,7 @@ if (is_win) {
       "-Wno-microsoft-unqualified-friend",
       "-Wno-unknown-argument",  # icu
       "-Wno-unused-value",  # crashpad
+      "-Wno-deprecated-non-prototype",  # zlib
     ]
   } else {
     default_warning_flags += [
@@ -576,6 +577,7 @@ if (is_win) {
     default_warning_flags += [
       "-Wno-tautological-constant-compare",
       "-Wno-unused-but-set-variable",  # icu
+      "-Wno-deprecated-non-prototype",  # zlib
     ]
   } else {
     default_warning_flags +=

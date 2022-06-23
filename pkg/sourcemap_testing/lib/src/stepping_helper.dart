@@ -89,7 +89,7 @@ void checkD8Steps(String outputPath, List<String> d8Output, AnnotatedCode code,
       .map((entry) => '${entry.line}:${entry.column}')
       .toSet();
 
-  List<String> expectedStops = [];
+  List<String?> expectedStops = [];
   for (Annotation annotation in code.annotations.where((annotation) =>
       annotation.text.trim().startsWith('s:') ||
       annotation.text.trim().startsWith('sl:') ||
@@ -148,7 +148,7 @@ void checkD8Steps(String outputPath, List<String> d8Output, AnnotatedCode code,
 
 void _checkRecordedStops(
     List<String> recordStops,
-    List<String> expectedStops,
+    List<String?> expectedStops,
     List<List<String>?> noBreaksStart,
     List<List<String>?> noBreaksEnd,
     bool debug) {
@@ -166,7 +166,8 @@ void _checkRecordedStops(
   for (String recorded in recordStops) {
     stopNumber++;
     if (expectedIndex == expectedStops.length) break;
-    if ('$recorded:'.contains(expectedStops[expectedIndex])) {
+    var expectedStop = expectedStops[expectedIndex];
+    if (expectedStop != null && '$recorded:'.contains(expectedStop)) {
       ++expectedIndex;
       if (noBreaksStart.length > expectedIndex &&
           noBreaksStart[expectedIndex] != null) {

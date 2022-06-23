@@ -206,7 +206,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  Null handleFunctionDeclaration(ir.FunctionDeclaration node) {
+  void handleFunctionDeclaration(ir.FunctionDeclaration node) {
     registerLocalFunction(node);
     handleAsyncMarker(node.function);
   }
@@ -550,7 +550,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  Null visitSwitchStatement(ir.SwitchStatement node) {
+  ir.DartType visitSwitchStatement(ir.SwitchStatement node) {
     registerSwitchStatementNode(node);
     return super.visitSwitchStatement(node);
   }

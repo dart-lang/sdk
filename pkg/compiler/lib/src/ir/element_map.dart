@@ -8,7 +8,6 @@ import 'package:kernel/core_types.dart' as ir;
 import '../common.dart';
 import '../common/elements.dart';
 import '../elements/entities.dart';
-import '../elements/indexed.dart';
 import '../elements/types.dart';
 import '../ordered_typeset.dart';
 import '../universe/call_structure.dart';
@@ -63,6 +62,6 @@ abstract class IrToElementMap {
   DartType substByContext(DartType type, InterfaceType context);
   FunctionType? getCallType(InterfaceType type);
   int getHierarchyDepth(covariant ClassEntity cls);
-  DartType getTypeVariableBound(IndexedTypeVariable typeVariable);
+  DartType getTypeVariableBound(covariant TypeVariableEntity typeVariable);
   List<Variance> getTypeVariableVariances(covariant ClassEntity cls);
 }

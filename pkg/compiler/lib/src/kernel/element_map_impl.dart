@@ -1013,7 +1013,7 @@ class KernelToElementMap implements IrToElementMap {
     return lookup;
   }
 
-  String _getStringArgument(ir.StaticInvocation node, int index) {
+  String /*?*/ _getStringArgument(ir.StaticInvocation node, int index) {
     return node.arguments.positional[index].accept(Stringifier());
   }
 
@@ -1448,14 +1448,16 @@ class KernelToElementMap implements IrToElementMap {
 
   /// NativeBasicData is need for computation of the default super class.
   NativeBasicData get nativeBasicData {
-    if (_nativeBasicData == null) {
-      _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
+    var data = _nativeBasicData;
+    if (data == null) {
+      data =
+          _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
       assert(
           _nativeBasicData != null,
           failedAt(NO_LOCATION_SPANNABLE,
               "NativeBasicData has not been computed yet."));
     }
-    return _nativeBasicData;
+    return data;
   }
 
   /// Adds libraries in [component] to the set of libraries.

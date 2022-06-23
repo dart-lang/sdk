@@ -23,7 +23,7 @@ class CachedStaticType extends StaticTypeBase implements StaticTypeProvider {
       : super(staticTypeContext.typeEnvironment);
 
   @override
-  ir.DartType getStaticType(ir.Expression node) => node.accept(this)!;
+  ir.DartType getStaticType(ir.Expression node) => node.accept(this);
 
   @override
   ir.DartType getForInIteratorType(ir.ForInStatement node) =>

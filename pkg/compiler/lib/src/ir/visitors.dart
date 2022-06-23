@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 
 import '../constants/constant_system.dart' as constant_system;
@@ -14,15 +12,15 @@ import '../ir/element_map.dart';
 
 /// Visitor that converts string literals and concatenations of string literals
 /// into the string value.
-class Stringifier extends ir.ExpressionVisitor<String> {
+class Stringifier extends ir.ExpressionVisitor<String?> {
   @override
   String visitStringLiteral(ir.StringLiteral node) => node.value;
 
   @override
-  String visitStringConcatenation(ir.StringConcatenation node) {
+  String? visitStringConcatenation(ir.StringConcatenation node) {
     StringBuffer sb = StringBuffer();
     for (ir.Expression expression in node.expressions) {
-      String value = expression.accept(this);
+      String? value = expression.accept(this);
       if (value == null) return null;
       sb.write(value);
     }
@@ -30,7 +28,7 @@ class Stringifier extends ir.ExpressionVisitor<String> {
   }
 
   @override
-  String visitConstantExpression(ir.ConstantExpression node) {
+  String? visitConstantExpression(ir.ConstantExpression node) {
     ir.Constant constant = node.constant;
     if (constant is ir.StringConstant) {
       return constant.value;
@@ -39,11 +37,11 @@ class Stringifier extends ir.ExpressionVisitor<String> {
   }
 
   @override
-  String defaultExpression(ir.Expression node) => null;
+  String? defaultExpression(ir.Expression node) => null;
 }
 
 /// Visitor that converts kernel dart types into [DartType].
-class DartTypeConverter extends ir.DartTypeVisitor<DartType /*!*/ > {
+class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   final IrToElementMap elementMap;
   final Map<ir.TypeParameter, DartType> currentFunctionTypeParameters =
       <ir.TypeParameter, DartType>{};
@@ -83,8 +81,6 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType /*!*/ > {
         throw UnsupportedError(
             'Undetermined nullability on $nullabilitySource');
     }
-    throw UnsupportedError(
-        'Unexpected nullability $nullability on $nullabilitySource');
   }
 
   DartType visitType(ir.DartType type) {
@@ -92,7 +88,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType /*!*/ > {
   }
 
   InterfaceType visitSupertype(ir.Supertype node) =>
-      visitInterfaceType(node.asInterfaceType).withoutNullability;
+      visitInterfaceType(node.asInterfaceType).withoutNullability
+          as InterfaceType;
 
   List<DartType> visitTypes(List<ir.DartType> types) {
     return List.generate(
@@ -101,7 +98,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType /*!*/ > {
 
   @override
   DartType visitTypeParameterType(ir.TypeParameterType node) {
-    DartType typeParameter = currentFunctionTypeParameters[node.parameter];
+    DartType? typeParameter = currentFunctionTypeParameters[node.parameter];
     if (typeParameter != null) {
       return _convertNullability(typeParameter, node);
     }
@@ -118,7 +115,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType /*!*/ > {
   @override
   DartType visitFunctionType(ir.FunctionType node) {
     int index = 0;
-    List<FunctionTypeVariable> typeVariables;
+    List<FunctionTypeVariable>? typeVariables;
     for (ir.TypeParameter typeParameter in node.typeParameters) {
       FunctionTypeVariable typeVariable =
           _dartTypes.functionTypeVariable(index);
@@ -229,7 +226,7 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
   ConstantValue visitStaticTearOffConstant(ir.StaticTearOffConstant node) {
     ir.Procedure member = node.target;
     FunctionEntity function = elementMap.getMethod(member);
-    DartType type = elementMap.getFunctionType(member.function);
+    final type = elementMap.getFunctionType(member.function);
     return FunctionConstantValue(function, type);
   }
 
@@ -239,7 +236,8 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
     for (ir.DartType type in node.types) {
       typeArguments.add(elementMap.getDartType(type));
     }
-    FunctionConstantValue function = visitConstant(node.tearOffConstant);
+    final function =
+        visitConstant(node.tearOffConstant) as FunctionConstantValue;
     return InstantiationConstantValue(typeArguments, function);
   }
 
@@ -261,7 +259,7 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
     for (ir.Constant element in node.entries) {
       elements.add(visitConstant(element));
     }
-    DartType type = elementMap.commonElements
+    final type = elementMap.commonElements
         .listType(elementMap.getDartType(node.typeArgument));
     return constant_system.createList(
         elementMap.commonElements, type, elements);
@@ -273,7 +271,7 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
     for (ir.Constant element in node.entries) {
       elements.add(visitConstant(element));
     }
-    DartType type = elementMap.commonElements
+    final type = elementMap.commonElements
         .setType(elementMap.getDartType(node.typeArgument));
     return constant_system.createSet(elementMap.commonElements, type, elements);
   }
@@ -286,7 +284,7 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
       keys.add(visitConstant(element.key));
       values.add(visitConstant(element.value));
     }
-    DartType type = elementMap.commonElements.mapType(
+    final type = elementMap.commonElements.mapType(
         elementMap.getDartType(node.keyType),
         elementMap.getDartType(node.valueType));
     return constant_system.createMap(
