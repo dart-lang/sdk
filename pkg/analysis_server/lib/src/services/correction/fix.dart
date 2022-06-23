@@ -1128,6 +1128,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove all unnecessary casts in file',
   );
+  static const REMOVE_UNNECESSARY_FINAL = FixKind(
+    'dart.fix.remove.unnecessaryFinal',
+    DartFixKindPriority.DEFAULT,
+    "Remove unnecessary 'final'",
+  );
+  static const REMOVE_UNNECESSARY_FINAL_MULTI = FixKind(
+    'dart.fix.remove.unnecessaryFinal.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove all unnecessary 'final's in file",
+  );
   static const REMOVE_UNNECESSARY_CONST = FixKind(
     'dart.fix.remove.unnecessaryConst',
     DartFixKindPriority.DEFAULT,
