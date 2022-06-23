@@ -602,8 +602,8 @@ type AbstractSuperPropertyGet extends Expression {
   Byte tag = 22;
   FileOffset fileOffset;
   Name name;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
 }
 
 type AbstractSuperPropertySet extends Expression {
@@ -611,16 +611,16 @@ type AbstractSuperPropertySet extends Expression {
   FileOffset fileOffset;
   Name name;
   Expression value;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
 }
 
 type SuperPropertyGet extends Expression {
   Byte tag = 24;
   FileOffset fileOffset;
   Name name;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
 }
 
 type SuperPropertySet extends Expression {
@@ -628,8 +628,8 @@ type SuperPropertySet extends Expression {
   FileOffset fileOffset;
   Name name;
   Expression value;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
 }
 
 /*
@@ -842,8 +842,8 @@ type AbstractSuperMethodInvocation extends Expression {
   FileOffset fileOffset;
   Name name;
   Arguments arguments;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
 }
 
 type SuperMethodInvocation extends Expression {
@@ -851,8 +851,8 @@ type SuperMethodInvocation extends Expression {
   FileOffset fileOffset;
   Name name;
   Arguments arguments;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
 }
 
 type StaticInvocation extends Expression {

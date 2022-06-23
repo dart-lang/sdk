@@ -752,7 +752,7 @@ class Forest {
   }
 
   SuperMethodInvocation createSuperMethodInvocation(
-      int fileOffset, Name name, Procedure? procedure, Arguments arguments) {
+      int fileOffset, Name name, Procedure procedure, Arguments arguments) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new SuperMethodInvocation(name, arguments, procedure)

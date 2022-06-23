@@ -4790,12 +4790,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitAbstractSuperPropertyGet(
       AbstractSuperPropertyGet node) {
-    return _emitSuperPropertyGet(node.interfaceTarget!);
+    return _emitSuperPropertyGet(node.interfaceTarget);
   }
 
   @override
   js_ast.Expression visitSuperPropertyGet(SuperPropertyGet node) {
-    return _emitSuperPropertyGet(node.interfaceTarget!);
+    return _emitSuperPropertyGet(node.interfaceTarget);
   }
 
   js_ast.Expression _emitSuperPropertyGet(Member target) {
@@ -4813,12 +4813,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitAbstractSuperPropertySet(
       AbstractSuperPropertySet node) {
-    return _emitSuperPropertySet(node.interfaceTarget!, node.value);
+    return _emitSuperPropertySet(node.interfaceTarget, node.value);
   }
 
   @override
   js_ast.Expression visitSuperPropertySet(SuperPropertySet node) {
-    return _emitSuperPropertySet(node.interfaceTarget!, node.value);
+    return _emitSuperPropertySet(node.interfaceTarget, node.value);
   }
 
   js_ast.Expression _emitSuperPropertySet(Member target, Expression value) {
@@ -5432,12 +5432,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitAbstractSuperMethodInvocation(
       AbstractSuperMethodInvocation node) {
-    return _emitSuperMethodInvocation(node.interfaceTarget!, node.arguments);
+    return _emitSuperMethodInvocation(node.interfaceTarget, node.arguments);
   }
 
   @override
   js_ast.Expression visitSuperMethodInvocation(SuperMethodInvocation node) {
-    return _emitSuperMethodInvocation(node.interfaceTarget!, node.arguments);
+    return _emitSuperMethodInvocation(node.interfaceTarget, node.arguments);
   }
 
   js_ast.Expression _emitSuperMethodInvocation(

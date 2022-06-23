@@ -836,11 +836,13 @@ class SuperPropertyAccessGenerator extends Generator {
   }
 
   Expression _createRead() {
+    Member? getter = this.getter;
     if (getter == null) {
       return _helper.buildUnresolvedError(name.text, fileOffset,
           isSuper: true, kind: UnresolvedKind.Getter);
+    } else {
+      return new SuperPropertyGet(name, getter)..fileOffset = fileOffset;
     }
-    return new SuperPropertyGet(name, getter)..fileOffset = fileOffset;
   }
 
   @override
@@ -849,13 +851,13 @@ class SuperPropertyAccessGenerator extends Generator {
   }
 
   Expression _createWrite(int offset, Expression value) {
+    Member? setter = this.setter;
     if (setter == null) {
       return _helper.buildUnresolvedError(name.text, fileOffset,
           rhs: value, isSuper: true, kind: UnresolvedKind.Setter);
+    } else {
+      return new SuperPropertySet(name, value, setter)..fileOffset = offset;
     }
-    SuperPropertySet write = new SuperPropertySet(name, value, setter)
-      ..fileOffset = offset;
-    return write;
   }
 
   @override
@@ -1227,6 +1229,7 @@ class SuperIndexedAccessGenerator extends Generator {
 
   @override
   Expression buildSimpleRead() {
+    Procedure? getter = this.getter;
     if (getter == null) {
       return _helper.buildUnresolvedError(indexGetName.text, fileOffset,
           isSuper: true,
@@ -1234,33 +1237,36 @@ class SuperIndexedAccessGenerator extends Generator {
               _helper.forest.createArguments(fileOffset, <Expression>[index]),
           kind: UnresolvedKind.Method,
           length: noLength);
+    } else {
+      return _helper.forest.createSuperMethodInvocation(
+          fileOffset,
+          indexGetName,
+          getter,
+          _helper.forest.createArguments(fileOffset, <Expression>[index]));
     }
-    return _helper.forest.createSuperMethodInvocation(
-        fileOffset,
-        indexGetName,
-        getter,
-        _helper.forest.createArguments(fileOffset, <Expression>[index]));
   }
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    if (voidContext) {
-      if (setter == null) {
-        return _helper.buildUnresolvedError(indexSetName.text, fileOffset,
-            isSuper: true,
-            arguments: _helper.forest
-                .createArguments(fileOffset, <Expression>[index, value]),
-            kind: UnresolvedKind.Method,
-            length: noLength);
-      }
-      return _helper.forest.createSuperMethodInvocation(
-          fileOffset,
-          indexSetName,
-          setter,
-          _helper.forest
-              .createArguments(fileOffset, <Expression>[index, value]));
+    Procedure? setter = this.setter;
+    if (setter == null) {
+      return _helper.buildUnresolvedError(indexSetName.text, fileOffset,
+          isSuper: true,
+          arguments: _helper.forest
+              .createArguments(fileOffset, <Expression>[index, value]),
+          kind: UnresolvedKind.Method,
+          length: noLength);
     } else {
-      return new SuperIndexSet(setter, index, value)..fileOffset = fileOffset;
+      if (voidContext) {
+        return _helper.forest.createSuperMethodInvocation(
+            fileOffset,
+            indexSetName,
+            setter,
+            _helper.forest
+                .createArguments(fileOffset, <Expression>[index, value]));
+      } else {
+        return new SuperIndexSet(setter, index, value)..fileOffset = fileOffset;
+      }
     }
   }
 
@@ -1281,13 +1287,20 @@ class SuperIndexedAccessGenerator extends Generator {
       bool voidContext: false,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    return new CompoundSuperIndexSet(
-        getter, setter, index, binaryOperator, value,
-        readOffset: fileOffset,
-        binaryOffset: offset,
-        writeOffset: fileOffset,
-        forEffect: voidContext,
-        forPostIncDec: isPostIncDec);
+    Procedure? getter = this.getter;
+    Procedure? setter = this.setter;
+    if (getter == null || setter == null) {
+      return buildAssignment(
+          buildBinaryOperation(token, binaryOperator, value));
+    } else {
+      return new CompoundSuperIndexSet(
+          getter, setter, index, binaryOperator, value,
+          readOffset: fileOffset,
+          binaryOffset: offset,
+          writeOffset: fileOffset,
+          forEffect: voidContext,
+          forPostIncDec: isPostIncDec);
+    }
   }
 
   @override

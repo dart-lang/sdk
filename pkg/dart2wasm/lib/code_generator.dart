@@ -1137,7 +1137,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType visitSuperMethodInvocation(
       SuperMethodInvocation node, w.ValueType expectedType) {
     Reference target =
-        _lookupSuperTarget(node.interfaceTarget!, setter: false).reference;
+        _lookupSuperTarget(node.interfaceTarget, setter: false).reference;
     w.BaseFunction targetFunction = translator.functions.getFunction(target);
     w.ValueType receiverType = targetFunction.type.inputs.first;
     w.ValueType thisType = visitThis(receiverType);
@@ -1515,7 +1515,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitSuperPropertyGet(
       SuperPropertyGet node, w.ValueType expectedType) {
-    Member target = _lookupSuperTarget(node.interfaceTarget!, setter: false);
+    Member target = _lookupSuperTarget(node.interfaceTarget, setter: false);
     if (target is Procedure && !target.isGetter) {
       throw "Not supported: Super tear-off at ${node.location}";
     }
@@ -1525,7 +1525,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitSuperPropertySet(
       SuperPropertySet node, w.ValueType expectedType) {
-    Member target = _lookupSuperTarget(node.interfaceTarget!, setter: true);
+    Member target = _lookupSuperTarget(node.interfaceTarget, setter: true);
     return _directSet(target, ThisExpression(), node.value,
         preserved: expectedType != voidMarker);
   }

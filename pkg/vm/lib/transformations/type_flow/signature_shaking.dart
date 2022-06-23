@@ -309,10 +309,7 @@ class _Collect extends RecursiveVisitor {
 
   @override
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
-    final interfaceTarget = node.interfaceTarget;
-    if (interfaceTarget != null) {
-      collectCall(interfaceTarget, node.arguments);
-    }
+    collectCall(node.interfaceTarget, node.arguments);
     super.visitSuperMethodInvocation(node);
   }
 
@@ -649,10 +646,7 @@ class _Transform extends RecursiveVisitor {
   @override
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
     super.visitSuperMethodInvocation(node);
-    final interfaceTarget = node.interfaceTarget;
-    if (interfaceTarget != null) {
-      transformCall(interfaceTarget, node, null, node.arguments);
-    }
+    transformCall(node.interfaceTarget, node, null, node.arguments);
   }
 
   @override
