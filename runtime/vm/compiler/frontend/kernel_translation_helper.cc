@@ -1930,6 +1930,16 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
   object_store->set_loading_units(loading_units);
   ASSERT(object_store->loading_unit_uris() == Array::null());
   object_store->set_loading_unit_uris(loading_unit_uris);
+
+  const GrowableObjectArray& libraries =
+      GrowableObjectArray::Handle(zone, object_store->libraries());
+  for (intptr_t i = 0; i < libraries.Length(); i++) {
+    lib ^= libraries.At(i);
+    unit = lib.loading_unit();
+    if (unit.IsNull()) {
+      FATAL("%s is not attributed to any loading unit", lib.ToCString());
+    }
+  }
 }
 
 CallSiteAttributesMetadataHelper::CallSiteAttributesMetadataHelper(

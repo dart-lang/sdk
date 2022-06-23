@@ -509,7 +509,7 @@ Future runGlobalTransformations(
   // it does it will need the obfuscation prohibitions.
   obfuscationProhibitions.transformComponent(component, coreTypes, target);
 
-  deferred_loading.transformComponent(component);
+  deferred_loading.transformComponent(component, coreTypes, target);
 }
 
 /// Runs given [action] with [CompilerContext]. This is needed to
