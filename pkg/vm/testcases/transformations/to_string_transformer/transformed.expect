@@ -17,7 +17,7 @@ class Foo extends core::Object implements self::IFoo {
     ;
   @#C1
   method toString() → core::String
-    return super.toString();
+    return super.{core::Object::toString}();
 }
 class FooEnum extends core::_Enum /*isEnum*/  {
   static const field core::List<self::FooEnum> values = #C11;

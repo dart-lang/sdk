@@ -4827,28 +4827,23 @@ class InstanceSet extends Expression {
 class AbstractSuperPropertyGet extends Expression {
   Name name;
 
-  Reference? interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  AbstractSuperPropertyGet(Name name, [Member? interfaceTarget])
-      : this.byReference(name, getMemberReferenceGetter(interfaceTarget));
+  AbstractSuperPropertyGet(Name name, Member interfaceTarget)
+      : this.byReference(
+            name, getNonNullableMemberReferenceGetter(interfaceTarget));
 
   AbstractSuperPropertyGet.byReference(
       this.name, this.interfaceTargetReference);
 
-  Member? get interfaceTarget => interfaceTargetReference?.asMember;
+  Member get interfaceTarget => interfaceTargetReference.asMember;
 
-  void set interfaceTarget(Member? member) {
-    interfaceTargetReference = getMemberReferenceGetter(member);
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getNonNullableMemberReferenceGetter(member);
   }
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    Member? interfaceTarget = this.interfaceTarget;
-    if (interfaceTarget == null) {
-      // TODO(johnniwinther): SuperPropertyGet without a target should be
-      // replaced by invalid expressions.
-      return const DynamicType();
-    }
     Class declaringClass = interfaceTarget.enclosingClass!;
     if (declaringClass.typeParameters.isEmpty) {
       return interfaceTarget.getterType;
@@ -4869,7 +4864,7 @@ class AbstractSuperPropertyGet extends Expression {
 
   @override
   void visitChildren(Visitor v) {
-    interfaceTarget?.acceptReference(v);
+    interfaceTarget.acceptReference(v);
     name.accept(v);
   }
 
@@ -4897,27 +4892,22 @@ class AbstractSuperPropertyGet extends Expression {
 class SuperPropertyGet extends Expression {
   Name name;
 
-  Reference? interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  SuperPropertyGet(Name name, [Member? interfaceTarget])
-      : this.byReference(name, getMemberReferenceGetter(interfaceTarget));
+  SuperPropertyGet(Name name, Member interfaceTarget)
+      : this.byReference(
+            name, getNonNullableMemberReferenceGetter(interfaceTarget));
 
   SuperPropertyGet.byReference(this.name, this.interfaceTargetReference);
 
-  Member? get interfaceTarget => interfaceTargetReference?.asMember;
+  Member get interfaceTarget => interfaceTargetReference.asMember;
 
-  void set interfaceTarget(Member? member) {
-    interfaceTargetReference = getMemberReferenceGetter(member);
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getNonNullableMemberReferenceGetter(member);
   }
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    Member? interfaceTarget = this.interfaceTarget;
-    if (interfaceTarget == null) {
-      // TODO(johnniwinther): SuperPropertyGet without a target should be
-      // replaced by invalid expressions.
-      return const DynamicType();
-    }
     Class declaringClass = interfaceTarget.enclosingClass!;
     if (declaringClass.typeParameters.isEmpty) {
       return interfaceTarget.getterType;
@@ -4938,7 +4928,7 @@ class SuperPropertyGet extends Expression {
 
   @override
   void visitChildren(Visitor v) {
-    interfaceTarget?.acceptReference(v);
+    interfaceTarget.acceptReference(v);
     name.accept(v);
   }
 
@@ -4990,21 +4980,21 @@ class AbstractSuperPropertySet extends Expression {
   Name name;
   Expression value;
 
-  Reference? interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  AbstractSuperPropertySet(Name name, Expression value, Member? interfaceTarget)
+  AbstractSuperPropertySet(Name name, Expression value, Member interfaceTarget)
       : this.byReference(
-            name, value, getMemberReferenceSetter(interfaceTarget));
+            name, value, getNonNullableMemberReferenceSetter(interfaceTarget));
 
   AbstractSuperPropertySet.byReference(
       this.name, this.value, this.interfaceTargetReference) {
     value.parent = this;
   }
 
-  Member? get interfaceTarget => interfaceTargetReference?.asMember;
+  Member get interfaceTarget => interfaceTargetReference.asMember;
 
-  void set interfaceTarget(Member? member) {
-    interfaceTargetReference = getMemberReferenceSetter(member);
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getNonNullableMemberReferenceSetter(member);
   }
 
   @override
@@ -5020,7 +5010,7 @@ class AbstractSuperPropertySet extends Expression {
 
   @override
   void visitChildren(Visitor v) {
-    interfaceTarget?.acceptReference(v);
+    interfaceTarget.acceptReference(v);
     name.accept(v);
     value.accept(v);
   }
@@ -5066,21 +5056,21 @@ class SuperPropertySet extends Expression {
   Name name;
   Expression value;
 
-  Reference? interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  SuperPropertySet(Name name, Expression value, Member? interfaceTarget)
+  SuperPropertySet(Name name, Expression value, Member interfaceTarget)
       : this.byReference(
-            name, value, getMemberReferenceSetter(interfaceTarget));
+            name, value, getNonNullableMemberReferenceSetter(interfaceTarget));
 
   SuperPropertySet.byReference(
       this.name, this.value, this.interfaceTargetReference) {
     value.parent = this;
   }
 
-  Member? get interfaceTarget => interfaceTargetReference?.asMember;
+  Member get interfaceTarget => interfaceTargetReference.asMember;
 
-  void set interfaceTarget(Member? member) {
-    interfaceTargetReference = getMemberReferenceSetter(member);
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getNonNullableMemberReferenceSetter(member);
   }
 
   @override
@@ -5096,7 +5086,7 @@ class SuperPropertySet extends Expression {
 
   @override
   void visitChildren(Visitor v) {
-    interfaceTarget?.acceptReference(v);
+    interfaceTarget.acceptReference(v);
     name.accept(v);
     value.accept(v);
   }
@@ -6406,32 +6396,30 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
   @override
   Arguments arguments;
 
-  Reference? interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  AbstractSuperMethodInvocation(Name name, Arguments arguments,
-      [Procedure? interfaceTarget])
+  AbstractSuperMethodInvocation(
+      Name name, Arguments arguments, Procedure interfaceTarget)
       : this.byReference(
             name,
             arguments,
             // An invocation doesn't refer to the setter.
-            getMemberReferenceGetter(interfaceTarget));
+            getNonNullableMemberReferenceGetter(interfaceTarget));
 
   AbstractSuperMethodInvocation.byReference(
       this.name, this.arguments, this.interfaceTargetReference) {
     arguments.parent = this;
   }
 
-  Procedure? get interfaceTarget => interfaceTargetReference?.asProcedure;
+  Procedure get interfaceTarget => interfaceTargetReference.asProcedure;
 
-  void set interfaceTarget(Procedure? target) {
+  void set interfaceTarget(Procedure target) {
     // An invocation doesn't refer to the setter.
-    interfaceTargetReference = getMemberReferenceGetter(target);
+    interfaceTargetReference = getNonNullableMemberReferenceGetter(target);
   }
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    Procedure? interfaceTarget = this.interfaceTarget;
-    if (interfaceTarget == null) return const DynamicType();
     Class superclass = interfaceTarget.enclosingClass!;
     List<DartType>? receiverTypeArguments = context.typeEnvironment
         .getTypeArgumentsAsInstanceOf(context.thisType!, superclass);
@@ -6453,7 +6441,7 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
 
   @override
   void visitChildren(Visitor v) {
-    interfaceTarget?.acceptReference(v);
+    interfaceTarget.acceptReference(v);
     name.accept(v);
     arguments.accept(v);
   }
@@ -6499,32 +6487,30 @@ class SuperMethodInvocation extends InvocationExpression {
   @override
   Arguments arguments;
 
-  Reference? interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  SuperMethodInvocation(Name name, Arguments arguments,
-      [Procedure? interfaceTarget])
+  SuperMethodInvocation(
+      Name name, Arguments arguments, Procedure interfaceTarget)
       : this.byReference(
             name,
             arguments,
             // An invocation doesn't refer to the setter.
-            getMemberReferenceGetter(interfaceTarget));
+            getNonNullableMemberReferenceGetter(interfaceTarget));
 
   SuperMethodInvocation.byReference(
       this.name, this.arguments, this.interfaceTargetReference) {
     arguments.parent = this;
   }
 
-  Procedure? get interfaceTarget => interfaceTargetReference?.asProcedure;
+  Procedure get interfaceTarget => interfaceTargetReference.asProcedure;
 
-  void set interfaceTarget(Procedure? target) {
+  void set interfaceTarget(Procedure target) {
     // An invocation doesn't refer to the setter.
-    interfaceTargetReference = getMemberReferenceGetter(target);
+    interfaceTargetReference = getNonNullableMemberReferenceGetter(target);
   }
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    Procedure? interfaceTarget = this.interfaceTarget;
-    if (interfaceTarget == null) return const DynamicType();
     Class superclass = interfaceTarget.enclosingClass!;
     List<DartType>? receiverTypeArguments = context.typeEnvironment
         .getTypeArgumentsAsInstanceOf(context.thisType!, superclass);
@@ -6545,7 +6531,7 @@ class SuperMethodInvocation extends InvocationExpression {
 
   @override
   void visitChildren(Visitor v) {
-    interfaceTarget?.acceptReference(v);
+    interfaceTarget.acceptReference(v);
     name.accept(v);
     arguments.accept(v);
   }

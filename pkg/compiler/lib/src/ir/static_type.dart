@@ -1085,22 +1085,14 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.DartType visitSuperPropertyGet(ir.SuperPropertyGet node) {
     ir.DartType resultType;
     final interfaceTarget = node.interfaceTarget;
-    if (interfaceTarget == null) {
-      // TODO(johnniwinther): Resolve and set the target here.
-      resultType = const ir.DynamicType();
+    ir.Class declaringClass = interfaceTarget.enclosingClass!;
+    if (declaringClass.typeParameters.isEmpty) {
+      resultType = interfaceTarget.superGetterType;
     } else {
-      ir.Class declaringClass = interfaceTarget.enclosingClass!;
-      if (declaringClass.typeParameters.isEmpty) {
-        resultType = interfaceTarget.superGetterType;
-      } else {
-        ir.InterfaceType receiver = typeEnvironment.getTypeAsInstanceOf(
-            thisType,
-            declaringClass,
-            currentLibrary,
-            typeEnvironment.coreTypes)!;
-        resultType = ir.Substitution.fromInterfaceType(receiver)
-            .substituteType(interfaceTarget.superGetterType);
-      }
+      ir.InterfaceType receiver = typeEnvironment.getTypeAsInstanceOf(
+          thisType, declaringClass, currentLibrary, typeEnvironment.coreTypes)!;
+      resultType = ir.Substitution.fromInterfaceType(receiver)
+          .substituteType(interfaceTarget.superGetterType);
     }
     _staticTypeCache._expressionTypes[node] = resultType;
     handleSuperPropertyGet(node, resultType);
@@ -1125,19 +1117,14 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ArgumentTypes argumentTypes = _visitArguments(node.arguments);
     ir.DartType returnType;
     final interfaceTarget = node.interfaceTarget;
-    if (interfaceTarget == null) {
-      // TODO(johnniwinther): Resolve and set the target here.
-      returnType = const ir.DynamicType();
-    } else {
-      ir.Class superclass = interfaceTarget.enclosingClass!;
-      ir.InterfaceType receiverType = typeEnvironment.getTypeAsInstanceOf(
-          thisType, superclass, currentLibrary, typeEnvironment.coreTypes)!;
-      returnType = ir.Substitution.fromInterfaceType(receiverType)
-          .substituteType(interfaceTarget.function.returnType);
-      returnType = ir.Substitution.fromPairs(
-              interfaceTarget.function.typeParameters, node.arguments.types)
-          .substituteType(returnType);
-    }
+    ir.Class superclass = interfaceTarget.enclosingClass!;
+    ir.InterfaceType receiverType = typeEnvironment.getTypeAsInstanceOf(
+        thisType, superclass, currentLibrary, typeEnvironment.coreTypes)!;
+    returnType = ir.Substitution.fromInterfaceType(receiverType)
+        .substituteType(interfaceTarget.function.returnType);
+    returnType = ir.Substitution.fromPairs(
+            interfaceTarget.function.typeParameters, node.arguments.types)
+        .substituteType(returnType);
     _staticTypeCache._expressionTypes[node] = returnType;
     handleSuperMethodInvocation(node, argumentTypes, returnType);
     return returnType;

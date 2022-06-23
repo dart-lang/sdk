@@ -3521,10 +3521,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitSuperIndexSet(
       SuperIndexSet node, DartType typeContext) {
-    ObjectAccessTarget indexSetTarget = node.setter != null
-        ? new ObjectAccessTarget.interfaceMember(node.setter!,
-            isPotentiallyNullable: false)
-        : const ObjectAccessTarget.missing();
+    ObjectAccessTarget indexSetTarget = new ObjectAccessTarget.interfaceMember(
+        node.setter,
+        isPotentiallyNullable: false);
 
     DartType indexType = getIndexKeyType(indexSetTarget, thisType!);
     DartType valueType = getIndexSetValueType(indexSetTarget, thisType!);
@@ -3560,20 +3559,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // the type of the value parameter.
     DartType inferredType = valueResult.inferredType;
 
-    Expression assignment;
-    if (indexSetTarget.isMissing) {
-      assignment = createMissingSuperIndexSet(node.fileOffset, index, value);
-    } else {
-      assert(indexSetTarget.isInstanceMember || indexSetTarget.isObjectMember);
-      instrumentation?.record(uriForInstrumentation, node.fileOffset, 'target',
-          new InstrumentationValueForMember(node.setter!));
-      assignment = new SuperMethodInvocation(
-          indexSetName,
-          new Arguments(<Expression>[index, value])
-            ..fileOffset = node.fileOffset,
-          indexSetTarget.member as Procedure)
-        ..fileOffset = node.fileOffset;
-    }
+    assert(indexSetTarget.isInstanceMember || indexSetTarget.isObjectMember,
+        'Unexpected index set target $indexSetTarget.');
+    instrumentation?.record(uriForInstrumentation, node.fileOffset, 'target',
+        new InstrumentationValueForMember(node.setter));
+    Expression assignment = new SuperMethodInvocation(
+        indexSetName,
+        new Arguments(<Expression>[index, value])..fileOffset = node.fileOffset,
+        indexSetTarget.member as Procedure)
+      ..fileOffset = node.fileOffset;
+
     VariableDeclaration assignmentVariable =
         createVariable(assignment, const VoidType());
     Expression replacement = createLet(assignmentVariable, returnedValue);
@@ -3886,23 +3881,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     writeIndex =
         ensureAssignable(writeIndexType, indexResult.inferredType, writeIndex);
 
-    Expression read;
-
-    if (readTarget.isMissing) {
-      read = createMissingSuperIndexGet(node.readOffset, readIndex);
-    } else {
-      assert(readTarget.isInstanceMember || readTarget.isObjectMember);
-      instrumentation?.record(uriForInstrumentation, node.readOffset, 'target',
-          new InstrumentationValueForMember(node.getter!));
-      read = new SuperMethodInvocation(
-          indexGetName,
-          new Arguments(<Expression>[
-            readIndex,
-          ])
-            ..fileOffset = node.readOffset,
-          readTarget.member as Procedure)
-        ..fileOffset = node.readOffset;
-    }
+    assert(readTarget.isInstanceMember || readTarget.isObjectMember);
+    instrumentation?.record(uriForInstrumentation, node.readOffset, 'target',
+        new InstrumentationValueForMember(node.getter!));
+    Expression read = new SuperMethodInvocation(
+        indexGetName,
+        new Arguments(<Expression>[
+          readIndex,
+        ])
+          ..fileOffset = node.readOffset,
+        readTarget.member as Procedure)
+      ..fileOffset = node.readOffset;
 
     flowAnalysis.ifNullExpression_rightBegin(read, readType);
     ExpressionInferenceResult valueResult =
@@ -3927,21 +3916,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       returnedValue = createVariableGet(valueVariable);
     }
 
-    Expression write;
-
-    if (writeTarget.isMissing) {
-      write = createMissingSuperIndexSet(node.writeOffset, writeIndex, value);
-    } else {
-      assert(writeTarget.isInstanceMember || writeTarget.isObjectMember);
-      instrumentation?.record(uriForInstrumentation, node.writeOffset, 'target',
-          new InstrumentationValueForMember(node.setter!));
-      write = new SuperMethodInvocation(
-          indexSetName,
-          new Arguments(<Expression>[writeIndex, value])
-            ..fileOffset = node.writeOffset,
-          writeTarget.member as Procedure)
-        ..fileOffset = node.writeOffset;
-    }
+    assert(writeTarget.isInstanceMember || writeTarget.isObjectMember);
+    instrumentation?.record(uriForInstrumentation, node.writeOffset, 'target',
+        new InstrumentationValueForMember(node.setter!));
+    Expression write = new SuperMethodInvocation(
+        indexSetName,
+        new Arguments(<Expression>[writeIndex, value])
+          ..fileOffset = node.writeOffset,
+        writeTarget.member as Procedure)
+      ..fileOffset = node.writeOffset;
 
     Expression replacement;
     if (node.forEffect) {
@@ -5387,10 +5370,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitCompoundSuperIndexSet(
       CompoundSuperIndexSet node, DartType typeContext) {
-    ObjectAccessTarget readTarget = node.getter != null
-        ? new ObjectAccessTarget.interfaceMember(node.getter!,
-            isPotentiallyNullable: false)
-        : const ObjectAccessTarget.missing();
+    ObjectAccessTarget readTarget = new ObjectAccessTarget.interfaceMember(
+        node.getter,
+        isPotentiallyNullable: false);
 
     DartType readType = getReturnType(readTarget, thisType!);
     DartType readIndexType = getIndexKeyType(readTarget, thisType!);
@@ -5412,22 +5394,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     readIndex =
         ensureAssignable(readIndexType, indexResult.inferredType, readIndex);
 
-    Expression read;
-    if (readTarget.isMissing) {
-      read = createMissingSuperIndexGet(node.readOffset, readIndex);
-    } else {
-      assert(readTarget.isInstanceMember || readTarget.isObjectMember);
-      instrumentation?.record(uriForInstrumentation, node.readOffset, 'target',
-          new InstrumentationValueForMember(node.getter!));
-      read = new SuperMethodInvocation(
-          indexGetName,
-          new Arguments(<Expression>[
-            readIndex,
-          ])
-            ..fileOffset = node.readOffset,
-          readTarget.member as Procedure)
-        ..fileOffset = node.readOffset;
-    }
+    assert(readTarget.isInstanceMember || readTarget.isObjectMember);
+    instrumentation?.record(uriForInstrumentation, node.readOffset, 'target',
+        new InstrumentationValueForMember(node.getter));
+    Expression read = new SuperMethodInvocation(
+        indexGetName,
+        new Arguments(<Expression>[
+          readIndex,
+        ])
+          ..fileOffset = node.readOffset,
+        readTarget.member as Procedure)
+      ..fileOffset = node.readOffset;
 
     VariableDeclaration? leftVariable;
     Expression left;
@@ -5439,10 +5416,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       left = read;
     }
-    ObjectAccessTarget writeTarget = node.setter != null
-        ? new ObjectAccessTarget.interfaceMember(node.setter!,
-            isPotentiallyNullable: false)
-        : const ObjectAccessTarget.missing();
+    ObjectAccessTarget writeTarget = new ObjectAccessTarget.interfaceMember(
+        node.setter,
+        isPotentiallyNullable: false);
 
     DartType writeIndexType = getIndexKeyType(writeTarget, thisType!);
 
@@ -5474,21 +5450,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       valueExpression = createVariableGet(valueVariable);
     }
 
-    Expression write;
-    if (writeTarget.isMissing) {
-      write = createMissingSuperIndexSet(
-          node.writeOffset, writeIndex, valueExpression);
-    } else {
-      assert(writeTarget.isInstanceMember || writeTarget.isObjectMember);
-      instrumentation?.record(uriForInstrumentation, node.writeOffset, 'target',
-          new InstrumentationValueForMember(node.setter!));
-      write = new SuperMethodInvocation(
-          indexSetName,
-          new Arguments(<Expression>[writeIndex, valueExpression])
-            ..fileOffset = node.writeOffset,
-          writeTarget.member as Procedure)
-        ..fileOffset = node.writeOffset;
-    }
+    assert(writeTarget.isInstanceMember || writeTarget.isObjectMember);
+    instrumentation?.record(uriForInstrumentation, node.writeOffset, 'target',
+        new InstrumentationValueForMember(node.setter));
+    Expression write = new SuperMethodInvocation(
+        indexSetName,
+        new Arguments(<Expression>[writeIndex, valueExpression])
+          ..fileOffset = node.writeOffset,
+        writeTarget.member as Procedure)
+      ..fileOffset = node.writeOffset;
 
     Expression replacement;
     if (node.forEffect) {
@@ -6145,11 +6115,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitAbstractSuperMethodInvocation(
       AbstractSuperMethodInvocation node, DartType typeContext) {
-    if (node.interfaceTarget != null) {
-      instrumentation?.record(uriForInstrumentation, node.fileOffset, 'target',
-          new InstrumentationValueForMember(node.interfaceTarget!));
-    }
-    assert(node.interfaceTarget == null || node.interfaceTarget is Procedure);
+    instrumentation?.record(uriForInstrumentation, node.fileOffset, 'target',
+        new InstrumentationValueForMember(node.interfaceTarget));
     return inferSuperMethodInvocation(this, node, node.name,
         node.arguments as ArgumentsImpl, typeContext, node.interfaceTarget);
   }
@@ -6157,11 +6124,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitSuperMethodInvocation(
       SuperMethodInvocation node, DartType typeContext) {
-    if (node.interfaceTarget != null) {
-      instrumentation?.record(uriForInstrumentation, node.fileOffset, 'target',
-          new InstrumentationValueForMember(node.interfaceTarget!));
-    }
-    assert(node.interfaceTarget == null || node.interfaceTarget is Procedure);
+    instrumentation?.record(uriForInstrumentation, node.fileOffset, 'target',
+        new InstrumentationValueForMember(node.interfaceTarget));
     return inferSuperMethodInvocation(this, node, node.name,
         node.arguments as ArgumentsImpl, typeContext, node.interfaceTarget);
   }
@@ -6169,10 +6133,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitAbstractSuperPropertyGet(
       AbstractSuperPropertyGet node, DartType typeContext) {
-    if (node.interfaceTarget != null) {
-      instrumentation?.record(uriForInstrumentation, node.fileOffset, 'target',
-          new InstrumentationValueForMember(node.interfaceTarget!));
-    }
+    instrumentation?.record(uriForInstrumentation, node.fileOffset, 'target',
+        new InstrumentationValueForMember(node.interfaceTarget));
     return inferSuperPropertyGet(
         node, node.name, typeContext, node.interfaceTarget);
   }
@@ -6180,10 +6142,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitSuperPropertyGet(
       SuperPropertyGet node, DartType typeContext) {
-    if (node.interfaceTarget != null) {
-      instrumentation?.record(uriForInstrumentation, node.fileOffset, 'target',
-          new InstrumentationValueForMember(node.interfaceTarget!));
-    }
+    instrumentation?.record(uriForInstrumentation, node.fileOffset, 'target',
+        new InstrumentationValueForMember(node.interfaceTarget));
     return inferSuperPropertyGet(
         node, node.name, typeContext, node.interfaceTarget);
   }
@@ -6194,15 +6154,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType receiverType = classHierarchy.getTypeAsInstanceOf(thisType!,
         thisType!.classNode.supertype!.classNode, libraryBuilder.library)!;
 
-    ObjectAccessTarget writeTarget = node.interfaceTarget != null
-        ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget!,
-            isPotentiallyNullable: false)
-        : const ObjectAccessTarget.missing();
+    ObjectAccessTarget writeTarget = new ObjectAccessTarget.interfaceMember(
+        node.interfaceTarget,
+        isPotentiallyNullable: false);
     DartType writeContext = getSetterType(writeTarget, receiverType);
-    if (node.interfaceTarget != null) {
-      writeContext = computeTypeFromSuperClass(
-          node.interfaceTarget!.enclosingClass!, writeContext);
-    }
+    writeContext = computeTypeFromSuperClass(
+        node.interfaceTarget.enclosingClass!, writeContext);
     ExpressionInferenceResult rhsResult =
         inferExpression(node.value, writeContext, true, isVoidAllowed: true);
     rhsResult = ensureAssignableResult(writeContext, rhsResult,
@@ -6218,15 +6175,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType receiverType = classHierarchy.getTypeAsInstanceOf(thisType!,
         thisType!.classNode.supertype!.classNode, libraryBuilder.library)!;
 
-    ObjectAccessTarget writeTarget = node.interfaceTarget != null
-        ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget!,
-            isPotentiallyNullable: false)
-        : const ObjectAccessTarget.missing();
+    ObjectAccessTarget writeTarget = new ObjectAccessTarget.interfaceMember(
+        node.interfaceTarget,
+        isPotentiallyNullable: false);
     DartType writeContext = getSetterType(writeTarget, receiverType);
-    if (node.interfaceTarget != null) {
-      writeContext = computeTypeFromSuperClass(
-          node.interfaceTarget!.enclosingClass!, writeContext);
-    }
+    writeContext = computeTypeFromSuperClass(
+        node.interfaceTarget.enclosingClass!, writeContext);
     ExpressionInferenceResult rhsResult =
         inferExpression(node.value, writeContext, true, isVoidAllowed: true);
     rhsResult = ensureAssignableResult(writeContext, rhsResult,
@@ -7167,9 +7121,7 @@ class AbstractSuperPropertyForInVariable implements ForInVariable {
         receiverType, superPropertySet.name, superPropertySet.fileOffset,
         callSiteAccessKind: CallSiteAccessKind.setterInvocation,
         instrumented: true);
-    if (writeTarget.isInstanceMember || writeTarget.isObjectMember) {
-      superPropertySet.interfaceTarget = writeTarget.member;
-    }
+    assert(writeTarget.isInstanceMember || writeTarget.isObjectMember);
     return _writeType = visitor.getSetterType(writeTarget, receiverType);
   }
 
@@ -7207,9 +7159,7 @@ class SuperPropertyForInVariable implements ForInVariable {
         receiverType, superPropertySet.name, superPropertySet.fileOffset,
         callSiteAccessKind: CallSiteAccessKind.setterInvocation,
         instrumented: true);
-    if (writeTarget.isInstanceMember || writeTarget.isObjectMember) {
-      superPropertySet.interfaceTarget = writeTarget.member;
-    }
+    assert(writeTarget.isInstanceMember || writeTarget.isObjectMember);
     return _writeType = visitor.getSetterType(writeTarget, receiverType);
   }
 

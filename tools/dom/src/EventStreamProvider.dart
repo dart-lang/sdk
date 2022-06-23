@@ -248,13 +248,13 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   Future cancel() {
-    if (_canceled) return nullFuture;
-
-    _unlisten();
-    // Clear out the target to indicate this is complete.
-    _target = null;
-    _onData = null;
-    return nullFuture;
+    if (!_canceled) {
+      _unlisten();
+      // Clear out the target to indicate this is complete.
+      _target = null;
+      _onData = null;
+    }
+    return Future<void>.value(null);
   }
 
   bool get _canceled => _target == null;

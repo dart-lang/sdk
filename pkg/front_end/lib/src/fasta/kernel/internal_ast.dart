@@ -2682,7 +2682,7 @@ class IndexSet extends InternalExpression {
 ///
 class SuperIndexSet extends InternalExpression {
   /// The []= member.
-  Member? setter;
+  Member setter;
 
   /// The index expression of the operation.
   Expression index;
@@ -3707,10 +3707,10 @@ class NullAwareIfNullSet extends InternalExpression {
 ///
 class CompoundSuperIndexSet extends InternalExpression {
   /// The [] member.
-  Member? getter;
+  Member getter;
 
   /// The []= member.
-  Member? setter;
+  Member setter;
 
   /// The index expression of the operation.
   Expression index;

@@ -1078,6 +1078,28 @@ abstract class _Zone implements Zone {
           implZone, e, identical(error, e) ? stackTrace : s);
     }
   }
+
+  /// A reusable `null`-valued future per zone used by `dart:async`.
+  ///
+  /// **DO NOT USE.**
+  ///
+  /// This future is used in situations where a future is expected,
+  /// but no asynchronous computation actually happens,
+  /// like cancelling a stream from a controller with no `onCancel` callback.
+  /// *Some code depends on recognizing this future in order to react
+  /// synchronously.*
+  /// It does so to avoid changing event interleaving during the null safety
+  /// migration where, for example, the [StreamSubscription.cancel] method
+  /// stopped being able to return `null`.
+  /// The code that would be broken by such a timing change is fragile,
+  /// but we are not able to simply change it.
+  /// For better or worse, code depends on the precise timing
+  /// that our libraries have so far exhibited.
+  ///
+  /// This future will be removed again if we can ever do so.
+  /// Do not use it for anything other than preserving timing
+  /// during the null safety migration.
+  _Future<Null> get _nullFuture;
 }
 
 class _CustomZone extends _Zone {
@@ -1104,6 +1126,9 @@ class _CustomZone extends _Zone {
 
   /// The parent zone.
   final _Zone parent;
+
+  /// Cached value for [_nullFuture];
+  _Future<Null>? _nullFutureCache;
 
   /// The zone's scoped value declaration map.
   ///
@@ -1195,6 +1220,18 @@ class _CustomZone extends _Zone {
   /// Returns this zone if it has an error-handler. Otherwise returns the
   /// parent's error-zone.
   Zone get errorZone => _handleUncaughtError.zone;
+
+  _Future<Null> get _nullFuture {
+    _Future<Null>? result = _nullFutureCache;
+    if (result != null) return result;
+    // We only care about the zone of the null future
+    // because of the zone it schedules microtasks in.
+    var microtaskZone = _scheduleMicrotask.zone;
+    if (!identical(microtaskZone, this)) {
+      return _nullFutureCache = microtaskZone._nullFuture;
+    }
+    return _nullFutureCache = _Future<Null>.value(null);
+  }
 
   void runGuarded(void f()) {
     try {
@@ -1509,6 +1546,8 @@ Zone _rootFork(Zone? self, ZoneDelegate? parent, Zone zone,
 }
 
 class _RootZone extends _Zone {
+  static final _nullFutureCache = _Future<Null>.zoneValue(null, _rootZone);
+
   const _RootZone();
 
   _ZoneFunction<RunHandler> get _run =>
@@ -1546,6 +1585,8 @@ class _RootZone extends _Zone {
 
   // The parent zone.
   _Zone? get parent => null;
+
+  _Future<Null> get _nullFuture => _nullFutureCache;
 
   /// The zone's scoped value declaration map.
   ///

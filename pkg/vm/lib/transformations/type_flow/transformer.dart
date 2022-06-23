@@ -1348,10 +1348,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
       return _makeUnreachableCall(_flattenArguments(node.arguments));
     } else {
       node.interfaceTarget = fieldMorpher
-          .adjustInstanceCallTarget(node.interfaceTarget) as Procedure?;
-      if (node.interfaceTarget != null) {
-        shaker.addUsedMember(node.interfaceTarget!);
-      }
+          .adjustInstanceCallTarget(node.interfaceTarget) as Procedure;
+      shaker.addUsedMember(node.interfaceTarget);
       return node;
     }
   }
@@ -1364,10 +1362,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
       return _makeUnreachableCall([]);
     } else {
       node.interfaceTarget =
-          fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget);
-      if (node.interfaceTarget != null) {
-        shaker.addUsedMember(node.interfaceTarget!);
-      }
+          fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget)!;
+      shaker.addUsedMember(node.interfaceTarget);
       return node;
     }
   }
@@ -1380,10 +1376,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
       return _makeUnreachableCall([node.value]);
     } else {
       node.interfaceTarget = fieldMorpher
-          .adjustInstanceCallTarget(node.interfaceTarget, isSetter: true);
-      if (node.interfaceTarget != null) {
-        shaker.addUsedMember(node.interfaceTarget!);
-      }
+          .adjustInstanceCallTarget(node.interfaceTarget, isSetter: true)!;
+      shaker.addUsedMember(node.interfaceTarget);
       return node;
     }
   }

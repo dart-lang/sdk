@@ -2219,7 +2219,7 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new AbstractSuperPropertyGet.byReference(
-        readName(), readNullableInstanceMemberReference())
+        readName(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2227,7 +2227,7 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new AbstractSuperPropertySet.byReference(
-        readName(), readExpression(), readNullableInstanceMemberReference())
+        readName(), readExpression(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2235,7 +2235,7 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new SuperPropertyGet.byReference(
-        readName(), readNullableInstanceMemberReference())
+        readName(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2243,7 +2243,7 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new SuperPropertySet.byReference(
-        readName(), readExpression(), readNullableInstanceMemberReference())
+        readName(), readExpression(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2373,7 +2373,7 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new AbstractSuperMethodInvocation.byReference(
-        readName(), readArguments(), readNullableInstanceMemberReference())
+        readName(), readArguments(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2381,7 +2381,7 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new SuperMethodInvocation.byReference(
-        readName(), readArguments(), readNullableInstanceMemberReference())
+        readName(), readArguments(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 

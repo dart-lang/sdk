@@ -287,6 +287,11 @@ ir.Member? getEffectiveSuperTarget(ir.Member? target) {
     if (target.stubKind == ir.ProcedureStubKind.ConcreteMixinStub) {
       return getEffectiveSuperTarget(target.stubTarget);
     }
+    // TODO(johnniwinther): Remove this when the CFE reports an error on
+    // missing concrete super targets.
+    if (target.isAbstract) {
+      return null;
+    }
   }
   return target;
 }

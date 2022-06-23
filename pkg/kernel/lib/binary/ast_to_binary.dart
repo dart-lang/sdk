@@ -1634,7 +1634,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.AbstractSuperPropertyGet);
     writeOffset(node.fileOffset);
     writeName(node.name);
-    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
+    writeNonNullInstanceMemberReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1643,7 +1643,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeName(node.name);
     writeNode(node.value);
-    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
+    writeNonNullInstanceMemberReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1651,7 +1651,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.SuperPropertyGet);
     writeOffset(node.fileOffset);
     writeName(node.name);
-    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
+    writeNonNullInstanceMemberReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1660,7 +1660,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeName(node.name);
     writeNode(node.value);
-    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
+    writeNonNullInstanceMemberReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1791,7 +1791,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeName(node.name);
     writeArgumentsNode(node.arguments);
-    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
+    writeNonNullInstanceMemberReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1800,7 +1800,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeName(node.name);
     writeArgumentsNode(node.arguments);
-    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
+    writeNonNullInstanceMemberReference(node.interfaceTargetReference);
   }
 
   @override

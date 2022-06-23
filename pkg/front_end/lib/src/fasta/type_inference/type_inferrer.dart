@@ -4500,35 +4500,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return false;
   }
 
-  Expression createMissingSuperIndexGet(int fileOffset, Expression index) {
-    if (isTopLevel) {
-      return engine.forest.createSuperMethodInvocation(fileOffset, indexGetName,
-          null, engine.forest.createArguments(fileOffset, <Expression>[index]));
-    } else {
-      return helper.buildProblem(
-          templateSuperclassHasNoMethod.withArguments(indexGetName.text),
-          fileOffset,
-          noLength);
-    }
-  }
-
-  Expression createMissingSuperIndexSet(
-      int fileOffset, Expression index, Expression value) {
-    if (isTopLevel) {
-      return engine.forest.createSuperMethodInvocation(
-          fileOffset,
-          indexSetName,
-          null,
-          engine.forest
-              .createArguments(fileOffset, <Expression>[index, value]));
-    } else {
-      return helper.buildProblem(
-          templateSuperclassHasNoMethod.withArguments(indexSetName.text),
-          fileOffset,
-          noLength);
-    }
-  }
-
   /// Creates an expression the represents the invalid invocation of [name] on
   /// [receiver] with [arguments].
   ///
