@@ -15,12 +15,14 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../resolution/node_text_expectations.dart';
 import 'file_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FileResolver_changeFiles_Test);
     defineReflectiveTests(FileResolverTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -43,67 +45,96 @@ import 'b.dart';
     // First time we refresh everything.
     await resolveFile(c.path);
 
-    const state_1 = r'''
+    assertStateString(r'''
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/a.dart
     current
+      id: file_5
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
     current
+      id: file_6
+      kind: library
       unlinkedKey: k06
     unlinkedGet: []
     unlinkedPut: [k06]
+    uri: package:dart.test/b.dart
   /workspace/dart/test/lib/c.dart
     current
+      id: file_7
+      kind: library
       unlinkedKey: k07
     unlinkedGet: []
     unlinkedPut: [k07]
+    uri: package:dart.test/c.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k08
+      libraries: file_0 file_1 file_3 file_4
     get: []
     put: [k08]
   /workspace/dart/test/lib/a.dart
     current
       key: k09
+      libraries: file_5
     get: []
     put: [k09]
   /workspace/dart/test/lib/b.dart
     current
       key: k10
+      libraries: file_6
     get: []
     put: [k10]
   /workspace/dart/test/lib/c.dart
     current
       key: k11
+      libraries: file_7
     get: []
     put: [k11]
 elementFactory
@@ -117,16 +148,221 @@ elementFactory
     package:dart.test/c.dart
 byteStore
   1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
-''';
-    assertStateString(state_1);
+''');
 
     // Without changes we refresh nothing.
     await resolveFile(c.path);
-    assertStateString(state_1);
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      id: file_0
+      kind: library
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+    uri: dart:_internal
+  /sdk/lib/async/async.dart
+    current
+      id: file_1
+      kind: library
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+    uri: dart:async
+  /sdk/lib/async/stream.dart
+    current
+      id: file_2
+      kind: partOfName
+        library: file_1
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+    uri: dart:async/stream.dart
+  /sdk/lib/core/core.dart
+    current
+      id: file_3
+      kind: library
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+    uri: dart:core
+  /sdk/lib/math/math.dart
+    current
+      id: file_4
+      kind: library
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+    uri: dart:math
+  /workspace/dart/test/lib/a.dart
+    current
+      id: file_5
+      kind: library
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+    uri: package:dart.test/a.dart
+  /workspace/dart/test/lib/b.dart
+    current
+      id: file_6
+      kind: library
+      unlinkedKey: k06
+    unlinkedGet: []
+    unlinkedPut: [k06]
+    uri: package:dart.test/b.dart
+  /workspace/dart/test/lib/c.dart
+    current
+      id: file_7
+      kind: library
+      unlinkedKey: k07
+    unlinkedGet: []
+    unlinkedPut: [k07]
+    uri: package:dart.test/c.dart
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k08
+      libraries: file_0 file_1 file_3 file_4
+    get: []
+    put: [k08]
+  /workspace/dart/test/lib/a.dart
+    current
+      key: k09
+      libraries: file_5
+    get: []
+    put: [k09]
+  /workspace/dart/test/lib/b.dart
+    current
+      key: k10
+      libraries: file_6
+    get: []
+    put: [k10]
+  /workspace/dart/test/lib/c.dart
+    current
+      key: k11
+      libraries: file_7
+    get: []
+    put: [k11]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.test/a.dart
+    package:dart.test/b.dart
+    package:dart.test/c.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
+''');
 
     // We already know a.dart, refresh nothing.
     await resolveFile(a.path);
-    assertStateString(state_1);
+    assertStateString(r'''
+files
+  /sdk/lib/_internal/internal.dart
+    current
+      id: file_0
+      kind: library
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+    uri: dart:_internal
+  /sdk/lib/async/async.dart
+    current
+      id: file_1
+      kind: library
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+    uri: dart:async
+  /sdk/lib/async/stream.dart
+    current
+      id: file_2
+      kind: partOfName
+        library: file_1
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+    uri: dart:async/stream.dart
+  /sdk/lib/core/core.dart
+    current
+      id: file_3
+      kind: library
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+    uri: dart:core
+  /sdk/lib/math/math.dart
+    current
+      id: file_4
+      kind: library
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+    uri: dart:math
+  /workspace/dart/test/lib/a.dart
+    current
+      id: file_5
+      kind: library
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+    uri: package:dart.test/a.dart
+  /workspace/dart/test/lib/b.dart
+    current
+      id: file_6
+      kind: library
+      unlinkedKey: k06
+    unlinkedGet: []
+    unlinkedPut: [k06]
+    uri: package:dart.test/b.dart
+  /workspace/dart/test/lib/c.dart
+    current
+      id: file_7
+      kind: library
+      unlinkedKey: k07
+    unlinkedGet: []
+    unlinkedPut: [k07]
+    uri: package:dart.test/c.dart
+libraryCycles
+  /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
+    current
+      key: k08
+      libraries: file_0 file_1 file_3 file_4
+    get: []
+    put: [k08]
+  /workspace/dart/test/lib/a.dart
+    current
+      key: k09
+      libraries: file_5
+    get: []
+    put: [k09]
+  /workspace/dart/test/lib/b.dart
+    current
+      key: k10
+      libraries: file_6
+    get: []
+    put: [k10]
+  /workspace/dart/test/lib/c.dart
+    current
+      key: k11
+      libraries: file_7
+    get: []
+    put: [k11]
+elementFactory
+  hasElement
+    dart:_internal
+    dart:async
+    dart:core
+    dart:math
+    package:dart.test/a.dart
+    package:dart.test/b.dart
+    package:dart.test/c.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
+''');
 
     // Change a.dart, discard data for a.dart and c.dart, but not b.dart
     fileResolver.changeFiles([a.path]);
@@ -134,44 +370,66 @@ byteStore
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/a.dart
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
     current
+      id: file_6
+      kind: library
       unlinkedKey: k06
     unlinkedGet: []
     unlinkedPut: [k06]
+    uri: package:dart.test/b.dart
   /workspace/dart/test/lib/c.dart
     unlinkedGet: []
     unlinkedPut: [k07]
+    uri: package:dart.test/c.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k08
+      libraries: file_0 file_1 file_3 file_4
     get: []
     put: [k08]
   /workspace/dart/test/lib/a.dart
@@ -180,6 +438,7 @@ libraryCycles
   /workspace/dart/test/lib/b.dart
     current
       key: k10
+      libraries: file_6
     get: []
     put: [k10]
   /workspace/dart/test/lib/c.dart
@@ -202,63 +461,92 @@ byteStore
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/a.dart
     current
+      id: file_8
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05, k05]
+    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
     current
+      id: file_6
+      kind: library
       unlinkedKey: k06
     unlinkedGet: []
     unlinkedPut: [k06]
+    uri: package:dart.test/b.dart
   /workspace/dart/test/lib/c.dart
     current
+      id: file_9
+      kind: library
       unlinkedKey: k07
     unlinkedGet: []
     unlinkedPut: [k07, k07]
+    uri: package:dart.test/c.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k08
+      libraries: file_0 file_1 file_3 file_4
     get: []
     put: [k08]
   /workspace/dart/test/lib/a.dart
     current
       key: k09
+      libraries: file_8
     get: []
     put: [k09, k09]
   /workspace/dart/test/lib/b.dart
     current
       key: k10
+      libraries: file_6
     get: []
     put: [k10]
   /workspace/dart/test/lib/c.dart
     current
       key: k11
+      libraries: file_9
     get: []
     put: [k11, k11]
 elementFactory
@@ -395,48 +683,73 @@ class B extends A {}
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/a.dart
     current
+      id: file_5
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
     current
+      id: file_6
+      kind: partOfUriKnown
+        library: file_5
       unlinkedKey: k06
     unlinkedGet: []
     unlinkedPut: [k06]
+    uri: package:dart.test/b.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k07
+      libraries: file_0 file_1 file_3 file_4
     get: []
     put: [k07]
   /workspace/dart/test/lib/a.dart
     current
       key: k08
+      libraries: file_5
     get: []
     put: [k08]
 elementFactory
@@ -456,39 +769,58 @@ byteStore
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/a.dart
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
     unlinkedGet: []
     unlinkedPut: [k06]
+    uri: package:dart.test/b.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k07
+      libraries: file_0 file_1 file_3 file_4
     get: []
     put: [k07]
   /workspace/dart/test/lib/a.dart
@@ -510,48 +842,73 @@ byteStore
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/a.dart
     current
+      id: file_7
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05, k05]
+    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
     current
+      id: file_8
+      kind: partOfUriKnown
+        library: file_7
       unlinkedKey: k06
     unlinkedGet: []
     unlinkedPut: [k06, k06]
+    uri: package:dart.test/b.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k07
+      libraries: file_0 file_1 file_3 file_4
     get: []
     put: [k07]
   /workspace/dart/test/lib/a.dart
     current
       key: k08
+      libraries: file_7
     get: []
     put: [k08, k08]
 elementFactory
@@ -588,58 +945,87 @@ import 'a.dart';
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/a.dart
     current
+      id: file_5
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
     current
+      id: file_6
+      kind: partOfUriKnown
+        library: file_5
       unlinkedKey: k06
     unlinkedGet: []
     unlinkedPut: [k06]
+    uri: package:dart.test/b.dart
   /workspace/dart/test/lib/c.dart
     current
+      id: file_7
+      kind: library
       unlinkedKey: k07
     unlinkedGet: []
     unlinkedPut: [k07]
+    uri: package:dart.test/c.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k08
+      libraries: file_0 file_1 file_3 file_4
     get: []
     put: [k08]
   /workspace/dart/test/lib/a.dart
     current
       key: k09
+      libraries: file_5
     get: []
     put: [k09]
   /workspace/dart/test/lib/c.dart
     current
       key: k10
+      libraries: file_7
     get: []
     put: [k10]
 elementFactory
@@ -660,42 +1046,62 @@ byteStore
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/a.dart
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
     unlinkedGet: []
     unlinkedPut: [k06]
+    uri: package:dart.test/b.dart
   /workspace/dart/test/lib/c.dart
     unlinkedGet: []
     unlinkedPut: [k07]
+    uri: package:dart.test/c.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k08
+      libraries: file_0 file_1 file_3 file_4
     get: []
     put: [k08]
   /workspace/dart/test/lib/a.dart
@@ -720,58 +1126,87 @@ byteStore
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/a.dart
     current
+      id: file_8
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05, k05]
+    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
     current
+      id: file_9
+      kind: partOfUriKnown
+        library: file_8
       unlinkedKey: k06
     unlinkedGet: []
     unlinkedPut: [k06, k06]
+    uri: package:dart.test/b.dart
   /workspace/dart/test/lib/c.dart
     current
+      id: file_10
+      kind: library
       unlinkedKey: k07
     unlinkedGet: []
     unlinkedPut: [k07, k07]
+    uri: package:dart.test/c.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k08
+      libraries: file_0 file_1 file_3 file_4
     get: []
     put: [k08]
   /workspace/dart/test/lib/a.dart
     current
       key: k09
+      libraries: file_8
     get: []
     put: [k09, k09]
   /workspace/dart/test/lib/c.dart
     current
       key: k10
+      libraries: file_10
     get: []
     put: [k10, k10]
 elementFactory
@@ -909,43 +1344,64 @@ class A {}
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/a.dart
     current
+      id: file_5
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.test/a.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k06
+      libraries: file_0 file_1 file_3 file_4
     get: []
     put: [k06]
   /workspace/dart/test/lib/a.dart
     current
       key: k07
+      libraries: file_5
     get: []
     put: [k07]
 elementFactory
@@ -968,21 +1424,27 @@ files
   /sdk/lib/_internal/internal.dart
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/a.dart
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.test/a.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     get: []
@@ -1493,43 +1955,64 @@ final b = a;
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/a.dart
     current
+      id: file_5
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.test/a.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k06
+      libraries: file_0 file_1 file_3 file_4
     get: [k06]
     put: [k06]
   /workspace/dart/test/lib/a.dart
     current
       key: k07
+      libraries: file_5
     get: [k07]
     put: [k07]
 elementFactory
@@ -1553,43 +2036,64 @@ byteStore
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/a.dart
     current
+      id: file_5
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.test/a.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k06
+      libraries: file_0 file_1 file_3 file_4
     get: [k06]
     put: [k06]
   /workspace/dart/test/lib/a.dart
     current
       key: k07
+      libraries: file_5
     get: [k07]
     put: [k07]
 elementFactory
@@ -1612,57 +2116,82 @@ byteStore
     // We discarded all libraries, so each one has `get` and `put`.
     // We did not discard files, so only `unlinkedPut`.
     // The reference count for each data is exactly `1`.
-    assertStateString('''
+    assertStateString(r'''
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/a.dart
     current
+      id: file_5
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
     current
+      id: file_6
+      kind: library
       unlinkedKey: k08
     unlinkedGet: []
     unlinkedPut: [k08]
+    uri: package:dart.test/b.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k06
+      libraries: file_0 file_1 file_3 file_4
     get: [k06, k06]
     put: [k06]
   /workspace/dart/test/lib/a.dart
     current
       key: k07
+      libraries: file_5
     get: [k07, k07]
     put: [k07]
   /workspace/dart/test/lib/b.dart
     current
       key: k09
+      libraries: file_6
     get: [k09]
     put: [k09]
 elementFactory
@@ -1692,57 +2221,82 @@ byteStore
 
     // All types are stored in the bundle for b.dart itself, we don't need to
     // read a.dart to access them, so we keep it as a reader.
-    assertStateString('''
+    assertStateString(r'''
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/a.dart
     current
+      id: file_5
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
     current
+      id: file_6
+      kind: library
       unlinkedKey: k08
     unlinkedGet: []
     unlinkedPut: [k08]
+    uri: package:dart.test/b.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k06
+      libraries: file_0 file_1 file_3 file_4
     get: [k06, k06]
     put: [k06]
   /workspace/dart/test/lib/a.dart
     current
       key: k07
+      libraries: file_5
     get: [k07, k07]
     put: [k07]
   /workspace/dart/test/lib/b.dart
     current
       key: k09
+      libraries: file_6
     get: [k09]
     put: [k09]
 elementFactory
@@ -1779,43 +2333,64 @@ var foo = 0;
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/test.dart
     current
+      id: file_5
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.test/test.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k06
+      libraries: file_0 file_1 file_3 file_4
     get: [k06]
     put: [k06]
   /workspace/dart/test/lib/test.dart
     current
       key: k07
+      libraries: file_5
     get: [k07]
     put: [k07]
 elementFactory
@@ -1845,43 +2420,64 @@ byteStore
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/test/lib/test.dart
     current
+      id: file_5
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.test/test.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k06
+      libraries: file_0 file_1 file_3 file_4
     get: [k06]
     put: [k06]
   /workspace/dart/test/lib/test.dart
     current
       key: k07
+      libraries: file_5
     get: [k07]
     put: [k07]
 elementFactory
@@ -2016,63 +2612,92 @@ class C {}
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/aaa/lib/a.dart
     current
+      id: file_5
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.aaa/a.dart
   /workspace/dart/aaa/lib/b.dart
     current
+      id: file_6
+      kind: library
       unlinkedKey: k06
     unlinkedGet: []
     unlinkedPut: [k06]
+    uri: package:dart.aaa/b.dart
   /workspace/dart/aaa/lib/c.dart
     current
+      id: file_7
+      kind: library
       unlinkedKey: k07
     unlinkedGet: []
     unlinkedPut: [k07]
+    uri: package:dart.aaa/c.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k08
+      libraries: file_0 file_1 file_3 file_4
     get: []
     put: [k08]
   /workspace/dart/aaa/lib/a.dart
     current
       key: k09
+      libraries: file_5
     get: []
     put: [k09]
   /workspace/dart/aaa/lib/b.dart
     current
       key: k10
+      libraries: file_6
     get: []
     put: [k10]
   /workspace/dart/aaa/lib/c.dart
     current
       key: k11
+      libraries: file_7
     get: []
     put: [k11]
 elementFactory
@@ -2095,51 +2720,76 @@ byteStore
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/aaa/lib/a.dart
     current
+      id: file_5
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.aaa/a.dart
   /workspace/dart/aaa/lib/b.dart
     unlinkedGet: []
     unlinkedPut: [k06]
+    uri: package:dart.aaa/b.dart
   /workspace/dart/aaa/lib/c.dart
     current
+      id: file_7
+      kind: library
       unlinkedKey: k07
     unlinkedGet: []
     unlinkedPut: [k07]
+    uri: package:dart.aaa/c.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k08
+      libraries: file_0 file_1 file_3 file_4
     get: []
     put: [k08]
   /workspace/dart/aaa/lib/a.dart
     current
       key: k09
+      libraries: file_5
     get: []
     put: [k09]
   /workspace/dart/aaa/lib/b.dart
@@ -2148,6 +2798,7 @@ libraryCycles
   /workspace/dart/aaa/lib/c.dart
     current
       key: k11
+      libraries: file_7
     get: []
     put: [k11]
 elementFactory
@@ -2196,93 +2847,134 @@ import 'c.dart';
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/aaa/lib/a.dart
     current
+      id: file_5
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.aaa/a.dart
   /workspace/dart/aaa/lib/b.dart
     current
+      id: file_6
+      kind: library
       unlinkedKey: k06
     unlinkedGet: []
     unlinkedPut: [k06]
+    uri: package:dart.aaa/b.dart
   /workspace/dart/aaa/lib/c.dart
     current
+      id: file_7
+      kind: library
       unlinkedKey: k07
     unlinkedGet: []
     unlinkedPut: [k07]
+    uri: package:dart.aaa/c.dart
   /workspace/dart/aaa/lib/d.dart
     current
+      id: file_8
+      kind: library
       unlinkedKey: k08
     unlinkedGet: []
     unlinkedPut: [k08]
+    uri: package:dart.aaa/d.dart
   /workspace/dart/aaa/lib/e.dart
     current
+      id: file_9
+      kind: library
       unlinkedKey: k09
     unlinkedGet: []
     unlinkedPut: [k09]
+    uri: package:dart.aaa/e.dart
   /workspace/dart/aaa/lib/f.dart
     current
+      id: file_10
+      kind: library
       unlinkedKey: k10
     unlinkedGet: []
     unlinkedPut: [k10]
+    uri: package:dart.aaa/f.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k11
+      libraries: file_0 file_1 file_3 file_4
     get: []
     put: [k11]
   /workspace/dart/aaa/lib/a.dart
     current
       key: k12
+      libraries: file_5
     get: []
     put: [k12]
   /workspace/dart/aaa/lib/b.dart
     current
       key: k13
+      libraries: file_6
     get: []
     put: [k13]
   /workspace/dart/aaa/lib/c.dart
     current
       key: k14
+      libraries: file_7
     get: []
     put: [k14]
   /workspace/dart/aaa/lib/d.dart
     current
       key: k15
+      libraries: file_8
     get: []
     put: [k15]
   /workspace/dart/aaa/lib/e.dart
     current
       key: k16
+      libraries: file_9
     get: []
     put: [k16]
   /workspace/dart/aaa/lib/f.dart
     current
       key: k17
+      libraries: file_10
     get: []
     put: [k17]
 elementFactory
@@ -2307,64 +2999,96 @@ byteStore
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/aaa/lib/a.dart
     current
+      id: file_5
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.aaa/a.dart
   /workspace/dart/aaa/lib/b.dart
     unlinkedGet: []
     unlinkedPut: [k06]
+    uri: package:dart.aaa/b.dart
   /workspace/dart/aaa/lib/c.dart
     current
+      id: file_7
+      kind: library
       unlinkedKey: k07
     unlinkedGet: []
     unlinkedPut: [k07]
+    uri: package:dart.aaa/c.dart
   /workspace/dart/aaa/lib/d.dart
     current
+      id: file_8
+      kind: library
       unlinkedKey: k08
     unlinkedGet: []
     unlinkedPut: [k08]
+    uri: package:dart.aaa/d.dart
   /workspace/dart/aaa/lib/e.dart
     unlinkedGet: []
     unlinkedPut: [k09]
+    uri: package:dart.aaa/e.dart
   /workspace/dart/aaa/lib/f.dart
     current
+      id: file_10
+      kind: library
       unlinkedKey: k10
     unlinkedGet: []
     unlinkedPut: [k10]
+    uri: package:dart.aaa/f.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k11
+      libraries: file_0 file_1 file_3 file_4
     get: []
     put: [k11]
   /workspace/dart/aaa/lib/a.dart
     current
       key: k12
+      libraries: file_5
     get: []
     put: [k12]
   /workspace/dart/aaa/lib/b.dart
@@ -2373,11 +3097,13 @@ libraryCycles
   /workspace/dart/aaa/lib/c.dart
     current
       key: k14
+      libraries: file_7
     get: []
     put: [k14]
   /workspace/dart/aaa/lib/d.dart
     current
       key: k15
+      libraries: file_8
     get: []
     put: [k15]
   /workspace/dart/aaa/lib/e.dart
@@ -2386,6 +3112,7 @@ libraryCycles
   /workspace/dart/aaa/lib/f.dart
     current
       key: k17
+      libraries: file_10
     get: []
     put: [k17]
 elementFactory
@@ -2418,43 +3145,64 @@ class A {}
 files
   /sdk/lib/_internal/internal.dart
     current
+      id: file_0
+      kind: library
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
+    uri: dart:_internal
   /sdk/lib/async/async.dart
     current
+      id: file_1
+      kind: library
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
+    uri: dart:async
   /sdk/lib/async/stream.dart
     current
+      id: file_2
+      kind: partOfName
+        library: file_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
+    uri: dart:async/stream.dart
   /sdk/lib/core/core.dart
     current
+      id: file_3
+      kind: library
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
+    uri: dart:core
   /sdk/lib/math/math.dart
     current
+      id: file_4
+      kind: library
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
+    uri: dart:math
   /workspace/dart/aaa/lib/a.dart
     current
+      id: file_5
+      kind: library
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
+    uri: package:dart.aaa/a.dart
 libraryCycles
   /sdk/lib/_internal/internal.dart /sdk/lib/async/async.dart /sdk/lib/core/core.dart /sdk/lib/math/math.dart
     current
       key: k06
+      libraries: file_0 file_1 file_3 file_4
     get: []
     put: [k06]
   /workspace/dart/aaa/lib/a.dart
     current
       key: k07
+      libraries: file_5
     get: []
     put: [k07]
 elementFactory
@@ -2510,9 +3258,9 @@ void func() {
 
     // TODO(scheglov) Use textual dump
     final fsState = fileResolver.fsState!;
-    final testState = fsState.getExistingFileForResource(testFile)!;
+    final testState = fsState.getExisting(testFile)!;
     final testKind = testState.kind as PartFileStateKind;
-    expect(testKind.library?.file, fsState.getExistingFileForResource(a));
+    expect(testKind.library?.file, fsState.getExisting(a));
   }
 
   test_resolve_part_of_uri() async {
@@ -2535,9 +3283,9 @@ void func() {
 
     // TODO(scheglov) Use textual dump
     final fsState = fileResolver.fsState!;
-    final testState = fsState.getExistingFileForResource(testFile)!;
+    final testState = fsState.getExisting(testFile)!;
     final testKind = testState.kind as PartFileStateKind;
-    expect(testKind.library?.file, fsState.getExistingFileForResource(a));
+    expect(testKind.library?.file, fsState.getExisting(a));
   }
 
   test_resolveFile_cache() async {

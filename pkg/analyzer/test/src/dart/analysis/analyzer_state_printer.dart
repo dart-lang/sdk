@@ -10,9 +10,11 @@ import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart';
+import 'package:test/test.dart';
 
 class AnalyzerStatePrinter {
   final MemoryByteStore byteStore;
+  final FileStateIdProvider fileStateIdProvider;
   final KeyShorter keyShorter;
   final LibraryContext libraryContext;
   final ResourceProvider resourceProvider;
@@ -22,6 +24,7 @@ class AnalyzerStatePrinter {
 
   AnalyzerStatePrinter({
     required this.byteStore,
+    required this.fileStateIdProvider,
     required this.keyShorter,
     required this.libraryContext,
     required this.resourceProvider,
@@ -93,33 +96,86 @@ class AnalyzerStatePrinter {
     });
   }
 
+  void _writeFile(FileState file) {
+    _withIndent(() {
+      _writelnWithIndent('id: ${fileStateIdProvider[file]}');
+      _writeFileKind(file);
+      _writeFileUnlinkedKey(file);
+    });
+  }
+
+  void _writeFileKind(FileState file) {
+    final kind = file.kind;
+    if (kind is LibraryFileStateKind) {
+      _writelnWithIndent('kind: library');
+      expect(kind.library.file, same(file));
+    } else if (kind is PartOfNameFileStateKind) {
+      _writelnWithIndent('kind: partOfName');
+      _withIndent(() {
+        final library = kind.library;
+        if (library != null) {
+          final id = fileStateIdProvider[library.file];
+          _writelnWithIndent('library: $id');
+        } else {
+          _writelnWithIndent('name: ${kind.directive.name}');
+        }
+      });
+    } else if (kind is PartOfUriKnownFileStateKind) {
+      _writelnWithIndent('kind: partOfUriKnown');
+      _withIndent(() {
+        final library = kind.library;
+        if (library != null) {
+          final id = fileStateIdProvider[library.file];
+          _writelnWithIndent('library: $id');
+        } else {
+          final id = fileStateIdProvider[kind.uriFile];
+          _writelnWithIndent('uriFile: $id');
+        }
+      });
+    } else {
+      throw UnimplementedError('${kind.runtimeType}');
+    }
+  }
+
   void _writeFiles(FileSystemTestData testData) {
+    final fileMap = testData.files;
+    final fileDataList = fileMap.values.toList();
+    fileDataList.sortBy((fileData) => fileData.file.path);
+
+    // Ask ID for every file in the sorted order, so that IDs are nice.
+    for (final fileData in fileDataList) {
+      final current = fileSystemState.getExisting(fileData.file);
+      if (current != null) {
+        fileStateIdProvider[current];
+      }
+    }
+
     _writelnWithIndent('files');
     _withIndent(() {
-      final fileMap = testData.files;
-      final fileDataList = fileMap.values.toList();
-      fileDataList.sortBy((fileData) => fileData.file.path);
-
       for (final fileData in fileDataList) {
         final file = fileData.file;
         _writelnWithIndent(_posixPath(file));
         _withIndent(() {
-          final current = fileSystemState.getExistingFileForResource(file);
+          final current = fileSystemState.getExisting(file);
           if (current != null) {
             _writelnWithIndent('current');
-            _withIndent(() {
-              final unlinkedShort = keyShorter.shortKey(current.unlinkedKey);
-              _writelnWithIndent('unlinkedKey: $unlinkedShort');
-            });
+            _writeFile(current);
           }
 
           final shortGets = keyShorter.shortKeys(fileData.unlinkedKeyGet);
           final shortPuts = keyShorter.shortKeys(fileData.unlinkedKeyPut);
           _writelnWithIndent('unlinkedGet: $shortGets');
           _writelnWithIndent('unlinkedPut: $shortPuts');
+
+          _writelnWithIndent('uri: ${fileData.uri}');
         });
       }
     });
+  }
+
+  void _writeFileUnlinkedKey(FileState file) {
+    final unlinkedShort = keyShorter.shortKey(file.unlinkedKey);
+    _writelnWithIndent('unlinkedKey: $unlinkedShort');
   }
 
   void _writeLibraryContext(LibraryContextTestData testData) {
@@ -149,6 +205,11 @@ class AnalyzerStatePrinter {
             _withIndent(() {
               final short = keyShorter.shortKey(current.resolutionKey!);
               _writelnWithIndent('key: $short');
+
+              final fileIdList = current.libraries
+                  .map((fileState) => fileStateIdProvider[fileState])
+                  .toList();
+              _writelnWithIndent('libraries: ${fileIdList.join(' ')}');
             });
           }
 
@@ -177,6 +238,14 @@ class AnalyzerStatePrinter {
         }
       });
     }
+  }
+}
+
+class FileStateIdProvider {
+  final Map<FileState, String> _map = Map.identity();
+
+  String operator [](FileState file) {
+    return _map[file] ??= 'file_${_map.length}';
   }
 }
 

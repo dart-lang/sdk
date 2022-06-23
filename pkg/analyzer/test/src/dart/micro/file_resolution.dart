@@ -23,6 +23,7 @@ import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 
 import '../analysis/analyzer_state_printer.dart' as printer;
+import '../resolution/node_text_expectations.dart';
 import '../resolution/resolution.dart';
 
 /// [FileResolver] based implementation of [ResolutionTest].
@@ -38,6 +39,8 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   late FileResolver fileResolver;
 
+  final printer.FileStateIdProvider _fileStateIdProvider =
+      printer.FileStateIdProvider();
   final printer.KeyShorter _keyShorter = printer.KeyShorter();
 
   FileSystemState get fsState => fileResolver.fsState!;
@@ -68,6 +71,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     final buffer = StringBuffer();
     printer.AnalyzerStatePrinter(
       byteStore: byteStore,
+      fileStateIdProvider: _fileStateIdProvider,
       keyShorter: _keyShorter,
       libraryContext: libraryContext,
       resourceProvider: resourceProvider,
@@ -77,6 +81,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
     if (actual != expected) {
       print(actual);
+      NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
   }

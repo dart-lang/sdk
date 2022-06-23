@@ -663,7 +663,7 @@ class FileState {
 
   /// Return the unlinked unit, from bytes or new.
   AnalysisDriverUnlinkedUnit _getUnlinkedUnit() {
-    final testData = _fsState.testData?.forFile(resource);
+    final testData = _fsState.testData?.forFile(resource, uri);
 
     var bytes = _fsState._byteStore.get(_unlinkedKey!);
     if (bytes != null && bytes.isNotEmpty) {
@@ -1262,7 +1262,7 @@ class FileSystemState {
   }
 
   @visibleForTesting
-  FileState? getExistingFileForResource(File file) {
+  FileState? getExisting(File file) {
     return _pathToFile[file.path];
   }
 
@@ -1460,13 +1460,14 @@ class FileSystemStateTestView {
 class FileSystemTestData {
   final Map<File, FileTestData> files = {};
 
-  FileTestData forFile(File file) {
-    return files[file] ??= FileTestData._(file);
+  FileTestData forFile(File file, Uri uri) {
+    return files[file] ??= FileTestData._(file, uri);
   }
 }
 
 class FileTestData {
   final File file;
+  final Uri uri;
 
   /// We add the key every time we get unlinked data from the byte store.
   final List<String> unlinkedKeyGet = [];
@@ -1474,7 +1475,7 @@ class FileTestData {
   /// We add the key every time we put unlinked data into the byte store.
   final List<String> unlinkedKeyPut = [];
 
-  FileTestData._(this.file);
+  FileTestData._(this.file, this.uri);
 }
 
 /// Precomputed properties of a file URI, used because [Uri] is relatively
@@ -1608,7 +1609,7 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
   });
 
   @override
-  LibraryFileStateKind? get library => this;
+  LibraryFileStateKind get library => this;
 
   bool hasPart(PartFileStateKind part) {
     return file.partedFiles.contains(part.file);
