@@ -265,12 +265,15 @@ Future<CompilerResult> _compile(List<String> args,
 
   var compileSdk = argResults['compile-sdk'] == true;
   var oldCompilerState = compilerState;
-  var doneAdditionalDills = <Component>[];
-  fe.IncrementalCompiler? incrementalCompiler;
-  fe.WorkerInputComponent? cachedSdkInput;
   var recordUsedInputs = argResults['used-inputs-file'] != null;
   var additionalDills = summaryModules.keys.toList();
+  fe.DdcResult? result;
 
+  // TODO(jmesserly): is there a cleaner way to do this?
+  //
+  // Ideally we'd manage our own batch compilation caching rather than rely on
+  // `initializeCompiler`. Also we should be able to pass down Components for
+  // SDK and summaries.
   if (!useIncrementalCompiler) {
     compilerState = fe.initializeCompiler(
         oldCompilerState,
@@ -288,6 +291,7 @@ Future<CompilerResult> _compile(List<String> args,
         environmentDefines: declaredVariables,
         nnbdMode:
             options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
+    result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
   } else {
     // If digests weren't given and if not in worker mode, create fake data and
     // ensure we don't have a previous state (as that wouldn't be safe with
@@ -303,6 +307,8 @@ Future<CompilerResult> _compile(List<String> args,
         inputDigests[uri] = const [0];
       }
     }
+    var doneAdditionalDills =
+        List.filled(summaryModules.length, dummyComponent);
     compilerState = await fe.initializeIncrementalCompiler(
         oldCompilerState,
         {
@@ -327,29 +333,17 @@ Future<CompilerResult> _compile(List<String> args,
         trackNeededDillLibraries: recordUsedInputs,
         nnbdMode:
             options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
-    incrementalCompiler = compilerState.incrementalCompiler;
-    cachedSdkInput =
+    var incrementalCompiler = compilerState.incrementalCompiler!;
+    var cachedSdkInput =
         compilerState.workerInputCache![sourcePathToUri(sdkSummaryPath)];
-  }
-
-  // TODO(jmesserly): is there a cleaner way to do this?
-  //
-  // Ideally we'd manage our own batch compilation caching rather than rely on
-  // `initializeCompiler`. Also we should be able to pass down Components for
-  // SDK and summaries.
-  //
-  fe.DdcResult? result;
-  if (!useIncrementalCompiler) {
-    result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
-  } else {
     compilerState.options.onDiagnostic = diagnosticMessageHandler;
-    var incrementalCompilerResult = await incrementalCompiler!.computeDelta(
+    var incrementalCompilerResult = await incrementalCompiler.computeDelta(
         entryPoints: inputs,
         fullComponent: true,
         trackNeededDillLibraries: recordUsedInputs);
     result = fe.DdcResult(
         incrementalCompilerResult.component,
-        cachedSdkInput!.component,
+        cachedSdkInput?.component,
         doneAdditionalDills,
         incrementalCompilerResult.classHierarchy!,
         incrementalCompilerResult.neededDillLibraries);
