@@ -458,7 +458,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
     if (selectionOffset + selectionLength >= resolveResult.content.length) {
       return RefactoringStatus.fatal(
-          'The selection end offset must be less then the length of the file.');
+          'The selection end offset must be less than the length of the file.');
     }
 
     // Check for implicitly selected closure.
@@ -989,10 +989,19 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
       if (element is FunctionElement || element is MethodElement) {
         invalidSelection('Cannot extract a single method name.');
       }
-      // name in property access
-      if (node.parent is PrefixedIdentifier &&
-          (node.parent as PrefixedIdentifier).identifier == node) {
-        invalidSelection('Can not extract name part of a property access.');
+      var parent = node.parent;
+      if (parent is PrefixedIdentifier) {
+        if (parent.identifier == node) {
+          // name in property access
+          invalidSelection('Cannot extract name part of a property access.');
+        } else if (parent.prefix == node && parent.parent is NamedType) {
+          // prefix in a named type (for example `io` in `io.File`)
+          invalidSelection('Cannot extract prefix part of a type reference.');
+        }
+      }
+      // part of a named type (for example `int` in `int?`)
+      if (node.parent is NamedType) {
+        invalidSelection('Cannot extract a single type reference.');
       }
     }
   }

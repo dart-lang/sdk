@@ -95,7 +95,7 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
     );
 
     if (!quick) {
-      // This scenario is relatively easy - the file is small, less then 3KB.
+      // This scenario is relatively easy - the file is small, less than 3KB.
       // But we don't have any prefix to filter, so if we don't restrict the
       // number of suggestions, we might spend too much time serializing into
       // JSON in the server, and deserializing on the client.
