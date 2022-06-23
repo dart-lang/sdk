@@ -1016,7 +1016,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }) {
     range ??= position != null
         ? Range(start: position, end: position)
-        : startOfDocRange;
+        : throw 'Supply either a Range or Position for CodeActions requests';
     final request = makeRequest(
       Method.textDocument_codeAction,
       CodeActionParams(
