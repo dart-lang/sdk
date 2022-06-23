@@ -12,6 +12,7 @@ class NodeTextExpectationsCollector {
   static const updatingIsEnabled = false;
 
   static const assertMethods = {
+    'FileResolutionTest.assertStateString',
     'ResolutionTest.assertResolvedNodeText',
   };
 
