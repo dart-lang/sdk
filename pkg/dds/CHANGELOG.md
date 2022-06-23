@@ -1,3 +1,6 @@
+# 2.2.4
+- Fix an issue where DAP adapters could try to remove the same breakpoint multiple times.
+
 # 2.2.3
 - Internal DAP changes.
 
