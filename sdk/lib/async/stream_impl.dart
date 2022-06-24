@@ -197,7 +197,7 @@ class _BufferingStreamSubscription<T>
     if (!_isCanceled) {
       _cancel();
     }
-    return _cancelFuture ?? Zone._current._nullFuture;
+    return _cancelFuture ?? Future._nullFuture;
   }
 
   Future<E> asFuture<E>([E? futureValue]) {
@@ -217,7 +217,7 @@ class _BufferingStreamSubscription<T>
     };
     _onError = (Object error, StackTrace stackTrace) {
       Future cancelFuture = cancel();
-      if (!identical(Zone._current._nullFuture, cancelFuture)) {
+      if (!identical(cancelFuture, Future._nullFuture)) {
         cancelFuture.whenComplete(() {
           result._completeError(error, stackTrace);
         });
@@ -297,7 +297,7 @@ class _BufferingStreamSubscription<T>
   // Hooks called when the input is paused, unpaused or canceled.
   // These must not throw. If overwritten to call user code, include suitable
   // try/catch wrapping and send any errors to
-  // [Zone._current.handleUncaughtError].
+  // [_Zone.current.handleUncaughtError].
   void _onPause() {
     assert(_isInputPaused);
   }
@@ -352,6 +352,7 @@ class _BufferingStreamSubscription<T>
       // future to finish we must not report the error.
       if (_isCanceled && !_waitsForCancel) return;
       _state |= _STATE_IN_CALLBACK;
+      // TODO(floitsch): this dynamic should be 'void'.
       var onError = _onError;
       if (onError is void Function(Object, StackTrace)) {
         _zone.runBinaryGuarded<Object, StackTrace>(onError, error, stackTrace);
@@ -366,7 +367,7 @@ class _BufferingStreamSubscription<T>
       _cancel();
       var cancelFuture = _cancelFuture;
       if (cancelFuture != null &&
-          !identical(Zone._current._nullFuture, cancelFuture)) {
+          !identical(cancelFuture, Future._nullFuture)) {
         cancelFuture.whenComplete(sendError);
       } else {
         sendError();
@@ -395,8 +396,7 @@ class _BufferingStreamSubscription<T>
     _cancel();
     _state |= _STATE_WAIT_FOR_CANCEL;
     var cancelFuture = _cancelFuture;
-    if (cancelFuture != null &&
-        !identical(Zone._current._nullFuture, cancelFuture)) {
+    if (cancelFuture != null && !identical(cancelFuture, Future._nullFuture)) {
       cancelFuture.whenComplete(sendDone);
     } else {
       sendDone();
@@ -672,7 +672,7 @@ class _DoneStreamSubscription<T> implements StreamSubscription<T> {
     }
   }
 
-  Future cancel() => Zone._current._nullFuture;
+  Future cancel() => Future._nullFuture;
 
   Future<E> asFuture<E>([E? futureValue]) {
     E resultValue;
@@ -819,7 +819,7 @@ class _BroadcastSubscriptionWrapper<T> implements StreamSubscription<T> {
 
   Future cancel() {
     _stream._cancelSubscription();
-    return Zone._current._nullFuture;
+    return Future._nullFuture;
   }
 
   bool get isPaused {
@@ -963,7 +963,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
       }
       return subscription.cancel();
     }
-    return Zone._current._nullFuture;
+    return Future._nullFuture;
   }
 
   void _onData(T data) {

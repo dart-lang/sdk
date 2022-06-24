@@ -588,10 +588,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
   Future<void> get done => _ensureDoneFuture();
 
   Future<void> _ensureDoneFuture() =>
-      _doneFuture ??
-      (_isCanceled
-          ? Zone._current._nullFuture as Future<void>
-          : _doneFuture = _Future<void>());
+      _doneFuture ??= _isCanceled ? Future._nullFuture : _Future<void>();
 
   /// Send or enqueue a data event.
   void add(T value) {
@@ -922,7 +919,7 @@ class _AddStreamState<T> {
     var cancel = addSubscription.cancel();
     if (cancel == null) {
       addStreamFuture._asyncComplete(null);
-      return Zone._current._nullFuture;
+      return Future._nullFuture;
     }
     return cancel.whenComplete(() {
       addStreamFuture._asyncComplete(null);
