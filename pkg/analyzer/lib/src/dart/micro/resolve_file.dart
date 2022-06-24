@@ -19,12 +19,12 @@ import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
-import 'package:analyzer/src/dart/micro/library_analyzer.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -511,10 +511,7 @@ class FileResolver {
     releaseAndClearRemovedIds();
   }
 
-  /// The [completionLine] and [completionColumn] are zero based.
   Future<ResolvedUnitResult> resolve2({
-    int? completionLine,
-    int? completionColumn,
     required String path,
     OperationPerformanceImpl? performance,
   }) async {
@@ -529,23 +526,11 @@ class FileResolver {
       );
       var file = fileContext.file;
 
-      // // If we have a `part of` directive, we want to analyze this library.
-      // // But the library must include the file, so have its element.
-      // var libraryFile = file;
-      // var partOfLibrary = file.partOfLibrary;
-      // if (partOfLibrary != null) {
-      //   if (partOfLibrary.files().ofLibrary.contains(file)) {
-      //     libraryFile = partOfLibrary;
-      //   }
-      // }
       final libraryKind = file.kind.library ?? file.kind.asLibrary;
       final libraryFile = libraryKind.file;
 
       var libraryResult = await resolveLibrary2(
-        completionLine: completionLine,
-        completionColumn: completionColumn,
         path: libraryFile.path,
-        completionPath: completionLine != null ? path : null,
         performance: performance,
       );
       return libraryResult.units.firstWhere(
@@ -555,10 +540,74 @@ class FileResolver {
   }
 
   /// The [completionLine] and [completionColumn] are zero based.
+  Future<ResolvedForCompletionResultImpl> resolveForCompletion({
+    required int completionLine,
+    required int completionColumn,
+    required String path,
+    OperationPerformanceImpl? performance,
+  }) async {
+    _throwIfNotAbsoluteNormalizedPath(path);
+
+    performance ??= OperationPerformanceImpl('<default>');
+
+    return logger.runAsync('Resolve $path', () async {
+      final fileContext = getFileContext(
+        path: path,
+        performance: performance!,
+      );
+      final file = fileContext.file;
+      final libraryKind = file.kind.library ?? file.kind.asLibrary;
+
+      final lineOffset = file.lineInfo.getOffsetOfLine(completionLine);
+      final completionOffset = lineOffset + completionColumn;
+
+      await performance.runAsync('libraryContext', (performance) async {
+        await libraryContext!.load(
+          targetLibrary: libraryKind,
+          performance: performance,
+        );
+      });
+
+      final unitElement = libraryContext!.computeUnitElement(libraryKind, file);
+
+      return logger.run('Compute analysis results', () {
+        final elementFactory = libraryContext!.elementFactory;
+        final analysisSession = elementFactory.analysisSession;
+
+        var libraryAnalyzer = LibraryAnalyzer(
+          fileContext.analysisOptions,
+          contextObjects!.declaredVariables,
+          sourceFactory,
+          elementFactory.libraryOfUri2(libraryKind.file.uri),
+          analysisSession.inheritanceManager,
+          libraryKind,
+        );
+
+        final analysisResult = performance!.run('analyze', (performance) {
+          return libraryAnalyzer.analyzeForCompletion(
+            file: file,
+            offset: completionOffset,
+            unitElement: unitElement,
+            performance: performance,
+          );
+        });
+
+        return ResolvedForCompletionResultImpl(
+          analysisSession: analysisSession,
+          path: path,
+          uri: file.uri,
+          exists: file.exists,
+          content: file.content,
+          lineInfo: file.lineInfo,
+          parsedUnit: analysisResult.parsedUnit,
+          unitElement: unitElement,
+          resolvedNodes: analysisResult.resolvedNodes,
+        );
+      });
+    });
+  }
+
   Future<ResolvedLibraryResult> resolveLibrary2({
-    int? completionLine,
-    int? completionColumn,
-    String? completionPath,
     required String path,
     OperationPerformanceImpl? performance,
   }) async {
@@ -577,24 +626,7 @@ class FileResolver {
         performance: performance!,
       );
       var file = fileContext.file;
-
-      // // If we have a `part of` directive, we want to analyze this library.
-      // // But the library must include the file, so have its element.
-      // var libraryFile = file;
-      // var partOfLibrary = file.partOfLibrary;
-      // if (partOfLibrary != null) {
-      //   if (partOfLibrary.files().ofLibrary.contains(file)) {
-      //     libraryFile = partOfLibrary;
-      //   }
-      // }
       final libraryKind = file.kind.library ?? file.kind.asLibrary;
-      final libraryFile = libraryKind.file;
-
-      int? completionOffset;
-      if (completionLine != null && completionColumn != null) {
-        var lineOffset = file.lineInfo.getOffsetOfLine(completionLine);
-        completionOffset = lineOffset + completionColumn;
-      }
 
       await performance.runAsync('libraryContext', (performance) async {
         await libraryContext!.load(
@@ -605,31 +637,24 @@ class FileResolver {
 
       testData?.addResolvedLibrary(path);
 
-      late Map<FileState, UnitAnalysisResult> results;
+      late List<UnitAnalysisResult> results;
 
       logger.run('Compute analysis results', () {
         var libraryAnalyzer = LibraryAnalyzer(
           fileContext.analysisOptions,
           contextObjects!.declaredVariables,
           sourceFactory,
-          (_) => true, // _isLibraryUri
-          libraryContext!.analysisContext,
-          libraryContext!.elementFactory,
-          contextObjects!.inheritanceManager,
-          libraryFile,
-          (file) => file.getContent(),
+          libraryContext!.elementFactory.libraryOfUri2(libraryKind.file.uri),
+          libraryContext!.elementFactory.analysisSession.inheritanceManager,
+          libraryKind,
         );
 
         results = performance!.run('analyze', (performance) {
-          return libraryAnalyzer.analyze(
-            completionPath: completionOffset != null ? completionPath : null,
-            completionOffset: completionOffset,
-            performance: performance,
-          );
+          return libraryAnalyzer.analyze();
         });
       });
 
-      var resolvedUnits = results.values.map((fileResult) {
+      var resolvedUnits = results.map((fileResult) {
         var file = fileResult.file;
         return ResolvedUnitResultImpl(
           contextObjects!.analysisSession,
@@ -648,9 +673,7 @@ class FileResolver {
       var result = ResolvedLibraryResultImpl(contextObjects!.analysisSession,
           libraryUnit.libraryElement, resolvedUnits);
 
-      if (completionPath == null) {
-        cachedResults[path] = result;
-      }
+      cachedResults[path] = result;
 
       return result;
     });
