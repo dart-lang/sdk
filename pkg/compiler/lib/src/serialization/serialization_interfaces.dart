@@ -63,7 +63,7 @@ abstract class DataSinkWriter {
 
   void writeClass(covariant ClassEntity value); // IndexedClass
   void writeClassOrNull(covariant ClassEntity? value); // IndexedClass
-  void writeClasses(Iterable<ClassEntity> values, {bool allowNull = false});
+  void writeClasses(Iterable<ClassEntity>? values, {bool allowNull = false});
   void writeClassMap<V>(Map<ClassEntity, V>? map, void f(V value),
       {bool allowNull = false});
 

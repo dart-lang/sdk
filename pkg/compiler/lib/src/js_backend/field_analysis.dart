@@ -15,8 +15,7 @@ import '../elements/types.dart';
 import '../ir/scope_visitor.dart';
 import '../js_model/elements.dart' show JField;
 import '../js_model/js_to_frontend_map.dart' show JsToFrontendMap;
-import '../kernel/element_map.dart';
-import '../kernel/kernel_strategy.dart';
+import '../kernel/element_map.dart' show KernelToElementMap;
 import '../kernel/kelements.dart' show KClass, KField, KConstructor;
 import '../kernel/kernel_world.dart';
 import '../options.dart';
@@ -45,8 +44,7 @@ class KFieldAnalysis {
   final Map<KClass, ClassData> _classData = {};
   final Map<KField, StaticFieldData> _staticFieldData = {};
 
-  KFieldAnalysis(KernelFrontendStrategy kernelStrategy)
-      : _elementMap = kernelStrategy.elementMap;
+  KFieldAnalysis(this._elementMap);
 
   // Register class during resolution. Use simple syntactic analysis to find
   // null-initialized fields.

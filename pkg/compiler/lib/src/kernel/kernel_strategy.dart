@@ -46,11 +46,12 @@ import '../universe/world_impact.dart';
 import '../util/enumset.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
+import 'kernel_strategy_migrated.dart'; // TODO(48820): Remove when migrated.
 import 'native_basic_data.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
-class KernelFrontendStrategy {
+class KernelFrontendStrategy implements KernelFrontendStrategyForBackendUsage {
   final CompilerOptions _options;
   final CompilerTask _compilerTask;
   /*late*/ KernelToElementMap _elementMap;
@@ -146,7 +147,7 @@ class KernelFrontendStrategy {
         commonElements,
         nativeBasicData,
         _backendUsageBuilder);
-    _fieldAnalysis = KFieldAnalysis(this);
+    _fieldAnalysis = KFieldAnalysis(elementMap);
     ClassHierarchyBuilder classHierarchyBuilder =
         ClassHierarchyBuilder(commonElements, elementMap);
     AnnotationsDataBuilder annotationsDataBuilder = AnnotationsDataBuilder();
@@ -249,6 +250,7 @@ class KernelFrontendStrategy {
 
   /// Returns the [CommonElements] for the element model used in this
   /// strategy.
+  @override
   KCommonElements get commonElements => _elementMap.commonElements;
 
   KernelToElementMap get elementMap => _elementMap;
@@ -273,6 +275,7 @@ class KernelFrontendStrategy {
       _runtimeTypesNeedBuilder;
 
   /// Creates a [SourceSpan] from [spannable] in context of [currentElement].
+  @override
   SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
     return _elementMap.getSourceSpan(spannable, currentElement);
   }
