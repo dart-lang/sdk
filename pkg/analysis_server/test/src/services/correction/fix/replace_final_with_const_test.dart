@@ -41,7 +41,46 @@ class ReplaceFinalWithConstTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_const_declarations;
 
-  Future<void> test_method() async {
+  Future<void> test_const_instanceCreation() async {
+    await resolveTestCode('''
+class A {
+  const A();
+}
+final a = const A();
+''');
+    await assertHasFix('''
+class A {
+  const A();
+}
+const a = A();
+''');
+  }
+
+  Future<void> test_const_instanceCreation_multiple() async {
+    await resolveTestCode('''
+class A {
+  const A();
+}
+final A a1 = const A(), a2 = const A();
+''');
+    await assertHasFix('''
+class A {
+  const A();
+}
+const A a1 = A(), a2 = A();
+''');
+  }
+
+  Future<void> test_const_typedLiteral() async {
+    await resolveTestCode('''
+final b = const [];
+''');
+    await assertHasFix('''
+const b = [];
+''');
+  }
+
+  Future<void> test_variable() async {
     await resolveTestCode('''
 final int a = 1;
 ''');
