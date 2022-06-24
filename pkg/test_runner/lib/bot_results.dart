@@ -24,35 +24,37 @@ class Result {
   final bool matches;
   final String name;
   final String outcome;
-  final bool changed;
-  final String commitHash;
+  final bool? changed;
+  final String? commitHash;
   final bool flaked; // From optional flakiness_data argument to constructor.
-  final bool isFlaky; // From results.json after it is extended.
-  final String previousOutcome;
+  final bool? isFlaky; // From results.json after it is extended.
+  final String? previousOutcome;
 
   Result(
-      this.configuration,
-      this.name,
-      this.outcome,
-      this.expectation,
-      this.matches,
-      this.changed,
-      this.commitHash,
-      this.isFlaky,
-      this.previousOutcome,
-      [this.flaked = false]);
+    this.configuration,
+    this.name,
+    this.outcome,
+    this.expectation,
+    this.matches,
+    this.changed,
+    this.commitHash,
+    this.isFlaky,
+    this.previousOutcome, {
+    this.flaked = false,
+  });
 
-  Result.fromMap(Map<String, dynamic> map,
-      [Map<String, dynamic>? flakinessData])
-      : configuration = map["configuration"] as String,
+  Result.fromMap(
+    Map<String, dynamic> map, [
+    Map<String, dynamic>? flakinessData,
+  ])  : configuration = map["configuration"] as String,
         name = map["name"] as String,
         outcome = map["result"] as String,
         expectation = map["expected"] as String,
         matches = map["matches"] as bool,
-        changed = map["changed"] as bool,
-        commitHash = map["commit_hash"] as String,
-        isFlaky = map["flaky"] as bool,
-        previousOutcome = map["previous_result"] as String,
+        changed = map["changed"] as bool?,
+        commitHash = map["commit_hash"] as String?,
+        isFlaky = map["flaky"] as bool?,
+        previousOutcome = map["previous_result"] as String?,
         flaked = flakinessData != null &&
             (flakinessData["active"] ?? true) == true &&
             (flakinessData["outcomes"] as List).contains(map["result"]);

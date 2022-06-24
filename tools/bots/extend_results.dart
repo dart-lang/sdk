@@ -5,8 +5,6 @@
 // Add fields with data about the test run and the commit tested, and
 // with the result on the last build tested, to the test results file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -38,10 +36,10 @@ main(List<String> args) async {
     }
   });
   for (final String key in results.keys) {
-    final Map<String, dynamic> result = results[key];
-    final Map<String, dynamic> priorResult = priorResults[key];
-    final Map<String, dynamic> flaky = flakes[key];
-    final Map<String, dynamic> priorFlaky = priorFlakes[key];
+    final Map<String, dynamic> result = results[key]!;
+    final Map<String, dynamic>? priorResult = priorResults[key];
+    final Map<String, dynamic>? flaky = flakes[key];
+    final Map<String, dynamic>? priorFlaky = priorFlakes[key];
     result['commit_hash'] = commitHash;
     result['commit_time'] = commitTime;
     result['build_number'] = buildNumber;

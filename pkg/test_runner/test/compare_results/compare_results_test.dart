@@ -198,6 +198,16 @@ Result _result(
     bool flaked = false,
     bool isFlaky = false,
     String previousOutcome = 'Pass'}) {
-  return Result(configuration, name, outcome, expectation, matches, changed,
-      commitHash, isFlaky, previousOutcome, flaked);
+  return Result(
+    configuration,
+    name,
+    outcome,
+    expectation,
+    matches,
+    changed,
+    commitHash,
+    isFlaky,
+    previousOutcome,
+    flaked: flaked,
+  );
 }

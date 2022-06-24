@@ -3322,32 +3322,6 @@ void func() {
     expect(result, isNot(same(result1)));
   }
 
-  test_resolveFile_dontCache_whenForCompletion() async {
-    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
-part 'b.dart';
-''');
-
-    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
-part of 'a.dart';
-''');
-
-    // No resolved files yet.
-    _assertResolvedFiles([]);
-
-    await fileResolver.resolve2(
-      path: b.path,
-      completionLine: 0,
-      completionColumn: 0,
-    );
-
-    // The library was resolved.
-    _assertResolvedFiles([a]);
-
-    // The completion location was set, so not units are resolved.
-    // So, the result should not be cached.
-    expect(fileResolver.cachedResults, isEmpty);
-  }
-
   test_resolveLibrary() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
     newFile(aPath, r'''

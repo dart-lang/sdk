@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/cider/completion.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show CompletionSuggestion, CompletionSuggestionKind, ElementKind;
@@ -24,7 +24,7 @@ class CiderCompletionComputerTest extends CiderServiceTest {
   final CiderCompletionCache _completionCache = CiderCompletionCache();
 
   late CiderCompletionComputer _computer;
-  void Function(ResolvedUnitResult)? _testResolvedUnit;
+  void Function(ResolvedForCompletionResultImpl)? _testResolvedUnit;
 
   late CiderCompletionResult _completionResult;
   late List<CompletionSuggestion> _suggestions;
@@ -806,7 +806,7 @@ import 'a.dart';
   /// for completion we don't resolve unnecessary node.
   void _configureToCheckNotResolved({required Set<String> identifiers}) {
     _testResolvedUnit = (resolvedUnitResult) {
-      var unit = resolvedUnitResult.unit;
+      var unit = resolvedUnitResult.parsedUnit;
       unit.accept(
         FunctionAstVisitor(
           simpleIdentifier: (node) {
