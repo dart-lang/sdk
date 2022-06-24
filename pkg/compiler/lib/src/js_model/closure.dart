@@ -1361,51 +1361,6 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
       ClassTypeVariableAccess.none;
 }
 
-class ClosureMemberDefinition implements MemberDefinition {
-  /// Tag used for identifying serialized [ClosureMemberDefinition] objects in a
-  /// debugging data stream.
-  static const String tag = 'closure-member-definition';
-
-  @override
-  final SourceSpan location;
-  @override
-  final MemberKind kind;
-  @override
-  ir.TreeNode get node => _node.loaded();
-  final Deferrable<ir.TreeNode> _node;
-
-  ClosureMemberDefinition(this.location, this.kind, ir.TreeNode node)
-      : _node = Deferrable.eager(node),
-        assert(
-            kind == MemberKind.closureCall || kind == MemberKind.closureField);
-
-  ClosureMemberDefinition._deserialized(this.location, this.kind, this._node)
-      : assert(
-            kind == MemberKind.closureCall || kind == MemberKind.closureField);
-
-  factory ClosureMemberDefinition.readFromDataSource(
-      DataSourceReader source, MemberKind kind) {
-    source.begin(tag);
-    SourceSpan location = source.readSourceSpan();
-    Deferrable<ir.TreeNode> node =
-        source.readDeferrable(() => source.readTreeNode());
-    source.end(tag);
-    return ClosureMemberDefinition._deserialized(location, kind, node);
-  }
-
-  @override
-  void writeToDataSink(DataSinkWriter sink) {
-    sink.writeEnum(kind);
-    sink.begin(tag);
-    sink.writeSourceSpan(location);
-    sink.writeDeferrable(() => sink.writeTreeNode(node));
-    sink.end(tag);
-  }
-
-  @override
-  String toString() => 'ClosureMemberDefinition(kind:$kind,location:$location)';
-}
-
 class RecordContainerDefinition implements ClassDefinition {
   /// Tag used for identifying serialized [RecordContainerDefinition] objects in
   /// a debugging data stream.
