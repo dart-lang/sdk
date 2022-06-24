@@ -532,20 +532,6 @@ class ContextLocatorImpl implements ContextLocator {
     return second;
   }
 
-  /// Pick a workspace with the most specific root. If the root of [first] is
-  /// non-null and is within the root of [second], return [second]. If any of
-  /// [first] and [second] is null, return the other one. If the roots aren't
-  /// within each other, return [first].
-  static Workspace? _mostSpecificWorkspace(
-      Workspace? first, Workspace? second) {
-    if (first == null) return second;
-    if (second == null) return first;
-    if (isWithin(first.root, second.root)) {
-      return second;
-    }
-    return first;
-  }
-
   /// Return `true` if the configuration of [existingRoot] is the same as
   /// the requested configuration for the [location].
   static bool _matchRootWithLocation(
@@ -570,6 +556,20 @@ class ContextLocatorImpl implements ContextLocator {
     }
 
     return true;
+  }
+
+  /// Pick a workspace with the most specific root. If the root of [first] is
+  /// non-null and is within the root of [second], return [second]. If any of
+  /// [first] and [second] is null, return the other one. If the roots aren't
+  /// within each other, return [first].
+  static Workspace? _mostSpecificWorkspace(
+      Workspace? first, Workspace? second) {
+    if (first == null) return second;
+    if (second == null) return first;
+    if (isWithin(first.root, second.root)) {
+      return second;
+    }
+    return first;
   }
 }
 
