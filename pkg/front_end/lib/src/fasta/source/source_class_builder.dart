@@ -955,7 +955,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // the declaration's superclass constraints.
     InterfaceType supertype = cls.supertype!.asInterfaceType;
     Substitution substitution = Substitution.fromSupertype(cls.mixedInType!);
-    for (Supertype constraint in cls.mixedInClass!.superclassConstraints()) {
+    for (Supertype constraint in cls.mixedInClass!.onClause) {
       InterfaceType requiredInterface =
           substitution.substituteSupertype(constraint).asInterfaceType;
       InterfaceType? implementedInterface = hierarchy.getTypeAsInstanceOf(

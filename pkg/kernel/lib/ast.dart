@@ -1072,7 +1072,11 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
         : (flags & ~FlagHasConstConstructor);
   }
 
-  List<Supertype> superclassConstraints() {
+  /// If this class is a mixin declaration, this list contains the types from
+  /// the `on` clause. Otherwise the list is empty.
+  List<Supertype> get onClause => _onClause ??= _computeOnClause();
+
+  List<Supertype> _computeOnClause() {
     List<Supertype> constraints = <Supertype>[];
 
     // Not a mixin declaration.
@@ -1108,6 +1112,8 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 
   /// The types from the `implements` clause.
   List<Supertype> implementedTypes;
+
+  List<Supertype>? _onClause;
 
   /// Internal. Should *ONLY* be used from within kernel.
   ///

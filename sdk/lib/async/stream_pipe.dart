@@ -26,7 +26,7 @@ _runUserCode<T>(T userCode(), onSuccess(T value),
 void _cancelAndError(StreamSubscription subscription, _Future future,
     Object error, StackTrace stackTrace) {
   var cancelFuture = subscription.cancel();
-  if (cancelFuture != null && !isNullFuture(Zone._current, cancelFuture)) {
+  if (cancelFuture != null && !identical(cancelFuture, Future._nullFuture)) {
     cancelFuture.whenComplete(() => future._completeError(error, stackTrace));
   } else {
     future._completeError(error, stackTrace);
@@ -55,7 +55,7 @@ void Function(Object error, StackTrace stackTrace) _cancelAndErrorClosure(
   before completing with a value. */
 void _cancelAndValue(StreamSubscription subscription, _Future future, value) {
   var cancelFuture = subscription.cancel();
-  if (cancelFuture != null && !isNullFuture(Zone._current, cancelFuture)) {
+  if (cancelFuture != null && !identical(cancelFuture, Future._nullFuture)) {
     cancelFuture.whenComplete(() => future._complete(value));
   } else {
     future._complete(value);

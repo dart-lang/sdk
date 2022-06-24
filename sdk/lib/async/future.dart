@@ -223,6 +223,13 @@ abstract class FutureOr<T> {
 /// it's very clearly documented.
 @pragma("wasm:entry-point")
 abstract class Future<T> {
+  /// A `Future<Null>` completed with `null`.
+  ///
+  /// Currently shared with `dart:internal`.
+  /// If that future can be removed, then change this back to
+  /// `_Future<Null>.zoneValue(null, _rootZone);`
+  static final _Future<Null> _nullFuture = nullFuture as _Future<Null>;
+
   /// A `Future<bool>` completed with `false`.
   static final _Future<bool> _falseFuture =
       new _Future<bool>.zoneValue(false, _rootZone);

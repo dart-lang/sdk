@@ -24,6 +24,10 @@
 
 - The `Stream.fromIterable` stream can now be listened to more than once.
 
+### `dart:collection`
+
+- Deprecates `BidirectionalIterator`.
+
 ## 2.18.0
 
 ### Language

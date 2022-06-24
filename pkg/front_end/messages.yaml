@@ -5612,3 +5612,52 @@ MixinInheritsFromNotObject:
     class Base {}
     class Mixin extends Base {}
     class C extends Base with Mixin {}
+
+MixinApplicationNoConcreteMethod:
+  problemMessage: "The class doesn't have a concrete implementation of the super-invoked member '#name'."
+  analyzerCode: MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+  script: |
+    class Super {
+      void method() {}
+    }
+    mixin Mixin on Super {
+      void method() {
+        super.method();
+      }
+    }
+    abstract class AbstractSuper implements Super {}
+    class Class extends AbstractSuper with Mixin {}
+
+MixinApplicationNoConcreteGetter:
+  problemMessage: "The class doesn't have a concrete implementation of the super-accessed member '#name'."
+  analyzerCode: MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+  script: |
+    class Super {
+      int get getter => 42; 
+    }
+    mixin Mixin on Super {
+      int get getter {
+        return super.getter;
+      }
+    }
+    abstract class AbstractSuper implements Super {}
+    class Class extends AbstractSuper with Mixin {}
+
+MixinApplicationNoConcreteSetter:
+  problemMessage: "The class doesn't have a concrete implementation of the super-accessed setter '#name'."
+  analyzerCode: MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+  script: |
+    class Super {
+      void set setter(int value) {} 
+    }
+    mixin Mixin on Super {
+      void set setter(int value) {
+        super.setter = value;
+      }
+    }
+    abstract class AbstractSuper implements Super {}
+    class Class extends AbstractSuper with Mixin {}
+
+MixinApplicationNoConcreteMemberContext:
+  problemMessage: "This is the super-access that doesn't have a concrete target."
+  severity: CONTEXT

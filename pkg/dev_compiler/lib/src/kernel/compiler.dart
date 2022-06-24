@@ -1397,8 +1397,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var savedClass = _classEmittingSignatures;
     _classEmittingSignatures = c;
 
-    var interfaces = c.implementedTypes.toList()
-      ..addAll(c.superclassConstraints());
+    var interfaces = c.implementedTypes.toList()..addAll(c.onClause);
     if (interfaces.isNotEmpty) {
       body.add(js.statement('#[#] = () => [#];', [
         className,

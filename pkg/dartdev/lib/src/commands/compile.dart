@@ -14,6 +14,7 @@ import 'package:path/path.dart' as path;
 import '../core.dart';
 import '../experiments.dart';
 import '../sdk.dart';
+import '../utils.dart';
 import '../vm_interop_handler.dart';
 
 const int compileErrorExitCode = 64;
@@ -134,6 +135,16 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
       msg += ' [<training arguments>]';
     }
     return msg;
+  }
+
+  @override
+  ArgParser createArgParser() {
+    return ArgParser(
+      // Don't parse the training arguments for JIT snapshots, but don't accept
+      // flags after the script name for kernel snapshots.
+      allowTrailingOptions: !isJitSnapshot,
+      usageLineLength: dartdevUsageLineLength,
+    );
   }
 
   bool get isJitSnapshot => commandName == jitSnapshotCmdName;

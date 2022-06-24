@@ -7821,6 +7821,101 @@ const MessageCode messageMissingTypedefParameters = const MessageCode(
     correctionMessage: r"""Try adding a parameter list to the typedef.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateMixinApplicationNoConcreteGetter = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The class doesn't have a concrete implementation of the super-accessed member '#name'.""",
+    withArguments: _withArgumentsMixinApplicationNoConcreteGetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMixinApplicationNoConcreteGetter =
+    const Code<Message Function(String name)>(
+        "MixinApplicationNoConcreteGetter",
+        analyzerCodes: <String>[
+      "MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMixinApplicationNoConcreteGetter(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeMixinApplicationNoConcreteGetter,
+      problemMessage:
+          """The class doesn't have a concrete implementation of the super-accessed member '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMixinApplicationNoConcreteMemberContext =
+    messageMixinApplicationNoConcreteMemberContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMixinApplicationNoConcreteMemberContext =
+    const MessageCode("MixinApplicationNoConcreteMemberContext",
+        severity: Severity.context,
+        problemMessage:
+            r"""This is the super-access that doesn't have a concrete target.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateMixinApplicationNoConcreteMethod = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The class doesn't have a concrete implementation of the super-invoked member '#name'.""",
+    withArguments: _withArgumentsMixinApplicationNoConcreteMethod);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMixinApplicationNoConcreteMethod =
+    const Code<Message Function(String name)>(
+        "MixinApplicationNoConcreteMethod",
+        analyzerCodes: <String>[
+      "MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMixinApplicationNoConcreteMethod(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeMixinApplicationNoConcreteMethod,
+      problemMessage:
+          """The class doesn't have a concrete implementation of the super-invoked member '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateMixinApplicationNoConcreteSetter = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The class doesn't have a concrete implementation of the super-accessed setter '#name'.""",
+    withArguments: _withArgumentsMixinApplicationNoConcreteSetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMixinApplicationNoConcreteSetter =
+    const Code<Message Function(String name)>(
+        "MixinApplicationNoConcreteSetter",
+        analyzerCodes: <String>[
+      "MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMixinApplicationNoConcreteSetter(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeMixinApplicationNoConcreteSetter,
+      problemMessage:
+          """The class doesn't have a concrete implementation of the super-accessed setter '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMixinDeclaresConstructor = messageMixinDeclaresConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
