@@ -547,9 +547,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   /// Set the language version to an explicit major and minor version.
   ///
-  /// The default language version specified by the .packages file is passed
-  /// to the constructor, but the library can have source code that specifies
-  /// another one which should be supported.
+  /// The default language version specified by the `package_config.json` file
+  /// is passed to the constructor, but the library can have source code that
+  /// specifies another one which should be supported.
   ///
   /// Only the first registered language version is used.
   ///

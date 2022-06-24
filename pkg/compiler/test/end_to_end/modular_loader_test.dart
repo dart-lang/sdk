@@ -81,13 +81,15 @@ Future<List<int>> compileUnit(List<String> inputs, Map<String, dynamic> sources,
   List<Uri> additionalDills = [
     computePlatformBinariesLocation().resolve("dart2js_platform.dill"),
   ]..addAll(deps.map(toTestUri));
-  fs.entityForUri(toTestUri('.packages')).writeAsStringSync('');
+  fs
+      .entityForUri(toTestUri('.dart_tool/package_config.json'))
+      .writeAsStringSync('{"configVersion": 2, "packages": []}');
   var options = CompilerOptions()
     ..target = Dart2jsTarget("dart2js", TargetFlags(enableNullSafety: true))
     ..fileSystem = TestFileSystem(fs)
     ..nnbdMode = NnbdMode.Strong
     ..additionalDills = additionalDills
-    ..packagesFileUri = toTestUri('.packages')
+    ..packagesFileUri = toTestUri('.dart_tool/package_config.json')
     ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: true};
   var inputUris = inputs.map(toTestUri).toList();
   var inputUriSet = inputUris.toSet();

@@ -1029,8 +1029,20 @@ main() {
     });
 
     test('compile, reject, compile again', () async {
-      var packageUri = Uri.file('${mytest.path}/.packages');
-      new File(packageUri.toFilePath()).writeAsStringSync('foo:lib/\n');
+      new Directory(mytest.path + "/.dart_tool").createSync();
+      var packageUri =
+          Uri.file('${mytest.path}/.dart_tool/package_config.json');
+      new File(packageUri.toFilePath()).writeAsStringSync(jsonEncode({
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "foo",
+            "rootUri": "..",
+            "packageUri": "lib",
+            "languageVersion": "2.7",
+          },
+        ],
+      }));
       new Directory(mytest.path + "/lib").createSync();
       var fooUri = Uri.file('${mytest.path}/lib/foo.dart');
       new File(fooUri.toFilePath())
@@ -1581,7 +1593,7 @@ main() {
     });
 
     test('from dill with package uri', () async {
-      // 2 iterations: One where the .packages file is deleted, and one where
+      // 2 iterations: One where the package_config.json file is deleted, and one where
       // it is not.
       for (int i = 0; i < 2; i++) {
         Directory dir = mytest.createTempSync();
@@ -1595,8 +1607,18 @@ main() {
           int extra() { return 22; }
         """);
 
-        File packagesFile = new File.fromUri(dir.uri.resolve(".packages"));
-        packagesFile.writeAsStringSync("foo:.");
+        File packagesFile =
+            new File.fromUri(dir.uri.resolve("package_config.json"));
+        packagesFile.writeAsStringSync(jsonEncode({
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": ".",
+              "languageVersion": "2.7",
+            },
+          ],
+        }));
 
         Uri mainUri = Uri.parse("package:foo/main.dart");
 

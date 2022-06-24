@@ -9,7 +9,7 @@
 // OtherResources=http_launch_data/http_launch_main.dart
 // OtherResources=http_launch_data/http_spawn_main.dart
 // OtherResources=http_launch_data/the_packages/simple/simple.dart
-// OtherResources=http_launch_data/.packages
+// OtherResources=http_launch_data/.dart_tool/package_config.json
 //
 // Test:
 //   *) Launching a script fetched over HTTP.

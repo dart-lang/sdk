@@ -135,7 +135,8 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
   OutputCollector outputCollector = new OutputCollector();
   DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
   Uri packageConfig;
-  Uri wantedPackageConfig = createUriForFileName(".packages");
+  Uri wantedPackageConfig =
+      createUriForFileName(".dart_tool/package_config.json");
   for (String key in memorySourceFiles.keys) {
     if (key == wantedPackageConfig.path) {
       packageConfig = wantedPackageConfig;

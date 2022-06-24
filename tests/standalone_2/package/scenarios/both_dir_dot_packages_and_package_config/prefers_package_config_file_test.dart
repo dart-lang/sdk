@@ -6,6 +6,12 @@
 
 // Packages=none
 
-library both_dir_and_file_noimports_test;
+library prefers_package_config_file_test;
 
-main() {}
+import 'package:foo/foo.dart' as foo;
+
+main() {
+  if (foo.bar != 'good') {
+    throw new Exception('package "foo" was not resolved correctly');
+  }
+}

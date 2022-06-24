@@ -25,7 +25,7 @@ main() async {
   }
 
   // Tests are run in the root directory of the sdk checkout.
-  final Uri packagesFile = sdkRootFile('.packages');
+  final Uri packagesFile = sdkRootFile('.dart_tool/package_config.json');
   final Uri librariesFile = sdkRootFile('sdk/lib/libraries.json');
 
   final vmTarget = VmTarget(TargetFlags(supportMirrors: false));

@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// Packages=.packages
+// Packages=.dart_tool/package_config.json
 
 library empty_packages_file_option_test;
 

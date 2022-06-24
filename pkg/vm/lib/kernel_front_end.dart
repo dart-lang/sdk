@@ -69,7 +69,8 @@ import 'transformations/to_string_transformer.dart' as to_string_transformer;
 void declareCompilerOptions(ArgParser args) {
   args.addOption('platform',
       help: 'Path to vm_platform_strong.dill file', defaultsTo: null);
-  args.addOption('packages', help: 'Path to .packages file', defaultsTo: null);
+  args.addOption('packages',
+      help: 'Path to .dart_tool/package_config.json file', defaultsTo: null);
   args.addOption('output',
       abbr: 'o', help: 'Path to resulting dill file', defaultsTo: null);
   args.addFlag('aot',
@@ -95,7 +96,7 @@ void declareCompilerOptions(ArgParser args) {
       defaultsTo: true);
   args.addMultiOption('filesystem-root',
       help: 'A base path for the multi-root virtual file system.'
-          ' If multi-root file system is used, the input script and .packages file should be specified using URI.');
+          ' If multi-root file system is used, the input script and .dart_tool/package_config.json file should be specified using URI.');
   args.addOption('filesystem-scheme',
       help: 'The URI scheme for the multi-root virtual filesystem.');
   args.addMultiOption('source',

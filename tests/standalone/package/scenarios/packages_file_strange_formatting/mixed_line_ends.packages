@@ -1,3 +1,17 @@
-foo:foo/
-bar:bar/
-baz:baz/
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "foo",
+      "rootUri": "foo"
+    },
+    {
+      "name": "bar",
+      "rootUri": "bar"
+    },
+    {
+      "name": "baz",
+      "rootUri": "baz"
+    }
+  ]
+}

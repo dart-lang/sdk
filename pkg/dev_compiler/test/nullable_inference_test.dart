@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert' show jsonEncode;
 import 'dart:io';
 
 import 'package:dev_compiler/src/kernel/command.dart' show getSdkPath;
@@ -665,10 +666,18 @@ Future<CompileResult> kernelCompile(String code) async {
     var librariesJson = p.join(getSdkPath(), 'lib', 'libraries.json');
     librariesFile.writeAsBytesSync(File(librariesJson).readAsBytesSync());
   }
-  var packagesUri = Uri.file('/memory/.packages');
+  var packagesUri = Uri.file('/memory/.dart_tool/package_config.json');
   var packagesFile = _fileSystem.entityForUri(packagesUri);
   if (!await packagesFile.exists()) {
-    packagesFile.writeAsStringSync('meta:/memory/meta/lib');
+    packagesFile.writeAsStringSync(jsonEncode({
+      'configVersion': 2,
+      'packages': [
+        {
+          'name': 'meta',
+          'rootUri': '/memory/meta/lib',
+        },
+      ],
+    }));
     _fileSystem
         .entityForUri(Uri.file('/memory/meta/lib/meta.dart'))
         .writeAsStringSync('''

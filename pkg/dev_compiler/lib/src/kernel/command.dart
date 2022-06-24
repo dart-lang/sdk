@@ -235,7 +235,7 @@ Future<CompilerResult> _compile(List<String> args,
     }
   }
 
-  /// The .packages file path provided by the user.
+  /// The .dart_tool/package_config.json file path provided by the user.
   //
   // TODO(jmesserly): the default location is based on the current working
   // directory, to match the behavior of dartanalyzer/dartdevc. However the
@@ -244,8 +244,9 @@ Future<CompilerResult> _compile(List<String> args,
   // Ultimately this is just the default behavior; in practice users call DDC
   // through a build tool, which generally passes in `--packages=`.
   //
-  // TODO(jmesserly): conceptually CFE should not need a .packages file to
-  // resolve package URIs that are in the input summaries, but it seems to.
+  // TODO(jmesserly): conceptually CFE should not need a
+  // .dart_tool/package_config.json file to resolve package URIs that are in the
+  // input summaries, but it seems to.
   // This needs further investigation.
   var packageFile =
       argResults['packages'] as String? ?? _findPackagesFilePath();
@@ -856,7 +857,8 @@ String getSdkPath() => p.dirname(p.dirname(Platform.resolvedExecutable));
 String? _findPackagesFilePath() {
   // TODO(jmesserly): this was copied from package:package_config/discovery.dart
   // Unfortunately the relevant function is not public. CFE APIs require a URI
-  // to the .packages file, rather than letting us provide the package map data.
+  // to the .dart_tool/package_config.json file, rather than letting us provide
+  // the package map data.
   var dir = Directory.current;
   if (!dir.isAbsolute) dir = dir.absolute;
   if (!dir.existsSync()) return null;

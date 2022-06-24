@@ -502,8 +502,9 @@ class _BinaryOutputSinkWrapper extends api.BinaryOutputSink {
 ///
 /// To handle bazel's special layout:
 ///
-///  * We specify a .packages configuration file that expands packages to their
-///    corresponding bazel location. This way there is no need to create a pub
+///  * We specify a .dart_tool/package_config.json configuration file that
+///    expands packages to their corresponding bazel location.
+///    This way there is no need to create a pub
 ///    cache prior to invoking dart2js.
 ///
 ///  * We provide an implicit mapping that can make all urls relative to the
