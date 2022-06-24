@@ -13,9 +13,9 @@ import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/scope.dart';
-import '../kernel/element_map.dart';
+import '../kernel/element_map.dart' show KernelToElementMap;
 import '../options.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../util/enumset.dart';
 import 'class_relation.dart';
 import 'constants.dart';
@@ -1103,12 +1103,12 @@ class ImpactData {
     _typeUses = source.readListOrNull(() => _TypeUse.fromDataSource(source));
     _redirectingInitializers = source
         .readListOrNull(() => _RedirectingInitializer.fromDataSource(source));
-    _fieldInitializers = source.readMemberNodes<ir.Field>(emptyAsNull: true);
+    _fieldInitializers = source.readMemberNodesOrNull<ir.Field>();
     _fieldConstantInitializers =
-        source.readMemberNodeMap(source.readTreeNodes, emptyAsNull: true);
+        source.readMemberNodeMapOrNull(source.readTreeNodes);
     _typeLiterals =
         source.readListOrNull(() => _TypeLiteral.fromDataSource(source));
-    _localFunctions = source.readTreeNodes(emptyAsNull: true);
+    _localFunctions = source.readTreeNodesOrNull();
     _genericInstantiations = source
         .readListOrNull(() => _GenericInstantiation.fromDataSource(source));
     _staticSets =
@@ -1135,14 +1135,11 @@ class ImpactData {
     _forInData = source.readListOrNull(() => _ForInData.fromDataSource(source));
 
     // TODO(johnniwinther): Remove these when CFE provides constants.
-    _constructorNodes =
-        source.readMemberNodes<ir.Constructor>(emptyAsNull: true);
-    _fieldNodes = source.readMemberNodes<ir.Field>(emptyAsNull: true);
-    _procedureNodes = source.readMemberNodes<ir.Procedure>(emptyAsNull: true);
-    _switchStatementNodes =
-        source.readTreeNodes<ir.SwitchStatement>(emptyAsNull: true);
-    _staticInvocationNodes =
-        source.readTreeNodes<ir.StaticInvocation>(emptyAsNull: true);
+    _constructorNodes = source.readMemberNodesOrNull<ir.Constructor>();
+    _fieldNodes = source.readMemberNodesOrNull<ir.Field>();
+    _procedureNodes = source.readMemberNodesOrNull<ir.Procedure>();
+    _switchStatementNodes = source.readTreeNodesOrNull<ir.SwitchStatement>();
+    _staticInvocationNodes = source.readTreeNodesOrNull<ir.StaticInvocation>();
     _hasConstSymbolConstructorInvocation = source.readBool();
     source.end(tag);
   }

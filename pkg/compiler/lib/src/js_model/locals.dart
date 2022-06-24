@@ -15,7 +15,7 @@ import '../elements/indexed.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
 import '../serialization/deferrable.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 
 import 'element_map.dart';
 import 'elements.dart' show JGeneratorBody;
