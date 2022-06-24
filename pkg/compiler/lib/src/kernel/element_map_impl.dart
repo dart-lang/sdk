@@ -56,13 +56,15 @@ import '../universe/selector.dart';
 import '../universe/world_impact.dart';
 
 import 'element_map.dart';
+import 'element_map_interfaces.dart' show KernelToElementMapForClassHierarchy;
 import 'env.dart';
 import 'kelements.dart';
 import 'kernel_impact.dart';
 
 /// Implementation of [IrToElementMap] that only supports world
 /// impact computation.
-class KernelToElementMap implements IrToElementMap {
+class KernelToElementMap
+    implements KernelToElementMapForClassHierarchy, IrToElementMap {
   final CompilerOptions options;
   @override
   final DiagnosticReporter reporter;
@@ -276,6 +278,7 @@ class KernelToElementMap implements IrToElementMap {
   }
 
   /// Returns the superclass of [cls] if any.
+  @override
   ClassEntity getSuperClass(ClassEntity cls) {
     return getSuperType(cls)?.element;
   }
@@ -704,6 +707,7 @@ class KernelToElementMap implements IrToElementMap {
   //     class A {}
   //     class B = Object with A;
   //     class C = Object with B;
+  @override
   ClassEntity getAppliedMixin(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
@@ -799,6 +803,7 @@ class KernelToElementMap implements IrToElementMap {
   }
 
   /// Returns all supertypes of [cls].
+  @override
   Iterable<InterfaceType> getSuperTypes(ClassEntity cls) {
     return getOrderedTypeSet(cls).supertypes;
   }
@@ -1583,6 +1588,7 @@ class KernelToElementMap implements IrToElementMap {
 
   /// Returns `true` if [cls] implements `Function` either explicitly or through
   /// a `call` method.
+  @override
   bool implementsFunction(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
