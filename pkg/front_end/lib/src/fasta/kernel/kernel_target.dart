@@ -617,6 +617,9 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.body_buildBodies);
       await loader.buildBodies(loader.sourceLibraryBuilders);
 
+      benchmarker?.enterPhase(BenchmarkPhases.body_checkMixinSuperAccesses);
+      loader.checkMixinSuperAccesses();
+
       benchmarker?.enterPhase(BenchmarkPhases.body_finishSynthesizedParameters);
       finishSynthesizedParameters();
 

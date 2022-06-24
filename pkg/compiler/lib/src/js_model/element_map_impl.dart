@@ -772,7 +772,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           //
           // so we need get the superclasses from the on-clause, A, B, and C,
           // through [superclassConstraints].
-          for (ir.Supertype constraint in node.superclassConstraints()) {
+          for (ir.Supertype constraint in node.onClause) {
             interfaces.add(processSupertype(constraint));
           }
           // Set superclass to `Object`.

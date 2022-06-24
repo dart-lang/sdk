@@ -9,6 +9,27 @@ library /*isNonNullableByDefault*/;
 // class Class2 with Mixin implements Super {}
 //       ^
 //
+// pkg/front_end/testcases/general/abstract_super_application.dart:26:19: Error: The class doesn't have a concrete implementation of the super-invoked member 'method'.
+// class Class2 with Mixin implements Super {}
+//                   ^
+// pkg/front_end/testcases/general/abstract_super_application.dart:12:11: Context: This is the super-access that doesn't have a concrete target.
+//     super.method();
+//           ^
+//
+// pkg/front_end/testcases/general/abstract_super_application.dart:26:19: Error: The class doesn't have a concrete implementation of the super-accessed member 'property'.
+// class Class2 with Mixin implements Super {}
+//                   ^
+// pkg/front_end/testcases/general/abstract_super_application.dart:16:18: Context: This is the super-access that doesn't have a concrete target.
+//     return super.property;
+//                  ^
+//
+// pkg/front_end/testcases/general/abstract_super_application.dart:26:19: Error: The class doesn't have a concrete implementation of the super-accessed setter 'property'.
+// class Class2 with Mixin implements Super {}
+//                   ^
+// pkg/front_end/testcases/general/abstract_super_application.dart:20:11: Context: This is the super-access that doesn't have a concrete target.
+//     super.property = value;
+//           ^
+//
 import self as self;
 import "dart:core" as core;
 

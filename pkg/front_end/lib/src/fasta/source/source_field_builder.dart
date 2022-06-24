@@ -392,8 +392,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    _fieldEncoding.completeSignature(classHierarchy.coreTypes);
-
     for (Annotatable annotatable in _fieldEncoding.annotatables) {
       MetadataBuilder.buildAnnotations(
           annotatable,
@@ -593,10 +591,6 @@ abstract class FieldEncoding {
   /// Returns a list of the setters created by this field encoding.
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder);
 
-  /// Ensures that the signatures all members created by this field encoding
-  /// are fully typed.
-  void completeSignature(CoreTypes coreTypes);
-
   /// Returns `true` if this encoding is a late lowering.
   bool get isLateLowering;
 }
@@ -656,9 +650,6 @@ class RegularFieldEncoding implements FieldEncoding {
   void set type(DartType value) {
     _field.type = value;
   }
-
-  @override
-  void completeSignature(CoreTypes coreTypes) {}
 
   @override
   void createBodies(CoreTypes coreTypes, Expression? initializer) {
@@ -900,11 +891,6 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   }
 
   @override
-  void completeSignature(CoreTypes coreTypes) {
-    _lateIsSetField?.type = coreTypes.boolRawType(Nullability.nonNullable);
-  }
-
-  @override
   void createBodies(CoreTypes coreTypes, Expression? initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
     if (isSetEncoding == late_lowering.IsSetEncoding.useSentinel) {
@@ -924,6 +910,10 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     }
     _lateGetter.function.body = _createGetterBody(coreTypes, name, initializer)
       ..parent = _lateGetter.function;
+    // The initializer is copied from [_field] to [_lateGetter] so we copy the
+    // transformer flags to reflect whether the getter contains super calls.
+    _lateGetter.transformerFlags = _field.transformerFlags;
+
     if (_lateSetter != null) {
       _lateSetter!.function.body = _createSetterBody(
           coreTypes, name, _lateSetter!.function.positionalParameters.first)
@@ -1099,7 +1089,9 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       _lateIsSetField!
         ..isStatic = !isInstanceMember
         ..isStatic = _field.isStatic
-        ..isExtensionMember = isExtensionMember;
+        ..isExtensionMember = isExtensionMember
+        ..type = libraryBuilder.loader
+            .createCoreType('bool', Nullability.nonNullable);
       updatePrivateMemberName(_lateIsSetField!, libraryBuilder);
     }
     _lateGetter
@@ -1720,9 +1712,6 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       }
     }
   }
-
-  @override
-  void completeSignature(CoreTypes coreTypes) {}
 
   @override
   void createBodies(CoreTypes coreTypes, Expression? initializer) {

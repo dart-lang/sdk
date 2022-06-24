@@ -537,6 +537,9 @@ class LateLowering {
         fileUri: fileUri, reference: field.getterReference)
       ..fileOffset = fileOffset
       ..isNonNullableByDefault = true;
+    // The initializer is copied from [field] to [getter] so we copy the
+    // transformer flags to reflect whether the getter contains super calls.
+    getter.transformerFlags = field.transformerFlags;
     enclosingClass.addProcedure(getter);
 
     VariableDeclaration setterValue = VariableDeclaration('value', type: type)

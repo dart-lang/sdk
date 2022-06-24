@@ -1300,6 +1300,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             .addAll(part.library.problemsAsJson!);
       }
       part.collectInferableTypes(_inferableTypes!);
+      part.takeMixinApplications(_mixinApplications!);
       if (library != part.library) {
         // Mark the part library as synthetic as it's not an actual library
         // (anymore).
@@ -1863,12 +1864,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (declaration.declaresConstConstructor) {
       modifiers |= declaresConstConstructorMask;
     }
-    ClassBuilder classBuilder = new SourceClassBuilder(
+    SourceClassBuilder classBuilder = new SourceClassBuilder(
         metadata,
         modifiers,
         className,
         typeVariables,
-        applyMixins(supertype, mixins, startOffset, nameOffset, endOffset,
+        _applyMixins(supertype, mixins, startOffset, nameOffset, endOffset,
             className, isMixinDeclaration,
             typeVariables: typeVariables,
             isMacro: false,
@@ -2137,7 +2138,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         getterReference: referenceFrom?.reference);
   }
 
-  TypeBuilder? applyMixins(
+  TypeBuilder? _applyMixins(
       TypeBuilder? supertype,
       MixinApplicationBuilder? mixinApplications,
       int startCharOffset,
@@ -2397,10 +2398,39 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             applicationTypeArguments, charOffset,
             instanceTypeVariableAccess:
                 InstanceTypeVariableAccessState.Allowed);
+        registerMixinApplication(application, mixin);
       }
       return supertype;
     } else {
       return supertype;
+    }
+  }
+
+  Map<SourceClassBuilder, TypeBuilder>? _mixinApplications = {};
+
+  /// Registers that [mixinApplication] is a mixin application introduced by
+  /// the [mixedInType] in a with-clause.
+  ///
+  /// This is used to check that super access in mixin declarations have a
+  /// concrete target.
+  void registerMixinApplication(
+      SourceClassBuilder mixinApplication, TypeBuilder mixedInType) {
+    assert(
+        _mixinApplications != null, "Late registration of mixin application.");
+    _mixinApplications![mixinApplication] = mixedInType;
+  }
+
+  void takeMixinApplications(
+      Map<SourceClassBuilder, TypeBuilder> mixinApplications) {
+    assert(_mixinApplications != null,
+        "Mixin applications have already been processed.");
+    mixinApplications.addAll(_mixinApplications!);
+    _mixinApplications = null;
+    Iterable<SourceLibraryBuilder>? patchLibraries = this.patchLibraries;
+    if (patchLibraries != null) {
+      for (SourceLibraryBuilder patchLibrary in patchLibraries) {
+        patchLibrary.takeMixinApplications(mixinApplications);
+      }
     }
   }
 
@@ -2420,7 +2450,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(TypeParameterScopeKind.namedMixinApplication, name)
         .resolveNamedTypes(typeVariables, this);
-    supertype = applyMixins(supertype, mixinApplication, startCharOffset,
+    supertype = _applyMixins(supertype, mixinApplication, startCharOffset,
         charOffset, charEndOffset, name, false,
         metadata: metadata,
         name: name,
@@ -2876,7 +2906,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         metadata,
         name,
         typeVariables,
-        applyMixins(
+        _applyMixins(
             loader.target.underscoreEnumType,
             supertypeBuilder,
             startCharOffset,

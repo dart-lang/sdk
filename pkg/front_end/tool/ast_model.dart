@@ -108,6 +108,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     '_proceduresInternal': FieldRule(name: 'procedures'),
     '_redirectingFactoriesView': null,
     '_redirectingFactoriesInternal': FieldRule(name: 'redirectingFactories'),
+    '_onClause': null,
     'lazyBuilder': null,
     'dirty': null,
   },

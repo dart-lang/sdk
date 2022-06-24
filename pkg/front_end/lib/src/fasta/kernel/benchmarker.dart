@@ -176,6 +176,7 @@ enum BenchmarkPhases {
   outline_installAllComponentProblems,
 
   body_buildBodies,
+  body_checkMixinSuperAccesses,
   body_finishSynthesizedParameters,
   body_finishDeferredLoadTearoffs,
   body_finishNoSuchMethodForwarders,
