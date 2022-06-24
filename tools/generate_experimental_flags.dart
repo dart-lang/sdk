@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show File, Platform;
+
 import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
 void main() {
   YamlMap yaml = loadYaml(File.fromUri(computeYamlFile()).readAsStringSync());
-  final currentVersion = getAsVersionNumber(yaml['current-version']);
+  final currentVersion = getAsVersionNumber(yaml['current-version'])!;
   final enumNames = StringBuffer();
   final featureValues = StringBuffer();
   final featureNames = StringBuffer();
@@ -108,7 +107,7 @@ Uri computeHFile() {
   return Platform.script.resolve("../runtime/vm/experimental_features.h");
 }
 
-List<num> getAsVersionNumber(dynamic value) {
+List<num>? getAsVersionNumber(dynamic value) {
   if (value == null) return null;
   final version = List.of("$value".split(".").map(int.parse));
   while (version.length < 3) {

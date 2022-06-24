@@ -5,8 +5,6 @@
 
 // Update the flakiness data with a set of fresh results.
 
-// @dart = 2.9
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -43,7 +41,7 @@ ${parser.usage}''');
 
   final resultsForInactiveFlakiness = {
     for (final flakyTest in data.keys)
-      if (data[flakyTest]['active'] == false) flakyTest: <String>{}
+      if (data[flakyTest]!['active'] == false) flakyTest: <String>{}
   };
   // Incrementally update the flakiness data with each observed result.
   for (final path in parameters) {
@@ -99,11 +97,11 @@ ${parser.usage}''');
       options['output'] != null ? File(options['output']).openWrite() : stdout;
   final keys = data.keys.toList()..sort();
   for (final key in keys) {
-    final testData = data[key];
+    final testData = data[key]!;
     if (testData['outcomes'].length < 2) continue;
     // Reactivate inactive flaky results that are flaky again.
     if (testData['active'] == false) {
-      if (resultsForInactiveFlakiness[key].length > 1) {
+      if (resultsForInactiveFlakiness[key]!.length > 1) {
         testData['active'] = true;
         testData['reactivation_count'] =
             (testData['reactivation_count'] ?? 0) + 1;

@@ -7,8 +7,6 @@
 // The output contains additional details in the verbose mode. There is a human
 // readable mode that explains the results and how they changed.
 
-// @dart = 2.9
-
 import '../../pkg/test_runner/bin/compare_results.dart' as compare_results;
 
 main(List<String> args) {
