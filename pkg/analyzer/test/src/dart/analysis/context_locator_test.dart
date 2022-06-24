@@ -484,6 +484,35 @@ analyzer:
     _assertAnalyzedFiles2(root2, [file2]);
   }
 
+  void
+      test_locateRoots_multiple_dirAndNestedDir_outerIsBazel_innerConfigurationFiles() {
+    var outerRootFolder = newFolder('/outer');
+    newFile('$outerRootFolder/WORKSPACE', '');
+    newBazelBuildFile('$outerRootFolder', '');
+    var innerRootFolder = newFolder('/outer/examples/inner');
+    var innerOptionsFile = newAnalysisOptionsYamlFile('$innerRootFolder', '');
+    var innerPackagesFile = newPackageConfigJsonFile('$innerRootFolder', '');
+    newPubspecYamlFile('$innerRootFolder', '');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [outerRootFolder.path, innerRootFolder.path],
+    );
+    expect(roots, hasLength(2));
+
+    var outerRoot = findRoot(roots, outerRootFolder);
+    expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
+    expect(outerRoot.excludedPaths, unorderedEquals([innerRootFolder.path]));
+    expect(outerRoot.optionsFile, isNull);
+    expect(outerRoot.packagesFile, isNull);
+
+    var innerRoot = findRoot(roots, innerRootFolder);
+    expect(innerRoot.workspace.root, equals(innerRootFolder.path));
+    expect(innerRoot.includedPaths, unorderedEquals([innerRootFolder.path]));
+    expect(innerRoot.excludedPaths, isEmpty);
+    expect(innerRoot.optionsFile, innerOptionsFile);
+    expect(innerRoot.packagesFile, innerPackagesFile);
+  }
+
   /// Even if a file is excluded by the options, when it is explicitly included
   /// into analysis, it should be analyzed.
   void test_locateRoots_multiple_fileAndSiblingFile_excludedByOptions() {
