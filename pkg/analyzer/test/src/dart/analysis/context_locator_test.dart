@@ -290,6 +290,35 @@ analyzer:
     expect(outerRoot.packagesFile, outerPackagesFile);
   }
 
+  void
+      test_locateRoots_multiple_dirAndNestedDir_outerIsBazel_innerConfigurationFiles() {
+    var outerRootFolder = newFolder('/outer');
+    newFile('$outerRootFolder/WORKSPACE', '');
+    newBazelBuildFile('$outerRootFolder', '');
+    var innerRootFolder = newFolder('/outer/examples/inner');
+    var innerOptionsFile = newAnalysisOptionsYamlFile('$innerRootFolder', '');
+    var innerPackagesFile = newPackageConfigJsonFile('$innerRootFolder', '');
+    newPubspecYamlFile('$innerRootFolder', '');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [outerRootFolder.path, innerRootFolder.path],
+    );
+    expect(roots, hasLength(2));
+
+    var outerRoot = findRoot(roots, outerRootFolder);
+    expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
+    expect(outerRoot.excludedPaths, unorderedEquals([innerRootFolder.path]));
+    expect(outerRoot.optionsFile, isNull);
+    expect(outerRoot.packagesFile, isNull);
+
+    var innerRoot = findRoot(roots, innerRootFolder);
+    expect(innerRoot.workspace.root, equals(innerRootFolder.path));
+    expect(innerRoot.includedPaths, unorderedEquals([innerRootFolder.path]));
+    expect(innerRoot.excludedPaths, isEmpty);
+    expect(innerRoot.optionsFile, innerOptionsFile);
+    expect(innerRoot.packagesFile, innerPackagesFile);
+  }
+
   void test_locateRoots_multiple_dirAndNestedFile_excludedByOptions() {
     var rootPath = convertPath('/home/test');
     var rootFolder = newFolder(rootPath);
