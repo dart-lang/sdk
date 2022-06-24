@@ -19,6 +19,58 @@ class ConvertIntoBlockBodyTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CONVERT_INTO_BLOCK_BODY;
 
+  Future<void> test_enum_getter() async {
+    await resolveTestCode('''
+enum E {
+  v;
+  int get g;
+}
+''');
+    await assertHasFix('''
+enum E {
+  v;
+  int get g {
+    // TODO: implement g
+    throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  Future<void> test_enum_method() async {
+    await resolveTestCode('''
+enum E {
+  v;
+  void m();
+}
+''');
+    await assertHasFix('''
+enum E {
+  v;
+  void m() {
+    // TODO: implement m
+  }
+}
+''');
+  }
+
+  Future<void> test_enum_setter() async {
+    await resolveTestCode('''
+enum E {
+  v;
+  set s(int _);
+}
+''');
+    await assertHasFix('''
+enum E {
+  v;
+  set s(int _) {
+    // TODO: implement s=
+  }
+}
+''');
+  }
+
   Future<void> test_function() async {
     await resolveTestCode('''
 void f();
