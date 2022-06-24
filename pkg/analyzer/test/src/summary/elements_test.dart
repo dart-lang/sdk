@@ -31080,6 +31080,116 @@ library
 ''');
   }
 
+  test_mixin_inference_viaTypeAlias() async {
+    var library = await buildLibrary(r'''
+mixin M<T, U> on S<T> {}
+
+typedef M2<T2> = M<T2, int>;
+
+class S<T3> {}
+
+class X extends S<String> with M2 {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class S @62
+        typeParameters
+          covariant T3 @64
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class X @78
+        supertype: S<String>
+        mixins
+          M<String, int>
+            alias: self::@typeAlias::M2
+              typeArguments
+                String
+        constructors
+          synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::S::@constructor::•
+              substitution: {T3: String}
+    mixins
+      mixin M @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        superclassConstraints
+          S<T>
+    typeAliases
+      M2 @34
+        typeParameters
+          covariant T2 @37
+            defaultType: dynamic
+        aliasedType: M<T2, int>
+''');
+  }
+
+  test_mixin_inference_viaTypeAlias2() async {
+    var library = await buildLibrary(r'''
+mixin M<T, U> on S<T> {}
+
+typedef M2<T2> = M<T2, int>;
+
+typedef M3<T3> = M2<T3>;
+
+class S<T4> {}
+
+class X extends S<String> with M3 {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class S @88
+        typeParameters
+          covariant T4 @90
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class X @104
+        supertype: S<String>
+        mixins
+          M<String, int>
+            alias: self::@typeAlias::M3
+              typeArguments
+                String
+        constructors
+          synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::S::@constructor::•
+              substitution: {T4: String}
+    mixins
+      mixin M @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        superclassConstraints
+          S<T>
+    typeAliases
+      M2 @34
+        typeParameters
+          covariant T2 @37
+            defaultType: dynamic
+        aliasedType: M<T2, int>
+      M3 @64
+        typeParameters
+          covariant T3 @67
+            defaultType: dynamic
+        aliasedType: M<T3, int>
+          alias: self::@typeAlias::M2
+            typeArguments
+              T3
+''');
+  }
+
   test_mixin_method_invokesSuperSelf() async {
     var library = await buildLibrary(r'''
 mixin M on A {

@@ -5730,6 +5730,22 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     return super.name!;
   }
 
+  /// Instantiates this type alias with its type parameters as arguments.
+  DartType get rawType {
+    final List<DartType> typeArguments;
+    if (typeParameters.isNotEmpty) {
+      typeArguments = typeParameters.map<DartType>((t) {
+        return t.instantiate(nullabilitySuffix: _noneOrStarSuffix);
+      }).toList();
+    } else {
+      typeArguments = const <DartType>[];
+    }
+    return instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: _noneOrStarSuffix,
+    );
+  }
+
   @override
   List<TypeParameterElement> get typeParameters {
     linkedData?.read(this);
