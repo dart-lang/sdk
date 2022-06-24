@@ -1084,8 +1084,7 @@ class SuperFormalParameterMember extends ParameterMember
       return null;
     }
 
-    return ParameterMember(
-        _typeProvider, superConstructorParameter, _substitution, isLegacy);
+    return ParameterMember.from(superConstructorParameter, substitution);
   }
 
   @override
