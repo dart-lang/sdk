@@ -167,7 +167,11 @@ abstract class ContextResolutionTest
     expect(workspace, TypeMatcher<BazelWorkspace>());
   }
 
-  void assertDriverStateString(File file, String expected) {
+  void assertDriverStateString(
+    File file,
+    String expected, {
+    bool omitSdkFiles = true,
+  }) {
     final analysisDriver = driverFor(file.path);
 
     final buffer = StringBuffer();
@@ -176,6 +180,7 @@ abstract class ContextResolutionTest
       fileStateIdProvider: _fileStateIdProvider,
       keyShorter: _keyShorter,
       libraryContext: analysisDriver.libraryContext,
+      omitSdkFiles: omitSdkFiles,
       resourceProvider: resourceProvider,
       sink: buffer,
     ).writeAnalysisDriver(analysisDriver.testView!);

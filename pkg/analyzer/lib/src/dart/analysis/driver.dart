@@ -2110,7 +2110,10 @@ class AnalysisDriverScheduler {
 
 class AnalysisDriverTestView {
   final fileSystem = FileSystemTestData();
-  final libraryContext = LibraryContextTestData();
+
+  late final libraryContext = LibraryContextTestData(
+    fileSystemTestData: fileSystem,
+  );
 
   late final AnalysisDriver driver;
 

@@ -10,7 +10,6 @@ import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -373,18 +372,27 @@ class LibraryContext {
 }
 
 class LibraryContextTestData {
+  final FileSystemTestData fileSystemTestData;
+
   /// TODO(scheglov) Use [libraryCycles] and textual dumps for the driver too.
   final List<Set<String>> linkedCycles = [];
 
   /// Keys: the sorted list of library files.
-  final Map<List<File>, LibraryCycleTestData> libraryCycles = LinkedHashMap(
+  final Map<List<FileTestData>, LibraryCycleTestData> libraryCycles =
+      LinkedHashMap(
     hashCode: Object.hashAll,
-    equals: const ListEquality<File>().equals,
+    equals: const ListEquality<FileTestData>().equals,
   );
 
+  LibraryContextTestData({
+    required this.fileSystemTestData,
+  });
+
   LibraryCycleTestData forCycle(LibraryCycle cycle) {
-    final files = cycle.libraries.map((e) => e.resource).toList();
-    files.sortBy((file) => file.path);
+    final files = cycle.libraries.map((e) {
+      return fileSystemTestData.forFile(e.resource, e.uri);
+    }).toList();
+    files.sortBy((fileData) => fileData.file.path);
 
     return libraryCycles[files] ??= LibraryCycleTestData();
   }

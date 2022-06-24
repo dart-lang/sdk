@@ -17,6 +17,7 @@ class AnalyzerStatePrinter {
   final FileStateIdProvider fileStateIdProvider;
   final KeyShorter keyShorter;
   final LibraryContext libraryContext;
+  final bool omitSdkFiles;
   final ResourceProvider resourceProvider;
   final StringSink sink;
 
@@ -27,6 +28,7 @@ class AnalyzerStatePrinter {
     required this.fileStateIdProvider,
     required this.keyShorter,
     required this.libraryContext,
+    required this.omitSdkFiles,
     required this.resourceProvider,
     required this.sink,
   });
@@ -138,8 +140,13 @@ class AnalyzerStatePrinter {
   }
 
   void _writeFiles(FileSystemTestData testData) {
-    final fileMap = testData.files;
-    final fileDataList = fileMap.values.toList();
+    final fileDataList = <FileTestData>[];
+    for (final fileData in testData.files.values) {
+      if (omitSdkFiles && fileData.uri.isScheme('dart')) {
+        continue;
+      }
+      fileDataList.add(fileData);
+    }
     fileDataList.sortBy((fileData) => fileData.file.path);
 
     // Ask ID for every file in the sorted order, so that IDs are nice.
@@ -181,10 +188,19 @@ class AnalyzerStatePrinter {
   void _writeLibraryContext(LibraryContextTestData testData) {
     _writelnWithIndent('libraryCycles');
     _withIndent(() {
-      final entries = testData.libraryCycles.entries
-          .mapKey((key) => key.map(_posixPath).join(' '))
-          .toList();
-      entries.sortBy((e) => e.key);
+      final cyclesToPrint = <_LibraryCycleToPrint>[];
+      for (final entry in testData.libraryCycles.entries) {
+        if (omitSdkFiles && entry.key.any((e) => e.uri.isScheme('dart'))) {
+          continue;
+        }
+        cyclesToPrint.add(
+          _LibraryCycleToPrint(
+            entry.key.map((e) => _posixPath(e.file)).join(' '),
+            entry.value,
+          ),
+        );
+      }
+      cyclesToPrint.sortBy((e) => e.pathListStr);
 
       final loadedBundlesMap = Map.fromEntries(
         libraryContext.loadedBundles.map((cycle) {
@@ -196,10 +212,10 @@ class AnalyzerStatePrinter {
         }),
       );
 
-      for (final entry in entries) {
-        _writelnWithIndent(entry.key);
+      for (final cycleToPrint in cyclesToPrint) {
+        _writelnWithIndent(cycleToPrint.pathListStr);
         _withIndent(() {
-          final current = loadedBundlesMap[entry.key];
+          final current = loadedBundlesMap[cycleToPrint.pathListStr];
           if (current != null) {
             _writelnWithIndent('current');
             _withIndent(() {
@@ -213,8 +229,9 @@ class AnalyzerStatePrinter {
             });
           }
 
-          final shortGets = keyShorter.shortKeys(entry.value.getKeys);
-          final shortPuts = keyShorter.shortKeys(entry.value.putKeys);
+          final cycleData = cycleToPrint.data;
+          final shortGets = keyShorter.shortKeys(cycleData.getKeys);
+          final shortPuts = keyShorter.shortKeys(cycleData.putKeys);
           _writelnWithIndent('get: $shortGets');
           _writelnWithIndent('put: $shortPuts');
         });
@@ -228,7 +245,14 @@ class AnalyzerStatePrinter {
   }
 
   void _writeUriList(String name, Iterable<Uri> uriIterable) {
-    final uriStrList = uriIterable.map((uri) => '$uri').toList();
+    final uriStrList = <String>[];
+    for (final uri in uriIterable) {
+      if (omitSdkFiles && uri.isScheme('dart')) {
+        continue;
+      }
+      uriStrList.add('$uri');
+    }
+
     if (uriStrList.isNotEmpty) {
       uriStrList.sort();
       _writelnWithIndent(name);
@@ -270,11 +294,9 @@ class KeyShorter {
   }
 }
 
-extension<K, V> on Iterable<MapEntry<K, V>> {
-  Iterable<MapEntry<K2, V>> mapKey<K2>(K2 Function(K key) convertKey) {
-    return map((e) {
-      final newKey = convertKey(e.key);
-      return MapEntry(newKey, e.value);
-    });
-  }
+class _LibraryCycleToPrint {
+  final String pathListStr;
+  final LibraryCycleTestData data;
+
+  _LibraryCycleToPrint(this.pathListStr, this.data);
 }
