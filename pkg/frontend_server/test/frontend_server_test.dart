@@ -486,7 +486,8 @@ void main() async {
     Directory tempDir;
     setUp(() {
       var systemTempDir = Directory.systemTemp;
-      tempDir = systemTempDir.createTempSync('foo bar');
+      tempDir = systemTempDir.createTempSync('frontendServerTest');
+      new Directory('${tempDir.path}/.dart_tool').createSync();
     });
 
     tearDown(() {
@@ -1349,9 +1350,21 @@ class BarState extends State<FizzWidget> {
     ]
   }
 ''');
-      file = File('${tempDir.path}/app/.packages')..createSync(recursive: true);
-      file.writeAsStringSync("pkgA:../pkgA\n"
-          "pkgB:../pkgB");
+      file = File('${tempDir.path}/app/.dart_tool/package_config.json')
+        ..createSync(recursive: true);
+      file.writeAsStringSync(jsonEncode({
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "pkgA",
+            "rootUri": "../../pkgA",
+          },
+          {
+            "name": "pkgB",
+            "rootUri": "../../pkgB",
+          },
+        ],
+      }));
 
       // Entry point A uses both package A and B.
       file = File('${tempDir.path}/app/a.dart')..createSync(recursive: true);
@@ -1441,9 +1454,17 @@ class BarState extends State<FizzWidget> {
     test('incremental-serialization with reject', () async {
       // Basically a reproduction of
       // https://github.com/flutter/flutter/issues/44384.
-      var file = File('${tempDir.path}/pkgA/.packages')
+      var file = File('${tempDir.path}/pkgA/.dart_tool/package_config.json')
         ..createSync(recursive: true);
-      file.writeAsStringSync("pkgA:.");
+      file.writeAsStringSync(jsonEncode({
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "pkgA",
+            "rootUri": "..",
+          },
+        ],
+      }));
       file = File('${tempDir.path}/pkgA/a.dart')..createSync(recursive: true);
       file.writeAsStringSync("pkgA() {}");
 
@@ -1629,9 +1650,9 @@ class BarState extends State<FizzWidget> {
     test('compile and recompile with MultiRootFileSystem', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {}\n");
-      File('${tempDir.path}/.packages')
+      File('${tempDir.path}/.dart_tool/package_config.json')
         ..createSync()
-        ..writeAsStringSync("\n");
+        ..writeAsStringSync('{"configVersion": 2, "packages": []}');
       var dillFile = File('${tempDir.path}/app.dill');
       expect(dillFile.existsSync(), equals(false));
       final List<String> args = <String>[
@@ -1639,7 +1660,7 @@ class BarState extends State<FizzWidget> {
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}',
-        '--packages=test-scheme:///.packages',
+        '--packages=test-scheme:///.dart_tool/package_config.json',
         '--filesystem-root=${tempDir.path}',
         '--filesystem-scheme=test-scheme',
         'test-scheme:///foo.dart'
@@ -1657,9 +1678,10 @@ class BarState extends State<FizzWidget> {
       final src3 = File('${tempDir.path}/src3.dart')
         ..createSync()
         ..writeAsStringSync("entryPoint3() {}\n");
-      final packagesFile = File('${tempDir.path}/.packages')
-        ..createSync()
-        ..writeAsStringSync("\n");
+      final packagesFile =
+          File('${tempDir.path}/.dart_tool/package_config.json')
+            ..createSync()
+            ..writeAsStringSync('{"configVersion": 2, "packages": []}');
       final dillFile = File('${tempDir.path}/app.dill');
       expect(dillFile.existsSync(), equals(false));
       final List<String> args = <String>[
@@ -1766,7 +1788,7 @@ class BarState extends State<FizzWidget> {
           '--platform=${platformKernel.path}',
           '--output-dill=${dillFile.path}',
           '--enable-http-uris',
-          '--packages=http://$host:$port/.packages',
+          '--packages=http://$host:$port/.dart_tool/package_config.json',
           'http://$host:$port/foo.dart',
         ];
         expect(await starter(args), 0);
@@ -1781,7 +1803,7 @@ class BarState extends State<FizzWidget> {
           '--platform=${platformKernel.path}',
           '--output-dill=${dillFile.path}',
           '--enable-http-uris',
-          '--packages=test-app:///.packages',
+          '--packages=test-app:///.dart_tool/package_config.json',
           '--filesystem-root=http://$host:$port/',
           '--filesystem-scheme=test-app',
           'test-app:///foo.dart',
@@ -2037,9 +2059,17 @@ void main(List<String> arguments, SendPort sendPort) {
     test('compile to JavaScript with package scheme', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {\n}\n");
-      var packages = File('${tempDir.path}/.packages')
+      var packages = File('${tempDir.path}/.dart_tool/package_config.json')
         ..createSync()
-        ..writeAsStringSync("hello:${tempDir.uri}\n");
+        ..writeAsStringSync(jsonEncode({
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "hello",
+              "rootUri": "${tempDir.uri}",
+            },
+          ],
+        }));
       var dillFile = File('${tempDir.path}/app.dill');
 
       expect(dillFile.existsSync(), false);
@@ -2060,9 +2090,17 @@ void main(List<String> arguments, SendPort sendPort) {
     test('compile to JavaScript weak null safety', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("// @dart = 2.9\nmain() {\n}\n");
-      var packages = File('${tempDir.path}/.packages')
+      var packages = File('${tempDir.path}/.dart_tool/package_config.json')
         ..createSync()
-        ..writeAsStringSync("hello:${tempDir.uri}\n");
+        ..writeAsStringSync(jsonEncode({
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "hello",
+              "rootUri": "${tempDir.uri}",
+            },
+          ],
+        }));
       var dillFile = File('${tempDir.path}/app.dill');
 
       expect(dillFile.existsSync(), false);
@@ -2084,9 +2122,17 @@ void main(List<String> arguments, SendPort sendPort) {
         () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("// @dart = 2.9\nmain() {\n}\n");
-      var packages = File('${tempDir.path}/.packages')
+      var packages = File('${tempDir.path}/.dart_tool/package_config.json')
         ..createSync()
-        ..writeAsStringSync("hello:${tempDir.uri}\n");
+        ..writeAsStringSync(jsonEncode({
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "hello",
+              "rootUri": "${tempDir.uri}",
+            },
+          ],
+        }));
       var dillFile = File('${tempDir.path}/app.dill');
 
       expect(dillFile.existsSync(), false);
@@ -2844,9 +2890,17 @@ void main(List<String> arguments, SendPort sendPort) {
       File('${lib.path}/foo.dart')
         ..createSync()
         ..writeAsStringSync("main() {}\n");
-      File packages = File('${tempDir.path}/.packages')
+      File packages = File('${tempDir.path}/.dart_tool/package_config.json')
         ..createSync()
-        ..writeAsStringSync('test:lib/\n');
+        ..writeAsStringSync(jsonEncode({
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "test",
+              "rootUri": "../lib",
+            },
+          ],
+        }));
       var dillFile = File('${tempDir.path}/app.dill');
       expect(dillFile.existsSync(), equals(false));
       var depFile = File('${tempDir.path}/the depfile');

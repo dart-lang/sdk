@@ -88,6 +88,8 @@ class MakeFinal extends CorrectionProducer {
     } else if (node is VariableDeclaration &&
         parent is VariableDeclarationList) {
       list = parent;
+    } else if (node is VariableDeclarationList) {
+      list = node;
     } else {
       return;
     }

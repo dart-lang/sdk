@@ -93,7 +93,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('depfile',
       help: 'Path to output Ninja depfile. Only used in batch mode.')
   ..addOption('packages',
-      help: '.packages file to use for compilation', defaultsTo: null)
+      help: '.dart_tool/package_config.json file to use for compilation',
+      defaultsTo: null)
   ..addMultiOption('source',
       help: 'List additional source files to include into compilation.',
       defaultsTo: const <String>[])
@@ -670,7 +671,8 @@ class FrontendCompiler implements CompilerInterface {
   Future<void> writeJavascriptBundle(KernelCompilationResults results,
       String filename, String fileSystemScheme, String moduleFormat) async {
     var packageConfig = await loadPackageConfigUri(
-        _compilerOptions.packagesFileUri ?? File('.packages').absolute.uri);
+        _compilerOptions.packagesFileUri ??
+            File('.dart_tool/package_config.json').absolute.uri);
     var soundNullSafety = _compilerOptions.nnbdMode == NnbdMode.Strong;
     final Component component = results.component;
     // Compute strongly connected components.

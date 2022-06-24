@@ -70,7 +70,7 @@ enum Register {
   S8 = 24,   // CALLEE_SAVED_TEMP / FAR_TMP
   S9 = 25,   // DISPATCH_TABLE_REG
   S10 = 26,  // NULL
-  S11 = 27,  // WRITE_BARRIER_MASK
+  S11 = 27,  // WRITE_BARRIER_STATE
   T3 = 28,
   T4 = 29,
   T5 = 30,
@@ -162,7 +162,7 @@ constexpr Register ARGS_DESC_REG = S4;  // Arguments descriptor register.
 constexpr Register THR = S1;  // Caches current thread in generated code.
 constexpr Register CALLEE_SAVED_TEMP = S8;
 constexpr Register CALLEE_SAVED_TEMP2 = S7;
-constexpr Register WRITE_BARRIER_MASK = S11;
+constexpr Register WRITE_BARRIER_STATE = S11;
 constexpr Register NULL_REG = S10;  // Caches NullObject() value.
 
 // ABI for catch-clause entry point.
@@ -450,13 +450,13 @@ constexpr int kAbiPreservedCpuRegCount = 11;
 // We rely on that any calls into C++ also preserve X18.
 constexpr intptr_t kReservedCpuRegisters =
     R(ZR) | R(TP) | R(GP) | R(SP) | R(FP) | R(TMP) | R(TMP2) | R(PP) | R(THR) |
-    R(RA) | R(WRITE_BARRIER_MASK) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
+    R(RA) | R(WRITE_BARRIER_STATE) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
     R(FAR_TMP) | R(18);
 constexpr intptr_t kNumberOfReservedCpuRegisters = 15;
 #else
 constexpr intptr_t kReservedCpuRegisters =
     R(ZR) | R(TP) | R(GP) | R(SP) | R(FP) | R(TMP) | R(TMP2) | R(PP) | R(THR) |
-    R(RA) | R(WRITE_BARRIER_MASK) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
+    R(RA) | R(WRITE_BARRIER_STATE) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
     R(FAR_TMP);
 constexpr intptr_t kNumberOfReservedCpuRegisters = 14;
 #endif

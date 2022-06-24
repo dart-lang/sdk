@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../common.dart';
 import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/runtime_type_analysis.dart';
-import '../kernel/kernel_strategy.dart' show KernelFrontendStrategy;
+import '../kernel/kernel_strategy_migrated.dart'
+    show KernelFrontendStrategyForBackendUsage;
 import '../serialization/serialization_interfaces.dart';
 import '../universe/feature.dart';
 import '../util/util.dart' show Setlet;
@@ -23,8 +22,8 @@ abstract class BackendUsage {
   /// Serializes this [BackendUsage] to [sink].
   void writeToDataSink(DataSinkWriter sink);
 
-  bool needToInitializeIsolateAffinityTag;
-  bool needToInitializeDispatchProperty;
+  abstract bool needToInitializeIsolateAffinityTag;
+  abstract bool needToInitializeDispatchProperty;
 
   /// Returns `true` if [element] is a function called by the backend.
   bool isFunctionUsedByBackend(FunctionEntity element);
@@ -94,10 +93,10 @@ abstract class BackendUsageBuilder {
   void registerRuntimeTypeUse(RuntimeTypeUse runtimeTypeUse);
 
   /// `true` if `Function.apply` is used.
-  bool isFunctionApplyUsed;
+  abstract bool isFunctionApplyUsed;
 
   /// `true` if `noSuchMethod` is used.
-  bool isNoSuchMethodUsed;
+  abstract bool isNoSuchMethodUsed;
 
   /// Register that `dart:html` is loaded.
   void registerHtmlIsLoaded();
@@ -106,10 +105,10 @@ abstract class BackendUsageBuilder {
 }
 
 class BackendUsageBuilderImpl implements BackendUsageBuilder {
-  final KernelFrontendStrategy _frontendStrategy;
+  final KernelFrontendStrategyForBackendUsage _frontendStrategy;
   // TODO(johnniwinther): Remove the need for these.
-  Setlet<FunctionEntity> _globalFunctionDependencies;
-  Setlet<ClassEntity> _globalClassDependencies;
+  Setlet<FunctionEntity>? _globalFunctionDependencies;
+  Setlet<ClassEntity>? _globalClassDependencies;
 
   /// List of methods that the backend may use.
   final Set<FunctionEntity> _helperFunctionsUsed = {};
@@ -210,11 +209,11 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   @override
   void processBackendImpact(BackendImpact backendImpact) {
     for (FunctionEntity staticUse in backendImpact.staticUses) {
-      assert(staticUse != null);
+      assert((staticUse as dynamic) != null); // TODO(48820): Remove when sound.
       _processBackendStaticUse(staticUse);
     }
     for (FunctionEntity staticUse in backendImpact.globalUses) {
-      assert(staticUse != null);
+      assert((staticUse as dynamic) != null); // TODO(48820): Remove when sound.
       _processBackendStaticUse(staticUse, isGlobal: true);
     }
     for (InterfaceType instantiatedType in backendImpact.instantiatedTypes) {
@@ -258,16 +257,16 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 
   @override
   void registerGlobalFunctionDependency(FunctionEntity element) {
-    assert(element != null);
+    assert((element as dynamic) != null); // TODO(48820): Remove when sound.
     _globalFunctionDependencies ??= Setlet();
-    _globalFunctionDependencies.add(element);
+    _globalFunctionDependencies!.add(element);
   }
 
   @override
   void registerGlobalClassDependency(ClassEntity element) {
-    assert(element != null);
+    assert((element as dynamic) != null); // TODO(48820): Remove when sound.
     _globalClassDependencies ??= Setlet();
-    _globalClassDependencies.add(element);
+    _globalClassDependencies!.add(element);
   }
 
   @override
@@ -305,8 +304,8 @@ class BackendUsageImpl implements BackendUsage {
   static const String tag = 'backend-usage';
 
   // TODO(johnniwinther): Remove the need for these.
-  final Set<FunctionEntity> _globalFunctionDependencies;
-  final Set<ClassEntity> _globalClassDependencies;
+  final Set<FunctionEntity>? _globalFunctionDependencies;
+  final Set<ClassEntity>? _globalClassDependencies;
 
   /// Set of functions called by the backend.
   final Set<FunctionEntity> _helperFunctionsUsed;
@@ -340,19 +339,19 @@ class BackendUsageImpl implements BackendUsage {
   final bool isHtmlLoaded;
 
   BackendUsageImpl(
-      {Set<FunctionEntity> globalFunctionDependencies,
-      Set<ClassEntity> globalClassDependencies,
-      Set<FunctionEntity> helperFunctionsUsed,
-      Set<ClassEntity> helperClassesUsed,
-      this.needToInitializeIsolateAffinityTag,
-      this.needToInitializeDispatchProperty,
-      this.requiresPreamble,
-      this.requiresStartupMetrics,
-      Set<RuntimeTypeUse> runtimeTypeUses,
-      this.isFunctionApplyUsed,
-      this.isMirrorsUsed,
-      this.isNoSuchMethodUsed,
-      this.isHtmlLoaded})
+      {required Set<FunctionEntity>? globalFunctionDependencies,
+      required Set<ClassEntity>? globalClassDependencies,
+      required Set<FunctionEntity> helperFunctionsUsed,
+      required Set<ClassEntity> helperClassesUsed,
+      required this.needToInitializeIsolateAffinityTag,
+      required this.needToInitializeDispatchProperty,
+      required this.requiresPreamble,
+      required this.requiresStartupMetrics,
+      required Set<RuntimeTypeUse> runtimeTypeUses,
+      required this.isFunctionApplyUsed,
+      required this.isMirrorsUsed,
+      required this.isNoSuchMethodUsed,
+      required this.isHtmlLoaded})
       : this._globalFunctionDependencies = globalFunctionDependencies,
         this._globalClassDependencies = globalClassDependencies,
         this._helperFunctionsUsed = helperFunctionsUsed,
@@ -370,7 +369,7 @@ class BackendUsageImpl implements BackendUsage {
     Set<RuntimeTypeUse> runtimeTypeUses = source.readList(() {
       RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
       DartType receiverType = source.readDartType();
-      DartType /*?*/ argumentType = source.readDartTypeOrNull();
+      DartType? argumentType = source.readDartTypeOrNull();
       return RuntimeTypeUse(kind, receiverType, argumentType);
     }).toSet();
     bool needToInitializeIsolateAffinityTag = source.readBool();
@@ -401,8 +400,8 @@ class BackendUsageImpl implements BackendUsage {
   @override
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
-    sink.writeMembers(_globalFunctionDependencies);
-    sink.writeClasses(_globalClassDependencies);
+    sink.writeMembers(_globalFunctionDependencies, allowNull: true);
+    sink.writeClasses(_globalClassDependencies, allowNull: true);
     sink.writeMembers(_helperFunctionsUsed);
     sink.writeClasses(_helperClassesUsed);
     sink.writeList(runtimeTypeUses, (RuntimeTypeUse runtimeTypeUse) {

@@ -340,6 +340,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   }
 
   /// Writes a reference to the kernel member node [value] to this data sink.
+  @override
   void writeMemberNode(ir.Member value) {
     _writeDataKind(DataKind.memberNode);
     _writeMemberNode(value);
@@ -367,6 +368,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readMemberNodes].
+  @override
   void writeMemberNodes(Iterable<ir.Member> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -385,6 +387,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readMemberNodeMap].
+  @override
   void writeMemberNodeMap<V>(Map<ir.Member, V> map, void f(V value),
       {bool allowNull = false}) {
     if (map == null) {
@@ -400,12 +403,14 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   }
 
   /// Writes a kernel name node to this data sink.
+  @override
   void writeName(ir.Name value) {
     writeString(value.text);
     writeValueOrNull(value.library, writeLibraryNode);
   }
 
   /// Writes a kernel library dependency node [value] to this data sink.
+  @override
   void writeLibraryDependencyNode(ir.LibraryDependency value) {
     ir.Library library = value.parent;
     writeLibraryNode(library);
@@ -414,11 +419,13 @@ class DataSinkWriter implements migrated.DataSinkWriter {
 
   /// Writes a potentially `null` kernel library dependency node [value] to
   /// this data sink.
+  @override
   void writeLibraryDependencyNodeOrNull(ir.LibraryDependency value) {
     writeValueOrNull(value, writeLibraryDependencyNode);
   }
 
   /// Writes a reference to the kernel tree node [value] to this data sink.
+  @override
   void writeTreeNode(ir.TreeNode value) {
     _writeDataKind(DataKind.treeNode);
     _writeTreeNode(value, null);
@@ -465,6 +472,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readTreeNodeOrNull].
+  @override
   void writeTreeNodeOrNull(ir.TreeNode value) {
     writeBool(value != null);
     if (value != null) {
@@ -477,6 +485,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readTreeNodes].
+  @override
   void writeTreeNodes(Iterable<ir.TreeNode> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
@@ -692,6 +701,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readDartTypeNodes].
+  @override
   void writeDartTypeNodes(Iterable<ir.DartType> values,
       {bool allowNull = false}) {
     if (values == null) {
@@ -1112,6 +1122,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   }
 
   /// Writes a double value to this data sink.
+  @override
   void writeDoubleValue(double value) {
     _writeDataKind(DataKind.double);
     _writeDoubleValue(value);
@@ -1130,6 +1141,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is should only when the value is not known to be a non-negative
   /// 30 bit integer. Otherwise [writeInt] should be used.
+  @override
   void writeIntegerValue(int value) {
     _writeDataKind(DataKind.int);
     _writeBigInt(BigInt.from(value));

@@ -97,7 +97,7 @@ List<String> generateReloadVersions(String fileContent) {
 Future compile(String from, String to) async {
   final executable = Platform.executable;
   final command = [
-    '--packages=.packages',
+    '--packages=.dart_tool/package_config.json',
     '--snapshot-kind=kernel',
     '--snapshot=$to',
     from,

@@ -49,7 +49,7 @@ import 'package:vm/target/vm.dart' show VmTarget;
 final bool verbose = new bool.fromEnvironment('DFE_VERBOSE');
 final bool dumpKernel = new bool.fromEnvironment('DFE_DUMP_KERNEL');
 const String platformKernelFile = 'virtual_platform_kernel.dill';
-const String dotPackagesFile = '.packages';
+const String packageConfigFile = '.dart_tool/package_config.json';
 
 // NOTE: Any changes to these tags need to be reflected in kernel_isolate.cc
 // Tags used to indicate different requests to the dart frontend.
@@ -599,7 +599,7 @@ Future _processExpressionCompilationRequest(request) async {
       }
 
       FileSystem fileSystem =
-          _buildFileSystem([dotPackagesFile, <int>[]], null, null, null);
+          _buildFileSystem([packageConfigFile, <int>[]], null, null, null);
 
       // TODO(aam): IncrementalCompilerWrapper instance created below have to be
       // destroyed when corresponding isolate is shut down. To achieve that
@@ -610,7 +610,7 @@ Future _processExpressionCompilationRequest(request) async {
             component, isolateGroupId, fileSystem, null,
             enableAsserts: enableAsserts,
             experimentalFlags: experimentalFlags,
-            packageConfig: dotPackagesFile,
+            packageConfig: packageConfigFile,
             enableMirrors: enableMirrors);
         isolateCompilers[isolateGroupId] = compiler;
         await compiler.compile(

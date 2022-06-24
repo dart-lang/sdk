@@ -81,7 +81,8 @@ Future<List<int>?> summarize(List<String> inputs, Map<String, dynamic> sources,
 ///   contain either source files (value is [String]) or .dill files (value
 ///   is [List<int>]).
 ///
-///   * define an empty .packages file (if one isn't defined in sources)
+///   * define an empty `package_config.json` file (if one isn't defined in
+///     sources).
 ///
 ///   * specify the location of the sdk summaries.
 Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
@@ -95,9 +96,11 @@ Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
       entity.writeAsBytesSync(data);
     }
   });
-  MemoryFileSystemEntity dotPackagesFile =
-      fs.entityForUri(toTestUri('.packages'));
-  if (!await dotPackagesFile.exists()) dotPackagesFile.writeAsStringSync('');
+  MemoryFileSystemEntity packageConfigFile =
+      fs.entityForUri(toTestUri('.dart_tool/package_config.json'));
+  if (!await packageConfigFile.exists()) {
+    packageConfigFile.writeAsStringSync('{"configVersion": 2, "packages": []}');
+  }
   fs
       .entityForUri(invalidCoreLibsSpecUri)
       .writeAsStringSync(_invalidLibrariesSpec);
@@ -106,7 +109,7 @@ Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
     ..fileSystem = new HybridFileSystem(fs)
     ..additionalDills = additionalDills.map(toTestUri).toList();
   if (options.packagesFileUri == null) {
-    options.packagesFileUri = toTestUri('.packages');
+    options.packagesFileUri = toTestUri('.dart_tool/package_config.json');
   }
 
   if (options.sdkSummary == null) {

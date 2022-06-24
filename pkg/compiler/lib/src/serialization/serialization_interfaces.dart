@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' as ir show DartType, Member, TreeNode;
+import 'package:kernel/ast.dart' as ir
+    show DartType, LibraryDependency, Member, Name, TreeNode;
 
 import '../constants/values.dart' show ConstantValue;
 import '../elements/entities.dart';
@@ -49,6 +50,19 @@ abstract class DataSinkWriter {
   void writeEnum(dynamic value);
   void writeUri(Uri value);
 
+  void writeMemberNode(ir.Member nvalue);
+  void writeMemberNodes(Iterable<ir.Member>? values, {bool allowNull = false});
+  void writeMemberNodeMap<V>(Map<ir.Member, V>? map, void f(V value),
+      {bool allowNull = false});
+
+  void writeName(ir.Name value);
+  void writeLibraryDependencyNode(ir.LibraryDependency value);
+  void writeLibraryDependencyNodeOrNull(ir.LibraryDependency? value);
+
+  void writeTreeNode(ir.TreeNode value);
+  void writeTreeNodeOrNull(ir.TreeNode value);
+  void writeTreeNodes(Iterable<ir.TreeNode>? values, {bool allowNull = false});
+
   // TODO(48820): 'covariant ClassEntity' is used below because the
   // implementation takes IndexedClass. What this means is that in pre-NNBD
   // code, the call site to the implementation DataSinkWriter has an implicit
@@ -63,7 +77,7 @@ abstract class DataSinkWriter {
 
   void writeClass(covariant ClassEntity value); // IndexedClass
   void writeClassOrNull(covariant ClassEntity? value); // IndexedClass
-  void writeClasses(Iterable<ClassEntity> values, {bool allowNull = false});
+  void writeClasses(Iterable<ClassEntity>? values, {bool allowNull = false});
   void writeClassMap<V>(Map<ClassEntity, V>? map, void f(V value),
       {bool allowNull = false});
 
@@ -85,6 +99,8 @@ abstract class DataSinkWriter {
 
   void writeDartTypeNode(ir.DartType value);
   void writeDartTypeNodeOrNull(ir.DartType? value);
+  void writeDartTypeNodes(Iterable<ir.DartType>? values,
+      {bool allowNull = false});
 
   void writeDartType(DartType value);
   void writeDartTypeOrNull(DartType? value);
@@ -106,6 +122,9 @@ abstract class DataSinkWriter {
       {bool allowNull = false});
 
   void writeValueOrNull<E>(E? value, void f(E value));
+
+  void writeDoubleValue(double value);
+  void writeIntegerValue(int value);
 
   void writeImport(ImportEntity import);
   void writeImportOrNull(ImportEntity? import);
@@ -137,6 +156,21 @@ abstract class DataSourceReader {
   E readEnum<E>(List<E> values);
   Uri readUri();
 
+  ir.Member readMemberNode();
+  List<E> readMemberNodes<E extends ir.Member>();
+  List<E>? readMemberNodesOrNull<E extends ir.Member>();
+  Map<K, V> readMemberNodeMap<K extends ir.Member, V>(V f());
+  Map<K, V>? readMemberNodeMapOrNull<K extends ir.Member, V>(V f());
+
+  ir.Name readName();
+  ir.LibraryDependency readLibraryDependencyNode();
+  ir.LibraryDependency readLibraryDependencyNodeOrNull();
+
+  ir.TreeNode readTreeNode();
+  ir.TreeNode? readTreeNodeOrNull();
+  List<E> readTreeNodes<E extends ir.TreeNode>();
+  List<E>? readTreeNodesOrNull<E extends ir.TreeNode>();
+
   ClassEntity readClass(); // IndexedClass
   ClassEntity? readClassOrNull(); // IndexedClass
   List<E> readClasses<E extends ClassEntity>();
@@ -161,6 +195,8 @@ abstract class DataSourceReader {
 
   ir.DartType readDartTypeNode();
   ir.DartType? readDartTypeNodeOrNull();
+  List<ir.DartType> readDartTypeNodes();
+  List<ir.DartType>? readDartTypeNodesOrNull();
 
   DartType readDartType();
   DartType? readDartTypeOrNull();
@@ -183,6 +219,9 @@ abstract class DataSourceReader {
   Map<K, V>? readConstantMapOrNull<K extends ConstantValue, V>(V f());
 
   E? readValueOrNull<E>(E f());
+
+  double readDoubleValue();
+  int readIntegerValue();
 
   ImportEntity readImport();
   ImportEntity? readImportOrNull();

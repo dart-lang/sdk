@@ -1456,7 +1456,7 @@ HintCode.UNIGNORABLE_IGNORE:
 HintCode.UNNECESSARY_CAST:
   status: hasFix
 HintCode.UNNECESSARY_FINAL:
-  status: needsEvaluation
+  status: hasFix
 HintCode.UNNECESSARY_IGNORE:
   status: needsEvaluation
 HintCode.UNNECESSARY_IMPORT:

@@ -41,6 +41,11 @@ class GoogleAnalyticsManager implements AnalyticsManager {
   /// was enabled.
   final Map<String, int> _lintUsageCounts = {};
 
+  /// A map from the name of a diagnostic to a map whose values are the number
+  /// of times that the severity of the diagnostic was changed to the severity
+  /// represented by the key.
+  final Map<String, Map<String, int>> _severityAdjustments = {};
+
   /// Initialize a newly created analytics manager to report to the [analytics]
   /// service.
   GoogleAnalyticsManager(this.analytics);
@@ -66,12 +71,12 @@ class GoogleAnalyticsManager implements AnalyticsManager {
         var name = rule.name;
         _lintUsageCounts[name] = (_lintUsageCounts[name] ?? 0) + 1;
       }
-      // TODO(brianwilkerson) Collect other context-dependent information, such
-      //  as which codes have a different severity assigned to them:
-      // for (var processor in context.analysisOptions.errorProcessors) {
-      //   processor.code;
-      //   processor.severity;
-      // }
+      for (var processor in context.analysisOptions.errorProcessors) {
+        var severity = processor.severity?.name ?? 'ignore';
+        var severityCounts =
+            _severityAdjustments.putIfAbsent(processor.code, () => {});
+        severityCounts[severity] = (severityCounts[severity] ?? 0) + 1;
+      }
     }
   }
 
@@ -140,6 +145,7 @@ class GoogleAnalyticsManager implements AnalyticsManager {
     _sendPluginResponseTimes();
     _sendNotificationHandlingTimes();
     _sendLintUsageCounts();
+    _sendSeverityAdjustments();
 
     analytics.waitForLastPing(timeout: Duration(milliseconds: 200)).then((_) {
       analytics.close();
@@ -227,9 +233,11 @@ class GoogleAnalyticsManager implements AnalyticsManager {
   }
 
   void _sendLintUsageCounts() {
-    analytics.sendEvent('language_server', 'lintUsageCounts', parameters: {
-      'usageCounts': _lintUsageCounts.toString(),
-    });
+    if (_lintUsageCounts.isNotEmpty) {
+      analytics.sendEvent('language_server', 'lintUsageCounts', parameters: {
+        'usageCounts': json.encode(_lintUsageCounts),
+      });
+    }
   }
 
   /// Send information about the notifications handled by the server.
@@ -285,6 +293,15 @@ class GoogleAnalyticsManager implements AnalyticsManager {
       'duration': duration.toString(),
       'plugins': _pluginData.usageCountData,
     });
+  }
+
+  void _sendSeverityAdjustments() {
+    if (_severityAdjustments.isNotEmpty) {
+      analytics
+          .sendEvent('language_server', 'severityAdjustments', parameters: {
+        'adjustmentCounts': json.encode(_severityAdjustments),
+      });
+    }
   }
 }
 

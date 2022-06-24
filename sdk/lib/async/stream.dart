@@ -515,7 +515,7 @@ abstract class Stream<T> {
       controller
         ..onCancel = () {
           timer.cancel();
-          return Zone._current._nullFuture;
+          return nullFuture;
         }
         ..onPause = () {
           watch.stop();

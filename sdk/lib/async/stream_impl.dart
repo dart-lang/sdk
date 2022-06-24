@@ -197,7 +197,7 @@ class _BufferingStreamSubscription<T>
     if (!_isCanceled) {
       _cancel();
     }
-    return _cancelFuture ?? Zone._current._nullFuture;
+    return _cancelFuture ?? nullFuture;
   }
 
   Future<E> asFuture<E>([E? futureValue]) {
@@ -217,7 +217,7 @@ class _BufferingStreamSubscription<T>
     };
     _onError = (Object error, StackTrace stackTrace) {
       Future cancelFuture = cancel();
-      if (!identical(Zone._current._nullFuture, cancelFuture)) {
+      if (!isNullFuture(Zone._current, cancelFuture)) {
         cancelFuture.whenComplete(() {
           result._completeError(error, stackTrace);
         });
@@ -365,8 +365,7 @@ class _BufferingStreamSubscription<T>
       _state |= _STATE_WAIT_FOR_CANCEL;
       _cancel();
       var cancelFuture = _cancelFuture;
-      if (cancelFuture != null &&
-          !identical(Zone._current._nullFuture, cancelFuture)) {
+      if (cancelFuture != null && !isNullFuture(Zone._current, cancelFuture)) {
         cancelFuture.whenComplete(sendError);
       } else {
         sendError();
@@ -395,8 +394,7 @@ class _BufferingStreamSubscription<T>
     _cancel();
     _state |= _STATE_WAIT_FOR_CANCEL;
     var cancelFuture = _cancelFuture;
-    if (cancelFuture != null &&
-        !identical(Zone._current._nullFuture, cancelFuture)) {
+    if (cancelFuture != null && !isNullFuture(Zone._current, cancelFuture)) {
       cancelFuture.whenComplete(sendDone);
     } else {
       sendDone();
@@ -672,7 +670,7 @@ class _DoneStreamSubscription<T> implements StreamSubscription<T> {
     }
   }
 
-  Future cancel() => Zone._current._nullFuture;
+  Future cancel() => nullFuture;
 
   Future<E> asFuture<E>([E? futureValue]) {
     E resultValue;
@@ -819,7 +817,7 @@ class _BroadcastSubscriptionWrapper<T> implements StreamSubscription<T> {
 
   Future cancel() {
     _stream._cancelSubscription();
-    return Zone._current._nullFuture;
+    return nullFuture;
   }
 
   bool get isPaused {
@@ -963,7 +961,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
       }
       return subscription.cancel();
     }
-    return Zone._current._nullFuture;
+    return nullFuture;
   }
 
   void _onData(T data) {

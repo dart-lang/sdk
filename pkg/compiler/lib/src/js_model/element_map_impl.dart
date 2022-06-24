@@ -1380,7 +1380,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return lookup;
   }
 
-  String /*?*/ _getStringArgument(ir.StaticInvocation node, int index) {
+  String _getStringArgument(ir.StaticInvocation node, int index) {
     return node.arguments.positional[index].accept(Stringifier());
   }
 
@@ -2161,14 +2161,15 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     JGeneratorBody generatorBody = _generatorBodies[function];
     if (generatorBody == null) {
       FunctionData functionData = members.getData(function);
-      ir.TreeNode node = functionData.definition.node;
       DartType elementType =
           elementEnvironment.getFunctionAsyncOrSyncStarElementType(function);
       generatorBody = createGeneratorBody(function, elementType);
       members.register<IndexedFunction, FunctionData>(
           generatorBody,
-          GeneratorBodyFunctionData(functionData,
-              SpecialMemberDefinition(node, MemberKind.generatorBody)));
+          GeneratorBodyFunctionData(
+              functionData,
+              SpecialMemberDefinition.from(
+                  functionData.definition, MemberKind.generatorBody)));
 
       if (function.enclosingClass != null) {
         // TODO(sra): Integrate this with ClassEnvImpl.addConstructorBody ?

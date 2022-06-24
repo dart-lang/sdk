@@ -16,6 +16,7 @@ main() {
 
     bool nullFutureZoneUsed = false;
     runZoned(() {
+      // Known code that exposes the special "nullFuture".
       nullFuture = (new StreamController()..stream.listen(null).cancel()).done;
     }, zoneSpecification: new ZoneSpecification(scheduleMicrotask:
         (Zone self, ZoneDelegate parent, Zone zone, void f()) {

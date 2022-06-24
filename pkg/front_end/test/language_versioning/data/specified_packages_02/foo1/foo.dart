@@ -1,4 +1,4 @@
-/*library: languageVersion=2.7*/
+// This file shouldn't even be compiled.
 
 int notNamedFoo() {
   return 42;

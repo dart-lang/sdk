@@ -131,7 +131,9 @@ abstract class Recipe {
   static const int _at = 0x40;
   static const String _atString = '@';
 
+  // ignore: unused_field
   static const int _uppercaseA = 0x41;
+  // ignore: unused_field
   static const int _uppercaseZ = 0x5A;
 
   static const int _leftBracket = 0x5B;
@@ -148,6 +150,7 @@ abstract class Recipe {
   static const String _backtickString = '`';
 
   static const int _lowercaseA = 0x61;
+  // ignore: unused_field
   static const int _lowercaseZ = 0x7A;
 
   static const int _leftBrace = 0x7B;

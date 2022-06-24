@@ -55,7 +55,6 @@ import 'package:compiler/src/serialization/serialization_interfaces.dart';
 /// }
 abstract class Deferrable<E> {
   E loaded();
-  static int count = 0;
 
   factory Deferrable.deferred(DataSourceReader reader, E f(), int offset,
           {bool cacheData = true}) =>

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -16,6 +17,50 @@ main() {
 
 @reflectiveTest
 class SuperFormalParameterTest extends PubPackageResolutionTest {
+  test_element_typeParameterSubstitution_chained() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  A({int? key});
+}
+
+class B<U> extends A<U> {
+  B({super.key});
+}
+
+class C<V> extends B<V> {
+  C({super.key});
+}
+''');
+
+    final C = findElement.unnamedConstructor('C');
+    final C_key = C.superFormalParameter('key');
+
+    final B_key_member = C_key.superConstructorParameter;
+    B_key_member as SuperFormalParameterMember;
+
+    final B = findElement.unnamedConstructor('B');
+    final B_key = B.superFormalParameter('key');
+    assertElement2(
+      B_key_member,
+      declaration: B_key,
+      substitution: {'U': 'V'},
+    );
+
+    final A_key_member = B_key_member.superConstructorParameter;
+    A_key_member as ParameterMember;
+
+    final A = findElement.unnamedConstructor('A');
+    final A_key = A.parameter('key');
+    assertElement2(
+      A_key_member,
+      declaration: A_key,
+      substitution: {
+        'T': 'V',
+        'U': 'V',
+      },
+    );
+  }
+
   test_functionTyped() async {
     await assertNoErrorsInCode(r'''
 class A {

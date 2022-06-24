@@ -481,6 +481,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a reference to a kernel member node from this data source.
+  @override
   ir.Member readMemberNode() {
     _checkDataKind(DataKind.memberNode);
     return _readMemberData().node;
@@ -506,31 +507,47 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a list of references to kernel member nodes from this data source.
-  /// If [emptyAsNull] is `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeMemberNodes].
-  List<E> readMemberNodes<E extends ir.Member>({bool emptyAsNull = false}) {
+  @override
+  List<E> readMemberNodes<E extends ir.Member>() {
+    return readMemberNodesOrNull<E>() ?? List.empty();
+  }
+
+  /// Reads a list of references to kernel member nodes from this data source.
+  /// `null` is returned instead of an empty list.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeMemberNodes].
+  @override
+  List<E> readMemberNodesOrNull<E extends ir.Member>() {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
-    List<E> list = List<E>.filled(count, null);
-    for (int i = 0; i < count; i++) {
-      ir.Member value = readMemberNode();
-      list[i] = value;
-    }
-    return list;
+    if (count == 0) return null;
+    return List<E>.generate(count, (_) => readMemberNode() as E,
+        growable: false);
   }
 
   /// Reads a map from kernel member nodes to [V] values from this data source,
-  /// calling [f] to read each value from the data source. If [emptyAsNull] is
-  /// `true`, `null` is returned instead of an empty map.
+  /// calling [f] to read each value from the data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeMemberNodeMap].
-  Map<K, V> readMemberNodeMap<K extends ir.Member, V>(V f(),
-      {bool emptyAsNull = false}) {
+  @override
+  Map<K, V> readMemberNodeMap<K extends ir.Member, V>(V f()) {
+    return readMemberNodeMapOrNull<K, V>(f) ?? {};
+  }
+
+  /// Reads a map from kernel member nodes to [V] values from this data source,
+  /// calling [f] to read each value from the data source.  `null` is returned
+  /// instead of an empty map.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeMemberNodeMap].
+  @override
+  Map<K, V> /*?*/ readMemberNodeMapOrNull<K extends ir.Member, V>(V f()) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
+    if (count == 0) return null;
     Map<K, V> map = {};
     for (int i = 0; i < count; i++) {
       ir.Member node = readMemberNode();
@@ -541,6 +558,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a kernel name node from this data source.
+  @override
   ir.Name readName() {
     String text = readString();
     ir.Library library = readValueOrNull(readLibraryNode);
@@ -548,6 +566,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a kernel library dependency node from this data source.
+  @override
   ir.LibraryDependency readLibraryDependencyNode() {
     ir.Library library = readLibraryNode();
     int index = readInt();
@@ -556,11 +575,13 @@ class DataSourceReader implements migrated.DataSourceReader {
 
   /// Reads a potentially `null` kernel library dependency node from this data
   /// source.
+  @override
   ir.LibraryDependency readLibraryDependencyNodeOrNull() {
     return readValueOrNull(readLibraryDependencyNode);
   }
 
   /// Reads a reference to a kernel tree node from this data source.
+  @override
   ir.TreeNode readTreeNode() {
     _checkDataKind(DataKind.treeNode);
     return _readTreeNode(null);
@@ -601,6 +622,7 @@ class DataSourceReader implements migrated.DataSourceReader {
 
   /// Reads a reference to a potentially `null` kernel tree node from this data
   /// source.
+  @override
   ir.TreeNode readTreeNodeOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -610,19 +632,24 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a list of references to kernel tree nodes from this data source.
-  /// If [emptyAsNull] is `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeTreeNodes].
-  List<E> readTreeNodes<E extends ir.TreeNode>({bool emptyAsNull = false}) {
+  @override
+  List<E> readTreeNodes<E extends ir.TreeNode>() {
+    return readTreeNodesOrNull<E>() ?? List.empty();
+  }
+
+  /// Reads a list of references to kernel tree nodes from this data source.
+  /// `null` is returned instead of an empty list.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeTreeNodes].
+  @override
+  List<E> readTreeNodesOrNull<E extends ir.TreeNode>() {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
-    List<E> list = List<E>.filled(count, null);
-    for (int i = 0; i < count; i++) {
-      ir.TreeNode node = readTreeNode();
-      list[i] = node;
-    }
-    return list;
+    if (count == 0) return null;
+    return List<E>.generate(count, (i) => readTreeNode() as E, growable: false);
   }
 
   /// Reads a map from kernel tree nodes to [V] values from this data source,
@@ -906,14 +933,24 @@ class DataSourceReader implements migrated.DataSourceReader {
     throw UnsupportedError("Unexpected DartTypeKind $kind");
   }
 
-  /// Reads a list of kernel type nodes from this data source. If [emptyAsNull]
-  /// is `true`, `null` is returned instead of an empty list.
+  /// Reads a list of kernel type nodes from this data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeDartTypeNodes].
-  List<ir.DartType> readDartTypeNodes({bool emptyAsNull = false}) {
+  @override
+  List<ir.DartType> readDartTypeNodes() {
+    return readDartTypeNodesOrNull() ?? const [];
+  }
+
+  /// Reads a list of kernel type nodes from this data source. `null` is
+  /// returned instead of an empty list.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeDartTypeNodes].
+  @override
+  List<ir.DartType> readDartTypeNodesOrNull() {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
+    if (count == 0) return null;
     List<ir.DartType> list = List<ir.DartType>.filled(count, null);
     for (int i = 0; i < count; i++) {
       list[i] = readDartTypeNode();
@@ -1366,6 +1403,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a double value from this data source.
+  @override
   double readDoubleValue() {
     _checkDataKind(DataKind.double);
     return _readDoubleValue();
@@ -1384,6 +1422,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   ///
   /// This is should only when the value is not known to be a non-negative
   /// 30 bit integer. Otherwise [readInt] should be used.
+  @override
   int readIntegerValue() {
     _checkDataKind(DataKind.int);
     return _readBigInt().toInt();

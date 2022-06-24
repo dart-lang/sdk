@@ -12,7 +12,10 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:linter/src/rules.dart';
 import 'package:telemetry/telemetry.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -28,23 +31,43 @@ class GoogleAnalyticsManagerTest with ResourceProviderMixin {
   final analytics = _MockAnalytics();
   late final manager = GoogleAnalyticsManager(analytics);
 
-  String get testPackageRootPath => '/home/package';
+  Folder get testPackageRoot => getFolder('/home/package');
 
-  void test_createAnalysisContexts_single() {
+  String get testPackageRootPath => testPackageRoot.path;
+
+  void test_createAnalysisContexts_lints() {
     _createAnalysisOptionsFile(lints: [
       'avoid_dynamic_calls',
       'await_only_futures',
       'unawaited_futures'
     ]);
-    var collection =
-        AnalysisContextCollection(includedPaths: [testPackageRootPath]);
+    var collection = _createContexts();
     _defaultStartup();
     manager.createdAnalysisContexts(collection.contexts);
     manager.shutdown();
     analytics.assertEvents([
       _ExpectedEvent.session(),
       _ExpectedEvent.lintUsageCounts(parameters: {
-        'usageCounts': '{}',
+        'usageCounts':
+            '{"avoid_dynamic_calls":1,"await_only_futures":1,"unawaited_futures":1}',
+      }),
+    ]);
+  }
+
+  void test_createAnalysisContexts_severityAdjustments() {
+    _createAnalysisOptionsFile(errors: {
+      'avoid_dynamic_calls': 'error',
+      'await_only_futures': 'ignore',
+    });
+    var collection = _createContexts();
+    _defaultStartup();
+    manager.createdAnalysisContexts(collection.contexts);
+    manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.severityAdjustments(parameters: {
+        'adjustmentCounts':
+            '{"AVOID_DYNAMIC_CALLS":{"ERROR":1},"AWAIT_ONLY_FUTURES":{"ignore":1}}',
       }),
     ]);
   }
@@ -62,7 +85,6 @@ class GoogleAnalyticsManagerTest with ResourceProviderMixin {
         'method': 'analysis.getNavigation',
         'duration': _IsPercentiles(),
       }),
-      _ExpectedEvent.lintUsageCounts(),
     ]);
     PluginManager.pluginResponseTimes.clear();
   }
@@ -84,7 +106,6 @@ class GoogleAnalyticsManagerTest with ResourceProviderMixin {
         'method': Method.workspace_didCreateFiles.toString(),
         'duration': _IsPercentiles(),
       }),
-      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -114,7 +135,6 @@ class GoogleAnalyticsManagerTest with ResourceProviderMixin {
         'removed':
             '{"count":1,"percentiles":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]}',
       }),
-      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -138,7 +158,6 @@ class GoogleAnalyticsManagerTest with ResourceProviderMixin {
         ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_EXCLUDED:
             '{"count":1,"percentiles":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]}',
       }),
-      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -160,7 +179,6 @@ class GoogleAnalyticsManagerTest with ResourceProviderMixin {
         ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES:
             '{"count":1,"percentiles":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]}',
       }),
-      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -181,7 +199,6 @@ class GoogleAnalyticsManagerTest with ResourceProviderMixin {
         'duration': _IsPercentiles(),
         EDIT_REQUEST_GET_REFACTORING_KIND: '{"RENAME":1}',
       }),
-      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -201,7 +218,6 @@ class GoogleAnalyticsManagerTest with ResourceProviderMixin {
         'parameters':
             'closingLabels,onlyAnalyzeProjectsWithOpenFiles,suggestFromUnimportedLibraries',
       }),
-      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -227,7 +243,6 @@ class GoogleAnalyticsManagerTest with ResourceProviderMixin {
         'openWorkspacePaths':
             '{"count":1,"percentiles":[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]}',
       }),
-      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -244,7 +259,6 @@ class GoogleAnalyticsManagerTest with ResourceProviderMixin {
         'method': SERVER_REQUEST_SHUTDOWN,
         'duration': _IsPercentiles(),
       }),
-      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -272,7 +286,6 @@ class GoogleAnalyticsManagerTest with ResourceProviderMixin {
         'sdkVersion': sdkVersion,
         'duration': _IsStringEncodedPositiveInt(),
       }),
-      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -289,7 +302,6 @@ class GoogleAnalyticsManagerTest with ResourceProviderMixin {
       _ExpectedEvent.session(parameters: {
         'plugins': '{"recordCount":1,"rootCounts":{"a":$counts,"b":$counts}}'
       }),
-      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
@@ -314,13 +326,13 @@ class GoogleAnalyticsManagerTest with ResourceProviderMixin {
         'sdkVersion': sdkVersion,
         'duration': _IsStringEncodedPositiveInt(),
       }),
-      _ExpectedEvent.lintUsageCounts(),
     ]);
   }
 
   /// Create an analysis options file based on the given arguments.
   void _createAnalysisOptionsFile({
     String? path,
+    Map<String, String>? errors,
     List<String>? experiments,
     bool? implicitCasts,
     List<String>? lints,
@@ -328,8 +340,15 @@ class GoogleAnalyticsManagerTest with ResourceProviderMixin {
     path ??= '$testPackageRootPath/analysis_options.yaml';
     var buffer = StringBuffer();
 
-    if (experiments != null || implicitCasts != null) {
+    if (errors != null || experiments != null || implicitCasts != null) {
       buffer.writeln('analyzer:');
+    }
+
+    if (errors != null) {
+      buffer.writeln('  errors:');
+      for (var entry in errors.entries) {
+        buffer.writeln('    ${entry.key}: ${entry.value}');
+      }
     }
 
     if (experiments != null) {
@@ -353,6 +372,16 @@ class GoogleAnalyticsManagerTest with ResourceProviderMixin {
     }
 
     newFile(path, buffer.toString());
+  }
+
+  AnalysisContextCollection _createContexts() {
+    var sdkRoot = getFolder('/sdk');
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
+    registerLintRules();
+    return AnalysisContextCollection(
+        resourceProvider: resourceProvider,
+        includedPaths: [testPackageRootPath],
+        sdkPath: sdkRoot.path);
   }
 
   void _defaultStartup() {
@@ -406,6 +435,9 @@ class _ExpectedEvent {
   _ExpectedEvent.session({Map<String, Object>? parameters})
       : this('language_server', 'session', parameters: parameters);
 
+  _ExpectedEvent.severityAdjustments({Map<String, Object>? parameters})
+      : this('language_server', 'severityAdjustments', parameters: parameters);
+
   /// Compare the expected event with the [actual] event, failing if the actual
   /// doesn't match the expected.
   void matches(_Event actual) {
@@ -429,6 +461,27 @@ class _ExpectedEvent {
         expect(actualValue, expectedValue, reason: 'For key $expectedKey');
       }
     }
+  }
+
+  @override
+  String toString() {
+    var buffer = StringBuffer();
+    buffer.write('category: ');
+    buffer.writeln(category);
+    buffer.write('action: ');
+    buffer.writeln(action);
+    buffer.write('label: ');
+    buffer.writeln(label);
+    buffer.write('value: ');
+    buffer.writeln(value);
+    var parameterMap = parameters;
+    if (parameterMap != null) {
+      for (var entry in parameterMap.entries) {
+        buffer.write('value: ');
+        buffer.writeln('${entry.key}: ${entry.value}');
+      }
+    }
+    return buffer.toString();
   }
 }
 

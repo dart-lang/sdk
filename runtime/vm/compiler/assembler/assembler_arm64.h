@@ -2144,7 +2144,7 @@ class Assembler : public AssemblerBase {
   void RestoreCodePointer();
 
   // Restores the values of the registers that are blocked to cache some values
-  // e.g. BARRIER_MASK and NULL_REG.
+  // e.g. HEAP_BITS and NULL_REG.
   void RestorePinnedRegisters();
 
   void SetupGlobalPoolAndDispatchTable();

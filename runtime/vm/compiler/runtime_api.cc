@@ -355,6 +355,8 @@ word Object::tags_offset() {
 const word UntaggedObject::kCardRememberedBit =
     dart::UntaggedObject::kCardRememberedBit;
 
+const word UntaggedObject::kCanonicalBit = dart::UntaggedObject::kCanonicalBit;
+
 const word UntaggedObject::kOldAndNotRememberedBit =
     dart::UntaggedObject::kOldAndNotRememberedBit;
 
@@ -396,6 +398,9 @@ const word UntaggedObject::kBarrierOverlapShift =
 
 const word UntaggedObject::kGenerationalBarrierMask =
     dart::UntaggedObject::kGenerationalBarrierMask;
+
+const word UntaggedObject::kIncrementalBarrierMask =
+    dart::UntaggedObject::kIncrementalBarrierMask;
 
 bool IsTypedDataClassId(intptr_t cid) {
   return dart::IsTypedDataClassId(cid);

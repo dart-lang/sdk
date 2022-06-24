@@ -1,3 +1,6 @@
+# 2.2.5
+- Updated `devtools_shared` version to 2.14.1.
+
 # 2.2.4
 - Fix an issue where DAP adapters could try to remove the same breakpoint multiple times.
 

@@ -364,6 +364,22 @@ void f() {}
     expect(codeAction, isNull);
   }
 
+  Future<void> test_invalidLocation_importPrefix() async {
+    const content = '''
+import 'dart:io' as io;
+
+i^o.File a;
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
+    expect(codeAction, isNull);
+  }
+
   Future<void> test_progress_clientProvided() async {
     const content = '''
 void f() {

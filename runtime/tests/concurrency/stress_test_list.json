@@ -6705,7 +6705,7 @@
     "../../../tests/standalone_2/no_support_service_test.dart",
     "../../../tests/standalone_2/no_support_timeline_test.dart",
     "../../../tests/standalone_2/number_identity_test.dart",
-    "../../../tests/standalone_2/package/scenarios/both_dir_and_file/both_dir_and_file_noimports_test.dart",
+    "../../../tests/standalone_2/package/scenarios/both_dir_dot_packages_and_package_config/both_dir_dot_packages_and_package_config_noimports_test.dart",
     "../../../tests/standalone_2/package/scenarios/empty_packages_file/empty_packages_file_noimports_test.dart",
     "../../../tests/standalone_2/package/scenarios/invalid/invalid_utf8_test.dart",
     "../../../tests/standalone_2/package/scenarios/invalid/non_existent_packages_file_test.dart",

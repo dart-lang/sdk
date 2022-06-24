@@ -410,6 +410,7 @@ bool WillAllocateNewOrRememberedArray(intptr_t length);
 class UntaggedObject : public AllStatic {
  public:
   static const word kCardRememberedBit;
+  static const word kCanonicalBit;
   static const word kOldAndNotRememberedBit;
   static const word kOldAndNotMarkedBit;
   static const word kSizeTagPos;
@@ -422,6 +423,7 @@ class UntaggedObject : public AllStatic {
   static const word kTagBitsSizeTagPos;
   static const word kBarrierOverlapShift;
   static const word kGenerationalBarrierMask;
+  static const word kIncrementalBarrierMask;
 
   static bool IsTypedDataClassId(intptr_t cid);
 };

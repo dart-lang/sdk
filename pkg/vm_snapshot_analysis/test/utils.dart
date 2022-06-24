@@ -46,7 +46,15 @@ Future withFlagImpl(
       await File(path.join(dir, file.key)).writeAsString(file.value);
     }
     await File(packages).writeAsString('''
-input:./
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "input",
+      "rootUri": "./"
+    }
+  ]
+}
 ''');
     await File(mainDart).writeAsString('''
 import 'package:input/input.dart' as input;

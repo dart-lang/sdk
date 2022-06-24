@@ -1378,6 +1378,12 @@ void main(int argc, char** argv) {
     if (should_run_user_program) {
       try_load_snapshots_lambda();
     }
+  } else if (script_name == nullptr &&
+             Options::gen_snapshot_kind() != SnapshotKind::kNone) {
+    Syslog::PrintErr(
+        "Snapshot generation should be done using the 'dart compile' "
+        "command.\n");
+    Platform::Exit(kErrorExitCode);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 

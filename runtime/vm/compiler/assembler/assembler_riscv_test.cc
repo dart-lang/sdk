@@ -32,7 +32,7 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ PushNativeCalleeSavedRegisters();
 
   __ mv(THR, A2);
-  __ lx(WRITE_BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
+  __ RestorePinnedRegisters();  // Setup WRITE_BARRIER_STATE.
 
   __ StoreIntoObject(A1, FieldAddress(A1, GrowableObjectArray::data_offset()),
                      A0);

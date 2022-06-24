@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// .packages specifies 2.5, this library tries to go above that, which is fine.
+// .dart_tool/package_config.json specifies 2.5, this library tries to go above
+// that, which is fine.
 
 // @dart = 2.6
 
