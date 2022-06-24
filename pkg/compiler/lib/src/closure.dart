@@ -289,7 +289,6 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// Returns the [local] for which [field] was created.
   Local getLocalForField(KernelToLocalsMap localsMap, FieldEntity field) {
     failedAt(field, "No local for $field.");
-    return null;
   }
 
   /// Convenience pointer to the field entity representation in the closure

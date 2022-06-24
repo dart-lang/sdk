@@ -130,7 +130,6 @@ String? readAnnotationName(DartTypes dartTypes, Spannable spannable,
     if (fields.length != 1) {
       failedAt(spannable,
           'Annotations needs one string: ${value.toStructuredText(dartTypes)}');
-      return null;
     }
     final field = fields.single;
     if (field is StringConstantValue) {
@@ -140,7 +139,6 @@ String? readAnnotationName(DartTypes dartTypes, Spannable spannable,
     } else {
       failedAt(spannable,
           'Annotations needs one string: ${value.toStructuredText(dartTypes)}');
-      return null;
     }
   }
   return null;

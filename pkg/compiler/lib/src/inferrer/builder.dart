@@ -1868,7 +1868,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     }
     failedAt(CURRENT_ELEMENT_SPANNABLE,
         "Unexpected logical operator '${node.operatorEnum}'.");
-    return null;
   }
 
   @override

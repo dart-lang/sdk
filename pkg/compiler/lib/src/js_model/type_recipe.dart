@@ -359,7 +359,6 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
       }
       failedAt(CURRENT_ELEMENT_SPANNABLE,
           'Expected a TypeExpressionRecipe: $environmentRecipe');
-      return null;
     }
 
     if (environmentStructure is FullTypeEnvironmentStructure) {
@@ -390,7 +389,6 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
 
     failedAt(CURRENT_ELEMENT_SPANNABLE,
         'Unknown environmentStructure: $environmentStructure');
-    return null;
   }
 
   @override
@@ -429,7 +427,6 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
 
     failedAt(CURRENT_ELEMENT_SPANNABLE,
         'unexpected bind on environment with structure $environmentStructure');
-    return null;
   }
 
   @override
@@ -526,7 +523,6 @@ class _Substitution extends DartTypeSubstitutionVisitor<Null> {
     }
 
     failedAt(CURRENT_ELEMENT_SPANNABLE, 'Unexpected recipe: $recipe');
-    return null;
   }
 
   DartType _substituteType(DartType type) => visit(type, null);

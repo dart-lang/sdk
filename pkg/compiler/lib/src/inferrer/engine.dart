@@ -544,7 +544,6 @@ class InferrerEngine {
         break;
     }
     failedAt(member, 'Unexpected member definition: $definition.');
-    return null;
   }
 
   /// Returns the `call` method on [cls] or the `noSuchMethod` if [cls] doesn't

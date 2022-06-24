@@ -243,17 +243,14 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   @override
   bool isSubtypeOf(ClassEntity x, ClassEntity y) {
-    ClassSet? classSet = _classSets[y];
-    assert(
-        classSet != null,
+    ClassSet classSet = _classSets[y] ??
         failedAt(
             y,
             "No ClassSet for $y (${y.runtimeType}): "
-            "${dump(y)} : ${_classSets}"));
-    ClassHierarchyNode? classHierarchyNode = _classHierarchyNodes[x];
-    assert(classHierarchyNode != null,
-        failedAt(x, "No ClassHierarchyNode for $x: ${dump(x)}"));
-    return classSet!.hasSubtype(classHierarchyNode!);
+            "${dump(y)} : ${_classSets}");
+    ClassHierarchyNode classHierarchyNode = _classHierarchyNodes[x] ??
+        failedAt(x, "No ClassHierarchyNode for $x: ${dump(x)}");
+    return classSet.hasSubtype(classHierarchyNode);
   }
 
   @override
@@ -681,13 +678,11 @@ class ClassHierarchyBuilder {
   bool _isSubtypeOf(ClassEntity x, ClassEntity y) {
     assert(_classSets.containsKey(x),
         "ClassSet for $x has not been computed yet.");
-    ClassSet? classSet = _classSets[y];
-    assert(classSet != null,
-        failedAt(y, "No ClassSet for $y (${y.runtimeType}): ${_classSets}"));
-    ClassHierarchyNode? classHierarchyNode = _classHierarchyNodes[x];
-    assert(classHierarchyNode != null,
-        failedAt(x, "No ClassHierarchyNode for $x"));
-    return classSet!.hasSubtype(classHierarchyNode!);
+    ClassSet classSet = _classSets[y] ??
+        failedAt(y, "No ClassSet for $y (${y.runtimeType}): ${_classSets}");
+    ClassHierarchyNode classHierarchyNode =
+        _classHierarchyNodes[x] ?? failedAt(x, "No ClassHierarchyNode for $x");
+    return classSet.hasSubtype(classHierarchyNode);
   }
 
   /// Returns `true` if a dynamic access on an instance of [exactClass] can
