@@ -42,8 +42,8 @@ class DataSinkWriter implements migrated.DataSinkWriter {
 
   final Map<Type, IndexedSink> _generalCaches = {};
 
-  EntityWriter _entityWriter = const EntityWriter();
-  CodegenWriter _codegenWriter;
+  migrated.EntityWriter _entityWriter = const migrated.EntityWriter();
+  migrated.CodegenWriter _codegenWriter;
 
   final Map<String, int> tagFrequencyMap;
 
@@ -308,6 +308,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   }
 
   /// Writes a reference to the kernel library node [value] to this data sink.
+  @override
   void writeLibraryNode(ir.Library value) {
     _writeDataKind(DataKind.libraryNode);
     _writeLibraryNode(value);
@@ -318,6 +319,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   }
 
   /// Writes a reference to the kernel class node [value] to this data sink.
+  @override
   void writeClassNode(ir.Class value) {
     _writeDataKind(DataKind.classNode);
     _writeClassNode(value);
@@ -504,18 +506,13 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readTreeNodeMap].
-  void writeTreeNodeMap<V>(Map<ir.TreeNode, V> map, void f(V value),
-      {bool allowNull = false}) {
-    if (map == null) {
-      assert(allowNull);
-      writeInt(0);
-    } else {
-      writeInt(map.length);
-      map.forEach((ir.TreeNode key, V value) {
-        writeTreeNode(key);
-        f(value);
-      });
-    }
+  @override
+  void writeTreeNodeMap<V>(Map<ir.TreeNode, V> map, void f(V value)) {
+    writeInt(map.length);
+    map.forEach((ir.TreeNode key, V value) {
+      writeTreeNode(key);
+      f(value);
+    });
   }
 
   /// Writes a reference to the kernel tree node [value] in the known [context]
@@ -585,6 +582,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
 
   /// Writes a reference to the kernel type parameter node [value] to this data
   /// sink.
+  @override
   void writeTypeParameterNode(ir.TypeParameter value) {
     _writeDataKind(DataKind.typeParameterNode);
     _writeTypeParameter(value, null);
@@ -612,16 +610,11 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readTypeParameterNodes].
-  void writeTypeParameterNodes(Iterable<ir.TypeParameter> values,
-      {bool allowNull = false}) {
-    if (values == null) {
-      assert(allowNull);
-      writeInt(0);
-    } else {
-      writeInt(values.length);
-      for (ir.TypeParameter value in values) {
-        writeTypeParameterNode(value);
-      }
+  @override
+  void writeTypeParameterNodes(Iterable<ir.TypeParameter> values) {
+    writeInt(values.length);
+    for (ir.TypeParameter value in values) {
+      writeTypeParameterNode(value);
     }
   }
 
@@ -716,6 +709,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   }
 
   /// Writes the source span [value] to this data sink.
+  @override
   void writeSourceSpan(SourceSpan value) {
     _writeDataKind(DataKind.sourceSpan);
     _writeUri(value.uri);
@@ -892,18 +886,14 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readTypeVariableMap].
-  void writeTypeVariableMap<V>(Map<IndexedTypeVariable, V> map, void f(V value),
-      {bool allowNull = false}) {
-    if (map == null) {
-      assert(allowNull);
-      writeInt(0);
-    } else {
-      writeInt(map.length);
-      map.forEach((IndexedTypeVariable key, V value) {
-        writeTypeVariable(key);
-        f(value);
-      });
-    }
+  @override
+  void writeTypeVariableMap<V>(
+      Map<IndexedTypeVariable, V> map, void f(V value)) {
+    writeInt(map.length);
+    map.forEach((IndexedTypeVariable key, V value) {
+      writeTypeVariable(key);
+      f(value);
+    });
   }
 
   /// Writes a reference to the local [value] to this data sink.
@@ -934,6 +924,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readLocalOrNull].
+  @override
   void writeLocalOrNull(Local value) {
     writeBool(value != null);
     if (value != null) {
@@ -964,18 +955,13 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   ///
   /// This is a convenience method to be used together with
   /// [DataSourceReader.readLocalMap].
-  void writeLocalMap<V>(Map<Local, V> map, void f(V value),
-      {bool allowNull = false}) {
-    if (map == null) {
-      assert(allowNull);
-      writeInt(0);
-    } else {
-      writeInt(map.length);
-      map.forEach((Local key, V value) {
-        writeLocal(key);
-        f(value);
-      });
-    }
+  @override
+  void writeLocalMap<V>(Map<Local, V> map, void f(V value)) {
+    writeInt(map.length);
+    map.forEach((Local key, V value) {
+      writeLocal(key);
+      f(value);
+    });
   }
 
   /// Writes the constant [value] to this data sink.
@@ -1251,6 +1237,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   /// Writes a potentially `null` js node [value] to this data sink.
   ///
   /// This feature is only available a [CodegenWriter] has been registered.
+  @override
   void writeJsNodeOrNull(js.Node value) {
     writeBool(value != null);
     if (value != null) {
@@ -1261,6 +1248,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   /// Writes TypeRecipe [value] to this data sink.
   ///
   /// This feature is only available a [CodegenWriter] has been registered.
+  @override
   void writeTypeRecipe(TypeRecipe value) {
     assert(_codegenWriter != null,
         "Can not serialize a TypeRecipe without a registered codegen writer.");
@@ -1269,14 +1257,14 @@ class DataSinkWriter implements migrated.DataSinkWriter {
 
   /// Register an [EntityWriter] with this data sink for non-default encoding
   /// of entity references.
-  void registerEntityWriter(EntityWriter writer) {
+  void registerEntityWriter(migrated.EntityWriter writer) {
     assert(writer != null);
     _entityWriter = writer;
   }
 
   /// Register a [CodegenWriter] with this data sink to support serialization
   /// of codegen only data.
-  void registerCodegenWriter(CodegenWriter writer) {
+  void registerCodegenWriter(migrated.CodegenWriter writer) {
     assert(writer != null);
     assert(_codegenWriter == null);
     _codegenWriter = writer;

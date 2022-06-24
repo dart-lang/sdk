@@ -11,7 +11,7 @@ import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../universe/class_set.dart' show ClassHierarchyNodesMapKey;
 import 'closure.dart';
 

@@ -9,7 +9,7 @@ import 'common.dart';
 import 'elements/entities.dart';
 import 'js_model/closure.dart';
 import 'js_model/element_map.dart';
-import 'serialization/serialization.dart';
+import 'serialization/serialization_interfaces.dart';
 
 /// Class that provides information for how closures are rewritten/represented
 /// to preserve Dart semantics when compiled to JavaScript. Given a particular

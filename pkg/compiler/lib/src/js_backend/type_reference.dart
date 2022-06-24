@@ -76,7 +76,7 @@ import '../js_model/type_recipe.dart'
         TypeExpressionRecipe,
         SingletonTypeEnvironmentRecipe,
         FullTypeEnvironmentRecipe;
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../util/util.dart' show Hashing;
 import 'frequency_assignment.dart';
 import 'namer.dart';
