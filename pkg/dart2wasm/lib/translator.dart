@@ -122,6 +122,7 @@ class Translator {
   late final Procedure setAdd;
   late final Procedure hashImmutableIndexNullable;
   late final Procedure isSubtype;
+  late final Procedure objectRuntimeType;
   late final Map<Class, w.StorageType> builtinTypes;
   late final Map<w.ValueType, Class> boxedClasses;
 
@@ -260,6 +261,9 @@ class Translator {
         .firstWhere((l) => l.name == "dart.core")
         .procedures
         .firstWhere((p) => p.name.text == "_isSubtype");
+    objectRuntimeType = lookupCore("Object")
+        .procedures
+        .firstWhere((p) => p.name.text == "_runtimeType");
     builtinTypes = {
       coreTypes.boolClass: w.NumType.i32,
       coreTypes.intClass: w.NumType.i64,

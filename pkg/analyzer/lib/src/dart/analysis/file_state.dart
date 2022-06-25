@@ -1476,6 +1476,11 @@ class FileTestData {
   final List<String> unlinkedKeyPut = [];
 
   FileTestData._(this.file, this.uri);
+
+  @override
+  bool operator ==(Object other) {
+    return other is FileTestData && other.file == file && other.uri == uri;
+  }
 }
 
 /// Precomputed properties of a file URI, used because [Uri] is relatively

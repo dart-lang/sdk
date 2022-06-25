@@ -485,9 +485,11 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
   }
   {
     GcSafepointOperationScope safepoint_operation(thread);
-    if (reason == GCReason::kFinalize &&
-        old_space_.phase() != PageSpace::kAwaitingFinalization) {
-      return;  // Lost race.
+    if (reason == GCReason::kFinalize) {
+      MonitorLocker ml(old_space_.tasks_lock());
+      if (old_space_.phase() != PageSpace::kAwaitingFinalization) {
+        return;  // Lost race.
+      }
     }
 
     thread->isolate_group()->ForEachIsolate(

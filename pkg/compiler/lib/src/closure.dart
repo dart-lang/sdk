@@ -9,7 +9,7 @@ import 'common.dart';
 import 'elements/entities.dart';
 import 'js_model/closure.dart';
 import 'js_model/element_map.dart';
-import 'serialization/serialization.dart';
+import 'serialization/serialization_interfaces.dart';
 
 /// Class that provides information for how closures are rewritten/represented
 /// to preserve Dart semantics when compiled to JavaScript. Given a particular
@@ -289,7 +289,6 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// Returns the [local] for which [field] was created.
   Local getLocalForField(KernelToLocalsMap localsMap, FieldEntity field) {
     failedAt(field, "No local for $field.");
-    return null;
   }
 
   /// Convenience pointer to the field entity representation in the closure

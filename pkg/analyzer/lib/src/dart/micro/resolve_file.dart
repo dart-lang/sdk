@@ -873,7 +873,10 @@ class FileResolver {
 
 class FileResolverTestData {
   final fileSystem = FileSystemTestData();
-  final libraryContext = LibraryContextTestData();
+
+  late final libraryContext = LibraryContextTestData(
+    fileSystemTestData: fileSystem,
+  );
 
   /// The paths of libraries which were resolved.
   ///

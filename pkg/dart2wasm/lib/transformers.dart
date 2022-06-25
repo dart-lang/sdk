@@ -24,12 +24,20 @@ class _WasmTransformer extends Transformer {
 
   Member? _currentMember;
   StaticTypeContext? _cachedTypeContext;
+  final Library _coreLibrary;
+  final InterfaceType _nonNullableTypeType;
 
   StaticTypeContext get typeContext =>
       _cachedTypeContext ??= StaticTypeContext(_currentMember!, env);
 
+  CoreTypes get coreTypes => env.coreTypes;
+
   _WasmTransformer(CoreTypes coreTypes, ClassHierarchy hierarchy)
-      : env = TypeEnvironment(coreTypes, hierarchy);
+      : env = TypeEnvironment(coreTypes, hierarchy),
+        _nonNullableTypeType = coreTypes.index
+            .getClass('dart:core', '_Type')
+            .getThisType(coreTypes, Nullability.nonNullable),
+        _coreLibrary = coreTypes.index.getLibrary('dart:core');
 
   @override
   defaultMember(Member node) {
@@ -41,6 +49,50 @@ class _WasmTransformer extends Transformer {
     _currentMember = null;
     _cachedTypeContext = null;
     return result;
+  }
+
+  /// We can reuse a superclass' `_typeArguments` method if the subclass and the
+  /// superclass have the exact same type parameters in the exact same order.
+  bool canReuseSuperMethod(Class cls) {
+    Supertype supertype = cls.supertype!;
+    if (cls.typeParameters.length != supertype.typeArguments.length) {
+      return false;
+    }
+    for (int i = 0; i < cls.typeParameters.length; i++) {
+      TypeParameter parameter = cls.typeParameters[i];
+      DartType arg = supertype.typeArguments[i];
+      if (arg is! TypeParameterType || arg.parameter != parameter) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  TreeNode visitClass(Class cls) {
+    // For every concrete class whose type parameters do not match the type
+    // parameters of it's super class we embed a special virtual function
+    // `_getTypeArguments`.  When generating code for `_getTypeArguments`, we
+    // read the `TypeParameter`s off the instantiated object and generate a
+    // `List<Type>` to pass to `_getRuntimeType` which then returns a reified
+    // `Type` object.
+    if (!cls.isAbstract &&
+        cls != coreTypes.objectClass &&
+        !canReuseSuperMethod(cls)) {
+      Procedure getTypeArguments = Procedure(
+          Name("_typeArguments", _coreLibrary),
+          ProcedureKind.Getter,
+          FunctionNode(
+            null,
+            returnType: InterfaceType(coreTypes.listClass,
+                Nullability.nonNullable, [_nonNullableTypeType]),
+          ),
+          isExternal: true,
+          fileUri: cls.fileUri)
+        ..isNonNullableByDefault = true;
+      cls.addProcedure(getTypeArguments);
+    }
+    return super.visitClass(cls);
   }
 
   @override

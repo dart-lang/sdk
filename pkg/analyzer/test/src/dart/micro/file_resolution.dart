@@ -67,13 +67,17 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     newFile(_testFile, content);
   }
 
-  void assertStateString(String expected) {
+  void assertStateString(
+    String expected, {
+    bool omitSdkFiles = true,
+  }) {
     final buffer = StringBuffer();
     printer.AnalyzerStatePrinter(
       byteStore: byteStore,
       fileStateIdProvider: _fileStateIdProvider,
       keyShorter: _keyShorter,
       libraryContext: libraryContext,
+      omitSdkFiles: omitSdkFiles,
       resourceProvider: resourceProvider,
       sink: buffer,
     ).writeFileResolver(testData);

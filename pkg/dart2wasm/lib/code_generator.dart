@@ -1548,6 +1548,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           b.i64_const(2011);
           break;
         case "runtimeType":
+        case "_runtimeType":
           wrap(ConstantExpression(TypeLiteralConstant(NullType())), resultType);
           break;
         default:
@@ -1903,7 +1904,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitStringConcatenation(
       StringConcatenation node, w.ValueType expectedType) {
-    makeList(node.expressions, translator.fixedLengthListClass,
+    makeListFromExpressions(node.expressions,
         InterfaceType(translator.stringBaseClass, Nullability.nonNullable));
     return call(translator.stringInterpolate.reference);
   }
@@ -1972,18 +1973,24 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitListLiteral(ListLiteral node, w.ValueType expectedType) {
-    return makeList(
-        node.expressions, translator.growableListClass, node.typeArgument);
+    return makeListFromExpressions(node.expressions, node.typeArgument,
+        isGrowable: true);
   }
 
-  w.ValueType makeList(
-      List<Expression> expressions, Class cls, DartType typeArg) {
+  /// Takes a List class, a type argument, a function which will be called for
+  /// each item in the list with the expected type of the element, and a list
+  /// length, and creates a Dart List on the stack.
+  w.ValueType makeList(DartType typeArg, int length,
+      void Function(w.ValueType, int) generateItem,
+      {bool isGrowable = false}) {
+    Class cls = isGrowable
+        ? translator.growableListClass
+        : translator.fixedLengthListClass;
     ClassInfo info = translator.classInfo[cls]!;
     translator.functions.allocateClass(info.classId);
     w.RefType refType = info.struct.fields.last.type.unpacked as w.RefType;
     w.ArrayType arrayType = refType.heapType as w.ArrayType;
     w.ValueType elementType = arrayType.elementType.type.unpacked;
-    int length = expressions.length;
 
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
@@ -1999,7 +2006,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         for (int i = 0; i < length; i++) {
           b.local_get(arrayLocal);
           b.i32_const(i);
-          wrap(expressions[i], elementType);
+          generateItem(elementType, i);
           b.array_set(arrayType);
         }
         b.local_get(arrayLocal);
@@ -2008,8 +2015,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         }
       }
     } else {
-      for (Expression expression in expressions) {
-        wrap(expression, elementType);
+      for (int i = 0; i < length; i++) {
+        generateItem(elementType, i);
       }
       translator.array_init(b, arrayType, length);
     }
@@ -2017,6 +2024,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     return info.nonNullableType;
   }
+
+  w.ValueType makeListFromExpressions(
+          List<Expression> expressions, DartType typeArg,
+          {bool isGrowable = false}) =>
+      makeList(typeArg, expressions.length,
+          (w.ValueType elementType, int i) => wrap(expressions[i], elementType),
+          isGrowable: isGrowable);
 
   @override
   w.ValueType visitMapLiteral(MapLiteral node, w.ValueType expectedType) {

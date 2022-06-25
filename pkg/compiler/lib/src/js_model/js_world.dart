@@ -30,7 +30,7 @@ import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../ordered_typeset.dart';
 import '../options.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
 import '../universe/function_set.dart' show FunctionSet;

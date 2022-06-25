@@ -78,6 +78,9 @@ class Types {
   InterfaceType get namedParameterType =>
       InterfaceType(translator.namedParameterClass, Nullability.nonNullable);
 
+  InterfaceType get typeType =>
+      InterfaceType(translator.typeClass, Nullability.nonNullable);
+
   CoreTypes get coreTypes => translator.coreTypes;
 
   /// Builds a [Map<int, Map<int, List<DartType>>>] to store subtype
@@ -257,10 +260,8 @@ class Types {
   }
 
   void _makeTypeList(CodeGenerator codeGen, List<DartType> types) {
-    w.ValueType listType = codeGen.makeList(
-        types.map((t) => TypeLiteral(t)).toList(),
-        translator.fixedLengthListClass,
-        InterfaceType(translator.typeClass, Nullability.nonNullable));
+    w.ValueType listType = codeGen.makeListFromExpressions(
+        types.map((t) => TypeLiteral(t)).toList(), typeType);
     translator.convertType(codeGen.function, listType, typeListExpectedType);
   }
 
@@ -333,8 +334,8 @@ class Types {
                   BoolLiteral(n.isRequired)
                 ])));
       }
-      w.ValueType namedParametersListType = codeGen.makeList(
-          expressions, translator.fixedLengthListClass, namedParameterType);
+      w.ValueType namedParametersListType =
+          codeGen.makeListFromExpressions(expressions, namedParameterType);
       translator.convertType(codeGen.function, namedParametersListType,
           namedParametersExpectedType);
     }

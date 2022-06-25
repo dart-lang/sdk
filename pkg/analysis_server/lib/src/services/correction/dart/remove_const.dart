@@ -6,7 +6,6 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -38,7 +37,7 @@ abstract class _RemoveConst extends CorrectionProducer {
     Token? constToken;
     if (expression is InstanceCreationExpression) {
       constToken = expression.keyword;
-    } else if (expression is TypedLiteralImpl) {
+    } else if (expression is TypedLiteral) {
       constToken = expression.constKeyword;
     }
 

@@ -28,7 +28,7 @@ import '../js_emitter/code_emitter_task.dart' show Emitter;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/type_recipe.dart' show TypeRecipe;
 import '../native/behavior.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../ssa/ssa.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';

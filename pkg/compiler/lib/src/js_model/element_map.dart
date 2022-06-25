@@ -21,7 +21,7 @@ import '../js_model/class_type_variable_access.dart';
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/behavior.dart';
 import '../serialization/deferrable.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../world.dart';

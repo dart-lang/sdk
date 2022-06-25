@@ -669,6 +669,5 @@ _TypeUniverse _typeUniverse = _TypeUniverse.create();
 
 @pragma("wasm:entry-point")
 bool _isSubtype(Object? s, _Type t) {
-  return _typeUniverse.isSubtype(
-      unsafeCast<_Type>(s.runtimeType), null, t, null);
+  return _typeUniverse.isSubtype(s._runtimeType, null, t, null);
 }

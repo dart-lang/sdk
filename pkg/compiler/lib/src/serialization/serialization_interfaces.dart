@@ -3,14 +3,29 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir
-    show DartType, LibraryDependency, Member, Name, TreeNode;
+    show
+        Class,
+        DartType,
+        Library,
+        LibraryDependency,
+        Member,
+        Name,
+        TreeNode,
+        TypeParameter;
 
+import '../common.dart';
 import '../constants/values.dart' show ConstantValue;
+import '../deferred_load/output_unit.dart';
 import '../elements/entities.dart';
+import '../elements/indexed.dart';
 import '../elements/types.dart' show DartType;
 import '../inferrer/abstract_value_domain.dart' show AbstractValue;
-
+import '../js/js.dart' as js;
+import '../js_model/type_recipe.dart';
 import 'deferrable.dart';
+import 'member_data.dart' show ComponentLookup;
+
+export 'member_data.dart' show ComponentLookup;
 export 'tags.dart';
 
 abstract class StringInterner {
@@ -62,6 +77,9 @@ abstract class DataSinkWriter {
   void writeTreeNode(ir.TreeNode value);
   void writeTreeNodeOrNull(ir.TreeNode value);
   void writeTreeNodes(Iterable<ir.TreeNode>? values, {bool allowNull = false});
+  void writeTreeNodeMap<V>(Map<ir.TreeNode, V> map, void f(V value));
+
+  void writeClassNode(ir.Class value);
 
   // TODO(48820): 'covariant ClassEntity' is used below because the
   // implementation takes IndexedClass. What this means is that in pre-NNBD
@@ -97,6 +115,10 @@ abstract class DataSinkWriter {
   void writeLibraryMap<V>(Map<LibraryEntity, V>? map, void f(V value),
       {bool allowNull = false});
 
+  void writeLibraryNode(ir.Library value);
+
+  void writeTypeRecipe(TypeRecipe value);
+
   void writeDartTypeNode(ir.DartType value);
   void writeDartTypeNodeOrNull(ir.DartType? value);
   void writeDartTypeNodes(Iterable<ir.DartType>? values,
@@ -106,6 +128,12 @@ abstract class DataSinkWriter {
   void writeDartTypeOrNull(DartType? value);
   void writeDartTypesOrNull(Iterable<DartType>? values);
   void writeDartTypes(Iterable<DartType> values);
+
+  void writeTypeParameterNode(ir.TypeParameter value);
+  void writeTypeParameterNodes(Iterable<ir.TypeParameter> values);
+
+  void writeTypeVariableMap<V>(
+      Map<IndexedTypeVariable, V> map, void f(V value));
 
   void inMemberContext(ir.Member context, void f());
   void writeTreeNodeMapInContext<V>(Map<ir.TreeNode, V>? map, void f(V value),
@@ -126,6 +154,9 @@ abstract class DataSinkWriter {
   void writeDoubleValue(double value);
   void writeIntegerValue(int value);
 
+  void writeLocalOrNull(Local? local);
+  void writeLocalMap<V>(Map<Local, V> map, void f(V value));
+
   void writeImport(ImportEntity import);
   void writeImportOrNull(ImportEntity? import);
   void writeImports(Iterable<ImportEntity>? values, {bool allowNull = false});
@@ -133,6 +164,10 @@ abstract class DataSinkWriter {
       {bool allowNull = false});
 
   void writeAbstractValue(AbstractValue value);
+
+  void writeJsNodeOrNull(js.Node? value);
+
+  void writeSourceSpan(SourceSpan value);
 
   void writeDeferrable(void f());
 }
@@ -142,6 +177,11 @@ abstract class DataSourceReader {
   int get length;
   int get startOffset;
   int get endOffset;
+
+  void registerComponentLookup(ComponentLookup componentLookup);
+  void registerLocalLookup(LocalLookup localLookup);
+  void registerEntityLookup(EntityLookup entityLookup);
+  void registerEntityReader(EntityReader reader);
 
   void begin(String tag);
   void end(String tag);
@@ -170,6 +210,10 @@ abstract class DataSourceReader {
   ir.TreeNode? readTreeNodeOrNull();
   List<E> readTreeNodes<E extends ir.TreeNode>();
   List<E>? readTreeNodesOrNull<E extends ir.TreeNode>();
+  Map<K, V> readTreeNodeMap<K extends ir.TreeNode, V>(V f());
+  Map<K, V> readTreeNodeMapOrNull<K extends ir.TreeNode, V>(V f());
+
+  ir.Class readClassNode();
 
   ClassEntity readClass(); // IndexedClass
   ClassEntity? readClassOrNull(); // IndexedClass
@@ -193,6 +237,10 @@ abstract class DataSourceReader {
   Map<K, V> readLibraryMap<K extends LibraryEntity, V>(V f());
   Map<K, V>? readLibraryMapOrNull<K extends LibraryEntity, V>(V f());
 
+  ir.Library readLibraryNode();
+
+  TypeRecipe readTypeRecipe();
+
   ir.DartType readDartTypeNode();
   ir.DartType? readDartTypeNodeOrNull();
   List<ir.DartType> readDartTypeNodes();
@@ -202,6 +250,11 @@ abstract class DataSourceReader {
   DartType? readDartTypeOrNull();
   List<DartType> readDartTypes();
   List<DartType>? readDartTypesOrNull();
+
+  Map<K, V> readTypeVariableMap<K extends IndexedTypeVariable, V>(V f());
+
+  ir.TypeParameter readTypeParameterNode();
+  List<ir.TypeParameter> readTypeParameterNodes();
 
   T inMemberContext<T>(ir.Member context, T f());
   Map<K, V> readTreeNodeMapInContext<K extends ir.TreeNode, V>(V f());
@@ -232,7 +285,97 @@ abstract class DataSourceReader {
 
   AbstractValue readAbstractValue();
 
+  js.Node? readJsNodeOrNull();
+
+  SourceSpan readSourceSpan();
+
+  Local? readLocalOrNull();
+  Map<K, V> readLocalMap<K extends Local, V>(V f());
+
   E readWithSource<E>(DataSourceReader source, E f());
   E readWithOffset<E>(int offset, E f());
   Deferrable<E> readDeferrable<E>(E f(), {bool cacheData = true});
+}
+
+/// Interface used for looking up locals by index during deserialization.
+abstract class LocalLookup {
+  Local getLocalByIndex(MemberEntity memberContext, int index);
+}
+
+/// Interface used for reading codegen only data during deserialization.
+abstract class CodegenReader {
+  AbstractValue readAbstractValue(DataSourceReader source);
+  OutputUnit readOutputUnitReference(DataSourceReader source);
+  js.Node readJsNode(DataSourceReader source);
+  TypeRecipe readTypeRecipe(DataSourceReader source);
+}
+
+/// Interface used for writing codegen only data during serialization.
+abstract class CodegenWriter {
+  void writeAbstractValue(DataSinkWriter sink, AbstractValue value);
+  void writeOutputUnitReference(DataSinkWriter sink, OutputUnit value);
+  void writeJsNode(DataSinkWriter sink, js.Node node);
+  void writeTypeRecipe(DataSinkWriter sink, TypeRecipe recipe);
+}
+
+/// Interface used for looking up entities by index during deserialization.
+abstract class EntityLookup {
+  /// Returns the indexed library corresponding to [index].
+  IndexedLibrary getLibraryByIndex(int index);
+
+  /// Returns the indexed class corresponding to [index].
+  IndexedClass getClassByIndex(int index);
+
+  /// Returns the indexed member corresponding to [index].
+  IndexedMember getMemberByIndex(int index);
+
+  /// Returns the indexed type variable corresponding to [index].
+  IndexedTypeVariable getTypeVariableByIndex(int index);
+}
+
+/// Decoding strategy for entity references.
+class EntityReader {
+  const EntityReader();
+
+  IndexedLibrary readLibraryFromDataSource(
+      DataSourceReader source, EntityLookup entityLookup) {
+    return entityLookup.getLibraryByIndex(source.readInt());
+  }
+
+  IndexedClass readClassFromDataSource(
+      DataSourceReader source, EntityLookup entityLookup) {
+    return entityLookup.getClassByIndex(source.readInt());
+  }
+
+  IndexedMember readMemberFromDataSource(
+      DataSourceReader source, EntityLookup entityLookup) {
+    return entityLookup.getMemberByIndex(source.readInt());
+  }
+
+  IndexedTypeVariable readTypeVariableFromDataSource(
+      DataSourceReader source, EntityLookup entityLookup) {
+    return entityLookup.getTypeVariableByIndex(source.readInt());
+  }
+}
+
+/// Encoding strategy for entity references.
+class EntityWriter {
+  const EntityWriter();
+
+  void writeLibraryToDataSink(DataSinkWriter sink, IndexedLibrary value) {
+    sink.writeInt(value.libraryIndex);
+  }
+
+  void writeClassToDataSink(DataSinkWriter sink, IndexedClass value) {
+    sink.writeInt(value.classIndex);
+  }
+
+  void writeMemberToDataSink(DataSinkWriter sink, IndexedMember value) {
+    sink.writeInt(value.memberIndex);
+  }
+
+  void writeTypeVariableToDataSink(
+      DataSinkWriter sink, IndexedTypeVariable value) {
+    sink.writeInt(value.typeVariableIndex);
+  }
 }

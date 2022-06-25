@@ -24,11 +24,11 @@ class DataSourceReader implements migrated.DataSourceReader {
   final bool useDataKinds;
   final ValueInterner /*?*/ interner;
   DataSourceIndices importedIndices;
-  EntityReader _entityReader = const EntityReader();
+  migrated.EntityReader _entityReader = const migrated.EntityReader();
   ComponentLookup _componentLookup;
-  EntityLookup _entityLookup;
-  LocalLookup _localLookup;
-  CodegenReader _codegenReader;
+  migrated.EntityLookup _entityLookup;
+  migrated.LocalLookup _localLookup;
+  migrated.CodegenReader _codegenReader;
 
   IndexedSource<String> _stringIndex;
   IndexedSource<Uri> _uriIndex;
@@ -159,6 +159,7 @@ class DataSourceReader implements migrated.DataSourceReader {
 
   /// Registers a [ComponentLookup] object with this data source to support
   /// deserialization of references to kernel nodes.
+  @override
   void registerComponentLookup(ComponentLookup componentLookup) {
     assert(_componentLookup == null);
     _componentLookup = componentLookup;
@@ -171,45 +172,48 @@ class DataSourceReader implements migrated.DataSourceReader {
 
   /// Registers an [EntityLookup] object with this data source to support
   /// deserialization of references to indexed entities.
-  void registerEntityLookup(EntityLookup entityLookup) {
+  @override
+  void registerEntityLookup(migrated.EntityLookup entityLookup) {
     assert(_entityLookup == null);
     _entityLookup = entityLookup;
   }
 
-  EntityLookup get entityLookup {
+  migrated.EntityLookup get entityLookup {
     assert(_entityLookup != null);
     return _entityLookup /*!*/;
   }
 
   /// Registers an [EntityReader] with this data source for non-default encoding
   /// of entity references.
-  void registerEntityReader(EntityReader reader) {
+  @override
+  void registerEntityReader(migrated.EntityReader reader) {
     assert(reader != null);
     _entityReader = reader;
   }
 
   /// Registers a [LocalLookup] object with this data source to support
-  void registerLocalLookup(LocalLookup localLookup) {
+  @override
+  void registerLocalLookup(migrated.LocalLookup localLookup) {
     assert(_localLookup == null);
     _localLookup = localLookup;
   }
 
-  LocalLookup get localLookup {
+  migrated.LocalLookup get localLookup {
     assert(_localLookup != null);
     return _localLookup /*!*/;
   }
 
-  /// Registers a [CodegenReader] with this data source to support
+  /// Registers a [migrated.CodegenReader] with this data source to support
   /// deserialization of codegen only data.
-  void registerCodegenReader(CodegenReader reader) {
+  void registerCodegenReader(migrated.CodegenReader reader) {
     assert(reader != null);
     assert(_codegenReader == null);
     _codegenReader = reader;
   }
 
-  /// Unregisters the [CodegenReader] from this data source to remove support
+  /// Unregisters the [migrated.CodegenReader] from this data source to remove support
   /// for deserialization of codegen only data.
-  void deregisterCodegenReader(CodegenReader reader) {
+  void deregisterCodegenReader(migrated.CodegenReader reader) {
     assert(_codegenReader == reader);
     _codegenReader = null;
   }
@@ -446,6 +450,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a reference to a kernel library node from this data source.
+  @override
   ir.Library readLibraryNode() {
     _checkDataKind(DataKind.libraryNode);
     return _readLibraryData().node;
@@ -457,6 +462,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a reference to a kernel class node from this data source.
+  @override
   ir.Class readClassNode() {
     _checkDataKind(DataKind.classNode);
     return _readClassData().node;
@@ -658,10 +664,15 @@ class DataSourceReader implements migrated.DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeTreeNodeMap].
-  Map<K, V> readTreeNodeMap<K extends ir.TreeNode, V>(V f(),
-      {bool emptyAsNull = false}) {
+  @override
+  Map<K, V> readTreeNodeMap<K extends ir.TreeNode, V>(V f()) {
+    return readTreeNodeMapOrNull(f) ?? <K, V>{};
+  }
+
+  @override
+  Map<K, V> readTreeNodeMapOrNull<K extends ir.TreeNode, V>(V f()) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
+    if (count == 0) return null;
     Map<K, V> map = {};
     for (int i = 0; i < count; i++) {
       ir.TreeNode node = readTreeNode();
@@ -742,6 +753,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a reference to a kernel type parameter node from this data source.
+  @override
   ir.TypeParameter readTypeParameterNode() {
     _checkDataKind(DataKind.typeParameterNode);
     return _readTypeParameter(null);
@@ -766,9 +778,9 @@ class DataSourceReader implements migrated.DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeTypeParameterNodes].
-  List<ir.TypeParameter> readTypeParameterNodes({bool emptyAsNull = false}) {
+  @override
+  List<ir.TypeParameter> readTypeParameterNodes() {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
     List<ir.TypeParameter> list = List<ir.TypeParameter>.filled(count, null);
     for (int i = 0; i < count; i++) {
       list[i] = readTypeParameterNode();
@@ -971,6 +983,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a source span from this data source.
+  @override
   SourceSpan readSourceSpan() {
     _checkDataKind(DataKind.sourceSpan);
     Uri uri = _readUri();
@@ -1183,10 +1196,9 @@ class DataSourceReader implements migrated.DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeTypeVariableMap].
-  Map<K, V> readTypeVariableMap<K extends IndexedTypeVariable, V>(V f(),
-      {bool emptyAsNull = false}) {
+  @override
+  Map<K, V> readTypeVariableMap<K extends IndexedTypeVariable, V>(V f()) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
     Map<K, V> map = {};
     for (int i = 0; i < count; i++) {
       IndexedTypeVariable node = readTypeVariable();
@@ -1221,6 +1233,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   }
 
   /// Reads a reference to a potentially `null` local from this data source.
+  @override
   Local readLocalOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -1251,10 +1264,9 @@ class DataSourceReader implements migrated.DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeLocalMap].
-  Map<K, V> readLocalMap<K extends Local, V>(V f(),
-      {bool emptyAsNull = false}) {
+  @override
+  Map<K, V> readLocalMap<K extends Local, V>(V f()) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
     Map<K, V> map = {};
     for (int i = 0; i < count; i++) {
       Local local = readLocal();
@@ -1550,6 +1562,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   /// Reads a potentially `null` [js.Node] value from this data source.
   ///
   /// This feature is only available a [CodegenReader] has been registered.
+  @override
   js.Node readJsNodeOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -1561,6 +1574,7 @@ class DataSourceReader implements migrated.DataSourceReader {
   /// Reads a [TypeRecipe] value from this data source.
   ///
   /// This feature is only available a [CodegenReader] has been registered.
+  @override
   TypeRecipe readTypeRecipe() {
     assert(_codegenReader != null,
         "Can not deserialize a TypeRecipe without a registered codegen reader.");

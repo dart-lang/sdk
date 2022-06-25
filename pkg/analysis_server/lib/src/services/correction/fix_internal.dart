@@ -908,6 +908,9 @@ class FixProcessor extends BaseProcessor {
       ConvertToListLiteral.new,
       ReplaceWithFilled.new,
     ],
+    CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER: [
+      ConvertIntoBlockBody.new,
+    ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
       ChangeTo.classOrMixin,
       CreateClass.new,
