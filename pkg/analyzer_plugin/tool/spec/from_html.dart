@@ -5,9 +5,8 @@
 /// Code for reading an HTML API description.
 import 'dart:io';
 
-import 'package:analyzer_utilities/html.dart';
-import 'package:html/dom.dart' as dom;
-import 'package:html/parser.dart' as parser;
+import 'package:analyzer_utilities/html_dom.dart' as dom;
+import 'package:analyzer_utilities/html_generator.dart';
 import 'package:path/path.dart';
 
 import 'api.dart';
@@ -114,7 +113,7 @@ class ApiReader {
         throw Exception(
             '$context: Unexpected attribute in ${element.localName}: $name');
       }
-      attributesFound.add(name as String);
+      attributesFound.add(name);
     });
     for (var expectedAttribute in requiredAttributes) {
       if (!attributesFound.contains(expectedAttribute)) {
@@ -292,8 +291,9 @@ class ApiReader {
 
   /// Read the API description from file with the given [filePath].
   Api readApi() {
-    var htmlContents = File(filePath).readAsStringSync();
-    var document = parser.parse(htmlContents);
+    var file = File(filePath);
+    var htmlContents = file.readAsStringSync();
+    var document = dom.parse(htmlContents, file.uri);
     var htmlElement = document.children
         .singleWhere((element) => element.localName?.toLowerCase() == 'html');
     return apiFromHtml(htmlElement);

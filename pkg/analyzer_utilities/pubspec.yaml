@@ -8,7 +8,6 @@ environment:
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   analyzer: any
-  html: any
   meta: any
   path: any
   test: any

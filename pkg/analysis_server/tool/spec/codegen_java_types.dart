@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Code generation for the file "AnalysisServer.java".
+import 'package:analyzer_utilities/html_dom.dart' as dom;
 import 'package:analyzer_utilities/tools.dart';
-import 'package:html/dom.dart' as dom;
 
 import 'api.dart';
 import 'codegen_java.dart';

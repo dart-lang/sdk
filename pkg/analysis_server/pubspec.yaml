@@ -29,7 +29,6 @@ dependencies:
 dev_dependencies:
   analyzer_utilities: any
   cli_util: any
-  html: any
   lints: any
   logging: any
   matcher: any

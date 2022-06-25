@@ -4,8 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:analyzer_utilities/html_dom.dart' as dom;
 import 'package:analyzer_utilities/tools.dart';
-import 'package:html/dom.dart' as dom;
 import 'package:path/path.dart' as path;
 
 import 'api.dart';

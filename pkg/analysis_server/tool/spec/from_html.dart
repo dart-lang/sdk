@@ -5,9 +5,8 @@
 /// Code for reading an HTML API description.
 import 'dart:io';
 
-import 'package:analyzer_utilities/html.dart';
-import 'package:html/dom.dart' as dom;
-import 'package:html/parser.dart' as parser;
+import 'package:analyzer_utilities/html_dom.dart' as dom;
+import 'package:analyzer_utilities/html_generator.dart';
 import 'package:path/path.dart';
 
 import 'api.dart';
@@ -20,8 +19,6 @@ Api readApi(String pkgPath) {
 }
 
 typedef ElementProcessor = void Function(dom.Element element);
-
-typedef TextProcessor = void Function(dom.Text text);
 
 class ApiReader {
   static const List<String> specialElements = [
@@ -109,10 +106,6 @@ class ApiReader {
       {List<String> optionalAttributes = const []}) {
     var attributesFound = <String>{};
     element.attributes.forEach((name, value) {
-      if (name is! String) {
-        throw Exception(
-            '$context: Only string attribute names expected: $name');
-      }
       if (!requiredAttributes.contains(name) &&
           !optionalAttributes.contains(name)) {
         throw Exception(
@@ -319,8 +312,9 @@ class ApiReader {
 
   /// Read the API description from file with the given [filePath].
   Api readApi() {
-    var htmlContents = File(filePath).readAsStringSync();
-    var document = parser.parse(htmlContents);
+    var file = File(filePath);
+    var htmlContents = file.readAsStringSync();
+    var document = dom.parse(htmlContents, file.uri);
     var htmlElement = document.children
         .singleWhere((element) => element.localName!.toLowerCase() == 'html');
     return apiFromHtml(htmlElement);

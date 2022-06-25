@@ -6,7 +6,7 @@
 /// for visiting those data structures.
 import 'dart:collection';
 
-import 'package:html/dom.dart' as dom;
+import 'package:analyzer_utilities/html_dom.dart' as dom;
 
 /// Toplevel container for the API.
 class Api extends ApiNode {
@@ -303,8 +303,7 @@ class Request extends ApiNode {
 
 /// Base class for all possible types.
 abstract class TypeDecl extends ApiNode {
-  TypeDecl(super.html,
-      {super.experimental, super.deprecated});
+  TypeDecl(super.html, {super.experimental, super.deprecated});
 
   T accept<T>(ApiVisitor<T> visitor);
 }
@@ -413,6 +412,9 @@ class TypeObjectField extends ApiNode {
       bool experimental = false,
       bool deprecated = false})
       : super(html, experimental: experimental, deprecated: deprecated);
+
+  @override
+  String toString() => name;
 }
 
 /// A reference to a type which is either defined elsewhere in the API or which
