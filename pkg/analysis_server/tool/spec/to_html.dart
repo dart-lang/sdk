@@ -7,9 +7,9 @@
 /// in generated code.
 import 'dart:convert';
 
-import 'package:analyzer_utilities/html.dart';
+import 'package:analyzer_utilities/html_dom.dart' as dom;
+import 'package:analyzer_utilities/html_generator.dart';
 import 'package:analyzer_utilities/tools.dart';
-import 'package:html/dom.dart' as dom;
 
 import 'api.dart';
 import 'from_html.dart';
@@ -127,7 +127,6 @@ final GeneratedFile target =
     GeneratedFile('doc/api.html', (String pkgPath) async {
   var visitor = ToHtmlVisitor(readApi(pkgPath));
   var document = dom.Document();
-  document.append(dom.DocumentType('html', null, null));
   for (var node in visitor.collectHtml(visitor.visitApi)) {
     document.append(node);
   }
@@ -169,7 +168,7 @@ mixin HtmlMixin {
   void dl(void Function() callback) => element('dl', {}, callback);
   void dt(String cls, void Function() callback) =>
       element('dt', {'class': cls}, callback);
-  void element(String name, Map<Object, String> attributes,
+  void element(String name, Map<String, String> attributes,
       [void Function() callback]);
   void gray(void Function() callback) =>
       element('span', {'style': 'color:#999999'}, callback);
@@ -188,7 +187,7 @@ mixin HtmlMixin {
   void i(void Function() callback) => element('i', {}, callback);
   void li(void Function() callback) => element('li', {}, callback);
   void link(String id, void Function() callback,
-      [Map<Object, String>? attributes]) {
+      [Map<String, String>? attributes]) {
     attributes ??= {};
     attributes['href'] = '#$id';
     element('a', attributes, callback);
@@ -212,8 +211,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   /// Mappings from HTML elements to API nodes.
   ApiMappings apiMappings;
 
-  ToHtmlVisitor(super.api)
-      : apiMappings = ApiMappings(api) {
+  ToHtmlVisitor(super.api) : apiMappings = ApiMappings(api) {
     apiMappings.visitApi();
   }
 
@@ -470,7 +468,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
             }
         }
       } else if (node is dom.Text) {
-        var text = node.text;
+        var text = node.textRemoveTags;
         write(text);
       }
     }

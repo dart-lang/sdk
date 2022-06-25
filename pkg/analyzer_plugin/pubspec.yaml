@@ -19,7 +19,6 @@ dependencies:
 # See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
   analyzer_utilities: any
-  html: any
   meta: any
   path: any
   test_reflective_loader: any
