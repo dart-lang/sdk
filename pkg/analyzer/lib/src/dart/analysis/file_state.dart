@@ -1387,6 +1387,24 @@ class FileSystemState {
     return flag;
   }
 
+  /// When printing the state for testing, we want to see all files.
+  @visibleForTesting
+  void pullReferencedFiles() {
+    while (true) {
+      final fileCount = _pathToFile.length;
+      for (final file in _pathToFile.values.toList()) {
+        final kind = file.kind;
+        if (kind is LibraryOrAugmentationFileKind) {
+          kind.imports;
+          kind.exports;
+        }
+      }
+      if (_pathToFile.length == fileCount) {
+        break;
+      }
+    }
+  }
+
   /// Remove the file with the given [path].
   void removeFile(String path) {
     _clearFiles();
@@ -1476,6 +1494,9 @@ class FileTestData {
   final List<String> unlinkedKeyPut = [];
 
   FileTestData._(this.file, this.uri);
+
+  @override
+  int get hashCode => file.hashCode;
 
   @override
   bool operator ==(Object other) {
