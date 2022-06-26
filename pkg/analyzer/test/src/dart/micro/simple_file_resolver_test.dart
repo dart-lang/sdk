@@ -45,32 +45,44 @@ import 'b.dart';
     // First time we refresh everything.
     await resolveFile(c.path);
 
+    // TODO(scheglov) We have duplicates in `referencingFiles`.
+    // The reason is that we temporarily have two ways to access imports.
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_2, file_2]
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
     current
       id: file_1
-      kind: library
+      kind: library_2
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_2, file_2]
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
-    uri: package:dart.test/b.dart
   /workspace/dart/test/lib/c.dart
+    uri: package:dart.test/c.dart
     current
       id: file_2
-      kind: library
+      kind: library_3
+        imports
+          library_0
+          library_2
+          library_1 dart:core synthetic
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
-    uri: package:dart.test/c.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current
@@ -104,29 +116,39 @@ byteStore
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_2, file_2]
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
     current
       id: file_1
-      kind: library
+      kind: library_2
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_2, file_2]
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
-    uri: package:dart.test/b.dart
   /workspace/dart/test/lib/c.dart
+    uri: package:dart.test/c.dart
     current
       id: file_2
-      kind: library
+      kind: library_3
+        imports
+          library_0
+          library_2
+          library_1 dart:core synthetic
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
-    uri: package:dart.test/c.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current
@@ -160,29 +182,39 @@ byteStore
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_2, file_2]
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
     current
       id: file_1
-      kind: library
+      kind: library_2
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_2, file_2]
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
-    uri: package:dart.test/b.dart
   /workspace/dart/test/lib/c.dart
+    uri: package:dart.test/c.dart
     current
       id: file_2
-      kind: library
+      kind: library_3
+        imports
+          library_0
+          library_2
+          library_1 dart:core synthetic
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
-    uri: package:dart.test/c.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current
@@ -216,21 +248,24 @@ byteStore
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
     current
       id: file_1
-      kind: library
+      kind: library_2
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_2]
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
-    uri: package:dart.test/b.dart
   /workspace/dart/test/lib/c.dart
+    uri: package:dart.test/c.dart
     unlinkedGet: []
     unlinkedPut: [k02]
-    uri: package:dart.test/c.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     get: []
@@ -256,29 +291,39 @@ byteStore
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     current
       id: file_3
-      kind: library
+      kind: library_4
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_4, file_4]
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00, k00]
-    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
     current
       id: file_1
-      kind: library
+      kind: library_2
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_2, file_4, file_4]
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
-    uri: package:dart.test/b.dart
   /workspace/dart/test/lib/c.dart
+    uri: package:dart.test/c.dart
     current
       id: file_4
-      kind: library
+      kind: library_5
+        imports
+          library_4
+          library_2
+          library_1 dart:core synthetic
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02, k02]
-    uri: package:dart.test/c.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current
@@ -427,22 +472,26 @@ class B extends A {}
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+        parts: file_1
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
     current
       id: file_1
-      kind: partOfUriKnown
-        library: file_0
+      kind: partOfUriKnown_2
+        library: library_0
+      referencingFiles: [file_0]
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
-    uri: package:dart.test/b.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current
@@ -462,13 +511,13 @@ byteStore
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
     unlinkedGet: []
     unlinkedPut: [k01]
-    uri: package:dart.test/b.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     get: []
@@ -483,22 +532,26 @@ byteStore
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     current
       id: file_2
-      kind: library
+      kind: library_3
+        imports
+          library_1 dart:core synthetic
+        parts: file_3
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00, k00]
-    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
     current
       id: file_3
-      kind: partOfUriKnown
-        library: file_2
+      kind: partOfUriKnown_4
+        library: library_3
+      referencingFiles: [file_2]
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01, k01]
-    uri: package:dart.test/b.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current
@@ -535,30 +588,38 @@ import 'a.dart';
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+        parts: file_1
+      referencingFiles: [file_2, file_2]
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
     current
       id: file_1
-      kind: partOfUriKnown
-        library: file_0
+      kind: partOfUriKnown_2
+        library: library_0
+      referencingFiles: [file_0]
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
-    uri: package:dart.test/b.dart
   /workspace/dart/test/lib/c.dart
+    uri: package:dart.test/c.dart
     current
       id: file_2
-      kind: library
+      kind: library_3
+        imports
+          library_0
+          library_1 dart:core synthetic
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
-    uri: package:dart.test/c.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current
@@ -585,17 +646,17 @@ byteStore
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
     unlinkedGet: []
     unlinkedPut: [k01]
-    uri: package:dart.test/b.dart
   /workspace/dart/test/lib/c.dart
+    uri: package:dart.test/c.dart
     unlinkedGet: []
     unlinkedPut: [k02]
-    uri: package:dart.test/c.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     get: []
@@ -613,30 +674,38 @@ byteStore
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     current
       id: file_3
-      kind: library
+      kind: library_4
+        imports
+          library_1 dart:core synthetic
+        parts: file_4
+      referencingFiles: [file_5, file_5]
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00, k00]
-    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
     current
       id: file_4
-      kind: partOfUriKnown
-        library: file_3
+      kind: partOfUriKnown_5
+        library: library_4
+      referencingFiles: [file_3]
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01, k01]
-    uri: package:dart.test/b.dart
   /workspace/dart/test/lib/c.dart
+    uri: package:dart.test/c.dart
     current
       id: file_5
-      kind: library
+      kind: library_6
+        imports
+          library_4
+          library_1 dart:core synthetic
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02, k02]
-    uri: package:dart.test/c.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current
@@ -780,13 +849,15 @@ class A {}
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.test/a.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current
@@ -808,9 +879,9 @@ byteStore
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.test/a.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     get: []
@@ -1317,13 +1388,15 @@ final b = a;
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.test/a.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current
@@ -1344,13 +1417,15 @@ byteStore
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.test/a.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current
@@ -1375,21 +1450,27 @@ byteStore
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_1, file_1]
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
     current
       id: file_1
-      kind: library
+      kind: library_2
+        imports
+          library_0
+          library_1 dart:core synthetic
       unlinkedKey: k08
     unlinkedGet: []
     unlinkedPut: [k08]
-    uri: package:dart.test/b.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current
@@ -1426,21 +1507,27 @@ byteStore
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_1, file_1]
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.test/a.dart
   /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
     current
       id: file_1
-      kind: library
+      kind: library_2
+        imports
+          library_0
+          library_1 dart:core synthetic
       unlinkedKey: k08
     unlinkedGet: []
     unlinkedPut: [k08]
-    uri: package:dart.test/b.dart
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current
@@ -1481,13 +1568,15 @@ var foo = 0;
     assertStateString(r'''
 files
   /workspace/dart/test/lib/test.dart
+    uri: package:dart.test/test.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.test/test.dart
 libraryCycles
   /workspace/dart/test/lib/test.dart
     current
@@ -1514,13 +1603,15 @@ byteStore
     assertStateString(r'''
 files
   /workspace/dart/test/lib/test.dart
+    uri: package:dart.test/test.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.test/test.dart
 libraryCycles
   /workspace/dart/test/lib/test.dart
     current
@@ -1652,29 +1743,38 @@ class C {}
     assertStateString(r'''
 files
   /workspace/dart/aaa/lib/a.dart
+    uri: package:dart.aaa/a.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_1, file_1, file_2, file_2]
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.aaa/a.dart
   /workspace/dart/aaa/lib/b.dart
+    uri: package:dart.aaa/b.dart
     current
       id: file_1
-      kind: library
+      kind: library_2
+        imports
+          library_0
+          library_1 dart:core synthetic
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
-    uri: package:dart.aaa/b.dart
   /workspace/dart/aaa/lib/c.dart
+    uri: package:dart.aaa/c.dart
     current
       id: file_2
-      kind: library
+      kind: library_3
+        imports
+          library_0
+          library_1 dart:core synthetic
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
-    uri: package:dart.aaa/c.dart
 libraryCycles
   /workspace/dart/aaa/lib/a.dart
     current
@@ -1709,25 +1809,31 @@ byteStore
     assertStateString(r'''
 files
   /workspace/dart/aaa/lib/a.dart
+    uri: package:dart.aaa/a.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_1, file_1, file_2, file_2]
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.aaa/a.dart
   /workspace/dart/aaa/lib/b.dart
+    uri: package:dart.aaa/b.dart
     unlinkedGet: []
     unlinkedPut: [k01]
-    uri: package:dart.aaa/b.dart
   /workspace/dart/aaa/lib/c.dart
+    uri: package:dart.aaa/c.dart
     current
       id: file_2
-      kind: library
+      kind: library_3
+        imports
+          library_0
+          library_1 dart:core synthetic
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
-    uri: package:dart.aaa/c.dart
 libraryCycles
   /workspace/dart/aaa/lib/a.dart
     current
@@ -1785,53 +1891,72 @@ import 'c.dart';
     assertStateString(r'''
 files
   /workspace/dart/aaa/lib/a.dart
+    uri: package:dart.aaa/a.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_3, file_3, file_4, file_4]
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.aaa/a.dart
   /workspace/dart/aaa/lib/b.dart
+    uri: package:dart.aaa/b.dart
     current
       id: file_1
-      kind: library
+      kind: library_2
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_4, file_4]
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
-    uri: package:dart.aaa/b.dart
   /workspace/dart/aaa/lib/c.dart
+    uri: package:dart.aaa/c.dart
     current
       id: file_2
-      kind: library
+      kind: library_3
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_5, file_5]
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
-    uri: package:dart.aaa/c.dart
   /workspace/dart/aaa/lib/d.dart
+    uri: package:dart.aaa/d.dart
     current
       id: file_3
-      kind: library
+      kind: library_4
+        imports
+          library_0
+          library_1 dart:core synthetic
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
-    uri: package:dart.aaa/d.dart
   /workspace/dart/aaa/lib/e.dart
+    uri: package:dart.aaa/e.dart
     current
       id: file_4
-      kind: library
+      kind: library_5
+        imports
+          library_0
+          library_2
+          library_1 dart:core synthetic
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
-    uri: package:dart.aaa/e.dart
   /workspace/dart/aaa/lib/f.dart
+    uri: package:dart.aaa/f.dart
     current
       id: file_5
-      kind: library
+      kind: library_6
+        imports
+          library_3
+          library_1 dart:core synthetic
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
-    uri: package:dart.aaa/f.dart
 libraryCycles
   /workspace/dart/aaa/lib/a.dart
     current
@@ -1886,45 +2011,57 @@ byteStore
     assertStateString(r'''
 files
   /workspace/dart/aaa/lib/a.dart
+    uri: package:dart.aaa/a.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_3, file_3, file_4, file_4]
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.aaa/a.dart
   /workspace/dart/aaa/lib/b.dart
+    uri: package:dart.aaa/b.dart
     unlinkedGet: []
     unlinkedPut: [k01]
-    uri: package:dart.aaa/b.dart
   /workspace/dart/aaa/lib/c.dart
+    uri: package:dart.aaa/c.dart
     current
       id: file_2
-      kind: library
+      kind: library_3
+        imports
+          library_1 dart:core synthetic
+      referencingFiles: [file_5, file_5]
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
-    uri: package:dart.aaa/c.dart
   /workspace/dart/aaa/lib/d.dart
+    uri: package:dart.aaa/d.dart
     current
       id: file_3
-      kind: library
+      kind: library_4
+        imports
+          library_0
+          library_1 dart:core synthetic
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
-    uri: package:dart.aaa/d.dart
   /workspace/dart/aaa/lib/e.dart
+    uri: package:dart.aaa/e.dart
     unlinkedGet: []
     unlinkedPut: [k04]
-    uri: package:dart.aaa/e.dart
   /workspace/dart/aaa/lib/f.dart
+    uri: package:dart.aaa/f.dart
     current
       id: file_5
-      kind: library
+      kind: library_6
+        imports
+          library_3
+          library_1 dart:core synthetic
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
-    uri: package:dart.aaa/f.dart
 libraryCycles
   /workspace/dart/aaa/lib/a.dart
     current
@@ -1981,13 +2118,15 @@ class A {}
     assertStateString(r'''
 files
   /workspace/dart/aaa/lib/a.dart
+    uri: package:dart.aaa/a.dart
     current
       id: file_0
-      kind: library
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
-    uri: package:dart.aaa/a.dart
 libraryCycles
   /workspace/dart/aaa/lib/a.dart
     current

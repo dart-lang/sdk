@@ -32,6 +32,7 @@ import '../../../generated/test_support.dart';
 import '../../summary/macros_environment.dart';
 import '../analysis/analyzer_state_printer.dart';
 import 'context_collection_resolution_caching.dart';
+import 'node_text_expectations.dart';
 import 'resolution.dart';
 
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -138,6 +139,8 @@ abstract class ContextResolutionTest
   /// Optional summaries to provide for the collection.
   List<File>? librarySummaryFiles;
 
+  final FileStateKindIdProvider _fileStateKindIdProvider =
+      FileStateKindIdProvider();
   final FileStateIdProvider _fileStateIdProvider = FileStateIdProvider();
   final KeyShorter _keyShorter = KeyShorter();
 
@@ -177,17 +180,20 @@ abstract class ContextResolutionTest
     final buffer = StringBuffer();
     AnalyzerStatePrinter(
       byteStore: _byteStore,
+      fileStateKindIdProvider: _fileStateKindIdProvider,
       fileStateIdProvider: _fileStateIdProvider,
       keyShorter: _keyShorter,
       libraryContext: analysisDriver.libraryContext,
       omitSdkFiles: omitSdkFiles,
       resourceProvider: resourceProvider,
       sink: buffer,
+      withKeysGetPut: false,
     ).writeAnalysisDriver(analysisDriver.testView!);
     final actual = buffer.toString();
 
     if (actual != expected) {
       print(actual);
+      NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
   }
