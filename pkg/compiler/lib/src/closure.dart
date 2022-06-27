@@ -11,6 +11,9 @@ import 'js_model/closure.dart';
 import 'js_model/element_map.dart';
 import 'serialization/serialization_interfaces.dart';
 
+export 'closure_migrated.dart'
+    show BoxLocal, JSEntity, PrivatelyNamedJSEntity, ThisLocal;
+
 /// Class that provides information for how closures are rewritten/represented
 /// to preserve Dart semantics when compiled to JavaScript. Given a particular
 /// node to look up, it returns a information about the internal representation
@@ -318,46 +321,6 @@ class ClosureRepresentationInfo extends ScopeInfo {
   bool get isClosure => false;
 }
 
-/// A local variable that contains the box object holding the [BoxFieldElement]
-/// fields.
-class BoxLocal extends Local {
-  final ClassEntity container;
-
-  BoxLocal(this.container);
-
-  @override
-  String get name => container.name;
-
-  @override
-  bool operator ==(other) {
-    return other is BoxLocal && other.container == container;
-  }
-
-  @override
-  int get hashCode => container.hashCode;
-
-  @override
-  String toString() => 'BoxLocal($name)';
-}
-
-/// A local variable used encode the direct (uncaptured) references to [this].
-class ThisLocal extends Local {
-  final ClassEntity enclosingClass;
-
-  ThisLocal(this.enclosingClass);
-
-  @override
-  String get name => 'this';
-
-  @override
-  bool operator ==(other) {
-    return other is ThisLocal && other.enclosingClass == enclosingClass;
-  }
-
-  @override
-  int get hashCode => enclosingClass.hashCode;
-}
-
 /// A type variable as a local variable.
 class TypeVariableLocal implements Local {
   final TypeVariableEntity typeVariable;
@@ -384,15 +347,4 @@ class TypeVariableLocal implements Local {
     sb.write(')');
     return sb.toString();
   }
-}
-
-///
-/// Move the below classes to a JS model eventually.
-///
-abstract class JSEntity implements MemberEntity {
-  String get declaredName;
-}
-
-abstract class PrivatelyNamedJSEntity implements JSEntity {
-  Entity get rootOfScope;
 }

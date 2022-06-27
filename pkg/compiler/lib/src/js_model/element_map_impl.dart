@@ -52,6 +52,7 @@ import '../universe/member_usage.dart';
 import '../universe/selector.dart';
 
 import 'closure.dart';
+import 'closure_migrated.dart' as closureMigrated;
 import 'elements.dart';
 import 'element_map.dart';
 import 'env.dart';
@@ -362,7 +363,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       JClassData data = JClassData.readFromDataSource(source);
       classes.postRegisterData(cls, data);
       classMap[env.cls] = cls;
-      if (cls is! JRecord && cls is! JClosureClass) {
+      if (cls is! closureMigrated.JRecord &&
+          cls is! closureMigrated.JClosureClass) {
         // Synthesized classes are not part of the library environment.
         libraries.getEnv(cls.library).registerClass(cls.name, env);
       }
@@ -1780,7 +1782,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       NodeBox box = info.capturedVariablesAccessor;
 
       Map<String, IndexedMember> memberMap = {};
-      JRecord container = JRecord(member.library, box.name);
+      closureMigrated.JRecord container =
+          closureMigrated.JRecord(member.library, box.name);
       BoxLocal boxLocal = BoxLocal(container);
       InterfaceType thisType =
           types.interfaceType(container, const <DartType>[]);
@@ -1848,7 +1851,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     SourceSpan location = computeSourceSpanFromTreeNode(node);
     Map<String, IndexedMember> memberMap = {};
 
-    JClass classEntity = JClosureClass(enclosingLibrary, name);
+    JClass classEntity = closureMigrated.JClosureClass(enclosingLibrary, name);
     // Create a classData and set up the interfaces and subclass
     // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
     InterfaceType thisType =
@@ -1866,7 +1869,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       ir.FunctionDeclaration parent = node.parent;
       closureEntityNode = parent.variable;
     } else if (node.parent is ir.FunctionExpression) {
-      closureEntity = AnonymousClosureLocal(classEntity);
+      closureEntity = closureMigrated.AnonymousClosureLocal(classEntity);
     }
 
     IndexedFunction callMethod = JClosureCallMethod(classEntity,
