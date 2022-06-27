@@ -681,3 +681,5 @@ interface NoncedElement {
 // PositionCallback can be used on a deprecated Position object,
 // a GeolocationPosition object, or a Firefox-specific object.
 callback PositionCallback = void(object position);
+
+interface MathMLElement : Element {};
