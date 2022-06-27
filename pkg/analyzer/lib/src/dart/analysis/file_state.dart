@@ -461,16 +461,6 @@ class FileState {
     }
   }
 
-  /// Return the content of the file, the empty string if cannot be read.
-  ///
-  /// We read the file digest, end verify that it is the same as the digest
-  /// that was recorded during the file creation. If it is not, then the file
-  /// was changed, and we failed to call [FileSystemState.changeFile].
-  /// TODO(scheglov) replace with [content]
-  String getContent() {
-    return _fileContent!.content;
-  }
-
   /// Return a new parsed unresolved [CompilationUnit].
   CompilationUnitImpl parse([AnalysisErrorListener? errorListener]) {
     errorListener ??= AnalysisErrorListener.NULL_LISTENER;
@@ -1318,7 +1308,7 @@ class FileSystemState {
     _pathToFile.forEach((path, file) {
       // TODO(scheglov) tests for excluding generated
       if (!isGenerated(path)) {
-        if (file.getContent().contains(value)) {
+        if (file.content.contains(value)) {
           result.add(path);
         }
       }

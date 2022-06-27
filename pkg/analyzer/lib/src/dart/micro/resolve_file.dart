@@ -665,7 +665,7 @@ class FileResolver {
           file.path,
           file.uri,
           file.exists,
-          file.getContent(),
+          file.content,
           file.lineInfo,
           file.isPart,
           fileResult.unit,
