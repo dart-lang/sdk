@@ -1479,7 +1479,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       name,
       sourceFactory,
       analysisContext?.contextRoot.workspace,
-      analysisOptions,
       declaredVariables,
       _saltForUnlinked,
       _saltForElements,

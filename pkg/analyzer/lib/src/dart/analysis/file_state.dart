@@ -26,7 +26,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/exception/exception.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -1128,8 +1127,6 @@ class FileSystemState {
     this.contextName,
     this._sourceFactory,
     this._workspace,
-    @Deprecated('No longer used; will be removed')
-        AnalysisOptions analysisOptions,
     this._declaredVariables,
     this._saltForUnlinked,
     this._saltForElements,

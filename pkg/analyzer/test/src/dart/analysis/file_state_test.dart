@@ -17,8 +17,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisOptions, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -4728,7 +4726,6 @@ class FileSystemStateTest with ResourceProviderMixin {
       ResourceUriResolver(resourceProvider)
     ]);
 
-    AnalysisOptions analysisOptions = AnalysisOptionsImpl();
     var featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
@@ -4744,7 +4741,6 @@ class FileSystemStateTest with ResourceProviderMixin {
       'contextName',
       sourceFactory,
       workspace,
-      analysisOptions,
       DeclaredVariables(),
       Uint32List(0),
       Uint32List(0),

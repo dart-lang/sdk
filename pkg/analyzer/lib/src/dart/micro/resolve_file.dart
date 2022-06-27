@@ -722,7 +722,6 @@ class FileResolver {
         'contextName',
         sourceFactory,
         workspace,
-        AnalysisOptionsImpl(), // TODO(scheglov) remove it
         DeclaredVariables.fromMap({}),
         Uint32List(0), // _saltForUnlinked
         Uint32List(0), // _saltForElements
