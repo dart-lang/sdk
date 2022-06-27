@@ -4957,7 +4957,10 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HInstruction value = arguments[0];
     HInstruction name = options.omitLateNames ? null : arguments[1];
 
-    push(HLateReadCheck(value, name,
+    CheckPolicy policy = closedWorld.annotationsData
+        .getLateVariableCheckPolicy(_currentFrame.member);
+
+    push(HLateReadCheck(value, name, policy.isTrusted,
         _abstractValueDomain.excludeLateSentinel(value.instructionType))
       ..sourceInformation = sourceInformation);
   }
@@ -4979,7 +4982,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HInstruction value = arguments[0];
     HInstruction name = options.omitLateNames ? null : arguments[1];
 
-    push(HLateWriteOnceCheck(value, name, _abstractValueDomain.dynamicType)
+    CheckPolicy policy = closedWorld.annotationsData
+        .getLateVariableCheckPolicy(_currentFrame.member);
+
+    push(HLateWriteOnceCheck(
+        value, name, policy.isTrusted, _abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation);
   }
 
@@ -5000,7 +5007,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HInstruction value = arguments[0];
     HInstruction name = options.omitLateNames ? null : arguments[1];
 
-    push(HLateInitializeOnceCheck(value, name, _abstractValueDomain.dynamicType)
+    CheckPolicy policy = closedWorld.annotationsData
+        .getLateVariableCheckPolicy(_currentFrame.member);
+
+    push(HLateInitializeOnceCheck(
+        value, name, policy.isTrusted, _abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation);
   }
 

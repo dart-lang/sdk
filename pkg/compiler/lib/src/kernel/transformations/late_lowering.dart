@@ -540,6 +540,7 @@ class LateLowering {
     // The initializer is copied from [field] to [getter] so we copy the
     // transformer flags to reflect whether the getter contains super calls.
     getter.transformerFlags = field.transformerFlags;
+    _copyAnnotations(getter, field);
     enclosingClass.addProcedure(getter);
 
     VariableDeclaration setterValue = VariableDeclaration('value', type: type)
@@ -593,10 +594,23 @@ class LateLowering {
           reference: field.setterReference)
         ..fileOffset = fileOffset
         ..isNonNullableByDefault = true;
+      _copyAnnotations(setter, field);
       enclosingClass.addProcedure(setter);
     }
 
     return backingField;
+  }
+
+  void _copyAnnotations(Member target, Member source) {
+    for (final annotation in source.annotations) {
+      if (annotation is ConstantExpression) {
+        target.addAnnotation(
+            ConstantExpression(annotation.constant, annotation.type)
+              ..fileOffset = annotation.fileOffset);
+      } else {
+        throw StateError('Non-constant annotation on $source');
+      }
+    }
   }
 
   TreeNode transformField(Field field, Member contextMember) {
