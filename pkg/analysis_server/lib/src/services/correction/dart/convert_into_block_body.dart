@@ -61,7 +61,7 @@ class ConvertIntoBlockBody extends CorrectionProducer {
     var functionElement = _getFunctionElement(body.parent);
     if (functionElement == null) return null;
 
-    var lines = ['// TODO: implement ${functionElement.name}'];
+    var lines = ['// TODO: implement ${functionElement.displayName}'];
 
     var returnValueType = functionElement.returnType;
     if (!returnValueType.isVoid) {

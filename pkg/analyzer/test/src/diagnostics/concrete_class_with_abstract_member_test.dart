@@ -25,8 +25,6 @@ class A {
 ''', [
       error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 16,
           text: "'x' must have a method body because 'A' isn't abstract."),
-      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 16,
-          text: "'x=' must have a method body because 'A' isn't abstract."),
     ]);
   }
 
@@ -55,6 +53,17 @@ class A {
   external final int? x;
 }
 ''');
+  }
+
+  test_setter() async {
+    await assertErrorsInCode('''
+class A {
+  set s(int i);
+}
+''', [
+      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 13,
+          text: "'s' must have a method body because 'A' isn't abstract."),
+    ]);
   }
 }
 
