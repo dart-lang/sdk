@@ -556,7 +556,7 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   // We skip compiled sync generators. Once a sync generator has been compiled,
   // there is another function with the same range which actually contains the
   // user code.
-  if (!func.IsSyncGenerator()) {
+  if (!func.IsSyncGenerator() || func.IsSuspendableFunction()) {
     JSONObject range(jsarr);
     range.AddProperty("scriptIndex", script_index);
     range.AddProperty("startPos", begin_pos);

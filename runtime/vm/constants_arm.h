@@ -533,7 +533,7 @@ struct DoubleToIntegerStubABI {
   static const Register kResultReg = R0;
 };
 
-// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub).
+// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub, YieldSyncStarStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = R0;
   static const Register kTempReg = R1;
@@ -544,7 +544,8 @@ struct SuspendStubABI {
   static const Register kDstFrameReg = R9;
 };
 
-// ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub).
+// ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub,
+// InitSyncStarStub).
 struct InitSuspendableFunctionStubABI {
   static const Register kTypeArgsReg = R0;
 };
@@ -566,7 +567,7 @@ struct ResumeStubABI {
 };
 
 // ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,
-// ReturnAsyncStarStub).
+// ReturnAsyncStarStub, ReturnSyncStarStub).
 struct ReturnStubABI {
   static const Register kSuspendStateReg = R2;
 };
@@ -574,6 +575,16 @@ struct ReturnStubABI {
 // ABI for AsyncExceptionHandlerStub.
 struct AsyncExceptionHandlerStubABI {
   static const Register kSuspendStateReg = R2;
+};
+
+// ABI for CloneSuspendStateStub.
+struct CloneSuspendStateStubABI {
+  static const Register kSourceReg = R0;
+  static const Register kDestinationReg = R1;
+  static const Register kTempReg = R2;
+  static const Register kFrameSizeReg = R3;
+  static const Register kSrcFrameReg = R4;
+  static const Register kDstFrameReg = R8;
 };
 
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch

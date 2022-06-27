@@ -158,7 +158,11 @@ namespace dart {
   V(InitAsyncStar)                                                             \
   V(YieldAsyncStar)                                                            \
   V(ReturnAsyncStar)                                                           \
+  V(InitSyncStar)                                                              \
+  V(YieldSyncStar)                                                             \
+  V(ReturnSyncStar)                                                            \
   V(AsyncExceptionHandler)                                                     \
+  V(CloneSuspendState)                                                         \
   V(UnknownDartCode)
 
 }  // namespace dart

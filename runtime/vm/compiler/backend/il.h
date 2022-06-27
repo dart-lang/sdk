@@ -9583,8 +9583,10 @@ class SimdOpInstr : public Definition {
 class Call1ArgStubInstr : public TemplateDefinition<1, Throws> {
  public:
   enum class StubId {
+    kCloneSuspendState,
     kInitAsync,
     kInitAsyncStar,
+    kInitSyncStar,
   };
 
   Call1ArgStubInstr(const InstructionSource& source,
@@ -9624,6 +9626,7 @@ class SuspendInstr : public TemplateDefinition<1, Throws> {
   enum class StubId {
     kAwait,
     kYieldAsyncStar,
+    kYieldSyncStar,
   };
 
   SuspendInstr(const InstructionSource& source,

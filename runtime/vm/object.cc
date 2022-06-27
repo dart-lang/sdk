@@ -26086,6 +26086,40 @@ SuspendStatePtr SuspendState::New(intptr_t frame_size,
   return result.ptr();
 }
 
+SuspendStatePtr SuspendState::Clone(Thread* thread,
+                                    const SuspendState& src,
+                                    Heap::Space space) {
+  ASSERT(src.pc() != 0);
+  Zone* zone = thread->zone();
+  const intptr_t frame_size = src.frame_size();
+  const SuspendState& dst = SuspendState::Handle(
+      zone,
+      SuspendState::New(frame_size, Instance::Handle(zone, src.function_data()),
+                        space));
+  dst.set_then_callback(Closure::Handle(zone, src.then_callback()));
+  dst.set_error_callback(Closure::Handle(zone, src.error_callback()));
+  {
+    NoSafepointScope no_safepoint;
+    memmove(dst.payload(), src.payload(), frame_size);
+    // Update value of :suspend_state variable in the copied frame.
+    const uword fp = reinterpret_cast<uword>(dst.payload() + frame_size);
+    *reinterpret_cast<ObjectPtr*>(
+        LocalVarAddress(fp, runtime_frame_layout.FrameSlotForVariableIndex(
+                                kSuspendStateVarIndex))) = dst.ptr();
+    dst.set_pc(src.pc());
+    // Trigger write barrier if needed.
+    if (dst.ptr()->IsOldObject()) {
+      if (!dst.untag()->IsRemembered()) {
+        dst.untag()->EnsureInRememberedSet(thread);
+      }
+      if (thread->is_marking()) {
+        thread->DeferredMarkingStackAddObject(dst.ptr());
+      }
+    }
+  }
+  return dst.ptr();
+}
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void SuspendState::set_frame_capacity(intptr_t frame_capcity) const {
   ASSERT(frame_capcity >= 0);
@@ -26104,6 +26138,14 @@ void SuspendState::set_pc(uword pc) const {
 
 void SuspendState::set_function_data(const Instance& function_data) const {
   untag()->set_function_data(function_data.ptr());
+}
+
+void SuspendState::set_then_callback(const Closure& then_callback) const {
+  untag()->set_then_callback(then_callback.ptr());
+}
+
+void SuspendState::set_error_callback(const Closure& error_callback) const {
+  untag()->set_error_callback(error_callback.ptr());
 }
 
 const char* SuspendState::ToCString() const {

@@ -126,6 +126,7 @@ class ObjectPointerVisitor;
   RW(Class, float64x2_class)                                                   \
   RW(Class, error_class)                                                       \
   RW(Class, expando_class)                                                     \
+  RW(Class, iterable_class)                                                    \
   RW(Class, weak_property_class)                                               \
   RW(Class, weak_reference_class)                                              \
   RW(Class, finalizer_class)                                                   \
@@ -177,10 +178,15 @@ class ObjectPointerVisitor;
   RW(Function, suspend_state_init_async_star)                                  \
   RW(Function, suspend_state_yield_async_star)                                 \
   RW(Function, suspend_state_return_async_star)                                \
+  RW(Function, suspend_state_init_sync_star)                                   \
+  RW(Function, suspend_state_yield_sync_star)                                  \
+  RW(Function, suspend_state_return_sync_star)                                 \
   RW(Function, suspend_state_handle_exception)                                 \
   RW(Class, async_star_stream_controller)                                      \
   RW(Class, stream_class)                                                      \
   RW(Field, async_star_stream_controller_async_star_body)                      \
+  RW(Field, sync_star_iterator_current)                                        \
+  RW(Field, sync_star_iterator_yield_star_iterable)                            \
   ARW_RELAXED(Smi, future_timeout_future_index)                                \
   ARW_RELAXED(Smi, future_wait_future_index)                                   \
   RW(CompressedStackMaps, canonicalized_stack_map_entries)                     \
@@ -252,6 +258,7 @@ class ObjectPointerVisitor;
   RW(Code, unreachable_tts_stub)                                               \
   RW(Code, slow_tts_stub)                                                      \
   RW(Code, await_stub)                                                         \
+  RW(Code, clone_suspend_state_stub)                                           \
   RW(Code, init_async_stub)                                                    \
   RW(Code, resume_stub)                                                        \
   RW(Code, return_async_stub)                                                  \
@@ -259,6 +266,9 @@ class ObjectPointerVisitor;
   RW(Code, init_async_star_stub)                                               \
   RW(Code, yield_async_star_stub)                                              \
   RW(Code, return_async_star_stub)                                             \
+  RW(Code, init_sync_star_stub)                                                \
+  RW(Code, yield_sync_star_stub)                                               \
+  RW(Code, return_sync_star_stub)                                              \
   RW(Array, dispatch_table_code_entries)                                       \
   RW(GrowableObjectArray, instructions_tables)                                 \
   RW(Array, obfuscation_map)                                                   \
@@ -336,6 +346,7 @@ class ObjectPointerVisitor;
   DO(init_late_instance_field_stub, InitLateInstanceField)                     \
   DO(init_late_final_instance_field_stub, InitLateFinalInstanceField)          \
   DO(await_stub, Await)                                                        \
+  DO(clone_suspend_state_stub, CloneSuspendState)                              \
   DO(init_async_stub, InitAsync)                                               \
   DO(resume_stub, Resume)                                                      \
   DO(return_async_stub, ReturnAsync)                                           \
@@ -343,6 +354,9 @@ class ObjectPointerVisitor;
   DO(init_async_star_stub, InitAsyncStar)                                      \
   DO(yield_async_star_stub, YieldAsyncStar)                                    \
   DO(return_async_star_stub, ReturnAsyncStar)                                  \
+  DO(init_sync_star_stub, InitSyncStar)                                        \
+  DO(yield_sync_star_stub, YieldSyncStar)                                      \
+  DO(return_sync_star_stub, ReturnSyncStar)                                    \
   DO(instance_of_stub, InstanceOf)
 
 #define ISOLATE_OBJECT_STORE_FIELD_LIST(R_, RW)                                \

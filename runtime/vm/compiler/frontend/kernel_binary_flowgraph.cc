@@ -702,6 +702,30 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
     body += B->Suspend(TokenPosition::kNoSource,
                        SuspendInstr::StubId::kYieldAsyncStar);
     body += Drop();
+  } else if (dart_function.IsCompactSyncStarFunction()) {
+    const auto& result_type =
+        AbstractType::Handle(Z, dart_function.result_type());
+    auto& type_args = TypeArguments::ZoneHandle(Z);
+    if (result_type.IsType() &&
+        (result_type.type_class() == IG->object_store()->iterable_class())) {
+      ASSERT(result_type.IsFinalized());
+      type_args = result_type.arguments();
+    }
+
+    body += TranslateInstantiatedTypeArguments(type_args);
+    body += B->Call1ArgStub(TokenPosition::kNoSource,
+                            Call1ArgStubInstr::StubId::kInitSyncStar);
+    body += Drop();
+    body += NullConstant();
+    body += B->Suspend(TokenPosition::kNoSource,
+                       SuspendInstr::StubId::kYieldSyncStar);
+    body += Drop();
+    // Clone context if there are any captured parameter variables, so
+    // each invocation of .iterator would get its own copy of parameters.
+    const LocalScope* scope = parsed_function()->scope();
+    if (scope->num_context_variables() > 0) {
+      body += CloneContext(scope->context_slots());
+    }
   }
   return body;
 }
@@ -5279,22 +5303,7 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
 
   if ((flags & kYieldStatementFlagNative) == 0) {
     Fragment instructions;
-    // Generate the following code for yield <expr>:
-    //
-    // _AsyncStarStreamController controller = :suspend_state._functionData;
-    // if (controller.add(<expr>)) {
-    //   return;
-    // }
-    // suspend();
-    //
-    // Generate the following code for yield* <expr>:
-    //
-    // _AsyncStarStreamController controller = :suspend_state._functionData;
-    // controller.addStream(<expr>);
-    // if (suspend()) {
-    //   return;
-    // }
-    //
+    const bool is_yield_star = (flags & kYieldStatementFlagYieldStar) != 0;
 
     // Load :suspend_state variable using low-level FP-relative load
     // in order to avoid confusing SSA construction (which cannot
@@ -5313,41 +5322,85 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
       instructions += DebugStepCheck(pos);
     }
 
-    auto& add_method = Function::ZoneHandle(Z);
-    const bool is_yield_star = (flags & kYieldStatementFlagYieldStar) != 0;
-    if (is_yield_star) {
-      add_method =
-          IG->object_store()->async_star_stream_controller_add_stream();
-    } else {
-      add_method = IG->object_store()->async_star_stream_controller_add();
-    }
-    instructions +=
-        StaticCall(TokenPosition::kNoSource, add_method, 2, ICData::kNoRebind);
+    if (parsed_function()->function().IsCompactAsyncStarFunction()) {
+      // In the async* functions, generate the following code for yield <expr>:
+      //
+      // _AsyncStarStreamController controller = :suspend_state._functionData;
+      // if (controller.add(<expr>)) {
+      //   return;
+      // }
+      // suspend();
+      //
+      // Generate the following code for yield* <expr>:
+      //
+      // _AsyncStarStreamController controller = :suspend_state._functionData;
+      // controller.addStream(<expr>);
+      // if (suspend()) {
+      //   return;
+      // }
+      //
 
-    if (is_yield_star) {
-      // Discard result of _AsyncStarStreamController.addStream().
-      instructions += Drop();
-      // Suspend and test value passed to the resumed async* body.
+      auto& add_method = Function::ZoneHandle(Z);
+      if (is_yield_star) {
+        add_method =
+            IG->object_store()->async_star_stream_controller_add_stream();
+      } else {
+        add_method = IG->object_store()->async_star_stream_controller_add();
+      }
+      instructions += StaticCall(TokenPosition::kNoSource, add_method, 2,
+                                 ICData::kNoRebind);
+
+      if (is_yield_star) {
+        // Discard result of _AsyncStarStreamController.addStream().
+        instructions += Drop();
+        // Suspend and test value passed to the resumed async* body.
+        instructions += NullConstant();
+        instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
+      } else {
+        // Test value returned by _AsyncStarStreamController.add().
+      }
+
+      TargetEntryInstr* exit;
+      TargetEntryInstr* continue_execution;
+      instructions += BranchIfTrue(&exit, &continue_execution, false);
+
+      Fragment do_exit(exit);
+      do_exit += TranslateFinallyFinalizers(nullptr, -1);
+      do_exit += NullConstant();
+      do_exit += Return(TokenPosition::kNoSource);
+
+      instructions = Fragment(instructions.entry, continue_execution);
+      if (!is_yield_star) {
+        instructions += NullConstant();
+        instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
+        instructions += Drop();
+      }
+
+    } else if (parsed_function()->function().IsCompactSyncStarFunction()) {
+      // In the sync* functions, generate the following code for yield <expr>:
+      //
+      // _SyncStarIterator iterator = :suspend_state._functionData;
+      // iterator._current = <expr>;
+      // suspend();
+      //
+      // Generate the following code for yield* <expr>:
+      //
+      // _SyncStarIterator iterator = :suspend_state._functionData;
+      // iterator._yieldStarIterable = <expr>;
+      // suspend();
+      //
+      auto& field = Field::ZoneHandle(Z);
+      if (is_yield_star) {
+        field = IG->object_store()->sync_star_iterator_yield_star_iterable();
+      } else {
+        field = IG->object_store()->sync_star_iterator_current();
+      }
+      instructions += B->StoreInstanceFieldGuarded(field);
       instructions += NullConstant();
-      instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
-    } else {
-      // Test value returned by _AsyncStarStreamController.add().
-    }
-
-    TargetEntryInstr* exit;
-    TargetEntryInstr* continue_execution;
-    instructions += BranchIfTrue(&exit, &continue_execution, false);
-
-    Fragment do_exit(exit);
-    do_exit += TranslateFinallyFinalizers(nullptr, -1);
-    do_exit += NullConstant();
-    do_exit += Return(TokenPosition::kNoSource);
-
-    instructions = Fragment(instructions.entry, continue_execution);
-    if (!is_yield_star) {
-      instructions += NullConstant();
-      instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
+      instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldSyncStar);
       instructions += Drop();
+    } else {
+      UNREACHABLE();
     }
 
     return instructions;
@@ -5604,6 +5657,13 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           function.set_is_inlinable(false);
           function.set_is_visible(true);
           ASSERT(function.IsCompactAsyncStarFunction());
+        } else if (function_node_helper.async_marker_ ==
+                   FunctionNodeHelper::kSyncStar) {
+          function.set_modifier(UntaggedFunction::kSyncGen);
+          function.set_is_debuggable(true);
+          function.set_is_inlinable(false);
+          function.set_is_visible(true);
+          ASSERT(function.IsCompactSyncStarFunction());
         } else {
           ASSERT((function_node_helper.async_marker_ ==
                   FunctionNodeHelper::kSync) ||
@@ -5632,7 +5692,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           // need to manually label it generated:
           if (function.parent_function() != Function::null()) {
             const auto& parent = Function::Handle(function.parent_function());
-            if (parent.IsSyncGenerator()) {
+            if (parent.IsSyncGenerator() &&
+                !parent.IsCompactSyncStarFunction()) {
               function.set_is_generated_body(true);
             }
           }
@@ -5643,6 +5704,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           }
           ASSERT(!function.IsCompactAsyncFunction());
           ASSERT(!function.IsCompactAsyncStarFunction());
+          ASSERT(!function.IsCompactSyncStarFunction());
         }
 
         // If the start token position is synthetic, the end token position

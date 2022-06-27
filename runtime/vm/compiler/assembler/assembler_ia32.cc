@@ -2715,11 +2715,21 @@ void Assembler::CopyMemoryWords(Register src,
                                 Register dst,
                                 Register size,
                                 Register temp) {
-  RELEASE_ASSERT(src == ESI);
-  RELEASE_ASSERT(dst == EDI);
-  RELEASE_ASSERT(size == ECX);
-  shrl(size, Immediate(target::kWordSizeLog2));
-  rep_movsd();
+  // This loop is equivalent to
+  //   shrl(size, Immediate(target::kWordSizeLog2));
+  //   rep_movsd();
+  // but shows better performance on certain micro-benchmarks.
+  Label loop, done;
+  cmpl(size, Immediate(0));
+  j(EQUAL, &done, kNearJump);
+  Bind(&loop);
+  movl(temp, Address(src, 0));
+  addl(src, Immediate(target::kWordSize));
+  movl(Address(dst, 0), temp);
+  addl(dst, Immediate(target::kWordSize));
+  subl(size, Immediate(target::kWordSize));
+  j(NOT_ZERO, &loop, kNearJump);
+  Bind(&done);
 }
 
 void Assembler::PushCodeObject() {

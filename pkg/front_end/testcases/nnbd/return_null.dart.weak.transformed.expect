@@ -105,18 +105,7 @@ static method returnAsync6() → asy::Future<core::int?> async /* futureValueTyp
   return null;
 }
 static method returnAsync7() → asy::Future<core::int?> async /* futureValueType= core::int? */ {}
-static method yieldSync() → core::Iterable<dynamic> /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<dynamic>?, dynamic, dynamic) → core::bool* {
-    core::int :await_jump_var = 0;
-    dynamic :await_ctx_var;
-    function :sync_op(core::_SyncIterator<dynamic>? :iterator, dynamic :exception, dynamic :stack_trace) → core::bool* yielding {
-      {}
-      return false;
-    }
-    return :sync_op;
-  }
-  return new core::_SyncIterable::•<dynamic>(:sync_op_gen);
-}
+static method yieldSync() → core::Iterable<dynamic> sync* {}
 static method yieldAsync() → asy::Stream<dynamic> async* {}
 static method caseReturn1(self::Enum e) → self::Enum {
   switch(e) /*isExplicitlyExhaustive*/ {
@@ -188,18 +177,7 @@ static method localFunctions() → dynamic {
     return null;
   }
   function returnAsync7() → asy::Future<core::int?> async /* futureValueType= core::int? */ {}
-  function yieldSync() → core::Iterable<dynamic> /* originally sync* */ {
-    function :sync_op_gen() → (core::_SyncIterator<dynamic>?, dynamic, dynamic) → core::bool* {
-      core::int :await_jump_var = 0;
-      dynamic :await_ctx_var;
-      function :sync_op(core::_SyncIterator<dynamic>? :iterator, dynamic :exception, dynamic :stack_trace) → core::bool* yielding {
-        {}
-        return false;
-      }
-      return :sync_op;
-    }
-    return new core::_SyncIterable::•<dynamic>(:sync_op_gen);
-  }
+  function yieldSync() → core::Iterable<dynamic> sync* {}
   function yieldAsync() → asy::Stream<dynamic> async* {}
   function caseReturn1(self::Enum e) → self::Enum {
     switch(e) /*isExplicitlyExhaustive*/ {

@@ -551,6 +551,35 @@ class _SuspendState {
     return functionData;
   }
 
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  static Object? _initSyncStar<T>() {
+    if (_trace) print('_initSyncStar<$T>');
+    return _SyncStarIterable<T>();
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  Object? _yieldSyncStar(Object? object) {
+    if (_trace) print('_yieldSyncStar($object)');
+    final data = _functionData;
+    if (data is _SyncStarIterable) {
+      data._stateAtStart = this;
+      return data;
+    } else {
+      // Update state in the iterator in case SuspendState was reallocated.
+      unsafeCast<_SyncStarIterator>(data)._state = this;
+    }
+    return true;
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  static bool _returnSyncStar(Object suspendState, Object? returnValue) {
+    if (_trace) print('_returnSyncStar');
+    return false;
+  }
+
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   external set _functionData(Object value);
@@ -577,6 +606,125 @@ class _SuspendState {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:never-inline")
-  external void _resume(
+  external Object? _resume(
       Object? value, Object? exception, StackTrace? stackTrace);
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external _SuspendState _clone();
+}
+
+class _SyncStarIterable<T> extends Iterable<T> {
+  _SuspendState? _stateAtStart;
+
+  _SyncStarIterable();
+
+  Iterator<T> get iterator {
+    return _SyncStarIterator<T>(_stateAtStart!._clone());
+  }
+}
+
+class _SyncStarIterator<T> implements Iterator<T> {
+  _SuspendState? _state;
+  Iterator<T>? _yieldStarIterator;
+
+  // Stack of suspended sync* methods.
+  List<_SuspendState>? _stack;
+
+  // sync* method sets either _yieldStarIterable
+  // or _current before suspending.
+  @pragma("vm:entry-point")
+  T? _current;
+  @pragma("vm:entry-point")
+  Iterable<T>? _yieldStarIterable;
+
+  @override
+  T get current => _current as T;
+
+  _SyncStarIterator(_SuspendState state) : _state = state {
+    state._functionData = this;
+  }
+
+  @pragma('vm:prefer-inline')
+  bool _handleSyncStarMethodCompletion() {
+    _current = null;
+    _state = null;
+    final stack = _stack;
+    if (stack != null && stack.isNotEmpty) {
+      _state = stack.removeLast();
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool moveNext() {
+    if (_state == null) {
+      return false;
+    }
+
+    Object? pendingException;
+    StackTrace? pendingStackTrace;
+    while (true) {
+      // First delegate to an active nested iterator (if any).
+      final iterator = _yieldStarIterator;
+      if (iterator != null) {
+        try {
+          if (iterator.moveNext()) {
+            _current = iterator.current;
+            return true;
+          }
+        } catch (exception, stackTrace) {
+          pendingException = exception;
+          pendingStackTrace = stackTrace;
+        }
+        _yieldStarIterator = null;
+      }
+
+      try {
+        // Resume current sync* method in order to move to the next value.
+        final bool hasMore =
+            _state!._resume(null, pendingException, pendingStackTrace) as bool;
+        pendingException = null;
+        pendingStackTrace = null;
+        if (!hasMore) {
+          if (_handleSyncStarMethodCompletion()) {
+            continue;
+          }
+          return false;
+        }
+      } catch (exception, stackTrace) {
+        pendingException = exception;
+        pendingStackTrace = stackTrace;
+        if (_handleSyncStarMethodCompletion()) {
+          continue;
+        }
+        rethrow;
+      }
+
+      // Case: yield* some_iterator.
+      final iterable = _yieldStarIterable;
+      if (iterable != null) {
+        if (iterable is _SyncStarIterable) {
+          // We got a recursive yield* of sync* function. Instead of creating
+          // a new iterator we replace our current _state (remembering the
+          // current _state for later resumption).
+          final stack = (_stack ??= []);
+          stack.add(_state!);
+          final nestedState =
+              unsafeCast<_SyncStarIterable>(iterable)._stateAtStart!._clone();
+          nestedState._functionData = this;
+          _state = nestedState;
+        } else {
+          _yieldStarIterator = iterable.iterator;
+        }
+        _yieldStarIterable = null;
+        _current = null;
+        // Fetch the next item.
+        continue;
+      }
+
+      return true;
+    }
+  }
 }

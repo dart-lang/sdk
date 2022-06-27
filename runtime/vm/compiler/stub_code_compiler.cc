@@ -1298,6 +1298,85 @@ static void CallDartCoreLibraryFunction(
   }
 }
 
+// Helper to generate allocation of _SuspendState instance.
+// Initializes tags, frame_capacity and frame_size.
+// Other fields are not initialized.
+//
+// Input:
+//   frame_size_reg: size of the frame payload in bytes.
+// Output:
+//   result_reg: allocated instance.
+// Clobbers:
+//   result_reg, temp_reg.
+static void GenerateAllocateSuspendState(Assembler* assembler,
+                                         Label* slow_case,
+                                         Register result_reg,
+                                         Register frame_size_reg,
+                                         Register temp_reg) {
+  // Check for allocation tracing.
+  NOT_IN_PRODUCT(
+      __ MaybeTraceAllocation(kSuspendStateCid, slow_case, temp_reg));
+
+  // Compute the rounded instance size.
+  const intptr_t fixed_size_plus_alignment_padding =
+      (target::SuspendState::HeaderSize() +
+       target::SuspendState::FrameSizeGrowthGap() * target::kWordSize +
+       target::ObjectAlignment::kObjectAlignment - 1);
+  __ AddImmediate(temp_reg, frame_size_reg, fixed_size_plus_alignment_padding);
+  __ AndImmediate(temp_reg, -target::ObjectAlignment::kObjectAlignment);
+
+  // Now allocate the object.
+  __ LoadFromOffset(result_reg, Address(THR, target::Thread::top_offset()));
+  __ AddRegisters(temp_reg, result_reg);
+  // Check if the allocation fits into the remaining space.
+  __ CompareWithMemoryValue(temp_reg,
+                            Address(THR, target::Thread::end_offset()));
+  __ BranchIf(UNSIGNED_GREATER_EQUAL, slow_case);
+
+  // Successfully allocated the object, now update top to point to
+  // next object start and initialize the object.
+  __ StoreToOffset(temp_reg, Address(THR, target::Thread::top_offset()));
+  __ SubRegisters(temp_reg, result_reg);
+  __ AddImmediate(result_reg, kHeapObjectTag);
+
+  if (!FLAG_precompiled_mode) {
+    // Use rounded object size to calculate and save frame capacity.
+    __ AddImmediate(temp_reg, temp_reg,
+                    -target::SuspendState::payload_offset());
+    __ StoreToOffset(
+        temp_reg, FieldAddress(result_reg,
+                               target::SuspendState::frame_capacity_offset()));
+    // Restore rounded object size.
+    __ AddImmediate(temp_reg, temp_reg, target::SuspendState::payload_offset());
+  }
+
+  // Calculate the size tag.
+  {
+    Label size_tag_overflow, done;
+    __ CompareImmediate(temp_reg, target::UntaggedObject::kSizeTagMaxSizeTag);
+    __ BranchIf(UNSIGNED_GREATER, &size_tag_overflow, Assembler::kNearJump);
+    __ LslImmediate(temp_reg,
+                    target::UntaggedObject::kTagBitsSizeTagPos -
+                        target::ObjectAlignment::kObjectAlignmentLog2);
+    __ Jump(&done, Assembler::kNearJump);
+
+    __ Bind(&size_tag_overflow);
+    // Set overflow size tag value.
+    __ LoadImmediate(temp_reg, 0);
+
+    __ Bind(&done);
+    uword tags = target::MakeTagWordForNewSpaceObject(kSuspendStateCid, 0);
+    __ OrImmediate(temp_reg, tags);
+    __ StoreToOffset(
+        temp_reg,
+        FieldAddress(result_reg, target::Object::tags_offset()));  // Tags.
+  }
+
+  __ StoreToOffset(
+      frame_size_reg,
+      FieldAddress(result_reg, target::SuspendState::frame_size_offset()));
+}
+
 void StubCodeCompiler::GenerateSuspendStub(
     Assembler* assembler,
     intptr_t suspend_entry_point_offset_in_thread,
@@ -1350,65 +1429,9 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ Comment("Allocate SuspendState");
   __ MoveRegister(kFunctionData, kSuspendState);
 
-  // Check for allocation tracing.
-  NOT_IN_PRODUCT(
-      __ MaybeTraceAllocation(kSuspendStateCid, &alloc_slow_case, kTemp));
+  GenerateAllocateSuspendState(assembler, &alloc_slow_case, kSuspendState,
+                               kFrameSize, kTemp);
 
-  // Compute the rounded instance size.
-  const intptr_t fixed_size_plus_alignment_padding =
-      (target::SuspendState::HeaderSize() +
-       target::SuspendState::FrameSizeGrowthGap() * target::kWordSize +
-       target::ObjectAlignment::kObjectAlignment - 1);
-  __ AddImmediate(kTemp, kFrameSize, fixed_size_plus_alignment_padding);
-  __ AndImmediate(kTemp, -target::ObjectAlignment::kObjectAlignment);
-
-  // Now allocate the object.
-  __ LoadFromOffset(kSuspendState, Address(THR, target::Thread::top_offset()));
-  __ AddRegisters(kTemp, kSuspendState);
-  // Check if the allocation fits into the remaining space.
-  __ CompareWithMemoryValue(kTemp, Address(THR, target::Thread::end_offset()));
-  __ BranchIf(UNSIGNED_GREATER_EQUAL, &alloc_slow_case);
-
-  // Successfully allocated the object, now update top to point to
-  // next object start and initialize the object.
-  __ StoreToOffset(kTemp, Address(THR, target::Thread::top_offset()));
-  __ SubRegisters(kTemp, kSuspendState);
-  __ AddImmediate(kSuspendState, kHeapObjectTag);
-
-  if (!FLAG_precompiled_mode) {
-    // Use rounded object size to calculate and save frame capacity.
-    __ AddImmediate(kTemp, kTemp, -target::SuspendState::payload_offset());
-    __ StoreToOffset(
-        kTemp, FieldAddress(kSuspendState,
-                            target::SuspendState::frame_capacity_offset()));
-    // Restore rounded object size.
-    __ AddImmediate(kTemp, kTemp, target::SuspendState::payload_offset());
-  }
-
-  // Calculate the size tag.
-  {
-    Label size_tag_overflow, done;
-    __ CompareImmediate(kTemp, target::UntaggedObject::kSizeTagMaxSizeTag);
-    __ BranchIf(UNSIGNED_GREATER, &size_tag_overflow, Assembler::kNearJump);
-    __ LslImmediate(kTemp, target::UntaggedObject::kTagBitsSizeTagPos -
-                               target::ObjectAlignment::kObjectAlignmentLog2);
-    __ Jump(&done, Assembler::kNearJump);
-
-    __ Bind(&size_tag_overflow);
-    // Set overflow size tag value.
-    __ LoadImmediate(kTemp, 0);
-
-    __ Bind(&done);
-    uword tags = target::MakeTagWordForNewSpaceObject(kSuspendStateCid, 0);
-    __ OrImmediate(kTemp, tags);
-    __ StoreToOffset(
-        kTemp,
-        FieldAddress(kSuspendState, target::Object::tags_offset()));  // Tags.
-  }
-
-  __ StoreToOffset(
-      kFrameSize,
-      FieldAddress(kSuspendState, target::SuspendState::frame_size_offset()));
   __ StoreCompressedIntoObjectNoBarrier(
       kSuspendState,
       FieldAddress(kSuspendState, target::SuspendState::function_data_offset()),
@@ -1592,6 +1615,13 @@ void StubCodeCompiler::GenerateYieldAsyncStarStub(Assembler* assembler) {
       target::ObjectStore::suspend_state_yield_async_star_offset());
 }
 
+void StubCodeCompiler::GenerateYieldSyncStarStub(Assembler* assembler) {
+  GenerateSuspendStub(
+      assembler,
+      target::Thread::suspend_state_yield_sync_star_entry_point_offset(),
+      target::ObjectStore::suspend_state_yield_sync_star_offset());
+}
+
 void StubCodeCompiler::GenerateInitSuspendableFunctionStub(
     Assembler* assembler,
     intptr_t init_entry_point_offset_in_thread,
@@ -1624,6 +1654,13 @@ void StubCodeCompiler::GenerateInitAsyncStarStub(Assembler* assembler) {
       assembler,
       target::Thread::suspend_state_init_async_star_entry_point_offset(),
       target::ObjectStore::suspend_state_init_async_star_offset());
+}
+
+void StubCodeCompiler::GenerateInitSyncStarStub(Assembler* assembler) {
+  GenerateInitSuspendableFunctionStub(
+      assembler,
+      target::Thread::suspend_state_init_sync_star_entry_point_offset(),
+      target::ObjectStore::suspend_state_init_sync_star_offset());
 }
 
 void StubCodeCompiler::GenerateResumeStub(Assembler* assembler) {
@@ -1864,6 +1901,14 @@ void StubCodeCompiler::GenerateReturnAsyncStarStub(Assembler* assembler) {
       target::Thread::return_async_star_stub_offset());
 }
 
+void StubCodeCompiler::GenerateReturnSyncStarStub(Assembler* assembler) {
+  GenerateReturnStub(
+      assembler,
+      target::Thread::suspend_state_return_sync_star_entry_point_offset(),
+      target::ObjectStore::suspend_state_return_sync_star_offset(),
+      target::Thread::return_sync_star_stub_offset());
+}
+
 void StubCodeCompiler::GenerateAsyncExceptionHandlerStub(Assembler* assembler) {
   const Register kSuspendState = AsyncExceptionHandlerStubABI::kSuspendStateReg;
   ASSERT(kSuspendState != kExceptionObjectReg);
@@ -1913,6 +1958,102 @@ void StubCodeCompiler::GenerateAsyncExceptionHandlerStub(Assembler* assembler) {
   __ PushRegistersInOrder({kExceptionObjectReg, kStackTraceObjectReg});
   __ CallRuntime(kReThrowRuntimeEntry, /*argument_count=*/2);
   __ Breakpoint();
+}
+
+void StubCodeCompiler::GenerateCloneSuspendStateStub(Assembler* assembler) {
+  const Register kSource = CloneSuspendStateStubABI::kSourceReg;
+  const Register kDestination = CloneSuspendStateStubABI::kDestinationReg;
+  const Register kTemp = CloneSuspendStateStubABI::kTempReg;
+  const Register kFrameSize = CloneSuspendStateStubABI::kFrameSizeReg;
+  const Register kSrcFrame = CloneSuspendStateStubABI::kSrcFrameReg;
+  const Register kDstFrame = CloneSuspendStateStubABI::kDstFrameReg;
+  Label alloc_slow_case;
+
+#ifdef DEBUG
+  {
+    // Can only clone _SuspendState objects with copied frames.
+    Label okay;
+    __ LoadFromOffset(kTemp,
+                      FieldAddress(kSource, target::SuspendState::pc_offset()));
+    __ CompareImmediate(kTemp, 0);
+    __ BranchIf(NOT_EQUAL, &okay);
+    __ Breakpoint();
+    __ Bind(&okay);
+  }
+#endif
+
+  __ LoadFromOffset(
+      kFrameSize,
+      FieldAddress(kSource, target::SuspendState::frame_size_offset()));
+
+  GenerateAllocateSuspendState(assembler, &alloc_slow_case, kDestination,
+                               kFrameSize, kTemp);
+
+  // Copy pc.
+  __ LoadFromOffset(kTemp,
+                    FieldAddress(kSource, target::SuspendState::pc_offset()));
+  __ StoreToOffset(
+      kTemp, FieldAddress(kDestination, target::SuspendState::pc_offset()));
+
+  // Copy function_data.
+  __ LoadCompressedFieldFromOffset(
+      kTemp, kSource, target::SuspendState::function_data_offset());
+  __ StoreCompressedIntoObjectNoBarrier(
+      kDestination,
+      FieldAddress(kDestination, target::SuspendState::function_data_offset()),
+      kTemp);
+
+  // Copy then_callback.
+  __ LoadCompressedFieldFromOffset(
+      kTemp, kSource, target::SuspendState::then_callback_offset());
+  __ StoreCompressedIntoObjectNoBarrier(
+      kDestination,
+      FieldAddress(kDestination, target::SuspendState::then_callback_offset()),
+      kTemp);
+
+  // Copy error_callback.
+  __ LoadCompressedFieldFromOffset(
+      kTemp, kSource, target::SuspendState::error_callback_offset());
+  __ StoreCompressedIntoObjectNoBarrier(
+      kDestination,
+      FieldAddress(kDestination, target::SuspendState::error_callback_offset()),
+      kTemp);
+
+  // Copy payload frame.
+  if (kSrcFrame == THR) {
+    __ PushRegister(THR);
+  }
+  const uword offset = target::SuspendState::payload_offset() - kHeapObjectTag;
+  __ AddImmediate(kSrcFrame, kSource, offset);
+  __ AddImmediate(kDstFrame, kDestination, offset);
+  __ CopyMemoryWords(kSrcFrame, kDstFrame, kFrameSize, kTemp);
+  if (kSrcFrame == THR) {
+    __ PopRegister(THR);
+  }
+
+  // Update value of :suspend_state variable in the copied frame
+  // for the new SuspendState.
+  __ LoadFromOffset(
+      kTemp,
+      FieldAddress(kDestination, target::SuspendState::frame_size_offset()));
+  __ AddRegisters(kTemp, kDestination);
+  __ StoreToOffset(kDestination,
+                   FieldAddress(kTemp, target::SuspendState::payload_offset() +
+                                           SuspendStateFpOffset()));
+
+  __ MoveRegister(CallingConventions::kReturnReg, kDestination);
+  __ Ret();
+
+  __ Bind(&alloc_slow_case);
+  __ Comment("CloneSuspendState slow case");
+  __ EnterStubFrame();
+  __ PushObject(NullObject());  // Make space on stack for the return value.
+  __ PushRegister(kSource);
+  __ CallRuntime(kCloneSuspendStateRuntimeEntry, 1);
+  __ Drop(1);                                      // Drop argument
+  __ PopRegister(CallingConventions::kReturnReg);  // Get result.
+  __ LeaveStubFrame();
+  __ Ret();
 }
 
 }  // namespace compiler

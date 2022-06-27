@@ -1212,6 +1212,7 @@ class Thread : public AllStatic {
   static word return_async_not_future_stub_offset();
   static word return_async_star_stub_offset();
   static word return_async_stub_offset();
+  static word return_sync_star_stub_offset();
   static word stack_overflow_shared_without_fpu_regs_entry_point_offset();
   static word stack_overflow_shared_without_fpu_regs_stub_offset();
   static word stack_overflow_shared_with_fpu_regs_entry_point_offset();
@@ -1260,6 +1261,10 @@ class Thread : public AllStatic {
   static word suspend_state_yield_async_star_entry_point_offset();
   static word suspend_state_return_async_star_entry_point_offset();
 
+  static word suspend_state_init_sync_star_entry_point_offset();
+  static word suspend_state_yield_sync_star_entry_point_offset();
+  static word suspend_state_return_sync_star_entry_point_offset();
+
   static word suspend_state_handle_exception_entry_point_offset();
 
   static word OffsetFromThread(const dart::Object& object);
@@ -1291,10 +1296,13 @@ class ObjectStore : public AllStatic {
   static word suspend_state_handle_exception_offset();
   static word suspend_state_init_async_offset();
   static word suspend_state_init_async_star_offset();
+  static word suspend_state_init_sync_star_offset();
   static word suspend_state_return_async_offset();
   static word suspend_state_return_async_not_future_offset();
   static word suspend_state_return_async_star_offset();
+  static word suspend_state_return_sync_star_offset();
   static word suspend_state_yield_async_star_offset();
+  static word suspend_state_yield_sync_star_offset();
 };
 
 class Isolate : public AllStatic {

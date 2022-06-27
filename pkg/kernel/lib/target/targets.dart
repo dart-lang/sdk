@@ -553,6 +553,7 @@ abstract class Target {
   Class? concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
 
   Class? concreteAsyncResultClass(CoreTypes coreTypes) => null;
+  Class? concreteSyncStarResultClass(CoreTypes coreTypes) => null;
 
   ConstantsBackend get constantsBackend;
 

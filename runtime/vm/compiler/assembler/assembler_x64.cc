@@ -2306,11 +2306,21 @@ void Assembler::CopyMemoryWords(Register src,
                                 Register dst,
                                 Register size,
                                 Register temp) {
-  RELEASE_ASSERT(src == RSI);
-  RELEASE_ASSERT(dst == RDI);
-  RELEASE_ASSERT(size == RCX);
-  shrq(size, Immediate(target::kWordSizeLog2));
-  rep_movsq();
+  // This loop is equivalent to
+  //   shrq(size, Immediate(target::kWordSizeLog2));
+  //   rep_movsq()
+  // but shows better performance on certain micro-benchmarks.
+  Label loop, done;
+  cmpq(size, Immediate(0));
+  j(EQUAL, &done, kNearJump);
+  Bind(&loop);
+  movq(temp, Address(src, 0));
+  addq(src, Immediate(target::kWordSize));
+  movq(Address(dst, 0), temp);
+  addq(dst, Immediate(target::kWordSize));
+  subq(size, Immediate(target::kWordSize));
+  j(NOT_ZERO, &loop, kNearJump);
+  Bind(&done);
 }
 
 void Assembler::GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target) {

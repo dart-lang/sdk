@@ -6850,6 +6850,10 @@ const Code& ReturnInstr::GetReturnStub(FlowGraphCompiler* compiler) const {
     return Code::ZoneHandle(
         compiler->zone(),
         compiler->isolate_group()->object_store()->return_async_star_stub());
+  } else if (function.IsCompactSyncStarFunction()) {
+    return Code::ZoneHandle(
+        compiler->zone(),
+        compiler->isolate_group()->object_store()->return_sync_star_stub());
   } else {
     UNREACHABLE();
   }
@@ -7293,8 +7297,13 @@ LocationSummary* Call1ArgStubInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   switch (stub_id_) {
+    case StubId::kCloneSuspendState:
+      locs->set_in(
+          0, Location::RegisterLocation(CloneSuspendStateStubABI::kSourceReg));
+      break;
     case StubId::kInitAsync:
     case StubId::kInitAsyncStar:
+    case StubId::kInitSyncStar:
       locs->set_in(0, Location::RegisterLocation(
                           InitSuspendableFunctionStubABI::kTypeArgsReg));
       break;
@@ -7307,11 +7316,17 @@ void Call1ArgStubInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ObjectStore* object_store = compiler->isolate_group()->object_store();
   Code& stub = Code::ZoneHandle(compiler->zone());
   switch (stub_id_) {
+    case StubId::kCloneSuspendState:
+      stub = object_store->clone_suspend_state_stub();
+      break;
     case StubId::kInitAsync:
       stub = object_store->init_async_stub();
       break;
     case StubId::kInitAsyncStar:
       stub = object_store->init_async_star_stub();
+      break;
+    case StubId::kInitSyncStar:
+      stub = object_store->init_sync_star_stub();
       break;
   }
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
@@ -7340,6 +7355,9 @@ void SuspendInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     case StubId::kYieldAsyncStar:
       stub = object_store->yield_async_star_stub();
+      break;
+    case StubId::kYieldSyncStar:
+      stub = object_store->yield_sync_star_stub();
       break;
   }
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,

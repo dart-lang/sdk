@@ -901,6 +901,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
   const MethodRecognizer::Kind kind = function.recognized_kind();
 
   switch (kind) {
+    case MethodRecognizer::kSuspendState_clone:
     case MethodRecognizer::kSuspendState_resume:
     case MethodRecognizer::kTypedData_ByteDataView_factory:
     case MethodRecognizer::kTypedData_Int8ArrayView_factory:
@@ -1049,6 +1050,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 
   const MethodRecognizer::Kind kind = function.recognized_kind();
   switch (kind) {
+    case MethodRecognizer::kSuspendState_clone: {
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += Call1ArgStub(TokenPosition::kNoSource,
+                           Call1ArgStubInstr::StubId::kCloneSuspendState);
+      break;
+    }
     case MethodRecognizer::kSuspendState_resume: {
       const Code& resume_stub =
           Code::ZoneHandle(Z, IG->object_store()->resume_stub());

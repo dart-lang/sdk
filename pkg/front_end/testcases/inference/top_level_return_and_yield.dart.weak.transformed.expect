@@ -23,39 +23,11 @@ static method b() → asy::Future<(core::int*) →* core::int*>* async /* future
   return /*@ returnType=dynamic */ (/*@ type=dynamic */ x) => x;
                                    ^" in ((dynamic x) → dynamic => x) as{TypeError} FutureOr<(core::int*) →* core::int*>*;
 }
-static method c() → core::Iterable<(core::int*) →* core::int*>* /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<dynamic>*, dynamic, dynamic) →* core::bool* {
-    core::int* :await_jump_var = 0;
-    dynamic :await_ctx_var;
-    function :sync_op(core::_SyncIterator<dynamic>* :iterator, dynamic :exception, dynamic :stack_trace) → core::bool* yielding {
-      {
-        {
-          :iterator.{core::_SyncIterator::_current} = (core::int* x) → core::int* => x;
-          [yield] true;
-        }
-      }
-      return false;
-    }
-    return :sync_op;
-  }
-  return new core::_SyncIterable::•<(core::int*) →* core::int*>(:sync_op_gen);
+static method c() → core::Iterable<(core::int*) →* core::int*>* sync* {
+  yield(core::int* x) → core::int* => x;
 }
-static method d() → core::Iterable<(core::int*) →* core::int*>* /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<dynamic>*, dynamic, dynamic) →* core::bool* {
-    core::int* :await_jump_var = 0;
-    dynamic :await_ctx_var;
-    function :sync_op(core::_SyncIterator<dynamic>* :iterator, dynamic :exception, dynamic :stack_trace) → core::bool* yielding {
-      {
-        {
-          :iterator.{core::_SyncIterator::_yieldEachIterable} = core::_GrowableList::_literal1<(core::int*) →* core::int*>((core::int* x) → core::int* => x);
-          [yield] true;
-        }
-      }
-      return false;
-    }
-    return :sync_op;
-  }
-  return new core::_SyncIterable::•<(core::int*) →* core::int*>(:sync_op_gen);
+static method d() → core::Iterable<(core::int*) →* core::int*>* sync* {
+  yield* core::_GrowableList::_literal1<(core::int*) →* core::int*>((core::int* x) → core::int* => x);
 }
 static method e() → asy::Stream<(core::int*) →* core::int*>* async* {
   yield(core::int* x) → core::int* => x;
