@@ -419,7 +419,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     }
     for (var node in html.nodes) {
       if (node is dom.Element) {
-        var localName = node.localName!;
+        var localName = node.name;
         if (squashParagraphs && localName == 'p') {
           translateHtml(node, squashParagraphs: squashParagraphs);
           continue;
@@ -609,7 +609,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   void visitTypeEnumValue(TypeEnumValue typeEnumValue) {
     var isDocumented = false;
     for (var node in typeEnumValue.html.nodes) {
-      if ((node is dom.Element && node.localName != 'code') ||
+      if ((node is dom.Element && node.name != 'code') ||
           (node is dom.Text && node.text.trim().isNotEmpty)) {
         isDocumented = true;
         break;

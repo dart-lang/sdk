@@ -18,16 +18,13 @@ abstract class Node {
 }
 
 class Element extends Node {
-  String name;
+  final String name;
 
   Map<String, String> attributes = {};
 
   List<Element> get children => nodes.whereType<Element>().toList();
 
   Element.tag(this.name);
-
-  // This is for compatibility with the package:html DOM API.
-  String? get localName => name;
 
   void append(Node child) {
     child.parent = this;

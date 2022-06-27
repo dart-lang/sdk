@@ -64,7 +64,7 @@ class _TextFormatter extends CodeGenerator {
         }
       }
     } else if (node is dom.Element) {
-      switch (node.localName) {
+      switch (node.name) {
         case 'br':
           lineBreak(false);
           break;
@@ -83,8 +83,7 @@ class _TextFormatter extends CodeGenerator {
           lineBreak(false);
           if (node.classes.contains('hangingIndent')) {
             resolveVerticalSpace();
-            // TODO(devoncarew): Remove a space here.
-            indentSpecial('', '        ', () {
+            indentSpecial('', '       ', () {
               addAll(node.nodes);
               lineBreak(false);
             });
@@ -144,7 +143,7 @@ class _TextFormatter extends CodeGenerator {
         case 'head':
           break;
         default:
-          throw Exception('Unexpected HTML element: ${node.localName}');
+          throw Exception('Unexpected HTML element: ${node.name}');
       }
     } else {
       throw Exception('Unexpected HTML: $node');

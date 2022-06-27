@@ -422,11 +422,11 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     }
     for (var node in html.nodes) {
       if (node is dom.Element) {
-        if (squashParagraphs && node.localName == 'p') {
+        if (squashParagraphs && node.name == 'p') {
           translateHtml(node, squashParagraphs: squashParagraphs);
           continue;
         }
-        switch (node.localName) {
+        switch (node.name) {
           case 'domains':
             generateDomainsHeader();
             break;
@@ -463,8 +463,8 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
             generateIndex();
             break;
           default:
-            if (!ApiReader.specialElements.contains(node.localName)) {
-              element(node.localName!, node.attributes, () {
+            if (!ApiReader.specialElements.contains(node.name)) {
+              element(node.name, node.attributes, () {
                 translateHtml(node, squashParagraphs: squashParagraphs);
               });
             }
@@ -608,7 +608,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   void visitTypeEnumValue(TypeEnumValue typeEnumValue) {
     var isDocumented = false;
     for (var node in typeEnumValue.html?.nodes ?? []) {
-      if ((node is dom.Element && node.localName != 'code') ||
+      if ((node is dom.Element && node.name != 'code') ||
           (node is dom.Text && node.text.trim().isNotEmpty)) {
         isDocumented = true;
         break;
