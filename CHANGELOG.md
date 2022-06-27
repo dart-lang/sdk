@@ -196,7 +196,7 @@ Updated the Linter to `1.25.0`, which includes changes that
 * `dart pub outdated` now shows which of your dependencies are discontinued.
 * `dart pub publish` will now list all the files it is about to publish.
 
-## 2.17.4 - 2022-06-20
+## 2.17.5 - 2022-06-22
 
 This is a patch release that fixes:
 
