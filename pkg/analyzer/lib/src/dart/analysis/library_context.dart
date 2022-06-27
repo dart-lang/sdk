@@ -289,7 +289,7 @@ class LibraryContext {
     }
 
     await logger.runAsync('Prepare linked bundles', () async {
-      var libraryCycle = targetLibrary.file.libraryCycle;
+      var libraryCycle = targetLibrary.libraryCycle;
       await loadBundle(libraryCycle);
       logger.writeln(
         '[librariesTotal: $librariesTotal]'

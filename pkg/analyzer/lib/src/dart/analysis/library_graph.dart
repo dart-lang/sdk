@@ -8,11 +8,10 @@ import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:collection/collection.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
-void computeLibraryCycle(Uint32List salt, FileState file) {
+void computeLibraryCycle(Uint32List salt, LibraryFileStateKind file) {
   var libraryWalker = _LibraryWalker(salt);
   libraryWalker.walk(libraryWalker.getNode(file));
 }
@@ -29,7 +28,7 @@ class LibraryCycle {
   final Set<LibraryCycle> directDependencies;
 
   /// The cycles that use this cycle, used to [invalidate] transitively.
-  final List<LibraryCycle> _directUsers = [];
+  final List<LibraryCycle> directUsers = [];
 
   /// The transitive API signature of this cycle.
   ///
@@ -82,7 +81,7 @@ class LibraryCycle {
     required this.implSignature,
   }) {
     for (var directDependency in directDependencies) {
-      directDependency._directUsers.add(this);
+      directDependency.directUsers.add(this);
     }
   }
 
@@ -92,13 +91,14 @@ class LibraryCycle {
   /// [libraries] that share this [LibraryCycle] instance.
   void invalidate() {
     for (var library in libraries) {
-      library.internal_setLibraryCycle(null);
+      final kind = library.kind as LibraryFileStateKind;
+      kind.internal_setLibraryCycle(null);
     }
-    for (var user in _directUsers.toList()) {
+    for (var user in directUsers.toList()) {
       user.invalidate();
     }
     for (var directDependency in directDependencies) {
-      directDependency._directUsers.remove(this);
+      directDependency.directUsers.remove(this);
     }
   }
 
@@ -128,16 +128,21 @@ class LibraryCycle {
 /// Node in [_LibraryWalker].
 class _LibraryNode extends graph.Node<_LibraryNode> {
   final _LibraryWalker walker;
-  final FileState file;
+  final LibraryFileStateKind kind;
 
-  _LibraryNode(this.walker, this.file);
+  _LibraryNode(this.walker, this.kind);
 
   @override
-  bool get isEvaluated => file.internal_libraryCycle != null;
+  bool get isEvaluated => kind.internal_libraryCycle != null;
 
   @override
   List<_LibraryNode> computeDependencies() {
-    return file.directReferencedLibraries.map(walker.getNode).toList();
+    // TODO(scheglov) This can be simplified with better imports.
+    return kind.file.directReferencedLibraries
+        .map((e) => e.kind)
+        .whereType<LibraryFileStateKind>()
+        .map(walker.getNode)
+        .toList();
   }
 }
 
@@ -145,7 +150,7 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 /// sorted [LibraryCycle]s.
 class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   final Uint32List _salt;
-  final Map<FileState, _LibraryNode> nodesOfFiles = {};
+  final Map<LibraryFileStateKind, _LibraryNode> nodesOfFiles = {};
 
   _LibraryWalker(this._salt);
 
@@ -163,42 +168,42 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
     // Sort libraries to produce stable signatures.
     scc.sort((first, second) {
-      var firstPath = first.file.path;
-      var secondPath = second.file.path;
+      var firstPath = first.kind.file.path;
+      var secondPath = second.kind.file.path;
       return firstPath.compareTo(secondPath);
     });
 
     // Append direct referenced cycles.
     var directDependencies = <LibraryCycle>{};
     for (var node in scc) {
-      var file = node.file;
       _appendDirectlyReferenced(
         directDependencies,
         apiSignature,
         implSignature,
-        file.directReferencedLibraries.whereNotNull().toList(),
+        graph.Node.getDependencies(node),
       );
     }
 
     // Fill the cycle with libraries.
     var libraries = <FileState>[];
     for (var node in scc) {
-      libraries.add(node.file);
+      final file = node.kind.file;
+      libraries.add(file);
 
-      apiSignature.addLanguageVersion(node.file.packageLanguageVersion);
-      apiSignature.addString(node.file.uriStr);
+      apiSignature.addLanguageVersion(file.packageLanguageVersion);
+      apiSignature.addString(file.uriStr);
 
-      implSignature.addLanguageVersion(node.file.packageLanguageVersion);
-      implSignature.addString(node.file.uriStr);
+      implSignature.addLanguageVersion(file.packageLanguageVersion);
+      implSignature.addString(file.uriStr);
 
-      apiSignature.addInt(node.file.libraryFiles.length);
-      for (var file in node.file.libraryFiles) {
+      apiSignature.addInt(file.libraryFiles.length);
+      for (var file in file.libraryFiles) {
         apiSignature.addBool(file.exists);
         apiSignature.addBytes(file.apiSignature);
       }
 
-      implSignature.addInt(node.file.libraryFiles.length);
-      for (var file in node.file.libraryFiles) {
+      implSignature.addInt(file.libraryFiles.length);
+      for (var file in file.libraryFiles) {
         implSignature.addBool(file.exists);
         implSignature.addString(file.contentHash);
       }
@@ -218,11 +223,11 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
     // Set the instance into the libraries.
     for (var node in scc) {
-      node.file.internal_setLibraryCycle(cycle);
+      node.kind.internal_setLibraryCycle(cycle);
     }
   }
 
-  _LibraryNode getNode(FileState file) {
+  _LibraryNode getNode(LibraryFileStateKind file) {
     return nodesOfFiles.putIfAbsent(file, () => _LibraryNode(this, file));
   }
 
@@ -230,12 +235,12 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     Set<LibraryCycle> directDependencies,
     ApiSignature apiSignature,
     ApiSignature implSignature,
-    List<FileState> directlyReferenced,
+    List<_LibraryNode> directlyReferenced,
   ) {
     apiSignature.addInt(directlyReferenced.length);
     implSignature.addInt(directlyReferenced.length);
     for (var referencedLibrary in directlyReferenced) {
-      var referencedCycle = referencedLibrary.internal_libraryCycle;
+      var referencedCycle = referencedLibrary.kind.internal_libraryCycle;
 
       // We get null when the library is a part of the cycle being build.
       if (referencedCycle == null) continue;

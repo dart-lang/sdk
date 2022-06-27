@@ -39,11 +39,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   late FileResolver fileResolver;
 
-  final printer.FileStateKindIdProvider _fileStateKindIdProvider =
-      printer.FileStateKindIdProvider();
-  final printer.FileStateIdProvider _fileStateIdProvider =
-      printer.FileStateIdProvider();
-  final printer.KeyShorter _keyShorter = printer.KeyShorter();
+  final printer.IdProvider _idProvider = printer.IdProvider();
 
   FileSystemState get fsState => fileResolver.fsState!;
 
@@ -76,9 +72,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     final buffer = StringBuffer();
     printer.AnalyzerStatePrinter(
       byteStore: byteStore,
-      fileStateKindIdProvider: _fileStateKindIdProvider,
-      fileStateIdProvider: _fileStateIdProvider,
-      keyShorter: _keyShorter,
+      idProvider: _idProvider,
       libraryContext: libraryContext,
       omitSdkFiles: omitSdkFiles,
       resourceProvider: resourceProvider,

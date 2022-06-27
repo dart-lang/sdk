@@ -34,6 +34,14 @@ export 'unknown.dart';
     ]);
   }
 
+  test_export_dart() async {
+    await assertErrorsInCode('''
+export 'dart:foo/bar.dart';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 19),
+    ]);
+  }
+
   test_import() async {
     await assertErrorsInCode('''
 import 'unknown.dart';
@@ -61,6 +69,14 @@ import 'target.dart';
     await resolveTestFile();
     assertErrorsInResult([
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 13),
+    ]);
+  }
+
+  test_import_dart() async {
+    await assertErrorsInCode('''
+import 'dart:foo/bar.dart';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 19),
     ]);
   }
 

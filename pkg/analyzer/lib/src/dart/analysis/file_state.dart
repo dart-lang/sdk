@@ -287,8 +287,6 @@ class FileState {
   Set<FileState>? _directReferencedFiles;
   Set<FileState>? _directReferencedLibraries;
 
-  LibraryCycle? _libraryCycle;
-
   /// The flag that shows whether the file has an error or warning that
   /// might be fixed by a change to another file.
   bool hasErrorOrWarning = false;
@@ -385,8 +383,6 @@ class FileState {
     }).toList();
   }
 
-  LibraryCycle? get internal_libraryCycle => _libraryCycle;
-
   /// Return `true` if the file does not have a `library` directive, and has a
   /// `part of` directive, so is probably a part.
   bool get isPart {
@@ -398,16 +394,6 @@ class FileState {
   }
 
   FileStateKind get kind => _kind!;
-
-  /// Return the [LibraryCycle] this file belongs to, even if it consists of
-  /// just this file.  If the library cycle is not known yet, compute it.
-  LibraryCycle get libraryCycle {
-    if (_libraryCycle == null) {
-      computeLibraryCycle(_fsState._saltForElements, this);
-    }
-
-    return _libraryCycle!;
-  }
 
   /// The list of files files that this library consists of, i.e. this library
   /// file itself and its [partedFiles].
@@ -450,16 +436,6 @@ class FileState {
     return transitiveFiles;
   }
 
-  /// Return the signature of the file, based on API signatures of the
-  /// transitive closure of imported / exported files.
-  /// TODO(scheglov) Remove it.
-  String get transitiveSignature {
-    var librarySignatureBuilder = ApiSignature()
-      ..addString(uriStr)
-      ..addString(libraryCycle.apiSignature);
-    return librarySignatureBuilder.toHex();
-  }
-
   /// The [UnlinkedUnit] of the file.
   UnlinkedUnit get unlinked2 => _unlinked2!;
 
@@ -494,15 +470,6 @@ class FileState {
   /// TODO(scheglov) replace with [content]
   String getContent() {
     return _fileContent!.content;
-  }
-
-  void internal_setLibraryCycle(LibraryCycle? cycle) {
-    _libraryCycle = cycle;
-  }
-
-  void invalidateLibraryCycle() {
-    _libraryCycle?.invalidate();
-    _libraryCycle = null;
   }
 
   /// Return a new parsed unresolved [CompilationUnit].
@@ -599,7 +566,11 @@ class FileState {
     //   Flush affected library cycles.
     //   Flush exported top-level declarations of all files.
     if (apiSignatureChanged) {
-      _libraryCycle?.invalidate();
+      // TODO(scheglov) Make it a method of FileStateKind?
+      final kind = _kind;
+      if (kind is LibraryFileStateKind) {
+        kind._libraryCycle?.invalidate();
+      }
       _invalidatesLibrariesOfThisPart();
     }
 
@@ -703,12 +674,16 @@ class FileState {
   }
 
   /// If this is a part, invalidate the libraries that use it.
+  /// TODO(scheglov) Make it a method of `PartFileStateKind`?
   void _invalidatesLibrariesOfThisPart() {
     if (_kind is PartFileStateKind) {
       for (final library in _fsState._pathToFile.values) {
         if (library._kind is LibraryFileStateKind) {
           if (library.partedFiles.contains(this)) {
-            library._libraryCycle?.invalidate();
+            final libraryKind = library.kind;
+            if (libraryKind is LibraryFileStateKind) {
+              libraryKind._libraryCycle?.invalidate();
+            }
           }
         }
       }
@@ -1467,12 +1442,6 @@ class FileSystemStateTestView {
   final FileSystemState state;
 
   FileSystemStateTestView(this.state);
-
-  Set<FileState> get filesWithoutLibraryCycle {
-    return state._uriToFile.values
-        .where((f) => f._libraryCycle == null)
-        .toSet();
-  }
 }
 
 class FileSystemTestData {
@@ -1629,16 +1598,39 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
   /// Or `null` if no `library` directive.
   final String? name;
 
+  LibraryCycle? _libraryCycle;
+
   LibraryFileStateKind({
     required super.file,
     required this.name,
   });
 
+  LibraryCycle? get internal_libraryCycle => _libraryCycle;
+
   @override
   LibraryFileStateKind get library => this;
 
+  /// Return the [LibraryCycle] this file belongs to, even if it consists of
+  /// just this file.  If the library cycle is not known yet, compute it.
+  LibraryCycle get libraryCycle {
+    if (_libraryCycle == null) {
+      computeLibraryCycle(file._fsState._saltForElements, this);
+    }
+
+    return _libraryCycle!;
+  }
+
   bool hasPart(PartFileStateKind part) {
     return file.partedFiles.contains(part.file);
+  }
+
+  void internal_setLibraryCycle(LibraryCycle? cycle) {
+    _libraryCycle = cycle;
+  }
+
+  void invalidateLibraryCycle() {
+    _libraryCycle?.invalidate();
+    _libraryCycle = null;
   }
 }
 

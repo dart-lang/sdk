@@ -139,10 +139,7 @@ abstract class ContextResolutionTest
   /// Optional summaries to provide for the collection.
   List<File>? librarySummaryFiles;
 
-  final FileStateKindIdProvider _fileStateKindIdProvider =
-      FileStateKindIdProvider();
-  final FileStateIdProvider _fileStateIdProvider = FileStateIdProvider();
-  final KeyShorter _keyShorter = KeyShorter();
+  final IdProvider _idProvider = IdProvider();
 
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
@@ -180,9 +177,7 @@ abstract class ContextResolutionTest
     final buffer = StringBuffer();
     AnalyzerStatePrinter(
       byteStore: _byteStore,
-      fileStateKindIdProvider: _fileStateKindIdProvider,
-      fileStateIdProvider: _fileStateIdProvider,
-      keyShorter: _keyShorter,
+      idProvider: _idProvider,
       libraryContext: analysisDriver.libraryContext,
       omitSdkFiles: omitSdkFiles,
       resourceProvider: resourceProvider,

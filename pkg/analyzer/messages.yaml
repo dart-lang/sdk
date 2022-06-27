@@ -5896,8 +5896,6 @@ CompileTimeErrorCode:
       ```dart
       %uri="lib/part.dart"
       part of lib;
-
-      class C{}
       ```
 
       The following code produces this diagnostic because imported files can't
@@ -5907,8 +5905,6 @@ CompileTimeErrorCode:
       library lib;
 
       import [!'part.dart'!];
-
-      C c = C();
       ```
 
       #### Common fixes
