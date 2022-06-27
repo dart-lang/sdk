@@ -22,8 +22,8 @@ class DataSourceReader implements migrated.DataSourceReader {
   final bool enableDeferredStrategy;
   final bool useDeferredStrategy;
   final bool useDataKinds;
-  final ValueInterner /*?*/ interner;
-  DataSourceIndices importedIndices;
+  final migrated.ValueInterner /*?*/ interner;
+  migrated.DataSourceIndices importedIndices;
   migrated.EntityReader _entityReader = const migrated.EntityReader();
   ComponentLookup _componentLookup;
   migrated.EntityLookup _entityLookup;
@@ -78,7 +78,8 @@ class DataSourceReader implements migrated.DataSourceReader {
     final previousSourceReader = importedIndices?.previousSourceReader;
     if (previousSourceReader == null) return null;
     return UnorderedIndexedSource<T>(previousSourceReader,
-        previousSource: previousSourceReader._getPreviousUncreatedSource<T>());
+        previousSource: (previousSourceReader as DataSourceReader)
+            ._getPreviousUncreatedSource<T>());
   }
 
   IndexedSource<T> _createUnorderedSource<T>() {
@@ -122,19 +123,22 @@ class DataSourceReader implements migrated.DataSourceReader {
 
   /// Exports [DataSourceIndices] for use in other [DataSourceReader]s and
   /// [DataSinkWriter]s.
-  DataSourceIndices exportIndices() {
-    final indices = DataSourceIndices(this);
-    indices.caches[String] = DataSourceTypeIndices(_stringIndex);
-    indices.caches[Uri] = DataSourceTypeIndices(_uriIndex);
-    indices.caches[ImportEntity] = DataSourceTypeIndices(_importIndex);
+  migrated.DataSourceIndices exportIndices() {
+    final indices = migrated.DataSourceIndices(this);
+    indices.caches[String] = migrated.DataSourceTypeIndices(_stringIndex);
+    indices.caches[Uri] = migrated.DataSourceTypeIndices(_uriIndex);
+    indices.caches[ImportEntity] = migrated.DataSourceTypeIndices(_importIndex);
     // _memberNodeIndex needs two entries depending on if the indices will be
     // consumed by a [DataSource] or [DataSink].
-    indices.caches[MemberData] = DataSourceTypeIndices(_memberNodeIndex);
-    indices.caches[ir.Member] = DataSourceTypeIndices<ir.Member, MemberData>(
-        _memberNodeIndex, (MemberData data) => data?.node);
-    indices.caches[ConstantValue] = DataSourceTypeIndices(_constantIndex);
+    indices.caches[MemberData] =
+        migrated.DataSourceTypeIndices(_memberNodeIndex);
+    indices.caches[ir.Member] =
+        migrated.DataSourceTypeIndices<ir.Member, MemberData>(
+            _memberNodeIndex, (MemberData data) => data?.node);
+    indices.caches[ConstantValue] =
+        migrated.DataSourceTypeIndices(_constantIndex);
     _generalCaches.forEach((type, indexedSource) {
-      indices.caches[type] = DataSourceTypeIndices(indexedSource);
+      indices.caches[type] = migrated.DataSourceTypeIndices(indexedSource);
     });
     return indices;
   }

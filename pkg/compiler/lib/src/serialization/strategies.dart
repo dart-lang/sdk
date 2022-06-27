@@ -20,7 +20,8 @@ import '../js_model/js_world.dart';
 import '../options.dart';
 import '../source_file_provider.dart';
 import '../util/sink_adapter.dart';
-import 'serialization.dart';
+import 'serialization.dart' show DataSinkWriter, DataSourceReader;
+import 'serialization_interfaces.dart' hide DataSinkWriter, DataSourceReader;
 import 'task.dart';
 
 abstract class SerializationStrategy<T> {

@@ -11,7 +11,7 @@ abstract class IndexedSource<E> {
 
   /// Reshapes the cache to a [Map<E, int>] using [_getValue] if provided or
   /// leaving the cache entry as is otherwise.
-  Map<T, int> reshape<T>([T Function(E? value)? getValue]);
+  Map<T, int> reshapeCacheAsMap<T>([T Function(E? value)? getValue]);
 }
 
 abstract class IndexedSink<E> {
@@ -138,7 +138,7 @@ class UnorderedIndexedSource<E> implements IndexedSource<E> {
   }
 
   @override
-  Map<T, int> reshape<T>([T Function(E? value)? getValue]) {
+  Map<T, int> reshapeCacheAsMap<T>([T Function(E? value)? getValue]) {
     return _cache.map((key, value) => getValue == null
         ? MapEntry(value as T, key)
         : MapEntry(getValue(value), key));
@@ -229,7 +229,7 @@ class OrderedIndexedSource<E extends Object> implements IndexedSource<E> {
   }
 
   @override
-  Map<T, int> reshape<T>([T Function(E? value)? getValue]) {
+  Map<T, int> reshapeCacheAsMap<T>([T Function(E? value)? getValue]) {
     var newCache = <T, int>{};
     for (int i = 0; i < cache.length; i++) {
       final newKey = getValue == null ? cache[i] as T : getValue(cache[i]);

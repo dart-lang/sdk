@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:kernel/ast.dart' as ir
     show
         Class,
@@ -23,13 +25,31 @@ import '../inferrer/abstract_value_domain.dart' show AbstractValue;
 import '../js/js.dart' as js;
 import '../js_model/type_recipe.dart';
 import 'deferrable.dart';
+import 'indexed_sink_source.dart';
 import 'member_data.dart' show ComponentLookup;
 
+export 'binary_sink.dart';
+export 'binary_source.dart';
 export 'member_data.dart' show ComponentLookup;
+export 'object_sink.dart';
+export 'object_source.dart';
 export 'tags.dart';
 
 abstract class StringInterner {
   String internString(String string);
+}
+
+class ValueInterner {
+  final Map<DartType, DartType> _dartTypeMap = HashMap();
+  final Map<ir.DartType, ir.DartType> _dartTypeNodeMap = HashMap();
+
+  DartType internDartType(DartType dartType) {
+    return _dartTypeMap[dartType] ??= dartType;
+  }
+
+  ir.DartType internDartTypeNode(ir.DartType dartType) {
+    return _dartTypeNodeMap[dartType] ??= dartType;
+  }
 }
 
 /// NNBD-migrated interface for methods of DataSinkWriter.
@@ -295,6 +315,32 @@ abstract class DataSourceReader {
   E readWithSource<E>(DataSourceReader source, E f());
   E readWithOffset<E>(int offset, E f());
   Deferrable<E> readDeferrable<E>(E f(), {bool cacheData = true});
+}
+
+/// Data class representing cache information for a given [T] which can be
+/// passed from a [DataSourceReader] to other [DataSourceReader]s and [DataSinkWriter]s.
+class DataSourceTypeIndices<E, T> {
+  Map<E, int> get cache => _cache ??= source.reshapeCacheAsMap(_getValue);
+
+  final E Function(T? value)? _getValue;
+  Map<E, int>? _cache;
+  final IndexedSource<T> source;
+
+  /// Uses the cache from the provided [source] and reshapes it if necessary
+  /// to create a lookup map of cached entities. If [_getValue] is provided,
+  /// the function will be used to map the cached entities into lookup keys.
+  DataSourceTypeIndices(this.source, [this._getValue]) {
+    assert(_getValue != null || T == E);
+  }
+}
+
+/// Data class representing the sum of all cache information for a given
+/// [DataSourceReader].
+class DataSourceIndices {
+  final Map<Type, DataSourceTypeIndices> caches = {};
+  final DataSourceReader? previousSourceReader;
+
+  DataSourceIndices(this.previousSourceReader);
 }
 
 /// Interface used for looking up locals by index during deserialization.

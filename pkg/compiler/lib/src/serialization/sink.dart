@@ -22,7 +22,7 @@ class DataSinkWriter implements migrated.DataSinkWriter {
   /// and deserialization.
   final bool useDataKinds;
 
-  DataSourceIndices importedIndices;
+  migrated.DataSourceIndices importedIndices;
 
   /// Visitor used for serializing [ir.DartType]s.
   DartTypeNodeWriter _dartTypeNodeWriter;

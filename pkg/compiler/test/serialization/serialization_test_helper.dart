@@ -12,7 +12,7 @@ import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/inferrer/types.dart';
-import 'package:compiler/src/serialization/serialization.dart';
+import 'package:compiler/src/serialization/serialization_interfaces.dart';
 import 'package:compiler/src/serialization/strategies.dart';
 import 'package:compiler/src/serialization/task.dart';
 import 'package:expect/expect.dart';

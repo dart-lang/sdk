@@ -47,7 +47,10 @@ import '../kernel/kernel_world.dart';
 import '../native/behavior.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
-import '../serialization/serialization.dart';
+import '../serialization/serialization_interfaces.dart'
+    hide DataSinkWriter, DataSourceReader;
+import '../serialization/serialization.dart'
+    show DataSinkWriter, DataSourceReader;
 import '../ssa/builder.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
