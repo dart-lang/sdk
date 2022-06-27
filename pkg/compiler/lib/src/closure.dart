@@ -12,7 +12,12 @@ import 'js_model/element_map.dart';
 import 'serialization/serialization_interfaces.dart';
 
 export 'closure_migrated.dart'
-    show BoxLocal, JSEntity, PrivatelyNamedJSEntity, ThisLocal;
+    show
+        BoxLocal,
+        JSEntity,
+        PrivatelyNamedJSEntity,
+        ThisLocal,
+        TypeVariableLocal;
 
 /// Class that provides information for how closures are rewritten/represented
 /// to preserve Dart semantics when compiled to JavaScript. Given a particular
@@ -319,32 +324,4 @@ class ClosureRepresentationInfo extends ScopeInfo {
   // ClosureClassMaps for situations other than closure class maps, and that's
   // just confusing.
   bool get isClosure => false;
-}
-
-/// A type variable as a local variable.
-class TypeVariableLocal implements Local {
-  final TypeVariableEntity typeVariable;
-
-  TypeVariableLocal(this.typeVariable);
-
-  @override
-  String get name => typeVariable.name;
-
-  @override
-  int get hashCode => typeVariable.hashCode;
-
-  @override
-  bool operator ==(other) {
-    if (other is! TypeVariableLocal) return false;
-    return typeVariable == other.typeVariable;
-  }
-
-  @override
-  String toString() {
-    StringBuffer sb = StringBuffer();
-    sb.write('type_variable_local(');
-    sb.write(typeVariable);
-    sb.write(')');
-    return sb.toString();
-  }
 }

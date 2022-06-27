@@ -4,6 +4,34 @@
 
 import 'elements/entities.dart';
 
+/// A type variable as a local variable.
+class TypeVariableLocal implements Local {
+  final TypeVariableEntity typeVariable;
+
+  TypeVariableLocal(this.typeVariable);
+
+  @override
+  String? get name => typeVariable.name;
+
+  @override
+  int get hashCode => typeVariable.hashCode;
+
+  @override
+  bool operator ==(other) {
+    if (other is! TypeVariableLocal) return false;
+    return typeVariable == other.typeVariable;
+  }
+
+  @override
+  String toString() {
+    StringBuffer sb = StringBuffer();
+    sb.write('type_variable_local(');
+    sb.write(typeVariable);
+    sb.write(')');
+    return sb.toString();
+  }
+}
+
 /// A local variable used encode the direct (uncaptured) references to [this].
 class ThisLocal extends Local {
   final ClassEntity enclosingClass;

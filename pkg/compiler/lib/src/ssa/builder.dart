@@ -844,7 +844,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         ConstructorBodyEntity constructorBody =
             _elementMap.getConstructorBody(body);
 
-        void handleParameter(ir.VariableDeclaration node, {bool isElided}) {
+        void handleParameter(ir.VariableDeclaration node,
+            {/*required*/ bool isElided}) {
           if (isElided) return;
 
           Local parameter = _localsMap.getLocalVariable(node);
@@ -6246,7 +6247,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     ir.Member memberContextNode = _elementMap.getMemberContextNode(function);
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
     forEachOrderedParameter(_elementMap, function,
-        (ir.VariableDeclaration variable, {bool isElided}) {
+        (ir.VariableDeclaration variable, {/*required*/ bool isElided}) {
       Local local = localsMap.getLocalVariable(variable);
       if (isElided) {
         localsHandler.updateLocal(
@@ -6411,7 +6412,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
     forEachOrderedParameter(_elementMap, function,
-        (ir.VariableDeclaration variable, {bool isElided}) {
+        (ir.VariableDeclaration variable, {/*required*/ bool isElided}) {
       Local parameter = localsMap.getLocalVariable(variable);
       HInstruction argument = localsHandler.readLocal(parameter);
       DartType type = localsMap.getLocalType(_elementMap, parameter);
