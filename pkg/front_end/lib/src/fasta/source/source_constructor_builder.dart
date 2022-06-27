@@ -200,8 +200,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
 
   @override
   void buildMembers(void Function(Member, BuiltMemberKind) f) {
-    Member member = build();
-    f(member, BuiltMemberKind.Constructor);
+    _build();
+    f(_constructor, BuiltMemberKind.Constructor);
     if (_constructorTearOff != null) {
       f(_constructorTearOff!, BuiltMemberKind.Method);
     }
@@ -209,8 +209,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
 
   bool _hasBeenBuilt = false;
 
-  @override
-  Constructor build() {
+  void _build() {
     if (!_hasBeenBuilt) {
       buildFunction();
       _constructor.function.fileOffset = charOpenParenOffset;
@@ -248,7 +247,6 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
             .registerConstructorToBeInferred(_constructor, this);
       }
     }
-    return _constructor;
   }
 
   @override

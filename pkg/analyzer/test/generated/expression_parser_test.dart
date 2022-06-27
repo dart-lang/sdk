@@ -157,6 +157,62 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(b.expression, isNotNull);
   }
 
+  void test_nullableTypeInStringInterpolations_as_48999() {
+    // https://github.com/dart-lang/sdk/issues/48999
+    Expression expression = parseExpression(r'"${i as int?}"');
+    expect(expression, isNotNull);
+    assertNoErrors();
+
+    var interpolation = expression as StringInterpolation;
+    expect(interpolation.elements, hasLength(3));
+
+    expect(interpolation.elements[0], isInterpolationString);
+    var element0 = interpolation.elements[0] as InterpolationString;
+    expect(element0.value, '');
+
+    expect(interpolation.elements[1], isInterpolationExpression);
+    var element1 = interpolation.elements[1] as InterpolationExpression;
+    expect(element1.expression, isAsExpression);
+    var asExpression = element1.expression as AsExpression;
+    expect(asExpression.expression, isSimpleIdentifier);
+    expect(asExpression.type, isNamedType);
+    var namedType = asExpression.type as NamedType;
+    expect(namedType.name.name, "int");
+    expect(namedType.question, isNotNull);
+
+    expect(interpolation.elements[2], isInterpolationString);
+    var element2 = interpolation.elements[2] as InterpolationString;
+    expect(element2.value, '');
+  }
+
+  void test_nullableTypeInStringInterpolations_is_48999() {
+    // https://github.com/dart-lang/sdk/issues/48999
+    Expression expression = parseExpression(r'"${i is int?}"');
+    expect(expression, isNotNull);
+    assertNoErrors();
+
+    var interpolation = expression as StringInterpolation;
+    expect(interpolation.elements, hasLength(3));
+
+    expect(interpolation.elements[0], isInterpolationString);
+    var element0 = interpolation.elements[0] as InterpolationString;
+    expect(element0.value, '');
+
+    expect(interpolation.elements[1], isInterpolationExpression);
+    var element1 = interpolation.elements[1] as InterpolationExpression;
+    expect(element1.expression, isIsExpression);
+    var isExpression = element1.expression as IsExpression;
+    expect(isExpression.expression, isSimpleIdentifier);
+    expect(isExpression.type, isNamedType);
+    var namedType = isExpression.type as NamedType;
+    expect(namedType.name.name, "int");
+    expect(namedType.question, isNotNull);
+
+    expect(interpolation.elements[2], isInterpolationString);
+    var element2 = interpolation.elements[2] as InterpolationString;
+    expect(element2.value, '');
+  }
+
   void test_parseAdditiveExpression_normal() {
     Expression expression = parseAdditiveExpression('x + y');
     expect(expression, isNotNull);

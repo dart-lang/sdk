@@ -474,8 +474,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     }
   }
 
-  Member build();
-
   @override
   void becomeNative(SourceLoader loader) {
     MemberBuilder constructor = loader.getNativeAnnotation();

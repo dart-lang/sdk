@@ -852,6 +852,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
   static const _uncaughtExceptionExitCode = 255;
   static const _adbInfraFailureCodes = [10];
   static const _ubsanFailureExitCode = 1;
+  static const _frontEndTestExitCode = 1;
 
   VMCommandOutput(Command command, int exitCode, bool timedOut,
       List<int> stdout, List<int> stderr, Duration time, int pid)
@@ -909,9 +910,13 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
     // The actual outcome depends on the exitCode.
     if (exitCode == _compileErrorExitCode) return Expectation.compileTimeError;
     if (exitCode == _uncaughtExceptionExitCode) return Expectation.runtimeError;
-    if ((exitCode == _ubsanFailureExitCode) &&
-        (testCase.configuration.sanitizer == Sanitizer.ubsan)) {
+    if (exitCode == _ubsanFailureExitCode &&
+        testCase.configuration.sanitizer == Sanitizer.ubsan) {
       return Expectation.fail;
+    }
+    if (exitCode == _frontEndTestExitCode &&
+        testCase.displayName.startsWith('pkg/front_end/test/')) {
+      return Expectation.runtimeError;
     }
     if (exitCode != 0) {
       var ourExit = 5;

@@ -133,15 +133,14 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   @override
   void buildMembers(void Function(Member, BuiltMemberKind) f) {
-    Member member = build();
-    f(member, BuiltMemberKind.Method);
+    _build();
+    f(_procedureInternal, BuiltMemberKind.Method);
     if (_factoryTearOff != null) {
       f(_factoryTearOff!, BuiltMemberKind.Method);
     }
   }
 
-  @override
-  Procedure build() {
+  void _build() {
     buildFunction();
     _procedureInternal.function.fileOffset = charOpenParenOffset;
     _procedureInternal.function.fileEndOffset =
@@ -160,7 +159,6 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
           enclosingClass: classBuilder!.cls,
           libraryBuilder: libraryBuilder);
     }
-    return _procedureInternal;
   }
 
   bool _hasBuiltOutlines = false;
@@ -341,15 +339,15 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
   @override
   void buildMembers(void Function(Member, BuiltMemberKind) f) {
-    Member member = build();
-    f(member, BuiltMemberKind.RedirectingFactory);
+    _build();
+    f(_procedureInternal, BuiltMemberKind.RedirectingFactory);
     if (_factoryTearOff != null) {
       f(_factoryTearOff!, BuiltMemberKind.Method);
     }
   }
 
   @override
-  Procedure build() {
+  void _build() {
     buildFunction();
     _procedureInternal.function.fileOffset = charOpenParenOffset;
     _procedureInternal.function.fileEndOffset =
@@ -374,7 +372,6 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
               implementationConstructor: _procedureInternal,
               libraryBuilder: libraryBuilder);
     }
-    return _procedureInternal;
   }
 
   @override
