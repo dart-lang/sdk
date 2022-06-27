@@ -375,12 +375,12 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   @override
   void buildMembers(void Function(Member, BuiltMemberKind) f) {
-    build();
+    _build();
     _fieldEncoding.registerMembers(libraryBuilder, this, f);
   }
 
   /// Builds the core AST structures for this field as needed for the outline.
-  void build() {
+  void _build() {
     if (type is! InferableTypeBuilder) {
       fieldType = type.build(libraryBuilder, TypeUse.fieldType);
     }

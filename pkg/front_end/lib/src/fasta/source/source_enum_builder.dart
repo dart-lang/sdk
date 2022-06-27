@@ -561,7 +561,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
   @override
   Class build(LibraryBuilder coreLibrary) {
-    cls.isEnum = true;
     intType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
     stringType.resolveIn(
         coreLibrary.scope, charOffset, fileUri, libraryBuilder);
@@ -572,6 +571,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
     listType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
 
+    Class cls = super.build(coreLibrary);
+    cls.isEnum = true;
+
     List<Expression> values = <Expression>[];
     if (enumConstantInfos != null) {
       for (EnumConstantInfo? enumConstantInfo in enumConstantInfos!) {
@@ -579,15 +581,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
           Builder declaration = firstMemberNamed(enumConstantInfo.name)!;
           if (declaration.isField) {
             SourceFieldBuilder fieldBuilder = declaration as SourceFieldBuilder;
-            fieldBuilder.build();
             values.add(new StaticGet(fieldBuilder.field));
           }
         }
       }
     }
-    SourceFieldBuilder valuesBuilder =
-        firstMemberNamed("values") as SourceFieldBuilder;
-    valuesBuilder.build();
 
     // The super initializer for the synthesized default constructor is
     // inserted here if the enum's supertype is _Enum to preserve the legacy
@@ -597,7 +595,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
     // building.
     if (identical(this.supertypeBuilder, enumType)) {
       if (synthesizedDefaultConstructorBuilder != null) {
-        Constructor constructor = synthesizedDefaultConstructorBuilder!.build();
+        Constructor constructor =
+            synthesizedDefaultConstructorBuilder!.constructor;
         ClassBuilder objectClass = objectType.declaration as ClassBuilder;
         ClassBuilder enumClass = enumType.declaration as ClassBuilder;
         MemberBuilder? superConstructor = enumClass.findConstructorOrFactory(
@@ -625,7 +624,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       }
     }
 
-    return super.build(coreLibrary);
+    return cls;
   }
 
   DartType buildElement(SourceFieldBuilder fieldBuilder, CoreTypes coreTypes) {
@@ -778,7 +777,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
           Builder declaration = firstMemberNamed(enumConstantInfo.name)!;
           if (declaration.isField) {
             SourceFieldBuilder fieldBuilder = declaration as SourceFieldBuilder;
-            fieldBuilder.build();
             values.add(new StaticGet(fieldBuilder.field));
           }
         }

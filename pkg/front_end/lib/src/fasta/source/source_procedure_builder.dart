@@ -232,20 +232,20 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   @override
   void buildMembers(void Function(Member, BuiltMemberKind) f) {
-    Member member = build();
+    _build();
     if (isExtensionMethod) {
       switch (kind) {
         case ProcedureKind.Method:
-          f(member, BuiltMemberKind.ExtensionMethod);
+          f(_procedure, BuiltMemberKind.ExtensionMethod);
           break;
         case ProcedureKind.Getter:
-          f(member, BuiltMemberKind.ExtensionGetter);
+          f(_procedure, BuiltMemberKind.ExtensionGetter);
           break;
         case ProcedureKind.Setter:
-          f(member, BuiltMemberKind.ExtensionSetter);
+          f(_procedure, BuiltMemberKind.ExtensionSetter);
           break;
         case ProcedureKind.Operator:
-          f(member, BuiltMemberKind.ExtensionOperator);
+          f(_procedure, BuiltMemberKind.ExtensionOperator);
           break;
         case ProcedureKind.Factory:
           throw new UnsupportedError(
@@ -259,8 +259,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     }
   }
 
-  @override
-  Procedure build() {
+  void _build() {
     buildFunction();
     _procedure.function.fileOffset = charOpenParenOffset;
     _procedure.function.fileEndOffset = _procedure.fileEndOffset;
@@ -281,7 +280,6 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       _buildExtensionTearOff(libraryBuilder, parent as ExtensionBuilder);
       updatePrivateMemberName(extensionTearOff!, libraryBuilder);
     }
-    return _procedure;
   }
 
   /// Creates a top level function that creates a tear off of an extension
