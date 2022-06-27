@@ -266,7 +266,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   // TODO(johnniwinther): Change [node] to `InstanceGet` when the old method
   // invocation encoding is no longer used.
   void handleRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
-      ir.DartType? receiverType, ir.DartType? argumentType) {}
+      ir.DartType receiverType, ir.DartType? argumentType) {}
 
   void handleRuntimeTypeGet(ir.DartType receiverType, ir.Expression node) {
     RuntimeTypeUseData data =
@@ -290,7 +290,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         _pendingRuntimeTypeUseData.remove(data.rightRuntimeTypeExpression);
       }
       handleRuntimeTypeUse(
-          node, data.kind, data.receiverType, data.argumentType);
+          node, data.kind, data.receiverType!, data.argumentType);
     }
   }
 
@@ -1016,7 +1016,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       ir.Expression node, ir.Member target, ir.DartType resultType) {}
 
   void handleStaticTearOff(
-      ir.Expression node, ir.Member target, ir.DartType resultType) {}
+      ir.Expression node, ir.Procedure target, ir.DartType resultType) {}
 
   @override
   ir.DartType visitStaticGet(ir.StaticGet node) {

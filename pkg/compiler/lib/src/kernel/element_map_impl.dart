@@ -56,7 +56,8 @@ import '../universe/selector.dart';
 import '../universe/world_impact.dart';
 
 import 'element_map.dart';
-import 'element_map_interfaces.dart' show KernelToElementMapForClassHierarchy;
+import 'element_map_interfaces.dart'
+    show KernelToElementMapForClassHierarchy, KernelToElementMapForImpactData;
 import 'env.dart';
 import 'kelements.dart';
 import 'kernel_impact.dart';
@@ -64,7 +65,11 @@ import 'kernel_impact.dart';
 /// Implementation of [IrToElementMap] that only supports world
 /// impact computation.
 class KernelToElementMap
-    implements KernelToElementMapForClassHierarchy, IrToElementMap {
+    implements
+        IrToElementMap,
+        KernelToElementMapForClassHierarchy,
+        KernelToElementMapForImpactData {
+  @override
   final CompilerOptions options;
   @override
   final DiagnosticReporter reporter;
@@ -128,6 +133,7 @@ class KernelToElementMap
   }
 
   /// Access to the [DartTypes] object.
+  @override
   DartTypes get types => _types;
 
   KernelElementEnvironment get elementEnvironment => _elementEnvironment;
@@ -863,6 +869,7 @@ class KernelToElementMap
     return ir.StaticTypeContext(getMemberNode(member), typeEnvironment);
   }
 
+  @override
   Dart2jsConstantEvaluator get constantEvaluator {
     return _constantEvaluator ??=
         Dart2jsConstantEvaluator(env.mainComponent, typeEnvironment,
