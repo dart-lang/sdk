@@ -216,13 +216,13 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_5
+      kind: library_9
         imports
           library_1
           library_4 dart:core synthetic
-        cycle_4
+        cycle_5
           dependencies: cycle_1 dart:core
-          libraries: library_5
+          libraries: library_9
           apiSignature_4
       unlinkedKey: k01
   /home/test/lib/b.dart
@@ -236,8 +236,8 @@ files
           dependencies: dart:core
           libraries: library_1
           apiSignature_1
-          users: cycle_4
-      referencingFiles: [file_0, file_0]
+          users: cycle_5
+      referencingFiles: file_0
       unlinkedKey: k00
   /home/test/lib/c.dart
     uri: package:test/c.dart
@@ -278,29 +278,29 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_5
+      kind: library_9
         imports
-          library_6
+          library_10
           library_4 dart:core synthetic
-        cycle_5
-          dependencies: cycle_6 dart:core
-          libraries: library_5
+        cycle_6
+          dependencies: cycle_7 dart:core
+          libraries: library_9
           apiSignature_5
       unlinkedKey: k01
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
       id: file_1
-      kind: library_6
+      kind: library_10
         imports
           library_2
           library_4 dart:core synthetic
-        cycle_6
+        cycle_7
           dependencies: cycle_2 dart:core
-          libraries: library_6
+          libraries: library_10
           apiSignature_6
-          users: cycle_5
-      referencingFiles: [file_0, file_0]
+          users: cycle_6
+      referencingFiles: file_0
       unlinkedKey: k02
   /home/test/lib/c.dart
     uri: package:test/c.dart
@@ -313,8 +313,8 @@ files
           dependencies: dart:core
           libraries: library_2
           apiSignature_2
-          users: cycle_6
-      referencingFiles: [file_1, file_1]
+          users: cycle_7
+      referencingFiles: file_1
       unlinkedKey: k00
   /home/test/lib/d.dart
     uri: package:test/d.dart
@@ -343,30 +343,30 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_5
+      kind: library_9
         imports
-          library_7
+          library_11
           library_4 dart:core synthetic
-        cycle_7
-          dependencies: cycle_8 dart:core
-          libraries: library_5
+        cycle_8
+          dependencies: cycle_9 dart:core
+          libraries: library_9
           apiSignature_7
       unlinkedKey: k01
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
       id: file_1
-      kind: library_7
+      kind: library_11
         imports
           library_4 dart:core synthetic
         exports
           library_3
-        cycle_8
+        cycle_9
           dependencies: cycle_3 dart:core
-          libraries: library_7
+          libraries: library_11
           apiSignature_8
-          users: cycle_7
-      referencingFiles: [file_0, file_0]
+          users: cycle_8
+      referencingFiles: file_0
       unlinkedKey: k03
   /home/test/lib/c.dart
     uri: package:test/c.dart
@@ -379,7 +379,6 @@ files
           dependencies: dart:core
           libraries: library_2
           apiSignature_2
-      referencingFiles: [file_1]
       unlinkedKey: k00
   /home/test/lib/d.dart
     uri: package:test/d.dart
@@ -392,8 +391,8 @@ files
           dependencies: dart:core
           libraries: library_3
           apiSignature_3
-          users: cycle_8
-      referencingFiles: [file_1, file_1]
+          users: cycle_9
+      referencingFiles: file_1
       unlinkedKey: k00
 libraryCycles
 elementFactory
@@ -410,28 +409,27 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_8
+      kind: library_12
         imports
           library_4 dart:core synthetic
-        cycle_9
+        cycle_10
           dependencies: dart:core
-          libraries: library_8
+          libraries: library_12
           apiSignature_0
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
       id: file_1
-      kind: library_7
+      kind: library_11
         imports
           library_4 dart:core synthetic
         exports
           library_3
-        cycle_8
+        cycle_9
           dependencies: cycle_3 dart:core
-          libraries: library_7
+          libraries: library_11
           apiSignature_8
-      referencingFiles: [file_0]
       unlinkedKey: k03
   /home/test/lib/c.dart
     uri: package:test/c.dart
@@ -444,7 +442,6 @@ files
           dependencies: dart:core
           libraries: library_2
           apiSignature_2
-      referencingFiles: [file_1]
       unlinkedKey: k00
   /home/test/lib/d.dart
     uri: package:test/d.dart
@@ -457,8 +454,8 @@ files
           dependencies: dart:core
           libraries: library_3
           apiSignature_3
-          users: cycle_8
-      referencingFiles: [file_1, file_1]
+          users: cycle_9
+      referencingFiles: file_1
       unlinkedKey: k00
 libraryCycles
 elementFactory
@@ -491,7 +488,7 @@ files
           dependencies: dart:core
           libraries: library_0 library_1
           apiSignature_0
-      referencingFiles: [file_1, file_1]
+      referencingFiles: file_1
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -505,7 +502,7 @@ files
           dependencies: dart:core
           libraries: library_0 library_1
           apiSignature_0
-      referencingFiles: [file_0, file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -520,15 +517,15 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_3
+      kind: library_7
         imports
           library_2 dart:core synthetic
-        cycle_1
+        cycle_2
           dependencies: dart:core
-          libraries: library_3
+          libraries: library_7
           apiSignature_1
-          users: cycle_2
-      referencingFiles: [file_1, file_1]
+          users: cycle_3
+      referencingFiles: file_1
       unlinkedKey: k02
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -536,13 +533,12 @@ files
       id: file_1
       kind: library_1
         imports
-          library_3
+          library_7
           library_2 dart:core synthetic
-        cycle_2
-          dependencies: cycle_1 dart:core
+        cycle_3
+          dependencies: cycle_2 dart:core
           libraries: library_1
           apiSignature_2
-      referencingFiles: [file_0]
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -621,7 +617,7 @@ files
         imports
           library_3 dart:core synthetic
         augmentations: file_2
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
   /home/test/lib/c.dart
     uri: package:test/c.dart
@@ -632,7 +628,7 @@ files
         library: library_0
         imports
           library_3 dart:core synthetic
-      referencingFiles: [file_1]
+      referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
 elementFactory
@@ -685,7 +681,7 @@ files
         augmented: augmentation_1
         imports
           library_3 dart:core synthetic
-      referencingFiles: [file_1]
+      referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
 elementFactory
@@ -733,7 +729,7 @@ files
         library: library_0
         imports
           library_3 dart:core synthetic
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
   /home/test/lib/c.dart
     uri: package:test/c.dart
@@ -787,7 +783,7 @@ files
         imports
           library_2 dart:core synthetic
         augmentations: file_1
-      referencingFiles: [file_0, file_1]
+      referencingFiles: file_0 file_1
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -836,7 +832,7 @@ files
         imports
           library_3 dart:core synthetic
         augmentations: file_2
-      referencingFiles: [file_0, file_2]
+      referencingFiles: file_0 file_2
       unlinkedKey: k01
   /home/test/lib/c.dart
     uri: package:test/c.dart
@@ -848,7 +844,7 @@ files
         imports
           library_3 dart:core synthetic
         augmentations: file_1
-      referencingFiles: [file_1]
+      referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
 elementFactory
@@ -912,7 +908,7 @@ files
         library: library_0
         imports
           library_2 dart:core synthetic
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -966,12 +962,12 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_3
+      kind: library_7
         imports
           library_2 dart:core synthetic
-        cycle_1
+        cycle_2
           dependencies: dart:core
-          libraries: library_3
+          libraries: library_7
           apiSignature_0
       unlinkedKey: k00
   /home/test/lib/b.dart
@@ -1064,7 +1060,7 @@ files
         library: library_0
         imports
           library_2 dart:core synthetic
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -1090,14 +1086,14 @@ files
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_3
+      id: file_7
+      kind: library_7
         imports
           library_2 dart:core synthetic
         augmentations: file_1
-        cycle_1
+        cycle_2
           dependencies: dart:core
-          libraries: library_3
+          libraries: library_7
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -1109,7 +1105,7 @@ files
         library: library_0
         imports
           library_2 dart:core synthetic
-      referencingFiles: [file_0, file_2]
+      referencingFiles: file_0 file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -1135,14 +1131,14 @@ files
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_4
+      id: file_7
+      kind: library_8
         imports
           library_2 dart:core synthetic
         augmentations: file_1
-        cycle_2
+        cycle_3
           dependencies: dart:core
-          libraries: library_4
+          libraries: library_8
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -1154,7 +1150,7 @@ files
         library: library_0
         imports
           library_2 dart:core synthetic
-      referencingFiles: [file_0, file_2]
+      referencingFiles: file_0 file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -1170,25 +1166,25 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_5
+      kind: library_9
         imports
           library_2 dart:core synthetic
-        cycle_3
+        cycle_4
           dependencies: dart:core
-          libraries: library_5
+          libraries: library_9
           apiSignature_2
       unlinkedKey: k02
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_4
+      id: file_7
+      kind: library_8
         imports
           library_2 dart:core synthetic
         augmentations: file_1
-        cycle_2
+        cycle_3
           dependencies: dart:core
-          libraries: library_4
+          libraries: library_8
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -1199,7 +1195,7 @@ files
         uriFile: file_0
         imports
           library_2 dart:core synthetic
-      referencingFiles: [file_2]
+      referencingFiles: file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -1214,24 +1210,24 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_5
+      kind: library_9
         imports
           library_2 dart:core synthetic
-        cycle_3
+        cycle_4
           dependencies: dart:core
-          libraries: library_5
+          libraries: library_9
           apiSignature_2
       unlinkedKey: k02
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_6
+      id: file_7
+      kind: library_10
         imports
           library_2 dart:core synthetic
-        cycle_4
+        cycle_5
           dependencies: dart:core
-          libraries: library_6
+          libraries: library_10
           apiSignature_3
       unlinkedKey: k02
   /home/test/lib/c.dart
@@ -1258,25 +1254,25 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_5
+      kind: library_9
         imports
           library_2 dart:core synthetic
-        cycle_3
+        cycle_4
           dependencies: dart:core
-          libraries: library_5
+          libraries: library_9
           apiSignature_2
       unlinkedKey: k02
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_7
+      id: file_7
+      kind: library_11
         imports
           library_2 dart:core synthetic
         augmentations: file_1
-        cycle_5
+        cycle_6
           dependencies: dart:core
-          libraries: library_7
+          libraries: library_11
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -1287,7 +1283,7 @@ files
         uriFile: file_0
         imports
           library_2 dart:core synthetic
-      referencingFiles: [file_2]
+      referencingFiles: file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -1304,26 +1300,26 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_8
+      kind: library_12
         imports
           library_2 dart:core synthetic
         augmentations: file_1
-        cycle_6
+        cycle_7
           dependencies: dart:core
-          libraries: library_8
+          libraries: library_12
           apiSignature_0
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_7
+      id: file_7
+      kind: library_11
         imports
           library_2 dart:core synthetic
         augmentations: file_1
-        cycle_5
+        cycle_6
           dependencies: dart:core
-          libraries: library_7
+          libraries: library_11
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -1331,11 +1327,11 @@ files
     current
       id: file_1
       kind: augmentation_1
-        augmented: library_8
-        library: library_8
+        augmented: library_12
+        library: library_12
         imports
           library_2 dart:core synthetic
-      referencingFiles: [file_0, file_2]
+      referencingFiles: file_0 file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -1403,7 +1399,7 @@ files
         uriFile: file_0
         imports
           library_3 dart:core synthetic
-      referencingFiles: [file_2, file_2]
+      referencingFiles: file_2
       unlinkedKey: k01
   /home/test/lib/c.dart
     uri: package:test/c.dart
@@ -1442,8 +1438,8 @@ files
         imports
           library_1 dart:core synthetic
         exports
-          library_2 dart:async
-          library_3 dart:math
+          library_3 dart:async
+          library_5 dart:math
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1532,7 +1528,7 @@ files
           libraries: library_1
           apiSignature_1
           users: cycle_0
-      referencingFiles: [file_0, file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -1623,7 +1619,7 @@ files
           libraries: library_1
           apiSignature_1
           users: cycle_0
-      referencingFiles: [file_0, file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -1682,7 +1678,7 @@ files
           libraries: library_0
           apiSignature_0
           users: cycle_2
-      referencingFiles: [file_2, file_2]
+      referencingFiles: file_2
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -1696,7 +1692,7 @@ files
           libraries: library_1
           apiSignature_1
           users: cycle_2
-      referencingFiles: [file_2, file_2]
+      referencingFiles: file_2
       unlinkedKey: k00
   /home/test/lib/c.dart
     uri: package:test/c.dart
@@ -1737,7 +1733,7 @@ files
       id: file_0
       kind: partOfName_0
         name: my.lib
-      referencingFiles: [file_1, file_1]
+      referencingFiles: file_1
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -1791,7 +1787,7 @@ files
         uriFile: file_0
         imports
           library_3 dart:core synthetic
-      referencingFiles: [file_2, file_2]
+      referencingFiles: file_2
       unlinkedKey: k01
   /home/test/lib/c.dart
     uri: package:test/c.dart
@@ -1854,9 +1850,9 @@ files
       id: file_0
       kind: library_0
         imports
-          library_1 dart:async
-          library_2 dart:math
-          library_3 dart:core synthetic
+          library_3 dart:async
+          library_5 dart:math
+          library_1 dart:core synthetic
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1884,7 +1880,7 @@ files
       kind: library_0
         imports
           library_1 dart:core
-          library_2 dart:math
+          library_5 dart:math
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1972,7 +1968,7 @@ files
           libraries: library_1
           apiSignature_1
           users: cycle_0
-      referencingFiles: [file_0, file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -2062,7 +2058,7 @@ files
           libraries: library_1
           apiSignature_1
           users: cycle_0
-      referencingFiles: [file_0, file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -2096,7 +2092,7 @@ files
           libraries: library_0
           apiSignature_0
           users: cycle_2
-      referencingFiles: [file_2, file_2]
+      referencingFiles: file_2
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -2110,7 +2106,7 @@ files
           libraries: library_1
           apiSignature_1
           users: cycle_2
-      referencingFiles: [file_2, file_2]
+      referencingFiles: file_2
       unlinkedKey: k00
   /home/test/lib/c.dart
     uri: package:test/c.dart
@@ -2125,6 +2121,51 @@ files
           dependencies: cycle_0 cycle_1 dart:core
           libraries: library_2
           apiSignature_2
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_newFile_library_imports_library_package_twice() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+import 'a.dart';
+''');
+
+    fileStateFor(b);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_2 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_1
+      referencingFiles: file_1
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: library_1
+        imports
+          library_0
+          library_0
+          library_2 dart:core synthetic
+        cycle_1
+          dependencies: cycle_0 dart:core
+          libraries: library_1
+          apiSignature_1
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -2150,7 +2191,7 @@ files
       id: file_0
       kind: partOfName_0
         name: my.lib
-      referencingFiles: [file_1, file_1]
+      referencingFiles: file_1
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -2207,7 +2248,7 @@ files
           dependencies: dart:core
           libraries: library_1
           apiSignature_1
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -2221,13 +2262,13 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_3
+      kind: library_7
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_2
+        cycle_3
           dependencies: dart:core
-          libraries: library_3
+          libraries: library_7
           apiSignature_0
       unlinkedKey: k00
   /home/test/lib/b.dart
@@ -2241,7 +2282,7 @@ files
           dependencies: dart:core
           libraries: library_1
           apiSignature_1
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -2340,7 +2381,7 @@ files
       kind: partOfName_0
         libraries: library_1
         library: library_1
-      referencingFiles: [file_1]
+      referencingFiles: file_1
       unlinkedKey: k00
   /home/test/lib/nested/a.dart
     uri: package:test/nested/a.dart
@@ -2376,14 +2417,28 @@ part of other.lib;
     // We don't know the library initially.
     assertDriverStateString(testFile, r'''
 files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        name: my.lib
+        imports
+          library_2 dart:core synthetic
+        parts: file_1
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_0
-      kind: partOfName_0
+      id: file_1
+      kind: partOfName_1
         name: other.lib
-      referencingFiles: [file_1]
-      unlinkedKey: k00
+      referencingFiles: file_0
+      unlinkedKey: k01
 libraryCycles
 elementFactory
 ''');
@@ -2398,25 +2453,25 @@ files
   /home/test/lib/a.dart
     uri: package:test/a.dart
     current
-      id: file_1
-      kind: library_1
+      id: file_0
+      kind: library_0
         name: my.lib
         imports
           library_2 dart:core synthetic
-        parts: file_0
+        parts: file_1
         cycle_0
           dependencies: dart:core
-          libraries: library_1
+          libraries: library_0
           apiSignature_0
-      unlinkedKey: k01
+      unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_0
-      kind: partOfName_0
+      id: file_1
+      kind: partOfName_1
         name: other.lib
-      referencingFiles: [file_1]
-      unlinkedKey: k00
+      referencingFiles: file_0
+      unlinkedKey: k01
 libraryCycles
 elementFactory
 ''');
@@ -2463,7 +2518,7 @@ files
       kind: partOfName_1
         libraries: library_0
         library: library_0
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -2491,15 +2546,15 @@ files
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_3
+      id: file_7
+      kind: library_7
         name: my.lib
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_1
+        cycle_2
           dependencies: dart:core
-          libraries: library_3
+          libraries: library_7
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -2507,9 +2562,9 @@ files
     current
       id: file_1
       kind: partOfName_1
-        libraries: library_0 library_3
+        libraries: library_0 library_7
         library: library_0
-      referencingFiles: [file_0, file_2]
+      referencingFiles: file_0 file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -2536,15 +2591,15 @@ files
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_4
+      id: file_7
+      kind: library_8
         name: my.lib
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_2
+        cycle_3
           dependencies: dart:core
-          libraries: library_4
+          libraries: library_8
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -2552,9 +2607,9 @@ files
     current
       id: file_1
       kind: partOfName_1
-        libraries: library_0 library_4
+        libraries: library_0 library_8
         library: library_0
-      referencingFiles: [file_0, file_2]
+      referencingFiles: file_0 file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -2568,28 +2623,28 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_5
+      kind: library_9
+        name: my.lib
+        imports
+          library_2 dart:core synthetic
+        parts: file_1
+        cycle_4
+          dependencies: dart:core
+          libraries: library_9
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_7
+      kind: library_8
         name: my.lib
         imports
           library_2 dart:core synthetic
         parts: file_1
         cycle_3
           dependencies: dart:core
-          libraries: library_5
-          apiSignature_0
-      unlinkedKey: k00
-  /home/test/lib/b.dart
-    uri: package:test/b.dart
-    current
-      id: file_2
-      kind: library_4
-        name: my.lib
-        imports
-          library_2 dart:core synthetic
-        parts: file_1
-        cycle_2
-          dependencies: dart:core
-          libraries: library_4
+          libraries: library_8
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -2597,9 +2652,9 @@ files
     current
       id: file_1
       kind: partOfName_1
-        libraries: library_4 library_5
-        library: library_5
-      referencingFiles: [file_0, file_2]
+        libraries: library_8 library_9
+        library: library_9
+      referencingFiles: file_0 file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -2614,26 +2669,26 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_6
+      kind: library_10
         imports
           library_2 dart:core synthetic
-        cycle_4
+        cycle_5
           dependencies: dart:core
-          libraries: library_6
+          libraries: library_10
           apiSignature_2
       unlinkedKey: k02
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_4
+      id: file_7
+      kind: library_8
         name: my.lib
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_2
+        cycle_3
           dependencies: dart:core
-          libraries: library_4
+          libraries: library_8
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -2641,9 +2696,9 @@ files
     current
       id: file_1
       kind: partOfName_1
-        libraries: library_4
-        library: library_4
-      referencingFiles: [file_2]
+        libraries: library_8
+        library: library_8
+      referencingFiles: file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -2658,24 +2713,24 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_6
+      kind: library_10
         imports
           library_2 dart:core synthetic
-        cycle_4
+        cycle_5
           dependencies: dart:core
-          libraries: library_6
+          libraries: library_10
           apiSignature_2
       unlinkedKey: k02
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_7
+      id: file_7
+      kind: library_11
         imports
           library_2 dart:core synthetic
-        cycle_5
+        cycle_6
           dependencies: dart:core
-          libraries: library_7
+          libraries: library_11
           apiSignature_3
       unlinkedKey: k02
   /home/test/lib/c.dart
@@ -2701,26 +2756,26 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_6
+      kind: library_10
         imports
           library_2 dart:core synthetic
-        cycle_4
+        cycle_5
           dependencies: dart:core
-          libraries: library_6
+          libraries: library_10
           apiSignature_2
       unlinkedKey: k02
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_8
+      id: file_7
+      kind: library_12
         name: my.lib
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_6
+        cycle_7
           dependencies: dart:core
-          libraries: library_8
+          libraries: library_12
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -2728,9 +2783,9 @@ files
     current
       id: file_1
       kind: partOfName_1
-        libraries: library_8
-        library: library_8
-      referencingFiles: [file_2]
+        libraries: library_12
+        library: library_12
+      referencingFiles: file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -2748,28 +2803,28 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_9
+      kind: library_13
+        name: my.lib
+        imports
+          library_2 dart:core synthetic
+        parts: file_1
+        cycle_8
+          dependencies: dart:core
+          libraries: library_13
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_7
+      kind: library_12
         name: my.lib
         imports
           library_2 dart:core synthetic
         parts: file_1
         cycle_7
           dependencies: dart:core
-          libraries: library_9
-          apiSignature_0
-      unlinkedKey: k00
-  /home/test/lib/b.dart
-    uri: package:test/b.dart
-    current
-      id: file_2
-      kind: library_8
-        name: my.lib
-        imports
-          library_2 dart:core synthetic
-        parts: file_1
-        cycle_6
-          dependencies: dart:core
-          libraries: library_8
+          libraries: library_12
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -2777,9 +2832,9 @@ files
     current
       id: file_1
       kind: partOfName_1
-        libraries: library_8 library_9
-        library: library_9
-      referencingFiles: [file_0, file_2]
+        libraries: library_12 library_13
+        library: library_13
+      referencingFiles: file_0 file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -2840,13 +2895,13 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_3
+      kind: library_7
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_1
+        cycle_2
           dependencies: dart:core
-          libraries: library_3
+          libraries: library_7
           apiSignature_1
       unlinkedKey: k02
   /home/test/lib/b.dart
@@ -2854,8 +2909,8 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
-        library: library_3
-      referencingFiles: [file_0]
+        library: library_7
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -2869,22 +2924,22 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_3
+      kind: library_7
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_2
+        cycle_3
           dependencies: dart:core
-          libraries: library_3
+          libraries: library_7
           apiSignature_1
       unlinkedKey: k02
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
       id: file_1
-      kind: partOfUriKnown_4
-        library: library_3
-      referencingFiles: [file_0]
+      kind: partOfUriKnown_8
+        library: library_7
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -2925,7 +2980,7 @@ files
       id: file_1
       kind: partOfUriKnown_1
         library: library_0
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -2943,7 +2998,7 @@ files
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_1
+        cycle_2
           dependencies: dart:core
           libraries: library_0
           apiSignature_0
@@ -2952,9 +3007,9 @@ files
     uri: package:test/b.dart
     current
       id: file_1
-      kind: partOfUriKnown_3
+      kind: partOfUriKnown_7
         library: library_0
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -3048,7 +3103,7 @@ files
       id: file_0
       kind: partOfUriUnknown_0
         uri: da:
-      referencingFiles: [file_1]
+      referencingFiles: file_1
       unlinkedKey: k00
 libraryCycles
 elementFactory
@@ -3093,7 +3148,7 @@ files
       id: file_1
       kind: partOfUriKnown_1
         library: library_0
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -3119,14 +3174,14 @@ files
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_3
+      id: file_7
+      kind: library_7
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_1
+        cycle_2
           dependencies: dart:core
-          libraries: library_3
+          libraries: library_7
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -3135,7 +3190,7 @@ files
       id: file_1
       kind: partOfUriKnown_1
         library: library_0
-      referencingFiles: [file_0, file_2]
+      referencingFiles: file_0 file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -3161,14 +3216,14 @@ files
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_4
+      id: file_7
+      kind: library_8
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_2
+        cycle_3
           dependencies: dart:core
-          libraries: library_4
+          libraries: library_8
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -3177,7 +3232,7 @@ files
       id: file_1
       kind: partOfUriKnown_1
         library: library_0
-      referencingFiles: [file_0, file_2]
+      referencingFiles: file_0 file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -3191,26 +3246,26 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_5
+      kind: library_9
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_3
+        cycle_4
           dependencies: dart:core
-          libraries: library_5
+          libraries: library_9
           apiSignature_0
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_4
+      id: file_7
+      kind: library_8
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_2
+        cycle_3
           dependencies: dart:core
-          libraries: library_4
+          libraries: library_8
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -3218,8 +3273,8 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
-        library: library_5
-      referencingFiles: [file_0, file_2]
+        library: library_9
+      referencingFiles: file_0 file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -3235,25 +3290,25 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_6
+      kind: library_10
         imports
           library_2 dart:core synthetic
-        cycle_4
+        cycle_5
           dependencies: dart:core
-          libraries: library_6
+          libraries: library_10
           apiSignature_2
       unlinkedKey: k02
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_4
+      id: file_7
+      kind: library_8
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_2
+        cycle_3
           dependencies: dart:core
-          libraries: library_4
+          libraries: library_8
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -3262,7 +3317,7 @@ files
       id: file_1
       kind: partOfUriKnown_1
         uriFile: file_0
-      referencingFiles: [file_2]
+      referencingFiles: file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -3277,24 +3332,24 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_6
+      kind: library_10
         imports
           library_2 dart:core synthetic
-        cycle_4
+        cycle_5
           dependencies: dart:core
-          libraries: library_6
+          libraries: library_10
           apiSignature_2
       unlinkedKey: k02
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_7
+      id: file_7
+      kind: library_11
         imports
           library_2 dart:core synthetic
-        cycle_5
+        cycle_6
           dependencies: dart:core
-          libraries: library_7
+          libraries: library_11
           apiSignature_3
       unlinkedKey: k02
   /home/test/lib/c.dart
@@ -3319,25 +3374,25 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_6
+      kind: library_10
         imports
           library_2 dart:core synthetic
-        cycle_4
+        cycle_5
           dependencies: dart:core
-          libraries: library_6
+          libraries: library_10
           apiSignature_2
       unlinkedKey: k02
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_8
+      id: file_7
+      kind: library_12
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_6
+        cycle_7
           dependencies: dart:core
-          libraries: library_8
+          libraries: library_12
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -3346,7 +3401,7 @@ files
       id: file_1
       kind: partOfUriKnown_1
         uriFile: file_0
-      referencingFiles: [file_2]
+      referencingFiles: file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -3363,26 +3418,26 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_9
+      kind: library_13
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_7
+        cycle_8
           dependencies: dart:core
-          libraries: library_9
+          libraries: library_13
           apiSignature_0
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
-      id: file_2
-      kind: library_8
+      id: file_7
+      kind: library_12
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_6
+        cycle_7
           dependencies: dart:core
-          libraries: library_8
+          libraries: library_12
           apiSignature_1
       unlinkedKey: k00
   /home/test/lib/c.dart
@@ -3390,8 +3445,8 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
-        library: library_9
-      referencingFiles: [file_0, file_2]
+        library: library_13
+      referencingFiles: file_0 file_7
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -3432,7 +3487,7 @@ files
         library: library_0
         imports
           library_2 dart:core synthetic
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -3463,14 +3518,14 @@ files
     uri: package:test/b.dart
     current
       id: file_1
-      kind: library_3
+      kind: library_7
         imports
           library_2 dart:core synthetic
-        cycle_1
+        cycle_2
           dependencies: dart:core
-          libraries: library_3
+          libraries: library_7
           apiSignature_1
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k02
 libraryCycles
 elementFactory
@@ -3484,27 +3539,27 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_4
+      kind: library_8
         imports
           library_2 dart:core synthetic
         augmentations: file_1
-        cycle_2
+        cycle_3
           dependencies: dart:core
-          libraries: library_4
+          libraries: library_8
           apiSignature_0
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
       id: file_1
-      kind: library_3
+      kind: library_7
         imports
           library_2 dart:core synthetic
-        cycle_1
+        cycle_2
           dependencies: dart:core
-          libraries: library_3
+          libraries: library_7
           apiSignature_1
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k02
 libraryCycles
 elementFactory
@@ -3548,7 +3603,7 @@ files
         library: library_0
         imports
           library_2 dart:core synthetic
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -3586,10 +3641,10 @@ files
     uri: package:test/b.dart
     current
       id: file_1
-      kind: partOfName_3
+      kind: partOfName_7
         libraries: library_0
         name: my.lib
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k02
 libraryCycles
 elementFactory
@@ -3603,24 +3658,24 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_4
+      kind: library_8
         name: my.lib
         imports
           library_2 dart:core synthetic
         augmentations: file_1
-        cycle_1
+        cycle_2
           dependencies: dart:core
-          libraries: library_4
+          libraries: library_8
           apiSignature_0
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
       id: file_1
-      kind: partOfName_3
-        libraries: library_4
+      kind: partOfName_7
+        libraries: library_8
         name: my.lib
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k02
 libraryCycles
 elementFactory
@@ -3640,24 +3695,24 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_5
+      kind: library_9
         name: my.lib
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_2
+        cycle_3
           dependencies: dart:core
-          libraries: library_5
+          libraries: library_9
           apiSignature_1
       unlinkedKey: k03
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
       id: file_1
-      kind: partOfName_3
-        libraries: library_5
-        library: library_5
-      referencingFiles: [file_0]
+      kind: partOfName_7
+        libraries: library_9
+        library: library_9
+      referencingFiles: file_0
       unlinkedKey: k02
 libraryCycles
 elementFactory
@@ -3698,7 +3753,7 @@ files
         library: library_0
         imports
           library_2 dart:core synthetic
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -3732,9 +3787,9 @@ files
     uri: package:test/b.dart
     current
       id: file_1
-      kind: partOfUriKnown_3
+      kind: partOfUriKnown_7
         uriFile: file_0
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k02
 libraryCycles
 elementFactory
@@ -3748,22 +3803,22 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_4
+      kind: library_8
         imports
           library_2 dart:core synthetic
         augmentations: file_1
-        cycle_1
+        cycle_2
           dependencies: dart:core
-          libraries: library_4
+          libraries: library_8
           apiSignature_0
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
       id: file_1
-      kind: partOfUriKnown_3
+      kind: partOfUriKnown_7
         uriFile: file_0
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k02
 libraryCycles
 elementFactory
@@ -3782,22 +3837,22 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_5
+      kind: library_9
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_2
+        cycle_3
           dependencies: dart:core
-          libraries: library_5
+          libraries: library_9
           apiSignature_1
       unlinkedKey: k03
   /home/test/lib/b.dart
     uri: package:test/b.dart
     current
       id: file_1
-      kind: partOfUriKnown_3
-        library: library_5
-      referencingFiles: [file_0]
+      kind: partOfUriKnown_7
+        library: library_9
+      referencingFiles: file_0
       unlinkedKey: k02
 libraryCycles
 elementFactory
@@ -3831,7 +3886,7 @@ files
       kind: partOfName_0
         libraries: library_2
         library: library_2
-      referencingFiles: [file_2]
+      referencingFiles: file_2
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -3840,7 +3895,7 @@ files
       kind: partOfName_1
         libraries: library_2
         library: library_2
-      referencingFiles: [file_2]
+      referencingFiles: file_2
       unlinkedKey: k00
   /home/test/lib/c.dart
     uri: package:test/c.dart
@@ -3874,7 +3929,7 @@ files
     current
       id: file_0
       kind: partOfName_0
-        libraries: library_4
+        libraries: library_8
         name: my
       unlinkedKey: k00
   /home/test/lib/b.dart
@@ -3882,22 +3937,22 @@ files
     current
       id: file_1
       kind: partOfName_1
-        libraries: library_4
-        library: library_4
-      referencingFiles: [file_2]
+        libraries: library_8
+        library: library_8
+      referencingFiles: file_2
       unlinkedKey: k00
   /home/test/lib/c.dart
     uri: package:test/c.dart
     current
       id: file_2
-      kind: library_4
+      kind: library_8
         name: my
         imports
           library_3 dart:core synthetic
         parts: file_1
-        cycle_1
+        cycle_2
           dependencies: dart:core
-          libraries: library_4
+          libraries: library_8
           apiSignature_1
       unlinkedKey: k02
 libraryCycles
@@ -3930,7 +3985,7 @@ files
       id: file_0
       kind: partOfUriKnown_0
         library: library_2
-      referencingFiles: [file_2]
+      referencingFiles: file_2
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -3938,7 +3993,7 @@ files
       id: file_1
       kind: partOfUriKnown_1
         library: library_2
-      referencingFiles: [file_2]
+      referencingFiles: file_2
       unlinkedKey: k00
   /home/test/lib/c.dart
     uri: package:test/c.dart
@@ -3978,21 +4033,21 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
-        library: library_4
-      referencingFiles: [file_2]
+        library: library_8
+      referencingFiles: file_2
       unlinkedKey: k00
   /home/test/lib/c.dart
     uri: package:test/c.dart
     current
       id: file_2
-      kind: library_4
+      kind: library_8
         name: my
         imports
           library_3 dart:core synthetic
         parts: file_1
-        cycle_1
+        cycle_2
           dependencies: dart:core
-          libraries: library_4
+          libraries: library_8
           apiSignature_1
       unlinkedKey: k02
 libraryCycles
@@ -4038,7 +4093,7 @@ files
           dependencies: dart:core
           libraries: library_1
           apiSignature_1
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -4070,12 +4125,12 @@ files
     uri: package:test/b.dart
     current
       id: file_1
-      kind: augmentation_3
+      kind: augmentation_7
         augmented: library_0
         library: library_0
         imports
           library_2 dart:core synthetic
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k02
 libraryCycles
 elementFactory
@@ -4119,7 +4174,7 @@ files
           dependencies: dart:core
           libraries: library_1
           apiSignature_1
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -4143,7 +4198,7 @@ files
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_2
+        cycle_3
           dependencies: dart:core
           libraries: library_0
           apiSignature_2
@@ -4152,10 +4207,10 @@ files
     uri: package:test/b.dart
     current
       id: file_1
-      kind: partOfName_3
+      kind: partOfName_7
         libraries: library_0
         library: library_0
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k02
 libraryCycles
 elementFactory
@@ -4201,7 +4256,7 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: partOfName_2
+      kind: partOfName_6
         name: my
       unlinkedKey: k01
 libraryCycles
@@ -4247,7 +4302,7 @@ files
           dependencies: dart:core
           libraries: library_1
           apiSignature_1
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -4270,7 +4325,7 @@ files
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_2
+        cycle_3
           dependencies: dart:core
           libraries: library_0
           apiSignature_2
@@ -4279,9 +4334,9 @@ files
     uri: package:test/b.dart
     current
       id: file_1
-      kind: partOfUriKnown_3
+      kind: partOfUriKnown_7
         library: library_0
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k02
 libraryCycles
 elementFactory
@@ -4315,7 +4370,7 @@ files
       kind: partOfName_0
         libraries: library_1
         library: library_1
-      referencingFiles: [file_1]
+      referencingFiles: file_1
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -4344,9 +4399,9 @@ files
     current
       id: file_0
       kind: partOfName_0
-        libraries: library_1 library_3
+        libraries: library_1 library_7
         library: library_1
-      referencingFiles: [file_1, file_2]
+      referencingFiles: file_1 file_7
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -4365,15 +4420,15 @@ files
   /home/test/lib/c.dart
     uri: package:test/c.dart
     current
-      id: file_2
-      kind: library_3
+      id: file_7
+      kind: library_7
         name: my.lib
         imports
           library_2 dart:core synthetic
         parts: file_0
-        cycle_1
+        cycle_2
           dependencies: dart:core
-          libraries: library_3
+          libraries: library_7
           apiSignature_1
       unlinkedKey: k01
 libraryCycles
@@ -4397,10 +4452,10 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: partOfName_4
-        libraries: library_1 library_3
+      kind: partOfName_8
+        libraries: library_1 library_7
         library: library_1
-      referencingFiles: [file_1, file_2]
+      referencingFiles: file_1 file_7
       unlinkedKey: k02
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -4411,7 +4466,7 @@ files
         imports
           library_2 dart:core synthetic
         parts: file_0
-        cycle_2
+        cycle_3
           dependencies: dart:core
           libraries: library_1
           apiSignature_2
@@ -4419,15 +4474,15 @@ files
   /home/test/lib/c.dart
     uri: package:test/c.dart
     current
-      id: file_2
-      kind: library_3
+      id: file_7
+      kind: library_7
         name: my.lib
         imports
           library_2 dart:core synthetic
         parts: file_0
-        cycle_3
+        cycle_4
           dependencies: dart:core
-          libraries: library_3
+          libraries: library_7
           apiSignature_3
       unlinkedKey: k01
 libraryCycles
@@ -4468,7 +4523,7 @@ files
       id: file_1
       kind: partOfUriKnown_1
         library: library_0
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -4492,7 +4547,7 @@ files
         imports
           library_2 dart:core synthetic
         parts: file_1
-        cycle_1
+        cycle_2
           dependencies: dart:core
           libraries: library_0
           apiSignature_1
@@ -4501,14 +4556,14 @@ files
     uri: package:test/b.dart
     current
       id: file_1
-      kind: library_3
+      kind: library_7
         imports
           library_2 dart:core synthetic
-        cycle_2
+        cycle_3
           dependencies: dart:core
-          libraries: library_3
+          libraries: library_7
           apiSignature_2
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k02
 libraryCycles
 elementFactory
@@ -4538,7 +4593,7 @@ files
       id: file_0
       kind: partOfUriKnown_0
         library: library_1
-      referencingFiles: [file_1]
+      referencingFiles: file_1
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -4566,7 +4621,7 @@ files
       id: file_0
       kind: partOfUriKnown_0
         library: library_1
-      referencingFiles: [file_1, file_2]
+      referencingFiles: file_1 file_7
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -4584,14 +4639,14 @@ files
   /home/test/lib/c.dart
     uri: package:test/c.dart
     current
-      id: file_2
-      kind: library_3
+      id: file_7
+      kind: library_7
         imports
           library_2 dart:core synthetic
         parts: file_0
-        cycle_1
+        cycle_2
           dependencies: dart:core
-          libraries: library_3
+          libraries: library_7
           apiSignature_1
       unlinkedKey: k01
 libraryCycles
@@ -4615,9 +4670,9 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: partOfUriKnown_4
+      kind: partOfUriKnown_8
         library: library_1
-      referencingFiles: [file_1, file_2]
+      referencingFiles: file_1 file_7
       unlinkedKey: k02
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -4627,7 +4682,7 @@ files
         imports
           library_2 dart:core synthetic
         parts: file_0
-        cycle_2
+        cycle_3
           dependencies: dart:core
           libraries: library_1
           apiSignature_2
@@ -4635,14 +4690,14 @@ files
   /home/test/lib/c.dart
     uri: package:test/c.dart
     current
-      id: file_2
-      kind: library_3
+      id: file_7
+      kind: library_7
         imports
           library_2 dart:core synthetic
         parts: file_0
-        cycle_3
+        cycle_4
           dependencies: dart:core
-          libraries: library_3
+          libraries: library_7
           apiSignature_3
       unlinkedKey: k01
 libraryCycles

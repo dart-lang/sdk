@@ -316,24 +316,69 @@ class AnalyzerStatePrinter {
   void _writeFiles(FileSystemTestData testData) {
     fileSystemState.pullReferencedFiles();
 
-    final fileDataList = <FileTestData>[];
-    for (final fileData in testData.files.values) {
-      if (omitSdkFiles && fileData.uri.isScheme('dart')) {
-        continue;
+    // Discover libraries for parts.
+    // This is required for consistency checking.
+    for (final fileData in testData.files.values.toList()) {
+      final current = fileSystemState.getExisting(fileData.file);
+      if (current != null) {
+        final kind = current.kind;
+        if (kind is PartOfNameFileStateKind) {
+          kind.discoverLibraries();
+        }
       }
-      fileDataList.add(fileData);
     }
-    fileDataList.sortBy((fileData) => fileData.file.path);
+
+    // Ask referenced libraries.
+    // This is required for consistency checking.
+    // TODO(scheglov) Remove when we use these for cycles.
+    for (final fileData in testData.files.values.toList()) {
+      final current = fileSystemState.getExisting(fileData.file);
+      if (current != null) {
+        final kind = current.kind;
+        if (kind is LibraryOrAugmentationFileKind) {
+          kind.imports;
+          kind.exports;
+        }
+      }
+    }
+
+    // Sort, mostly by path.
+    // But sort SDK libraries to the end, with `dart:core` first.
+    final fileDataList = testData.files.values.toList();
+    fileDataList.sort((first, second) {
+      final firstPath = first.file.path;
+      final secondPath = second.file.path;
+      if (omitSdkFiles) {
+        final firstUri = first.uri;
+        final secondUri = second.uri;
+        final firstIsSdk = firstUri.isScheme('dart');
+        final secondIsSdk = secondUri.isScheme('dart');
+        if (firstIsSdk && !secondIsSdk) {
+          return 1;
+        } else if (!firstIsSdk && secondIsSdk) {
+          return -1;
+        } else if (firstIsSdk && secondIsSdk) {
+          if ('$firstUri' == 'dart:core') {
+            return -1;
+          } else if ('$secondUri' == 'dart:core') {
+            return 1;
+          }
+        }
+      }
+      return firstPath.compareTo(secondPath);
+    });
 
     // Ask ID for every file in the sorted order, so that IDs are nice.
+    // Register objects that can be referenced.
+    idProvider.resetRegisteredObject();
     for (final fileData in fileDataList) {
       final current = fileSystemState.getExisting(fileData.file);
       if (current != null) {
-        idProvider.fileState(current);
+        idProvider.registerFileState(current);
         final kind = current.kind;
-        idProvider.fileStateKind(kind);
+        idProvider.registerFileStateKind(kind);
         if (kind is LibraryFileStateKind) {
-          idProvider.libraryCycle(kind.libraryCycle);
+          idProvider.registerLibraryCycle(kind.libraryCycle);
         }
       }
     }
@@ -341,6 +386,9 @@ class AnalyzerStatePrinter {
     _writelnWithIndent('files');
     _withIndent(() {
       for (final fileData in fileDataList) {
+        if (omitSdkFiles && fileData.uri.isScheme('dart')) {
+          continue;
+        }
         final file = fileData.file;
         _writelnWithIndent(_posixPath(file));
         _withIndent(() {
@@ -474,9 +522,10 @@ class AnalyzerStatePrinter {
   void _writeReferencingFiles(FileState file) {
     final referencingFiles = file.referencingFiles;
     if (referencingFiles.isNotEmpty) {
-      // TODO(scheglov) Print space-separated.
-      final fileIds =
-          referencingFiles.map(idProvider.fileState).sorted(compareNatural);
+      final fileIds = referencingFiles
+          .map(idProvider.fileState)
+          .sorted(compareNatural)
+          .join(' ');
       _writelnWithIndent('referencingFiles: $fileIds');
     }
   }
@@ -511,16 +560,26 @@ class IdProvider {
   final Map<String, String> _shortToKey = {};
   final Map<String, String> _apiSignature = {};
 
+  Set<FileState> _currentFiles = {};
+  Set<FileStateKind> _currentKinds = {};
+  Set<LibraryCycle> _currentCycles = {};
+
   String apiSignature(String signature) {
     final length = _apiSignature.length;
     return _apiSignature[signature] ??= 'apiSignature_$length';
   }
 
   String fileState(FileState file) {
+    if (!_currentFiles.contains(file)) {
+      throw StateError('$file');
+    }
     return _fileState[file] ??= 'file_${_fileState.length}';
   }
 
   String fileStateKind(FileStateKind kind) {
+    if (!_currentKinds.contains(kind)) {
+      throw StateError('$kind');
+    }
     return _fileStateKind[kind] ??= () {
       if (kind is AugmentationKnownFileStateKind) {
         return 'augmentation_${_fileStateKind.length}';
@@ -541,7 +600,40 @@ class IdProvider {
   }
 
   String libraryCycle(LibraryCycle cycle) {
+    if (!_currentCycles.contains(cycle)) {
+      throw StateError('$cycle');
+    }
     return _libraryCycle[cycle] ??= 'cycle_${_libraryCycle.length}';
+  }
+
+  /// Register that [file] is an object that can be referenced.
+  void registerFileState(FileState file) {
+    if (_currentFiles.contains(file)) {
+      throw StateError('Duplicate: $file');
+    }
+    _currentFiles.add(file);
+    fileState(file);
+  }
+
+  /// Register that [kind] is an object that can be referenced.
+  void registerFileStateKind(FileStateKind kind) {
+    if (_currentKinds.contains(kind)) {
+      throw StateError('Duplicate: $kind');
+    }
+    _currentKinds.add(kind);
+    fileStateKind(kind);
+  }
+
+  /// Register that [cycle] is an object that can be referenced.
+  void registerLibraryCycle(LibraryCycle cycle) {
+    _currentCycles.add(cycle);
+    libraryCycle(cycle);
+  }
+
+  void resetRegisteredObject() {
+    _currentFiles = {};
+    _currentKinds = {};
+    _currentCycles = {};
   }
 
   String shortKey(String key) {

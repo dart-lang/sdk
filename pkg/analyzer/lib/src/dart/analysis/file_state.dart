@@ -275,7 +275,7 @@ class FileState {
   FileStateKind? _kind;
 
   /// Files that reference this file.
-  final List<FileState> referencingFiles = [];
+  final Set<FileState> referencingFiles = {};
 
   List<FileState?> _augmentationFiles = [];
   List<FileState?>? _importedFiles;
@@ -1036,6 +1036,8 @@ abstract class FileStateKind {
 
   /// Returns the library in which this file should be analyzed.
   LibraryFileStateKind? get library;
+
+  void dispose() {}
 }
 
 enum FileStateRefreshResult {
@@ -1155,6 +1157,8 @@ class FileSystemState {
     for (var reference in file.referencingFiles.toList()) {
       changeFile(reference.path, removedFiles);
     }
+
+    file._kind?.dispose();
   }
 
   /// Collected files that transitively reference a file with the [path].
@@ -1387,9 +1391,7 @@ class FileSystemState {
 
     var removedFiles = <FileState>[];
     for (var path in unusedPaths) {
-      var file = _pathToFile.remove(path)!;
-      _uriToFile.remove(file.uri);
-      removedFiles.add(file);
+      changeFile(path, removedFiles);
     }
 
     return removedFiles;
@@ -1607,6 +1609,11 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
     return _libraryCycle!;
   }
 
+  @override
+  void dispose() {
+    invalidateLibraryCycle();
+  }
+
   bool hasPart(PartFileStateKind part) {
     return file.partedFiles.contains(part.file);
   }
@@ -1714,7 +1721,7 @@ class PartOfNameFileStateKind extends PartFileStateKind {
   /// first one as if sorted by path.
   @override
   LibraryFileStateKind? get library {
-    _discoverLibraries();
+    discoverLibraries();
 
     LibraryFileStateKind? result;
     for (final library in libraries) {
@@ -1729,7 +1736,8 @@ class PartOfNameFileStateKind extends PartFileStateKind {
     return result;
   }
 
-  void _discoverLibraries() {
+  @visibleForTesting
+  void discoverLibraries() {
     if (libraries.isEmpty) {
       var resourceProvider = file._fsState._resourceProvider;
       var pathContext = resourceProvider.pathContext;
