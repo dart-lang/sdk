@@ -6830,7 +6830,7 @@ class Parser {
     if (typeInfo.isNullable) {
       Token next = typeInfo.skipType(token).next!;
       if (!isOneOfOrEof(
-          next, const [')', '?', '??', ',', ';', ':', 'is', 'as', '..'])) {
+          next, const [')', '}', '?', '??', ',', ';', ':', 'is', 'as', '..'])) {
         // TODO(danrubel): investigate other situations
         // where `?` should be considered part of the type info
         // rather than the start of a conditional expression.
