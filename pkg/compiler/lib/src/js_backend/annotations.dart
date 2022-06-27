@@ -114,6 +114,18 @@ class PragmaAnnotation {
       17, 'index-bounds:check',
       forFunctionsOnly: false, internalOnly: false);
 
+  /// Annotation for a `late` field to omit the checks on the late field. The
+  /// annotation is not restricted to a field since it is copied from the field
+  /// to the getter and setter.
+  // TODO(45682): Make this annotation apply to local and static late variables.
+  static const PragmaAnnotation lateTrust = PragmaAnnotation(18, 'late:trust');
+
+  /// Annotation for a `late` field to perform the checks on the late field. The
+  /// annotation is not restricted to a field since it is copied from the field
+  /// to the getter and setter.
+  // TODO(45682): Make this annotation apply to local and static late variables.
+  static const PragmaAnnotation lateCheck = PragmaAnnotation(19, 'late:check');
+
   static const List<PragmaAnnotation> values = [
     noInline,
     tryInline,
@@ -133,6 +145,8 @@ class PragmaAnnotation {
     downcastCheck,
     indexBoundsTrust,
     indexBoundsCheck,
+    lateTrust,
+    lateCheck,
   ];
 
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> implies = {
@@ -150,6 +164,8 @@ class PragmaAnnotation {
     downcastCheck: {downcastTrust},
     asTrust: {asCheck},
     asCheck: {asTrust},
+    lateTrust: {lateCheck},
+    lateCheck: {lateTrust},
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> requires = {
     noThrows: {noInline},
@@ -317,12 +333,12 @@ abstract class AnnotationsData {
   /// annotation.
   void forEachNoSideEffects(void f(FunctionEntity function));
 
-  /// What should the compiler do with parameter type assertions in [member].
+  /// What the compiler should do with parameter type assertions in [member].
   ///
   /// If [member] is `null`, the default policy is returned.
   CheckPolicy getParameterCheckPolicy(MemberEntity? member);
 
-  /// What should the compiler do with implicit downcasts in [member].
+  /// What the compiler should do with implicit downcasts in [member].
   ///
   /// If [member] is `null`, the default policy is returned.
   CheckPolicy getImplicitDowncastCheckPolicy(MemberEntity? member);
@@ -334,16 +350,20 @@ abstract class AnnotationsData {
   /// If [member] is `null`, the default policy is returned.
   CheckPolicy getConditionCheckPolicy(MemberEntity? member);
 
-  /// Whether should the compiler do with explicit casts in [member].
+  /// What the compiler should do with explicit casts in [member].
   ///
   /// If [member] is `null`, the default policy is returned.
   CheckPolicy getExplicitCastCheckPolicy(MemberEntity? member);
 
-  /// What should the compiler do with index bounds checks `[]`, `[]=` and
+  /// What the compiler should do with index bounds checks `[]`, `[]=` and
   /// `removeLast()` operations in the body of [member].
   ///
   /// If [member] is `null`, the default policy is returned.
   CheckPolicy getIndexBoundsCheckPolicy(MemberEntity? member);
+
+  /// What the compiler should do with late field checks in the body of
+  /// [member]. [member] is usually the getter or setter for a late field.
+  CheckPolicy getLateVariableCheckPolicy(MemberEntity member);
 }
 
 class AnnotationsDataImpl implements AnnotationsData {
@@ -356,6 +376,7 @@ class AnnotationsDataImpl implements AnnotationsData {
   final CheckPolicy _defaultConditionCheckPolicy;
   final CheckPolicy _defaultExplicitCastCheckPolicy;
   final CheckPolicy _defaultIndexBoundsCheckPolicy;
+  final CheckPolicy _defaultLateVariableCheckPolicy;
   final bool _defaultDisableInlining;
   final Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations;
 
@@ -368,6 +389,7 @@ class AnnotationsDataImpl implements AnnotationsData {
             options.defaultExplicitCastCheckPolicy,
         this._defaultIndexBoundsCheckPolicy =
             options.defaultIndexBoundsCheckPolicy,
+        this._defaultLateVariableCheckPolicy = CheckPolicy.checked,
         this._defaultDisableInlining = options.disableInlining;
 
   factory AnnotationsDataImpl.readFromDataSource(
@@ -553,6 +575,20 @@ class AnnotationsDataImpl implements AnnotationsData {
       }
     }
     return _defaultIndexBoundsCheckPolicy;
+  }
+
+  @override
+  CheckPolicy getLateVariableCheckPolicy(MemberEntity member) {
+    EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
+    if (annotations != null) {
+      if (annotations.contains(PragmaAnnotation.lateTrust)) {
+        return CheckPolicy.trusted;
+      } else if (annotations.contains(PragmaAnnotation.lateCheck)) {
+        return CheckPolicy.checked;
+      }
+    }
+    // TODO(sra): Look for annotations on enclosing class and library.
+    return _defaultLateVariableCheckPolicy;
   }
 }
 

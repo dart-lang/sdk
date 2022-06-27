@@ -409,9 +409,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       assert(graph.isValid(), 'Graph not valid after ${phase.name}');
     }
 
+    // Remove trusted late checks first to uncover read-modify-write patterns in
+    // instruction selection.
+    runPhase(SsaTrustedLateCheckRemover(_abstractValueDomain));
     runPhase(SsaInstructionSelection(_options, _closedWorld));
     runPhase(SsaTypeKnownRemover());
-    runPhase(SsaTrustedCheckRemover(_options));
+    runPhase(SsaTrustedPrimitiveCheckRemover(_options));
     runPhase(SsaAssignmentChaining(_closedWorld));
     runPhase(SsaInstructionMerger(_abstractValueDomain, generateAtUseSite));
     runPhase(SsaConditionMerger(generateAtUseSite, controlFlowOperators));
