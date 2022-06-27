@@ -1433,7 +1433,7 @@ class FixProcessor extends BaseProcessor {
 
   Future<Fix?> computeFix() async {
     await _addFromProducers();
-    fixes.sort(Fix.SORT_BY_RELEVANCE);
+    fixes.sort(Fix.compareFixes);
     return fixes.isNotEmpty ? fixes.first : null;
   }
 

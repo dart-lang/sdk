@@ -101,7 +101,7 @@ class EditGetAssistsHandler extends LegacyHandler
       try {
         var processor = AssistProcessor(context);
         var assists = await processor.compute();
-        assists.sort(Assist.SORT_BY_RELEVANCE);
+        assists.sort(Assist.compareAssists);
         for (var assist in assists) {
           changes.add(assist.change);
         }

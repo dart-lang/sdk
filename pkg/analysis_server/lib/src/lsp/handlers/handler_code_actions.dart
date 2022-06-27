@@ -35,22 +35,6 @@ class CodeActionHandler
   // CodeAction class).
   final codeActionPriorities = Expando<int>();
 
-  /// A comparator that can be used to sort [CodeActions]s using priorities
-  /// in [codeActionPriorities].
-  ///
-  /// The highest number priority will be sorted before lower number priorities.
-  /// Items with the same priority are sorted alphabetically by their title.
-  late final Comparator<CodeAction> _codeActionComparator =
-      (CodeAction a, CodeAction b) {
-    // We should never be sorting actions without priorities.
-    final aPriority = codeActionPriorities[a] ?? 0;
-    final bPriority = codeActionPriorities[b] ?? 0;
-    if (aPriority != bPriority) {
-      return bPriority - aPriority;
-    }
-    return a.title.compareTo(b.title);
-  };
-
   CodeActionHandler(super.server);
 
   @override
@@ -200,6 +184,21 @@ class CodeActionHandler
         : Either2<CodeAction, Command>.t2(command);
   }
 
+  /// A function that can be used to sort [CodeActions]s using priorities
+  /// in [codeActionPriorities].
+  ///
+  /// The highest number priority will be sorted before lower number priorities.
+  /// Items with the same priority are sorted alphabetically by their title.
+  int _compareCodeActions(CodeAction a, CodeAction b) {
+    // We should never be sorting actions without priorities.
+    final aPriority = codeActionPriorities[a] ?? 0;
+    final bPriority = codeActionPriorities[b] ?? 0;
+    if (aPriority != bPriority) {
+      return bPriority - aPriority;
+    }
+    return a.title.compareTo(b.title);
+  }
+
   /// Creates a CodeAction to apply this assist. Note: This code will fetch the
   /// version of each document being modified so it's important to call this
   /// immediately after computing edits to ensure the document is not modified
@@ -318,7 +317,7 @@ class CodeActionHandler
       }));
 
       final dedupedCodeActions = _dedupeActions(codeActions, range.start);
-      dedupedCodeActions.sort(_codeActionComparator);
+      dedupedCodeActions.sort(_compareCodeActions);
 
       return dedupedCodeActions
           .where((action) => shouldIncludeKind(action.kind))
@@ -450,7 +449,7 @@ class CodeActionHandler
       codeActions.addAll(pluginFixActions);
 
       final dedupedActions = _dedupeActions(codeActions, range.start);
-      dedupedActions.sort(_codeActionComparator);
+      dedupedActions.sort(_compareCodeActions);
 
       return dedupedActions
           .where((action) => shouldIncludeKind(action.kind))
