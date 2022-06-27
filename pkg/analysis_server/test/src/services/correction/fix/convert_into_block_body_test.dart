@@ -65,7 +65,7 @@ enum E {
 enum E {
   v;
   set s(int _) {
-    // TODO: implement s=
+    // TODO: implement s
   }
 }
 ''');
