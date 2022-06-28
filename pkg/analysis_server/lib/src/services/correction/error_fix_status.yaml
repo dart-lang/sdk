@@ -1228,10 +1228,6 @@ HintCode.DEPRECATED_EXTENDS_FUNCTION:
   status: needsFix
   notes: |-
     The fix is to remove `Function` from where it's referenced.
-HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION:
-  status: noFix
-  notes: |-
-    The fix is to rename the class, which can't be done as a fix.
 HintCode.DEPRECATED_IMPLEMENTS_FUNCTION:
   status: needsFix
   notes: |-

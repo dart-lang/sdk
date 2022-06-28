@@ -15,9 +15,18 @@ main() {
 
 @reflectiveTest
 class BuiltInIdentifierAsPrefixNameTest extends PubPackageResolutionTest {
-  test_builtInIdentifierAsPrefixName() async {
+  test_abstract() async {
     await assertErrorsInCode('''
 import 'dart:async' as abstract;
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 12),
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME, 23, 8),
+    ]);
+  }
+
+  test_Function() async {
+    await assertErrorsInCode('''
+import 'dart:async' as Function;
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 12),
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME, 23, 8),

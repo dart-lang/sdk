@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class BuiltInIdentifierAsTypeParameterNameTest
     extends PubPackageResolutionTest {
-  test_class() async {
+  test_class_as() async {
     await assertErrorsInCode('''
 class A<as> {}
 ''', [
@@ -25,7 +25,16 @@ class A<as> {}
     ]);
   }
 
-  test_extension() async {
+  test_class_Function() async {
+    await assertErrorsInCode('''
+class A<Function> {}
+''', [
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME, 8,
+          8),
+    ]);
+  }
+
+  test_extension_as() async {
     await assertErrorsInCode('''
 extension <as> on List {}
 ''', [
@@ -34,7 +43,7 @@ extension <as> on List {}
     ]);
   }
 
-  test_function() async {
+  test_function_as() async {
     await assertErrorsInCode('''
 void f<as>() {}
 ''', [

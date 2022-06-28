@@ -1659,48 +1659,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
   }
 
-  void _checkBadFunctionParameter(List<TypeVariableBuilder>? typeVariables) {
-    if (typeVariables == null || typeVariables.isEmpty) {
-      return;
-    }
-
-    for (TypeVariableBuilder type in typeVariables) {
-      if (type.name == "Function") {
-        addProblem(messageFunctionAsTypeParameter, type.charOffset,
-            type.name.length, type.fileUri!);
-      }
-    }
-  }
-
-  void _checkBadFunctionDeclUse(
-      String className, TypeParameterScopeKind kind, int charOffset) {
-    String? decType;
-    switch (kind) {
-      case TypeParameterScopeKind.classDeclaration:
-        decType = "class";
-        break;
-      case TypeParameterScopeKind.mixinDeclaration:
-        decType = "mixin";
-        break;
-      case TypeParameterScopeKind.extensionDeclaration:
-        decType = "extension";
-        break;
-      default:
-        break;
-    }
-    if (className != "Function") {
-      return;
-    }
-    if (decType == "class" && importUri.isScheme("dart")) {
-      // Allow declaration of class Function in the sdk.
-      return;
-    }
-    if (decType != null) {
-      addProblem(templateFunctionUsedAsDec.withArguments(decType), charOffset,
-          className.length, fileUri);
-    }
-  }
-
   /// Add a problem that might not be reported immediately.
   ///
   /// Problems will be issued after source information has been added.
@@ -1834,8 +1792,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int supertypeOffset,
       {required bool isMacro,
       required bool isAugmentation}) {
-    _checkBadFunctionDeclUse(className, kind, nameOffset);
-    _checkBadFunctionParameter(typeVariables);
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(kind, className)
@@ -2068,9 +2024,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int startOffset,
       int nameOffset,
       int endOffset) {
-    _checkBadFunctionDeclUse(
-        extensionName, TypeParameterScopeKind.extensionDeclaration, nameOffset);
-    _checkBadFunctionParameter(typeVariables);
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
     TypeParameterScopeBuilder declaration = endNestedDeclaration(
         TypeParameterScopeKind.extensionDeclaration, extensionName)

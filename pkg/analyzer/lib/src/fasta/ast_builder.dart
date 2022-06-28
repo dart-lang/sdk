@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         LocatedMessage,
         Message,
         MessageCode,
+        codeBuiltInIdentifierInDeclaration,
         messageAbstractClassMember,
         messageAbstractLateField,
         messageAbstractStaticField,
@@ -204,6 +205,9 @@ class AstBuilder extends StackListener {
       return enumDeclaration!.name;
     }
   }
+
+  @override
+  Uri get importUri => uri;
 
   @override
   void addProblem(Message message, int charOffset, int length,
@@ -3782,6 +3786,10 @@ class AstBuilder extends StackListener {
     /// TODO(danrubel): Ignore this error until we deprecate `native` support.
     if (message == messageNativeClauseShouldBeAnnotation && allowNativeClause) {
       return;
+    } else if (message.code == codeBuiltInIdentifierInDeclaration) {
+      // Allow e.g. 'class Function' in sdk.
+      if (importUri.isScheme("dart")) return;
+      if (uri.isScheme("org-dartlang-sdk")) return;
     }
     debugEvent("Error: ${message.problemMessage}");
     if (message.code.analyzerCodes == null && startToken is ErrorToken) {
