@@ -9,6 +9,7 @@ library dump_info;
 import 'dart:convert'
     show ChunkedConversionSink, JsonEncoder, StringConversionSink;
 
+import 'package:compiler/src/js_model/elements.dart';
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as dump_info;
@@ -513,10 +514,12 @@ class KernelInfoCollector {
     state.entityToInfo[classEntity] = classInfo;
 
     clazz.members.forEach((ir.Member member) {
+      final isSetter = member is ir.Procedure && member.isSetter;
       // clazz.members includes constructors
-      MemberEntity memberEntity =
-          environment.lookupLocalClassMember(classEntity, member.name.text) ??
-              environment.lookupConstructor(classEntity, member.name.text);
+      MemberEntity memberEntity = environment.lookupLocalClassMember(
+              classEntity, member.name.text,
+              setter: isSetter) ??
+          environment.lookupConstructor(classEntity, member.name.text);
       if (memberEntity == null) return;
       // Multiple kernel members can map to single JWorld member
       // (e.g., when one of a getter/field pair are tree-shaken),
@@ -864,6 +867,10 @@ class DumpInfoAnnotator {
     int size = dumpInfoTask.sizeOf(clazz);
     final disambiguatedMemberName = '$parentName/${clazz.name}';
     environment.forEachLocalClassMember(clazz, (member) {
+      // Skip certain incongruent locals that during method alias installation.
+      if (member is JMethod && member.enclosingClass.name != clazz.name) {
+        return;
+      }
       if (member.isFunction || member.isGetter || member.isSetter) {
         FunctionInfo functionInfo =
             visitFunction(member, disambiguatedMemberName);
