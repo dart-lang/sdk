@@ -2357,7 +2357,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         // to the body.
         SubGraph bodyGraph = SubGraph(bodyEntryBlock, bodyExitBlock);
         JumpTarget target = _localsMap.getJumpTargetForDo(node);
-        LabelDefinition label = target.addLabel('loop', isBreakTarget: true);
+        final label = target.addLabel('loop', isBreakTarget: true);
         HLabeledBlockInformation info = HLabeledBlockInformation(
             HSubGraphBlockInformation(bodyGraph), <LabelDefinition>[label]);
         loopEntryBlock.setBlockFlow(info, current);
