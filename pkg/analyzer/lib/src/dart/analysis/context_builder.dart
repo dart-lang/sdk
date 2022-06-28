@@ -164,9 +164,9 @@ class ContextBuilderImpl implements ContextBuilder {
   Packages _createPackageMap({
     required ContextRoot contextRoot,
   }) {
-    var configFile = contextRoot.packagesFile;
-    if (configFile != null) {
-      return parsePackagesFile(resourceProvider, configFile);
+    var packagesFile = contextRoot.packagesFile;
+    if (packagesFile != null) {
+      return parsePackageConfigJsonFile(resourceProvider, packagesFile);
     } else {
       return Packages.empty;
     }

@@ -368,7 +368,7 @@ class ContextLocatorImpl implements ContextLocator {
   Workspace _createWorkspace(Folder folder, File? packagesFile) {
     Packages packages;
     if (packagesFile != null) {
-      packages = parsePackagesFile(resourceProvider, packagesFile);
+      packages = parsePackageConfigJsonFile(resourceProvider, packagesFile);
     } else {
       packages = Packages.empty;
     }
