@@ -5,7 +5,7 @@
 library universe.side_effects;
 
 import '../elements/entities.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 
 class SideEffects {
   /// Tag used for identifying serialized [SideEffects] objects in a debugging

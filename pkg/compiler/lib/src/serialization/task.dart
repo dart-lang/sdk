@@ -28,8 +28,7 @@ import '../js_model/locals.dart';
 import '../options.dart';
 import '../util/sink_adapter.dart';
 import '../world.dart';
-import 'serialization.dart' show DataSinkWriter, DataSourceReader;
-import 'serialization_interfaces.dart' hide DataSinkWriter, DataSourceReader;
+import 'serialization.dart';
 
 /// A data class holding some data [T] and the associated [DataSourceIndices].
 class DataAndIndices<T> {

@@ -19,7 +19,7 @@ import '../js_model/element_map.dart';
 import '../js_model/env.dart';
 import '../ordered_typeset.dart';
 import '../serialization/deferrable.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import 'elements.dart';
 import 'closure_migrated.dart' as migrated;

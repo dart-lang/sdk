@@ -8,7 +8,7 @@ import '../common.dart';
 import '../constants/values.dart'
     show ConstantValue, DeferredGlobalConstantValue;
 import '../elements/entities.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../options.dart';
 
 /// A "hunk" of the program that will be loaded whenever one of its [imports]

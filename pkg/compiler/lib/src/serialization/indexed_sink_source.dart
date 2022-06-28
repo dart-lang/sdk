@@ -4,7 +4,7 @@
 
 import 'data_sink.dart';
 import 'data_source.dart';
-import 'serialization_interfaces.dart';
+import 'serialization.dart';
 
 abstract class IndexedSource<E> {
   E? read(E readValue());
@@ -153,7 +153,7 @@ class UnorderedIndexedSource<E> implements IndexedSource<E> {
 /// so that the indices are maintained. Since the read order is assumed to be
 /// consistent, the actual data is written at the first occurrence of the
 /// indexable element.
-class OrderedIndexedSink<E extends Object> implements IndexedSink<E> {
+class OrderedIndexedSink<E> implements IndexedSink<E> {
   final DataSink _sink;
   final Map<E?, int> cache;
 
@@ -194,7 +194,7 @@ class OrderedIndexedSink<E extends Object> implements IndexedSink<E> {
 /// discovered we assume the data is written immediately after. Subsequent
 /// occurrences of that index then refer to the same value. Indices will appear
 /// in ascending order.
-class OrderedIndexedSource<E extends Object> implements IndexedSource<E> {
+class OrderedIndexedSource<E> implements IndexedSource<E> {
   final DataSource _source;
   final List<E?> cache;
 

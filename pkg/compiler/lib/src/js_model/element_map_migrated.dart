@@ -10,7 +10,7 @@ import '../elements/jumps.dart';
 import '../elements/types.dart';
 import '../ir/util.dart';
 import '../serialization/deferrable.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import 'element_map_interfaces.dart';
 
 // TODO(48820): Merge back into element_map.dart when migration is done.

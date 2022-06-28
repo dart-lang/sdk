@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 
-import 'package:compiler/src/serialization/serialization_interfaces.dart';
+import 'package:compiler/src/serialization/serialization.dart';
 
 /// Interface for data that may be deserialized lazily.
 ///

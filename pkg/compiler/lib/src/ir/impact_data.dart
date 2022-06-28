@@ -14,7 +14,7 @@ import '../ir/scope.dart';
 import '../kernel/element_map_interfaces.dart'
     show KernelToElementMapForImpactData;
 import '../options.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'class_relation.dart';
 import 'constants.dart';

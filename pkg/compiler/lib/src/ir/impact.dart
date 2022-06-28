@@ -5,7 +5,7 @@
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import 'class_relation.dart';
 import 'constants.dart';
 import 'impact_data.dart' show ImpactData;

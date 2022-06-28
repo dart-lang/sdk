@@ -8,7 +8,7 @@ import 'dart:collection' show IterableBase, MapBase;
 
 import '../elements/entities.dart' show ClassEntity;
 import '../elements/indexed.dart' show IndexedClass;
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../util/enumset.dart' show EnumSet;
 
 /// Enum for the different kinds of instantiation of a class.
@@ -215,9 +215,9 @@ class ClassHierarchyNode {
   factory ClassHierarchyNode.readFromDataSource(
       DataSourceReader source, Map<ClassEntity, ClassHierarchyNode> nodeMap) {
     source.begin(tag);
-    IndexedClass cls = source.readClass() as IndexedClass;
+    final cls = source.readClass();
     ClassHierarchyNode? parentNode;
-    final superclass = source.readClassOrNull() as IndexedClass?;
+    final superclass = source.readClassOrNull();
     if (superclass != null) {
       parentNode = nodeMap[superclass]!;
     }
@@ -225,7 +225,7 @@ class ClassHierarchyNode {
     int hierarchyDepth = source.readInt();
     int instantiatedSubclassCount = source.readInt();
     source.end(tag);
-    return ClassHierarchyNode(parentNode, cls, hierarchyDepth)
+    return ClassHierarchyNode(parentNode, cls as IndexedClass, hierarchyDepth)
       .._instantiatedSubclassCount = instantiatedSubclassCount
       .._mask.value = maskValue;
   }

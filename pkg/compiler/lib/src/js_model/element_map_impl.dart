@@ -46,7 +46,7 @@ import '../kernel/kelements.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../ordered_typeset.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../universe/call_structure.dart';
 import '../universe/member_usage.dart';
 import '../universe/selector.dart';

@@ -9,7 +9,7 @@ import 'common.dart';
 import 'elements/entities.dart';
 import 'js_model/closure.dart';
 import 'js_model/element_map.dart';
-import 'serialization/serialization_interfaces.dart';
+import 'serialization/serialization.dart';
 
 export 'closure_migrated.dart'
     show

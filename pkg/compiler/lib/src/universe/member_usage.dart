@@ -8,7 +8,7 @@ import '../common.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../js_model/jrecord_field_interface.dart' show JRecordFieldInterface;
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'call_structure.dart';
 

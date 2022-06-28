@@ -11,7 +11,7 @@ import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
 import '../elements/operators.dart';
 import '../kernel/invocation_mirror_constants.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../util/util.dart' show Hashing;
 import 'call_structure.dart' show CallStructure;
 

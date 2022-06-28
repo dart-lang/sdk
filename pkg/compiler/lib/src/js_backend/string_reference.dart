@@ -62,7 +62,7 @@ library js_backend.string_reference;
 
 import '../constants/values.dart' show StringConstantValue;
 import '../js/js.dart' as js;
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../util/util.dart' show Hashing;
 import 'frequency_assignment.dart';
 import 'name_sequence.dart';

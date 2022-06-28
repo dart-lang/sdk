@@ -11,7 +11,7 @@ import '../js/js.dart' as js;
 import '../js_backend/native_data_interfaces.dart' show NativeBasicData;
 import '../js_model/js_to_frontend_map.dart' show JsToFrontendMap;
 import '../options.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import 'js.dart';
 

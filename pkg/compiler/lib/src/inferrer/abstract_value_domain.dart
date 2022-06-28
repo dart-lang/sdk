@@ -9,7 +9,7 @@ import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart' show DartType;
 import '../ir/class_relation.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 
 /// Enum-like values used for reporting known and unknown truth values.

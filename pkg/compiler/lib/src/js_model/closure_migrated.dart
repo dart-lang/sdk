@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:compiler/src/serialization/serialization_interfaces.dart';
+import 'package:compiler/src/serialization/serialization.dart';
 
 import 'package:kernel/ast.dart' as ir;
 
