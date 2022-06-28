@@ -153,9 +153,10 @@ class DevCompilerTarget extends Target {
   bool get enableNoSuchMethodForwarders => true;
 
   @override
-  void performOutlineTransformations(Component component, CoreTypes coreTypes) {
-    component
-        .accept(StaticInteropStubCreator(StaticInteropClassEraser(coreTypes)));
+  void performOutlineTransformations(Component component, CoreTypes coreTypes,
+      ReferenceFromIndex? referenceFromIndex) {
+    component.accept(StaticInteropStubCreator(
+        StaticInteropClassEraser(coreTypes, referenceFromIndex)));
   }
 
   @override
@@ -171,7 +172,8 @@ class DevCompilerTarget extends Target {
       ChangedStructureNotifier? changedStructureNotifier}) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
-    var staticInteropClassEraser = StaticInteropClassEraser(coreTypes);
+    var staticInteropClassEraser =
+        StaticInteropClassEraser(coreTypes, referenceFromIndex);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
       JsInteropChecks(

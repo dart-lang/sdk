@@ -189,7 +189,9 @@ Future<CompilerResult> _buildInternal(
     // the only need we have for these transformations).
     if (!buildComponent) {
       options.target.performOutlineTransformations(
-          trimmedSummaryComponent, kernelTarget.loader.coreTypes);
+          trimmedSummaryComponent,
+          kernelTarget.loader.coreTypes,
+          kernelTarget.loader.referenceFromIndex);
       options.ticker.logMs("Transformed outline");
     }
     // Don't include source (but do add it above to include importUris).

@@ -397,7 +397,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         incrementalComponent.setMainMethodAndMode(
             null, true, incrementalComponent.mode);
         target.performOutlineTransformations(
-            incrementalComponent, incrementalCompilerResult.coreTypes!);
+            incrementalComponent,
+            incrementalCompilerResult.coreTypes!,
+            incrementalCompilerResult.referenceFromIndex);
         makeStable(incrementalComponent);
         return Future.value(fe.serializeComponent(incrementalComponent,
             includeSources: false, includeOffsets: false));

@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 import 'package:_js_interop_checks/src/js_interop.dart';
 
@@ -29,8 +30,9 @@ class StaticInteropClassEraser extends Transformer {
   final CloneVisitorNotMembers _cloner = CloneVisitorNotMembers();
   late final _TypeSubstitutor _typeSubstitutor;
   Component? currentComponent;
+  ReferenceFromIndex? referenceFromIndex;
 
-  StaticInteropClassEraser(CoreTypes coreTypes,
+  StaticInteropClassEraser(CoreTypes coreTypes, this.referenceFromIndex,
       {String libraryForJavaScriptObject = 'dart:_interceptors',
       String classNameOfJavaScriptObject = 'JavaScriptObject'})
       : _javaScriptObject = coreTypes.index
@@ -63,9 +65,15 @@ class StaticInteropClassEraser extends Transformer {
       if (currentComponent != null) {
         assert(factoryTarget.enclosingComponent == currentComponent);
       }
+      Name name = Name(stubName);
       var staticMethod = Procedure(
-          Name(stubName), ProcedureKind.Method, FunctionNode(null),
-          isStatic: true, fileUri: factoryTarget.fileUri)
+          name, ProcedureKind.Method, FunctionNode(null),
+          isStatic: true,
+          fileUri: factoryTarget.fileUri,
+          reference: referenceFromIndex
+              ?.lookupLibrary(factoryClass.enclosingLibrary)
+              ?.lookupIndexedClass(factoryClass.name)
+              ?.lookupGetterReference(name))
         ..fileOffset = factoryTarget.fileOffset;
       factoryClass.addProcedure(staticMethod);
       // Clone function node after processing the stub in case of mutually
@@ -180,8 +188,7 @@ class StaticInteropClassEraser extends Transformer {
         var args = super.visitArguments(node.arguments) as Arguments;
         var stub = _findOrCreateFactoryStub(factoryTarget);
         return StaticInvocation(stub, args, isConst: node.isConst)
-          ..fileOffset = node.fileOffset
-          ..targetReference = stub.reference;
+          ..fileOffset = node.fileOffset;
       } else {
         // Add a cast so that the result gets typed as `JavaScriptObject`.
         var newInvocation = super.visitStaticInvocation(node) as Expression;
