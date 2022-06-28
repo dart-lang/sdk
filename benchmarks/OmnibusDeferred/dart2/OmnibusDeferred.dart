@@ -16,6 +16,7 @@
 import '../../BigIntParsePrint/dart2/BigIntParsePrint.dart'
     deferred as lib_BigIntParsePrint;
 import '../../ListCopy/dart2/ListCopy.dart' deferred as lib_ListCopy;
+import '../../MapCopy/dart/MapCopy.dart' deferred as lib_MapCopy;
 import '../../MD5/dart2/md5.dart' deferred as lib_MD5;
 import '../../RuntimeType/dart2/RuntimeType.dart' deferred as lib_RuntimeType;
 import '../../SHA1/dart2/sha1.dart' deferred as lib_SHA1;
@@ -36,13 +37,17 @@ class Lib {
 }
 
 final Map<String, Lib> benchmarks = {
+  'BigIntParsePrint': Lib(
+    lib_BigIntParsePrint.loadLibrary,
+    () => lib_BigIntParsePrint.main(),
+  ),
   'ListCopy': Lib(
     lib_ListCopy.loadLibrary,
     () => lib_ListCopy.main(),
   ),
-  'BigIntParsePrint': Lib(
-    lib_BigIntParsePrint.loadLibrary,
-    () => lib_BigIntParsePrint.main(),
+  'MapCopy': Lib(
+    lib_MapCopy.loadLibrary,
+    () => lib_MapCopy.main([]),
   ),
   'MD5': Lib(
     lib_MD5.loadLibrary,
