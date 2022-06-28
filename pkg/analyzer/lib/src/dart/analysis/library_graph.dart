@@ -55,10 +55,6 @@ class LibraryCycle {
   /// include [implSignature] of the macro defining library.
   String implSignature;
 
-  /// The key of the resolution cache entry.
-  /// TODO(scheglov) clean up
-  String? resolutionKey;
-
   late final bool hasMacroClass = () {
     for (final library in libraries) {
       for (final file in library.file.libraryFiles) {
@@ -85,6 +81,12 @@ class LibraryCycle {
       directDependency.directUsers.add(this);
     }
   }
+
+  /// The key of the linked libraries in the byte store.
+  String get linkedKey => '$apiSignature.linked';
+
+  /// The key of the macro kernel in the byte store.
+  String get macroKey => '$implSignature.macro_kernel';
 
   /// Invalidate this cycle and any cycles that directly or indirectly use it.
   ///

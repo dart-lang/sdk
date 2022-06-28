@@ -460,7 +460,7 @@ class AnalyzerStatePrinter {
             _writelnWithIndent('current: $id');
             _withIndent(() {
               // TODO(scheglov) Print it with the cycle instead?
-              final short = idProvider.shortKey(current.resolutionKey!);
+              final short = idProvider.shortKey(current.linkedKey);
               _writelnWithIndent('key: $short');
             });
           }

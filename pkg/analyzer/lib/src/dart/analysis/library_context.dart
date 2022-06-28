@@ -29,7 +29,6 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 import 'package:path/src/context.dart';
 
@@ -167,10 +166,9 @@ class LibraryContext {
         }
       }
 
-      var resolutionKey = '${cycle.apiSignature}.linked_bundle';
-      var resolutionBytes = byteStore.get(resolutionKey);
+      var linkedBytes = byteStore.get(cycle.linkedKey);
 
-      if (resolutionBytes == null) {
+      if (linkedBytes == null) {
         librariesLinkedTimer.start();
 
         testData?.linkedCycles.add(
@@ -232,41 +230,38 @@ class LibraryContext {
           _throwLibraryCycleLinkException(cycle, exception, stackTrace);
         }
 
-        resolutionBytes = linkResult.resolutionBytes;
-        byteStore.putGet(resolutionKey, resolutionBytes);
-        performance.getDataInt('bytesPut').add(resolutionBytes.length);
-        testData?.forCycle(cycle).putKeys.add(resolutionKey);
-        bytesPut += resolutionBytes.length;
+        linkedBytes = linkResult.resolutionBytes;
+        byteStore.putGet(cycle.linkedKey, linkedBytes);
+        performance.getDataInt('bytesPut').add(linkedBytes.length);
+        testData?.forCycle(cycle).putKeys.add(cycle.linkedKey);
+        bytesPut += linkedBytes.length;
 
         librariesLinkedTimer.stop();
       } else {
-        testData?.forCycle(cycle).getKeys.add(resolutionKey);
-        performance.getDataInt('bytesGet').add(resolutionBytes.length);
+        testData?.forCycle(cycle).getKeys.add(cycle.linkedKey);
+        performance.getDataInt('bytesGet').add(linkedBytes.length);
         performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
         // TODO(scheglov) Take / clear parsed units in files.
-        bytesGet += resolutionBytes.length;
+        bytesGet += linkedBytes.length;
         librariesLoaded += cycle.libraries.length;
         elementFactory.addBundle(
           BundleReader(
             elementFactory: elementFactory,
             unitsInformativeBytes: unitsInformativeBytes,
-            resolutionBytes: resolutionBytes,
+            resolutionBytes: linkedBytes,
           ),
         );
       }
-      // TODO(scheglov) We probably should set this key when create the cycle
-      cycle.resolutionKey = resolutionKey;
 
       final macroKernelBuilder = this.macroKernelBuilder;
       if (macroKernelBuilder != null && macroLibraries.isNotEmpty) {
-        var macroKernelKey = '${cycle.implSignature}.macro_kernel';
-        var macroKernelBytes = byteStore.get(macroKernelKey);
+        var macroKernelBytes = byteStore.get(cycle.macroKey);
         if (macroKernelBytes == null) {
           macroKernelBytes = await macroKernelBuilder.build(
             fileSystem: _MacroFileSystem(fileSystemState),
             libraries: macroLibraries,
           );
-          byteStore.putGet(macroKernelKey, macroKernelBytes);
+          byteStore.putGet(cycle.macroKey, macroKernelBytes);
           bytesPut += macroKernelBytes.length;
         } else {
           bytesGet += macroKernelBytes.length;
@@ -317,8 +312,7 @@ class LibraryContext {
     loadedBundles.removeWhere((cycle) {
       final cycleFiles = cycle.libraries.map((e) => e.file);
       if (cycleFiles.any(removed.contains)) {
-        // TODO(scheglov) It should be never null.
-        removedKeys.addIfNotNull(cycle.resolutionKey);
+        removedKeys.add(cycle.linkedKey);
         return true;
       }
       return false;
@@ -333,8 +327,7 @@ class LibraryContext {
     final uriSet = <Uri>{};
 
     for (final cycle in loadedBundles) {
-      // TODO(scheglov) It should be never null.
-      keySet.addIfNotNull(cycle.resolutionKey);
+      keySet.add(cycle.linkedKey);
       uriSet.addAll(cycle.libraries.map((e) => e.file.uri));
     }
 
