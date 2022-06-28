@@ -38,8 +38,9 @@ abstract class MacroExecutor {
       MacroInstanceIdentifier macro,
       covariant Declaration declaration,
       IdentifierResolver identifierResolver,
+      TypeDeclarationResolver typeDeclarationResolver,
       TypeResolver typeResolver,
-      ClassIntrospector classIntrospector);
+      TypeIntrospector typeIntrospector);
 
   /// Runs the definitions phase for [macro] on a given [declaration].
   ///
@@ -48,9 +49,9 @@ abstract class MacroExecutor {
       MacroInstanceIdentifier macro,
       covariant Declaration declaration,
       IdentifierResolver identifierResolver,
-      TypeResolver typeResolver,
-      ClassIntrospector classIntrospector,
       TypeDeclarationResolver typeDeclarationResolver,
+      TypeResolver typeResolver,
+      TypeIntrospector typeIntrospector,
       TypeInferrer typeInferrer);
 
   /// Combines multiple [MacroExecutionResult]s into a single library

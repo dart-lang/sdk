@@ -11,7 +11,7 @@ macro
 class DataClass implements ClassDeclarationsMacro, ClassDefinitionMacro {
   const DataClass();
 
-  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) async {
     Uri dartCore = Uri.parse('dart:core');
     Identifier objectIdentifier =
@@ -46,7 +46,7 @@ class DataClass implements ClassDeclarationsMacro, ClassDefinitionMacro {
       'external ', stringIdentifier, ' toString();']));
   }
 
-  FutureOr<void> buildDefinitionForClass(ClassDeclaration clazz,
+  FutureOr<void> buildDefinitionForClass(IntrospectableClassDeclaration clazz,
       ClassDefinitionBuilder builder) async {
     Uri dartCore = Uri.parse('dart:core');
     Identifier identicalIdentifier =

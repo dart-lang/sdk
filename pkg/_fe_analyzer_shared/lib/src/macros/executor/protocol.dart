@@ -289,11 +289,17 @@ class ExecuteDeclarationsPhaseRequest extends Request {
   final DeclarationImpl declaration;
 
   final RemoteInstanceImpl identifierResolver;
+  final RemoteInstanceImpl typeDeclarationResolver;
   final RemoteInstanceImpl typeResolver;
-  final RemoteInstanceImpl classIntrospector;
+  final RemoteInstanceImpl typeIntrospector;
 
-  ExecuteDeclarationsPhaseRequest(this.macro, this.declaration,
-      this.identifierResolver, this.typeResolver, this.classIntrospector,
+  ExecuteDeclarationsPhaseRequest(
+      this.macro,
+      this.declaration,
+      this.identifierResolver,
+      this.typeDeclarationResolver,
+      this.typeResolver,
+      this.typeIntrospector,
       {required int serializationZoneId})
       : super(serializationZoneId: serializationZoneId);
 
@@ -304,8 +310,9 @@ class ExecuteDeclarationsPhaseRequest extends Request {
       : macro = new MacroInstanceIdentifierImpl.deserialize(deserializer),
         declaration = RemoteInstance.deserialize(deserializer),
         identifierResolver = RemoteInstance.deserialize(deserializer),
+        typeDeclarationResolver = RemoteInstance.deserialize(deserializer),
         typeResolver = RemoteInstance.deserialize(deserializer),
-        classIntrospector = RemoteInstance.deserialize(deserializer),
+        typeIntrospector = RemoteInstance.deserialize(deserializer),
         super.deserialize(deserializer, serializationZoneId);
 
   void serialize(Serializer serializer) {
@@ -313,8 +320,9 @@ class ExecuteDeclarationsPhaseRequest extends Request {
     macro.serialize(serializer);
     declaration.serialize(serializer);
     identifierResolver.serialize(serializer);
+    typeDeclarationResolver.serialize(serializer);
     typeResolver.serialize(serializer);
-    classIntrospector.serialize(serializer);
+    typeIntrospector.serialize(serializer);
 
     super.serialize(serializer);
   }
@@ -328,7 +336,7 @@ class ExecuteDefinitionsPhaseRequest extends Request {
 
   final RemoteInstanceImpl identifierResolver;
   final RemoteInstanceImpl typeResolver;
-  final RemoteInstanceImpl classIntrospector;
+  final RemoteInstanceImpl typeIntrospector;
   final RemoteInstanceImpl typeDeclarationResolver;
   final RemoteInstanceImpl typeInferrer;
 
@@ -337,7 +345,7 @@ class ExecuteDefinitionsPhaseRequest extends Request {
       this.declaration,
       this.identifierResolver,
       this.typeResolver,
-      this.classIntrospector,
+      this.typeIntrospector,
       this.typeDeclarationResolver,
       this.typeInferrer,
       {required int serializationZoneId})
@@ -351,7 +359,7 @@ class ExecuteDefinitionsPhaseRequest extends Request {
         declaration = RemoteInstance.deserialize(deserializer),
         identifierResolver = RemoteInstance.deserialize(deserializer),
         typeResolver = RemoteInstance.deserialize(deserializer),
-        classIntrospector = RemoteInstance.deserialize(deserializer),
+        typeIntrospector = RemoteInstance.deserialize(deserializer),
         typeDeclarationResolver = RemoteInstance.deserialize(deserializer),
         typeInferrer = RemoteInstance.deserialize(deserializer),
         super.deserialize(deserializer, serializationZoneId);
@@ -362,7 +370,7 @@ class ExecuteDefinitionsPhaseRequest extends Request {
     declaration.serialize(serializer);
     identifierResolver.serialize(serializer);
     typeResolver.serialize(serializer);
-    classIntrospector.serialize(serializer);
+    typeIntrospector.serialize(serializer);
     typeDeclarationResolver.serialize(serializer);
     typeInferrer.serialize(serializer);
 
@@ -477,30 +485,30 @@ class IsSubtypeOfRequest extends Request {
 }
 
 /// A general request class for all requests coming from methods on the
-/// [ClassIntrospector] interface.
-class ClassIntrospectionRequest extends Request {
-  final ClassDeclarationImpl classDeclaration;
-  final RemoteInstanceImpl classIntrospector;
+/// [TypeIntrospector] interface.
+class InterfaceIntrospectionRequest extends Request {
+  final IntrospectableType type;
+  final RemoteInstanceImpl typeIntrospector;
   final MessageType requestKind;
 
-  ClassIntrospectionRequest(
-      this.classDeclaration, this.classIntrospector, this.requestKind,
+  InterfaceIntrospectionRequest(
+      this.type, this.typeIntrospector, this.requestKind,
       {required int serializationZoneId})
       : super(serializationZoneId: serializationZoneId);
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again and it should instead be passed in here.
-  ClassIntrospectionRequest.deserialize(
+  InterfaceIntrospectionRequest.deserialize(
       Deserializer deserializer, this.requestKind, int serializationZoneId)
-      : classDeclaration = RemoteInstance.deserialize(deserializer),
-        classIntrospector = RemoteInstance.deserialize(deserializer),
+      : type = RemoteInstance.deserialize(deserializer),
+        typeIntrospector = RemoteInstance.deserialize(deserializer),
         super.deserialize(deserializer, serializationZoneId);
 
   @override
   void serialize(Serializer serializer) {
     serializer.addInt(requestKind.index);
-    classDeclaration.serialize(serializer);
-    classIntrospector.serialize(serializer);
+    (type as Serializable).serialize(serializer);
+    typeIntrospector.serialize(serializer);
     super.serialize(serializer);
   }
 }
@@ -667,9 +675,9 @@ class ClientNamedStaticTypeImpl extends ClientStaticTypeImpl
             serializationZoneId: serializationZoneId);
 }
 
-/// Client side implementation of the [ClientClassIntrospector], converts all
-/// invocations into remote RPC calls.
-class ClientClassIntrospector implements ClassIntrospector {
+/// Client side implementation of the [ClientTypeIntrospector], converts
+/// all invocations into remote RPC calls.
+class ClientTypeIntrospector implements TypeIntrospector {
   /// The actual remote instance of this class introspector.
   final RemoteInstanceImpl remoteInstance;
 
@@ -680,14 +688,14 @@ class ClientClassIntrospector implements ClassIntrospector {
   /// arbitrary communication channel.
   final Future<Response> Function(Request request) sendRequest;
 
-  ClientClassIntrospector(this.sendRequest,
+  ClientTypeIntrospector(this.sendRequest,
       {required this.remoteInstance, required this.serializationZoneId});
 
   @override
   Future<List<ConstructorDeclaration>> constructorsOf(
-      ClassDeclarationImpl clazz) async {
-    ClassIntrospectionRequest request = new ClassIntrospectionRequest(
-        clazz, remoteInstance, MessageType.constructorsOfRequest,
+      IntrospectableType type) async {
+    InterfaceIntrospectionRequest request = new InterfaceIntrospectionRequest(
+        type, remoteInstance, MessageType.constructorsOfRequest,
         serializationZoneId: serializationZoneId);
     return _handleResponse<DeclarationList>(await sendRequest(request))
         .declarations
@@ -696,9 +704,9 @@ class ClientClassIntrospector implements ClassIntrospector {
   }
 
   @override
-  Future<List<FieldDeclaration>> fieldsOf(ClassDeclarationImpl clazz) async {
-    ClassIntrospectionRequest request = new ClassIntrospectionRequest(
-        clazz, remoteInstance, MessageType.fieldsOfRequest,
+  Future<List<FieldDeclaration>> fieldsOf(IntrospectableType type) async {
+    InterfaceIntrospectionRequest request = new InterfaceIntrospectionRequest(
+        type, remoteInstance, MessageType.fieldsOfRequest,
         serializationZoneId: serializationZoneId);
     return _handleResponse<DeclarationList>(await sendRequest(request))
         .declarations
@@ -707,45 +715,14 @@ class ClientClassIntrospector implements ClassIntrospector {
   }
 
   @override
-  Future<List<ClassDeclaration>> interfacesOf(
-      ClassDeclarationImpl clazz) async {
-    ClassIntrospectionRequest request = new ClassIntrospectionRequest(
-        clazz, remoteInstance, MessageType.interfacesOfRequest,
+  Future<List<MethodDeclaration>> methodsOf(IntrospectableType type) async {
+    InterfaceIntrospectionRequest request = new InterfaceIntrospectionRequest(
+        type, remoteInstance, MessageType.methodsOfRequest,
         serializationZoneId: serializationZoneId);
     return _handleResponse<DeclarationList>(await sendRequest(request))
         .declarations
         // TODO: Refactor so we can remove this cast
         .cast();
-  }
-
-  @override
-  Future<List<MethodDeclaration>> methodsOf(ClassDeclarationImpl clazz) async {
-    ClassIntrospectionRequest request = new ClassIntrospectionRequest(
-        clazz, remoteInstance, MessageType.methodsOfRequest,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<DeclarationList>(await sendRequest(request))
-        .declarations
-        // TODO: Refactor so we can remove this cast
-        .cast();
-  }
-
-  @override
-  Future<List<ClassDeclaration>> mixinsOf(ClassDeclarationImpl clazz) async {
-    ClassIntrospectionRequest request = new ClassIntrospectionRequest(
-        clazz, remoteInstance, MessageType.mixinsOfRequest,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<DeclarationList>(await sendRequest(request))
-        .declarations
-        // TODO: Refactor so we can remove this cast
-        .cast();
-  }
-
-  @override
-  Future<ClassDeclaration?> superclassOf(ClassDeclarationImpl clazz) async {
-    ClassIntrospectionRequest request = new ClassIntrospectionRequest(
-        clazz, remoteInstance, MessageType.superclassOfRequest,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<ClassDeclaration?>(await sendRequest(request));
   }
 }
 
@@ -830,10 +807,7 @@ enum MessageType {
   declarationOfRequest,
   declarationList,
   fieldsOfRequest,
-  interfacesOfRequest,
   methodsOfRequest,
-  mixinsOfRequest,
-  superclassOfRequest,
   error,
   executeDeclarationsPhaseRequest,
   executeDefinitionsPhaseRequest,

@@ -194,7 +194,7 @@ macro
 class ClassDeclarationsMacro1 implements ClassDeclarationsMacro {
   const ClassDeclarationsMacro1();
 
-  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) {
     StringBuffer sb = new StringBuffer();
     if (clazz.isAbstract) {
@@ -214,7 +214,7 @@ macro
 class ClassDeclarationsMacro2 implements ClassDeclarationsMacro {
   const ClassDeclarationsMacro2();
 
-  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) async {
     List<ConstructorDeclaration> constructors = await builder.constructorsOf(
         clazz);
@@ -302,7 +302,7 @@ macro
 class ToStringMacro implements ClassDeclarationsMacro {
   const ToStringMacro();
 
-  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) async {
     Iterable<MethodDeclaration> methods = await builder.methodsOf(clazz);
     if (!methods.any((m) => m.identifier.name == 'toString')) {
@@ -340,22 +340,35 @@ class SequenceMacro
       ClassMemberDeclarationBuilder builder) async {
   }
 
-  Future<void> _findAllMethods(ClassMemberDeclarationBuilder builder,
-      ClassDeclaration cls, List<MethodDeclaration> methods) async {
-    ClassDeclaration? superclass = await builder.superclassOf(cls);
-    if (superclass != null) {
-      await _findAllMethods(builder, superclass, methods);
+  Future<void> _findAllMethods(
+      ClassMemberDeclarationBuilder builder,
+      IntrospectableClassDeclaration cls,
+      List<MethodDeclaration> methods) async {
+    if (cls.superclass != null) {
+      await _findAllMethods(
+        builder,
+        await builder.declarationOf(cls.superclass!.identifier)
+            as IntrospectableClassDeclaration,
+        methods);
     }
-    for (ClassDeclaration mixin in await builder.mixinsOf(cls)) {
-      await _findAllMethods(builder, mixin, methods);
+    for (NamedTypeAnnotation mixin in cls.mixins) {
+      await _findAllMethods(
+        builder,
+        await builder.declarationOf(mixin.identifier)
+            as IntrospectableClassDeclaration,
+        methods);
     }
-    for (ClassDeclaration interface in await builder.interfacesOf(cls)) {
-      await _findAllMethods(builder, interface, methods);
+    for (NamedTypeAnnotation interface in cls.interfaces) {
+      await _findAllMethods(
+        builder,
+        await builder.declarationOf(interface.identifier)
+            as IntrospectableClassDeclaration,
+        methods);
     }
     methods.addAll(await builder.methodsOf(cls));
   }
 
-  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) async {
     List<MethodDeclaration> methods = [];
     await _findAllMethods(builder, clazz, methods);
@@ -381,9 +394,11 @@ macro
 class SupertypesMacro implements ClassDefinitionMacro {
   const SupertypesMacro();
 
-  FutureOr<void> buildDefinitionForClass(ClassDeclaration clazz,
+  FutureOr<void> buildDefinitionForClass(IntrospectableClassDeclaration clazz,
       ClassDefinitionBuilder builder) async {
-    ClassDeclaration? superClass = await builder.superclassOf(clazz);
+    ClassDeclaration? superClass = clazz.superclass == null ? null :
+        await builder.declarationOf(clazz.superclass!.identifier)
+            as ClassDeclaration?;
     FunctionDefinitionBuilder getSuperClassBuilder = await builder.buildMethod(
         (await builder.methodsOf(clazz))
             .firstWhere((m) => m.identifier.name == 'getSuperClass')

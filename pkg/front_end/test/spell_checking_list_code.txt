@@ -577,6 +577,7 @@ heap
 height
 hello
 helpful
+helps
 hfs
 highlight
 highlighting
@@ -670,6 +671,7 @@ interval
 intervals
 intl
 introspect
+introspectable
 introspection
 introspector
 ints
@@ -783,6 +785,7 @@ macro
 macros
 maintaining
 malbounded
+manage
 mangled
 manipulation
 manner
@@ -879,6 +882,7 @@ oked
 omitting
 op
 opens
+operate
 opt
 optimizations
 opting

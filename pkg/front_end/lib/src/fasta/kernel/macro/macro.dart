@@ -37,7 +37,6 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_procedure_builder.dart';
 import '../hierarchy/hierarchy_builder.dart';
-import '../hierarchy/hierarchy_node.dart';
 import 'identifiers.dart';
 
 bool enableMacros = false;
@@ -482,8 +481,9 @@ class MacroApplications {
                 macroApplication.instanceIdentifier,
                 declaration,
                 identifierResolver,
+                typeDeclarationResolver,
                 typeResolver,
-                classIntrospector);
+                typeIntrospector);
         if (result.isNotEmpty) {
           Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
           String source = _macroExecutor.buildAugmentationLibrary(
@@ -526,16 +526,18 @@ class MacroApplications {
   }
 
   late Types types;
+  late macro.TypeDeclarationResolver typeDeclarationResolver;
   late macro.TypeResolver typeResolver;
-  late macro.ClassIntrospector classIntrospector;
+  late macro.TypeIntrospector typeIntrospector;
 
   Future<void> applyDeclarationsMacros(
       ClassHierarchyBuilder classHierarchy,
       List<SourceClassBuilder> sortedSourceClassBuilders,
       Future<void> Function(SourceLibraryBuilder) onAugmentationLibrary) async {
     types = new Types(classHierarchy);
+    typeDeclarationResolver = new _TypeDeclarationResolver(this);
     typeResolver = new _TypeResolver(this);
-    classIntrospector = new _ClassIntrospector(this, classHierarchy);
+    typeIntrospector = new _TypeIntrospector(this, classHierarchy);
 
     // Apply macros to classes first, in class hierarchy order.
     for (SourceClassBuilder classBuilder in sortedSourceClassBuilders) {
@@ -583,9 +585,9 @@ class MacroApplications {
                 macroApplication.instanceIdentifier,
                 declaration,
                 identifierResolver,
-                typeResolver,
-                classIntrospector,
                 typeDeclarationResolver,
+                typeResolver,
+                typeIntrospector,
                 typeInferrer);
         if (result.isNotEmpty) {
           results.add(result);
@@ -599,11 +601,9 @@ class MacroApplications {
     return results;
   }
 
-  late macro.TypeDeclarationResolver typeDeclarationResolver;
   late macro.TypeInferrer typeInferrer;
 
   Future<List<SourceLibraryBuilder>> applyDefinitionMacros() async {
-    typeDeclarationResolver = new _TypeDeclarationResolver(this);
     typeInferrer = new _TypeInferrer(this);
     List<SourceLibraryBuilder> augmentationLibraries = [];
     for (MapEntry<SourceLibraryBuilder, LibraryMacroApplicationData> entry
@@ -655,24 +655,60 @@ class MacroApplications {
     }
   }
 
+  List<macro.NamedTypeAnnotationImpl> _typeBuildersToAnnotations(
+      LibraryBuilder libraryBuilder, List<TypeBuilder>? typeBuilders) {
+    return typeBuilders == null
+        ? []
+        : typeBuilders
+            .map((TypeBuilder typeBuilder) =>
+                computeTypeAnnotation(libraryBuilder, typeBuilder)
+                    as macro.NamedTypeAnnotationImpl)
+            .toList();
+  }
+
   macro.ClassDeclaration _createClassDeclaration(ClassBuilder builder) {
-    macro.ClassDeclaration declaration = new macro.ClassDeclarationImpl(
-        id: macro.RemoteInstance.uniqueId,
-        identifier: new TypeDeclarationBuilderIdentifier(
-            typeDeclarationBuilder: builder,
-            libraryBuilder: builder.libraryBuilder,
+    assert(
+        !builder.isAnonymousMixinApplication,
+        "Trying to create a ClassDeclaration for the mixin application "
+        "${builder}.");
+    TypeBuilder? supertypeBuilder = builder.supertypeBuilder;
+    List<TypeBuilder>? mixins;
+    while (supertypeBuilder != null) {
+      TypeDeclarationBuilder? declaration = supertypeBuilder.declaration;
+      if (declaration is ClassBuilder &&
+          declaration.isAnonymousMixinApplication) {
+        (mixins ??= []).add(declaration.mixedInTypeBuilder!);
+        supertypeBuilder = declaration.supertypeBuilder;
+      } else {
+        break;
+      }
+    }
+    if (mixins != null) {
+      mixins = mixins.reversed.toList();
+    }
+    macro.ClassDeclaration declaration =
+        // TODO: These shouldn't always be introspectable. In the declarations
+        // phase we need to limit the introspectable declarations to those that
+        // are part of the super chain of the directly macro annotated class.
+        new macro.IntrospectableClassDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
-            name: builder.name),
-        // TODO(johnniwinther): Support typeParameters
-        typeParameters: [],
-        // TODO(johnniwinther): Support interfaces
-        interfaces: [],
-        isAbstract: builder.isAbstract,
-        isExternal: builder.isExternal,
-        // TODO(johnniwinther): Support mixins
-        mixins: [],
-        // TODO(johnniwinther): Support superclass
-        superclass: null);
+            identifier: new TypeDeclarationBuilderIdentifier(
+                typeDeclarationBuilder: builder,
+                libraryBuilder: builder.libraryBuilder,
+                id: macro.RemoteInstance.uniqueId,
+                name: builder.name),
+            // TODO(johnniwinther): Support typeParameters
+            typeParameters: [],
+            interfaces: _typeBuildersToAnnotations(
+                builder.libraryBuilder, builder.interfaceBuilders),
+            isAbstract: builder.isAbstract,
+            isExternal: builder.isExternal,
+            mixins: _typeBuildersToAnnotations(builder.libraryBuilder, mixins),
+            superclass: supertypeBuilder != null
+                ? _computeTypeAnnotation(
+                        builder.libraryBuilder, supertypeBuilder)
+                    as macro.NamedTypeAnnotationImpl
+                : null);
     _classBuilders[declaration] = builder;
     return declaration;
   }
@@ -1050,16 +1086,19 @@ class _TypeResolver implements macro.TypeResolver {
   }
 }
 
-class _ClassIntrospector implements macro.ClassIntrospector {
+class _TypeIntrospector implements macro.TypeIntrospector {
   final MacroApplications macroApplications;
   final ClassHierarchyBuilder classHierarchy;
 
-  _ClassIntrospector(this.macroApplications, this.classHierarchy);
+  _TypeIntrospector(this.macroApplications, this.classHierarchy);
 
   @override
   Future<List<macro.ConstructorDeclaration>> constructorsOf(
-      macro.ClassDeclaration clazz) {
-    ClassBuilder classBuilder = macroApplications._getClassBuilder(clazz);
+      macro.IntrospectableType type) {
+    if (type is! macro.IntrospectableClassDeclaration) {
+      throw new UnsupportedError('Only introspection on classes is supported');
+    }
+    ClassBuilder classBuilder = macroApplications._getClassBuilder(type);
     List<macro.ConstructorDeclaration> result = [];
     classBuilder.forEachConstructor((_, MemberBuilder memberBuilder) {
       if (memberBuilder is DeclaredSourceConstructorBuilder) {
@@ -1075,8 +1114,11 @@ class _ClassIntrospector implements macro.ClassIntrospector {
   }
 
   @override
-  Future<List<macro.FieldDeclaration>> fieldsOf(macro.ClassDeclaration clazz) {
-    ClassBuilder classBuilder = macroApplications._getClassBuilder(clazz);
+  Future<List<macro.FieldDeclaration>> fieldsOf(macro.IntrospectableType type) {
+    if (type is! macro.IntrospectableClassDeclaration) {
+      throw new UnsupportedError('Only introspection on classes is supported');
+    }
+    ClassBuilder classBuilder = macroApplications._getClassBuilder(type);
     List<macro.FieldDeclaration> result = [];
     classBuilder.forEach((_, Builder memberBuilder) {
       if (memberBuilder is SourceFieldBuilder) {
@@ -1088,27 +1130,12 @@ class _ClassIntrospector implements macro.ClassIntrospector {
   }
 
   @override
-  Future<List<macro.ClassDeclaration>> interfacesOf(
-      macro.ClassDeclaration clazz) {
-    ClassBuilder classBuilder = macroApplications._getClassBuilder(clazz);
-    ClassHierarchyNode node =
-        classHierarchy.getNodeFromClassBuilder(classBuilder);
-    List<ClassHierarchyNode>? directInterfaceNodes = node.directInterfaceNodes;
-    if (directInterfaceNodes != null) {
-      List<macro.ClassDeclaration> list = [];
-      for (ClassHierarchyNode interfaceNode in directInterfaceNodes) {
-        list.add(
-            macroApplications.getClassDeclaration(interfaceNode.classBuilder));
-      }
-      return new Future.value(list);
-    }
-    return new Future.value(const []);
-  }
-
-  @override
   Future<List<macro.MethodDeclaration>> methodsOf(
-      macro.ClassDeclaration clazz) {
-    ClassBuilder classBuilder = macroApplications._getClassBuilder(clazz);
+      macro.IntrospectableType type) {
+    if (type is! macro.IntrospectableClassDeclaration) {
+      throw new UnsupportedError('Only introspection on classes is supported');
+    }
+    ClassBuilder classBuilder = macroApplications._getClassBuilder(type);
     List<macro.MethodDeclaration> result = [];
     classBuilder.forEach((_, Builder memberBuilder) {
       if (memberBuilder is SourceProcedureBuilder) {
@@ -1117,38 +1144,6 @@ class _ClassIntrospector implements macro.ClassIntrospector {
       }
     });
     return new Future.value(result);
-  }
-
-  @override
-  Future<List<macro.ClassDeclaration>> mixinsOf(macro.ClassDeclaration clazz) {
-    ClassBuilder classBuilder = macroApplications._getClassBuilder(clazz);
-    ClassHierarchyNode node =
-        classHierarchy.getNodeFromClassBuilder(classBuilder);
-    ClassHierarchyNode? superNode = node.directSuperClassNode;
-    List<macro.ClassDeclaration>? list;
-    while (superNode != null && superNode.isMixinApplication) {
-      (list ??= []).add(macroApplications
-          .getClassDeclaration(superNode.mixedInNode!.classBuilder));
-      superNode = superNode.directSuperClassNode;
-    }
-    return new Future.value(list?.reversed.toList() ?? const []);
-  }
-
-  @override
-  Future<macro.ClassDeclaration?> superclassOf(macro.ClassDeclaration clazz) {
-    ClassBuilder classBuilder = macroApplications._getClassBuilder(clazz);
-    ClassHierarchyNode node =
-        classHierarchy.getNodeFromClassBuilder(classBuilder);
-    ClassHierarchyNode? superNode = node.directSuperClassNode;
-    while (superNode != null &&
-        superNode.classBuilder.isAnonymousMixinApplication) {
-      superNode = superNode.directSuperClassNode;
-    }
-    if (superNode != null) {
-      return new Future.value(
-          macroApplications.getClassDeclaration(superNode.classBuilder));
-    }
-    return new Future.value();
   }
 }
 

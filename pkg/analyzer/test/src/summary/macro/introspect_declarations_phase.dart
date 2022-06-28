@@ -24,13 +24,14 @@ const introspectMacroX = IntrospectDeclarationsPhaseMacro(
 
   @override
   Future<void> buildDeclarationsForClass(
-    ClassDeclaration declaration,
+    IntrospectableClassDeclaration declaration,
     ClassMemberDeclarationBuilder builder,
   ) async {
     final printer = _DeclarationPrinter(
       withDetailsFor: withDetailsFor.cast(),
-      classIntrospector: builder,
+      typeIntrospector: builder,
       identifierResolver: builder,
+      typeDeclarationResolver: builder,
       typeResolver: builder,
     );
     await printer.writeClassDeclaration(declaration);
@@ -47,8 +48,9 @@ const introspectMacroX = IntrospectDeclarationsPhaseMacro(
 
 class _DeclarationPrinter {
   final Set<String> withDetailsFor;
-  final ClassIntrospector classIntrospector;
+  final TypeIntrospector typeIntrospector;
   final IdentifierResolver identifierResolver;
+  final TypeDeclarationResolver typeDeclarationResolver;
   final TypeResolver typeResolver;
 
   final StringBuffer _sink = StringBuffer();
@@ -58,12 +60,13 @@ class _DeclarationPrinter {
 
   _DeclarationPrinter({
     required this.withDetailsFor,
-    required this.classIntrospector,
+    required this.typeIntrospector,
     required this.identifierResolver,
+    required this.typeDeclarationResolver,
     required this.typeResolver,
   });
 
-  Future<void> writeClassDeclaration(ClassDeclaration e) async {
+  Future<void> writeClassDeclaration(IntrospectableClassDeclaration e) async {
     _sink.write(_indent);
     _writeIf(e.isAbstract, 'abstract ');
     _writeIf(e.isExternal, 'external ');
@@ -75,7 +78,10 @@ class _DeclarationPrinter {
     }
 
     await _withIndent(() async {
-      final superclass = await classIntrospector.superclassOf(e);
+      final superclass = e.superclass == null
+          ? null
+          : await typeDeclarationResolver.declarationOf(
+              e.superclass!.identifier) as IntrospectableClassDeclaration;
       if (superclass != null) {
         _writelnWithIndent('superclass');
         await _withIndent(() => writeClassDeclaration(superclass));
@@ -88,7 +94,7 @@ class _DeclarationPrinter {
       _enclosingDeclarationIdentifier = e.identifier;
       await _writeElements<FieldDeclaration>(
         'fields',
-        await classIntrospector.fieldsOf(e),
+        await typeIntrospector.fieldsOf(e),
         _writeField,
       );
     });
