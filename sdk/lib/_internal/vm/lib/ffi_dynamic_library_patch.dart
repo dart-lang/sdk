@@ -37,8 +37,6 @@ class DynamicLibrary {
   @pragma("vm:external-name", "Ffi_dl_providesSymbol")
   external bool providesSymbol(String symbolName);
 
-  // TODO(dacoharkes): Expose this to users, or extend Pointer?
-  // https://github.com/dart-lang/sdk/issues/35881
   @pragma("vm:external-name", "Ffi_dl_getHandle")
   external int getHandle();
 

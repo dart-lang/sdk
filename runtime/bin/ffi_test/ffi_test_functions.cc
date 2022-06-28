@@ -574,7 +574,6 @@ typedef intptr_t (*IntptrBinOp)(intptr_t a, intptr_t b);
 // Returns a closure.
 // Note this closure is not properly marked as DART_EXPORT or extern "C".
 // Used for testing passing a pointer to a closure to Dart.
-// TODO(dacoharkes): is this a supported use case?
 DART_EXPORT IntptrBinOp IntptrAdditionClosure() {
   std::cout << "IntptrAdditionClosure()\n";
   IntptrBinOp retval = [](intptr_t a, intptr_t b) { return a + b; };
