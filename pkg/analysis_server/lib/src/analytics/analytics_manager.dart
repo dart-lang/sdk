@@ -14,7 +14,9 @@ import 'package:analysis_server/src/analytics/session_data.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:collection/collection.dart';
 import 'package:telemetry/telemetry.dart';
 
 /// An interface for managing and reporting analytics.
@@ -214,6 +216,112 @@ class AnalyticsManager {
         clientId: clientId,
         clientVersion: clientVersion ?? '',
         sdkVersion: sdkVersion);
+  }
+
+  /// Return an HTML representation of the data that has been recorded.
+  String? toHtml(StringBuffer buffer) {
+    var sessionData = _sessionData;
+    if (sessionData == null) {
+      return null;
+    }
+
+    void h3(String title) {
+      buffer.writeln('<h3>${escape(title)}</h3>');
+    }
+
+    void h4(String title) {
+      buffer.writeln('<h4>${escape(title)}</h4>');
+    }
+
+    void h5(String title) {
+      buffer.writeln('<h5>${escape(title)}</h5>');
+    }
+
+    void li(String item) {
+      buffer.writeln('<li>${escape(item)}</li>');
+    }
+
+    List<MapEntry<String, V>> sorted<V>(
+            Iterable<MapEntry<String, V>> entries) =>
+        entries.sortedBy((entry) => entry.key);
+
+    buffer.writeln('<hr>');
+
+    var endTime = DateTime.now().millisecondsSinceEpoch;
+    var duration = endTime - sessionData.startTime.millisecondsSinceEpoch;
+    h3('Session data');
+    buffer.writeln('<ul>');
+    li('clientId: ${sessionData.clientId}');
+    li('clientVersion: ${sessionData.clientVersion}');
+    li('duration: ${duration.toString()}');
+    li('flags: ${sessionData.commandLineArguments}');
+    li('parameters: ${sessionData.initializeParams}');
+    li('sdkVersion: ${sessionData.sdkVersion}');
+    li('plugins: ${_pluginData.usageCountData}');
+    buffer.writeln('</ul>');
+
+    if (_completedRequests.isNotEmpty) {
+      h3('Server response times');
+      var entries = sorted(_completedRequests.entries);
+      for (var entry in entries) {
+        var data = entry.value;
+        h4(data.method);
+        buffer.writeln('<ul>');
+        li('latency: ${data.latencyTimes.toAnalyticsString()}');
+        li('duration: ${data.responseTimes.toAnalyticsString()}');
+        for (var field in data.additionalPercentiles.entries) {
+          li('${field.key}: ${field.value.toAnalyticsString()}');
+        }
+        for (var field in data.additionalEnumCounts.entries) {
+          li('${field.key}: ${json.encode(field.value)}');
+        }
+        buffer.writeln('</ul>');
+      }
+    }
+
+    var responseTimes = PluginManager.pluginResponseTimes;
+    if (responseTimes.isNotEmpty) {
+      h3('Plugin response times');
+      for (var pluginEntry in responseTimes.entries) {
+        h4(pluginEntry.key.pluginId);
+        var entries = sorted(pluginEntry.value.entries);
+        for (var responseEntry in entries) {
+          h5(responseEntry.key);
+          buffer.writeln('<ul>');
+          li('duration: ${responseEntry.value.toAnalyticsString()}');
+          buffer.writeln('</ul>');
+        }
+      }
+    }
+
+    if (_completedNotifications.isNotEmpty) {
+      h3('Notification handling times');
+      buffer.writeln('<ul>');
+      var entries = sorted(_completedNotifications.entries);
+      for (var entry in entries) {
+        var data = entry.value;
+        li('latency: ${data.latencyTimes.toAnalyticsString()}');
+        li('method: ${data.method}');
+        li('duration: ${data.handlingTimes.toAnalyticsString()}');
+      }
+      buffer.writeln('</ul>');
+    }
+
+    if (_lintUsageCounts.isNotEmpty) {
+      h3('Lint usage counts');
+      buffer.writeln('<ul>');
+      li('usageCounts: ${json.encode(_lintUsageCounts)}');
+      buffer.writeln('</ul>');
+    }
+
+    if (_severityAdjustments.isNotEmpty) {
+      h3('Severity adjustments');
+      buffer.writeln('<ul>');
+      li('adjustmentCounts: ${json.encode(_severityAdjustments)}');
+      buffer.writeln('</ul>');
+    }
+
+    return buffer.toString();
   }
 
   /// Return the request data for requests that have the given [method].
