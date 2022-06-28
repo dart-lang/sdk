@@ -320,10 +320,9 @@ class RunningProcess {
                 diagnostics.add("Unable to capture stack traces: $error");
               }
             }
-
-            if (!process.kill()) {
-              diagnostics.add("Unable to kill ${process.pid}");
-            }
+          }
+          if (!process.kill()) {
+            diagnostics.add("Unable to kill ${process.pid}");
           }
           return 1;
         }
