@@ -28,7 +28,7 @@ class StaticInteropClassEraser extends Transformer {
   final Class _javaScriptObject;
   final CloneVisitorNotMembers _cloner = CloneVisitorNotMembers();
   late final _TypeSubstitutor _typeSubstitutor;
-  late Library currLibrary;
+  Component? currentComponent;
 
   StaticInteropClassEraser(CoreTypes coreTypes,
       {String libraryForJavaScriptObject = 'dart:_interceptors',
@@ -54,21 +54,27 @@ class StaticInteropClassEraser extends Transformer {
     var stubs = factoryClass.procedures
         .where((procedure) => procedure.name.text == stubName);
     if (stubs.isEmpty) {
-      // We should only create the stub if we're processing the library in which
-      // the stub should exist. Any static invocation of the factory that
-      // doesn't exist in the same library as the factory should be processed
-      // after the library in which the factory exists. In modular compilation,
-      // the outline of that library should already contain the needed stub.
-      assert(factoryClass.enclosingLibrary == currLibrary);
-      // Note that the return type of the cloned function is transformed.
-      var functionNode = super
-              .visitFunctionNode(_cloner.cloneInContext(factoryTarget.function))
-          as FunctionNode;
+      // We should only create the stub if we're processing the component in
+      // which the stub should exist. Any static invocation of the factory that
+      // doesn't exist in the same component as the factory should be processed
+      // after the component in which the factory exists. In modular
+      // compilation, the outline of that component should already contain the
+      // needed stub.
+      if (currentComponent != null) {
+        assert(factoryTarget.enclosingComponent == currentComponent);
+      }
       var staticMethod = Procedure(
-          Name(stubName), ProcedureKind.Method, functionNode,
+          Name(stubName), ProcedureKind.Method, FunctionNode(null),
           isStatic: true, fileUri: factoryTarget.fileUri)
         ..fileOffset = factoryTarget.fileOffset;
       factoryClass.addProcedure(staticMethod);
+      // Clone function node after processing the stub in case of mutually
+      // recursive factories. Note that the return type of the cloned function
+      // is transformed.
+      var functionNode = super
+              .visitFunctionNode(_cloner.cloneInContext(factoryTarget.function))
+          as FunctionNode;
+      staticMethod.function = functionNode;
       return staticMethod;
     } else {
       assert(stubs.length == 1);
@@ -78,7 +84,7 @@ class StaticInteropClassEraser extends Transformer {
 
   @override
   TreeNode visitLibrary(Library node) {
-    currLibrary = node;
+    currentComponent = node.enclosingComponent;
     return super.visitLibrary(node);
   }
 
@@ -208,7 +214,7 @@ class StaticInteropStubCreator extends RecursiveVisitor {
 
   @override
   void visitLibrary(Library node) {
-    _eraser.currLibrary = node;
+    _eraser.currentComponent = node.enclosingComponent;
     super.visitLibrary(node);
   }
 
