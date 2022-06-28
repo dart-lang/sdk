@@ -193,7 +193,7 @@ class LibraryContext {
 
             String? partUriStr;
             if (partIndex >= 0) {
-              partUriStr = libraryFile.unlinked2.parts[partIndex];
+              partUriStr = libraryFile.unlinked2.parts[partIndex].uri;
             }
             partIndex++;
 

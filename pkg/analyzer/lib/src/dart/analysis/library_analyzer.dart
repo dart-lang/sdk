@@ -651,10 +651,15 @@ class LibraryAnalyzer {
       } else if (directive is PartDirectiveImpl) {
         StringLiteral partUri = directive.uri;
 
-        var partFile = _library.file.partedFiles[partDirectiveIndex++];
-        if (partFile == null) {
+        if (partElementIndex >= _libraryElement.parts.length) {
           continue;
         }
+
+        final partState = _library.parts[partDirectiveIndex++];
+        if (partState is! PartDirectiveWithFile) {
+          continue;
+        }
+        final partFile = partState.includedFile;
 
         var partUnit = units[partFile]!;
         var partElement = _libraryElement.parts[partElementIndex++];

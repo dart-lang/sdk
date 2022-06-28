@@ -535,7 +535,8 @@ files
       kind: library_0
         imports
           library_2 dart:core synthetic
-        parts: file_1
+        parts
+          partOfUriKnown_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -599,7 +600,8 @@ files
       kind: library_7
         imports
           library_2 dart:core synthetic
-        parts: file_8
+        parts
+          partOfUriKnown_8
         cycle_2
           dependencies: dart:core
           libraries: library_7
@@ -659,7 +661,8 @@ files
       kind: library_0
         imports
           library_3 dart:core synthetic
-        parts: file_1
+        parts
+          partOfUriKnown_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -754,7 +757,8 @@ files
       kind: library_8
         imports
           library_3 dart:core synthetic
-        parts: file_9
+        parts
+          partOfUriKnown_9
         cycle_3
           dependencies: dart:core
           libraries: library_8

@@ -77,6 +77,14 @@ class AnalyzerStatePrinter {
     return idProvider.libraryCycle(cycle);
   }
 
+  String _stringOfUriStr(String uriStr) {
+    if (uriStr.trim().isEmpty) {
+      return "'$uriStr'";
+    } else {
+      return uriStr;
+    }
+  }
+
   void _withIndent(void Function() f) {
     var indent = _indent;
     _indent = '$_indent  ';
@@ -174,7 +182,7 @@ class AnalyzerStatePrinter {
         sink.writeln();
       } else {
         sink.write(_indent);
-        sink.write('uri: ${export.directive.uri}');
+        sink.write('uri: ${_stringOfUriStr(export.directive.uri)}');
         sink.writeln();
       }
     });
@@ -219,7 +227,7 @@ class AnalyzerStatePrinter {
         sink.writeln();
       } else {
         sink.write(_indent);
-        sink.write('uri: ${import.directive.uri}');
+        sink.write('uri: ${_stringOfUriStr(import.directive.uri)}');
         if (import.isSyntheticDartCoreImport) {
           sink.write(' synthetic');
         }
@@ -505,13 +513,27 @@ class AnalyzerStatePrinter {
     });
   }
 
-  /// TODO(scheglov) Support unresolved URIs, not parts, etc.
   void _writeLibraryParts(LibraryFileStateKind library) {
-    final parts = library.file.partedFiles.whereNotNull();
-    if (parts.isNotEmpty) {
-      final partKeys = parts.map(idProvider.fileState).join(' ');
-      _writelnWithIndent('parts: $partKeys');
-    }
+    _writeElements<PartDirectiveState>('parts', library.parts, (part) {
+      expect(part.library, same(library));
+      if (part is PartDirectiveWithFile) {
+        final file = part.includedFile;
+        sink.write(_indent);
+
+        final includedPart = part.includedPart;
+        if (includedPart != null) {
+          expect(includedPart.file, file);
+          sink.write(idProvider.fileStateKind(includedPart));
+        } else {
+          sink.write('notPart ${idProvider.fileState(file)}');
+        }
+        sink.writeln();
+      } else {
+        sink.write(_indent);
+        sink.write('uri: ${_stringOfUriStr(part.directive.uri)}');
+        sink.writeln();
+      }
+    });
   }
 
   void _writelnWithIndent(String line) {

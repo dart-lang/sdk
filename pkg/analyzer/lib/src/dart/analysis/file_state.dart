@@ -280,7 +280,6 @@ class FileState {
   List<FileState?> _augmentationFiles = [];
   List<FileState?>? _importedFiles;
   List<FileState?>? _exportedFiles;
-  List<FileState?> _partedFiles = [];
   List<FileState> _libraryFiles = [];
 
   Set<FileState>? _directReferencedFiles;
@@ -331,6 +330,7 @@ class FileState {
 
   /// Return the set of all directly referenced files - imported, exported or
   /// parted.
+  /// TODO(scheglov) Stop using [partedFiles].
   Set<FileState> get directReferencedFiles {
     return _directReferencedFiles ??= <FileState>{
       ...importedFiles.whereNotNull(),
@@ -405,7 +405,18 @@ class FileState {
 
   /// The list of files this library file references as parts.
   List<FileState?> get partedFiles {
-    return _partedFiles;
+    final kind = _kind;
+    if (kind is LibraryFileStateKind) {
+      return kind.parts.map((part) {
+        if (part is PartDirectiveWithFile) {
+          return part.includedFile;
+        } else {
+          return null;
+        }
+      }).toList();
+    } else {
+      return [];
+    }
   }
 
   /// The external names referenced by the file.
@@ -666,12 +677,16 @@ class FileState {
   /// TODO(scheglov) Make it a method of `PartFileStateKind`?
   void _invalidatesLibrariesOfThisPart() {
     if (_kind is PartFileStateKind) {
-      for (final library in _fsState._pathToFile.values) {
-        if (library._kind is LibraryFileStateKind) {
-          if (library.partedFiles.contains(this)) {
-            final libraryKind = library.kind;
-            if (libraryKind is LibraryFileStateKind) {
-              libraryKind._libraryCycle?.invalidate();
+      final libraries = _fsState._pathToFile.values
+          .map((file) => file._kind)
+          .whereType<LibraryFileStateKind>()
+          .toList();
+
+      for (final library in libraries) {
+        for (final partDirective in library.parts) {
+          if (partDirective is PartDirectiveWithFile) {
+            if (partDirective.includedFile == this) {
+              library._libraryCycle?.invalidate();
             }
           }
         }
@@ -712,8 +727,8 @@ class FileState {
     for (final directive in unlinked2.exports) {
       addRelativeUri(directive.uri);
     }
-    for (final uri in unlinked2.parts) {
-      addRelativeUri(uri);
+    for (final directive in unlinked2.parts) {
+      addRelativeUri(directive.uri);
     }
 
     prefetchFiles(paths.toList());
@@ -746,7 +761,6 @@ class FileState {
     removeForOne(_augmentationFiles);
     removeForOne(_exportedFiles);
     removeForOne(_importedFiles);
-    removeForOne(_partedFiles);
   }
 
   void _updateAugmentationFiles() {
@@ -762,7 +776,7 @@ class FileState {
   }
 
   void _updateKind() {
-    _fsState._libraryNameToFiles.remove(_kind);
+    _kind?.dispose();
 
     final libraryAugmentationDirective = unlinked2.libraryAugmentationDirective;
     final libraryDirective = unlinked2.libraryDirective;
@@ -770,6 +784,7 @@ class FileState {
     final partOfUriDirective = unlinked2.partOfUriDirective;
     if (libraryAugmentationDirective != null) {
       final uri = libraryAugmentationDirective.uri;
+      // TODO(scheglov) This could be a useful method of `Either`.
       final uriFile = _fileForRelativeUri(uri).map(
         (file) => file,
         (_) => null,
@@ -825,17 +840,8 @@ class FileState {
     _invalidatesLibrariesOfThisPart();
   }
 
+  /// TODO(scheglov) Stop using [partedFiles].
   void _updatePartedFiles() {
-    _partedFiles = unlinked2.parts.map((uri) {
-      return _fileForRelativeUri(uri).map(
-        (part) {
-          part?.referencingFiles.add(this);
-          return part;
-        },
-        (_) => null,
-      );
-    }).toList();
-
     _libraryFiles = [
       this,
       ...partedFiles.whereNotNull(),
@@ -850,7 +856,7 @@ class FileState {
     var augmentations = <UnlinkedImportAugmentationDirective>[];
     var exports = <UnlinkedNamespaceDirective>[];
     var imports = <UnlinkedNamespaceDirective>[];
-    var parts = <String>[];
+    var parts = <UnlinkedPartDirective>[];
     var macroClasses = <MacroClass>[];
     var hasDartCoreImport = false;
     for (var directive in unit.directives) {
@@ -888,8 +894,11 @@ class FileState {
           name: directive.name.name,
         );
       } else if (directive is PartDirective) {
-        var uriStr = directive.uri.stringValue;
-        parts.add(uriStr ?? '');
+        parts.add(
+          UnlinkedPartDirective(
+            uri: directive.uri.stringValue ?? '',
+          ),
+        );
       } else if (directive is PartOfDirective) {
         final libraryName = directive.libraryName;
         final uri = directive.uri;
@@ -1587,6 +1596,8 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
   /// Or `null` if no `library` directive.
   final String? name;
 
+  List<PartDirectiveState>? _parts;
+
   LibraryCycle? _libraryCycle;
 
   LibraryFileStateKind({
@@ -1609,13 +1620,59 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
     return _libraryCycle!;
   }
 
+  List<PartDirectiveState> get parts {
+    return _parts ??= file.unlinked2.parts.map((directive) {
+      return file._fileForRelativeUri(directive.uri).map(
+        (refFile) {
+          if (refFile != null) {
+            refFile.referencingFiles.add(file);
+            return PartDirectiveWithFile(
+              library: this,
+              directive: directive,
+              includedFile: refFile,
+            );
+          } else {
+            return PartDirectiveState(
+              library: this,
+              directive: directive,
+            );
+          }
+        },
+        (externalLibrary) {
+          return PartDirectiveState(
+            library: this,
+            directive: directive,
+          );
+        },
+      );
+    }).toList();
+  }
+
   @override
   void dispose() {
     invalidateLibraryCycle();
+
+    final parts = _parts;
+    if (parts != null) {
+      for (final part in parts) {
+        if (part is PartDirectiveWithFile) {
+          part.includedFile.referencingFiles.remove(file);
+        }
+      }
+    }
+
+    file._fsState._libraryNameToFiles.remove(this);
   }
 
-  bool hasPart(PartFileStateKind part) {
-    return file.partedFiles.contains(part.file);
+  bool hasPart(PartFileStateKind partKind) {
+    for (final partDirective in parts) {
+      if (partDirective is PartDirectiveWithFile) {
+        if (partDirective.includedFile == partKind.file) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   void internal_setLibraryCycle(LibraryCycle? cycle) {
@@ -1695,11 +1752,54 @@ abstract class LibraryOrAugmentationFileKind extends FileStateKind {
   }
 }
 
+/// Information about a single `part` directive.
+class PartDirectiveState {
+  final LibraryFileStateKind library;
+  final UnlinkedPartDirective directive;
+
+  PartDirectiveState({
+    required this.library,
+    required this.directive,
+  });
+
+  /// Returns a [Source] that is referenced by this directive.
+  ///
+  /// Returns `null` if the URI cannot be resolved into a [Source].
+  Source? get includedSource => null;
+}
+
+/// [PartDirectiveState] that has a valid URI that references a file.
+class PartDirectiveWithFile extends PartDirectiveState {
+  final FileState includedFile;
+
+  PartDirectiveWithFile({
+    required super.library,
+    required super.directive,
+    required this.includedFile,
+  });
+
+  /// If [includedFile] is a [PartFileStateKind], and it confirms that it
+  /// is a part of the [library], returns the [includedFile].
+  PartFileStateKind? get includedPart {
+    final kind = includedFile.kind;
+    if (kind is PartFileStateKind && kind.isPartOf(library)) {
+      return kind;
+    }
+    return null;
+  }
+
+  @override
+  Source? get includedSource => includedFile.source;
+}
+
 /// The file has `part of` directive.
 abstract class PartFileStateKind extends FileStateKind {
   PartFileStateKind({
     required super.file,
   });
+
+  /// Returns `true` if the `part of` directive confirms the [library].
+  bool isPartOf(LibraryFileStateKind library);
 }
 
 /// The file has `part of name` directive.
@@ -1757,6 +1857,11 @@ class PartOfNameFileStateKind extends PartFileStateKind {
       }
     }
   }
+
+  @override
+  bool isPartOf(LibraryFileStateKind library) {
+    return directive.name == library.name;
+  }
 }
 
 /// The file has `part of URI` directive.
@@ -1789,6 +1894,11 @@ class PartOfUriKnownFileStateKind extends PartOfUriFileStateKind {
     }
     return null;
   }
+
+  @override
+  bool isPartOf(LibraryFileStateKind library) {
+    return uriFile == library.file;
+  }
 }
 
 /// The file has `part of URI` directive, and the URI cannot be resolved.
@@ -1800,6 +1910,9 @@ class PartOfUriUnknownFileStateKind extends PartOfUriFileStateKind {
 
   @override
   LibraryFileStateKind? get library => null;
+
+  @override
+  bool isPartOf(LibraryFileStateKind library) => false;
 }
 
 class StoredFileContent implements FileContent {
@@ -1849,6 +1962,7 @@ class _LibraryNameToFiles {
   }
 
   /// If [kind] is a named library, register it.
+  /// TODO(scheglov) Use [LibraryFileStateKind]
   void add(FileStateKind? kind) {
     if (kind is LibraryFileStateKind) {
       final name = kind.name;
@@ -1864,6 +1978,7 @@ class _LibraryNameToFiles {
   }
 
   /// If [kind] is a named library, unregister it.
+  /// TODO(scheglov) Use [LibraryFileStateKind]
   void remove(FileStateKind? kind) {
     if (kind is LibraryFileStateKind) {
       final name = kind.name;
