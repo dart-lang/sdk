@@ -222,7 +222,7 @@ class FileResolver {
     cachedResults.clear();
 
     // Remove the specified files and files that transitively depend on it.
-    final removedFiles = <FileState>[];
+    final removedFiles = <FileState>{};
     for (final path in paths) {
       fsState!.changeFile(path, removedFiles);
     }

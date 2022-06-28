@@ -1679,7 +1679,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _fsState.collectAffected(path, affected);
 
     final removedKeys = <String>{};
-    _libraryContext?.remove(affected.toList(), removedKeys);
+    _libraryContext?.remove(affected, removedKeys);
 
     // TODO(scheglov) Eventually list of `LibraryOrAugmentationFileKind`.
     for (final file in affected) {

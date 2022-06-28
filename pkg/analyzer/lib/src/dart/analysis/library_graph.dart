@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
+import 'package:collection/collection.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
@@ -137,12 +138,17 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 
   @override
   List<_LibraryNode> computeDependencies() {
-    // TODO(scheglov) This can be simplified with better imports.
-    return kind.file.directReferencedLibraries
-        .map((e) => e.kind)
-        .whereType<LibraryFileStateKind>()
-        .map(walker.getNode)
-        .toList();
+    final referencedLibraries = {
+      ...kind.imports
+          .whereType<ImportDirectiveWithFile>()
+          .map((import) => import.importedLibrary)
+          .whereNotNull(),
+      ...kind.exports
+          .whereType<ExportDirectiveWithFile>()
+          .map((export) => export.exportedLibrary)
+          .whereNotNull(),
+    };
+    return referencedLibraries.map(walker.getNode).toList();
   }
 }
 

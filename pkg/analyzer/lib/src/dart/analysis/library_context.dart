@@ -309,15 +309,13 @@ class LibraryContext {
 
   /// Remove libraries represented by the [removed] files.
   /// If we need these libraries later, we will relink and reattach them.
-  void remove(List<FileState> removed, Set<String> removedKeys) {
+  void remove(Set<FileState> removed, Set<String> removedKeys) {
     elementFactory.removeLibraries(
       removed.map((e) => e.uri).toSet(),
     );
 
-    final removedSet = removed.toSet();
-
     loadedBundles.removeWhere((cycle) {
-      if (cycle.libraries.any(removedSet.contains)) {
+      if (cycle.libraries.any(removed.contains)) {
         removedKeys.addIfNotNull(cycle.resolutionKey);
         return true;
       }

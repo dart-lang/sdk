@@ -283,7 +283,6 @@ class FileState {
   List<FileState> _libraryFiles = [];
 
   Set<FileState>? _directReferencedFiles;
-  Set<FileState>? _directReferencedLibraries;
 
   /// The flag that shows whether the file has an error or warning that
   /// might be fixed by a change to another file.
@@ -336,15 +335,6 @@ class FileState {
       ...importedFiles.whereNotNull(),
       ...exportedFiles.whereNotNull(),
       ...partedFiles.whereNotNull(),
-    };
-  }
-
-  /// Return the set of all directly referenced libraries - imported or
-  /// exported.
-  Set<FileState> get directReferencedLibraries {
-    return _directReferencedLibraries ??= <FileState>{
-      ...importedFiles.whereNotNull(),
-      ...exportedFiles.whereNotNull(),
     };
   }
 
@@ -581,7 +571,6 @@ class FileState {
     _importedFiles = null;
     _exportedFiles = null;
     _directReferencedFiles = null;
-    _directReferencedLibraries = null;
 
     // Read parts eagerly to link parts to libraries.
     _updateKind();
@@ -1148,13 +1137,16 @@ class FileSystemState {
   /// Update the state to reflect the fact that the file with the given [path]
   /// was changed. Specifically this means that we evict this file and every
   /// file that referenced it.
-  void changeFile(String path, List<FileState> removedFiles) {
+  void changeFile(String path, Set<FileState> removedFiles) {
     var file = _pathToFile.remove(path);
     if (file == null) {
       return;
     }
 
-    removedFiles.add(file);
+    if (!removedFiles.add(file)) {
+      return;
+    }
+
     _uriToFile.remove(file.uri);
 
     // The removed file does not reference other file anymore.
@@ -1388,7 +1380,7 @@ class FileSystemState {
   /// Computes the set of [FileState]'s used/not used to analyze the given
   /// [files]. Removes the [FileState]'s of the files not used for analysis from
   /// the cache. Returns the set of unused [FileState]'s.
-  List<FileState> removeUnusedFiles(List<String> files) {
+  Set<FileState> removeUnusedFiles(List<String> files) {
     var allReferenced = <String>{};
     for (var path in files) {
       allReferenced.add(path);
@@ -1398,7 +1390,7 @@ class FileSystemState {
     var unusedPaths = _pathToFile.keys.toSet();
     unusedPaths.removeAll(allReferenced);
 
-    var removedFiles = <FileState>[];
+    var removedFiles = <FileState>{};
     for (var path in unusedPaths) {
       changeFile(path, removedFiles);
     }
@@ -1651,6 +1643,7 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
   @override
   void dispose() {
     invalidateLibraryCycle();
+    file._fsState._libraryNameToFiles.remove(this);
 
     final parts = _parts;
     if (parts != null) {
@@ -1661,7 +1654,23 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
       }
     }
 
-    file._fsState._libraryNameToFiles.remove(this);
+    final imports = _imports;
+    if (imports != null) {
+      for (final import in imports) {
+        if (import is ImportDirectiveWithFile) {
+          import.importedFile.referencingFiles.remove(file);
+        }
+      }
+    }
+
+    final exports = _exports;
+    if (exports != null) {
+      for (final export in exports) {
+        if (export is ExportDirectiveWithFile) {
+          export.exportedFile.referencingFiles.remove(file);
+        }
+      }
+    }
   }
 
   bool hasPart(PartFileStateKind partKind) {

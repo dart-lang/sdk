@@ -461,6 +461,92 @@ elementFactory
 ''');
   }
 
+  test_libraryCycle_cycle_export() {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+export 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+export 'a.dart';
+''');
+
+    fileStateFor(a);
+
+    // TODO(scheglov) Write details for a cycle only once.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_2 dart:core synthetic
+        exports
+          library_1
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0 library_1
+          apiSignature_0
+      referencingFiles: file_1
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: library_1
+        imports
+          library_2 dart:core synthetic
+        exports
+          library_0
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0 library_1
+          apiSignature_0
+      referencingFiles: file_0
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+
+    // Update `a.dart` so that it does not export `b.dart` anymore.
+    newFile(a.path, '');
+    fileStateFor(a).refresh();
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_7
+        imports
+          library_2 dart:core synthetic
+        cycle_2
+          dependencies: dart:core
+          libraries: library_7
+          apiSignature_1
+          users: cycle_3
+      referencingFiles: file_1
+      unlinkedKey: k02
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: library_1
+        imports
+          library_2 dart:core synthetic
+        exports
+          library_7
+        cycle_3
+          dependencies: cycle_2 dart:core
+          libraries: library_1
+          apiSignature_2
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+  }
+
   test_libraryCycle_cycle_import() {
     final a = newFile('$testPackageLibPath/a.dart', r'''
 import 'b.dart';
