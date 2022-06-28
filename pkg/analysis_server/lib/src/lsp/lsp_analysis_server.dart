@@ -742,9 +742,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       List<String> addedPaths, List<String> removedPaths) async {
     // TODO(dantup): This is currently case-sensitive!
 
+    // Normalise all potential workspace folder paths as these may contain
+    // trailing slashes (the LSP spec does not specify whether folders
+    // should/should not have them) and the analysis roots must be normalized.
+    final pathContext = resourceProvider.pathContext;
+    final addedNormalized = addedPaths.map(pathContext.normalize).toList();
+    final removedNormalized = removedPaths.map(pathContext.normalize).toList();
+
     _workspaceFolders
-      ..addAll(addedPaths)
-      ..removeAll(removedPaths);
+      ..addAll(addedNormalized)
+      ..removeAll(removedNormalized);
 
     await fetchClientConfigurationAndPerformDynamicRegistration();
 

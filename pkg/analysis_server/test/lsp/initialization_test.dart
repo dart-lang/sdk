@@ -965,17 +965,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(response.error, isNotNull);
     expect(response.error!.code, ErrorCodes.ServerNotInitialized);
   }
-
-  String withTrailingSlash(String path) {
-    expect(path, isNot(endsWith('/')));
-    final pathSeparator = server.resourceProvider.pathContext.separator;
-    return '$path$pathSeparator';
-  }
-
-  Uri withTrailingSlashUri(Uri uri) {
-    expect(uri.path, isNot(endsWith('/')));
-    return uri.replace(path: '${uri.path}/');
-  }
 }
 
 /// Runs all initialization tests with a resource provider that slowly

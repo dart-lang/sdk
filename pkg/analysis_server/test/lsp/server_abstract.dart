@@ -225,6 +225,23 @@ abstract class AbstractLspAnalysisServerTest
     channel.close();
     await server.shutdown();
   }
+
+  /// Adds a trailing slash (direction based on path context) to [path].
+  ///
+  /// Throws if the path already has a trailing slash.
+  String withTrailingSlash(String path) {
+    final pathSeparator = server.resourceProvider.pathContext.separator;
+    expect(path, isNot(endsWith(pathSeparator)));
+    return '$path$pathSeparator';
+  }
+
+  /// Adds a trailing slash to [uri].
+  ///
+  /// Throws if the URI already has a trailing slash.
+  Uri withTrailingSlashUri(Uri uri) {
+    expect(uri.path, isNot(endsWith('/')));
+    return uri.replace(path: '${uri.path}/');
+  }
 }
 
 mixin ClientCapabilitiesHelperMixin {
