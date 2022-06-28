@@ -97,21 +97,18 @@ files
     unlinkedPut: [k02]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k03
-      libraries: file_0
     get: []
     put: [k03]
   /workspace/dart/test/lib/b.dart
-    current
+    current: cycle_1
       key: k04
-      libraries: file_1
     get: []
     put: [k04]
   /workspace/dart/test/lib/c.dart
-    current
+    current: cycle_2
       key: k05
-      libraries: file_2
     get: []
     put: [k05]
 elementFactory
@@ -177,21 +174,18 @@ files
     unlinkedPut: [k02]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k03
-      libraries: file_0
     get: []
     put: [k03]
   /workspace/dart/test/lib/b.dart
-    current
+    current: cycle_1
       key: k04
-      libraries: file_1
     get: []
     put: [k04]
   /workspace/dart/test/lib/c.dart
-    current
+    current: cycle_2
       key: k05
-      libraries: file_2
     get: []
     put: [k05]
 elementFactory
@@ -257,21 +251,18 @@ files
     unlinkedPut: [k02]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k03
-      libraries: file_0
     get: []
     put: [k03]
   /workspace/dart/test/lib/b.dart
-    current
+    current: cycle_1
       key: k04
-      libraries: file_1
     get: []
     put: [k04]
   /workspace/dart/test/lib/c.dart
-    current
+    current: cycle_2
       key: k05
-      libraries: file_2
     get: []
     put: [k05]
 elementFactory
@@ -314,9 +305,8 @@ libraryCycles
     get: []
     put: [k03]
   /workspace/dart/test/lib/b.dart
-    current
+    current: cycle_1
       key: k04
-      libraries: file_1
     get: []
     put: [k04]
   /workspace/dart/test/lib/c.dart
@@ -383,21 +373,18 @@ files
     unlinkedPut: [k02, k02]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_4
       key: k03
-      libraries: file_8
     get: []
     put: [k03, k03]
   /workspace/dart/test/lib/b.dart
-    current
+    current: cycle_1
       key: k04
-      libraries: file_1
     get: []
     put: [k04]
   /workspace/dart/test/lib/c.dart
-    current
+    current: cycle_5
       key: k05
-      libraries: file_9
     get: []
     put: [k05, k05]
 elementFactory
@@ -556,9 +543,8 @@ files
     unlinkedPut: [k01]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k02
-      libraries: file_0
     get: []
     put: [k02]
 elementFactory
@@ -621,9 +607,8 @@ files
     unlinkedPut: [k01, k01]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_2
       key: k02
-      libraries: file_7
     get: []
     put: [k02, k02]
 elementFactory
@@ -699,15 +684,13 @@ files
     unlinkedPut: [k02]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k03
-      libraries: file_0
     get: []
     put: [k03]
   /workspace/dart/test/lib/c.dart
-    current
+    current: cycle_1
       key: k04
-      libraries: file_2
     get: []
     put: [k04]
 elementFactory
@@ -795,15 +778,13 @@ files
     unlinkedPut: [k02, k02]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_3
       key: k03
-      libraries: file_8
     get: []
     put: [k03, k03]
   /workspace/dart/test/lib/c.dart
-    current
+    current: cycle_4
       key: k04
-      libraries: file_10
     get: []
     put: [k04, k04]
 elementFactory
@@ -951,9 +932,8 @@ files
     unlinkedPut: [k00]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k01
-      libraries: file_0
     get: []
     put: [k01]
 elementFactory
@@ -1494,9 +1474,8 @@ files
     unlinkedPut: [k00]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k01
-      libraries: file_0
     get: [k01]
     put: [k01]
 elementFactory
@@ -1527,9 +1506,8 @@ files
     unlinkedPut: [k00]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k01
-      libraries: file_0
     get: [k01]
     put: [k01]
 elementFactory
@@ -1581,15 +1559,13 @@ files
     unlinkedPut: [k08]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k01
-      libraries: file_0
     get: [k01, k01]
     put: [k01]
   /workspace/dart/test/lib/b.dart
-    current
+    current: cycle_2
       key: k09
-      libraries: file_6
     get: [k09]
     put: [k09]
 elementFactory
@@ -1647,15 +1623,13 @@ files
     unlinkedPut: [k08]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k01
-      libraries: file_0
     get: [k01, k01]
     put: [k01]
   /workspace/dart/test/lib/b.dart
-    current
+    current: cycle_2
       key: k09
-      libraries: file_6
     get: [k09]
     put: [k09]
 elementFactory
@@ -1700,9 +1674,8 @@ files
     unlinkedPut: [k00]
 libraryCycles
   /workspace/dart/test/lib/test.dart
-    current
+    current: cycle_0
       key: k01
-      libraries: file_0
     get: [k01]
     put: [k01]
 elementFactory
@@ -1739,9 +1712,8 @@ files
     unlinkedPut: [k00]
 libraryCycles
   /workspace/dart/test/lib/test.dart
-    current
+    current: cycle_0
       key: k01
-      libraries: file_0
     get: [k01]
     put: [k01]
 elementFactory
@@ -1915,21 +1887,18 @@ files
     unlinkedPut: [k02]
 libraryCycles
   /workspace/dart/aaa/lib/a.dart
-    current
+    current: cycle_0
       key: k03
-      libraries: file_0
     get: []
     put: [k03]
   /workspace/dart/aaa/lib/b.dart
-    current
+    current: cycle_1
       key: k04
-      libraries: file_1
     get: []
     put: [k04]
   /workspace/dart/aaa/lib/c.dart
-    current
+    current: cycle_2
       key: k05
-      libraries: file_2
     get: []
     put: [k05]
 elementFactory
@@ -1983,18 +1952,16 @@ files
     unlinkedPut: [k02]
 libraryCycles
   /workspace/dart/aaa/lib/a.dart
-    current
+    current: cycle_0
       key: k03
-      libraries: file_0
     get: []
     put: [k03]
   /workspace/dart/aaa/lib/b.dart
     get: []
     put: [k04]
   /workspace/dart/aaa/lib/c.dart
-    current
+    current: cycle_2
       key: k05
-      libraries: file_2
     get: []
     put: [k05]
 elementFactory
@@ -2133,39 +2100,33 @@ files
     unlinkedPut: [k05]
 libraryCycles
   /workspace/dart/aaa/lib/a.dart
-    current
+    current: cycle_0
       key: k06
-      libraries: file_0
     get: []
     put: [k06]
   /workspace/dart/aaa/lib/b.dart
-    current
+    current: cycle_1
       key: k07
-      libraries: file_1
     get: []
     put: [k07]
   /workspace/dart/aaa/lib/c.dart
-    current
+    current: cycle_2
       key: k08
-      libraries: file_2
     get: []
     put: [k08]
   /workspace/dart/aaa/lib/d.dart
-    current
+    current: cycle_3
       key: k09
-      libraries: file_3
     get: []
     put: [k09]
   /workspace/dart/aaa/lib/e.dart
-    current
+    current: cycle_4
       key: k10
-      libraries: file_4
     get: []
     put: [k10]
   /workspace/dart/aaa/lib/f.dart
-    current
+    current: cycle_5
       key: k11
-      libraries: file_5
     get: []
     put: [k11]
 elementFactory
@@ -2256,33 +2217,29 @@ files
     unlinkedPut: [k05]
 libraryCycles
   /workspace/dart/aaa/lib/a.dart
-    current
+    current: cycle_0
       key: k06
-      libraries: file_0
     get: []
     put: [k06]
   /workspace/dart/aaa/lib/b.dart
     get: []
     put: [k07]
   /workspace/dart/aaa/lib/c.dart
-    current
+    current: cycle_2
       key: k08
-      libraries: file_2
     get: []
     put: [k08]
   /workspace/dart/aaa/lib/d.dart
-    current
+    current: cycle_3
       key: k09
-      libraries: file_3
     get: []
     put: [k09]
   /workspace/dart/aaa/lib/e.dart
     get: []
     put: [k10]
   /workspace/dart/aaa/lib/f.dart
-    current
+    current: cycle_5
       key: k11
-      libraries: file_5
     get: []
     put: [k11]
 elementFactory
@@ -2325,9 +2282,8 @@ files
     unlinkedPut: [k00]
 libraryCycles
   /workspace/dart/aaa/lib/a.dart
-    current
+    current: cycle_0
       key: k01
-      libraries: file_0
     get: []
     put: [k01]
 elementFactory

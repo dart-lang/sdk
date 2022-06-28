@@ -23,7 +23,7 @@ class LibraryCycle {
   final int id = _nextId++;
 
   /// The libraries that belong to this cycle.
-  final List<FileState> libraries;
+  final List<LibraryFileStateKind> libraries;
 
   /// The library cycles that this cycle references directly.
   final Set<LibraryCycle> directDependencies;
@@ -61,7 +61,7 @@ class LibraryCycle {
 
   late final bool hasMacroClass = () {
     for (final library in libraries) {
-      for (final file in library.libraryFiles) {
+      for (final file in library.file.libraryFiles) {
         if (file.unlinked2.macroClasses.isNotEmpty) {
           return true;
         }
@@ -92,8 +92,7 @@ class LibraryCycle {
   /// [libraries] that share this [LibraryCycle] instance.
   void invalidate() {
     for (var library in libraries) {
-      final kind = library.kind as LibraryFileStateKind;
-      kind.internal_setLibraryCycle(null);
+      library.internal_setLibraryCycle(null);
     }
     for (var user in directUsers.toList()) {
       user.invalidate();
@@ -109,7 +108,7 @@ class LibraryCycle {
       mightBeExecutedByMacroClass = true;
       // Mark each file of the cycle.
       for (final library in libraries) {
-        for (final file in library.libraryFiles) {
+        for (final file in library.file.libraryFiles) {
           file.mightBeExecutedByMacroClass = true;
         }
       }
@@ -191,10 +190,10 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     }
 
     // Fill the cycle with libraries.
-    var libraries = <FileState>[];
+    var libraries = <LibraryFileStateKind>[];
     for (var node in scc) {
       final file = node.kind.file;
-      libraries.add(file);
+      libraries.add(node.kind);
 
       apiSignature.addLanguageVersion(file.packageLanguageVersion);
       apiSignature.addString(file.uriStr);

@@ -145,7 +145,7 @@ class LibraryContext {
       var macroLibraries = <MacroLibrary>[];
       for (var library in cycle.libraries) {
         var macroClasses = <MacroClass>[];
-        for (var file in library.libraryFiles) {
+        for (var file in library.file.libraryFiles) {
           unitsInformativeBytes[file.uri] = file.unlinked2.informativeBytes;
           for (var macroClass in file.unlinked2.macroClasses) {
             macroClasses.add(
@@ -159,8 +159,8 @@ class LibraryContext {
         if (macroClasses.isNotEmpty) {
           macroLibraries.add(
             MacroLibrary(
-              uri: library.uri,
-              path: library.path,
+              uri: library.file.uri,
+              path: library.file.path,
               classes: macroClasses,
             ),
           );
@@ -174,17 +174,17 @@ class LibraryContext {
         librariesLinkedTimer.start();
 
         testData?.linkedCycles.add(
-          cycle.libraries.map((e) => e.path).toSet(),
+          cycle.libraries.map((e) => e.file.path).toSet(),
         );
 
         inputsTimer.start();
         var inputLibraries = <LinkInputLibrary>[];
-        for (var libraryFile in cycle.libraries) {
-          var librarySource = libraryFile.source;
+        for (var library in cycle.libraries) {
+          var librarySource = library.file.source;
 
           var inputUnits = <LinkInputUnit>[];
           var partIndex = -1;
-          for (var file in libraryFile.libraryFiles) {
+          for (var file in library.file.libraryFiles) {
             var isSynthetic = !file.exists;
             var unit = file.parse();
 
@@ -193,7 +193,7 @@ class LibraryContext {
 
             String? partUriStr;
             if (partIndex >= 0) {
-              partUriStr = libraryFile.unlinked2.parts[partIndex].uri;
+              partUriStr = library.file.unlinked2.parts[partIndex].uri;
             }
             partIndex++;
 
@@ -277,10 +277,10 @@ class LibraryContext {
           var bundleMacroExecutor = BundleMacroExecutor(
             macroExecutor: macroExecutor,
             kernelBytes: macroKernelBytes,
-            libraries: cycle.libraries.map((e) => e.uri).toSet(),
+            libraries: cycle.libraries.map((e) => e.file.uri).toSet(),
           );
-          for (var libraryFile in cycle.libraries) {
-            var libraryUri = libraryFile.uri;
+          for (var library in cycle.libraries) {
+            var libraryUri = library.file.uri;
             var libraryElement = elementFactory.libraryOfUri2(libraryUri);
             libraryElement.bundleMacroExecutor = bundleMacroExecutor;
           }
@@ -315,7 +315,9 @@ class LibraryContext {
     );
 
     loadedBundles.removeWhere((cycle) {
-      if (cycle.libraries.any(removed.contains)) {
+      final cycleFiles = cycle.libraries.map((e) => e.file);
+      if (cycleFiles.any(removed.contains)) {
+        // TODO(scheglov) It should be never null.
         removedKeys.addIfNotNull(cycle.resolutionKey);
         return true;
       }
@@ -331,8 +333,9 @@ class LibraryContext {
     final uriSet = <Uri>{};
 
     for (final cycle in loadedBundles) {
+      // TODO(scheglov) It should be never null.
       keySet.addIfNotNull(cycle.resolutionKey);
-      uriSet.addAll(cycle.libraries.map((e) => e.uri));
+      uriSet.addAll(cycle.libraries.map((e) => e.file.uri));
     }
 
     elementFactory.removeLibraries(uriSet);
@@ -360,8 +363,8 @@ class LibraryContext {
     StackTrace stackTrace,
   ) {
     var fileContentMap = <String, String>{};
-    for (var libraryFile in cycle.libraries) {
-      for (var file in libraryFile.libraryFiles) {
+    for (var library in cycle.libraries) {
+      for (var file in library.file.libraryFiles) {
         fileContentMap[file.path] = file.content;
       }
     }
@@ -387,8 +390,9 @@ class LibraryContextTestData {
   });
 
   LibraryCycleTestData forCycle(LibraryCycle cycle) {
-    final files = cycle.libraries.map((e) {
-      return fileSystemTestData.forFile(e.resource, e.uri);
+    final files = cycle.libraries.map((library) {
+      final file = library.file;
+      return fileSystemTestData.forFile(file.resource, file.uri);
     }).toList();
     files.sortBy((fileData) => fileData.file.path);
 

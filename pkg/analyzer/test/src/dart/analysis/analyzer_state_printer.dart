@@ -63,11 +63,11 @@ class AnalyzerStatePrinter {
 
   String _stringOfLibraryCycle(LibraryCycle cycle) {
     if (omitSdkFiles) {
-      final isSdkLibrary = cycle.libraries.any((file) {
-        return file.uri.isScheme('dart');
+      final isSdkLibrary = cycle.libraries.any((library) {
+        return library.file.uri.isScheme('dart');
       });
       if (isSdkLibrary) {
-        if (cycle.libraries.any((e) => e.uriStr == 'dart:core')) {
+        if (cycle.libraries.any((e) => e.file.uriStr == 'dart:core')) {
           return 'dart:core';
         } else {
           throw UnimplementedError('$cycle');
@@ -443,11 +443,11 @@ class AnalyzerStatePrinter {
 
       final loadedBundlesMap = Map.fromEntries(
         libraryContext.loadedBundles.map((cycle) {
-          final key = cycle.libraries
-              .map((fileState) => fileState.resource)
-              .map(_posixPath)
+          final pathListStr = cycle.libraries
+              .map((library) => _posixPath(library.file.resource))
+              .sorted()
               .join(' ');
-          return MapEntry(key, cycle);
+          return MapEntry(pathListStr, cycle);
         }),
       );
 
@@ -456,16 +456,12 @@ class AnalyzerStatePrinter {
         _withIndent(() {
           final current = loadedBundlesMap[cycleToPrint.pathListStr];
           if (current != null) {
-            _writelnWithIndent('current');
+            final id = idProvider.libraryCycle(current);
+            _writelnWithIndent('current: $id');
             _withIndent(() {
+              // TODO(scheglov) Print it with the cycle instead?
               final short = idProvider.shortKey(current.resolutionKey!);
               _writelnWithIndent('key: $short');
-
-              final fileIdList = current.libraries
-                  .map(idProvider.fileState)
-                  .sorted(compareNatural)
-                  .toList();
-              _writelnWithIndent('libraries: ${fileIdList.join(' ')}');
             });
           }
 
@@ -493,9 +489,7 @@ class AnalyzerStatePrinter {
         _writelnWithIndent('dependencies: none');
       }
 
-      // TODO(scheglov) libraries must be kinds
       final libraryIds = cycle.libraries
-          .map((e) => e.kind as LibraryFileStateKind)
           .map(idProvider.fileStateKind)
           .sorted(compareNatural)
           .join(' ');
