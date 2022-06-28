@@ -228,6 +228,8 @@ const isReturnStatement = TypeMatcher<ReturnStatement>();
 
 const isScriptTag = TypeMatcher<ScriptTag>();
 
+const isSetOrMapLiteral = TypeMatcher<SetOrMapLiteral>();
+
 const isShowCombinator = TypeMatcher<ShowCombinator>();
 
 const isSimpleFormalParameter = TypeMatcher<SimpleFormalParameter>();

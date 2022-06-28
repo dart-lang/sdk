@@ -1,0 +1,7 @@
+files:
+  - issue_49132.dart
+  - issue_49132_prime.dart
+filters:
+  - ignoreListenerArguments
+ignored:
+  - handleParenthesizedExpression
