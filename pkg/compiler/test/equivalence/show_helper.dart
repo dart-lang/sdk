@@ -71,8 +71,7 @@ show<T>(ArgResults argResults, DataComputer<T> dataComputer,
       if (show != null && !show.any((f) => '$fileUri'.endsWith(f))) {
         continue;
       }
-      SourceFile<List<int>> sourceFile =
-          await provider.autoReadFromFile(fileUri);
+      SourceFile sourceFile = await provider.autoReadFromFile(fileUri);
       String sourceCode = sourceFile?.slowText();
       if (sourceCode == null) {
         sourceCode = new File.fromUri(fileUri).readAsStringSync();

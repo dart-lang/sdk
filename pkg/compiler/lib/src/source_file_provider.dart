@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library source_file_provider;
 
 import 'dart:async';
@@ -12,13 +14,14 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../compiler_api.dart' as api;
 import 'colors.dart' as colors;
+import 'dart2js.dart' show AbortLeg;
 import 'io/source_file.dart';
 
 abstract class SourceFileProvider implements api.CompilerInput {
   bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = Uri.base;
-  Map<Uri, SourceFile<List<int>>> utf8SourceFiles = {};
-  Map<Uri, api.Input<List<int>>> binarySourceFiles = {};
+  Map<Uri, api.Input> utf8SourceFiles = <Uri, api.Input>{};
+  Map<Uri, api.Input> binarySourceFiles = <Uri, api.Input>{};
   int dartCharactersRead = 0;
 
   Future<api.Input<List<int>>> readBytesFromUri(
@@ -26,7 +29,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
     if (!resourceUri.isAbsolute) {
       resourceUri = cwd.resolveUri(resourceUri);
     }
-    api.Input<List<int>>? input;
+    api.Input<List<int>> input;
     switch (inputKind) {
       case api.InputKind.UTF8:
         input = utf8SourceFiles[resourceUri];
@@ -46,20 +49,19 @@ abstract class SourceFileProvider implements api.CompilerInput {
     }
   }
 
-  api.Input<List<int>> _readFromFileSync(
-      Uri resourceUri, api.InputKind inputKind) {
+  api.Input _readFromFileSync(Uri resourceUri, api.InputKind inputKind) {
     assert(resourceUri.isScheme('file'));
     List<int> source;
     try {
       source = readAll(resourceUri.toFilePath(),
           zeroTerminated: inputKind == api.InputKind.UTF8);
     } on FileSystemException catch (ex) {
-      String? message = ex.osError?.message;
+      String message = ex.osError?.message;
       String detail = message != null ? ' ($message)' : '';
       throw "Error reading '${relativizeUri(resourceUri)}' $detail";
     }
     dartCharactersRead += source.length;
-    api.Input<List<int>> input;
+    api.Input input;
     switch (inputKind) {
       case api.InputKind.UTF8:
         input = utf8SourceFiles[resourceUri] = CachingUtf8BytesSourceFile(
@@ -74,7 +76,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
 
   /// Read [resourceUri] directly as a UTF-8 file. If reading fails, `null` is
   /// returned.
-  api.Input<List<int>>? autoReadFromFile(Uri resourceUri) {
+  api.Input autoReadFromFile(Uri resourceUri) {
     try {
       return _readFromFileSync(resourceUri, api.InputKind.UTF8);
     } catch (e) {
@@ -136,12 +138,15 @@ abstract class SourceFileProvider implements api.CompilerInput {
 
   relativizeUri(Uri uri) => fe.relativizeUri(cwd, uri, isWindows);
 
-  SourceFile<List<int>>? getUtf8SourceFile(Uri resourceUri) {
+  SourceFile<List<int>> getUtf8SourceFile(Uri resourceUri) {
     return utf8SourceFiles[resourceUri];
   }
 
   Iterable<Uri> getSourceUris() {
-    return <Uri>{...utf8SourceFiles.keys, ...binarySourceFiles.keys};
+    Set<Uri> uris = Set<Uri>();
+    uris.addAll(utf8SourceFiles.keys);
+    uris.addAll(binarySourceFiles.keys);
+    return uris;
   }
 }
 
@@ -176,15 +181,16 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
   bool throwOnError = false;
   bool autoReadFileUri = false;
   int throwOnErrorCount = 0;
-  api.Diagnostic? lastKind = null;
+  api.Diagnostic lastKind = null;
   int fatalCount = 0;
 
   final int FATAL = api.Diagnostic.CRASH.ordinal | api.Diagnostic.ERROR.ordinal;
   final int INFO =
       api.Diagnostic.INFO.ordinal | api.Diagnostic.VERBOSE_INFO.ordinal;
 
-  FormattingDiagnosticHandler([SourceFileProvider? provider])
-      : this.provider = provider ?? CompilerSourceFileProvider();
+  FormattingDiagnosticHandler([SourceFileProvider provider])
+      : this.provider =
+            (provider == null) ? CompilerSourceFileProvider() : provider;
 
   void info(var message, [api.Diagnostic kind = api.Diagnostic.VERBOSE_INFO]) {
     if (!verbose && kind == api.Diagnostic.VERBOSE_INFO) return;
@@ -214,7 +220,7 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
   }
 
   @override
-  void report(var code, Uri? uri, int? begin, int? end, String message,
+  void report(var code, Uri uri, int begin, int end, String message,
       api.Diagnostic kind) {
     if (isAborting) return;
     isAborting = (kind == api.Diagnostic.CRASH);
@@ -258,7 +264,7 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
     if (uri == null) {
       print('${color(message)}');
     } else {
-      api.Input<List<int>>? file = provider.getUtf8SourceFile(uri);
+      api.Input file = provider.getUtf8SourceFile(uri);
       if (file == null &&
           autoReadFileUri &&
           (uri.isScheme('file') || !uri.isAbsolute) &&
@@ -270,29 +276,20 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
         // loaded. Load the file if possible to provide a better error message.
         file = provider.autoReadFromFile(uri);
       }
-      if (file is SourceFile && begin != null && end != null) {
-        print((file as SourceFile)
-            .getLocationMessage(color(message), begin, end, colorize: color));
+      if (file is SourceFile) {
+        print(file.getLocationMessage(color(message), begin, end,
+            colorize: color));
       } else {
-        String position = begin != null && end != null && end - begin > 0
-            ? '@$begin+${end - begin}'
-            : '';
+        String position = end - begin > 0 ? '@$begin+${end - begin}' : '';
         print('${provider.relativizeUri(uri)}$position:\n'
             '${color(message)}');
       }
     }
     if (fatal && ++fatalCount >= throwOnErrorCount && throwOnError) {
       isAborting = true;
-      throw _CompilationErrorError(message);
+      throw AbortLeg(message);
     }
   }
-}
-
-class _CompilationErrorError {
-  final message;
-  _CompilationErrorError(this.message);
-  @override
-  toString() => 'Aborted due to --throw-on-error: $message';
 }
 
 typedef MessageCallback = void Function(String message);
@@ -301,9 +298,6 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
   final Uri out;
   final Uri sourceMapOut;
   final MessageCallback onInfo;
-
-  // TODO(48820): Make [onFailure] return `Never`. The value passed in for the
-  // real compiler exits. [onFailure] is not specified or faked in some tests.
   final MessageCallback onFailure;
 
   int totalCharactersWritten = 0;
@@ -314,9 +308,7 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
   List<String> allOutputFiles = <String>[];
 
   RandomAccessFileOutputProvider(this.out, this.sourceMapOut,
-      {this.onInfo = _ignore, this.onFailure = _ignore});
-
-  static void _ignore(String message) {}
+      {this.onInfo, this.onFailure});
 
   Uri createUri(String name, String extension, api.OutputType type) {
     Uri uri;
@@ -360,7 +352,6 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
         break;
       default:
         onFailure('Unknown output type: $type');
-        throw StateError('unreachable');
     }
     return uri;
   }
@@ -381,8 +372,6 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
           .openSync(mode: FileMode.write);
     } on FileSystemException catch (e) {
       onFailure('$e');
-      // TODO(48820): Make onFailure return `Never`
-      throw StateError('unreachable');
     }
 
     allOutputFiles.add(fe.relativizeUri(Uri.base, uri, Platform.isWindows));
@@ -447,13 +436,11 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
           .openSync(mode: FileMode.write);
     } on FileSystemException catch (e) {
       onFailure('$e');
-      // TODO(48820): Make `onFailure` return `Never`.
-      throw StateError('unreachable');
     }
 
     int bytesWritten = 0;
 
-    void writeBytesSync(List<int> data, [int start = 0, int? end]) {
+    void writeBytesSync(List<int> data, [int start = 0, int end]) {
       output.writeFromSync(data, start, end);
       bytesWritten += (end ?? data.length) - start;
     }
@@ -474,7 +461,7 @@ class RandomAccessBinaryOutputSink implements api.BinaryOutputSink {
       : output = File.fromUri(uri).openSync(mode: FileMode.write);
 
   @override
-  void write(List<int> buffer, [int start = 0, int? end]) {
+  void write(List<int> buffer, [int start = 0, int end]) {
     output.writeFromSync(buffer, start, end);
   }
 
@@ -498,13 +485,13 @@ class _OutputSinkWrapper extends api.OutputSink {
 }
 
 class _BinaryOutputSinkWrapper extends api.BinaryOutputSink {
-  void Function(List<int>, [int, int?]) onWrite;
+  void Function(List<int>, [int, int]) onWrite;
   void Function() onClose;
 
   _BinaryOutputSinkWrapper(this.onWrite, this.onClose);
 
   @override
-  void write(List<int> data, [int start = 0, int? end]) =>
+  void write(List<int> data, [int start = 0, int end]) =>
       onWrite(data, start, end);
 
   @override
@@ -574,17 +561,17 @@ class BazelInputProvider extends SourceFileProvider {
         await readBytesFromUri(resolvedUri, inputKind);
     switch (inputKind) {
       case api.InputKind.UTF8:
-        utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri]!;
+        utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri];
         break;
       case api.InputKind.binary:
-        binarySourceFiles[uri] = binarySourceFiles[resolvedUri]!;
+        binarySourceFiles[uri] = binarySourceFiles[resolvedUri];
         break;
     }
     return result;
   }
 
   @override
-  api.Input<List<int>>? autoReadFromFile(Uri resourceUri) {
+  api.Input autoReadFromFile(Uri resourceUri) {
     var path = resourceUri.path;
     if (path.startsWith('/bazel-root')) {
       path = path.substring('/bazel-root/'.length);
@@ -635,17 +622,17 @@ class MultiRootInputProvider extends SourceFileProvider {
         await readBytesFromUri(resolvedUri, inputKind);
     switch (inputKind) {
       case api.InputKind.UTF8:
-        utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri]!;
+        utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri];
         break;
       case api.InputKind.binary:
-        binarySourceFiles[uri] = binarySourceFiles[resolvedUri]!;
+        binarySourceFiles[uri] = binarySourceFiles[resolvedUri];
         break;
     }
     return result;
   }
 
   @override
-  api.Input<List<int>>? autoReadFromFile(Uri resourceUri) {
+  api.Input autoReadFromFile(Uri resourceUri) {
     if (resourceUri.isScheme(markerScheme)) {
       var path = resourceUri.path;
       for (var dir in roots) {
