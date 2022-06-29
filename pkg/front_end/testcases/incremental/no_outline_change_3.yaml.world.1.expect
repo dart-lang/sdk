@@ -36,3 +36,10 @@ constants  {
   #C1 = dart.core::_Override {}
   #C2 = main::Foo {}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-test:///main.dart:
+- Foo. (from org-dartlang-test:///main.dart:5:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+

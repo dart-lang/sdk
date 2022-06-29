@@ -69,3 +69,9 @@ library from "org-dartlang-test:///main.dart" as main {
     dart.core::print(invalid-expression "This assertion failed.");
   }
 }
+
+
+Constructor coverage from constants:
+org-dartlang-test:///lib2.dart:
+- Foo. (from org-dartlang-test:///lib.dart:3:9)
+

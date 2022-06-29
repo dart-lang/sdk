@@ -31,3 +31,11 @@ constants  {
   #C1 = "Instance of 'A'"
   #C2 = "Instance of 'B'"
 }
+
+
+Constructor coverage from constants:
+org-dartlang-test:///main.dart:
+- A. (from org-dartlang-test:///a.dart:2:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- B. (from org-dartlang-test:///b.dart:2:9)
+

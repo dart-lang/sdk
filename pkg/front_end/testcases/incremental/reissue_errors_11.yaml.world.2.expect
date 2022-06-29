@@ -62,3 +62,9 @@ library from "org-dartlang-test:///main.dart" as main {
     lib2::bar();
   }
 }
+
+
+Constructor coverage from constants:
+org-dartlang-test:///lib2.dart:
+- Foo. (from org-dartlang-test:///lib.dart:3:9)
+
