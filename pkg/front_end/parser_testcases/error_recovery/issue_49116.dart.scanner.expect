@@ -1,0 +1,105 @@
+Future<bool> returnsFuture() => new Future.value(true);
+
+
+void foo() {
+await returnsFuture();
+if (await returnsFuture()) {}
+else if (!await returnsFuture()) {}
+print(await returnsFuture());
+xor(await returnsFuture(), await returnsFuture(), await returnsFuture());
+await returnsFuture() ^ await returnsFuture();
+print(await returnsFuture() ^ await returnsFuture());
+await returnsFuture() + await returnsFuture();
+print(await returnsFuture() + await returnsFuture());
+await returnsFuture() - await returnsFuture();
+print(await returnsFuture() - await returnsFuture());
+!await returnsFuture() ^ !await returnsFuture();
+print(!await returnsFuture() ^ !await returnsFuture());
+
+var f = returnsFuture();
+await f;
+if (await f) {}
+else if (!await f) {}
+print(await f);
+xor(await f, await f, await f);
+await f ^ await f;
+print(await f ^ await f);
+await f + await f;
+print(await f + await f);
+await f - await f;
+print(await f - await f);
+!await f ^ !await f;
+print(!await f ^ !await f);
+
+
+await x;
+await y, z;
+await x2 = await;
+await y2 = await, z2 = await;
+await foo(int bar) {
+return new await();
+}
+await bar(await baz, await baz2, await baz3) {
+return baz;
+}
+}
+
+bool xor(bool a, bool b, bool c) {
+return b ^ b ^ c;
+}
+
+class await {}
+
+
+Future[StringToken]<[BeginToken]bool[StringToken]>[SimpleToken] returnsFuture[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] new[KeywordToken] Future[StringToken].[SimpleToken]value[StringToken]([BeginToken]true[KeywordToken])[SimpleToken];[SimpleToken]
+
+
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+if[KeywordToken] ([BeginToken]await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+else[KeywordToken] if[KeywordToken] ([BeginToken]![SimpleToken]await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+print[StringToken]([BeginToken]await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]
+xor[StringToken]([BeginToken]await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken],[SimpleToken] await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken],[SimpleToken] await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]
+await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken] ^[SimpleToken] await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+print[StringToken]([BeginToken]await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken] ^[SimpleToken] await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]
+await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken] +[SimpleToken] await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+print[StringToken]([BeginToken]await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken] +[SimpleToken] await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]
+await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken] -[SimpleToken] await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+print[StringToken]([BeginToken]await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken] -[SimpleToken] await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]
+![SimpleToken]await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken] ^[SimpleToken] ![SimpleToken]await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+print[StringToken]([BeginToken]![SimpleToken]await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken] ^[SimpleToken] ![SimpleToken]await[KeywordToken] returnsFuture[StringToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]
+
+var[KeywordToken] f[StringToken] =[SimpleToken] returnsFuture[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+await[KeywordToken] f[StringToken];[SimpleToken]
+if[KeywordToken] ([BeginToken]await[KeywordToken] f[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+else[KeywordToken] if[KeywordToken] ([BeginToken]![SimpleToken]await[KeywordToken] f[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+print[StringToken]([BeginToken]await[KeywordToken] f[StringToken])[SimpleToken];[SimpleToken]
+xor[StringToken]([BeginToken]await[KeywordToken] f[StringToken],[SimpleToken] await[KeywordToken] f[StringToken],[SimpleToken] await[KeywordToken] f[StringToken])[SimpleToken];[SimpleToken]
+await[KeywordToken] f[StringToken] ^[SimpleToken] await[KeywordToken] f[StringToken];[SimpleToken]
+print[StringToken]([BeginToken]await[KeywordToken] f[StringToken] ^[SimpleToken] await[KeywordToken] f[StringToken])[SimpleToken];[SimpleToken]
+await[KeywordToken] f[StringToken] +[SimpleToken] await[KeywordToken] f[StringToken];[SimpleToken]
+print[StringToken]([BeginToken]await[KeywordToken] f[StringToken] +[SimpleToken] await[KeywordToken] f[StringToken])[SimpleToken];[SimpleToken]
+await[KeywordToken] f[StringToken] -[SimpleToken] await[KeywordToken] f[StringToken];[SimpleToken]
+print[StringToken]([BeginToken]await[KeywordToken] f[StringToken] -[SimpleToken] await[KeywordToken] f[StringToken])[SimpleToken];[SimpleToken]
+![SimpleToken]await[KeywordToken] f[StringToken] ^[SimpleToken] ![SimpleToken]await[KeywordToken] f[StringToken];[SimpleToken]
+print[StringToken]([BeginToken]![SimpleToken]await[KeywordToken] f[StringToken] ^[SimpleToken] ![SimpleToken]await[KeywordToken] f[StringToken])[SimpleToken];[SimpleToken]
+
+
+await[KeywordToken] x[StringToken];[SimpleToken]
+await[KeywordToken] y[StringToken],[SimpleToken] z[StringToken];[SimpleToken]
+await[KeywordToken] x2[StringToken] =[SimpleToken] await[KeywordToken];[SimpleToken]
+await[KeywordToken] y2[StringToken] =[SimpleToken] await[KeywordToken],[SimpleToken] z2[StringToken] =[SimpleToken] await[KeywordToken];[SimpleToken]
+await[KeywordToken] foo[StringToken]([BeginToken]int[StringToken] bar[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] new[KeywordToken] await[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+await[KeywordToken] bar[StringToken]([BeginToken]await[KeywordToken] baz[StringToken],[SimpleToken] await[KeywordToken] baz2[StringToken],[SimpleToken] await[KeywordToken] baz3[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] baz[StringToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+
+bool[StringToken] xor[StringToken]([BeginToken]bool[StringToken] a[StringToken],[SimpleToken] bool[StringToken] b[StringToken],[SimpleToken] bool[StringToken] c[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] b[StringToken] ^[SimpleToken] b[StringToken] ^[SimpleToken] c[StringToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] await[KeywordToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]
