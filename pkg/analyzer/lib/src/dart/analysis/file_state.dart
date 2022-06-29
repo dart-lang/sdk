@@ -38,6 +38,7 @@ import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/uri.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
@@ -59,6 +60,9 @@ abstract class AugmentationFileStateKind extends LibraryOrAugmentationFileKind {
     // TODO(scheglov): implement asLibrary
     throw UnimplementedError();
   }
+
+  /// Returns `true` if the `library augment` directive confirms [container].
+  bool isAugmentationOf(LibraryOrAugmentationFileKind container);
 }
 
 /// The URI of the [directive] can be resolved.
@@ -99,6 +103,11 @@ class AugmentationKnownFileStateKind extends AugmentationFileStateKind {
     }
     return null;
   }
+
+  @override
+  bool isAugmentationOf(LibraryOrAugmentationFileKind container) {
+    return uriFile == container.file;
+  }
 }
 
 /// The URI of the [directive] can not be resolved.
@@ -110,6 +119,9 @@ class AugmentationUnknownFileStateKind extends AugmentationFileStateKind {
 
   @override
   LibraryFileStateKind? get library => null;
+
+  @override
+  bool isAugmentationOf(LibraryOrAugmentationFileKind container) => false;
 }
 
 /// Information about a single `import` directive.
@@ -277,10 +289,8 @@ class FileState {
   /// Files that reference this file.
   final Set<FileState> referencingFiles = {};
 
-  List<FileState?> _augmentationFiles = [];
   List<FileState?>? _importedFiles;
   List<FileState?>? _exportedFiles;
-  List<FileState> _libraryFiles = [];
 
   Set<FileState>? _directReferencedFiles;
 
@@ -305,11 +315,6 @@ class FileState {
 
   /// The unlinked API signature of the file.
   Uint8List get apiSignature => _apiSignature!;
-
-  /// The list of imported augmentations.
-  List<FileState?> get augmentationFiles {
-    return _augmentationFiles;
-  }
 
   /// The content of the file.
   String get content => _fileContent!.content;
@@ -383,12 +388,6 @@ class FileState {
   }
 
   FileStateKind get kind => _kind!;
-
-  /// The list of files files that this library consists of, i.e. this library
-  /// file itself and its [partedFiles].
-  List<FileState> get libraryFiles {
-    return _libraryFiles;
-  }
 
   /// Return information about line in the file.
   LineInfo get lineInfo => _lineInfo!;
@@ -574,8 +573,6 @@ class FileState {
 
     // Read parts eagerly to link parts to libraries.
     _updateKind();
-    _updatePartedFiles();
-    _updateAugmentationFiles();
 
     // Update mapping from subtyped names to files.
     for (var name in _driverUnlinkedUnit!.subtypedNames) {
@@ -750,21 +747,8 @@ class FileState {
       }
     }
 
-    removeForOne(_augmentationFiles);
     removeForOne(_exportedFiles);
     removeForOne(_importedFiles);
-  }
-
-  void _updateAugmentationFiles() {
-    _augmentationFiles = unlinked2.augmentations.map((directive) {
-      return _fileForRelativeUri(directive.uri).map(
-        (augmentation) {
-          augmentation?.referencingFiles.add(this);
-          return augmentation;
-        },
-        (_) => null,
-      );
-    }).toList();
   }
 
   void _updateKind() {
@@ -794,10 +778,11 @@ class FileState {
         );
       }
     } else if (libraryDirective != null) {
-      _kind = LibraryFileStateKind(
+      final kind = _kind = LibraryFileStateKind(
         file: this,
         name: libraryDirective.name,
       );
+      _fsState._libraryNameToFiles.add(kind);
     } else if (partOfNameDirective != null) {
       _kind = PartOfNameFileStateKind(
         file: this,
@@ -828,16 +813,7 @@ class FileState {
       );
     }
 
-    _fsState._libraryNameToFiles.add(_kind);
     _invalidatesLibrariesOfThisPart();
-  }
-
-  /// TODO(scheglov) Stop using [partedFiles].
-  void _updatePartedFiles() {
-    _libraryFiles = [
-      this,
-      ...partedFiles.whereNotNull(),
-    ];
   }
 
   static UnlinkedUnit serializeAstUnlinked2(
@@ -1041,6 +1017,7 @@ abstract class FileStateKind {
   /// Returns the library in which this file should be analyzed.
   LibraryFileStateKind? get library;
 
+  @mustCallSuper
   void dispose() {}
 }
 
@@ -1234,7 +1211,6 @@ class FileSystemState {
     return result;
   }
 
-  @visibleForTesting
   FileState? getExisting(File file) {
     return _pathToFile[file.path];
   }
@@ -1518,6 +1494,47 @@ class FileUriProperties {
   bool get isSrc => (_flags & _isSrc) != 0;
 }
 
+/// Information about a single `import augment` directive.
+class ImportAugmentationDirectiveState {
+  final LibraryOrAugmentationFileKind container;
+  final UnlinkedImportAugmentationDirective directive;
+
+  ImportAugmentationDirectiveState({
+    required this.container,
+    required this.directive,
+  });
+
+  /// Returns a [Source] that is referenced by this directive.
+  ///
+  /// Returns `null` if the URI cannot be resolved into a [Source].
+  Source? get importedSource => null;
+}
+
+/// [PartDirectiveState] that has a valid URI that references a file.
+class ImportAugmentationDirectiveWithFile
+    extends ImportAugmentationDirectiveState {
+  final FileState importedFile;
+
+  ImportAugmentationDirectiveWithFile({
+    required super.container,
+    required super.directive,
+    required this.importedFile,
+  });
+
+  /// If [importedFile] is a [AugmentationFileStateKind], and it confirms that
+  /// it is an augmentation of the [container], returns the [importedFile].
+  AugmentationFileStateKind? get importedAugmentation {
+    final kind = importedFile.kind;
+    if (kind is AugmentationFileStateKind && kind.isAugmentationOf(container)) {
+      return kind;
+    }
+    return null;
+  }
+
+  @override
+  Source? get importedSource => importedFile.source;
+}
+
 /// Information about a single `import` directive.
 class ImportDirectiveState {
   final UnlinkedNamespaceDirective directive;
@@ -1603,6 +1620,29 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
     required this.name,
   });
 
+  /// The list of files files that this library consists of, i.e. this library
+  /// file itself, its [parts], and augmentations.
+  List<FileState> get files {
+    final files = [
+      file,
+    ];
+
+    // TODO(scheglov) When we include only valid parts, use this instead.
+    final includeOnlyValidParts = 0 > 1;
+    for (final part in parts) {
+      if (part is PartDirectiveWithFile) {
+        if (includeOnlyValidParts) {
+          files.addIfNotNull(part.includedPart?.file);
+        } else {
+          files.add(part.includedFile);
+        }
+      }
+    }
+
+    // TODO(scheglov) Include augmentations.
+    return files;
+  }
+
   LibraryCycle? get internal_libraryCycle => _libraryCycle;
 
   @override
@@ -1647,6 +1687,12 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
   }
 
   @override
+  void discoverReferencedFiles() {
+    super.discoverReferencedFiles();
+    parts;
+  }
+
+  @override
   void dispose() {
     invalidateLibraryCycle();
     file._fsState._libraryNameToFiles.remove(this);
@@ -1660,23 +1706,7 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
       }
     }
 
-    final imports = _imports;
-    if (imports != null) {
-      for (final import in imports) {
-        if (import is ImportDirectiveWithFile) {
-          import.importedFile.referencingFiles.remove(file);
-        }
-      }
-    }
-
-    final exports = _exports;
-    if (exports != null) {
-      for (final export in exports) {
-        if (export is ExportDirectiveWithFile) {
-          export.exportedFile.referencingFiles.remove(file);
-        }
-      }
-    }
+    super.dispose();
   }
 
   bool hasPart(PartFileStateKind partKind) {
@@ -1701,12 +1731,41 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
 }
 
 abstract class LibraryOrAugmentationFileKind extends FileStateKind {
+  List<ImportAugmentationDirectiveState>? _augmentations;
   List<ExportDirectiveState>? _exports;
   List<ImportDirectiveState>? _imports;
 
   LibraryOrAugmentationFileKind({
     required super.file,
   });
+
+  List<ImportAugmentationDirectiveState> get augmentations {
+    return _augmentations ??= file.unlinked2.augmentations.map((directive) {
+      return file._fileForRelativeUri(directive.uri).map(
+        (refFile) {
+          if (refFile != null) {
+            refFile.referencingFiles.add(file);
+            return ImportAugmentationDirectiveWithFile(
+              container: this,
+              directive: directive,
+              importedFile: refFile,
+            );
+          } else {
+            return ImportAugmentationDirectiveState(
+              container: this,
+              directive: directive,
+            );
+          }
+        },
+        (externalLibrary) {
+          return ImportAugmentationDirectiveState(
+            container: this,
+            directive: directive,
+          );
+        },
+      );
+    }).toList();
+  }
 
   List<ExportDirectiveState> get exports {
     return _exports ??= file.unlinked2.exports.map((directive) {
@@ -1762,8 +1821,63 @@ abstract class LibraryOrAugmentationFileKind extends FileStateKind {
     }).toList();
   }
 
+  /// Directives are usually pulled lazily (so that we can parse a file
+  /// without pulling all its transitive references), but when we output
+  /// textual dumps we want to check that we reference only objects that
+  /// are available. So, we need to discover all referenced files before
+  /// we register available objects.
+  @visibleForTesting
+  void discoverReferencedFiles() {
+    exports;
+    imports;
+    for (final import in augmentations) {
+      if (import is ImportAugmentationDirectiveWithFile) {
+        import.importedAugmentation?.discoverReferencedFiles();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    final augmentations = _augmentations;
+    if (augmentations != null) {
+      for (final import in augmentations) {
+        if (import is ImportAugmentationDirectiveWithFile) {
+          import.importedFile.referencingFiles.remove(file);
+        }
+      }
+    }
+
+    final exports = _exports;
+    if (exports != null) {
+      for (final export in exports) {
+        if (export is ExportDirectiveWithFile) {
+          export.exportedFile.referencingFiles.remove(file);
+        }
+      }
+    }
+
+    final imports = _imports;
+    if (imports != null) {
+      for (final import in imports) {
+        if (import is ImportDirectiveWithFile) {
+          import.importedFile.referencingFiles.remove(file);
+        }
+      }
+    }
+
+    super.dispose();
+  }
+
   bool hasAugmentation(AugmentationFileStateKind augmentation) {
-    return file.augmentationFiles.contains(augmentation.file);
+    for (final import in augmentations) {
+      if (import is ImportAugmentationDirectiveWithFile) {
+        if (import.importedFile == augmentation.file) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
 
@@ -1977,14 +2091,11 @@ class _LibraryNameToFiles {
   }
 
   /// If [kind] is a named library, register it.
-  /// TODO(scheglov) Use [LibraryFileStateKind]
-  void add(FileStateKind? kind) {
-    if (kind is LibraryFileStateKind) {
-      final name = kind.name;
-      if (name != null) {
-        final libraries = _map[name] ??= [];
-        libraries.add(kind);
-      }
+  void add(LibraryFileStateKind kind) {
+    final name = kind.name;
+    if (name != null) {
+      final libraries = _map[name] ??= [];
+      libraries.add(kind);
     }
   }
 
@@ -1993,17 +2104,14 @@ class _LibraryNameToFiles {
   }
 
   /// If [kind] is a named library, unregister it.
-  /// TODO(scheglov) Use [LibraryFileStateKind]
-  void remove(FileStateKind? kind) {
-    if (kind is LibraryFileStateKind) {
-      final name = kind.name;
-      if (name != null) {
-        final libraries = _map[name];
-        if (libraries != null) {
-          libraries.remove(kind);
-          if (libraries.isEmpty) {
-            _map.remove(name);
-          }
+  void remove(LibraryFileStateKind kind) {
+    final name = kind.name;
+    if (name != null) {
+      final libraries = _map[name];
+      if (libraries != null) {
+        libraries.remove(kind);
+        if (libraries.isEmpty) {
+          _map.remove(name);
         }
       }
     }

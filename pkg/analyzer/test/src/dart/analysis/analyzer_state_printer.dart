@@ -92,13 +92,31 @@ class AnalyzerStatePrinter {
     _indent = indent;
   }
 
-  /// TODO(scheglov) Support unresolved URIs, not augmentations, etc.
-  void _writeAugmentations(LibraryOrAugmentationFileKind kind) {
-    final files = kind.file.augmentationFiles.whereNotNull();
-    if (files.isNotEmpty) {
-      final keys = files.map(idProvider.fileState).join(' ');
-      _writelnWithIndent('augmentations: $keys');
-    }
+  void _writeAugmentations(LibraryOrAugmentationFileKind container) {
+    _writeElements<ImportAugmentationDirectiveState>(
+      'augmentations',
+      container.augmentations,
+      (augmentation) {
+        expect(augmentation.container, same(container));
+        if (augmentation is ImportAugmentationDirectiveWithFile) {
+          final file = augmentation.importedFile;
+          sink.write(_indent);
+
+          final importedAugmentation = augmentation.importedAugmentation;
+          if (importedAugmentation != null) {
+            expect(importedAugmentation.file, file);
+            sink.write(idProvider.fileStateKind(importedAugmentation));
+          } else {
+            sink.write('notAugmentation ${idProvider.fileState(file)}');
+          }
+          sink.writeln();
+        } else {
+          sink.write(_indent);
+          sink.write('uri: ${_stringOfUriStr(augmentation.directive.uri)}');
+          sink.writeln();
+        }
+      },
+    );
   }
 
   void _writeByteStore() {
@@ -336,16 +354,14 @@ class AnalyzerStatePrinter {
       }
     }
 
-    // Ask referenced libraries.
+    // Discover referenced files.
     // This is required for consistency checking.
-    // TODO(scheglov) Remove when we use these for cycles.
     for (final fileData in testData.files.values.toList()) {
       final current = fileSystemState.getExisting(fileData.file);
       if (current != null) {
         final kind = current.kind;
         if (kind is LibraryOrAugmentationFileKind) {
-          kind.imports;
-          kind.exports;
+          kind.discoverReferencedFiles();
         }
       }
     }

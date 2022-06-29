@@ -57,7 +57,7 @@ class LibraryCycle {
 
   late final bool hasMacroClass = () {
     for (final library in libraries) {
-      for (final file in library.file.libraryFiles) {
+      for (final file in library.files) {
         if (file.unlinked2.macroClasses.isNotEmpty) {
           return true;
         }
@@ -110,7 +110,7 @@ class LibraryCycle {
       mightBeExecutedByMacroClass = true;
       // Mark each file of the cycle.
       for (final library in libraries) {
-        for (final file in library.file.libraryFiles) {
+        for (final file in library.files) {
           file.mightBeExecutedByMacroClass = true;
         }
       }
@@ -203,14 +203,16 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       implSignature.addLanguageVersion(file.packageLanguageVersion);
       implSignature.addString(file.uriStr);
 
-      apiSignature.addInt(file.libraryFiles.length);
-      for (var file in file.libraryFiles) {
+      final libraryFiles = node.kind.files;
+
+      apiSignature.addInt(libraryFiles.length);
+      for (var file in libraryFiles) {
         apiSignature.addBool(file.exists);
         apiSignature.addBytes(file.apiSignature);
       }
 
-      implSignature.addInt(file.libraryFiles.length);
-      for (var file in file.libraryFiles) {
+      implSignature.addInt(libraryFiles.length);
+      for (var file in libraryFiles) {
         implSignature.addBool(file.exists);
         implSignature.addString(file.contentHash);
       }

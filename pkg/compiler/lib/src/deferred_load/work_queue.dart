@@ -67,7 +67,7 @@ class WorkQueue {
     var entityData = item.entityData;
     pendingWorkItems.remove(entityData);
     state.processEntity(entityData);
-    ImportSet oldSet = state.entityToSet[entityData];
+    ImportSet oldSet = state.entityToSet[entityData] ?? _importSets.emptySet;
     ImportSet newSet = _importSets.union(oldSet, item.importsToAdd);
     state.update(entityData, oldSet, newSet);
   }

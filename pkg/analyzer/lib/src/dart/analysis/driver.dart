@@ -777,7 +777,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     var units = <ParsedUnitResult>[];
-    for (var unitFile in file.libraryFiles) {
+    for (var unitFile in kind.files) {
       var unitPath = unitFile.path;
       var unitResult = parseFileSync(unitPath);
       if (unitResult is! ParsedUnitResult) {
@@ -1707,11 +1707,20 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     CaughtException caught = CaughtException(exception, stackTrace);
 
     var fileContentMap = <String, String>{};
-    var libraryFile = _fsState.getFileForPath(path);
+
+    var fileContent = '';
     try {
-      for (var file in libraryFile.libraryFiles) {
-        var path = file.path;
-        fileContentMap[path] = file.content;
+      final file = _fsState.getFileForPath(path);
+      fileContent = file.content;
+      final fileKind = file.kind;
+      final libraryKind = fileKind.library;
+      if (libraryKind != null) {
+        for (final file in libraryKind.files) {
+          fileContentMap[file.path] = file.content;
+        }
+      } else {
+        final file = fileKind.file;
+        fileContentMap[file.path] = file.content;
       }
     } catch (_) {
       // We might get an exception while parsing to access parts.
@@ -1728,7 +1737,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       ExceptionResult(
         filePath: path,
         fileContentMap: fileContentMap,
-        fileContent: libraryFile.content,
+        fileContent: fileContent,
         exception: caught,
         contextKey: contextKey,
       ),
