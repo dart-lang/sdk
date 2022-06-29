@@ -794,10 +794,11 @@ class FileState {
         );
       }
     } else if (libraryDirective != null) {
-      _kind = LibraryFileStateKind(
+      final kind = _kind = LibraryFileStateKind(
         file: this,
         name: libraryDirective.name,
       );
+      _fsState._libraryNameToFiles.add(kind);
     } else if (partOfNameDirective != null) {
       _kind = PartOfNameFileStateKind(
         file: this,
@@ -828,7 +829,6 @@ class FileState {
       );
     }
 
-    _fsState._libraryNameToFiles.add(_kind);
     _invalidatesLibrariesOfThisPart();
   }
 
@@ -1976,14 +1976,11 @@ class _LibraryNameToFiles {
   }
 
   /// If [kind] is a named library, register it.
-  /// TODO(scheglov) Use [LibraryFileStateKind]
-  void add(FileStateKind? kind) {
-    if (kind is LibraryFileStateKind) {
-      final name = kind.name;
-      if (name != null) {
-        final libraries = _map[name] ??= [];
-        libraries.add(kind);
-      }
+  void add(LibraryFileStateKind kind) {
+    final name = kind.name;
+    if (name != null) {
+      final libraries = _map[name] ??= [];
+      libraries.add(kind);
     }
   }
 
@@ -1992,17 +1989,14 @@ class _LibraryNameToFiles {
   }
 
   /// If [kind] is a named library, unregister it.
-  /// TODO(scheglov) Use [LibraryFileStateKind]
-  void remove(FileStateKind? kind) {
-    if (kind is LibraryFileStateKind) {
-      final name = kind.name;
-      if (name != null) {
-        final libraries = _map[name];
-        if (libraries != null) {
-          libraries.remove(kind);
-          if (libraries.isEmpty) {
-            _map.remove(name);
-          }
+  void remove(LibraryFileStateKind kind) {
+    final name = kind.name;
+    if (name != null) {
+      final libraries = _map[name];
+      if (libraries != null) {
+        libraries.remove(kind);
+        if (libraries.isEmpty) {
+          _map.remove(name);
         }
       }
     }
