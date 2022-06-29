@@ -9,6 +9,7 @@ library dump_info;
 import 'dart:convert'
     show ChunkedConversionSink, JsonEncoder, StringConversionSink;
 
+import 'package:compiler/src/js_model/elements.dart';
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as dump_info;
@@ -434,9 +435,7 @@ class KernelInfoCollector {
     if (libname == null || libname.isEmpty) {
       libname = '${lib.importUri}';
     }
-
     LibraryInfo info = LibraryInfo(libname, lib.importUri, null, null);
-    state.entityToInfo[libEntity] = info;
 
     lib.members.forEach((ir.Member member) {
       final memberEntity =
@@ -485,7 +484,6 @@ class KernelInfoCollector {
       type: field.type.toStringInternal(),
       isConst: field.isConst,
     );
-    state.entityToInfo[fieldEntity] = info;
 
     if (compiler.options.experimentCallInstrumentation) {
       // We use field.hashCode because it is globally unique and it is
@@ -510,27 +508,27 @@ class KernelInfoCollector {
     // Omit class if it is not needed.
     ClassInfo classInfo = ClassInfo(
         name: clazz.name, isAbstract: clazz.isAbstract, outputUnit: null);
-    state.entityToInfo[classEntity] = classInfo;
 
     clazz.members.forEach((ir.Member member) {
+      final isSetter = member is ir.Procedure && member.isSetter;
       // clazz.members includes constructors
-      MemberEntity memberEntity =
-          environment.lookupLocalClassMember(classEntity, member.name.text) ??
-              environment.lookupConstructor(classEntity, member.name.text);
+      MemberEntity memberEntity = environment.lookupLocalClassMember(
+              classEntity, member.name.text,
+              setter: isSetter) ??
+          environment.lookupConstructor(classEntity, member.name.text);
       if (memberEntity == null) return;
-      // Multiple kernel members can map to single JWorld member
-      // (e.g., when one of a getter/field pair are tree-shaken),
-      // so avoid duplicating the downstream info object.
-      if (state.entityToInfo.containsKey(memberEntity)) {
-        return;
-      }
 
       if (member.function != null) {
-        FunctionInfo functionInfo =
-            visitFunction(member.function, functionEntity: memberEntity);
-        if (functionInfo != null) {
-          classInfo.functions.add(functionInfo);
-          functionInfo.parent = classInfo;
+        // Multiple kernel members can map to single JWorld member
+        // (e.g., when one of a getter/field pair are tree-shaken),
+        // so avoid duplicating the downstream info object.
+        if (memberEntity is FunctionEntity) {
+          FunctionInfo functionInfo =
+              visitFunction(member.function, functionEntity: memberEntity);
+          if (functionInfo != null) {
+            classInfo.functions.add(functionInfo);
+            functionInfo.parent = classInfo;
+          }
         }
       } else {
         FieldInfo fieldInfo = visitField(member, fieldEntity: memberEntity);
@@ -605,7 +603,6 @@ class KernelInfoCollector {
         modifiers: modifiers,
         returnType: function.returnType.toStringInternal(),
         type: functionType.toStringInternal());
-    state.entityToInfo[functionEntity] = info;
 
     if (function.parent is ir.Member)
       _addClosureInfo(info, function.parent,
@@ -643,13 +640,11 @@ class KernelInfoCollector {
       });
       final closureClassEntity = closureEntity.enclosingClass;
       final closureInfo = ClosureInfo.fromKernel(name: value.disambiguatedName);
-      state.entityToInfo[closureClassEntity] = closureInfo;
 
       FunctionEntity callMethod = closedWorld.elementEnvironment
           .lookupClassMember(closureClassEntity, Identifiers.call);
       final functionInfo = visitFunction(key.function,
           functionEntity: callMethod, localFunctionInfo: value);
-      state.entityToInfo[closureEntity] = functionInfo;
 
       closureInfo.function = functionInfo;
       functionInfo.parent = closureInfo;
@@ -737,6 +732,7 @@ class DumpInfoAnnotator {
         'Ambiguous library resolution. '
         'Expected singleton, found $kLibraryInfos');
     var kLibraryInfo = kLibraryInfos.first;
+    kernelInfo.state.entityToInfo[lib] = kLibraryInfo;
 
     String libname = environment.getLibraryName(lib);
     if (libname.isEmpty) {
@@ -799,6 +795,7 @@ class DumpInfoAnnotator {
         'Ambiguous field resolution. '
         'Expected singleton, found $kFieldInfos');
     final kFieldInfo = kFieldInfos.first;
+    kernelInfo.state.entityToInfo[field] = kFieldInfo;
 
     int size = dumpInfoTask.sizeOf(field);
     List<CodeSpan> code = dumpInfoTask.codeOf(field);
@@ -860,10 +857,15 @@ class DumpInfoAnnotator {
         'Ambiguous class resolution. '
         'Expected singleton, found $kClassInfos');
     final kClassInfo = kClassInfos.first;
+    kernelInfo.state.entityToInfo[clazz] = kClassInfo;
 
     int size = dumpInfoTask.sizeOf(clazz);
     final disambiguatedMemberName = '$parentName/${clazz.name}';
     environment.forEachLocalClassMember(clazz, (member) {
+      // Skip certain incongruent locals that during method alias installation.
+      if (member is JMethod && member.enclosingClass.name != clazz.name) {
+        return;
+      }
       if (member.isFunction || member.isGetter || member.isSetter) {
         FunctionInfo functionInfo =
             visitFunction(member, disambiguatedMemberName);
@@ -916,6 +918,7 @@ class DumpInfoAnnotator {
         'Ambiguous closure resolution. '
         'Expected singleton, found $kClosureInfos');
     final kClosureInfo = kClosureInfos.first;
+    kernelInfo.state.entityToInfo[element] = kClosureInfo;
 
     kClosureInfo.outputUnit = _unitInfoForClass(element);
     kClosureInfo.size = dumpInfoTask.sizeOf(element);
@@ -961,6 +964,7 @@ class DumpInfoAnnotator {
         'Expected single or none, found $kFunctionInfos');
     if (kFunctionInfos.length == 0) return null;
     final kFunctionInfo = kFunctionInfos.first;
+    kernelInfo.state.entityToInfo[function] = kFunctionInfo;
 
     List<CodeSpan> code = dumpInfoTask.codeOf(function);
     List<ParameterInfo> parameters = <ParameterInfo>[];

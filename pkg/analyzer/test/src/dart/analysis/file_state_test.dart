@@ -1451,6 +1451,19 @@ elementFactory
 ''');
   }
 
+  test_newFile_library_dartCore() async {
+    final core = fsStateFor(testFile).getFileForUri(
+      Uri.parse('dart:core'),
+    );
+
+    final coreKind = core.t1!.kind as LibraryFileStateKind;
+    for (final import in coreKind.imports) {
+      if (import.isSyntheticDartCoreImport) {
+        fail('dart:core should not import itself');
+      }
+    }
+  }
+
   test_newFile_library_exports_augmentation() async {
     newFile('$testPackageLibPath/b.dart', r'''
 library augment 'a.dart';
@@ -2680,7 +2693,6 @@ elementFactory
 ''');
   }
 
-  /// TODO(scheglov) Test discovery of a sibling library
   test_newFile_partOfName() async {
     final a = newFile('$testPackageLibPath/nested/a.dart', r'''
 library my.lib;
@@ -2813,6 +2825,53 @@ files
       id: file_1
       kind: partOfName_1
         name: other.lib
+      referencingFiles: file_0
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_newFile_partOfName_discoverSiblingLibrary() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library my.lib;
+part 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of my.lib;
+''');
+
+    final bState = fileStateFor(b);
+
+    // The library is discovered by looking at sibling files.
+    final bKind = bState.kind as PartOfNameFileStateKind;
+    expect(bKind.library?.file.resource, a);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        name: my.lib
+        imports
+          library_2 dart:core synthetic
+        parts
+          partOfName_1
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfName_1
+        libraries: library_0
+        library: library_0
       referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles

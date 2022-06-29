@@ -633,7 +633,10 @@ class FileState {
 
     var unit = parse();
     return _fsState._logger.run('Create unlinked for $path', () {
-      var unlinkedUnit = serializeAstUnlinked2(unit);
+      var unlinkedUnit = serializeAstUnlinked2(
+        unit,
+        isDartCore: uriStr == 'dart:core',
+      );
       var definedNames = computeDefinedNames(unit);
       var referencedNames = computeReferencedNames(unit);
       var subtypedNames = computeSubtypedNames(unit);
@@ -837,7 +840,10 @@ class FileState {
     ];
   }
 
-  static UnlinkedUnit serializeAstUnlinked2(CompilationUnit unit) {
+  static UnlinkedUnit serializeAstUnlinked2(
+    CompilationUnit unit, {
+    required bool isDartCore,
+  }) {
     UnlinkedLibraryDirective? libraryDirective;
     UnlinkedLibraryAugmentationDirective? libraryAugmentationDirective;
     UnlinkedPartOfNameDirective? partOfNameDirective;
@@ -932,7 +938,7 @@ class FileState {
         }
       }
     }
-    if (!hasDartCoreImport) {
+    if (!isDartCore && !hasDartCoreImport) {
       imports.add(
         UnlinkedNamespaceDirective(
           configurations: [],
