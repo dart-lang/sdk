@@ -50,7 +50,7 @@ class AlgorithmState {
   /// update later if we cannot. For more detail on [oldSet] and [newSet],
   /// please see the comment in deferred_load.dart.
   void update(EntityData entityData, ImportSet oldSet, ImportSet newSet) {
-    ImportSet currentSet = entityToSet[entityData];
+    ImportSet currentSet = entityToSet[entityData] ?? importSets.emptySet;
 
     // If [currentSet] == [newSet], then currentSet must include all of newSet.
     if (currentSet == newSet) return;
@@ -67,11 +67,11 @@ class AlgorithmState {
     if (currentSet == oldSet) {
       // Continue recursively updating from [oldSet] to [newSet].
       entityToSet[entityData] = newSet;
-      updateDependencies(entityData, oldSet, newSet);
+      _updateDependencies(entityData, oldSet, newSet);
     } else if (entityData.needsRecursiveUpdate) {
       assert(
           // Invariant: we must mark main before we mark any deferred import.
-          newSet != importSets.mainSet || oldSet != null,
+          newSet != importSets.mainSet || oldSet != importSets.emptySet,
           failedAt(
               NO_LOCATION_SPANNABLE,
               "Tried to assign to the main output unit, but it was assigned "
@@ -106,7 +106,7 @@ class AlgorithmState {
 
   /// Updates the dependencies of a given [EntityData] from [oldSet] to
   /// [newSet].
-  void updateDependencies(
+  void _updateDependencies(
       EntityData entityData, ImportSet oldSet, ImportSet newSet) {
     assert(directDependencies.containsKey(entityData));
     var directDependenciesList = directDependencies[entityData];
