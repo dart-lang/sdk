@@ -1032,6 +1032,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 class FlowAnalysisDebug<Node extends Object, Statement extends Node,
         Expression extends Object, Variable extends Object, Type extends Object>
     implements FlowAnalysis<Node, Statement, Expression, Variable, Type> {
+  static int _nextCallbackId = 0;
+
+  static Expando<String> _description = new Expando<String>();
+
   FlowAnalysis<Node, Statement, Expression, Variable, Type> _wrapped;
 
   bool _exceptionOccurred = false;
@@ -1538,16 +1542,18 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   @override
   Map<Type, NonPromotionReason> Function() whyNotPromoted(Expression target) {
-    return _wrap(
-        'whyNotPromoted($target)', () => _wrapped.whyNotPromoted(target),
+    return _wrap('whyNotPromoted($target)',
+        () => _trackWhyNotPromoted(_wrapped.whyNotPromoted(target)),
         isQuery: true);
   }
 
   @override
   Map<Type, NonPromotionReason> Function() whyNotPromotedImplicitThis(
       Type staticType) {
-    return _wrap('whyNotPromotedImplicitThis($staticType)',
-        () => _wrapped.whyNotPromotedImplicitThis(staticType),
+    return _wrap(
+        'whyNotPromotedImplicitThis($staticType)',
+        () => _trackWhyNotPromoted(
+            _wrapped.whyNotPromotedImplicitThis(staticType)),
         isQuery: true);
   }
 
@@ -1560,6 +1566,19 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   @override
   void _dumpState() => _wrapped._dumpState();
+
+  /// Wraps [callback] so that when it is called, the call (and its return
+  /// value) will be printed to the console.  Also registers the wrapped
+  /// callback in [_description] so that it will be given a unique identifier
+  /// when printed to the console.
+  Map<Type, NonPromotionReason> Function() _trackWhyNotPromoted(
+      Map<Type, NonPromotionReason> Function() callback) {
+    String callbackToString = '#CALLBACK${_nextCallbackId++}';
+    Map<Type, NonPromotionReason> Function() wrappedCallback =
+        () => _wrap('$callbackToString()', callback, isQuery: true);
+    _description[wrappedCallback] = callbackToString;
+    return wrappedCallback;
+  }
 
   T _wrap<T>(String description, T callback(),
       {bool isQuery: false, bool? isPure}) {
@@ -1578,9 +1597,17 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
       _wrapped._dumpState();
     }
     if (isQuery) {
-      print('  => $result');
+      print('  => ${_describe(result)}');
     }
     return result;
+  }
+
+  static String _describe(Object? value) {
+    if (value != null && value is! String && value is! num && value is! bool) {
+      String? description = _description[value];
+      if (description != null) return description;
+    }
+    return value.toString();
   }
 }
 
@@ -2613,6 +2640,9 @@ class ReferenceWithType<Variable extends Object, Type extends Object> {
   final Type type;
 
   ReferenceWithType(this.reference, this.type);
+
+  @override
+  String toString() => 'ReferenceWithType($reference, $type)';
 }
 
 /// Data structure representing a unique value that a variable might take on
@@ -2858,6 +2888,9 @@ class VariableModel<Variable extends Object, Type extends Object> {
     }
     if (nonPromotionHistory != null) {
       parts.add('nonPromotionHistory: $nonPromotionHistory');
+    }
+    if (properties.isNotEmpty) {
+      parts.add('properties: $properties');
     }
     return 'VariableModel(${parts.join(', ')})';
   }
@@ -3356,6 +3389,9 @@ class VariableReference<Variable extends Object, Type extends Object>
       VariableModel<Variable, Type> variableModel) {
     variableInfo[variable] = variableModel;
   }
+
+  @override
+  String toString() => 'VariableReference($variable)';
 
   @override
   VariableModel<Variable, Type>? _getInfo(
@@ -5024,6 +5060,10 @@ class _PropertyGetReference<Variable extends Object, Type extends Object>
     newProperties[propertyName] = variableModel;
     target.storeInfo(variableInfo, targetInfo.setProperties(newProperties));
   }
+
+  @override
+  String toString() =>
+      '_PropertyGetReference($target, $propertyName, $propertyMember)';
 
   @override
   VariableModel<Variable, Type>? _getInfo(
