@@ -686,7 +686,8 @@ files
       kind: library_0
         imports
           library_3 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -701,7 +702,8 @@ files
         library: library_0
         imports
           library_3 dart:core synthetic
-        augmentations: file_2
+        augmentations
+          augmentation_2
       referencingFiles: file_0
       unlinkedKey: k01
   /home/test/lib/c.dart
@@ -756,7 +758,8 @@ files
         uriFile: file_0
         imports
           library_3 dart:core synthetic
-        augmentations: file_2
+        augmentations
+          augmentation_2
       unlinkedKey: k01
   /home/test/lib/c.dart
     uri: package:test/c.dart
@@ -799,7 +802,8 @@ files
       kind: library_0
         imports
           library_3 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -853,7 +857,8 @@ files
       kind: library_0
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          notAugmentation file_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -867,7 +872,8 @@ files
         augmented: augmentation_1
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          augmentation_1
       referencingFiles: file_0 file_1
       unlinkedKey: k01
 libraryCycles
@@ -901,7 +907,8 @@ files
       kind: library_0
         imports
           library_3 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -916,7 +923,8 @@ files
         library: library_0
         imports
           library_3 dart:core synthetic
-        augmentations: file_2
+        augmentations
+          augmentation_2
       referencingFiles: file_0 file_2
       unlinkedKey: k01
   /home/test/lib/c.dart
@@ -928,7 +936,8 @@ files
         library: library_0
         imports
           library_3 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          notAugmentation file_1
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -936,7 +945,7 @@ elementFactory
 ''');
   }
 
-  test_newFile_augmentation_invalid() async {
+  test_newFile_augmentation_invalidRelativeUri() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
 library augment 'da:';
 ''');
@@ -978,7 +987,8 @@ files
       kind: library_0
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1130,7 +1140,8 @@ files
       kind: library_0
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1162,7 +1173,8 @@ files
       kind: library_0
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1175,7 +1187,8 @@ files
       kind: library_7
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          notAugmentation file_1
         cycle_2
           dependencies: dart:core
           libraries: library_7
@@ -1207,7 +1220,8 @@ files
       kind: library_0
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1220,7 +1234,8 @@ files
       kind: library_8
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          notAugmentation file_1
         cycle_3
           dependencies: dart:core
           libraries: library_8
@@ -1266,7 +1281,8 @@ files
       kind: library_8
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          notAugmentation file_1
         cycle_3
           dependencies: dart:core
           libraries: library_8
@@ -1354,7 +1370,8 @@ files
       kind: library_11
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          notAugmentation file_1
         cycle_6
           dependencies: dart:core
           libraries: library_11
@@ -1388,7 +1405,8 @@ files
       kind: library_12
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          augmentation_1
         cycle_7
           dependencies: dart:core
           libraries: library_12
@@ -1401,7 +1419,8 @@ files
       kind: library_11
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          notAugmentation file_1
         cycle_6
           dependencies: dart:core
           libraries: library_11
@@ -1441,6 +1460,62 @@ files
       kind: library_0
         imports
           library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_newFile_library_augmentations_invalidRelativeUri() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'da:';
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+        augmentations
+          uri: da:
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_newFile_library_augmentations_invalidRelativeUri_empty() {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import augment '';
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+        augmentations
+          uri: ''
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -3900,7 +3975,8 @@ files
       kind: library_0
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -3927,6 +4003,7 @@ elementFactory
 
     // Not an augmentation anymore, but a library.
     // But `a.dart` still uses `b.dart` as an augmentation.
+    // TODO(scheglov) Any `augmentation_to_X` should change the signature.
     assertDriverStateString(testFile, r'''
 files
   /home/test/lib/a.dart
@@ -3936,7 +4013,8 @@ files
       kind: library_0
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          notAugmentation file_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -3970,7 +4048,8 @@ files
       kind: library_8
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          notAugmentation file_1
         cycle_3
           dependencies: dart:core
           libraries: library_8
@@ -4016,7 +4095,8 @@ files
         name: my.lib
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -4059,7 +4139,8 @@ files
         name: my.lib
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          notAugmentation file_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -4090,7 +4171,8 @@ files
         name: my.lib
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          notAugmentation file_1
         cycle_2
           dependencies: dart:core
           libraries: library_8
@@ -4167,7 +4249,8 @@ files
       kind: library_0
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -4206,7 +4289,8 @@ files
       kind: library_0
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          notAugmentation file_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -4235,7 +4319,8 @@ files
       kind: library_8
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          notAugmentation file_1
         cycle_2
           dependencies: dart:core
           libraries: library_8
@@ -4511,7 +4596,8 @@ files
       kind: library_0
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          notAugmentation file_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -4551,7 +4637,8 @@ files
       kind: library_0
         imports
           library_2 dart:core synthetic
-        augmentations: file_1
+        augmentations
+          augmentation_7
         cycle_0
           dependencies: dart:core
           libraries: library_0

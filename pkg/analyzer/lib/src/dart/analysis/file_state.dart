@@ -60,6 +60,9 @@ abstract class AugmentationFileStateKind extends LibraryOrAugmentationFileKind {
     // TODO(scheglov): implement asLibrary
     throw UnimplementedError();
   }
+
+  /// Returns `true` if the `library augment` directive confirms [container].
+  bool isAugmentationOf(LibraryOrAugmentationFileKind container);
 }
 
 /// The URI of the [directive] can be resolved.
@@ -100,6 +103,11 @@ class AugmentationKnownFileStateKind extends AugmentationFileStateKind {
     }
     return null;
   }
+
+  @override
+  bool isAugmentationOf(LibraryOrAugmentationFileKind container) {
+    return uriFile == container.file;
+  }
 }
 
 /// The URI of the [directive] can not be resolved.
@@ -111,6 +119,9 @@ class AugmentationUnknownFileStateKind extends AugmentationFileStateKind {
 
   @override
   LibraryFileStateKind? get library => null;
+
+  @override
+  bool isAugmentationOf(LibraryOrAugmentationFileKind container) => false;
 }
 
 /// Information about a single `import` directive.
@@ -278,7 +289,6 @@ class FileState {
   /// Files that reference this file.
   final Set<FileState> referencingFiles = {};
 
-  List<FileState?> _augmentationFiles = [];
   List<FileState?>? _importedFiles;
   List<FileState?>? _exportedFiles;
 
@@ -305,11 +315,6 @@ class FileState {
 
   /// The unlinked API signature of the file.
   Uint8List get apiSignature => _apiSignature!;
-
-  /// The list of imported augmentations.
-  List<FileState?> get augmentationFiles {
-    return _augmentationFiles;
-  }
 
   /// The content of the file.
   String get content => _fileContent!.content;
@@ -568,7 +573,6 @@ class FileState {
 
     // Read parts eagerly to link parts to libraries.
     _updateKind();
-    _updateAugmentationFiles();
 
     // Update mapping from subtyped names to files.
     for (var name in _driverUnlinkedUnit!.subtypedNames) {
@@ -743,21 +747,8 @@ class FileState {
       }
     }
 
-    removeForOne(_augmentationFiles);
     removeForOne(_exportedFiles);
     removeForOne(_importedFiles);
-  }
-
-  void _updateAugmentationFiles() {
-    _augmentationFiles = unlinked2.augmentations.map((directive) {
-      return _fileForRelativeUri(directive.uri).map(
-        (augmentation) {
-          augmentation?.referencingFiles.add(this);
-          return augmentation;
-        },
-        (_) => null,
-      );
-    }).toList();
   }
 
   void _updateKind() {
@@ -1026,6 +1017,7 @@ abstract class FileStateKind {
   /// Returns the library in which this file should be analyzed.
   LibraryFileStateKind? get library;
 
+  @mustCallSuper
   void dispose() {}
 }
 
@@ -1502,6 +1494,47 @@ class FileUriProperties {
   bool get isSrc => (_flags & _isSrc) != 0;
 }
 
+/// Information about a single `import augment` directive.
+class ImportAugmentationDirectiveState {
+  final LibraryOrAugmentationFileKind container;
+  final UnlinkedImportAugmentationDirective directive;
+
+  ImportAugmentationDirectiveState({
+    required this.container,
+    required this.directive,
+  });
+
+  /// Returns a [Source] that is referenced by this directive.
+  ///
+  /// Returns `null` if the URI cannot be resolved into a [Source].
+  Source? get importedSource => null;
+}
+
+/// [PartDirectiveState] that has a valid URI that references a file.
+class ImportAugmentationDirectiveWithFile
+    extends ImportAugmentationDirectiveState {
+  final FileState importedFile;
+
+  ImportAugmentationDirectiveWithFile({
+    required super.container,
+    required super.directive,
+    required this.importedFile,
+  });
+
+  /// If [importedFile] is a [AugmentationFileStateKind], and it confirms that
+  /// it is an augmentation of the [container], returns the [importedFile].
+  AugmentationFileStateKind? get importedAugmentation {
+    final kind = importedFile.kind;
+    if (kind is AugmentationFileStateKind && kind.isAugmentationOf(container)) {
+      return kind;
+    }
+    return null;
+  }
+
+  @override
+  Source? get importedSource => importedFile.source;
+}
+
 /// Information about a single `import` directive.
 class ImportDirectiveState {
   final UnlinkedNamespaceDirective directive;
@@ -1673,23 +1706,7 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
       }
     }
 
-    final imports = _imports;
-    if (imports != null) {
-      for (final import in imports) {
-        if (import is ImportDirectiveWithFile) {
-          import.importedFile.referencingFiles.remove(file);
-        }
-      }
-    }
-
-    final exports = _exports;
-    if (exports != null) {
-      for (final export in exports) {
-        if (export is ExportDirectiveWithFile) {
-          export.exportedFile.referencingFiles.remove(file);
-        }
-      }
-    }
+    super.dispose();
   }
 
   bool hasPart(PartFileStateKind partKind) {
@@ -1714,12 +1731,41 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
 }
 
 abstract class LibraryOrAugmentationFileKind extends FileStateKind {
+  List<ImportAugmentationDirectiveState>? _augmentations;
   List<ExportDirectiveState>? _exports;
   List<ImportDirectiveState>? _imports;
 
   LibraryOrAugmentationFileKind({
     required super.file,
   });
+
+  List<ImportAugmentationDirectiveState> get augmentations {
+    return _augmentations ??= file.unlinked2.augmentations.map((directive) {
+      return file._fileForRelativeUri(directive.uri).map(
+        (refFile) {
+          if (refFile != null) {
+            refFile.referencingFiles.add(file);
+            return ImportAugmentationDirectiveWithFile(
+              container: this,
+              directive: directive,
+              importedFile: refFile,
+            );
+          } else {
+            return ImportAugmentationDirectiveState(
+              container: this,
+              directive: directive,
+            );
+          }
+        },
+        (externalLibrary) {
+          return ImportAugmentationDirectiveState(
+            container: this,
+            directive: directive,
+          );
+        },
+      );
+    }).toList();
+  }
 
   List<ExportDirectiveState> get exports {
     return _exports ??= file.unlinked2.exports.map((directive) {
@@ -1782,12 +1828,56 @@ abstract class LibraryOrAugmentationFileKind extends FileStateKind {
   /// we register available objects.
   @visibleForTesting
   void discoverReferencedFiles() {
-    imports;
     exports;
+    imports;
+    for (final import in augmentations) {
+      if (import is ImportAugmentationDirectiveWithFile) {
+        import.importedAugmentation?.discoverReferencedFiles();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    final augmentations = _augmentations;
+    if (augmentations != null) {
+      for (final import in augmentations) {
+        if (import is ImportAugmentationDirectiveWithFile) {
+          import.importedFile.referencingFiles.remove(file);
+        }
+      }
+    }
+
+    final exports = _exports;
+    if (exports != null) {
+      for (final export in exports) {
+        if (export is ExportDirectiveWithFile) {
+          export.exportedFile.referencingFiles.remove(file);
+        }
+      }
+    }
+
+    final imports = _imports;
+    if (imports != null) {
+      for (final import in imports) {
+        if (import is ImportDirectiveWithFile) {
+          import.importedFile.referencingFiles.remove(file);
+        }
+      }
+    }
+
+    super.dispose();
   }
 
   bool hasAugmentation(AugmentationFileStateKind augmentation) {
-    return file.augmentationFiles.contains(augmentation.file);
+    for (final import in augmentations) {
+      if (import is ImportAugmentationDirectiveWithFile) {
+        if (import.importedFile == augmentation.file) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
 
