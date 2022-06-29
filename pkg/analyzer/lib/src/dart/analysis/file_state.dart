@@ -1234,7 +1234,6 @@ class FileSystemState {
     return result;
   }
 
-  @visibleForTesting
   FileState? getExisting(File file) {
     return _pathToFile[file.path];
   }
