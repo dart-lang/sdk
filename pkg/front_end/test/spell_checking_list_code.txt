@@ -82,6 +82,7 @@ attributes
 augment
 augmentation
 augmentations
+augmented
 augmenting
 augments
 auto

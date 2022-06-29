@@ -1038,7 +1038,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   /// Builds the core AST structure of this library as needed for the outline.
-  Library build(LibraryBuilder coreLibrary, {bool modifyTarget: true}) {
+  Library buildOutlineNodes(LibraryBuilder coreLibrary,
+      {bool modifyTarget: true}) {
     // TODO(johnniwinther): Avoid the need to process patch libraries before
     // the origin. Currently, settings performed by the patch are overridden
     // by the origin. For instance, the `Map` class is abstract in the origin
@@ -1048,7 +1049,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.build(coreLibrary, modifyTarget: modifyTarget);
+        patchLibrary.buildOutlineNodes(coreLibrary, modifyTarget: modifyTarget);
       }
     }
 
@@ -1058,7 +1059,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     Iterator<Builder> iterator = this.iterator;
     while (iterator.moveNext()) {
-      buildBuilder(iterator.current, coreLibrary);
+      _buildOutlineNodes(iterator.current, coreLibrary);
     }
 
     if (!modifyTarget) return library;
@@ -3050,7 +3051,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   /// Builds the core AST structures for [declaration] needed for the outline.
-  void buildBuilder(Builder declaration, LibraryBuilder coreLibrary) {
+  void _buildOutlineNodes(Builder declaration, LibraryBuilder coreLibrary) {
     String findDuplicateSuffix(Builder declaration) {
       if (declaration.next != null) {
         int count = 0;
@@ -3077,34 +3078,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         library.addExtension(extension);
       }
     } else if (declaration is SourceMemberBuilder) {
-      declaration.buildMembers((Member member, BuiltMemberKind memberKind) {
-        if (member is Field) {
-          member.isStatic = true;
-          if (!declaration.isPatch && !declaration.isDuplicate) {
-            library.addField(member);
-          }
-        } else if (member is Procedure) {
-          member.isStatic = true;
-          if (!declaration.isPatch &&
-              !declaration.isDuplicate &&
-              !declaration.isConflictingSetter) {
-            library.addProcedure(member);
-          }
-        } else {
-          unhandled("${member.runtimeType}:${memberKind}", "buildBuilder",
-              declaration.charOffset, declaration.fileUri);
-        }
+      declaration
+          .buildOutlineNodes((Member member, BuiltMemberKind memberKind) {
+        _addMemberToLibrary(declaration, member, memberKind);
       });
     } else if (declaration is SourceTypeAliasBuilder) {
       Typedef typedef = declaration.build();
       if (!declaration.isPatch && !declaration.isDuplicate) {
         library.addTypedef(typedef);
-      }
-    } else if (declaration is SourceEnumBuilder) {
-      Class cls = declaration.build(coreLibrary);
-      if (!declaration.isPatch) {
-        cls.name += findDuplicateSuffix(declaration);
-        library.addClass(cls);
       }
     } else if (declaration is PrefixBuilder) {
       // Ignored. Kernel doesn't represent prefixes.
@@ -3114,6 +3095,26 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       return;
     } else {
       unhandled("${declaration.runtimeType}", "buildBuilder",
+          declaration.charOffset, declaration.fileUri);
+    }
+  }
+
+  void _addMemberToLibrary(SourceMemberBuilder declaration, Member member,
+      BuiltMemberKind memberKind) {
+    if (member is Field) {
+      member.isStatic = true;
+      if (!declaration.isPatch && !declaration.isDuplicate) {
+        library.addField(member);
+      }
+    } else if (member is Procedure) {
+      member.isStatic = true;
+      if (!declaration.isPatch &&
+          !declaration.isDuplicate &&
+          !declaration.isConflictingSetter) {
+        library.addProcedure(member);
+      }
+    } else {
+      unhandled("${member.runtimeType}:${memberKind}", "_buildMember",
           declaration.charOffset, declaration.fileUri);
     }
   }
@@ -3934,20 +3935,43 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  int finishPatchMethods() {
+  /// Builds the AST nodes needed for the full compilation.
+  ///
+  /// This includes patching member bodies and adding augmented members.
+  int buildBodyNodes() {
     int count = 0;
 
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
-        count += patchLibrary.finishPatchMethods();
+        count += patchLibrary.buildBodyNodes();
       }
     }
 
-    if (isPatch) {
-      Iterator<Builder> iterator = this.iterator;
-      while (iterator.moveNext()) {
-        count += iterator.current.finishPatch();
+    Iterator<Builder> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      Builder builder = iterator.current;
+      if (builder is SourceMemberBuilder) {
+        count +=
+            builder.buildBodyNodes((Member member, BuiltMemberKind memberKind) {
+          _addMemberToLibrary(builder, member, memberKind);
+        });
+      } else if (builder is SourceClassBuilder) {
+        count += builder.buildBodyNodes();
+      } else if (builder is SourceExtensionBuilder) {
+        count +=
+            builder.buildBodyNodes(addMembersToLibrary: !builder.isDuplicate);
+      } else if (builder is SourceClassBuilder) {
+        count += builder.buildBodyNodes();
+      } else if (builder is SourceTypeAliasBuilder) {
+        // Do nothing.
+      } else if (builder is PrefixBuilder) {
+        // Ignored. Kernel doesn't represent prefixes.
+      } else if (builder is BuiltinTypeDeclarationBuilder) {
+        // Nothing needed.
+      } else {
+        unhandled("${builder.runtimeType}", "buildBodyNodes",
+            builder.charOffset, builder.fileUri);
       }
     }
     return count;

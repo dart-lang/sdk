@@ -2904,38 +2904,13 @@ class Procedure extends Member {
   /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
   /// start offset is not available (this is the default if none is specifically
   /// set).
-  int startFileOffset = TreeNode.noOffset;
+  int fileStartOffset = TreeNode.noOffset;
 
   final ProcedureKind kind;
   int flags = 0;
 
   @override
   FunctionNode function;
-
-  // The function node's body might be lazily loaded, meaning that this value
-  // might not be set correctly yet. Make sure the body is loaded before
-  // returning anything.
-  @override
-  int get transformerFlags {
-    function.body;
-    return super.transformerFlags;
-  }
-
-  // The function node's body might be lazily loaded, meaning that this value
-  // might get overwritten later (when the body is read). To avoid that read the
-  // body now and only set the value afterwards.
-  @override
-  void set transformerFlags(int newValue) {
-    function.body;
-    super.transformerFlags = newValue;
-  }
-
-  // This function will set the transformer flags without loading the body.
-  // Used when reading the binary. For other cases one should probably use
-  // `transformerFlags = value;`.
-  void setTransformerFlagsWithoutLazyLoading(int newValue) {
-    super.transformerFlags = newValue;
-  }
 
   ProcedureStubKind stubKind;
   Reference? stubTargetReference;
@@ -3023,6 +2998,31 @@ class Procedure extends Member {
             (memberSignatureOrigin as Procedure).isMemberSignature),
         "Member signature origin cannot be a member signature "
         "$memberSignatureOrigin for $this.");
+  }
+
+  // The function node's body might be lazily loaded, meaning that this value
+  // might not be set correctly yet. Make sure the body is loaded before
+  // returning anything.
+  @override
+  int get transformerFlags {
+    function.body;
+    return super.transformerFlags;
+  }
+
+  // The function node's body might be lazily loaded, meaning that this value
+  // might get overwritten later (when the body is read). To avoid that read the
+  // body now and only set the value afterwards.
+  @override
+  void set transformerFlags(int newValue) {
+    function.body;
+    super.transformerFlags = newValue;
+  }
+
+  // This function will set the transformer flags without loading the body.
+  // Used when reading the binary. For other cases one should probably use
+  // `transformerFlags = value;`.
+  void setTransformerFlagsWithoutLazyLoading(int newValue) {
+    super.transformerFlags = newValue;
   }
 
   @override

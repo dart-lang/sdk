@@ -14,6 +14,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
+import '../kernel/augmentation_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart';
@@ -96,7 +97,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         fileUri: libraryBuilder.fileUri,
         reference: procedureReference,
         isSynthetic: isSynthetic)
-      ..startFileOffset = startCharOffset
+      ..fileStartOffset = startCharOffset
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
@@ -231,7 +232,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   Iterable<Member> get exportedMembers => [procedure];
 
   @override
-  void buildMembers(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
     _build();
     if (isExtensionMethod) {
       switch (kind) {
@@ -467,11 +468,33 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
-  int finishPatch() {
-    if (!isPatch) return 0;
+  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+    List<SourceProcedureBuilder>? patches = _patches;
+    if (patches != null) {
+      Procedure augmentedProcedure = _procedure;
+      int index = 0;
+      for (SourceProcedureBuilder patch in patches) {
+        if (!augmentedProcedure.isExternal && !augmentedProcedure.isAbstract) {
+          Procedure newProcedure = new Procedure(
+              augmentedName(augmentedProcedure.name.text,
+                  libraryBuilder.library, index++),
+              augmentedProcedure.kind,
+              augmentedProcedure.function,
+              fileUri: augmentedProcedure.fileUri)
+            ..fileOffset = augmentedProcedure.fileOffset
+            ..fileEndOffset = augmentedProcedure.fileEndOffset
+            ..fileStartOffset = augmentedProcedure.fileStartOffset
+            ..signatureType = augmentedProcedure.signatureType
+            ..flags = augmentedProcedure.flags;
+          f(newProcedure, BuiltMemberKind.Method);
+        }
+        augmentedProcedure = patch.actualProcedure;
+      }
+      finishProcedurePatch(procedure, augmentedProcedure);
 
-    finishProcedurePatch(origin.procedure, _procedure);
-    return 1;
+      return patches.length;
+    }
+    return 0;
   }
 
   @override

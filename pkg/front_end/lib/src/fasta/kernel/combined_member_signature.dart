@@ -538,7 +538,7 @@ abstract class CombinedMemberSignatureBase<T> {
     if (copyLocation) {
       fileUri = member.fileUri;
       startFileOffset =
-          member is Procedure ? member.startFileOffset : member.fileOffset;
+          member is Procedure ? member.fileStartOffset : member.fileOffset;
       fileOffset = member.fileOffset;
     } else {
       fileUri = enclosingClass.fileUri;
@@ -555,7 +555,7 @@ abstract class CombinedMemberSignatureBase<T> {
       stubKind: ProcedureStubKind.MemberSignature,
       stubTarget: member.memberSignatureOrigin ?? member,
     )
-      ..startFileOffset = startFileOffset
+      ..fileStartOffset = startFileOffset
       ..fileOffset = fileOffset
       ..isNonNullableByDefault = containsNnbdTypes
       ..parent = enclosingClass;
@@ -585,7 +585,7 @@ abstract class CombinedMemberSignatureBase<T> {
     if (copyLocation) {
       fileUri = member.fileUri;
       startFileOffset =
-          member is Procedure ? member.startFileOffset : member.fileOffset;
+          member is Procedure ? member.fileStartOffset : member.fileOffset;
       fileOffset = member.fileOffset;
     } else {
       fileUri = enclosingClass.fileUri;
@@ -611,7 +611,7 @@ abstract class CombinedMemberSignatureBase<T> {
       stubKind: ProcedureStubKind.MemberSignature,
       stubTarget: member.memberSignatureOrigin ?? member,
     )
-      ..startFileOffset = startFileOffset
+      ..fileStartOffset = startFileOffset
       ..fileOffset = fileOffset
       ..isNonNullableByDefault = containsNnbdTypes
       ..parent = enclosingClass;
@@ -630,7 +630,7 @@ abstract class CombinedMemberSignatureBase<T> {
     int fileOffset;
     if (copyLocation) {
       fileUri = procedure.fileUri;
-      startFileOffset = procedure.startFileOffset;
+      startFileOffset = procedure.fileStartOffset;
       fileOffset = procedure.fileOffset;
     } else {
       fileUri = enclosingClass.fileUri;
@@ -690,7 +690,7 @@ abstract class CombinedMemberSignatureBase<T> {
       stubKind: ProcedureStubKind.MemberSignature,
       stubTarget: procedure.memberSignatureOrigin ?? procedure,
     )
-      ..startFileOffset = startFileOffset
+      ..fileStartOffset = startFileOffset
       ..fileOffset = fileOffset
       ..isNonNullableByDefault = containsNnbdTypes
       ..parent = enclosingClass;

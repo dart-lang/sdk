@@ -248,7 +248,7 @@ class Strategy extends EquivalenceStrategy {
   }
 
   @override
-  bool checkProcedure_startFileOffset(
+  bool checkProcedure_fileStartOffset(
       EquivalenceVisitor visitor, Procedure node, Procedure other) {
     return true;
   }

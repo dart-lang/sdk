@@ -101,6 +101,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
 
     ClassBuilder objectClassBuilder =
         coreLibrary.lookupLocalMember('Object', required: true) as ClassBuilder;
+
     void buildBuilders(String name, Builder? declaration) {
       while (declaration != null) {
         Builder? objectGetter = objectClassBuilder.lookupLocalMember(name);
@@ -125,64 +126,9 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
         } else if (declaration is SourceMemberBuilder) {
           SourceMemberBuilder memberBuilder = declaration;
           memberBuilder
-              .buildMembers((Member member, BuiltMemberKind memberKind) {
-            if (addMembersToLibrary &&
-                !memberBuilder.isPatch &&
-                !memberBuilder.isDuplicate &&
-                !memberBuilder.isConflictingSetter) {
-              ExtensionMemberKind kind;
-              String name = memberBuilder.name;
-              switch (memberKind) {
-                case BuiltMemberKind.Constructor:
-                case BuiltMemberKind.RedirectingFactory:
-                case BuiltMemberKind.Field:
-                case BuiltMemberKind.Method:
-                  unhandled(
-                      "${member.runtimeType}:${memberKind}",
-                      "buildMembers",
-                      memberBuilder.charOffset,
-                      memberBuilder.fileUri);
-                case BuiltMemberKind.ExtensionField:
-                case BuiltMemberKind.LateIsSetField:
-                  kind = ExtensionMemberKind.Field;
-                  break;
-                case BuiltMemberKind.ExtensionMethod:
-                  kind = ExtensionMemberKind.Method;
-                  break;
-                case BuiltMemberKind.ExtensionGetter:
-                case BuiltMemberKind.LateGetter:
-                  kind = ExtensionMemberKind.Getter;
-                  break;
-                case BuiltMemberKind.ExtensionSetter:
-                case BuiltMemberKind.LateSetter:
-                  kind = ExtensionMemberKind.Setter;
-                  break;
-                case BuiltMemberKind.ExtensionOperator:
-                  kind = ExtensionMemberKind.Operator;
-                  break;
-                case BuiltMemberKind.ExtensionTearOff:
-                  kind = ExtensionMemberKind.TearOff;
-                  break;
-              }
-              // ignore: unnecessary_null_comparison
-              assert(kind != null);
-              Reference memberReference;
-              if (member is Field) {
-                libraryBuilder.library.addField(member);
-                memberReference = member.fieldReference;
-              } else if (member is Procedure) {
-                libraryBuilder.library.addProcedure(member);
-                memberReference = member.reference;
-              } else {
-                unhandled("${member.runtimeType}", "buildBuilders",
-                    member.fileOffset, member.fileUri);
-              }
-              extension.members.add(new ExtensionMemberDescriptor(
-                  name: new Name(name, libraryBuilder.library),
-                  member: memberReference,
-                  isStatic: memberBuilder.isStatic,
-                  kind: kind));
-            }
+              .buildOutlineNodes((Member member, BuiltMemberKind memberKind) {
+            _buildMember(memberBuilder, member, memberKind,
+                addMembersToLibrary: addMembersToLibrary);
           });
         } else {
           unhandled("${declaration.runtimeType}", "buildBuilders",
@@ -195,6 +141,65 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
     scope.forEach(buildBuilders);
 
     return _extension;
+  }
+
+  void _buildMember(SourceMemberBuilder memberBuilder, Member member,
+      BuiltMemberKind memberKind,
+      {required bool addMembersToLibrary}) {
+    if (addMembersToLibrary &&
+        !memberBuilder.isPatch &&
+        !memberBuilder.isDuplicate &&
+        !memberBuilder.isConflictingSetter) {
+      ExtensionMemberKind kind;
+      String name = memberBuilder.name;
+      switch (memberKind) {
+        case BuiltMemberKind.Constructor:
+        case BuiltMemberKind.RedirectingFactory:
+        case BuiltMemberKind.Field:
+        case BuiltMemberKind.Method:
+          unhandled("${member.runtimeType}:${memberKind}", "buildMembers",
+              memberBuilder.charOffset, memberBuilder.fileUri);
+        case BuiltMemberKind.ExtensionField:
+        case BuiltMemberKind.LateIsSetField:
+          kind = ExtensionMemberKind.Field;
+          break;
+        case BuiltMemberKind.ExtensionMethod:
+          kind = ExtensionMemberKind.Method;
+          break;
+        case BuiltMemberKind.ExtensionGetter:
+        case BuiltMemberKind.LateGetter:
+          kind = ExtensionMemberKind.Getter;
+          break;
+        case BuiltMemberKind.ExtensionSetter:
+        case BuiltMemberKind.LateSetter:
+          kind = ExtensionMemberKind.Setter;
+          break;
+        case BuiltMemberKind.ExtensionOperator:
+          kind = ExtensionMemberKind.Operator;
+          break;
+        case BuiltMemberKind.ExtensionTearOff:
+          kind = ExtensionMemberKind.TearOff;
+          break;
+      }
+      // ignore: unnecessary_null_comparison
+      assert(kind != null);
+      Reference memberReference;
+      if (member is Field) {
+        libraryBuilder.library.addField(member);
+        memberReference = member.fieldReference;
+      } else if (member is Procedure) {
+        libraryBuilder.library.addProcedure(member);
+        memberReference = member.reference;
+      } else {
+        unhandled("${member.runtimeType}", "buildBuilders", member.fileOffset,
+            member.fileUri);
+      }
+      extension.members.add(new ExtensionMemberDescriptor(
+          name: new Name(name, libraryBuilder.library),
+          member: memberReference,
+          isStatic: memberBuilder.isStatic,
+          kind: kind));
+    }
   }
 
   @override
@@ -230,13 +235,19 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
     }
   }
 
-  @override
-  int finishPatch() {
-    if (!isPatch) return 0;
-
+  int buildBodyNodes({required bool addMembersToLibrary}) {
     int count = 0;
-    scope.forEach((String name, Builder declaration) {
-      count += declaration.finishPatch();
+    scope.forEach((String name, Builder? declaration) {
+      while (declaration != null) {
+        if (declaration is SourceMemberBuilder) {
+          count +=
+              declaration.buildBodyNodes((Member member, BuiltMemberKind kind) {
+            _buildMember(declaration as SourceMemberBuilder, member, kind,
+                addMembersToLibrary: addMembersToLibrary);
+          });
+        }
+        declaration = declaration.next;
+      }
     });
     return count;
   }

@@ -374,7 +374,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   Iterable<Member> get exportedMembers => _fieldEncoding.exportedMembers;
 
   @override
-  void buildMembers(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
     _build();
     _fieldEncoding.registerMembers(libraryBuilder, this, f);
   }
@@ -530,6 +530,11 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
     library.checkTypesInField(this, typeEnvironment);
+  }
+
+  @override
+  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+    return 0;
   }
 }
 

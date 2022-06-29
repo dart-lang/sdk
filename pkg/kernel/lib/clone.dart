@@ -917,7 +917,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
           ? node.annotations.map(super.clone).toList()
           : const <Expression>[]
-      ..startFileOffset = _cloneFileOffset(node.startFileOffset)
+      ..fileStartOffset = _cloneFileOffset(node.fileStartOffset)
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
       ..flags = node.flags;

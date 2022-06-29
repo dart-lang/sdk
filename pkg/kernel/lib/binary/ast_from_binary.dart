@@ -1706,7 +1706,7 @@ class BinaryBuilder {
     }
     int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
-    node.startFileOffset = startFileOffset;
+    node.fileStartOffset = startFileOffset;
     node.fileOffset = fileOffset;
     node.fileEndOffset = fileEndOffset;
     node.flags = flags;
