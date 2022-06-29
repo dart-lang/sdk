@@ -336,16 +336,14 @@ class AnalyzerStatePrinter {
       }
     }
 
-    // Ask referenced libraries.
+    // Discover referenced files.
     // This is required for consistency checking.
-    // TODO(scheglov) Remove when we use these for cycles.
     for (final fileData in testData.files.values.toList()) {
       final current = fileSystemState.getExisting(fileData.file);
       if (current != null) {
         final kind = current.kind;
         if (kind is LibraryOrAugmentationFileKind) {
-          kind.imports;
-          kind.exports;
+          kind.discoverReferencedFiles();
         }
       }
     }

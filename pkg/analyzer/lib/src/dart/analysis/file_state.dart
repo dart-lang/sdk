@@ -38,6 +38,7 @@ import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/uri.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
@@ -280,7 +281,6 @@ class FileState {
   List<FileState?> _augmentationFiles = [];
   List<FileState?>? _importedFiles;
   List<FileState?>? _exportedFiles;
-  List<FileState> _libraryFiles = [];
 
   Set<FileState>? _directReferencedFiles;
 
@@ -383,12 +383,6 @@ class FileState {
   }
 
   FileStateKind get kind => _kind!;
-
-  /// The list of files files that this library consists of, i.e. this library
-  /// file itself and its [partedFiles].
-  List<FileState> get libraryFiles {
-    return _libraryFiles;
-  }
 
   /// Return information about line in the file.
   LineInfo get lineInfo => _lineInfo!;
@@ -574,7 +568,6 @@ class FileState {
 
     // Read parts eagerly to link parts to libraries.
     _updateKind();
-    _updatePartedFiles();
     _updateAugmentationFiles();
 
     // Update mapping from subtyped names to files.
@@ -830,14 +823,6 @@ class FileState {
     }
 
     _invalidatesLibrariesOfThisPart();
-  }
-
-  /// TODO(scheglov) Stop using [partedFiles].
-  void _updatePartedFiles() {
-    _libraryFiles = [
-      this,
-      ...partedFiles.whereNotNull(),
-    ];
   }
 
   static UnlinkedUnit serializeAstUnlinked2(
@@ -1602,6 +1587,29 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
     required this.name,
   });
 
+  /// The list of files files that this library consists of, i.e. this library
+  /// file itself, its [parts], and augmentations.
+  List<FileState> get files {
+    final files = [
+      file,
+    ];
+
+    // TODO(scheglov) When we include only valid parts, use this instead.
+    final includeOnlyValidParts = 0 > 1;
+    for (final part in parts) {
+      if (part is PartDirectiveWithFile) {
+        if (includeOnlyValidParts) {
+          files.addIfNotNull(part.includedPart?.file);
+        } else {
+          files.add(part.includedFile);
+        }
+      }
+    }
+
+    // TODO(scheglov) Include augmentations.
+    return files;
+  }
+
   LibraryCycle? get internal_libraryCycle => _libraryCycle;
 
   @override
@@ -1643,6 +1651,12 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
         },
       );
     }).toList();
+  }
+
+  @override
+  void discoverReferencedFiles() {
+    super.discoverReferencedFiles();
+    parts;
   }
 
   @override
@@ -1759,6 +1773,17 @@ abstract class LibraryOrAugmentationFileKind extends FileStateKind {
         },
       );
     }).toList();
+  }
+
+  /// Directives are usually pulled lazily (so that we can parse a file
+  /// without pulling all its transitive references), but when we output
+  /// textual dumps we want to check that we reference only objects that
+  /// are available. So, we need to discover all referenced files before
+  /// we register available objects.
+  @visibleForTesting
+  void discoverReferencedFiles() {
+    imports;
+    exports;
   }
 
   bool hasAugmentation(AugmentationFileStateKind augmentation) {

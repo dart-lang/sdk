@@ -414,10 +414,13 @@ class Search {
     if (name.startsWith('_')) {
       String libraryPath = element.library!.source.fullName;
       if (searchedFiles.add(libraryPath, this)) {
-        FileState library = _driver.fsState.getFileForPath(libraryPath);
-        for (FileState file in library.libraryFiles) {
-          if (file.path == path || file.referencedNames.contains(name)) {
-            files.add(file.path);
+        final libraryFile = _driver.fsState.getFileForPath(libraryPath);
+        final libraryKind = libraryFile.kind;
+        if (libraryKind is LibraryFileStateKind) {
+          for (final file in libraryKind.files) {
+            if (file.path == path || file.referencedNames.contains(name)) {
+              files.add(file.path);
+            }
           }
         }
       }

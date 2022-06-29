@@ -144,7 +144,7 @@ class LibraryContext {
       var macroLibraries = <MacroLibrary>[];
       for (var library in cycle.libraries) {
         var macroClasses = <MacroClass>[];
-        for (var file in library.file.libraryFiles) {
+        for (var file in library.files) {
           unitsInformativeBytes[file.uri] = file.unlinked2.informativeBytes;
           for (var macroClass in file.unlinked2.macroClasses) {
             macroClasses.add(
@@ -182,7 +182,7 @@ class LibraryContext {
 
           var inputUnits = <LinkInputUnit>[];
           var partIndex = -1;
-          for (var file in library.file.libraryFiles) {
+          for (var file in library.files) {
             var isSynthetic = !file.exists;
             var unit = file.parse();
 
@@ -357,7 +357,7 @@ class LibraryContext {
   ) {
     var fileContentMap = <String, String>{};
     for (var library in cycle.libraries) {
-      for (var file in library.file.libraryFiles) {
+      for (var file in library.files) {
         fileContentMap[file.path] = file.content;
       }
     }

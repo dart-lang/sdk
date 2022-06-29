@@ -342,7 +342,7 @@ class Driver implements CommandLineStarter {
           if (kind is LibraryFileStateKind) {
             var status = await _runAnalyzer(file, options, formatter);
             allResult = allResult.max(status);
-            analyzedFiles.addAll(file.libraryFiles);
+            analyzedFiles.addAll(kind.files);
           } else if (kind is PartFileStateKind) {
             partFiles.add(file);
           }

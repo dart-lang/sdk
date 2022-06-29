@@ -280,11 +280,11 @@ class LibraryAnalyzer {
     }
 
     if (_analysisOptions.lint) {
-      var allUnits = _library.file.libraryFiles
+      var allUnits = _library.files
           .map((file) => LinterContextUnit(file.content, units[file]!))
           .toList();
       for (int i = 0; i < allUnits.length; i++) {
-        _computeLints(_library.file.libraryFiles[i], allUnits[i], allUnits,
+        _computeLints(_library.files[i], allUnits[i], allUnits,
             analysisOptions: _analysisOptions);
       }
     }
@@ -295,7 +295,7 @@ class LibraryAnalyzer {
 
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
-    for (var file in _library.file.libraryFiles) {
+    for (var file in _library.files) {
       IgnoreValidator(
         _getErrorReporter(file),
         _getErrorListener(file).errors,
@@ -568,7 +568,7 @@ class LibraryAnalyzer {
     var units = <FileState, CompilationUnitImpl>{};
 
     // Parse all files.
-    for (FileState file in _library.file.libraryFiles) {
+    for (FileState file in _library.files) {
       units[file] = _parse(file);
     }
 
