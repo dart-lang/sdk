@@ -36,24 +36,6 @@ abstract class _EmbedderConfig {
   @pragma('vm:entry-point')
   static bool _maySleep = true;
 
-  /// Whether the isolate may establish insecure socket connections
-  /// to all domains.
-  ///
-  /// This setting can be overridden by per-domain policies.
-  @Deprecated(
-      "To be re-implemented in https://github.com/flutter/flutter/issues/54448")
-  @pragma('vm:entry-point')
-  static bool _mayInsecurelyConnectToAllDomains = true;
-
-  /// Domain network policies set by embedder.
-  @Deprecated(
-      "To be re-implemented in https://github.com/flutter/flutter/issues/54448")
-  @pragma('vm:entry-point')
-  static void _setDomainPolicies(String domainNetworkPolicyJson) {
-    // Doesn't do anything because the implementation has been reverted in
-    // https://github.com/flutter/flutter/issues/72723.
-  }
-
   // TODO(zra): Consider adding:
   // - an option to disallow modifying SecurityContext.defaultContext
   // - an option to disallow closing stdout and stderr.
