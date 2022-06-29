@@ -1451,6 +1451,19 @@ elementFactory
 ''');
   }
 
+  test_newFile_library_dartCore() async {
+    final core = fsStateFor(testFile).getFileForUri(
+      Uri.parse('dart:core'),
+    );
+
+    final coreKind = core.t1!.kind as LibraryFileStateKind;
+    for (final import in coreKind.imports) {
+      if (import.isSyntheticDartCoreImport) {
+        fail('dart:core should not import itself');
+      }
+    }
+  }
+
   test_newFile_library_exports_augmentation() async {
     newFile('$testPackageLibPath/b.dart', r'''
 library augment 'a.dart';
