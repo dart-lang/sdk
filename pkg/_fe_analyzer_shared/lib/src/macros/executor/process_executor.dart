@@ -44,12 +44,10 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
   final void Function() onClose;
 
   _SingleProcessMacroExecutor(
-      {required Stream<Object> messageStream,
+      {required super.messageStream,
       required this.onClose,
       required this.outSink,
-      required SerializationMode serializationMode})
-      : super(
-            messageStream: messageStream, serializationMode: serializationMode);
+      required super.serializationMode});
 
   static Future<_SingleProcessMacroExecutor> startWithSocket(
       SerializationMode serializationMode,

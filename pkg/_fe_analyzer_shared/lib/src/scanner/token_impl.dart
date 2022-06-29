@@ -130,24 +130,23 @@ class CommentTokenImpl extends StringTokenImpl implements CommentToken {
    * is canonicalized before the token is created.
    */
   CommentTokenImpl.fromSubstring(
-      TokenType type, String data, int start, int end, int charOffset,
-      {bool canonicalize: false})
-      : super.fromSubstring(type, data, start, end, charOffset,
-            canonicalize: canonicalize);
+      super.type, super.data, super.start, super.end, super.charOffset,
+      {super.canonicalize})
+      : super.fromSubstring();
 
   /**
    * Creates a non-lazy comment token.
    */
-  CommentTokenImpl.fromString(TokenType type, String lexeme, int charOffset)
-      : super.fromString(type, lexeme, charOffset);
+  CommentTokenImpl.fromString(super.type, super.lexeme, super.charOffset)
+      : super.fromString();
 
   /**
    * Creates a lazy string token. If [asciiOnly] is false, the byte array
    * is passed through a UTF-8 decoder.
    */
-  CommentTokenImpl.fromUtf8Bytes(TokenType type, List<int> data, int start,
-      int end, bool asciiOnly, int charOffset)
-      : super.fromUtf8Bytes(type, data, start, end, asciiOnly, charOffset);
+  CommentTokenImpl.fromUtf8Bytes(super.type, super.data, super.start, super.end,
+      super.asciiOnly, super.charOffset)
+      : super.fromUtf8Bytes();
 }
 
 class LanguageVersionTokenImpl extends CommentTokenImpl
@@ -181,18 +180,17 @@ class DartDocToken extends CommentTokenImpl
    * is canonicalized before the token is created.
    */
   DartDocToken.fromSubstring(
-      TokenType type, String data, int start, int end, int charOffset,
-      {bool canonicalize: false})
-      : super.fromSubstring(type, data, start, end, charOffset,
-            canonicalize: canonicalize);
+      super.type, super.data, super.start, super.end, super.charOffset,
+      {super.canonicalize})
+      : super.fromSubstring();
 
   /**
    * Creates a lazy string token. If [asciiOnly] is false, the byte array
    * is passed through a UTF-8 decoder.
    */
-  DartDocToken.fromUtf8Bytes(TokenType type, List<int> data, int start, int end,
-      bool asciiOnly, int charOffset)
-      : super.fromUtf8Bytes(type, data, start, end, asciiOnly, charOffset);
+  DartDocToken.fromUtf8Bytes(super.type, super.data, super.start, super.end,
+      super.asciiOnly, super.charOffset)
+      : super.fromUtf8Bytes();
 }
 
 /**

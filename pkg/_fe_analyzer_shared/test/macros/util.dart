@@ -114,17 +114,13 @@ class TestIdentifier extends IdentifierImpl {
   final ResolvedIdentifier resolved;
 
   TestIdentifier({
-    required int id,
-    required String name,
+    required super.id,
+    required super.name,
     required IdentifierKind kind,
     required Uri uri,
     required String? staticScope,
-  })  : resolved = ResolvedIdentifier(
-            kind: kind, name: name, staticScope: staticScope, uri: uri),
-        super(
-          id: id,
-          name: name,
-        );
+  }) : resolved = ResolvedIdentifier(
+            kind: kind, name: name, staticScope: staticScope, uri: uri);
 }
 
 extension DebugCodeString on Code {

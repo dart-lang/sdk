@@ -27,9 +27,9 @@ class DeclarationCode extends Code {
   @override
   CodeKind get kind => CodeKind.declaration;
 
-  DeclarationCode.fromString(String code) : super.fromString(code);
+  DeclarationCode.fromString(super.code) : super.fromString();
 
-  DeclarationCode.fromParts(List<Object> parts) : super.fromParts(parts);
+  DeclarationCode.fromParts(super.parts) : super.fromParts();
 }
 
 /// A piece of code representing a syntactically valid expression.
@@ -37,9 +37,9 @@ class ExpressionCode extends Code {
   @override
   CodeKind get kind => CodeKind.expression;
 
-  ExpressionCode.fromString(String code) : super.fromString(code);
+  ExpressionCode.fromString(super.code) : super.fromString();
 
-  ExpressionCode.fromParts(List<Object> parts) : super.fromParts(parts);
+  ExpressionCode.fromParts(super.parts) : super.fromParts();
 }
 
 /// A piece of code representing a syntactically valid function body.
@@ -52,9 +52,9 @@ class FunctionBodyCode extends Code {
   @override
   CodeKind get kind => CodeKind.functionBody;
 
-  FunctionBodyCode.fromString(String code) : super.fromString(code);
+  FunctionBodyCode.fromString(super.code) : super.fromString();
 
-  FunctionBodyCode.fromParts(List<Object> parts) : super.fromParts(parts);
+  FunctionBodyCode.fromParts(super.parts) : super.fromParts();
 }
 
 /// A piece of code identifying a syntactically valid function or function type

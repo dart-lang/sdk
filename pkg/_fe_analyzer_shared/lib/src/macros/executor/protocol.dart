@@ -195,14 +195,13 @@ class LoadMacroRequest extends Request {
   final Uri library;
   final String name;
 
-  LoadMacroRequest(this.library, this.name, {required int serializationZoneId})
-      : super(serializationZoneId: serializationZoneId);
+  LoadMacroRequest(this.library, this.name,
+      {required super.serializationZoneId});
 
-  LoadMacroRequest.deserialize(
-      Deserializer deserializer, int serializationZoneId)
+  LoadMacroRequest.deserialize(super.deserializer, super.serializationZoneId)
       : library = Uri.parse((deserializer..moveNext()).expectString()),
         name = (deserializer..moveNext()).expectString(),
-        super.deserialize(deserializer, serializationZoneId);
+        super.deserialize();
 
   @override
   void serialize(Serializer serializer) {
@@ -227,17 +226,16 @@ class InstantiateMacroRequest extends Request {
 
   InstantiateMacroRequest(this.library, this.name, this.constructor,
       this.arguments, this.instanceId,
-      {required int serializationZoneId})
-      : super(serializationZoneId: serializationZoneId);
+      {required super.serializationZoneId});
 
   InstantiateMacroRequest.deserialize(
-      Deserializer deserializer, int serializationZoneId)
+      super.deserializer, super.serializationZoneId)
       : library = (deserializer..moveNext()).expectUri(),
         name = (deserializer..moveNext()).expectString(),
         constructor = (deserializer..moveNext()).expectString(),
         arguments = new Arguments.deserialize(deserializer),
         instanceId = (deserializer..moveNext()).expectInt(),
-        super.deserialize(deserializer, serializationZoneId);
+        super.deserialize();
 
   @override
   void serialize(Serializer serializer) {
@@ -260,17 +258,16 @@ class ExecuteTypesPhaseRequest extends Request {
 
   ExecuteTypesPhaseRequest(
       this.macro, this.declaration, this.identifierResolver,
-      {required int serializationZoneId})
-      : super(serializationZoneId: serializationZoneId);
+      {required super.serializationZoneId});
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
   ExecuteTypesPhaseRequest.deserialize(
-      Deserializer deserializer, int serializationZoneId)
+      super.deserializer, super.serializationZoneId)
       : macro = new MacroInstanceIdentifierImpl.deserialize(deserializer),
         declaration = RemoteInstance.deserialize(deserializer),
         identifierResolver = RemoteInstance.deserialize(deserializer),
-        super.deserialize(deserializer, serializationZoneId);
+        super.deserialize();
 
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.executeTypesPhaseRequest.index);
@@ -300,20 +297,19 @@ class ExecuteDeclarationsPhaseRequest extends Request {
       this.typeDeclarationResolver,
       this.typeResolver,
       this.typeIntrospector,
-      {required int serializationZoneId})
-      : super(serializationZoneId: serializationZoneId);
+      {required super.serializationZoneId});
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
   ExecuteDeclarationsPhaseRequest.deserialize(
-      Deserializer deserializer, int serializationZoneId)
+      super.deserializer, super.serializationZoneId)
       : macro = new MacroInstanceIdentifierImpl.deserialize(deserializer),
         declaration = RemoteInstance.deserialize(deserializer),
         identifierResolver = RemoteInstance.deserialize(deserializer),
         typeDeclarationResolver = RemoteInstance.deserialize(deserializer),
         typeResolver = RemoteInstance.deserialize(deserializer),
         typeIntrospector = RemoteInstance.deserialize(deserializer),
-        super.deserialize(deserializer, serializationZoneId);
+        super.deserialize();
 
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.executeDeclarationsPhaseRequest.index);
@@ -348,13 +344,12 @@ class ExecuteDefinitionsPhaseRequest extends Request {
       this.typeIntrospector,
       this.typeDeclarationResolver,
       this.typeInferrer,
-      {required int serializationZoneId})
-      : super(serializationZoneId: serializationZoneId);
+      {required super.serializationZoneId});
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
   ExecuteDefinitionsPhaseRequest.deserialize(
-      Deserializer deserializer, int serializationZoneId)
+      super.deserializer, super.serializationZoneId)
       : macro = new MacroInstanceIdentifierImpl.deserialize(deserializer),
         declaration = RemoteInstance.deserialize(deserializer),
         identifierResolver = RemoteInstance.deserialize(deserializer),
@@ -362,7 +357,7 @@ class ExecuteDefinitionsPhaseRequest extends Request {
         typeIntrospector = RemoteInstance.deserialize(deserializer),
         typeDeclarationResolver = RemoteInstance.deserialize(deserializer),
         typeInferrer = RemoteInstance.deserialize(deserializer),
-        super.deserialize(deserializer, serializationZoneId);
+        super.deserialize();
 
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.executeDefinitionsPhaseRequest.index);
@@ -388,15 +383,14 @@ class ResolveIdentifierRequest extends Request {
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
   ResolveIdentifierRequest(this.library, this.name, this.identifierResolver,
-      {required int serializationZoneId})
-      : super(serializationZoneId: serializationZoneId);
+      {required super.serializationZoneId});
 
   ResolveIdentifierRequest.deserialize(
-      Deserializer deserializer, int serializationZoneId)
+      super.deserializer, super.serializationZoneId)
       : library = Uri.parse((deserializer..moveNext()).expectString()),
         name = (deserializer..moveNext()).expectString(),
         identifierResolver = RemoteInstance.deserialize(deserializer),
-        super.deserialize(deserializer, serializationZoneId);
+        super.deserialize();
 
   void serialize(Serializer serializer) {
     serializer
@@ -415,16 +409,14 @@ class ResolveTypeRequest extends Request {
   final RemoteInstanceImpl typeResolver;
 
   ResolveTypeRequest(this.typeAnnotationCode, this.typeResolver,
-      {required int serializationZoneId})
-      : super(serializationZoneId: serializationZoneId);
+      {required super.serializationZoneId});
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
-  ResolveTypeRequest.deserialize(
-      Deserializer deserializer, int serializationZoneId)
+  ResolveTypeRequest.deserialize(super.deserializer, super.serializationZoneId)
       : typeAnnotationCode = (deserializer..moveNext()).expectCode(),
         typeResolver = RemoteInstance.deserialize(deserializer),
-        super.deserialize(deserializer, serializationZoneId);
+        super.deserialize();
 
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.resolveTypeRequest.index);
@@ -440,16 +432,15 @@ class IsExactlyTypeRequest extends Request {
   final RemoteInstanceImpl rightType;
 
   IsExactlyTypeRequest(this.leftType, this.rightType,
-      {required int serializationZoneId})
-      : super(serializationZoneId: serializationZoneId);
+      {required super.serializationZoneId});
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
   IsExactlyTypeRequest.deserialize(
-      Deserializer deserializer, int serializationZoneId)
+      super.deserializer, super.serializationZoneId)
       : leftType = RemoteInstance.deserialize(deserializer),
         rightType = RemoteInstance.deserialize(deserializer),
-        super.deserialize(deserializer, serializationZoneId);
+        super.deserialize();
 
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.isExactlyTypeRequest.index);
@@ -465,16 +456,14 @@ class IsSubtypeOfRequest extends Request {
   final RemoteInstanceImpl rightType;
 
   IsSubtypeOfRequest(this.leftType, this.rightType,
-      {required int serializationZoneId})
-      : super(serializationZoneId: serializationZoneId);
+      {required super.serializationZoneId});
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
-  IsSubtypeOfRequest.deserialize(
-      Deserializer deserializer, int serializationZoneId)
+  IsSubtypeOfRequest.deserialize(super.deserializer, super.serializationZoneId)
       : leftType = RemoteInstance.deserialize(deserializer),
         rightType = RemoteInstance.deserialize(deserializer),
-        super.deserialize(deserializer, serializationZoneId);
+        super.deserialize();
 
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.isSubtypeOfRequest.index);
@@ -493,8 +482,7 @@ class InterfaceIntrospectionRequest extends Request {
 
   InterfaceIntrospectionRequest(
       this.type, this.typeIntrospector, this.requestKind,
-      {required int serializationZoneId})
-      : super(serializationZoneId: serializationZoneId);
+      {required super.serializationZoneId});
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again and it should instead be passed in here.
@@ -519,16 +507,15 @@ class DeclarationOfRequest extends Request {
   final RemoteInstanceImpl typeDeclarationResolver;
 
   DeclarationOfRequest(this.identifier, this.typeDeclarationResolver,
-      {required int serializationZoneId})
-      : super(serializationZoneId: serializationZoneId);
+      {required super.serializationZoneId});
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
   DeclarationOfRequest.deserialize(
-      Deserializer deserializer, int serializationZoneId)
+      super.deserializer, super.serializationZoneId)
       : identifier = RemoteInstance.deserialize(deserializer),
         typeDeclarationResolver = RemoteInstance.deserialize(deserializer),
-        super.deserialize(deserializer, serializationZoneId);
+        super.deserialize();
 
   @override
   void serialize(Serializer serializer) {
@@ -546,16 +533,14 @@ class InferTypeRequest extends Request {
   final RemoteInstanceImpl typeInferrer;
 
   InferTypeRequest(this.omittedType, this.typeInferrer,
-      {required int serializationZoneId})
-      : super(serializationZoneId: serializationZoneId);
+      {required super.serializationZoneId});
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
-  InferTypeRequest.deserialize(
-      Deserializer deserializer, int serializationZoneId)
+  InferTypeRequest.deserialize(super.deserializer, super.serializationZoneId)
       : omittedType = RemoteInstance.deserialize(deserializer),
         typeInferrer = RemoteInstance.deserialize(deserializer),
-        super.deserialize(deserializer, serializationZoneId);
+        super.deserialize();
 
   @override
   void serialize(Serializer serializer) {
@@ -666,13 +651,8 @@ class ClientStaticTypeImpl implements StaticType {
 /// Named variant of the [ClientStaticTypeImpl].
 class ClientNamedStaticTypeImpl extends ClientStaticTypeImpl
     implements NamedStaticType {
-  ClientNamedStaticTypeImpl(
-      Future<Response> Function(Request request) sendRequest,
-      {required RemoteInstanceImpl remoteInstance,
-      required int serializationZoneId})
-      : super(sendRequest,
-            remoteInstance: remoteInstance,
-            serializationZoneId: serializationZoneId);
+  ClientNamedStaticTypeImpl(super.sendRequest,
+      {required super.remoteInstance, required super.serializationZoneId});
 }
 
 /// Client side implementation of the [ClientTypeIntrospector], converts

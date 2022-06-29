@@ -3371,7 +3371,7 @@ class _AssertContext<Variable extends Object, Type extends Object>
   /// Flow models associated with the condition being asserted.
   ExpressionInfo<Variable, Type>? _conditionInfo;
 
-  _AssertContext(FlowModel<Variable, Type> previous) : super(previous);
+  _AssertContext(super.previous);
 
   @override
   String toString() =>
@@ -3424,8 +3424,7 @@ class _ConditionalContext<Variable extends Object, Type extends Object>
   /// circumstance where the "then" branch is taken.
   ExpressionInfo<Variable, Type>? _thenInfo;
 
-  _ConditionalContext(ExpressionInfo<Variable, Type> conditionInfo)
-      : super(conditionInfo);
+  _ConditionalContext(ExpressionInfo<Variable, Type> super.conditionInfo);
 
   @override
   String toString() => '_ConditionalContext(conditionInfo: $_conditionInfo, '
@@ -4353,8 +4352,7 @@ abstract class _FlowContext {}
 /// [_FlowContext] representing a function expression.
 class _FunctionExpressionContext<Variable extends Object, Type extends Object>
     extends _SimpleContext<Variable, Type> {
-  _FunctionExpressionContext(FlowModel<Variable, Type> previous)
-      : super(previous);
+  _FunctionExpressionContext(super.previous);
 
   @override
   String toString() => '_FunctionExpressionContext(previous: $_previous)';
@@ -4367,8 +4365,7 @@ class _IfContext<Variable extends Object, Type extends Object>
   /// statement executes, in the circumstance where the "then" branch is taken.
   FlowModel<Variable, Type>? _afterThen;
 
-  _IfContext(ExpressionInfo<Variable, Type> conditionInfo)
-      : super(conditionInfo);
+  _IfContext(ExpressionInfo<Variable, Type> super.conditionInfo);
 
   @override
   String toString() =>
@@ -4378,8 +4375,7 @@ class _IfContext<Variable extends Object, Type extends Object>
 /// [_FlowContext] representing an "if-null" (`??`) expression.
 class _IfNullExpressionContext<Variable extends Object, Type extends Object>
     extends _SimpleContext<Variable, Type> {
-  _IfNullExpressionContext(FlowModel<Variable, Type> previous)
-      : super(previous);
+  _IfNullExpressionContext(super.previous);
 
   @override
   String toString() => '_IfNullExpressionContext(previous: $_previous)';
@@ -4396,9 +4392,8 @@ class _LegacyBinaryAndContext<Variable extends Object, Type extends Object>
   /// expression.
   final AssignedVariablesNodeInfo<Variable> _assignedVariablesInfoForRhs;
 
-  _LegacyBinaryAndContext(Map<Variable, Type> previousKnownTypes,
-      this._lhsShownTypes, this._assignedVariablesInfoForRhs)
-      : super(previousKnownTypes);
+  _LegacyBinaryAndContext(super.previousKnownTypes, this._lhsShownTypes,
+      this._assignedVariablesInfoForRhs);
 }
 
 /// Contextual information tracked by legacy type promotion about a statement or
@@ -4947,7 +4942,7 @@ class _LegacyVariableReadInfo<Variable, Type>
 /// [_FlowContext] representing a null aware access (`?.`).
 class _NullAwareAccessContext<Variable extends Object, Type extends Object>
     extends _SimpleContext<Variable, Type> {
-  _NullAwareAccessContext(FlowModel<Variable, Type> previous) : super(previous);
+  _NullAwareAccessContext(super.previous);
 
   @override
   String toString() => '_NullAwareAccessContext(previous: $_previous)';
@@ -5064,8 +5059,7 @@ class _SimpleStatementContext<Variable extends Object, Type extends Object>
   /// after evaluation of the switch expression.
   final FlowModel<Variable, Type> _previous;
 
-  _SimpleStatementContext(Reachability checkpoint, this._previous)
-      : super(checkpoint);
+  _SimpleStatementContext(super.checkpoint, this._previous);
 
   @override
   String toString() => '_SimpleStatementContext(breakModel: $_breakModel, '
@@ -5146,7 +5140,7 @@ class _TryContext<Variable extends Object, Type extends Object>
   /// has finished executing.
   FlowModel<Variable, Type>? _afterBodyAndCatches;
 
-  _TryContext(FlowModel<Variable, Type> previous) : super(previous);
+  _TryContext(super.previous);
 
   @override
   String toString() =>
@@ -5160,7 +5154,7 @@ class _TryFinallyContext<Variable extends Object, Type extends Object>
   /// block.
   late final FlowModel<Variable, Type> _beforeFinally;
 
-  _TryFinallyContext(FlowModel<Variable, Type> previous) : super(previous);
+  _TryFinallyContext(super.previous);
 }
 
 /// [_FlowContext] representing a `while` loop (or a C-style `for` loop, which
@@ -5170,8 +5164,7 @@ class _WhileContext<Variable extends Object, Type extends Object>
   /// Flow models associated with the loop condition.
   final ExpressionInfo<Variable, Type> _conditionInfo;
 
-  _WhileContext(Reachability checkpoint, this._conditionInfo)
-      : super(checkpoint);
+  _WhileContext(super.checkpoint, this._conditionInfo);
 
   @override
   String toString() => '_WhileContext(breakModel: $_breakModel, '

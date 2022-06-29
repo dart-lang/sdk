@@ -1025,8 +1025,8 @@ class NamedArgumentReferenceIdentifierContext extends IdentifierContext {
 class TopLevelDeclarationIdentifierContext extends IdentifierContext {
   final List<String> followingValues;
 
-  const TopLevelDeclarationIdentifierContext(String name, this.followingValues)
-      : super(name, inDeclaration: true);
+  const TopLevelDeclarationIdentifierContext(super.name, this.followingValues)
+      : super(inDeclaration: true);
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {

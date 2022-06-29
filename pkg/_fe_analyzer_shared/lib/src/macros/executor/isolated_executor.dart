@@ -37,12 +37,10 @@ class _SingleIsolatedMacroExecutor extends ExternalMacroExecutorBase {
   final void Function() onClose;
 
   _SingleIsolatedMacroExecutor(
-      {required Stream<Object> messageStream,
+      {required super.messageStream,
       required this.onClose,
       required this.sendPort,
-      required SerializationMode serializationMode})
-      : super(
-            messageStream: messageStream, serializationMode: serializationMode);
+      required super.serializationMode});
 
   static Future<_SingleIsolatedMacroExecutor> start(
       Uri uriToSpawn,

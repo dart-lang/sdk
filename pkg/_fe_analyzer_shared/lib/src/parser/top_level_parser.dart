@@ -10,14 +10,10 @@ import 'declaration_kind.dart' show DeclarationKind;
 
 import 'class_member_parser.dart' show ClassMemberParser;
 
-import 'listener.dart' show Listener;
-
 /// Parser which only parses top-level elements, but ignores their bodies.
 /// Use [Parser] to parse everything.
 class TopLevelParser extends ClassMemberParser {
-  TopLevelParser(Listener listener, {bool useImplicitCreationExpression: true})
-      : super(listener,
-            useImplicitCreationExpression: useImplicitCreationExpression);
+  TopLevelParser(super.listener, {super.useImplicitCreationExpression});
 
   @override
   Token parseClassOrMixinOrExtensionBody(Token token, DeclarationKind kind,

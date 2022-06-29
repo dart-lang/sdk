@@ -43,8 +43,7 @@ class TypeBuilderBase implements IdentifierResolver {
 }
 
 class TypeBuilderImpl extends TypeBuilderBase implements TypeBuilder {
-  TypeBuilderImpl(IdentifierResolver identifierResolver)
-      : super(identifierResolver);
+  TypeBuilderImpl(super.identifierResolver);
 
   @override
   void declareType(String name, DeclarationCode typeDeclaration) {
@@ -60,13 +59,9 @@ class DeclarationBuilderBase extends TypeBuilderBase
   final TypeDeclarationResolver typeDeclarationResolver;
   final TypeResolver typeResolver;
 
-  DeclarationBuilderBase(IdentifierResolver identifierResolver,
-      this.typeIntrospector, this.typeDeclarationResolver, this.typeResolver,
-      {Map<String, List<DeclarationCode>>? parentClassAugmentations,
-      List<DeclarationCode>? parentLibraryAugmentations})
-      : super(identifierResolver,
-            parentClassAugmentations: parentClassAugmentations,
-            parentLibraryAugmentations: parentLibraryAugmentations);
+  DeclarationBuilderBase(super.identifierResolver, this.typeIntrospector,
+      this.typeDeclarationResolver, this.typeResolver,
+      {super.parentClassAugmentations, super.parentLibraryAugmentations});
 
   @override
   Future<TypeDeclaration> declarationOf(IdentifierImpl identifier) =>
@@ -94,13 +89,8 @@ class DeclarationBuilderBase extends TypeBuilderBase
 
 class DeclarationBuilderImpl extends DeclarationBuilderBase
     implements DeclarationBuilder {
-  DeclarationBuilderImpl(
-      IdentifierResolver identifierResolver,
-      TypeIntrospector typeIntrospector,
-      TypeDeclarationResolver typeDeclarationResolver,
-      TypeResolver typeResolver)
-      : super(identifierResolver, typeIntrospector, typeDeclarationResolver,
-            typeResolver);
+  DeclarationBuilderImpl(super.identifierResolver, super.typeIntrospector,
+      super.typeDeclarationResolver, super.typeResolver);
 
   @override
   void declareInLibrary(DeclarationCode declaration) {
@@ -134,18 +124,9 @@ class DefinitionBuilderBase extends DeclarationBuilderBase
     implements TypeInferrer {
   final TypeInferrer typeInferrer;
 
-  DefinitionBuilderBase(
-      IdentifierResolver identifierResolver,
-      TypeIntrospector typeIntrospector,
-      TypeDeclarationResolver typeDeclarationResolver,
-      TypeResolver typeResolver,
-      this.typeInferrer,
-      {Map<String, List<DeclarationCode>>? parentClassAugmentations,
-      List<DeclarationCode>? parentLibraryAugmentations})
-      : super(identifierResolver, typeIntrospector, typeDeclarationResolver,
-            typeResolver,
-            parentClassAugmentations: parentClassAugmentations,
-            parentLibraryAugmentations: parentLibraryAugmentations);
+  DefinitionBuilderBase(super.identifierResolver, super.typeIntrospector,
+      super.typeDeclarationResolver, super.typeResolver, this.typeInferrer,
+      {super.parentClassAugmentations, super.parentLibraryAugmentations});
 
   @override
   Future<TypeAnnotation> inferType(OmittedTypeAnnotationImpl omittedType) =>
