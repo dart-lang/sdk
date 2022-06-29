@@ -10,7 +10,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' show $A;
 import '../common/elements.dart' show JCommonElements;
 import '../elements/entities.dart';
 import '../js/js.dart' as js;
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../util/util.dart';
 import '../js_emitter/model.dart';
 import '../constants/values.dart' show ConstantValue;

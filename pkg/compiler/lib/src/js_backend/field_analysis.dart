@@ -19,7 +19,7 @@ import '../kernel/element_map.dart' show KernelToElementMap;
 import '../kernel/kelements.dart' show KClass, KField, KConstructor;
 import '../kernel/kernel_world.dart';
 import '../options.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../universe/member_usage.dart';
 
 /// AllocatorAnalysis

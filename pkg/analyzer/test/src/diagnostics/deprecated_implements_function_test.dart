@@ -37,7 +37,7 @@ class A implements Function, Function {}
 class Function {}
 class A implements Function {}
 ''', [
-      error(HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION, 6, 8),
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 8),
     ]);
   }
 }

@@ -58,8 +58,8 @@ class SimpleMacro
       required this.myString});
 
   @override
-  FutureOr<void> buildDeclarationsForClass(
-      ClassDeclaration clazz, ClassMemberDeclarationBuilder builder) async {
+  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
+      ClassMemberDeclarationBuilder builder) async {
     var fields = await builder.fieldsOf(clazz);
     builder.declareInClass(DeclarationCode.fromParts([
       'static const List<String> fieldNames = [',
@@ -140,8 +140,8 @@ class SimpleMacro
   }
 
   @override
-  Future<void> buildDefinitionForClass(
-      ClassDeclaration clazz, ClassDefinitionBuilder builder) async {
+  Future<void> buildDefinitionForClass(IntrospectableClassDeclaration clazz,
+      ClassDefinitionBuilder builder) async {
     // Apply ourself to all our members
     var fields = (await builder.fieldsOf(clazz));
     for (var field in fields) {
@@ -164,7 +164,7 @@ class SimpleMacro
   Future<void> buildDefinitionForConstructor(ConstructorDeclaration constructor,
       ConstructorDefinitionBuilder builder) async {
     var clazz = await builder.declarationOf(constructor.definingClass)
-        as ClassDeclaration;
+        as IntrospectableClassDeclaration;
     var fields = (await builder.fieldsOf(clazz));
 
     builder.augment(
@@ -196,16 +196,19 @@ class SimpleMacro
     await buildDefinitionForFunction(method, builder);
 
     // Test the type declaration resolver
-    var parentClass =
-        await builder.declarationOf(method.definingClass) as ClassDeclaration;
+    var parentClass = await builder.declarationOf(method.definingClass)
+        as IntrospectableClassDeclaration;
     // Should be able to find ourself in the methods of the parent class.
     (await builder.methodsOf(parentClass))
         .singleWhere((m) => m.identifier == method.identifier);
 
     // Test the class introspector
-    var superClass = (await builder.superclassOf(parentClass))!;
-    var interfaces = (await builder.interfacesOf(parentClass));
-    var mixins = (await builder.mixinsOf(parentClass));
+    var superClass =
+        (await builder.declarationOf(parentClass.superclass!.identifier));
+    var interfaces = await Future.wait(parentClass.interfaces
+        .map((interface) => builder.declarationOf(interface.identifier)));
+    var mixins = await Future.wait(parentClass.mixins
+        .map((mixins) => builder.declarationOf(mixins.identifier)));
     var fields = (await builder.fieldsOf(parentClass));
     var methods = (await builder.methodsOf(parentClass));
     var constructors = (await builder.constructorsOf(parentClass));

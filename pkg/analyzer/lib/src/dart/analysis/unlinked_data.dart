@@ -228,6 +228,26 @@ class UnlinkedNamespaceDirectiveConfiguration {
   }
 }
 
+class UnlinkedPartDirective {
+  final String uri;
+
+  UnlinkedPartDirective({
+    required this.uri,
+  });
+
+  factory UnlinkedPartDirective.read(
+    SummaryDataReader reader,
+  ) {
+    return UnlinkedPartDirective(
+      uri: reader.readStringUtf8(),
+    );
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeStringUtf8(uri);
+  }
+}
+
 class UnlinkedPartOfNameDirective {
   final String name;
   final UnlinkedSourceRange nameRange;
@@ -313,10 +333,10 @@ class UnlinkedUnit {
   /// `import augmentation` directives.
   final List<UnlinkedImportAugmentationDirective> augmentations;
 
-  /// URIs of `export` directives.
+  /// `export` directives.
   final List<UnlinkedNamespaceDirective> exports;
 
-  /// URIs of `import` directives.
+  /// `import` directives.
   final List<UnlinkedNamespaceDirective> imports;
 
   /// Encoded informative data.
@@ -334,8 +354,8 @@ class UnlinkedUnit {
   /// The list of `macro` classes.
   final List<MacroClass> macroClasses;
 
-  /// URIs of `part` directives.
-  final List<String> parts;
+  /// `part` directives.
+  final List<UnlinkedPartDirective> parts;
 
   /// The `part of my.name';` directive.
   final UnlinkedPartOfNameDirective? partOfNameDirective;
@@ -385,7 +405,9 @@ class UnlinkedUnit {
       macroClasses: reader.readTypedList(
         () => MacroClass.read(reader),
       ),
-      parts: reader.readStringUtf8List(),
+      parts: reader.readTypedList(
+        () => UnlinkedPartDirective.read(reader),
+      ),
       partOfNameDirective: reader.readOptionalObject(
         UnlinkedPartOfNameDirective.read,
       ),
@@ -420,7 +442,9 @@ class UnlinkedUnit {
     sink.writeList<MacroClass>(macroClasses, (x) {
       x.write(sink);
     });
-    sink.writeStringUtf8Iterable(parts);
+    sink.writeList<UnlinkedPartDirective>(parts, (x) {
+      x.write(sink);
+    });
     sink.writeOptionalObject<UnlinkedPartOfNameDirective>(
       partOfNameDirective,
       (x) => x.write(sink),

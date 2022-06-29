@@ -6916,10 +6916,8 @@ bool Serializer::InCurrentLoadingUnitOrRoot(ObjectPtr obj) {
 
   intptr_t unit_id = heap_->GetLoadingUnit(obj);
   if (unit_id == WeakTable::kNoValue) {
-    // Not found in early assignment. Conservatively choose the root.
-    // TODO(41974): Are these always type testing stubs?
-    unit_id = LoadingUnit::kRootId;
-    heap_->SetLoadingUnit(obj, unit_id);
+    FATAL("Missing loading unit assignment: %s\n",
+          Object::Handle(obj).ToCString());
   }
   return unit_id == LoadingUnit::kRootId || unit_id == current_loading_unit_id_;
 }

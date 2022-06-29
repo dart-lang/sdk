@@ -11,7 +11,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ getSuperClass() → core::String {
-    return "Object";
+    return "null";
   }
 }
 @#C1
@@ -26,7 +26,7 @@ class B extends self::A {
 @#C1
 class M extends core::Object /*isMixinDeclaration*/  {
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ getSuperClass() → core::String {
-    return "Object";
+    return "null";
   }
 }
 abstract class _C&A&M = self::A with self::M /*isAnonymousMixin*/  {

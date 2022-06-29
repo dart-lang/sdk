@@ -45,8 +45,6 @@ import 'b.dart';
     // First time we refresh everything.
     await resolveFile(c.path);
 
-    // TODO(scheglov) We have duplicates in `referencingFiles`.
-    // The reason is that we temporarily have two ways to access imports.
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
@@ -55,8 +53,13 @@ files
       id: file_0
       kind: library_0
         imports
-          library_1 dart:core synthetic
-      referencingFiles: [file_2, file_2]
+          library_3 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_2
+      referencingFiles: file_2
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
@@ -64,10 +67,15 @@ files
     uri: package:dart.test/b.dart
     current
       id: file_1
-      kind: library_2
+      kind: library_1
         imports
-          library_1 dart:core synthetic
-      referencingFiles: [file_2, file_2]
+          library_3 dart:core synthetic
+        cycle_1
+          dependencies: dart:core
+          libraries: library_1
+          apiSignature_1
+          users: cycle_2
+      referencingFiles: file_2
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
@@ -75,31 +83,32 @@ files
     uri: package:dart.test/c.dart
     current
       id: file_2
-      kind: library_3
+      kind: library_2
         imports
           library_0
-          library_2
-          library_1 dart:core synthetic
+          library_1
+          library_3 dart:core synthetic
+        cycle_2
+          dependencies: cycle_0 cycle_1 dart:core
+          libraries: library_2
+          apiSignature_2
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k03
-      libraries: file_0
     get: []
     put: [k03]
   /workspace/dart/test/lib/b.dart
-    current
+    current: cycle_1
       key: k04
-      libraries: file_1
     get: []
     put: [k04]
   /workspace/dart/test/lib/c.dart
-    current
+    current: cycle_2
       key: k05
-      libraries: file_2
     get: []
     put: [k05]
 elementFactory
@@ -121,8 +130,13 @@ files
       id: file_0
       kind: library_0
         imports
-          library_1 dart:core synthetic
-      referencingFiles: [file_2, file_2]
+          library_3 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_2
+      referencingFiles: file_2
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
@@ -130,10 +144,15 @@ files
     uri: package:dart.test/b.dart
     current
       id: file_1
-      kind: library_2
+      kind: library_1
         imports
-          library_1 dart:core synthetic
-      referencingFiles: [file_2, file_2]
+          library_3 dart:core synthetic
+        cycle_1
+          dependencies: dart:core
+          libraries: library_1
+          apiSignature_1
+          users: cycle_2
+      referencingFiles: file_2
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
@@ -141,31 +160,32 @@ files
     uri: package:dart.test/c.dart
     current
       id: file_2
-      kind: library_3
+      kind: library_2
         imports
           library_0
-          library_2
-          library_1 dart:core synthetic
+          library_1
+          library_3 dart:core synthetic
+        cycle_2
+          dependencies: cycle_0 cycle_1 dart:core
+          libraries: library_2
+          apiSignature_2
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k03
-      libraries: file_0
     get: []
     put: [k03]
   /workspace/dart/test/lib/b.dart
-    current
+    current: cycle_1
       key: k04
-      libraries: file_1
     get: []
     put: [k04]
   /workspace/dart/test/lib/c.dart
-    current
+    current: cycle_2
       key: k05
-      libraries: file_2
     get: []
     put: [k05]
 elementFactory
@@ -187,8 +207,13 @@ files
       id: file_0
       kind: library_0
         imports
-          library_1 dart:core synthetic
-      referencingFiles: [file_2, file_2]
+          library_3 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_2
+      referencingFiles: file_2
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
@@ -196,10 +221,15 @@ files
     uri: package:dart.test/b.dart
     current
       id: file_1
-      kind: library_2
+      kind: library_1
         imports
-          library_1 dart:core synthetic
-      referencingFiles: [file_2, file_2]
+          library_3 dart:core synthetic
+        cycle_1
+          dependencies: dart:core
+          libraries: library_1
+          apiSignature_1
+          users: cycle_2
+      referencingFiles: file_2
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
@@ -207,31 +237,32 @@ files
     uri: package:dart.test/c.dart
     current
       id: file_2
-      kind: library_3
+      kind: library_2
         imports
           library_0
-          library_2
-          library_1 dart:core synthetic
+          library_1
+          library_3 dart:core synthetic
+        cycle_2
+          dependencies: cycle_0 cycle_1 dart:core
+          libraries: library_2
+          apiSignature_2
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k03
-      libraries: file_0
     get: []
     put: [k03]
   /workspace/dart/test/lib/b.dart
-    current
+    current: cycle_1
       key: k04
-      libraries: file_1
     get: []
     put: [k04]
   /workspace/dart/test/lib/c.dart
-    current
+    current: cycle_2
       key: k05
-      libraries: file_2
     get: []
     put: [k05]
 elementFactory
@@ -255,10 +286,13 @@ files
     uri: package:dart.test/b.dart
     current
       id: file_1
-      kind: library_2
+      kind: library_1
         imports
-          library_1 dart:core synthetic
-      referencingFiles: [file_2]
+          library_3 dart:core synthetic
+        cycle_1
+          dependencies: dart:core
+          libraries: library_1
+          apiSignature_1
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
@@ -271,9 +305,8 @@ libraryCycles
     get: []
     put: [k03]
   /workspace/dart/test/lib/b.dart
-    current
+    current: cycle_1
       key: k04
-      libraries: file_1
     get: []
     put: [k04]
   /workspace/dart/test/lib/c.dart
@@ -293,11 +326,16 @@ files
   /workspace/dart/test/lib/a.dart
     uri: package:dart.test/a.dart
     current
-      id: file_3
-      kind: library_4
+      id: file_8
+      kind: library_8
         imports
-          library_1 dart:core synthetic
-      referencingFiles: [file_4, file_4]
+          library_3 dart:core synthetic
+        cycle_4
+          dependencies: dart:core
+          libraries: library_8
+          apiSignature_0
+          users: cycle_5
+      referencingFiles: file_9
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00, k00]
@@ -305,42 +343,48 @@ files
     uri: package:dart.test/b.dart
     current
       id: file_1
-      kind: library_2
+      kind: library_1
         imports
-          library_1 dart:core synthetic
-      referencingFiles: [file_2, file_4, file_4]
+          library_3 dart:core synthetic
+        cycle_1
+          dependencies: dart:core
+          libraries: library_1
+          apiSignature_1
+          users: cycle_5
+      referencingFiles: file_9
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
   /workspace/dart/test/lib/c.dart
     uri: package:dart.test/c.dart
     current
-      id: file_4
-      kind: library_5
+      id: file_9
+      kind: library_9
         imports
-          library_4
-          library_2
-          library_1 dart:core synthetic
+          library_8
+          library_1
+          library_3 dart:core synthetic
+        cycle_5
+          dependencies: cycle_1 cycle_4 dart:core
+          libraries: library_9
+          apiSignature_2
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02, k02]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_4
       key: k03
-      libraries: file_3
     get: []
     put: [k03, k03]
   /workspace/dart/test/lib/b.dart
-    current
+    current: cycle_1
       key: k04
-      libraries: file_1
     get: []
     put: [k04]
   /workspace/dart/test/lib/c.dart
-    current
+    current: cycle_5
       key: k05
-      libraries: file_4
     get: []
     put: [k05, k05]
 elementFactory
@@ -477,8 +521,13 @@ files
       id: file_0
       kind: library_0
         imports
-          library_1 dart:core synthetic
-        parts: file_1
+          library_2 dart:core synthetic
+        parts
+          partOfUriKnown_1
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
@@ -486,17 +535,16 @@ files
     uri: package:dart.test/b.dart
     current
       id: file_1
-      kind: partOfUriKnown_2
+      kind: partOfUriKnown_1
         library: library_0
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k02
-      libraries: file_0
     get: []
     put: [k02]
 elementFactory
@@ -534,29 +582,33 @@ files
   /workspace/dart/test/lib/a.dart
     uri: package:dart.test/a.dart
     current
-      id: file_2
-      kind: library_3
+      id: file_7
+      kind: library_7
         imports
-          library_1 dart:core synthetic
-        parts: file_3
+          library_2 dart:core synthetic
+        parts
+          partOfUriKnown_8
+        cycle_2
+          dependencies: dart:core
+          libraries: library_7
+          apiSignature_0
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00, k00]
   /workspace/dart/test/lib/b.dart
     uri: package:dart.test/b.dart
     current
-      id: file_3
-      kind: partOfUriKnown_4
-        library: library_3
-      referencingFiles: [file_2]
+      id: file_8
+      kind: partOfUriKnown_8
+        library: library_7
+      referencingFiles: file_7
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01, k01]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_2
       key: k02
-      libraries: file_2
     get: []
     put: [k02, k02]
 elementFactory
@@ -593,9 +645,15 @@ files
       id: file_0
       kind: library_0
         imports
-          library_1 dart:core synthetic
-        parts: file_1
-      referencingFiles: [file_2, file_2]
+          library_3 dart:core synthetic
+        parts
+          partOfUriKnown_1
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_1
+      referencingFiles: file_2
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
@@ -603,9 +661,9 @@ files
     uri: package:dart.test/b.dart
     current
       id: file_1
-      kind: partOfUriKnown_2
+      kind: partOfUriKnown_1
         library: library_0
-      referencingFiles: [file_0]
+      referencingFiles: file_0
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
@@ -613,24 +671,26 @@ files
     uri: package:dart.test/c.dart
     current
       id: file_2
-      kind: library_3
+      kind: library_2
         imports
           library_0
-          library_1 dart:core synthetic
+          library_3 dart:core synthetic
+        cycle_1
+          dependencies: cycle_0 dart:core
+          libraries: library_2
+          apiSignature_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k03
-      libraries: file_0
     get: []
     put: [k03]
   /workspace/dart/test/lib/c.dart
-    current
+    current: cycle_1
       key: k04
-      libraries: file_2
     get: []
     put: [k04]
 elementFactory
@@ -676,47 +736,55 @@ files
   /workspace/dart/test/lib/a.dart
     uri: package:dart.test/a.dart
     current
-      id: file_3
-      kind: library_4
+      id: file_8
+      kind: library_8
         imports
-          library_1 dart:core synthetic
-        parts: file_4
-      referencingFiles: [file_5, file_5]
+          library_3 dart:core synthetic
+        parts
+          partOfUriKnown_9
+        cycle_3
+          dependencies: dart:core
+          libraries: library_8
+          apiSignature_0
+          users: cycle_4
+      referencingFiles: file_10
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00, k00]
   /workspace/dart/test/lib/b.dart
     uri: package:dart.test/b.dart
     current
-      id: file_4
-      kind: partOfUriKnown_5
-        library: library_4
-      referencingFiles: [file_3]
+      id: file_9
+      kind: partOfUriKnown_9
+        library: library_8
+      referencingFiles: file_8
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01, k01]
   /workspace/dart/test/lib/c.dart
     uri: package:dart.test/c.dart
     current
-      id: file_5
-      kind: library_6
+      id: file_10
+      kind: library_10
         imports
-          library_4
-          library_1 dart:core synthetic
+          library_8
+          library_3 dart:core synthetic
+        cycle_4
+          dependencies: cycle_3 dart:core
+          libraries: library_10
+          apiSignature_1
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02, k02]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_3
       key: k03
-      libraries: file_3
     get: []
     put: [k03, k03]
   /workspace/dart/test/lib/c.dart
-    current
+    current: cycle_4
       key: k04
-      libraries: file_5
     get: []
     put: [k04, k04]
 elementFactory
@@ -855,14 +923,17 @@ files
       kind: library_0
         imports
           library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k01
-      libraries: file_0
     get: []
     put: [k01]
 elementFactory
@@ -1394,14 +1465,17 @@ files
       kind: library_0
         imports
           library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k01
-      libraries: file_0
     get: [k01]
     put: [k01]
 elementFactory
@@ -1423,14 +1497,17 @@ files
       kind: library_0
         imports
           library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k01
-      libraries: file_0
     get: [k01]
     put: [k01]
 elementFactory
@@ -1456,32 +1533,39 @@ files
       kind: library_0
         imports
           library_1 dart:core synthetic
-      referencingFiles: [file_1, file_1]
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_2
+      referencingFiles: file_6
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
   /workspace/dart/test/lib/b.dart
     uri: package:dart.test/b.dart
     current
-      id: file_1
-      kind: library_2
+      id: file_6
+      kind: library_6
         imports
           library_0
           library_1 dart:core synthetic
+        cycle_2
+          dependencies: cycle_0 dart:core
+          libraries: library_6
+          apiSignature_1
       unlinkedKey: k08
     unlinkedGet: []
     unlinkedPut: [k08]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k01
-      libraries: file_0
     get: [k01, k01]
     put: [k01]
   /workspace/dart/test/lib/b.dart
-    current
+    current: cycle_2
       key: k09
-      libraries: file_1
     get: [k09]
     put: [k09]
 elementFactory
@@ -1513,32 +1597,39 @@ files
       kind: library_0
         imports
           library_1 dart:core synthetic
-      referencingFiles: [file_1, file_1]
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_2
+      referencingFiles: file_6
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
   /workspace/dart/test/lib/b.dart
     uri: package:dart.test/b.dart
     current
-      id: file_1
-      kind: library_2
+      id: file_6
+      kind: library_6
         imports
           library_0
           library_1 dart:core synthetic
+        cycle_2
+          dependencies: cycle_0 dart:core
+          libraries: library_6
+          apiSignature_1
       unlinkedKey: k08
     unlinkedGet: []
     unlinkedPut: [k08]
 libraryCycles
   /workspace/dart/test/lib/a.dart
-    current
+    current: cycle_0
       key: k01
-      libraries: file_0
     get: [k01, k01]
     put: [k01]
   /workspace/dart/test/lib/b.dart
-    current
+    current: cycle_2
       key: k09
-      libraries: file_1
     get: [k09]
     put: [k09]
 elementFactory
@@ -1574,14 +1665,17 @@ files
       kind: library_0
         imports
           library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
 libraryCycles
   /workspace/dart/test/lib/test.dart
-    current
+    current: cycle_0
       key: k01
-      libraries: file_0
     get: [k01]
     put: [k01]
 elementFactory
@@ -1609,14 +1703,17 @@ files
       kind: library_0
         imports
           library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
 libraryCycles
   /workspace/dart/test/lib/test.dart
-    current
+    current: cycle_0
       key: k01
-      libraries: file_0
     get: [k01]
     put: [k01]
 elementFactory
@@ -1748,8 +1845,13 @@ files
       id: file_0
       kind: library_0
         imports
-          library_1 dart:core synthetic
-      referencingFiles: [file_1, file_1, file_2, file_2]
+          library_3 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_1 cycle_2
+      referencingFiles: file_1 file_2
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
@@ -1757,10 +1859,14 @@ files
     uri: package:dart.aaa/b.dart
     current
       id: file_1
-      kind: library_2
+      kind: library_1
         imports
           library_0
-          library_1 dart:core synthetic
+          library_3 dart:core synthetic
+        cycle_1
+          dependencies: cycle_0 dart:core
+          libraries: library_1
+          apiSignature_1
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
@@ -1768,30 +1874,31 @@ files
     uri: package:dart.aaa/c.dart
     current
       id: file_2
-      kind: library_3
+      kind: library_2
         imports
           library_0
-          library_1 dart:core synthetic
+          library_3 dart:core synthetic
+        cycle_2
+          dependencies: cycle_0 dart:core
+          libraries: library_2
+          apiSignature_2
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
 libraryCycles
   /workspace/dart/aaa/lib/a.dart
-    current
+    current: cycle_0
       key: k03
-      libraries: file_0
     get: []
     put: [k03]
   /workspace/dart/aaa/lib/b.dart
-    current
+    current: cycle_1
       key: k04
-      libraries: file_1
     get: []
     put: [k04]
   /workspace/dart/aaa/lib/c.dart
-    current
+    current: cycle_2
       key: k05
-      libraries: file_2
     get: []
     put: [k05]
 elementFactory
@@ -1814,8 +1921,13 @@ files
       id: file_0
       kind: library_0
         imports
-          library_1 dart:core synthetic
-      referencingFiles: [file_1, file_1, file_2, file_2]
+          library_3 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_2
+      referencingFiles: file_2
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
@@ -1827,27 +1939,29 @@ files
     uri: package:dart.aaa/c.dart
     current
       id: file_2
-      kind: library_3
+      kind: library_2
         imports
           library_0
-          library_1 dart:core synthetic
+          library_3 dart:core synthetic
+        cycle_2
+          dependencies: cycle_0 dart:core
+          libraries: library_2
+          apiSignature_2
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
 libraryCycles
   /workspace/dart/aaa/lib/a.dart
-    current
+    current: cycle_0
       key: k03
-      libraries: file_0
     get: []
     put: [k03]
   /workspace/dart/aaa/lib/b.dart
     get: []
     put: [k04]
   /workspace/dart/aaa/lib/c.dart
-    current
+    current: cycle_2
       key: k05
-      libraries: file_2
     get: []
     put: [k05]
 elementFactory
@@ -1896,8 +2010,13 @@ files
       id: file_0
       kind: library_0
         imports
-          library_1 dart:core synthetic
-      referencingFiles: [file_3, file_3, file_4, file_4]
+          library_6 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_3 cycle_4
+      referencingFiles: file_3 file_4
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
@@ -1905,10 +2024,15 @@ files
     uri: package:dart.aaa/b.dart
     current
       id: file_1
-      kind: library_2
+      kind: library_1
         imports
-          library_1 dart:core synthetic
-      referencingFiles: [file_4, file_4]
+          library_6 dart:core synthetic
+        cycle_1
+          dependencies: dart:core
+          libraries: library_1
+          apiSignature_1
+          users: cycle_4
+      referencingFiles: file_4
       unlinkedKey: k01
     unlinkedGet: []
     unlinkedPut: [k01]
@@ -1916,10 +2040,15 @@ files
     uri: package:dart.aaa/c.dart
     current
       id: file_2
-      kind: library_3
+      kind: library_2
         imports
-          library_1 dart:core synthetic
-      referencingFiles: [file_5, file_5]
+          library_6 dart:core synthetic
+        cycle_2
+          dependencies: dart:core
+          libraries: library_2
+          apiSignature_2
+          users: cycle_5
+      referencingFiles: file_5
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
@@ -1927,10 +2056,14 @@ files
     uri: package:dart.aaa/d.dart
     current
       id: file_3
-      kind: library_4
+      kind: library_3
         imports
           library_0
-          library_1 dart:core synthetic
+          library_6 dart:core synthetic
+        cycle_3
+          dependencies: cycle_0 dart:core
+          libraries: library_3
+          apiSignature_3
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
@@ -1938,11 +2071,15 @@ files
     uri: package:dart.aaa/e.dart
     current
       id: file_4
-      kind: library_5
+      kind: library_4
         imports
           library_0
-          library_2
-          library_1 dart:core synthetic
+          library_1
+          library_6 dart:core synthetic
+        cycle_4
+          dependencies: cycle_0 cycle_1 dart:core
+          libraries: library_4
+          apiSignature_4
       unlinkedKey: k04
     unlinkedGet: []
     unlinkedPut: [k04]
@@ -1950,48 +2087,46 @@ files
     uri: package:dart.aaa/f.dart
     current
       id: file_5
-      kind: library_6
+      kind: library_5
         imports
-          library_3
-          library_1 dart:core synthetic
+          library_2
+          library_6 dart:core synthetic
+        cycle_5
+          dependencies: cycle_2 dart:core
+          libraries: library_5
+          apiSignature_5
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
 libraryCycles
   /workspace/dart/aaa/lib/a.dart
-    current
+    current: cycle_0
       key: k06
-      libraries: file_0
     get: []
     put: [k06]
   /workspace/dart/aaa/lib/b.dart
-    current
+    current: cycle_1
       key: k07
-      libraries: file_1
     get: []
     put: [k07]
   /workspace/dart/aaa/lib/c.dart
-    current
+    current: cycle_2
       key: k08
-      libraries: file_2
     get: []
     put: [k08]
   /workspace/dart/aaa/lib/d.dart
-    current
+    current: cycle_3
       key: k09
-      libraries: file_3
     get: []
     put: [k09]
   /workspace/dart/aaa/lib/e.dart
-    current
+    current: cycle_4
       key: k10
-      libraries: file_4
     get: []
     put: [k10]
   /workspace/dart/aaa/lib/f.dart
-    current
+    current: cycle_5
       key: k11
-      libraries: file_5
     get: []
     put: [k11]
 elementFactory
@@ -2016,8 +2151,13 @@ files
       id: file_0
       kind: library_0
         imports
-          library_1 dart:core synthetic
-      referencingFiles: [file_3, file_3, file_4, file_4]
+          library_6 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_3
+      referencingFiles: file_3
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
@@ -2029,10 +2169,15 @@ files
     uri: package:dart.aaa/c.dart
     current
       id: file_2
-      kind: library_3
+      kind: library_2
         imports
-          library_1 dart:core synthetic
-      referencingFiles: [file_5, file_5]
+          library_6 dart:core synthetic
+        cycle_2
+          dependencies: dart:core
+          libraries: library_2
+          apiSignature_2
+          users: cycle_5
+      referencingFiles: file_5
       unlinkedKey: k02
     unlinkedGet: []
     unlinkedPut: [k02]
@@ -2040,10 +2185,14 @@ files
     uri: package:dart.aaa/d.dart
     current
       id: file_3
-      kind: library_4
+      kind: library_3
         imports
           library_0
-          library_1 dart:core synthetic
+          library_6 dart:core synthetic
+        cycle_3
+          dependencies: cycle_0 dart:core
+          libraries: library_3
+          apiSignature_3
       unlinkedKey: k03
     unlinkedGet: []
     unlinkedPut: [k03]
@@ -2055,42 +2204,42 @@ files
     uri: package:dart.aaa/f.dart
     current
       id: file_5
-      kind: library_6
+      kind: library_5
         imports
-          library_3
-          library_1 dart:core synthetic
+          library_2
+          library_6 dart:core synthetic
+        cycle_5
+          dependencies: cycle_2 dart:core
+          libraries: library_5
+          apiSignature_5
       unlinkedKey: k05
     unlinkedGet: []
     unlinkedPut: [k05]
 libraryCycles
   /workspace/dart/aaa/lib/a.dart
-    current
+    current: cycle_0
       key: k06
-      libraries: file_0
     get: []
     put: [k06]
   /workspace/dart/aaa/lib/b.dart
     get: []
     put: [k07]
   /workspace/dart/aaa/lib/c.dart
-    current
+    current: cycle_2
       key: k08
-      libraries: file_2
     get: []
     put: [k08]
   /workspace/dart/aaa/lib/d.dart
-    current
+    current: cycle_3
       key: k09
-      libraries: file_3
     get: []
     put: [k09]
   /workspace/dart/aaa/lib/e.dart
     get: []
     put: [k10]
   /workspace/dart/aaa/lib/f.dart
-    current
+    current: cycle_5
       key: k11
-      libraries: file_5
     get: []
     put: [k11]
 elementFactory
@@ -2124,14 +2273,17 @@ files
       kind: library_0
         imports
           library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
       unlinkedKey: k00
     unlinkedGet: []
     unlinkedPut: [k00]
 libraryCycles
   /workspace/dart/aaa/lib/a.dart
-    current
+    current: cycle_0
       key: k01
-      libraries: file_0
     get: []
     put: [k01]
 elementFactory

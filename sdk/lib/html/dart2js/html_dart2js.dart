@@ -20555,6 +20555,23 @@ class MapElement extends HtmlElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@Native("MathMLElement")
+class MathMLElement extends Element {
+  // To suppress missing implicit constructor warnings.
+  factory MathMLElement._() {
+    throw new UnsupportedError("Not supported");
+  }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  MathMLElement.created() : super.created();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 @Native("MediaCapabilities")
 class MediaCapabilities extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.

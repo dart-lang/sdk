@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 import 'package:_js_interop_checks/src/js_interop.dart';
 
@@ -28,9 +29,10 @@ class StaticInteropClassEraser extends Transformer {
   final Class _javaScriptObject;
   final CloneVisitorNotMembers _cloner = CloneVisitorNotMembers();
   late final _TypeSubstitutor _typeSubstitutor;
-  late Library currLibrary;
+  Component? currentComponent;
+  ReferenceFromIndex? referenceFromIndex;
 
-  StaticInteropClassEraser(CoreTypes coreTypes,
+  StaticInteropClassEraser(CoreTypes coreTypes, this.referenceFromIndex,
       {String libraryForJavaScriptObject = 'dart:_interceptors',
       String classNameOfJavaScriptObject = 'JavaScriptObject'})
       : _javaScriptObject = coreTypes.index
@@ -54,21 +56,33 @@ class StaticInteropClassEraser extends Transformer {
     var stubs = factoryClass.procedures
         .where((procedure) => procedure.name.text == stubName);
     if (stubs.isEmpty) {
-      // We should only create the stub if we're processing the library in which
-      // the stub should exist. Any static invocation of the factory that
-      // doesn't exist in the same library as the factory should be processed
-      // after the library in which the factory exists. In modular compilation,
-      // the outline of that library should already contain the needed stub.
-      assert(factoryClass.enclosingLibrary == currLibrary);
-      // Note that the return type of the cloned function is transformed.
+      // We should only create the stub if we're processing the component in
+      // which the stub should exist. Any static invocation of the factory that
+      // doesn't exist in the same component as the factory should be processed
+      // after the component in which the factory exists. In modular
+      // compilation, the outline of that component should already contain the
+      // needed stub.
+      if (currentComponent != null) {
+        assert(factoryTarget.enclosingComponent == currentComponent);
+      }
+      Name name = Name(stubName);
+      var staticMethod = Procedure(
+          name, ProcedureKind.Method, FunctionNode(null),
+          isStatic: true,
+          fileUri: factoryTarget.fileUri,
+          reference: referenceFromIndex
+              ?.lookupLibrary(factoryClass.enclosingLibrary)
+              ?.lookupIndexedClass(factoryClass.name)
+              ?.lookupGetterReference(name))
+        ..fileOffset = factoryTarget.fileOffset;
+      factoryClass.addProcedure(staticMethod);
+      // Clone function node after processing the stub in case of mutually
+      // recursive factories. Note that the return type of the cloned function
+      // is transformed.
       var functionNode = super
               .visitFunctionNode(_cloner.cloneInContext(factoryTarget.function))
           as FunctionNode;
-      var staticMethod = Procedure(
-          Name(stubName), ProcedureKind.Method, functionNode,
-          isStatic: true, fileUri: factoryTarget.fileUri)
-        ..fileOffset = factoryTarget.fileOffset;
-      factoryClass.addProcedure(staticMethod);
+      staticMethod.function = functionNode;
       return staticMethod;
     } else {
       assert(stubs.length == 1);
@@ -78,7 +92,7 @@ class StaticInteropClassEraser extends Transformer {
 
   @override
   TreeNode visitLibrary(Library node) {
-    currLibrary = node;
+    currentComponent = node.enclosingComponent;
     return super.visitLibrary(node);
   }
 
@@ -174,8 +188,7 @@ class StaticInteropClassEraser extends Transformer {
         var args = super.visitArguments(node.arguments) as Arguments;
         var stub = _findOrCreateFactoryStub(factoryTarget);
         return StaticInvocation(stub, args, isConst: node.isConst)
-          ..fileOffset = node.fileOffset
-          ..targetReference = stub.reference;
+          ..fileOffset = node.fileOffset;
       } else {
         // Add a cast so that the result gets typed as `JavaScriptObject`.
         var newInvocation = super.visitStaticInvocation(node) as Expression;
@@ -208,7 +221,7 @@ class StaticInteropStubCreator extends RecursiveVisitor {
 
   @override
   void visitLibrary(Library node) {
-    _eraser.currLibrary = node;
+    _eraser.currentComponent = node.enclosingComponent;
     super.visitLibrary(node);
   }
 

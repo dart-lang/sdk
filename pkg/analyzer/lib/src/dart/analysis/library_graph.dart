@@ -12,7 +12,7 @@ import 'package:collection/collection.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
-void computeLibraryCycle(Uint32List salt, FileState file) {
+void computeLibraryCycle(Uint32List salt, LibraryFileStateKind file) {
   var libraryWalker = _LibraryWalker(salt);
   libraryWalker.walk(libraryWalker.getNode(file));
 }
@@ -23,13 +23,13 @@ class LibraryCycle {
   final int id = _nextId++;
 
   /// The libraries that belong to this cycle.
-  final List<FileState> libraries;
+  final List<LibraryFileStateKind> libraries;
 
   /// The library cycles that this cycle references directly.
   final Set<LibraryCycle> directDependencies;
 
   /// The cycles that use this cycle, used to [invalidate] transitively.
-  final List<LibraryCycle> _directUsers = [];
+  final List<LibraryCycle> directUsers = [];
 
   /// The transitive API signature of this cycle.
   ///
@@ -55,13 +55,9 @@ class LibraryCycle {
   /// include [implSignature] of the macro defining library.
   String implSignature;
 
-  /// The key of the resolution cache entry.
-  /// TODO(scheglov) clean up
-  String? resolutionKey;
-
   late final bool hasMacroClass = () {
     for (final library in libraries) {
-      for (final file in library.libraryFiles) {
+      for (final file in library.file.libraryFiles) {
         if (file.unlinked2.macroClasses.isNotEmpty) {
           return true;
         }
@@ -82,9 +78,15 @@ class LibraryCycle {
     required this.implSignature,
   }) {
     for (var directDependency in directDependencies) {
-      directDependency._directUsers.add(this);
+      directDependency.directUsers.add(this);
     }
   }
+
+  /// The key of the linked libraries in the byte store.
+  String get linkedKey => '$apiSignature.linked';
+
+  /// The key of the macro kernel in the byte store.
+  String get macroKey => '$implSignature.macro_kernel';
 
   /// Invalidate this cycle and any cycles that directly or indirectly use it.
   ///
@@ -94,11 +96,11 @@ class LibraryCycle {
     for (var library in libraries) {
       library.internal_setLibraryCycle(null);
     }
-    for (var user in _directUsers.toList()) {
+    for (var user in directUsers.toList()) {
       user.invalidate();
     }
     for (var directDependency in directDependencies) {
-      directDependency._directUsers.remove(this);
+      directDependency.directUsers.remove(this);
     }
   }
 
@@ -108,7 +110,7 @@ class LibraryCycle {
       mightBeExecutedByMacroClass = true;
       // Mark each file of the cycle.
       for (final library in libraries) {
-        for (final file in library.libraryFiles) {
+        for (final file in library.file.libraryFiles) {
           file.mightBeExecutedByMacroClass = true;
         }
       }
@@ -128,16 +130,26 @@ class LibraryCycle {
 /// Node in [_LibraryWalker].
 class _LibraryNode extends graph.Node<_LibraryNode> {
   final _LibraryWalker walker;
-  final FileState file;
+  final LibraryFileStateKind kind;
 
-  _LibraryNode(this.walker, this.file);
+  _LibraryNode(this.walker, this.kind);
 
   @override
-  bool get isEvaluated => file.internal_libraryCycle != null;
+  bool get isEvaluated => kind.internal_libraryCycle != null;
 
   @override
   List<_LibraryNode> computeDependencies() {
-    return file.directReferencedLibraries.map(walker.getNode).toList();
+    final referencedLibraries = {
+      ...kind.imports
+          .whereType<ImportDirectiveWithFile>()
+          .map((import) => import.importedLibrary)
+          .whereNotNull(),
+      ...kind.exports
+          .whereType<ExportDirectiveWithFile>()
+          .map((export) => export.exportedLibrary)
+          .whereNotNull(),
+    };
+    return referencedLibraries.map(walker.getNode).toList();
   }
 }
 
@@ -145,7 +157,7 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 /// sorted [LibraryCycle]s.
 class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   final Uint32List _salt;
-  final Map<FileState, _LibraryNode> nodesOfFiles = {};
+  final Map<LibraryFileStateKind, _LibraryNode> nodesOfFiles = {};
 
   _LibraryWalker(this._salt);
 
@@ -163,42 +175,42 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
     // Sort libraries to produce stable signatures.
     scc.sort((first, second) {
-      var firstPath = first.file.path;
-      var secondPath = second.file.path;
+      var firstPath = first.kind.file.path;
+      var secondPath = second.kind.file.path;
       return firstPath.compareTo(secondPath);
     });
 
     // Append direct referenced cycles.
     var directDependencies = <LibraryCycle>{};
     for (var node in scc) {
-      var file = node.file;
       _appendDirectlyReferenced(
         directDependencies,
         apiSignature,
         implSignature,
-        file.directReferencedLibraries.whereNotNull().toList(),
+        graph.Node.getDependencies(node),
       );
     }
 
     // Fill the cycle with libraries.
-    var libraries = <FileState>[];
+    var libraries = <LibraryFileStateKind>[];
     for (var node in scc) {
-      libraries.add(node.file);
+      final file = node.kind.file;
+      libraries.add(node.kind);
 
-      apiSignature.addLanguageVersion(node.file.packageLanguageVersion);
-      apiSignature.addString(node.file.uriStr);
+      apiSignature.addLanguageVersion(file.packageLanguageVersion);
+      apiSignature.addString(file.uriStr);
 
-      implSignature.addLanguageVersion(node.file.packageLanguageVersion);
-      implSignature.addString(node.file.uriStr);
+      implSignature.addLanguageVersion(file.packageLanguageVersion);
+      implSignature.addString(file.uriStr);
 
-      apiSignature.addInt(node.file.libraryFiles.length);
-      for (var file in node.file.libraryFiles) {
+      apiSignature.addInt(file.libraryFiles.length);
+      for (var file in file.libraryFiles) {
         apiSignature.addBool(file.exists);
         apiSignature.addBytes(file.apiSignature);
       }
 
-      implSignature.addInt(node.file.libraryFiles.length);
-      for (var file in node.file.libraryFiles) {
+      implSignature.addInt(file.libraryFiles.length);
+      for (var file in file.libraryFiles) {
         implSignature.addBool(file.exists);
         implSignature.addString(file.contentHash);
       }
@@ -218,11 +230,11 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
     // Set the instance into the libraries.
     for (var node in scc) {
-      node.file.internal_setLibraryCycle(cycle);
+      node.kind.internal_setLibraryCycle(cycle);
     }
   }
 
-  _LibraryNode getNode(FileState file) {
+  _LibraryNode getNode(LibraryFileStateKind file) {
     return nodesOfFiles.putIfAbsent(file, () => _LibraryNode(this, file));
   }
 
@@ -230,12 +242,12 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     Set<LibraryCycle> directDependencies,
     ApiSignature apiSignature,
     ApiSignature implSignature,
-    List<FileState> directlyReferenced,
+    List<_LibraryNode> directlyReferenced,
   ) {
     apiSignature.addInt(directlyReferenced.length);
     implSignature.addInt(directlyReferenced.length);
     for (var referencedLibrary in directlyReferenced) {
-      var referencedCycle = referencedLibrary.internal_libraryCycle;
+      var referencedCycle = referencedLibrary.kind.internal_libraryCycle;
 
       // We get null when the library is a part of the cycle being build.
       if (referencedCycle == null) continue;

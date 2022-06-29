@@ -12,6 +12,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart'
     show Component, Library, Procedure, DartType, TypeParameter;
 
+import 'package:kernel/reference_from_index.dart';
+
 import '../base/processed_options.dart' show ProcessedOptions;
 
 import '../fasta/compiler_context.dart' show CompilerContext;
@@ -152,7 +154,11 @@ class IncrementalCompilerResult {
   final ClassHierarchy? classHierarchy;
   final CoreTypes? coreTypes;
   final Set<Library>? neededDillLibraries;
+  final ReferenceFromIndex? referenceFromIndex;
 
   IncrementalCompilerResult(this.component,
-      {this.classHierarchy, this.coreTypes, this.neededDillLibraries});
+      {this.classHierarchy,
+      this.coreTypes,
+      this.neededDillLibraries,
+      this.referenceFromIndex});
 }

@@ -9,6 +9,7 @@ import '../messages/codes.dart'
         Code,
         LocatedMessage,
         Message,
+        codeBuiltInIdentifierInDeclaration,
         codeCatchSyntaxExtraParameters,
         codeNativeClauseShouldBeAnnotation,
         templateInternalProblemStackNotEmpty,
@@ -215,6 +216,8 @@ abstract class StackListener extends Listener {
 
   @override
   Uri get uri;
+
+  Uri get importUri;
 
   void discard(int n) {
     for (int i = 0; i < n; i++) {
@@ -498,6 +501,10 @@ abstract class StackListener extends Listener {
     } else if (code == codeCatchSyntaxExtraParameters) {
       // Ignored. This error is handled by the BodyBuilder.
       return true;
+    } else if (code == codeBuiltInIdentifierInDeclaration) {
+      if (importUri.isScheme("dart")) return true;
+      if (uri.isScheme("org-dartlang-sdk")) return true;
+      return false;
     } else {
       return false;
     }

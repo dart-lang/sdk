@@ -12,7 +12,7 @@ import '../ir/annotations.dart';
 import '../ir/util.dart';
 import '../kernel/dart2js_target.dart';
 import '../options.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 
 class PragmaAnnotation {

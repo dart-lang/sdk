@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 part of 'serialization.dart';
 
 /// Enum used for identifying [ir.TreeNode] subclasses in serialization.
@@ -119,7 +117,7 @@ class DartTypeNodeWriter
       ..addAll(node.typeParameters);
     _sink.writeInt(node.typeParameters.length);
     for (ir.TypeParameter parameter in node.typeParameters) {
-      _sink.writeString(parameter.name);
+      _sink.writeString(parameter.name!);
       _sink._writeDartTypeNode(parameter.bound, functionTypeVariables);
       _sink._writeDartTypeNode(parameter.defaultType, functionTypeVariables);
     }

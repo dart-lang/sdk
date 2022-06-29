@@ -113,6 +113,12 @@ abstract class ParameterizedTypeDeclaration implements TypeDeclaration {
   Iterable<TypeParameterDeclaration> get typeParameters;
 }
 
+/// A marker interface for the type declarations which are introspectable.
+///
+/// All type declarations which can have members will have a variant which
+/// implements this type.
+mixin IntrospectableType implements TypeDeclaration {}
+
 /// Class (and enum) introspection information.
 ///
 /// Information about fields, methods, and constructors must be retrieved from
@@ -125,17 +131,21 @@ abstract class ClassDeclaration implements ParameterizedTypeDeclaration {
   bool get isExternal;
 
   /// The `extends` type annotation, if present.
-  TypeAnnotation? get superclass;
+  NamedTypeAnnotation? get superclass;
 
   /// All the `implements` type annotations.
-  Iterable<TypeAnnotation> get interfaces;
+  Iterable<NamedTypeAnnotation> get interfaces;
 
   /// All the `with` type annotations.
-  Iterable<TypeAnnotation> get mixins;
+  Iterable<NamedTypeAnnotation> get mixins;
 
   /// All the type arguments, if applicable.
   Iterable<TypeParameterDeclaration> get typeParameters;
 }
+
+/// An introspectable class declaration.
+abstract class IntrospectableClassDeclaration
+    implements ClassDeclaration, IntrospectableType {}
 
 /// Type alias introspection information.
 abstract class TypeAliasDeclaration implements ParameterizedTypeDeclaration {

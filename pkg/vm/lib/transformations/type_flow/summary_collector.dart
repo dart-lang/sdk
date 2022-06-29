@@ -788,9 +788,18 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
               : _typesBuilder.fromStaticType(function.returnType, false);
           break;
         case AsyncMarker.AsyncStar:
-        case AsyncMarker.SyncStar:
           _summary.result =
               _typesBuilder.fromStaticType(function.returnType, false);
+          break;
+        case AsyncMarker.SyncStar:
+          final Class? concreteClass =
+              target.concreteSyncStarResultClass(_environment.coreTypes);
+          _summary.result = (concreteClass != null)
+              ? _entryPointsListener
+                  .addAllocatedClass(concreteClass)
+                  .cls
+                  .concreteType
+              : _typesBuilder.fromStaticType(function.returnType, false);
           break;
         default:
           _summary.result = _returnValue!;

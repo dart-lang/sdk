@@ -6,7 +6,7 @@ import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
-import 'package:analysis_server/src/analytics/google_analytics_manager.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
@@ -22,14 +22,14 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(GoogleAnalyticsManagerTest);
+    defineReflectiveTests(AnalyticsManagerTest);
   });
 }
 
 @reflectiveTest
-class GoogleAnalyticsManagerTest with ResourceProviderMixin {
+class AnalyticsManagerTest with ResourceProviderMixin {
   final analytics = _MockAnalytics();
-  late final manager = GoogleAnalyticsManager(analytics);
+  late final manager = AnalyticsManager(analytics);
 
   Folder get testPackageRoot => getFolder('/home/package');
 

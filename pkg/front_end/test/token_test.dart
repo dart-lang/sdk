@@ -92,6 +92,7 @@ class Foo {
       Keyword.EXTENSION,
       Keyword.EXTERNAL,
       Keyword.FACTORY,
+      Keyword.FUNCTION,
       Keyword.GET,
       Keyword.IMPLEMENTS,
       Keyword.IMPORT,
@@ -171,7 +172,6 @@ class Foo {
     var pseudoKeywords = new Set<Keyword>.from([
       Keyword.ASYNC,
       Keyword.AWAIT,
-      Keyword.FUNCTION,
       Keyword.HIDE,
       Keyword.INOUT,
       Keyword.NATIVE,

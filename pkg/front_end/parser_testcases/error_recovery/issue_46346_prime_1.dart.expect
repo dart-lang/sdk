@@ -100,6 +100,10 @@ parser/error_recovery/issue_46346_prime_1:27:7: 'for' can't be used as an identi
 class for = A with B;
       ^^^
 
+parser/error_recovery/issue_46346_prime_1:28:7: Can't use 'Function' as a name here.
+class Function = A with B;
+      ^^^^^^^^
+
 parser/error_recovery/issue_46346_prime_1:29:7: Can't use 'get' as a name here.
 class get = A with B;
       ^^^
@@ -708,6 +712,7 @@ beginCompilationUnit(class)
   beginMetadataStar(class)
   endMetadataStar(0)
   beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleRecoverableError(Message[BuiltInIdentifierInDeclaration, Can't use 'Function' as a name here., null, {lexeme: Function}], Function, Function)
     handleIdentifier(Function, classOrMixinDeclaration)
     handleNoTypeVariables(=)
     beginNamedMixinApplication(class, null, null, null, Function)

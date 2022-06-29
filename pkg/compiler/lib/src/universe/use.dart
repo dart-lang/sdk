@@ -21,7 +21,7 @@ import '../constants/values.dart';
 import '../elements/types.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../js_model/jrecord_field_interface.dart' show JRecordFieldInterface;
 import '../util/util.dart' show equalElements, Hashing;
 import 'call_structure.dart' show CallStructure;

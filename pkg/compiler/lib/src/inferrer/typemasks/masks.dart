@@ -15,7 +15,7 @@ import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart';
 import '../../ir/class_relation.dart';
-import '../../serialization/serialization_interfaces.dart';
+import '../../serialization/serialization.dart';
 import '../../universe/class_hierarchy.dart';
 import '../../universe/selector.dart' show Selector;
 import '../../universe/use.dart' show DynamicUse;

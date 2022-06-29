@@ -5,7 +5,7 @@
 import '../common/elements.dart' show CommonElements;
 import '../common/names.dart';
 import '../options.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../util/util.dart' show equalElements, equalSets, identicalElements;
 import 'entities.dart';
 

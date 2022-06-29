@@ -426,8 +426,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       List<ClassMember> members = node.members;
       _duplicateDefinitionVerifier.checkClass(node);
-      _checkForBuiltInIdentifierAsName(
-          node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+      if (!element.isDartCoreFunctionImpl) {
+        _checkForBuiltInIdentifierAsName(
+            node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+      }
       _checkForConflictingClassTypeVariableErrorCodes();
       var superclass = node.extendsClause?.superclass;
       var implementsClause = node.implementsClause;
@@ -1659,11 +1661,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var extendsClause = node.extendsClause;
     var implementsClause = node.implementsClause;
     var withClause = node.withClause;
-
-    if (node.name.name == "Function") {
-      errorReporter.reportErrorForNode(
-          HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION, node.name);
-    }
 
     if (extendsClause != null) {
       var superElement = extendsClause.superclass.name.staticElement;

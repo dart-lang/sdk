@@ -197,7 +197,7 @@ class Keyword extends TokenType {
   static const Keyword FOR = const Keyword("for", "FOR", KeywordStyle.reserved);
 
   static const Keyword FUNCTION =
-      const Keyword("Function", "FUNCTION", KeywordStyle.pseudo);
+      const Keyword("Function", "FUNCTION", KeywordStyle.builtIn);
 
   static const Keyword GET = const Keyword("get", "GET", KeywordStyle.builtIn);
 

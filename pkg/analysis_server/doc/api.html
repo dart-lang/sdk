@@ -170,12 +170,12 @@ a:focus, a:hover {
 </p>
 <p>
   Every request is required to have two fields and may have two
-  additional optional fields. The first required field is the ‘id’
+  additional optional fields. The first required field is the 'id'
   field, which is only used by the server to associate a response
   with the request that generated the response. The second
-  required field is the ‘method’ field, which is used to determine
+  required field is the 'method' field, which is used to determine
   what the server is being requested to do. One optional field is
-  the ‘params’ field, whose structure is dependent on the method
+  the 'params' field, whose structure is dependent on the method
   being requested. The structure of this field is described with
   each request for which it is required. The other optional field
   is the 'clientRequestTime' field, which is a number indicating
@@ -186,11 +186,11 @@ a:focus, a:hover {
 </p>
 <p>
   Every response has up to three fields. The first field is the
-  ‘id’ field, which is always present and whose value is the
+  'id' field, which is always present and whose value is the
   identifier that was passed to the request that generated the
-  response. The second field is the ‘error’ field, which is only
+  response. The second field is the 'error' field, which is only
   present if an error was encountered while processing the
-  request. The third field is the ‘result’ field, whose structure
+  request. The third field is the 'result' field, whose structure
   is dependent on the method being responded to, and is described
   with each request that will produce it.
 </p>
@@ -209,9 +209,9 @@ a:focus, a:hover {
   errors can be returned together at a later time.
 </p>
 <p>
-  Each notification has two fields. The first field is the ‘event’
+  Each notification has two fields. The first field is the 'event'
   field, which identifies the kind of notification. The second
-  field is the ‘params’ field, whose structure is dependent on the
+  field is the 'params' field, whose structure is dependent on the
   kind of notification being sent. The structure of this field is
   described with each notification.
 </p>
@@ -298,7 +298,7 @@ a:focus, a:hover {
 <h3>Domains</h3>
 <p>
   For convenience, the API is divided into domains. Each domain is specified
-  in a separate section below. The specifications of the API’s refer to data
+  in a separate section below. The specifications of the API's refer to data
   structures beyond the standard JSON primitives. These data structures are
   documented in the section titled <a href="#types">Types</a>.
 </p>
@@ -434,7 +434,7 @@ a:focus, a:hover {
 <h1>Domains</h1>
 <h2 class="domain"><a name="domain_server">server domain</a></h2>
   <p>
-    The server domain contains API’s related to the execution of
+    The server domain contains API's related to the execution of
     the server.
   </p>
   
@@ -628,7 +628,7 @@ a:focus, a:hover {
       </dd></dl></dd></dl>
 <h2 class="domain"><a name="domain_analysis">analysis domain</a></h2>
   <p>
-    The analysis domain contains API’s related to the analysis of
+    The analysis domain contains API's related to the analysis of
     files.
   </p>
   
@@ -962,7 +962,7 @@ a:focus, a:hover {
       file. If none is found, then the parents of the directory
       will be searched until such a file is found or the root of
       the file system is reached. If such a file is found, it will
-      be used to resolve package: URI’s within the file.
+      be used to resolve package: URI's within the file.
     </p>
     
   <h4>parameters:</h4><dl><dt class="field"><b>included: List&lt;<a href="#type_FilePath">FilePath</a>&gt;</b></dt><dd>
@@ -3142,7 +3142,7 @@ a:focus, a:hover {
 
 <h2 class="domain"><a name="domain_flutter">flutter domain</a></h2>
   <p>
-    The analysis domain contains API’s related to Flutter support.
+    The analysis domain contains API's related to Flutter support.
   </p>
   
   
@@ -3230,7 +3230,7 @@ a:focus, a:hover {
   <h2 class="domain"><a name="types">Types</a></h2>
   <p>
     This section contains descriptions of the data types referenced
-    in the API’s of the various domains.
+    in the API's of the various domains.
   </p>
   
   
@@ -4045,10 +4045,10 @@ a:focus, a:hover {
             0x01 - set if the element is explicitly or implicitly abstract
           </li>
           <li>
-            0x02 - set if the element was declared to be ‘const’
+            0x02 - set if the element was declared to be 'const'
           </li>
           <li>
-            0x04 - set if the element was declared to be ‘final’
+            0x04 - set if the element was declared to be 'final'
           </li>
           <li>
             0x08 - set if the element is a static member of a class or is a

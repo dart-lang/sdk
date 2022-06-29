@@ -263,7 +263,7 @@ struct DoubleToIntegerStubABI {
   static const Register kResultReg = EAX;
 };
 
-// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub).
+// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub, YieldSyncStarStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = EAX;
   static const Register kTempReg = EDX;
@@ -281,7 +281,8 @@ struct SuspendStubABI {
   static const intptr_t kResumePcDistance = 4;
 };
 
-// ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub).
+// ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub,
+// InitSyncStarStub).
 struct InitSuspendableFunctionStubABI {
   static const Register kTypeArgsReg = EAX;
 };
@@ -305,7 +306,7 @@ struct ResumeStubABI {
 };
 
 // ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,
-// ReturnAsyncStarStub).
+// ReturnAsyncStarStub, ReturnSyncStarStub).
 struct ReturnStubABI {
   static const Register kSuspendStateReg = EBX;
 };
@@ -313,6 +314,17 @@ struct ReturnStubABI {
 // ABI for AsyncExceptionHandlerStub.
 struct AsyncExceptionHandlerStubABI {
   static const Register kSuspendStateReg = EBX;
+};
+
+// ABI for CloneSuspendStateStub.
+struct CloneSuspendStateStubABI {
+  static const Register kSourceReg = EAX;
+  static const Register kDestinationReg = EBX;
+  static const Register kTempReg = EDX;
+  static const Register kFrameSizeReg = ECX;
+  // Can reuse THR.
+  static const Register kSrcFrameReg = ESI;
+  static const Register kDstFrameReg = EDI;
 };
 
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch

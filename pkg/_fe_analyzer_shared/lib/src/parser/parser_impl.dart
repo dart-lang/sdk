@@ -6828,14 +6828,26 @@ class Parser {
   TypeInfo computeTypeAfterIsOrAs(Token token) {
     TypeInfo typeInfo = computeType(token, /* required = */ true);
     if (typeInfo.isNullable) {
-      Token next = typeInfo.skipType(token).next!;
-      if (!isOneOfOrEof(
+      Token skipToken = typeInfo.skipType(token);
+      Token next = skipToken.next!;
+      if (isOneOfOrEof(
           next, const [')', '}', '?', '??', ',', ';', ':', 'is', 'as', '..'])) {
         // TODO(danrubel): investigate other situations
         // where `?` should be considered part of the type info
         // rather than the start of a conditional expression.
-        typeInfo = typeInfo.asNonNullable;
+        return typeInfo;
       }
+      if (optional('{', next)) {
+        // <expression> is/as <type> ? {
+        // This could be either a nullable type (e.g. last initializer in a
+        // constructor with a body), or a non-nullable type and a conditional.
+        // As with "?[" we check and have it as a conditional if it can be.
+        bool isConditional = canParseAsConditional(skipToken);
+        if (!isConditional) {
+          return typeInfo;
+        }
+      }
+      typeInfo = typeInfo.asNonNullable;
     }
     return typeInfo;
   }

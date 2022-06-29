@@ -6,7 +6,8 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/analytics/noop_analytics_manager.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
+import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -197,7 +198,7 @@ abstract class AbstractLspAnalysisServerTest
         resourceProvider,
         serverOptions,
         DartSdkManager(sdkRoot.path),
-        NoopAnalyticsManager(),
+        AnalyticsManager(NoopAnalytics()),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE,
         httpClient: httpClient,
@@ -223,6 +224,23 @@ abstract class AbstractLspAnalysisServerTest
   Future tearDown() async {
     channel.close();
     await server.shutdown();
+  }
+
+  /// Adds a trailing slash (direction based on path context) to [path].
+  ///
+  /// Throws if the path already has a trailing slash.
+  String withTrailingSlash(String path) {
+    final pathSeparator = server.resourceProvider.pathContext.separator;
+    expect(path, isNot(endsWith(pathSeparator)));
+    return '$path$pathSeparator';
+  }
+
+  /// Adds a trailing slash to [uri].
+  ///
+  /// Throws if the URI already has a trailing slash.
+  Uri withTrailingSlashUri(Uri uri) {
+    expect(uri.path, isNot(endsWith('/')));
+    return uri.replace(path: '${uri.path}/');
   }
 }
 

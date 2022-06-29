@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 
 /// The handler for the `execution.mapUri` request.
@@ -31,6 +32,7 @@ class ExecutionMapUriHandler extends LegacyHandler {
       sendResponse(Response.invalidExecutionContext(request, contextId));
       return;
     }
+
     var sourceFactory = driver.sourceFactory;
 
     var file = params.file;
@@ -51,13 +53,23 @@ class ExecutionMapUriHandler extends LegacyHandler {
         return;
       }
 
-      var source = driver.fsState.getFileForPath(file).source;
-      if (!source.uri.isScheme('file')) {
-        uri = source.uri.toString();
-      } else {
-        uri = sourceFactory.pathToUri(file).toString();
+      final fileResult = driver.getFileSync(file);
+      if (fileResult is! FileResult) {
+        sendResponse(
+          Response.invalidParameter(
+            request,
+            'file',
+            'Expected FileResult, actually ${fileResult.runtimeType}',
+          ),
+        );
+        return;
       }
-      sendResult(ExecutionMapUriResult(uri: uri));
+
+      sendResult(
+        ExecutionMapUriResult(
+          uri: '${fileResult.uri}',
+        ),
+      );
       return;
     } else if (uri != null) {
       var source = sourceFactory.forUri(uri);

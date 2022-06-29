@@ -29,7 +29,6 @@ import '../options.dart';
 import '../util/sink_adapter.dart';
 import '../world.dart';
 import 'serialization.dart';
-import 'serialization_interfaces.dart' show StringInterner;
 
 /// A data class holding some data [T] and the associated [DataSourceIndices].
 class DataAndIndices<T> {

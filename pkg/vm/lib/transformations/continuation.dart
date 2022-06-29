@@ -143,9 +143,15 @@ class RecursiveContinuationRewriter extends RemovingTransformer {
             helper, staticTypeContext, desugarAsync));
         return node;
       case AsyncMarker.SyncStar:
-        return new SyncStarFunctionRewriter(
-                helper, node, staticTypeContext, desugarAsync)
-            .rewrite();
+        if (desugarAsync) {
+          return new SyncStarFunctionRewriter(
+                  helper, node, staticTypeContext, desugarAsync)
+              .rewrite();
+        } else {
+          node.transformOrRemoveChildren(new RecursiveContinuationRewriter(
+              helper, staticTypeContext, desugarAsync));
+          return node;
+        }
       case AsyncMarker.Async:
         if (desugarAsync) {
           return new AsyncFunctionRewriter(

@@ -222,7 +222,7 @@ class FileResolver {
     cachedResults.clear();
 
     // Remove the specified files and files that transitively depend on it.
-    final removedFiles = <FileState>[];
+    final removedFiles = <FileState>{};
     for (final path in paths) {
       fsState!.changeFile(path, removedFiles);
     }
@@ -316,9 +316,11 @@ class FileResolver {
         performance: performance!,
       );
       var file = fileContext.file;
+      // TODO(scheglov) Casts are unsafe.
+      final kind = file.kind as LibraryFileStateKind;
 
       final errorsSignatureBuilder = ApiSignature();
-      errorsSignatureBuilder.addString(file.libraryCycle.apiSignature);
+      errorsSignatureBuilder.addString(kind.libraryCycle.apiSignature);
       errorsSignatureBuilder.addString(file.contentHash);
       final errorsKey = '${errorsSignatureBuilder.toHex()}.errors';
 
@@ -436,7 +438,9 @@ class FileResolver {
       performance: performance,
     );
 
-    return file.libraryCycle.apiSignature;
+    // TODO(scheglov) Casts are unsafe.
+    final kind = file.kind as LibraryFileStateKind;
+    return kind.libraryCycle.apiSignature;
   }
 
   /// Ensure that libraries necessary for resolving [path] are linked.
@@ -661,7 +665,7 @@ class FileResolver {
           file.path,
           file.uri,
           file.exists,
-          file.getContent(),
+          file.content,
           file.lineInfo,
           file.isPart,
           fileResult.unit,
@@ -718,7 +722,6 @@ class FileResolver {
         'contextName',
         sourceFactory,
         workspace,
-        AnalysisOptionsImpl(), // TODO(scheglov) remove it
         DeclaredVariables.fromMap({}),
         Uint32List(0), // _saltForUnlinked
         Uint32List(0), // _saltForElements

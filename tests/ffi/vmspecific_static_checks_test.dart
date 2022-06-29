@@ -43,10 +43,6 @@ void main() {
   testLookupFunctionTypeMismatch();
   testLookupFunctionPointervoid();
   testLookupFunctionPointerNFdyn();
-  testNativeFunctionSignatureInvalidReturn();
-  testNativeFunctionSignatureInvalidParam();
-  testNativeFunctionSignatureInvalidOptionalNamed();
-  testNativeFunctionSignatureInvalidOptionalPositional();
   testHandleVariance();
   testEmptyStructLookupFunctionArgument();
   testEmptyStructLookupFunctionReturn();
@@ -330,28 +326,6 @@ void testLookupFunctionPointerNFdyn() {
   DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
   // TODO(https://dartbug.com/44594): Should this be an error or not?
   // l.lookupFunction<PointerNFdynN, PointerNFdynD>("cos");
-}
-
-// TODO(dacoharkes): make the next 4 test compile errors
-typedef Invalid1 = int Function(Int8);
-typedef Invalid2 = Int8 Function(int);
-typedef Invalid3 = Int8 Function({Int8 named});
-typedef Invalid4 = Int8 Function([Int8 positional]);
-
-void testNativeFunctionSignatureInvalidReturn() {
-  // Pointer<NativeFunction<Invalid1>> p = fromAddress(999);
-}
-
-void testNativeFunctionSignatureInvalidParam() {
-  // Pointer<NativeFunction<Invalid2>> p = fromAddress(999);
-}
-
-void testNativeFunctionSignatureInvalidOptionalNamed() {
-  // Pointer<NativeFunction<Invalid3>> p = fromAddress(999);
-}
-
-void testNativeFunctionSignatureInvalidOptionalPositional() {
-  // Pointer<NativeFunction<Invalid4>> p = fromAddress(999);
 }
 
 // error on missing field annotation

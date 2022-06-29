@@ -15,11 +15,19 @@ main() {
 
 @reflectiveTest
 class BuiltInIdentifierAsTypeNameTest extends PubPackageResolutionTest {
-  test_class() async {
+  test_class_as() async {
     await assertErrorsInCode('''
 class as {}
 ''', [
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 2),
+    ]);
+  }
+
+  test_class_Function() async {
+    await assertErrorsInCode('''
+class Function {}
+''', [
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 8),
     ]);
   }
 
@@ -33,11 +41,19 @@ enum as {
     ]);
   }
 
-  test_mixin() async {
+  test_mixin_as() async {
     await assertErrorsInCode('''
 mixin as {}
 ''', [
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 2),
+    ]);
+  }
+
+  test_mixin_Function() async {
+    await assertErrorsInCode('''
+mixin Function {}
+''', [
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 8),
     ]);
   }
 

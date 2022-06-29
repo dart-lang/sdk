@@ -81,15 +81,20 @@ class WasmTarget extends Target {
       ..parent = host;
   }
 
-  StaticInteropClassEraser _staticInteropClassEraser(CoreTypes coreTypes) =>
-      StaticInteropClassEraser(coreTypes,
+  StaticInteropClassEraser _staticInteropClassEraser(
+          CoreTypes coreTypes, ReferenceFromIndex? referenceFromIndex) =>
+      StaticInteropClassEraser(coreTypes, referenceFromIndex,
           libraryForJavaScriptObject: 'dart:_js_helper',
           classNameOfJavaScriptObject: 'JSValue');
 
-  void _performJSInteropTransformations(CoreTypes coreTypes,
-      ClassHierarchy hierarchy, List<Library> interopDependentLibraries) {
+  void _performJSInteropTransformations(
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      List<Library> interopDependentLibraries,
+      ReferenceFromIndex? referenceFromIndex) {
     final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
-    final staticInteropClassEraser = _staticInteropClassEraser(coreTypes);
+    final staticInteropClassEraser =
+        _staticInteropClassEraser(coreTypes, referenceFromIndex);
     for (Library library in interopDependentLibraries) {
       jsUtilOptimizer.visitLibrary(library);
       staticInteropClassEraser.visitLibrary(library);
@@ -108,9 +113,10 @@ class WasmTarget extends Target {
   }
 
   @override
-  void performOutlineTransformations(Component component, CoreTypes coreTypes) {
-    component
-        .accept(StaticInteropStubCreator(_staticInteropClassEraser(coreTypes)));
+  void performOutlineTransformations(Component component, CoreTypes coreTypes,
+      ReferenceFromIndex? referenceFromIndex) {
+    component.accept(StaticInteropStubCreator(
+        _staticInteropClassEraser(coreTypes, referenceFromIndex)));
   }
 
   @override
@@ -130,8 +136,8 @@ class WasmTarget extends Target {
     if (transitiveImportingJSInterop == null) {
       logger?.call("Skipped JS interop transformations");
     } else {
-      _performJSInteropTransformations(
-          coreTypes, hierarchy, transitiveImportingJSInterop);
+      _performJSInteropTransformations(coreTypes, hierarchy,
+          transitiveImportingJSInterop, referenceFromIndex);
       logger?.call("Transformed JS interop classes");
     }
     transformMixins.transformLibraries(

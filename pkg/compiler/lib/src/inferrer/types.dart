@@ -20,7 +20,7 @@ import '../js_model/element_map.dart';
 import '../js_model/js_world.dart';
 import '../js_model/locals.dart';
 import '../serialization/deferrable.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
 import 'abstract_value_domain.dart';

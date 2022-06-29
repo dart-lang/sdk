@@ -588,10 +588,14 @@ abstract class ParameterizedTypeDeclarationImpl extends DeclarationImpl
   }
 }
 
+class IntrospectableClassDeclarationImpl = ClassDeclarationImpl
+    with IntrospectableType
+    implements IntrospectableClassDeclaration;
+
 class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
     implements ClassDeclaration {
   @override
-  final List<TypeAnnotationImpl> interfaces;
+  final List<NamedTypeAnnotationImpl> interfaces;
 
   @override
   final bool isAbstract;
@@ -600,13 +604,15 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
   final bool isExternal;
 
   @override
-  final List<TypeAnnotationImpl> mixins;
+  final List<NamedTypeAnnotationImpl> mixins;
 
   @override
-  final TypeAnnotationImpl? superclass;
+  final NamedTypeAnnotationImpl? superclass;
 
   @override
-  RemoteInstanceKind get kind => RemoteInstanceKind.classDeclaration;
+  RemoteInstanceKind get kind => this is IntrospectableClassDeclaration
+      ? RemoteInstanceKind.introspectableClassDeclaration
+      : RemoteInstanceKind.classDeclaration;
 
   ClassDeclarationImpl({
     // Declaration fields
@@ -629,7 +635,7 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
     if (serializationMode.isClient) return;
 
     serializer.startList();
-    for (TypeAnnotationImpl interface in interfaces) {
+    for (NamedTypeAnnotationImpl interface in interfaces) {
       interface.serialize(serializer);
     }
     serializer
@@ -637,7 +643,7 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
       ..addBool(isAbstract)
       ..addBool(isExternal)
       ..startList();
-    for (TypeAnnotationImpl mixin in mixins) {
+    for (NamedTypeAnnotationImpl mixin in mixins) {
       mixin.serialize(serializer);
     }
     serializer..endList();

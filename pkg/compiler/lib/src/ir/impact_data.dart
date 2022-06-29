@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
@@ -13,9 +11,10 @@ import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/scope.dart';
-import '../kernel/element_map.dart' show KernelToElementMap;
+import '../kernel/element_map_interfaces.dart'
+    show KernelToElementMapForImpactData;
 import '../options.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'class_relation.dart';
 import 'constants.dart';
@@ -27,7 +26,7 @@ import 'util.dart';
 /// Visitor that builds an [ImpactData] object for the world impact.
 class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   final ImpactData _data = ImpactData();
-  final KernelToElementMap _elementMap;
+  final KernelToElementMapForImpactData _elementMap;
 
   @override
   final VariableScopeModel variableScopeModel;
@@ -134,8 +133,8 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
 
   @override
   void handleStaticTearOff(
-      ir.Expression node, ir.Member target, ir.DartType resultType) {
-    assert(target is ir.Procedure && target.kind == ir.ProcedureKind.Method,
+      ir.Expression node, ir.Procedure target, ir.DartType resultType) {
+    assert(target.kind == ir.ProcedureKind.Method,
         "Static get registered as static tear off: $node");
     registerStaticTearOff(target, getDeferredImport(node));
   }
@@ -398,7 +397,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       // instantiated as int and String.
       registerNew(
           node.target,
-          ir.InterfaceType(node.target.enclosingClass,
+          ir.InterfaceType(node.target.enclosingClass!,
               node.target.enclosingLibrary.nonNullable, typeArguments),
           positionArguments,
           namedArguments,
@@ -521,7 +520,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   void handleSuperMethodInvocation(ir.SuperMethodInvocation node,
       ArgumentTypes argumentTypes, ir.DartType returnType) {
     registerSuperInvocation(
-        getEffectiveSuperTarget(node.interfaceTarget),
+        getEffectiveSuperTarget(node.interfaceTarget)!,
         node.arguments.positional.length,
         _getNamedArguments(node.arguments),
         node.arguments.types);
@@ -530,19 +529,19 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   @override
   void handleSuperPropertyGet(
       ir.SuperPropertyGet node, ir.DartType resultType) {
-    registerSuperGet(getEffectiveSuperTarget(node.interfaceTarget));
+    registerSuperGet(getEffectiveSuperTarget(node.interfaceTarget)!);
   }
 
   @override
   void handleSuperPropertySet(ir.SuperPropertySet node, ir.DartType valueType) {
-    registerSuperSet(getEffectiveSuperTarget(node.interfaceTarget));
+    registerSuperSet(getEffectiveSuperTarget(node.interfaceTarget)!);
   }
 
   @override
   void handleSuperInitializer(
       ir.SuperInitializer node, ArgumentTypes argumentTypes) {
     registerSuperInitializer(
-        node.parent,
+        node.parent as ir.Constructor,
         node.target,
         node.arguments.positional.length,
         _getNamedArguments(node.arguments),
@@ -557,7 +556,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
 
   @override
   void handleRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
-      ir.DartType receiverType, ir.DartType argumentType) {
+      ir.DartType receiverType, ir.DartType? argumentType) {
     if (_options.omitImplicitChecks) {
       switch (kind) {
         case RuntimeTypeUseKind.string:
@@ -582,19 +581,17 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
     if (node.constant is ir.UnevaluatedConstant) {
       _elementMap.constantEvaluator.evaluate(staticTypeContext, node);
     }
-    ir.LibraryDependency import = getDeferredImport(node);
+    ir.LibraryDependency? import = getDeferredImport(node);
     ConstantImpactVisitor(this, import, node, staticTypeContext)
         .visitConstant(node.constant);
   }
 
   void _registerFeature(_Feature feature) {
-    _data._features ??= EnumSet<_Feature>();
-    _data._features.add(feature);
+    (_data._features ??= EnumSet<_Feature>()).add(feature);
   }
 
   void _registerTypeUse(ir.DartType type, _TypeUseKind kind) {
-    _data._typeUses ??= [];
-    _data._typeUses.add(_TypeUse(type, kind));
+    (_data._typeUses ??= []).add(_TypeUse(type, kind));
   }
 
   @override
@@ -604,57 +601,55 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       int positionalArguments,
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
-    _data._superInitializers ??= [];
-    _data._superInitializers.add(_SuperInitializer(source, target,
-        _CallStructure(positionalArguments, namedArguments, typeArguments)));
+    (_data._superInitializers ??= []).add(
+      _SuperInitializer(source, target,
+          _CallStructure(positionalArguments, namedArguments, typeArguments)),
+    );
   }
 
   @override
   void registerSuperSet(ir.Member target) {
-    _data._superSets ??= [];
-    _data._superSets.add(target);
+    (_data._superSets ??= []).add(target);
   }
 
   @override
   void registerSuperGet(ir.Member target) {
-    _data._superGets ??= [];
-    _data._superGets.add(target);
+    (_data._superGets ??= []).add(target);
   }
 
   @override
   void registerSuperInvocation(ir.Member target, int positionalArguments,
       List<String> namedArguments, List<ir.DartType> typeArguments) {
-    _data._superInvocations ??= [];
-    _data._superInvocations.add(_SuperInvocation(target,
+    (_data._superInvocations ??= []).add(_SuperInvocation(target,
         _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
 
   @override
   void registerInstanceSet(
       ir.DartType receiverType, ClassRelation relation, ir.Member target) {
-    _data._instanceSets ??= [];
-    _data._instanceSets.add(_InstanceAccess(receiverType, relation, target));
+    (_data._instanceSets ??= [])
+        .add(_InstanceAccess(receiverType, relation, target));
   }
 
   @override
   void registerDynamicSet(
       ir.DartType receiverType, ClassRelation relation, ir.Name name) {
-    _data._dynamicSets ??= [];
-    _data._dynamicSets.add(_DynamicAccess(receiverType, relation, name));
+    (_data._dynamicSets ??= [])
+        .add(_DynamicAccess(receiverType, relation, name));
   }
 
   @override
   void registerInstanceGet(
       ir.DartType receiverType, ClassRelation relation, ir.Member target) {
-    _data._instanceGets ??= [];
-    _data._instanceGets.add(_InstanceAccess(receiverType, relation, target));
+    (_data._instanceGets ??= [])
+        .add(_InstanceAccess(receiverType, relation, target));
   }
 
   @override
   void registerDynamicGet(
       ir.DartType receiverType, ClassRelation relation, ir.Name name) {
-    _data._dynamicGets ??= [];
-    _data._dynamicGets.add(_DynamicAccess(receiverType, relation, name));
+    (_data._dynamicGets ??= [])
+        .add(_DynamicAccess(receiverType, relation, name));
   }
 
   @override
@@ -663,8 +658,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       int positionalArguments,
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
-    _data._functionInvocations ??= [];
-    _data._functionInvocations.add(_FunctionInvocation(receiverType,
+    (_data._functionInvocations ??= []).add(_FunctionInvocation(receiverType,
         _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
 
@@ -676,8 +670,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       int positionalArguments,
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
-    _data._instanceInvocations ??= [];
-    _data._instanceInvocations.add(_InstanceInvocation(
+    (_data._instanceInvocations ??= []).add(_InstanceInvocation(
         receiverType,
         relation,
         target,
@@ -692,8 +685,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       int positionalArguments,
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
-    _data._dynamicInvocations ??= [];
-    _data._dynamicInvocations.add(_DynamicInvocation(
+    (_data._dynamicInvocations ??= []).add(_DynamicInvocation(
         receiverType,
         relation,
         name,
@@ -706,8 +698,8 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       int positionalArguments,
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
-    _data._localFunctionInvocations ??= [];
-    _data._localFunctionInvocations.add(_LocalFunctionInvocation(localFunction,
+    (_data._localFunctionInvocations ??= []).add(_LocalFunctionInvocation(
+        localFunction,
         _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
 
@@ -717,9 +709,8 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       int positionalArguments,
       List<String> namedArguments,
       List<ir.DartType> typeArguments,
-      ir.LibraryDependency import) {
-    _data._staticInvocations ??= [];
-    _data._staticInvocations.add(_StaticInvocation(
+      ir.LibraryDependency? import) {
+    (_data._staticInvocations ??= []).add(_StaticInvocation(
         target,
         _CallStructure(positionalArguments, namedArguments, typeArguments),
         import));
@@ -732,10 +723,9 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       int positionalArguments,
       List<String> namedArguments,
       List<ir.DartType> typeArguments,
-      ir.LibraryDependency import,
-      {bool isConst}) {
-    _data._constructorInvocations ??= [];
-    _data._constructorInvocations.add(_ConstructorInvocation(
+      ir.LibraryDependency? import,
+      {required bool isConst}) {
+    (_data._constructorInvocations ??= []).add(_ConstructorInvocation(
         constructor,
         type,
         _CallStructure(positionalArguments, namedArguments, typeArguments),
@@ -745,9 +735,8 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
 
   @override
   void registerConstInstantiation(ir.Class cls, List<ir.DartType> typeArguments,
-      ir.LibraryDependency import) {
-    _data._constInstantiations ??= [];
-    _data._constInstantiations
+      ir.LibraryDependency? import) {
+    (_data._constInstantiations ??= [])
         .add(_ConstInstantiation(cls, typeArguments, import));
   }
 
@@ -767,8 +756,8 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       int positionalArguments,
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
-    _data._redirectingInitializers ??= [];
-    _data._redirectingInitializers.add(_RedirectingInitializer(constructor,
+    (_data._redirectingInitializers ??= []).add(_RedirectingInitializer(
+        constructor,
         _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
 
@@ -779,21 +768,20 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
 
   @override
   void registerFieldInitialization(ir.Field node) {
-    _data._fieldInitializers ??= [];
-    _data._fieldInitializers.add(node);
+    (_data._fieldInitializers ??= []).add(node);
   }
 
   @override
   void registerFieldConstantInitialization(
       ir.Field node, ConstantReference constant) {
-    _data._fieldConstantInitializers ??= {};
-    _data._fieldConstantInitializers.putIfAbsent(node, () => []).add(constant);
+    (_data._fieldConstantInitializers ??= {})
+        .putIfAbsent(node, () => [])
+        .add(constant);
   }
 
   @override
-  void registerTypeLiteral(ir.DartType type, ir.LibraryDependency import) {
-    _data._typeLiterals ??= [];
-    _data._typeLiterals.add(_TypeLiteral(type, import));
+  void registerTypeLiteral(ir.DartType type, ir.LibraryDependency? import) {
+    (_data._typeLiterals ??= []).add(_TypeLiteral(type, import));
   }
 
   @override
@@ -814,8 +802,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   @override
   void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
       ClassRelation iteratorClassRelation) {
-    _data._forInData ??= [];
-    _data._forInData.add(_ForInData(
+    (_data._forInData ??= []).add(_ForInData(
         iterableType, iteratorType, iteratorClassRelation,
         isAsync: true));
   }
@@ -823,8 +810,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   @override
   void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
       ClassRelation iteratorClassRelation) {
-    _data._forInData ??= [];
-    _data._forInData.add(_ForInData(
+    (_data._forInData ??= []).add(_ForInData(
         iterableType, iteratorType, iteratorClassRelation,
         isAsync: false));
   }
@@ -856,8 +842,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
 
   @override
   void registerLocalFunction(ir.TreeNode node) {
-    _data._localFunctions ??= [];
-    _data._localFunctions.add(node);
+    (_data._localFunctions ??= []).add(node);
   }
 
   @override
@@ -883,58 +868,51 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   @override
   void registerGenericInstantiation(
       ir.FunctionType expressionType, List<ir.DartType> typeArguments) {
-    _data._genericInstantiations ??= [];
-    _data._genericInstantiations
+    (_data._genericInstantiations ??= [])
         .add(_GenericInstantiation(expressionType, typeArguments));
   }
 
   @override
-  void registerAssert({bool withMessage}) {
+  void registerAssert({required bool withMessage}) {
     _registerFeature(withMessage
         ? _Feature.assertWithMessage
         : _Feature.assertWithoutMessage);
   }
 
   @override
-  void registerStaticSet(ir.Member member, ir.LibraryDependency import) {
-    _data._staticSets ??= [];
-    _data._staticSets.add(_StaticAccess(member, import));
+  void registerStaticSet(ir.Member member, ir.LibraryDependency? import) {
+    (_data._staticSets ??= []).add(_StaticAccess(member, import));
   }
 
   @override
-  void registerStaticGet(ir.Member member, ir.LibraryDependency import) {
-    _data._staticGets ??= [];
-    _data._staticGets.add(_StaticAccess(member, import));
+  void registerStaticGet(ir.Member member, ir.LibraryDependency? import) {
+    (_data._staticGets ??= []).add(_StaticAccess(member, import));
   }
 
   @override
   void registerStaticTearOff(
-      ir.Procedure procedure, ir.LibraryDependency import) {
-    _data._staticTearOffs ??= [];
-    _data._staticTearOffs.add(_StaticAccess(procedure, import));
+      ir.Procedure procedure, ir.LibraryDependency? import) {
+    (_data._staticTearOffs ??= []).add(_StaticAccess(procedure, import));
   }
 
   @override
   void registerMapLiteral(ir.DartType keyType, ir.DartType valueType,
-      {bool isConst, bool isEmpty}) {
-    _data._mapLiterals ??= [];
-    _data._mapLiterals.add(
+      {required bool isConst, required bool isEmpty}) {
+    (_data._mapLiterals ??= []).add(
         _MapLiteral(keyType, valueType, isConst: isConst, isEmpty: isEmpty));
   }
 
   @override
   void registerListLiteral(ir.DartType elementType,
-      {bool isConst, bool isEmpty}) {
-    _data._listLiterals ??= [];
-    _data._listLiterals.add(
+      {required bool isConst, required bool isEmpty}) {
+    (_data._listLiterals ??= []).add(
         _ContainerLiteral(elementType, isConst: isConst, isEmpty: isEmpty));
   }
 
   @override
   void registerSetLiteral(ir.DartType elementType,
-      {bool isConst, bool isEmpty}) {
-    _data._setLiterals ??= [];
-    _data._setLiterals.add(
+      {required bool isConst, required bool isEmpty}) {
+    (_data._setLiterals ??= []).add(
         _ContainerLiteral(elementType, isConst: isConst, isEmpty: isEmpty));
   }
 
@@ -945,70 +923,59 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
 
   @override
   void registerSymbolLiteral(String value) {
-    _data._symbolLiterals ??= {};
-    _data._symbolLiterals.add(value);
+    (_data._symbolLiterals ??= {}).add(value);
   }
 
   @override
   void registerStringLiteral(String value) {
-    _data._stringLiterals ??= {};
-    _data._stringLiterals.add(value);
+    (_data._stringLiterals ??= {}).add(value);
   }
 
   @override
   void registerBoolLiteral(bool value) {
-    _data._boolLiterals ??= {};
-    _data._boolLiterals.add(value);
+    (_data._boolLiterals ??= {}).add(value);
   }
 
   @override
   void registerDoubleLiteral(double value) {
-    _data._doubleLiterals ??= {};
-    _data._doubleLiterals.add(value);
+    (_data._doubleLiterals ??= {}).add(value);
   }
 
   @override
   void registerIntLiteral(int value) {
-    _data._intLiterals ??= {};
-    _data._intLiterals.add(value);
+    (_data._intLiterals ??= {}).add(value);
   }
 
   @override
   void registerRuntimeTypeUse(RuntimeTypeUseKind kind, ir.DartType receiverType,
-      ir.DartType argumentType) {
-    _data._runtimeTypeUses ??= [];
-    _data._runtimeTypeUses
+      ir.DartType? argumentType) {
+    (_data._runtimeTypeUses ??= [])
         .add(_RuntimeTypeUse(kind, receiverType, argumentType));
   }
 
   @override
   void registerConstructorNode(ir.Constructor node) {
-    _data._constructorNodes ??= [];
-    _data._constructorNodes.add(node);
+    (_data._constructorNodes ??= []).add(node);
   }
 
   @override
   void registerFieldNode(ir.Field node) {
-    _data._fieldNodes ??= [];
-    _data._fieldNodes.add(node);
+    (_data._fieldNodes ??= []).add(node);
   }
 
   @override
   void registerProcedureNode(ir.Procedure node) {
-    _data._procedureNodes ??= [];
-    _data._procedureNodes.add(node);
+    (_data._procedureNodes ??= []).add(node);
   }
 
   @override
   void registerStaticInvocationNode(ir.StaticInvocation node) {
-    _data._staticInvocationNodes ??= [];
-    _data._staticInvocationNodes.add(node);
+    (_data._staticInvocationNodes ??= []).add(node);
   }
 
   @override
   void registerSwitchStatementNode(ir.SwitchStatement node) {
-    _data._switchStatementNodes ??= [];
-    _data._switchStatementNodes.add(node);
+    (_data._switchStatementNodes ??= []).add(node);
   }
 
   @override
@@ -1024,49 +991,49 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
 class ImpactData {
   static const String tag = 'ImpactData';
 
-  List<_SuperInitializer> _superInitializers;
-  List<ir.Member> _superSets;
-  List<ir.Member> _superGets;
-  List<_SuperInvocation> _superInvocations;
-  List<_InstanceAccess> _instanceSets;
-  List<_DynamicAccess> _dynamicSets;
-  List<_InstanceAccess> _instanceGets;
-  List<_DynamicAccess> _dynamicGets;
-  List<_FunctionInvocation> _functionInvocations;
-  List<_InstanceInvocation> _instanceInvocations;
-  List<_DynamicInvocation> _dynamicInvocations;
-  List<_LocalFunctionInvocation> _localFunctionInvocations;
-  List<_StaticInvocation> _staticInvocations;
-  List<_ConstructorInvocation> _constructorInvocations;
-  List<_ConstInstantiation> _constInstantiations;
-  EnumSet<_Feature> _features;
-  List<_TypeUse> _typeUses;
-  List<_RedirectingInitializer> _redirectingInitializers;
-  List<ir.Field> _fieldInitializers;
-  Map<ir.Field, List<ConstantReference>> _fieldConstantInitializers;
-  List<_TypeLiteral> _typeLiterals;
-  List<ir.TreeNode> _localFunctions;
-  List<_GenericInstantiation> _genericInstantiations;
-  List<_StaticAccess> _staticSets;
-  List<_StaticAccess> _staticGets;
-  List<_StaticAccess> _staticTearOffs;
-  List<_MapLiteral> _mapLiterals;
-  List<_ContainerLiteral> _listLiterals;
-  List<_ContainerLiteral> _setLiterals;
-  Set<String> _symbolLiterals;
-  Set<String> _stringLiterals;
-  Set<bool> _boolLiterals;
-  Set<double> _doubleLiterals;
-  Set<int> _intLiterals;
-  List<_RuntimeTypeUse> _runtimeTypeUses;
-  List<_ForInData> _forInData;
+  List<_SuperInitializer>? _superInitializers;
+  List<ir.Member>? _superSets;
+  List<ir.Member>? _superGets;
+  List<_SuperInvocation>? _superInvocations;
+  List<_InstanceAccess>? _instanceSets;
+  List<_DynamicAccess>? _dynamicSets;
+  List<_InstanceAccess>? _instanceGets;
+  List<_DynamicAccess>? _dynamicGets;
+  List<_FunctionInvocation>? _functionInvocations;
+  List<_InstanceInvocation>? _instanceInvocations;
+  List<_DynamicInvocation>? _dynamicInvocations;
+  List<_LocalFunctionInvocation>? _localFunctionInvocations;
+  List<_StaticInvocation>? _staticInvocations;
+  List<_ConstructorInvocation>? _constructorInvocations;
+  List<_ConstInstantiation>? _constInstantiations;
+  EnumSet<_Feature>? _features;
+  List<_TypeUse>? _typeUses;
+  List<_RedirectingInitializer>? _redirectingInitializers;
+  List<ir.Field>? _fieldInitializers;
+  Map<ir.Field, List<ConstantReference>>? _fieldConstantInitializers;
+  List<_TypeLiteral>? _typeLiterals;
+  List<ir.TreeNode>? _localFunctions;
+  List<_GenericInstantiation>? _genericInstantiations;
+  List<_StaticAccess>? _staticSets;
+  List<_StaticAccess>? _staticGets;
+  List<_StaticAccess>? _staticTearOffs;
+  List<_MapLiteral>? _mapLiterals;
+  List<_ContainerLiteral>? _listLiterals;
+  List<_ContainerLiteral>? _setLiterals;
+  Set<String>? _symbolLiterals;
+  Set<String>? _stringLiterals;
+  Set<bool>? _boolLiterals;
+  Set<double>? _doubleLiterals;
+  Set<int>? _intLiterals;
+  List<_RuntimeTypeUse>? _runtimeTypeUses;
+  List<_ForInData>? _forInData;
 
   // TODO(johnniwinther): Remove these when CFE provides constants.
-  List<ir.Constructor> _constructorNodes;
-  List<ir.Field> _fieldNodes;
-  List<ir.Procedure> _procedureNodes;
-  List<ir.SwitchStatement> _switchStatementNodes;
-  List<ir.StaticInvocation> _staticInvocationNodes;
+  List<ir.Constructor>? _constructorNodes;
+  List<ir.Field>? _fieldNodes;
+  List<ir.Procedure>? _procedureNodes;
+  List<ir.SwitchStatement>? _switchStatementNodes;
+  List<ir.StaticInvocation>? _staticInvocationNodes;
   bool _hasConstSymbolConstructorInvocation = false;
 
   ImpactData();
@@ -1231,7 +1198,7 @@ class ImpactData {
   /// Registers the impact data with [registry].
   void apply(ImpactRegistry registry) {
     if (_superInitializers != null) {
-      for (_SuperInitializer data in _superInitializers) {
+      for (_SuperInitializer data in _superInitializers!) {
         registry.registerSuperInitializer(
             data.source,
             data.target,
@@ -1241,17 +1208,17 @@ class ImpactData {
       }
     }
     if (_superSets != null) {
-      for (ir.Member data in _superSets) {
+      for (ir.Member data in _superSets!) {
         registry.registerSuperSet(data);
       }
     }
     if (_superGets != null) {
-      for (ir.Member data in _superGets) {
+      for (ir.Member data in _superGets!) {
         registry.registerSuperGet(data);
       }
     }
     if (_superInvocations != null) {
-      for (_SuperInvocation data in _superInvocations) {
+      for (_SuperInvocation data in _superInvocations!) {
         registry.registerSuperInvocation(
             data.target,
             data.callStructure.positionalArguments,
@@ -1260,31 +1227,31 @@ class ImpactData {
       }
     }
     if (_instanceSets != null) {
-      for (_InstanceAccess data in _instanceSets) {
+      for (_InstanceAccess data in _instanceSets!) {
         registry.registerInstanceSet(
             data.receiverType, data.classRelation, data.target);
       }
     }
     if (_dynamicSets != null) {
-      for (_DynamicAccess data in _dynamicSets) {
+      for (_DynamicAccess data in _dynamicSets!) {
         registry.registerDynamicSet(
             data.receiverType, data.classRelation, data.name);
       }
     }
     if (_instanceGets != null) {
-      for (_InstanceAccess data in _instanceGets) {
+      for (_InstanceAccess data in _instanceGets!) {
         registry.registerInstanceGet(
             data.receiverType, data.classRelation, data.target);
       }
     }
     if (_dynamicGets != null) {
-      for (_DynamicAccess data in _dynamicGets) {
+      for (_DynamicAccess data in _dynamicGets!) {
         registry.registerDynamicGet(
             data.receiverType, data.classRelation, data.name);
       }
     }
     if (_functionInvocations != null) {
-      for (_FunctionInvocation data in _functionInvocations) {
+      for (_FunctionInvocation data in _functionInvocations!) {
         registry.registerFunctionInvocation(
             data.receiverType,
             data.callStructure.positionalArguments,
@@ -1293,7 +1260,7 @@ class ImpactData {
       }
     }
     if (_instanceInvocations != null) {
-      for (_InstanceInvocation data in _instanceInvocations) {
+      for (_InstanceInvocation data in _instanceInvocations!) {
         registry.registerInstanceInvocation(
             data.receiverType,
             data.classRelation,
@@ -1304,7 +1271,7 @@ class ImpactData {
       }
     }
     if (_dynamicInvocations != null) {
-      for (_DynamicInvocation data in _dynamicInvocations) {
+      for (_DynamicInvocation data in _dynamicInvocations!) {
         registry.registerDynamicInvocation(
             data.receiverType,
             data.classRelation,
@@ -1315,7 +1282,7 @@ class ImpactData {
       }
     }
     if (_localFunctionInvocations != null) {
-      for (_LocalFunctionInvocation data in _localFunctionInvocations) {
+      for (_LocalFunctionInvocation data in _localFunctionInvocations!) {
         registry.registerLocalFunctionInvocation(
             data.localFunction,
             data.callStructure.positionalArguments,
@@ -1324,7 +1291,7 @@ class ImpactData {
       }
     }
     if (_staticInvocations != null) {
-      for (_StaticInvocation data in _staticInvocations) {
+      for (_StaticInvocation data in _staticInvocations!) {
         registry.registerStaticInvocation(
             data.target,
             data.callStructure.positionalArguments,
@@ -1335,7 +1302,7 @@ class ImpactData {
       }
     }
     if (_constructorInvocations != null) {
-      for (_ConstructorInvocation data in _constructorInvocations) {
+      for (_ConstructorInvocation data in _constructorInvocations!) {
         registry.registerNew(
             data.constructor,
             data.type,
@@ -1347,13 +1314,13 @@ class ImpactData {
       }
     }
     if (_constInstantiations != null) {
-      for (_ConstInstantiation data in _constInstantiations) {
+      for (_ConstInstantiation data in _constInstantiations!) {
         registry.registerConstInstantiation(
             data.cls, data.typeArguments, data.import);
       }
     }
     if (_features != null) {
-      for (_Feature data in _features.iterable(_Feature.values)) {
+      for (_Feature data in _features!.iterable(_Feature.values)) {
         switch (data) {
           case _Feature.lazyField:
             registry.registerLazyField();
@@ -1389,7 +1356,7 @@ class ImpactData {
       }
     }
     if (_typeUses != null) {
-      for (_TypeUse data in _typeUses) {
+      for (_TypeUse data in _typeUses!) {
         switch (data.kind) {
           case _TypeUseKind.parameterCheck:
             registry.registerParameterCheck(data.type);
@@ -1419,7 +1386,7 @@ class ImpactData {
       }
     }
     if (_redirectingInitializers != null) {
-      for (_RedirectingInitializer data in _redirectingInitializers) {
+      for (_RedirectingInitializer data in _redirectingInitializers!) {
         registry.registerRedirectingInitializer(
             data.constructor,
             data.callStructure.positionalArguments,
@@ -1428,12 +1395,12 @@ class ImpactData {
       }
     }
     if (_fieldInitializers != null) {
-      for (ir.Field data in _fieldInitializers) {
+      for (ir.Field data in _fieldInitializers!) {
         registry.registerFieldInitialization(data);
       }
     }
     if (_fieldConstantInitializers != null) {
-      _fieldConstantInitializers
+      _fieldConstantInitializers!
           .forEach((ir.Field field, List<ConstantReference> constants) {
         for (ConstantReference constant in constants) {
           registry.registerFieldConstantInitialization(field, constant);
@@ -1441,87 +1408,88 @@ class ImpactData {
       });
     }
     if (_typeLiterals != null) {
-      for (_TypeLiteral data in _typeLiterals) {
+      for (_TypeLiteral data in _typeLiterals!) {
         registry.registerTypeLiteral(data.type, data.import);
       }
     }
     if (_localFunctions != null) {
-      for (ir.TreeNode data in _localFunctions) {
+      for (ir.TreeNode data in _localFunctions!) {
         registry.registerLocalFunction(data);
       }
     }
     if (_genericInstantiations != null) {
-      for (_GenericInstantiation data in _genericInstantiations) {
+      for (_GenericInstantiation data in _genericInstantiations!) {
         registry.registerGenericInstantiation(
             data.expressionType, data.typeArguments);
       }
     }
     if (_staticSets != null) {
-      for (_StaticAccess data in _staticSets) {
+      for (_StaticAccess data in _staticSets!) {
         registry.registerStaticSet(data.target, data.import);
       }
     }
     if (_staticGets != null) {
-      for (_StaticAccess data in _staticGets) {
+      for (_StaticAccess data in _staticGets!) {
         registry.registerStaticGet(data.target, data.import);
       }
     }
     if (_staticTearOffs != null) {
-      for (_StaticAccess data in _staticTearOffs) {
-        registry.registerStaticTearOff(data.target, data.import);
+      for (_StaticAccess data in _staticTearOffs!) {
+        registry.registerStaticTearOff(
+            data.target as ir.Procedure, data.import);
       }
     }
     if (_mapLiterals != null) {
-      for (_MapLiteral data in _mapLiterals) {
+      for (_MapLiteral data in _mapLiterals!) {
         registry.registerMapLiteral(data.keyType, data.valueType,
             isConst: data.isConst, isEmpty: data.isEmpty);
       }
     }
     if (_listLiterals != null) {
-      for (_ContainerLiteral data in _listLiterals) {
+      for (_ContainerLiteral data in _listLiterals!) {
         registry.registerListLiteral(data.elementType,
             isConst: data.isConst, isEmpty: data.isEmpty);
       }
     }
     if (_setLiterals != null) {
-      for (_ContainerLiteral data in _setLiterals) {
+      for (_ContainerLiteral data in _setLiterals!) {
         registry.registerSetLiteral(data.elementType,
             isConst: data.isConst, isEmpty: data.isEmpty);
       }
     }
     if (_symbolLiterals != null) {
-      for (String data in _symbolLiterals) {
+      for (String data in _symbolLiterals!) {
         registry.registerSymbolLiteral(data);
       }
     }
     if (_stringLiterals != null) {
-      for (String data in _stringLiterals) {
+      for (String data in _stringLiterals!) {
         registry.registerStringLiteral(data);
       }
     }
     if (_boolLiterals != null) {
-      for (bool data in _boolLiterals) {
+      for (bool data in _boolLiterals!) {
         registry.registerBoolLiteral(data);
       }
     }
     if (_doubleLiterals != null) {
-      for (double data in _doubleLiterals) {
+      for (double data in _doubleLiterals!) {
         registry.registerDoubleLiteral(data);
       }
     }
     if (_intLiterals != null) {
-      for (int data in _intLiterals) {
+      for (int data in _intLiterals!) {
         registry.registerIntLiteral(data);
       }
     }
     if (_runtimeTypeUses != null) {
-      for (_RuntimeTypeUse data in _runtimeTypeUses) {
+      for (_RuntimeTypeUse data in _runtimeTypeUses!) {
         registry.registerRuntimeTypeUse(
             data.kind, data.receiverType, data.argumentType);
       }
     }
     if (_forInData != null) {
-      for (_ForInData data in _forInData) {
+      for (_ForInData data in _forInData!) {
         if (data.isAsync) {
           registry.registerAsyncForIn(
               data.iterableType, data.iteratorType, data.iteratorClassRelation);
@@ -1534,27 +1502,27 @@ class ImpactData {
 
     // TODO(johnniwinther): Remove these when CFE provides constants.
     if (_constructorNodes != null) {
-      for (ir.Constructor data in _constructorNodes) {
+      for (ir.Constructor data in _constructorNodes!) {
         registry.registerConstructorNode(data);
       }
     }
     if (_fieldNodes != null) {
-      for (ir.Field data in _fieldNodes) {
+      for (ir.Field data in _fieldNodes!) {
         registry.registerFieldNode(data);
       }
     }
     if (_procedureNodes != null) {
-      for (ir.Procedure data in _procedureNodes) {
+      for (ir.Procedure data in _procedureNodes!) {
         registry.registerProcedureNode(data);
       }
     }
     if (_switchStatementNodes != null) {
-      for (ir.SwitchStatement data in _switchStatementNodes) {
+      for (ir.SwitchStatement data in _switchStatementNodes!) {
         registry.registerSwitchStatementNode(data);
       }
     }
     if (_staticInvocationNodes != null) {
-      for (ir.StaticInvocation data in _staticInvocationNodes) {
+      for (ir.StaticInvocation data in _staticInvocationNodes!) {
         registry.registerStaticInvocationNode(data);
       }
     }
@@ -1584,7 +1552,7 @@ class _CallStructure {
     source.begin(tag);
     List<ir.DartType> typeArguments = source.readDartTypeNodes();
     int positionalArguments = source.readInt();
-    List<String> namedArguments = source.readStrings();
+    List<String> namedArguments = source.readStrings() ?? const [];
     source.end(tag);
     return _CallStructure.internal(
         typeArguments, positionalArguments, namedArguments);
@@ -1610,8 +1578,10 @@ class _SuperInitializer {
 
   factory _SuperInitializer.fromDataSource(DataSourceReader source) {
     source.begin(tag);
-    ir.Constructor sourceConstructor = source.readMemberNode();
-    ir.Constructor targetConstructor = source.readMemberNode();
+    ir.Constructor sourceConstructor =
+        source.readMemberNode() as ir.Constructor;
+    ir.Constructor targetConstructor =
+        source.readMemberNode() as ir.Constructor;
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
     source.end(tag);
     return _SuperInitializer(
@@ -1802,7 +1772,8 @@ class _LocalFunctionInvocation {
 
   factory _LocalFunctionInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
-    ir.FunctionDeclaration localFunction = source.readTreeNode();
+    ir.FunctionDeclaration localFunction =
+        source.readTreeNode() as ir.FunctionDeclaration;
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
     source.end(tag);
     return _LocalFunctionInvocation(localFunction, callStructure);
@@ -1821,15 +1792,15 @@ class _StaticInvocation {
 
   final ir.Procedure target;
   final _CallStructure callStructure;
-  final ir.LibraryDependency import;
+  final ir.LibraryDependency? import;
 
   _StaticInvocation(this.target, this.callStructure, this.import);
 
   factory _StaticInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
-    ir.Procedure target = source.readMemberNode();
+    ir.Procedure target = source.readMemberNode() as ir.Procedure;
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
-    ir.LibraryDependency import = source.readLibraryDependencyNodeOrNull();
+    ir.LibraryDependency? import = source.readLibraryDependencyNodeOrNull();
     source.end(tag);
     return _StaticInvocation(target, callStructure, import);
   }
@@ -1849,19 +1820,19 @@ class _ConstructorInvocation {
   final ir.Member constructor;
   final ir.InterfaceType type;
   final _CallStructure callStructure;
-  final ir.LibraryDependency import;
+  final ir.LibraryDependency? import;
   final bool isConst;
 
   _ConstructorInvocation(
       this.constructor, this.type, this.callStructure, this.import,
-      {this.isConst});
+      {required this.isConst});
 
   factory _ConstructorInvocation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Member constructor = source.readMemberNode();
-    ir.InterfaceType type = source.readDartTypeNode();
+    ir.InterfaceType type = source.readDartTypeNode() as ir.InterfaceType;
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
-    ir.LibraryDependency import = source.readLibraryDependencyNodeOrNull();
+    ir.LibraryDependency? import = source.readLibraryDependencyNodeOrNull();
     bool isConst = source.readBool();
     source.end(tag);
     return _ConstructorInvocation(constructor, type, callStructure, import,
@@ -1882,7 +1853,7 @@ class _ConstructorInvocation {
 class _ConstInstantiation {
   final ir.Class cls;
   final List<ir.DartType> typeArguments;
-  final ir.LibraryDependency import;
+  final ir.LibraryDependency? import;
 
   _ConstInstantiation(this.cls, this.typeArguments, this.import);
 }
@@ -1945,7 +1916,7 @@ class _RedirectingInitializer {
 
   factory _RedirectingInitializer.fromDataSource(DataSourceReader source) {
     source.begin(tag);
-    ir.Constructor constructor = source.readMemberNode();
+    ir.Constructor constructor = source.readMemberNode() as ir.Constructor;
     _CallStructure callStructure = _CallStructure.fromDataSource(source);
     source.end(tag);
     return _RedirectingInitializer(constructor, callStructure);
@@ -1963,14 +1934,14 @@ class _TypeLiteral {
   static const String tag = '_TypeLiteral';
 
   final ir.DartType type;
-  final ir.LibraryDependency import;
+  final ir.LibraryDependency? import;
 
   _TypeLiteral(this.type, this.import);
 
   factory _TypeLiteral.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.DartType type = source.readDartTypeNode();
-    ir.LibraryDependency import = source.readLibraryDependencyNodeOrNull();
+    ir.LibraryDependency? import = source.readLibraryDependencyNodeOrNull();
     source.end(tag);
     return _TypeLiteral(type, import);
   }
@@ -1993,7 +1964,8 @@ class _GenericInstantiation {
 
   factory _GenericInstantiation.fromDataSource(DataSourceReader source) {
     source.begin(tag);
-    ir.FunctionType expressionType = source.readDartTypeNode();
+    ir.FunctionType expressionType =
+        source.readDartTypeNode() as ir.FunctionType;
     List<ir.DartType> typeArguments = source.readDartTypeNodes();
     source.end(tag);
     return _GenericInstantiation(expressionType, typeArguments);
@@ -2011,14 +1983,14 @@ class _StaticAccess {
   static const String tag = '_StaticAccess';
 
   final ir.Member target;
-  final ir.LibraryDependency import;
+  final ir.LibraryDependency? import;
 
   _StaticAccess(this.target, this.import);
 
   factory _StaticAccess.fromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Member target = source.readMemberNode();
-    ir.LibraryDependency import = source.readLibraryDependencyNodeOrNull();
+    ir.LibraryDependency? import = source.readLibraryDependencyNodeOrNull();
     source.end(tag);
     return _StaticAccess(target, import);
   }
@@ -2039,7 +2011,8 @@ class _MapLiteral {
   final bool isConst;
   final bool isEmpty;
 
-  _MapLiteral(this.keyType, this.valueType, {this.isConst, this.isEmpty});
+  _MapLiteral(this.keyType, this.valueType,
+      {required this.isConst, required this.isEmpty});
 
   factory _MapLiteral.fromDataSource(DataSourceReader source) {
     source.begin(tag);
@@ -2068,7 +2041,8 @@ class _ContainerLiteral {
   final bool isConst;
   final bool isEmpty;
 
-  _ContainerLiteral(this.elementType, {this.isConst, this.isEmpty});
+  _ContainerLiteral(this.elementType,
+      {required this.isConst, required this.isEmpty});
 
   factory _ContainerLiteral.fromDataSource(DataSourceReader source) {
     source.begin(tag);
@@ -2093,7 +2067,7 @@ class _RuntimeTypeUse {
 
   final RuntimeTypeUseKind kind;
   final ir.DartType receiverType;
-  final ir.DartType argumentType;
+  final ir.DartType? argumentType;
 
   _RuntimeTypeUse(this.kind, this.receiverType, this.argumentType);
 
@@ -2101,7 +2075,7 @@ class _RuntimeTypeUse {
     source.begin(tag);
     RuntimeTypeUseKind kind = source.readEnum(RuntimeTypeUseKind.values);
     ir.DartType receiverType = source.readDartTypeNode();
-    ir.DartType argumentType = source.readDartTypeNodeOrNull();
+    ir.DartType? argumentType = source.readDartTypeNodeOrNull();
     source.end(tag);
     return _RuntimeTypeUse(kind, receiverType, argumentType);
   }
@@ -2124,7 +2098,7 @@ class _ForInData {
   final bool isAsync;
 
   _ForInData(this.iterableType, this.iteratorType, this.iteratorClassRelation,
-      {this.isAsync});
+      {required this.isAsync});
 
   factory _ForInData.fromDataSource(DataSourceReader source) {
     source.begin(tag);

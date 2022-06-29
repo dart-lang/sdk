@@ -1578,16 +1578,10 @@ void ExternalTypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 void Pointer::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  // TODO(dacoharkes): what is the JSONStream used for?
-  // should it fail because it's not supported?
-  // or should it print something reasonable as default?
   Instance::PrintJSONImpl(stream, ref);
 }
 
 void DynamicLibrary::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  // TODO(dacoharkes): what is the JSONStream used for?
-  // should it fail because it's not supported?
-  // or should it print something reasonable as default?
   Instance::PrintJSONImpl(stream, ref);
 }
 

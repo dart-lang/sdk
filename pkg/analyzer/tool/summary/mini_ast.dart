@@ -161,6 +161,9 @@ class MiniAstBuilder extends StackListener {
   final compilationUnit = CompilationUnit();
 
   @override
+  Uri get importUri => throw UnimplementedError();
+
+  @override
   Uri get uri => throw UnimplementedError();
 
   @override

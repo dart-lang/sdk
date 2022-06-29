@@ -4,7 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 
 class StaticTypeCache {
   static const String tag = 'static-type-cache';

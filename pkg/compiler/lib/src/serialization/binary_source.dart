@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'data_source.dart';
-import 'serialization_interfaces.dart' show StringInterner;
+import 'serialization.dart' show StringInterner;
 
 /// [DataSource] that reads data from a sequence of bytes.
 ///

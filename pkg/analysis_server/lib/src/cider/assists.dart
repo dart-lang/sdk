@@ -37,7 +37,7 @@ class CiderAssistsComputer {
         );
         final processor = AssistProcessor(context);
         final assists = await processor.compute();
-        assists.sort(Assist.SORT_BY_RELEVANCE);
+        assists.sort(Assist.compareAssists);
         result.addAll(assists);
       } on InconsistentAnalysisException {
         // If an InconsistentAnalysisException occurs, it's likely the user modified

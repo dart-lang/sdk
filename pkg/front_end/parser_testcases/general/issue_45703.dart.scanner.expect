@@ -1,0 +1,35 @@
+class Function {}
+class C<Function> {}
+
+typedef Function = int;
+typedef F<Function> = int;
+
+extension Function on List {}
+extension E<Function> on List<Function> {}
+
+mixin Function {}
+mixin M<Function> implements List<Function> {}
+
+void main() {
+Function ok;
+dynamic okToo;
+}
+
+
+class[KeywordToken] Function[KeywordToken] {[BeginToken]}[SimpleToken]
+class[KeywordToken] C[StringToken]<[BeginToken]Function[KeywordToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+
+typedef[KeywordToken] Function[KeywordToken] =[SimpleToken] int[StringToken];[SimpleToken]
+typedef[KeywordToken] F[StringToken]<[BeginToken]Function[KeywordToken]>[SimpleToken] =[SimpleToken] int[StringToken];[SimpleToken]
+
+extension[KeywordToken] Function[KeywordToken] on[KeywordToken] List[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] E[StringToken]<[BeginToken]Function[KeywordToken]>[SimpleToken] on[KeywordToken] List[StringToken]<[BeginToken]Function[KeywordToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+
+mixin[KeywordToken] Function[KeywordToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] M[StringToken]<[BeginToken]Function[KeywordToken]>[SimpleToken] implements[KeywordToken] List[StringToken]<[BeginToken]Function[KeywordToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+Function[KeywordToken] ok[StringToken];[SimpleToken]
+dynamic[KeywordToken] okToo[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

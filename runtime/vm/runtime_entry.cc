@@ -744,6 +744,17 @@ DEFINE_RUNTIME_ENTRY(AllocateSuspendState, 2) {
   arguments.SetReturn(result);
 }
 
+// Makes a copy of the given SuspendState object, including the payload frame.
+// Arg0: the SuspendState object to be cloned.
+// Return value: newly allocated object.
+DEFINE_RUNTIME_ENTRY(CloneSuspendState, 1) {
+  const SuspendState& src =
+      SuspendState::CheckedHandle(zone, arguments.ArgAt(0));
+  const SuspendState& dst = SuspendState::Handle(
+      zone, SuspendState::Clone(thread, src, SpaceForRuntimeAllocation()));
+  arguments.SetReturn(dst);
+}
+
 // Helper routine for tracing a type check.
 static void PrintTypeCheck(const char* message,
                            const Instance& instance,

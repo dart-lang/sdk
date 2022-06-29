@@ -85,7 +85,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 224;
+  static const int DATA_VERSION = 226;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -1289,7 +1289,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     final library = kind.library ?? kind.asLibrary;
 
     // Prepare the signature and key.
-    String signature = _getResolvedUnitSignature(library.file, file);
+    String signature = _getResolvedUnitSignature(library, file);
     String key = _getResolvedUnitKey(signature);
 
     // Skip reading if the signature, so errors, are the same as the last time.
@@ -1343,7 +1343,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           var unitBytes =
               _serializeResolvedUnit(unitResult.unit, unitResult.errors);
           String unitSignature =
-              _getResolvedUnitSignature(library.file, unitResult.file);
+              _getResolvedUnitSignature(library, unitResult.file);
           String unitKey = _getResolvedUnitKey(unitSignature);
           _byteStore.putGet(unitKey, unitBytes);
           if (unitResult.file == file) {
@@ -1479,7 +1479,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       name,
       sourceFactory,
       analysisContext?.contextRoot.workspace,
-      analysisOptions,
       declaredVariables,
       _saltForUnlinked,
       _saltForElements,
@@ -1628,10 +1627,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// Return the signature that identifies fully resolved results for the [file]
   /// in the [library], e.g. element model, errors, index, etc.
-  String _getResolvedUnitSignature(FileState library, FileState file) {
+  String _getResolvedUnitSignature(
+      LibraryFileStateKind library, FileState file) {
     ApiSignature signature = ApiSignature();
     signature.addUint32List(_saltForResolution);
-    signature.addString(library.transitiveSignature);
+    signature.addString(library.file.uriStr);
+    signature.addString(library.libraryCycle.apiSignature);
+    signature.addString(file.uriStr);
     signature.addString(file.contentHash);
     return signature.toHex();
   }
@@ -1677,10 +1679,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _fsState.collectAffected(path, affected);
 
     final removedKeys = <String>{};
-    _libraryContext?.remove(affected.toList(), removedKeys);
+    _libraryContext?.remove(affected, removedKeys);
 
-    for (var file in affected) {
-      file.invalidateLibraryCycle();
+    // TODO(scheglov) Eventually list of `LibraryOrAugmentationFileKind`.
+    for (final file in affected) {
+      final kind = file.kind;
+      if (kind is LibraryFileStateKind) {
+        kind.invalidateLibraryCycle();
+      }
       accumulatedAffected.add(file.path);
     }
 

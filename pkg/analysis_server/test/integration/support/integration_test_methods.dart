@@ -483,7 +483,7 @@ abstract class IntegrationTestMixin {
   /// directory containing the file for a pubspec.yaml file. If none is found,
   /// then the parents of the directory will be searched until such a file is
   /// found or the root of the file system is reached. If such a file is found,
-  /// it will be used to resolve package: URI’s within the file.
+  /// it will be used to resolve package: URI's within the file.
   ///
   /// Parameters
   ///

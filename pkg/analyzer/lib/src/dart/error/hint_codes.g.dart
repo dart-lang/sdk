@@ -111,13 +111,6 @@ class HintCode extends AnalyzerErrorCode {
     uniqueName: 'DEPRECATED_EXTENDS_FUNCTION',
   );
 
-  ///  Users should not create a class named `Function` anymore.
-  static const HintCode DEPRECATED_FUNCTION_CLASS_DECLARATION = HintCode(
-    'DEPRECATED_FUNCTION_CLASS_DECLARATION',
-    "Declaring a class named 'Function' is deprecated.",
-    correctionMessage: "Try renaming the class.",
-  );
-
   ///  No parameters.
   static const HintCode DEPRECATED_IMPLEMENTS_FUNCTION = HintCode(
     'DEPRECATED_SUBTYPE_OF_FUNCTION',

@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/ignore_function.dart:18:7: Error: 'Function' is a built-in identifier, could not used as a class name.
+// pkg/front_end/testcases/general/ignore_function.dart:18:7: Error: Can't use 'Function' as a name here.
 // class Function {
 //       ^^^^^^^^
 //

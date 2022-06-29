@@ -17,7 +17,7 @@ import '../ir/impact_data.dart';
 import '../ir/static_type.dart';
 import '../js_backend/annotations.dart';
 import '../kernel/element_map.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'annotations.dart';
 import 'impact.dart';

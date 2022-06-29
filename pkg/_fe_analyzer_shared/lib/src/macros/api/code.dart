@@ -103,7 +103,10 @@ class ParameterCode implements Code {
 }
 
 /// A piece of code representing a type annotation.
-abstract class TypeAnnotationCode implements Code {
+abstract class TypeAnnotationCode implements Code, TypeAnnotation {
+  @override
+  TypeAnnotationCode get code => this;
+
   /// Returns a [TypeAnnotationCode] object which is a non-nullable version
   /// of this one.
   ///
@@ -125,6 +128,9 @@ abstract class TypeAnnotationCode implements Code {
 class NullableTypeAnnotationCode implements TypeAnnotationCode {
   /// The underlying type that is being made nullable.
   TypeAnnotationCode underlyingType;
+
+  @override
+  TypeAnnotationCode get code => this;
 
   @override
   CodeKind get kind => CodeKind.nullableTypeAnnotation;

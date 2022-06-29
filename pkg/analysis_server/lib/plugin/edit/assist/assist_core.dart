@@ -10,18 +10,6 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Assist {
-  /// A comparator that can be used to sort assists by their relevance. The most
-  /// relevant assists will be sorted before assists with a lower relevance.
-  /// Assists with the same relevance are sorted alphabetically.
-  static final Comparator<Assist> SORT_BY_RELEVANCE = (Assist a, Assist b) {
-    if (a.kind.priority != b.kind.priority) {
-      // A higher priority indicates a higher relevance
-      // and should be sorted before a lower priority.
-      return b.kind.priority - a.kind.priority;
-    }
-    return a.change.message.compareTo(b.change.message);
-  };
-
   /// A description of the assist being proposed.
   final AssistKind kind;
 
@@ -34,5 +22,18 @@ class Assist {
   @override
   String toString() {
     return 'Assist(kind=$kind, change=$change)';
+  }
+
+  /// A function that can be used to sort assists by their relevance.
+  ///
+  /// The most relevant assists will be sorted before assists with a lower
+  /// relevance. Assists with the same relevance are sorted alphabetically.
+  static int compareAssists(Assist a, Assist b) {
+    if (a.kind.priority != b.kind.priority) {
+      // A higher priority indicates a higher relevance
+      // and should be sorted before a lower priority.
+      return b.kind.priority - a.kind.priority;
+    }
+    return a.change.message.compareTo(b.change.message);
   }
 }

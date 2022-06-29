@@ -23,21 +23,24 @@ import 'package:analyzer/src/summary2/macro_declarations.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 class LibraryMacroApplier {
-  final MultiMacroExecutor macroExecutor;
   final DeclarationBuilder declarationBuilder;
   final LibraryBuilder libraryBuilder;
+  final MultiMacroExecutor macroExecutor;
 
   final List<_MacroTarget> _targets = [];
 
   late final macro.IdentifierResolver _identifierResolver =
       _IdentifierResolver(_linker.elementFactory, declarationBuilder);
 
+  late final macro.TypeDeclarationResolver _typeDeclarationResolver =
+      _TypeDeclarationResolver();
+
+  late final macro.TypeIntrospector _typeIntrospector =
+      _TypeIntrospector(declarationBuilder);
+
   late final macro.TypeResolver _typeResolver = _TypeResolver(
     typeSystem: libraryBuilder.element.typeSystem,
   );
-
-  late final macro.ClassIntrospector _classIntrospector =
-      _ClassIntrospector(declarationBuilder);
 
   LibraryMacroApplier({
     required this.macroExecutor,
@@ -456,64 +459,6 @@ class _ArgumentEvaluation {
   }
 }
 
-class _ClassIntrospector implements macro.ClassIntrospector {
-  final DeclarationBuilder declarationBuilder;
-
-  _ClassIntrospector(this.declarationBuilder);
-
-  @override
-  Future<List<macro.ConstructorDeclaration>> constructorsOf(
-      covariant macro.ClassDeclaration clazz) {
-    // TODO: implement constructorsOf
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<macro.FieldDeclaration>> fieldsOf(
-    covariant ClassDeclarationImpl clazz,
-  ) async {
-    return clazz.element.fields
-        .where((e) => !e.isSynthetic)
-        .map(declarationBuilder.fromElement.fieldElement)
-        .toList();
-  }
-
-  @override
-  Future<List<macro.ClassDeclaration>> interfacesOf(
-      covariant macro.ClassDeclaration clazz) {
-    // TODO: implement interfacesOf
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<macro.MethodDeclaration>> methodsOf(
-      covariant macro.ClassDeclaration clazz) {
-    // TODO: implement methodsOf
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<macro.ClassDeclaration>> mixinsOf(
-      covariant macro.ClassDeclaration clazz) {
-    // TODO: implement mixinsOf
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<macro.ClassDeclaration?> superclassOf(
-    covariant ClassDeclarationImpl clazz,
-  ) async {
-    final superType = clazz.element.supertype;
-    if (superType == null) {
-      return null;
-    }
-
-    return declarationBuilder.fromElement.classElement(
-      superType.element,
-    );
-  }
-}
-
 class _IdentifierResolver extends macro.IdentifierResolver {
   final LinkedElementFactory elementFactory;
   final DeclarationBuilder declarationBuilder;
@@ -548,8 +493,9 @@ class _MacroApplication {
       instanceIdentifier,
       target.declaration,
       applier._identifierResolver,
+      applier._typeDeclarationResolver,
       applier._typeResolver,
-      applier._classIntrospector,
+      applier._typeIntrospector,
     );
   }
 
@@ -620,6 +566,48 @@ class _StaticTypeImpl extends macro.StaticType {
     return Future.value(
       typeSystem.isSubtypeOf(type, other.type),
     );
+  }
+}
+
+class _TypeDeclarationResolver implements macro.TypeDeclarationResolver {
+  @override
+  Future<macro.TypeDeclaration> declarationOf(
+      covariant macro.Identifier identifier) {
+    // TODO: implement declarationOf
+    throw UnimplementedError();
+  }
+}
+
+class _TypeIntrospector implements macro.TypeIntrospector {
+  final DeclarationBuilder declarationBuilder;
+
+  _TypeIntrospector(this.declarationBuilder);
+
+  @override
+  Future<List<macro.ConstructorDeclaration>> constructorsOf(
+      covariant macro.IntrospectableType type) {
+    // TODO: implement constructorsOf
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<macro.FieldDeclaration>> fieldsOf(
+    covariant macro.IntrospectableType type,
+  ) async {
+    if (type is! IntrospectableClassDeclarationImpl) {
+      throw UnsupportedError('Only introspection on classes is supported');
+    }
+    return type.element.fields
+        .where((e) => !e.isSynthetic)
+        .map(declarationBuilder.fromElement.fieldElement)
+        .toList();
+  }
+
+  @override
+  Future<List<macro.MethodDeclaration>> methodsOf(
+      covariant macro.IntrospectableType clazz) {
+    // TODO: implement methodsOf
+    throw UnimplementedError();
   }
 }
 

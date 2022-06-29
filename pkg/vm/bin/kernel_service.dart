@@ -192,7 +192,7 @@ abstract class Compiler {
     Uri? packagesUri = null;
     final packageConfig = this.packageConfig ?? Platform.packageConfig;
     if (packageConfig != null) {
-      packagesUri = Uri.parse(packageConfig);
+      packagesUri = resolveInputUri(packageConfig);
     }
 
     if (verbose) {

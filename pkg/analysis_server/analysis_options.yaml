@@ -18,7 +18,6 @@ analyzer:
     implementation_imports: ignore
     non_constant_identifier_names: ignore
     overridden_fields: ignore
-    prefer_function_declarations_over_variables: ignore
     prefer_void_to_null: ignore
     provide_deprecation_message: ignore
 

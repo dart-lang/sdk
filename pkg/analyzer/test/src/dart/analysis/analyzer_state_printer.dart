@@ -7,6 +7,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
+import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart';
@@ -14,9 +15,7 @@ import 'package:test/test.dart';
 
 class AnalyzerStatePrinter {
   final MemoryByteStore byteStore;
-  final FileStateKindIdProvider fileStateKindIdProvider;
-  final FileStateIdProvider fileStateIdProvider;
-  final KeyShorter keyShorter;
+  final IdProvider idProvider;
   final LibraryContext libraryContext;
   final bool omitSdkFiles;
   final ResourceProvider resourceProvider;
@@ -27,9 +26,7 @@ class AnalyzerStatePrinter {
 
   AnalyzerStatePrinter({
     required this.byteStore,
-    required this.fileStateKindIdProvider,
-    required this.fileStateIdProvider,
-    required this.keyShorter,
+    required this.idProvider,
     required this.libraryContext,
     required this.omitSdkFiles,
     required this.resourceProvider,
@@ -64,6 +61,30 @@ class AnalyzerStatePrinter {
     }
   }
 
+  String _stringOfLibraryCycle(LibraryCycle cycle) {
+    if (omitSdkFiles) {
+      final isSdkLibrary = cycle.libraries.any((library) {
+        return library.file.uri.isScheme('dart');
+      });
+      if (isSdkLibrary) {
+        if (cycle.libraries.any((e) => e.file.uriStr == 'dart:core')) {
+          return 'dart:core';
+        } else {
+          throw UnimplementedError('$cycle');
+        }
+      }
+    }
+    return idProvider.libraryCycle(cycle);
+  }
+
+  String _stringOfUriStr(String uriStr) {
+    if (uriStr.trim().isEmpty) {
+      return "'$uriStr'";
+    } else {
+      return uriStr;
+    }
+  }
+
   void _withIndent(void Function() f) {
     var indent = _indent;
     _indent = '$_indent  ';
@@ -75,7 +96,7 @@ class AnalyzerStatePrinter {
   void _writeAugmentations(LibraryOrAugmentationFileKind kind) {
     final files = kind.file.augmentationFiles.whereNotNull();
     if (files.isNotEmpty) {
-      final keys = files.map((e) => fileStateIdProvider[e]).join(' ');
+      final keys = files.map(idProvider.fileState).join(' ');
       _writelnWithIndent('augmentations: $keys');
     }
   }
@@ -89,7 +110,7 @@ class AnalyzerStatePrinter {
 
       for (final groupEntry in groups.entries) {
         final keys = groupEntry.value.map((e) => e.key).toList();
-        final shortKeys = keyShorter.shortKeys(keys)..sort();
+        final shortKeys = idProvider.shortKeys(keys)..sort();
         _writelnWithIndent('${groupEntry.key}: $shortKeys');
       }
     });
@@ -123,7 +144,7 @@ class AnalyzerStatePrinter {
 
   void _writeFile(FileState file) {
     _withIndent(() {
-      _writelnWithIndent('id: ${fileStateIdProvider[file]}');
+      _writelnWithIndent('id: ${idProvider.fileState(file)}');
       _writeFileKind(file);
       _writeReferencingFiles(file);
       _writeFileUnlinkedKey(file);
@@ -139,9 +160,9 @@ class AnalyzerStatePrinter {
         final exportedLibrary = export.exportedLibrary;
         if (exportedLibrary != null) {
           expect(exportedLibrary.file, file);
-          sink.write(fileStateKindIdProvider[exportedLibrary]);
+          sink.write(idProvider.fileStateKind(exportedLibrary));
         } else {
-          sink.write('notLibrary ${fileStateIdProvider[file]}');
+          sink.write('notLibrary ${idProvider.fileState(file)}');
         }
 
         if (omitSdkFiles && file.uri.isScheme('dart')) {
@@ -161,7 +182,7 @@ class AnalyzerStatePrinter {
         sink.writeln();
       } else {
         sink.write(_indent);
-        sink.write('uri: ${export.directive.uri}');
+        sink.write('uri: ${_stringOfUriStr(export.directive.uri)}');
         sink.writeln();
       }
     });
@@ -176,9 +197,9 @@ class AnalyzerStatePrinter {
         final importedLibrary = import.importedLibrary;
         if (importedLibrary != null) {
           expect(importedLibrary.file, file);
-          sink.write(fileStateKindIdProvider[importedLibrary]);
+          sink.write(idProvider.fileStateKind(importedLibrary));
         } else {
-          sink.write('notLibrary ${fileStateIdProvider[file]}');
+          sink.write('notLibrary ${idProvider.fileState(file)}');
         }
 
         if (omitSdkFiles && file.uri.isScheme('dart')) {
@@ -206,7 +227,7 @@ class AnalyzerStatePrinter {
         sink.writeln();
       } else {
         sink.write(_indent);
-        sink.write('uri: ${import.directive.uri}');
+        sink.write('uri: ${_stringOfUriStr(import.directive.uri)}');
         if (import.isSyntheticDartCoreImport) {
           sink.write(' synthetic');
         }
@@ -219,21 +240,21 @@ class AnalyzerStatePrinter {
     final kind = file.kind;
     expect(kind.file, same(file));
 
-    _writelnWithIndent('kind: ${fileStateKindIdProvider[kind]}');
+    _writelnWithIndent('kind: ${idProvider.fileStateKind(kind)}');
     if (kind is AugmentationKnownFileStateKind) {
       _withIndent(() {
         final augmented = kind.augmented;
         if (augmented != null) {
-          final id = fileStateKindIdProvider[augmented];
+          final id = idProvider.fileStateKind(augmented);
           _writelnWithIndent('augmented: $id');
         } else {
-          final id = fileStateIdProvider[kind.uriFile];
+          final id = idProvider.fileState(kind.uriFile);
           _writelnWithIndent('uriFile: $id');
         }
 
         final library = kind.library;
         if (library != null) {
-          final id = fileStateKindIdProvider[library];
+          final id = idProvider.fileStateKind(library);
           _writelnWithIndent('library: $id');
         }
 
@@ -258,13 +279,14 @@ class AnalyzerStatePrinter {
         _writeFileExports(kind);
         _writeLibraryParts(kind);
         _writeAugmentations(kind);
+        _writeLibraryCycle(kind);
       });
     } else if (kind is PartOfNameFileStateKind) {
       _withIndent(() {
         final libraries = kind.libraries;
         if (libraries.isNotEmpty) {
           final keys = libraries
-              .map((library) => fileStateKindIdProvider[library])
+              .map(idProvider.fileStateKind)
               .sorted(compareNatural)
               .join(' ');
           _writelnWithIndent('libraries: $keys');
@@ -272,7 +294,7 @@ class AnalyzerStatePrinter {
 
         final library = kind.library;
         if (library != null) {
-          final id = fileStateKindIdProvider[library];
+          final id = idProvider.fileStateKind(library);
           _writelnWithIndent('library: $id');
         } else {
           _writelnWithIndent('name: ${kind.directive.name}');
@@ -282,10 +304,10 @@ class AnalyzerStatePrinter {
       _withIndent(() {
         final library = kind.library;
         if (library != null) {
-          final id = fileStateKindIdProvider[library];
+          final id = idProvider.fileStateKind(library);
           _writelnWithIndent('library: $id');
         } else {
-          final id = fileStateIdProvider[kind.uriFile];
+          final id = idProvider.fileState(kind.uriFile);
           _writelnWithIndent('uriFile: $id');
         }
       });
@@ -302,26 +324,79 @@ class AnalyzerStatePrinter {
   void _writeFiles(FileSystemTestData testData) {
     fileSystemState.pullReferencedFiles();
 
-    final fileDataList = <FileTestData>[];
-    for (final fileData in testData.files.values) {
-      if (omitSdkFiles && fileData.uri.isScheme('dart')) {
-        continue;
+    // Discover libraries for parts.
+    // This is required for consistency checking.
+    for (final fileData in testData.files.values.toList()) {
+      final current = fileSystemState.getExisting(fileData.file);
+      if (current != null) {
+        final kind = current.kind;
+        if (kind is PartOfNameFileStateKind) {
+          kind.discoverLibraries();
+        }
       }
-      fileDataList.add(fileData);
     }
-    fileDataList.sortBy((fileData) => fileData.file.path);
+
+    // Ask referenced libraries.
+    // This is required for consistency checking.
+    // TODO(scheglov) Remove when we use these for cycles.
+    for (final fileData in testData.files.values.toList()) {
+      final current = fileSystemState.getExisting(fileData.file);
+      if (current != null) {
+        final kind = current.kind;
+        if (kind is LibraryOrAugmentationFileKind) {
+          kind.imports;
+          kind.exports;
+        }
+      }
+    }
+
+    // Sort, mostly by path.
+    // But sort SDK libraries to the end, with `dart:core` first.
+    final fileDataList = testData.files.values.toList();
+    fileDataList.sort((first, second) {
+      final firstPath = first.file.path;
+      final secondPath = second.file.path;
+      if (omitSdkFiles) {
+        final firstUri = first.uri;
+        final secondUri = second.uri;
+        final firstIsSdk = firstUri.isScheme('dart');
+        final secondIsSdk = secondUri.isScheme('dart');
+        if (firstIsSdk && !secondIsSdk) {
+          return 1;
+        } else if (!firstIsSdk && secondIsSdk) {
+          return -1;
+        } else if (firstIsSdk && secondIsSdk) {
+          if ('$firstUri' == 'dart:core') {
+            return -1;
+          } else if ('$secondUri' == 'dart:core') {
+            return 1;
+          }
+        }
+      }
+      return firstPath.compareTo(secondPath);
+    });
 
     // Ask ID for every file in the sorted order, so that IDs are nice.
+    // Register objects that can be referenced.
+    idProvider.resetRegisteredObject();
     for (final fileData in fileDataList) {
       final current = fileSystemState.getExisting(fileData.file);
       if (current != null) {
-        fileStateIdProvider[current];
+        idProvider.registerFileState(current);
+        final kind = current.kind;
+        idProvider.registerFileStateKind(kind);
+        if (kind is LibraryFileStateKind) {
+          idProvider.registerLibraryCycle(kind.libraryCycle);
+        }
       }
     }
 
     _writelnWithIndent('files');
     _withIndent(() {
       for (final fileData in fileDataList) {
+        if (omitSdkFiles && fileData.uri.isScheme('dart')) {
+          continue;
+        }
         final file = fileData.file;
         _writelnWithIndent(_posixPath(file));
         _withIndent(() {
@@ -334,8 +409,8 @@ class AnalyzerStatePrinter {
           }
 
           if (withKeysGetPut) {
-            final shortGets = keyShorter.shortKeys(fileData.unlinkedKeyGet);
-            final shortPuts = keyShorter.shortKeys(fileData.unlinkedKeyPut);
+            final shortGets = idProvider.shortKeys(fileData.unlinkedKeyGet);
+            final shortPuts = idProvider.shortKeys(fileData.unlinkedKeyPut);
             _writelnWithIndent('unlinkedGet: $shortGets');
             _writelnWithIndent('unlinkedPut: $shortPuts');
           }
@@ -345,7 +420,7 @@ class AnalyzerStatePrinter {
   }
 
   void _writeFileUnlinkedKey(FileState file) {
-    final unlinkedShort = keyShorter.shortKey(file.unlinkedKey);
+    final unlinkedShort = idProvider.shortKey(file.unlinkedKey);
     _writelnWithIndent('unlinkedKey: $unlinkedShort');
   }
 
@@ -368,11 +443,11 @@ class AnalyzerStatePrinter {
 
       final loadedBundlesMap = Map.fromEntries(
         libraryContext.loadedBundles.map((cycle) {
-          final key = cycle.libraries
-              .map((fileState) => fileState.resource)
-              .map(_posixPath)
+          final pathListStr = cycle.libraries
+              .map((library) => _posixPath(library.file.resource))
+              .sorted()
               .join(' ');
-          return MapEntry(key, cycle);
+          return MapEntry(pathListStr, cycle);
         }),
       );
 
@@ -381,21 +456,18 @@ class AnalyzerStatePrinter {
         _withIndent(() {
           final current = loadedBundlesMap[cycleToPrint.pathListStr];
           if (current != null) {
-            _writelnWithIndent('current');
+            final id = idProvider.libraryCycle(current);
+            _writelnWithIndent('current: $id');
             _withIndent(() {
-              final short = keyShorter.shortKey(current.resolutionKey!);
+              // TODO(scheglov) Print it with the cycle instead?
+              final short = idProvider.shortKey(current.linkedKey);
               _writelnWithIndent('key: $short');
-
-              final fileIdList = current.libraries
-                  .map((fileState) => fileStateIdProvider[fileState])
-                  .toList();
-              _writelnWithIndent('libraries: ${fileIdList.join(' ')}');
             });
           }
 
           final cycleData = cycleToPrint.data;
-          final shortGets = keyShorter.shortKeys(cycleData.getKeys);
-          final shortPuts = keyShorter.shortKeys(cycleData.putKeys);
+          final shortGets = idProvider.shortKeys(cycleData.getKeys);
+          final shortPuts = idProvider.shortKeys(cycleData.putKeys);
           _writelnWithIndent('get: $shortGets');
           _writelnWithIndent('put: $shortPuts');
         });
@@ -403,13 +475,59 @@ class AnalyzerStatePrinter {
     });
   }
 
-  /// TODO(scheglov) Support unresolved URIs, not parts, etc.
+  void _writeLibraryCycle(LibraryFileStateKind library) {
+    final cycle = library.libraryCycle;
+    _writelnWithIndent(idProvider.libraryCycle(cycle));
+    _withIndent(() {
+      final dependencyIds = cycle.directDependencies
+          .map(_stringOfLibraryCycle)
+          .sorted(compareNatural)
+          .join(' ');
+      if (dependencyIds.isNotEmpty) {
+        _writelnWithIndent('dependencies: $dependencyIds');
+      } else {
+        _writelnWithIndent('dependencies: none');
+      }
+
+      final libraryIds = cycle.libraries
+          .map(idProvider.fileStateKind)
+          .sorted(compareNatural)
+          .join(' ');
+      _writelnWithIndent('libraries: $libraryIds');
+
+      _writelnWithIndent(idProvider.apiSignature(cycle.apiSignature));
+
+      final userIds = cycle.directUsers
+          .map(_stringOfLibraryCycle)
+          .sorted(compareNatural)
+          .join(' ');
+      if (userIds.isNotEmpty) {
+        _writelnWithIndent('users: $userIds');
+      }
+    });
+  }
+
   void _writeLibraryParts(LibraryFileStateKind library) {
-    final parts = library.file.partedFiles.whereNotNull();
-    if (parts.isNotEmpty) {
-      final partKeys = parts.map((e) => fileStateIdProvider[e]).join(' ');
-      _writelnWithIndent('parts: $partKeys');
-    }
+    _writeElements<PartDirectiveState>('parts', library.parts, (part) {
+      expect(part.library, same(library));
+      if (part is PartDirectiveWithFile) {
+        final file = part.includedFile;
+        sink.write(_indent);
+
+        final includedPart = part.includedPart;
+        if (includedPart != null) {
+          expect(includedPart.file, file);
+          sink.write(idProvider.fileStateKind(includedPart));
+        } else {
+          sink.write('notPart ${idProvider.fileState(file)}');
+        }
+        sink.writeln();
+      } else {
+        sink.write(_indent);
+        sink.write('uri: ${_stringOfUriStr(part.directive.uri)}');
+        sink.writeln();
+      }
+    });
   }
 
   void _writelnWithIndent(String line) {
@@ -421,8 +539,9 @@ class AnalyzerStatePrinter {
     final referencingFiles = file.referencingFiles;
     if (referencingFiles.isNotEmpty) {
       final fileIds = referencingFiles
-          .map((e) => fileStateIdProvider[e])
-          .sorted(compareNatural);
+          .map(idProvider.fileState)
+          .sorted(compareNatural)
+          .join(' ');
       _writelnWithIndent('referencingFiles: $fileIds');
     }
   }
@@ -448,41 +567,90 @@ class AnalyzerStatePrinter {
   }
 }
 
-class FileStateIdProvider {
-  final Map<FileState, String> _map = Map.identity();
-
-  String operator [](FileState file) {
-    return _map[file] ??= 'file_${_map.length}';
-  }
-}
-
-class FileStateKindIdProvider {
-  final Map<FileStateKind, String> _map = Map.identity();
-
-  String operator [](FileStateKind kind) {
-    if (kind is AugmentationKnownFileStateKind) {
-      return _map[kind] ??= 'augmentation_${_map.length}';
-    } else if (kind is AugmentationUnknownFileStateKind) {
-      return _map[kind] ??= 'augmentationUnknown_${_map.length}';
-    } else if (kind is LibraryFileStateKind) {
-      return _map[kind] ??= 'library_${_map.length}';
-    } else if (kind is PartOfNameFileStateKind) {
-      return _map[kind] ??= 'partOfName_${_map.length}';
-    } else if (kind is PartOfUriKnownFileStateKind) {
-      return _map[kind] ??= 'partOfUriKnown_${_map.length}';
-    } else if (kind is PartFileStateKind) {
-      return _map[kind] ??= 'partOfUriUnknown_${_map.length}';
-    } else {
-      throw UnimplementedError('${kind.runtimeType}');
-    }
-  }
-}
-
-/// Keys in the byte store are long hashes, which are hard to read.
-/// So, we generate short unique versions for them.
-class KeyShorter {
+/// Encoder of object identifies into short identifiers.
+class IdProvider {
+  final Map<FileState, String> _fileState = Map.identity();
+  final Map<LibraryCycle, String> _libraryCycle = Map.identity();
+  final Map<FileStateKind, String> _fileStateKind = Map.identity();
   final Map<String, String> _keyToShort = {};
   final Map<String, String> _shortToKey = {};
+  final Map<String, String> _apiSignature = {};
+
+  Set<FileState> _currentFiles = {};
+  Set<FileStateKind> _currentKinds = {};
+  Set<LibraryCycle> _currentCycles = {};
+
+  String apiSignature(String signature) {
+    final length = _apiSignature.length;
+    return _apiSignature[signature] ??= 'apiSignature_$length';
+  }
+
+  String fileState(FileState file) {
+    if (!_currentFiles.contains(file)) {
+      throw StateError('$file');
+    }
+    return _fileState[file] ??= 'file_${_fileState.length}';
+  }
+
+  String fileStateKind(FileStateKind kind) {
+    if (!_currentKinds.contains(kind)) {
+      throw StateError('$kind');
+    }
+    return _fileStateKind[kind] ??= () {
+      if (kind is AugmentationKnownFileStateKind) {
+        return 'augmentation_${_fileStateKind.length}';
+      } else if (kind is AugmentationUnknownFileStateKind) {
+        return 'augmentationUnknown_${_fileStateKind.length}';
+      } else if (kind is LibraryFileStateKind) {
+        return 'library_${_fileStateKind.length}';
+      } else if (kind is PartOfNameFileStateKind) {
+        return 'partOfName_${_fileStateKind.length}';
+      } else if (kind is PartOfUriKnownFileStateKind) {
+        return 'partOfUriKnown_${_fileStateKind.length}';
+      } else if (kind is PartFileStateKind) {
+        return 'partOfUriUnknown_${_fileStateKind.length}';
+      } else {
+        throw UnimplementedError('${kind.runtimeType}');
+      }
+    }();
+  }
+
+  String libraryCycle(LibraryCycle cycle) {
+    if (!_currentCycles.contains(cycle)) {
+      throw StateError('$cycle');
+    }
+    return _libraryCycle[cycle] ??= 'cycle_${_libraryCycle.length}';
+  }
+
+  /// Register that [file] is an object that can be referenced.
+  void registerFileState(FileState file) {
+    if (_currentFiles.contains(file)) {
+      throw StateError('Duplicate: $file');
+    }
+    _currentFiles.add(file);
+    fileState(file);
+  }
+
+  /// Register that [kind] is an object that can be referenced.
+  void registerFileStateKind(FileStateKind kind) {
+    if (_currentKinds.contains(kind)) {
+      throw StateError('Duplicate: $kind');
+    }
+    _currentKinds.add(kind);
+    fileStateKind(kind);
+  }
+
+  /// Register that [cycle] is an object that can be referenced.
+  void registerLibraryCycle(LibraryCycle cycle) {
+    _currentCycles.add(cycle);
+    libraryCycle(cycle);
+  }
+
+  void resetRegisteredObject() {
+    _currentFiles = {};
+    _currentKinds = {};
+    _currentCycles = {};
+  }
 
   String shortKey(String key) {
     var short = _keyToShort[key];

@@ -12,47 +12,13 @@ static method asyncString() → asy::Future<core::String> async /* futureValueTy
 static method asyncString2() → asy::Future<core::String> async /* futureValueType= core::String */ {
   return self::asyncString();
 }
-static method syncStarString() → core::Iterable<core::String> /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<dynamic>?, dynamic, dynamic) → core::bool* {
-    core::int :await_jump_var = 0;
-    dynamic :await_ctx_var;
-    function :sync_op(core::_SyncIterator<dynamic>? :iterator, dynamic :exception, dynamic :stack_trace) → core::bool* yielding {
-      {
-        {
-          :iterator.{core::_SyncIterator::_current} = "foo";
-          [yield] true;
-        }
-        {
-          :iterator.{core::_SyncIterator::_yieldEachIterable} = self::syncStarString2();
-          [yield] true;
-        }
-        {
-          :iterator.{core::_SyncIterator::_yieldEachIterable} = self::stringList;
-          [yield] true;
-        }
-      }
-      return false;
-    }
-    return :sync_op;
-  }
-  return new core::_SyncIterable::•<core::String>(:sync_op_gen);
+static method syncStarString() → core::Iterable<core::String> sync* {
+  yield "foo";
+  yield* self::syncStarString2();
+  yield* self::stringList;
 }
-static method syncStarString2() → core::Iterable<core::String> /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<dynamic>?, dynamic, dynamic) → core::bool* {
-    core::int :await_jump_var = 0;
-    dynamic :await_ctx_var;
-    function :sync_op(core::_SyncIterator<dynamic>? :iterator, dynamic :exception, dynamic :stack_trace) → core::bool* yielding {
-      {
-        {
-          :iterator.{core::_SyncIterator::_current} = "foo";
-          [yield] true;
-        }
-      }
-      return false;
-    }
-    return :sync_op;
-  }
-  return new core::_SyncIterable::•<core::String>(:sync_op_gen);
+static method syncStarString2() → core::Iterable<core::String> sync* {
+  yield "foo";
 }
 static method asyncStarString() → asy::Stream<core::String> async* {
   yield "foo";

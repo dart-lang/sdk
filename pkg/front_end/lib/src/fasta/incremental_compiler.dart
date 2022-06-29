@@ -529,7 +529,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return new IncrementalCompilerResult(result,
           classHierarchy: currentKernelTarget.loader.hierarchy,
           coreTypes: currentKernelTarget.loader.coreTypes,
-          neededDillLibraries: neededDillLibraries);
+          neededDillLibraries: neededDillLibraries,
+          referenceFromIndex: currentKernelTarget.loader.referenceFromIndex);
     });
   }
 

@@ -1,0 +1,23 @@
+Problems reported:
+
+parser/general/issue_49197:1:27: Can't use 'Function' as a name here.
+import "Function.dart" as Function;
+                          ^^^^^^^^
+
+beginCompilationUnit(import)
+  beginMetadataStar(import)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(import)
+    beginImport(import)
+      beginLiteralString("Function.dart")
+      endLiteralString(0, as)
+      beginConditionalUris(as)
+      endConditionalUris(0)
+      handleRecoverableError(Message[BuiltInIdentifierInDeclaration, Can't use 'Function' as a name here., null, {lexeme: Function}], Function, Function)
+      handleIdentifier(Function, importPrefixDeclaration)
+      handleImportPrefix(null, as)
+      beginCombinators(;)
+      endCombinators(0)
+    endImport(import, null, ;)
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

@@ -127,7 +127,7 @@ class EditGetFixesHandler extends LegacyHandler
           resourceProvider, error, content, options);
       var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {
-        fixes.sort(Fix.SORT_BY_RELEVANCE);
+        fixes.sort(Fix.compareFixes);
         var lineInfo = LineInfo.fromContent(content);
         var result = engine.ErrorsResultImpl(
             session, file, Uri.file(file), lineInfo, false, errors);
@@ -179,7 +179,7 @@ error.errorCode: ${error.errorCode}
           }
 
           if (fixes.isNotEmpty) {
-            fixes.sort(Fix.SORT_BY_RELEVANCE);
+            fixes.sort(Fix.compareFixes);
             var serverError = newAnalysisError_fromEngine(result, error);
             var errorFixes = AnalysisErrorFixes(serverError);
             errorFixesList.add(errorFixes);
@@ -227,7 +227,7 @@ error.errorCode: ${error.errorCode}
           PubspecFixGenerator(resourceProvider, error, content, document);
       var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {
-        fixes.sort(Fix.SORT_BY_RELEVANCE);
+        fixes.sort(Fix.compareFixes);
         var lineInfo = LineInfo.fromContent(content);
         var result = engine.ErrorsResultImpl(
             session, file, Uri.file(file), lineInfo, false, errors);

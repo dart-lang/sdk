@@ -100,6 +100,10 @@ parser/error_recovery/issue_46346:27:7: 'for' can't be used as an identifier bec
 class for {}
       ^^^
 
+parser/error_recovery/issue_46346:28:7: Can't use 'Function' as a name here.
+class Function {}
+      ^^^^^^^^
+
 parser/error_recovery/issue_46346:29:7: Can't use 'get' as a name here.
 class get {}
       ^^^
@@ -654,6 +658,7 @@ beginCompilationUnit(class)
   beginMetadataStar(class)
   endMetadataStar(0)
   beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleRecoverableError(Message[BuiltInIdentifierInDeclaration, Can't use 'Function' as a name here., null, {lexeme: Function}], Function, Function)
     handleIdentifier(Function, classOrMixinDeclaration)
     handleNoTypeVariables({)
     beginClassDeclaration(class, null, null, null, Function)

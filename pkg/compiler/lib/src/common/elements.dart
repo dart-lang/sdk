@@ -9,7 +9,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/native_data_interfaces.dart' show NativeBasicData;
-import '../js_model/locals_interfaces.dart';
+import '../js_model/locals.dart';
 import '../universe/selector.dart' show Selector;
 
 import 'names.dart' show Identifiers, Uris;
@@ -1466,6 +1466,6 @@ abstract class JElementEnvironment extends ElementEnvironment {
       void f(DartType type, String name, ConstantValue defaultValue));
 
   /// Calls [f] for each parameter - given as a [Local] - of [function].
-  void forEachParameterAsLocal(covariant GlobalLocalsMap globalLocalsMap,
+  void forEachParameterAsLocal(GlobalLocalsMap globalLocalsMap,
       FunctionEntity function, void f(Local parameter));
 }

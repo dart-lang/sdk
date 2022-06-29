@@ -7310,8 +7310,6 @@ Given a [part file][] named `part.dart` containing the following:
 
 {% prettify dart tag=pre+code %}
 part of lib;
-
-class C{}
 {% endprettify %}
 
 The following code produces this diagnostic because imported files can't
@@ -7321,8 +7319,6 @@ have a part-of directive:
 library lib;
 
 import [!'part.dart'!];
-
-C c = C();
 {% endprettify %}
 
 #### Common fixes

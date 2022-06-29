@@ -610,40 +610,40 @@ class LibraryAnalyzer {
         libraryNameNode = directive.name;
         directivesToResolve.add(directive);
       } else if (directive is ImportDirectiveImpl) {
-        for (ImportElement importElement in _libraryElement.imports) {
+        // TODO(scheglov) Rewrite to iterating `ImportDirectiveState`.
+        for (var index = 0; index < _libraryElement.imports.length; index++) {
+          final importElement = _libraryElement.imports[index];
           if (matchNodeElement(directive, importElement)) {
             directive.element = importElement;
             directive.prefix?.staticElement = importElement.prefix;
-            var importedLibrary = importElement.importedLibrary;
-            if (importedLibrary is LibraryElementImpl) {
-              if (importedLibrary.hasPartOfDirective) {
-                // It is safe to assume that `directive.uri.stringValue` is
-                // non-`null`, because the only time it is `null` is if the URI
-                // contains a string interpolation, in which case the import
-                // would never have resolved in the first place.
+            final importDirectiveState = _library.imports[index];
+            // TODO(scheglov) rewrite
+            if (importDirectiveState.importedSource != null) {
+              if (importDirectiveState.importedLibrarySource == null) {
                 libraryErrorReporter.reportErrorForNode(
-                    CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
-                    directive.uri,
-                    [directive.uri.stringValue!]);
+                  CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+                  directive.uri,
+                  [importDirectiveState.directive.uri],
+                );
               }
             }
           }
         }
       } else if (directive is ExportDirectiveImpl) {
-        for (ExportElement exportElement in _libraryElement.exports) {
+        // TODO(scheglov) Rewrite to iterating `ExportDirectiveState`.
+        for (var index = 0; index < _libraryElement.exports.length; index++) {
+          final exportElement = _libraryElement.exports[index];
           if (matchNodeElement(directive, exportElement)) {
             directive.element = exportElement;
-            var exportedLibrary = exportElement.exportedLibrary;
-            if (exportedLibrary is LibraryElementImpl) {
-              if (exportedLibrary.hasPartOfDirective) {
-                // It is safe to assume that `directive.uri.stringValue` is
-                // non-`null`, because the only time it is `null` is if the URI
-                // contains a string interpolation, in which case the export
-                // would never have resolved in the first place.
+            final exportDirectiveState = _library.exports[index];
+            // TODO(scheglov) rewrite
+            if (exportDirectiveState.exportedSource != null) {
+              if (exportDirectiveState.exportedLibrarySource == null) {
                 libraryErrorReporter.reportErrorForNode(
-                    CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
-                    directive.uri,
-                    [directive.uri.stringValue!]);
+                  CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+                  directive.uri,
+                  [exportDirectiveState.directive.uri],
+                );
               }
             }
           }
@@ -651,10 +651,15 @@ class LibraryAnalyzer {
       } else if (directive is PartDirectiveImpl) {
         StringLiteral partUri = directive.uri;
 
-        var partFile = _library.file.partedFiles[partDirectiveIndex++];
-        if (partFile == null) {
+        if (partElementIndex >= _libraryElement.parts.length) {
           continue;
         }
+
+        final partState = _library.parts[partDirectiveIndex++];
+        if (partState is! PartDirectiveWithFile) {
+          continue;
+        }
+        final partFile = partState.includedFile;
 
         var partUnit = units[partFile]!;
         var partElement = _libraryElement.parts[partElementIndex++];

@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class BuiltInIdentifierAsExtensionNameTest extends PubPackageResolutionTest {
-  test_error_builtInIdentifierAsExtensionName() async {
+  test_as() async {
     await assertErrorsInCode(
       r'''
 extension as on Object {}
@@ -23,6 +23,18 @@ extension as on Object {}
       [
         error(
             CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME, 10, 2),
+      ],
+    );
+  }
+
+  test_Function() async {
+    await assertErrorsInCode(
+      r'''
+extension Function on Object {}
+''',
+      [
+        error(
+            CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME, 10, 8),
       ],
     );
   }

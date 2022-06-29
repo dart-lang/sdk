@@ -219,9 +219,9 @@ class Heap {
   }
   void ResetObjectIdTable();
 
-  void SetLoadingUnit(ObjectPtr raw_obj, intptr_t object_id) {
+  void SetLoadingUnit(ObjectPtr raw_obj, intptr_t unit_id) {
     ASSERT(Thread::Current()->IsMutatorThread());
-    SetWeakEntry(raw_obj, kLoadingUnits, object_id);
+    SetWeakEntry(raw_obj, kLoadingUnits, unit_id);
   }
   intptr_t GetLoadingUnit(ObjectPtr raw_obj) const {
     ASSERT(Thread::Current()->IsMutatorThread());

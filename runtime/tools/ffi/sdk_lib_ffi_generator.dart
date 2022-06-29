@@ -319,9 +319,7 @@ ArgParser argParser() {
 }
 
 Uri dartPath() {
-  // TODO(dacoharkes): Use "../../../tools/sdks/dart-sdk/bin/dart" when the
-  // pinned fully supports extension methods.
-  return Uri.parse("dart");
+  return Platform.script.resolve("../../../tools/sdks/dart-sdk/bin/dart");
 }
 
 class Config {

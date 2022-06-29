@@ -3596,11 +3596,18 @@ class Function : public Object {
     return IsAsyncGenerator() && is_debuggable();
   }
 
+  // TODO(dartbug.com/48378): replace this predicate with IsSyncGenerator()
+  // after old sync* functions are removed.
+  bool IsCompactSyncStarFunction() const {
+    return IsSyncGenerator() && is_debuggable();
+  }
+
   // Returns true for functions which execution can be suspended
   // using Suspend/Resume stubs. Such functions have an artificial
   // :suspend_state local variable at the fixed location of the frame.
   bool IsSuspendableFunction() const {
-    return IsCompactAsyncFunction() || IsCompactAsyncStarFunction();
+    return IsCompactAsyncFunction() || IsCompactAsyncStarFunction() ||
+           IsCompactSyncStarFunction();
   }
 
   // Recognise synthetic sync-yielding functions like the inner-most:
@@ -11865,10 +11872,22 @@ class SuspendState : public Instance {
                              const Instance& function_data,
                              Heap::Space space = Heap::kNew);
 
+  // Makes a copy of [src] object.
+  // The object should be holding a suspended frame.
+  static SuspendStatePtr Clone(Thread* thread,
+                               const SuspendState& src,
+                               Heap::Space space = Heap::kNew);
+
   uword pc() const { return untag()->pc_; }
+
+  intptr_t frame_size() const { return untag()->frame_size_; }
+
   InstancePtr function_data() const {
     return untag()->function_data();
   }
+
+  ClosurePtr then_callback() const { return untag()->then_callback(); }
+
   ClosurePtr error_callback() const {
     return untag()->error_callback();
   }
@@ -11885,6 +11904,8 @@ class SuspendState : public Instance {
   void set_function_data(const Instance& function_data) const;
   void set_then_callback(const Closure& then_callback) const;
   void set_error_callback(const Closure& error_callback) const;
+
+  uint8_t* payload() const { return untag()->payload(); }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SuspendState, Instance);
   friend class Class;

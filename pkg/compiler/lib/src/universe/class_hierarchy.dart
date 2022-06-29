@@ -9,7 +9,7 @@ import '../elements/indexed.dart' show IndexedClass;
 import '../elements/types.dart' show InterfaceType;
 import '../kernel/element_map_interfaces.dart'
     show KernelToElementMapForClassHierarchy;
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import 'class_set.dart';
 
 // TODO(johnniwinther): Move more methods from `JClosedWorld` to

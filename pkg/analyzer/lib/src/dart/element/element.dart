@@ -140,6 +140,12 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
     return name == '_Enum' && library.isDartCore;
   }
 
+  /// Return `true` if this class represents the class 'Function' defined in the
+  /// dart:core library.
+  bool get isDartCoreFunctionImpl {
+    return name == 'Function' && library.isDartCore;
+  }
+
   @override
   bool get isDartCoreObject => false;
 

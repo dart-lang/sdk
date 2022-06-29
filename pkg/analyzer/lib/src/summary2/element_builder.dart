@@ -383,7 +383,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     var element = ExportElementImpl(node.keyword.offset);
     element.combinators = _buildCombinators(node.combinators);
-    element.exportedLibrary = _selectLibrary(node);
+
+    try {
+      element.exportedLibrary = _selectLibrary(node);
+    } on ArgumentError {
+      // TODO(scheglov) Remove this when using `ExportDirectiveState`.
+    }
+
     element.metadata = _buildAnnotations(node.metadata);
     element.uri = node.uri.stringValue;
 
@@ -755,7 +761,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var element = ImportElementImpl(node.keyword.offset);
     element.combinators = _buildCombinators(node.combinators);
-    element.importedLibrary = _selectLibrary(node);
+
+    try {
+      element.importedLibrary = _selectLibrary(node);
+    } on ArgumentError {
+      // TODO(scheglov) Remove this when using `ImportDirectiveState`.
+    }
+
     element.isDeferred = node.deferredKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     element.uri = uriStr;

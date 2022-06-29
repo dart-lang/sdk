@@ -24,7 +24,7 @@ String _capitalize(String name) =>
     '${name.substring(0, 1).toUpperCase()}${name.substring(1)}';
 
 List<String> _generateDartDoc(Element html) => html.children
-    .where((Element elem) => elem.localName == 'p')
+    .where((Element elem) => elem.name == 'p')
     .map<String>((Element elem) => innerText(elem).trim())
     .toList();
 
