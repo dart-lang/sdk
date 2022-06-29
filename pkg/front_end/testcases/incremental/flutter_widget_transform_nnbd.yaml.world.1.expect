@@ -60,3 +60,10 @@ constants  {
   #C5 = "Foo"
   #C6 = wid::_Location {file:#C2, line:#C3, column:#C4, name:#C5, parameterLocations:#C1}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-test:///foo.dart:
+- _Location. (from org-dartlang-test:///flutter/lib/src/widgets/widget_inspector.dart:8:9)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart:-1:-1)
+

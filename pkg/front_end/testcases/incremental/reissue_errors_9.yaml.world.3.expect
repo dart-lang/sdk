@@ -46,3 +46,10 @@ library from "org-dartlang-test:///main.dart" as main {
 constants  {
   #C1 = lib::Foo {}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-test:///lib2.dart:
+- Foo. (from org-dartlang-test:///lib.dart:3:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+

@@ -1786,7 +1786,7 @@ class EquivalenceStrategy {
     }
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkProcedure_startFileOffset(visitor, node, other)) {
+    if (!checkProcedure_fileStartOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkProcedure_kind(visitor, node, other)) {
@@ -5172,10 +5172,10 @@ class EquivalenceStrategy {
     return checkMember_fileOffset(visitor, node, other);
   }
 
-  bool checkProcedure_startFileOffset(
+  bool checkProcedure_fileStartOffset(
       EquivalenceVisitor visitor, Procedure node, Procedure other) {
     return visitor.checkValues(
-        node.startFileOffset, other.startFileOffset, 'startFileOffset');
+        node.fileStartOffset, other.fileStartOffset, 'fileStartOffset');
   }
 
   bool checkProcedure_kind(

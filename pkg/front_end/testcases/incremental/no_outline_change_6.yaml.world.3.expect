@@ -76,3 +76,11 @@ constants  {
   #C13 = main::CompilationStrategy {index:#C11, _name:#C12}
   #C14 = <main::CompilationStrategy*>[#C4, #C7, #C10, #C13]
 }
+
+
+Constructor coverage from constants:
+org-dartlang-test:///main.dart:
+- CompilationStrategy. (from org-dartlang-test:///main.dart:18:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+

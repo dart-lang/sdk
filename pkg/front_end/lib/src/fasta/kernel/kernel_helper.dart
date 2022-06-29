@@ -325,7 +325,7 @@ void finishProcedurePatch(Procedure origin, Procedure patch) {
   // TODO(ahe): restore file-offset once we track both origin and patch file
   // URIs. See https://github.com/dart-lang/sdk/issues/31579
   origin.fileUri = patch.fileUri;
-  origin.startFileOffset = patch.startFileOffset;
+  origin.fileStartOffset = patch.fileStartOffset;
   origin.fileOffset = patch.fileOffset;
   origin.fileEndOffset = patch.fileEndOffset;
   origin.annotations.forEach((m) => m.fileOffset = patch.fileOffset);

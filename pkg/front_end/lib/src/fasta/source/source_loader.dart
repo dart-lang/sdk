@@ -1793,10 +1793,10 @@ severity: $severity
     ticker.logMs("Finished $count native methods");
   }
 
-  void finishPatchMethods() {
+  void buildBodyNodes() {
     int count = 0;
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      count += library.finishPatchMethods();
+      count += library.buildBodyNodes();
     }
     ticker.logMs("Finished $count patch methods");
   }
@@ -2020,9 +2020,9 @@ severity: $severity
   }
 
   /// Builds the core AST structure needed for the outline of the component.
-  void buildComponent() {
+  void buildOutlineNodes() {
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      Library target = library.build(coreLibrary);
+      Library target = library.buildOutlineNodes(coreLibrary);
       if (library.referencesFrom != null) {
         referenceFromIndex ??= new ReferenceFromIndex();
         referenceFromIndex!

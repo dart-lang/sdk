@@ -29,12 +29,17 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   SourceLibraryBuilder get libraryBuilder;
 
   /// Builds the core AST structures for this member as needed for the outline.
-  void buildMembers(void Function(Member, BuiltMemberKind) f);
+  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f);
 
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
+
+  /// Builds the AST nodes for this member as needed for the full compilation.
+  ///
+  /// This includes adding patched bodies and augmented members.
+  int buildBodyNodes(void Function(Member, BuiltMemberKind) f);
 
   /// Checks the variance of type parameters [sourceClassBuilder] used in the
   /// signature of this member.
@@ -60,8 +65,13 @@ mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
       retainDataForTesting ? new MemberDataForTesting() : null;
 
   @override
-  void buildMembers(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
     assert(false, "Unexpected call to $runtimeType.buildMembers.");
+  }
+
+  @override
+  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+    return 0;
   }
 
   @override

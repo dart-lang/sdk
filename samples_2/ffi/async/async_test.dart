@@ -11,7 +11,10 @@
 import 'sample_async_callback.dart' as sample0;
 import 'sample_native_port_call.dart' as sample1;
 
-main() {
-  sample0.main();
-  sample1.main();
+main() async {
+  print('==========');
+  await sample0.main();
+  print('==========');
+  await sample1.main();
+  print('==========');
 }

@@ -122,6 +122,11 @@ Try correcting the name to the name of an existing getter, or defining a getter 
     augment; // Error
     ^^^^^^^" in this{<unresolved>}.augment;
   }
+  method _#instanceMethod#augment0() → void {}
+  method _#instanceMethodErrors#augment0() → void {}
+  get _#instanceProperty#augment0() → core::int
+    return 42;
+  set _#instanceProperty#augment0(core::int value) → void {}
 }
 static method /* from org-dartlang-testcase:///augment_super_lib.dart */ topLevelMethod() → void {
   (null as{ForNonNullableByDefault} dynamic){dynamic}.call();
@@ -168,6 +173,10 @@ static method /* from org-dartlang-testcase:///augment_super_lib.dart */ injecte
   augment; // Error
   ^^^^^^^";
 }
+static method _#topLevelMethod#augment0() → void {}
+static get _#topLevelProperty#augment0() → core::List<core::int>
+  return core::_GrowableList::_literal1<core::int>(42);
+static set _#topLevelProperty#augment0(core::List<core::int> value) → void {}
 
 
 Extra constant evaluation status:
@@ -177,4 +186,4 @@ Evaluated: AsExpression @ org-dartlang-testcase:///augment_super_lib.dart:6:3 ->
 Evaluated: AsExpression @ org-dartlang-testcase:///augment_super_lib.dart:16:15 -> NullConstant(null)
 Evaluated: AsExpression @ org-dartlang-testcase:///augment_super_lib.dart:16:30 -> NullConstant(null)
 Evaluated: AsExpression @ org-dartlang-testcase:///augment_super_lib.dart:20:3 -> NullConstant(null)
-Extra constant evaluation: evaluated: 31, effectively constant: 6
+Extra constant evaluation: evaluated: 32, effectively constant: 6

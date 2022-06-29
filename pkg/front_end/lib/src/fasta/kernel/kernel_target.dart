@@ -400,7 +400,8 @@ class KernelTarget extends TargetImplementation {
     loader.finishTypeVariables(
         augmentationLibraries, objectClassBuilder, dynamicType);
     for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-      augmentationLibrary.build(loader.coreLibrary, modifyTarget: false);
+      augmentationLibrary.buildOutlineNodes(loader.coreLibrary,
+          modifyTarget: false);
     }
     loader.resolveConstructors(augmentationLibraries);
   }
@@ -471,7 +472,7 @@ class KernelTarget extends TargetImplementation {
       loader.createTypeInferenceEngine();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_buildComponent);
-      loader.buildComponent();
+      loader.buildOutlineNodes();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_installDefaultSupertypes);
       installDefaultSupertypes();
@@ -637,7 +638,7 @@ class KernelTarget extends TargetImplementation {
       loader.finishNativeMethods();
 
       benchmarker?.enterPhase(BenchmarkPhases.body_finishPatchMethods);
-      loader.finishPatchMethods();
+      loader.buildBodyNodes();
 
       benchmarker?.enterPhase(BenchmarkPhases.body_finishAllConstructors);
       finishAllConstructors(sourceClasses);

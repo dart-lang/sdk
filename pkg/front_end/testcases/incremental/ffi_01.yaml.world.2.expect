@@ -77,3 +77,12 @@ constants  {
   #C18 = 20
   #C19 = <dart.core::int*>[#C17, #C17, #C18, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
 }
+
+
+Constructor coverage from constants:
+org-dartlang-test:///lib.dart:
+- Double. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:115:9)
+- _NativeDouble. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:35:9)
+- NativeType. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:12:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+

@@ -182,7 +182,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         } else if (declaration is SourceMemberBuilder) {
           SourceMemberBuilder memberBuilder = declaration;
           memberBuilder
-              .buildMembers((Member member, BuiltMemberKind memberKind) {
+              .buildOutlineNodes((Member member, BuiltMemberKind memberKind) {
             member.parent = cls;
             if (!memberBuilder.isPatch &&
                 !memberBuilder.isDuplicate &&
@@ -1390,22 +1390,55 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  @override
-  int finishPatch() {
-    if (!isPatch) return 0;
-
+  int buildBodyNodes() {
     // TODO(ahe): restore file-offset once we track both origin and patch file
     // URIs. See https://github.com/dart-lang/sdk/issues/31579
-    cls.annotations.forEach((m) => m.fileOffset = origin.cls.fileOffset);
+    if (isPatch) {
+      cls.annotations.forEach((m) => m.fileOffset = origin.cls.fileOffset);
+    }
 
     int count = 0;
-    scope.forEach((String name, Builder declaration) {
-      count += declaration.finishPatch();
-    });
-    constructorScope.forEach((String name, Builder declaration) {
-      count += declaration.finishPatch();
-    });
+
+    void buildMembers(String name, Builder builder) {
+      if (builder.parent != this) {
+        return;
+      }
+      Builder? current = builder;
+      while (current != null) {
+        if (current is SourceMemberBuilder) {
+          count +=
+              current.buildBodyNodes((Member member, BuiltMemberKind kind) {
+            _buildMember(current as SourceMemberBuilder, member, kind);
+          });
+        }
+        current = current.next;
+      }
+    }
+
+    scope.forEach(buildMembers);
+    constructorScope.forEach(buildMembers);
     return count;
+  }
+
+  void _buildMember(SourceMemberBuilder memberBuilder, Member member,
+      BuiltMemberKind memberKind) {
+    member.parent = cls;
+    if (!memberBuilder.isDuplicate &&
+        !memberBuilder.isConflictingSetter &&
+        !memberBuilder.isConflictingAugmentationMember) {
+      if (member is Procedure) {
+        cls.addProcedure(member);
+      } else if (member is Field) {
+        cls.addField(member);
+      } else if (member is Constructor) {
+        cls.addConstructor(member);
+      } else if (member is RedirectingFactory) {
+        cls.addRedirectingFactory(member);
+      } else {
+        unhandled("${member.runtimeType}", "getMember", member.fileOffset,
+            member.fileUri);
+      }
+    }
   }
 
   /// Return a map whose keys are the supertypes of this [SourceClassBuilder]

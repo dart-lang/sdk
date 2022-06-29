@@ -49,3 +49,15 @@ constants  {
   #C1 = lib::A {}
   #C2 = lib::C {}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-test:///main.dart:
+- C. (from org-dartlang-test:///lib.dart:11:9)
+- B. (from org-dartlang-test:///lib.dart:7:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+
+org-dartlang-test:///lib.dart:
+- A. (from org-dartlang-test:///lib.dart:3:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+

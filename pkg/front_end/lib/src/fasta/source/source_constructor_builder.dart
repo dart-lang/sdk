@@ -199,7 +199,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
-  void buildMembers(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
     _build();
     f(_constructor, BuiltMemberKind.Constructor);
     if (_constructorTearOff != null) {
@@ -708,7 +708,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
-  int finishPatch() {
+  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
     if (!isPatch) return 0;
     _finishPatch();
     return 1;

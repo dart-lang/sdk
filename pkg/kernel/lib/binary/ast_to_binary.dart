@@ -1348,7 +1348,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.Procedure);
     _writeNonNullCanonicalName(canonicalName);
     writeUriReference(node.fileUri);
-    writeOffset(node.startFileOffset);
+    writeOffset(node.fileStartOffset);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.kind.index);

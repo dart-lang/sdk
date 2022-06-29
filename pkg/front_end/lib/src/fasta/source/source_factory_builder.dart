@@ -75,7 +75,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
             new FunctionNode(null),
             fileUri: libraryBuilder.fileUri,
             reference: procedureReference)
-          ..startFileOffset = startCharOffset
+          ..fileStartOffset = startCharOffset
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault,
@@ -132,7 +132,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   Iterable<Member> get exportedMembers => [_procedure];
 
   @override
-  void buildMembers(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
     _build();
     f(_procedureInternal, BuiltMemberKind.Method);
     if (_factoryTearOff != null) {
@@ -236,7 +236,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   }
 
   @override
-  int finishPatch() {
+  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
     if (!isPatch) return 0;
     _finishPatch();
     return 1;
@@ -338,7 +338,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   }
 
   @override
-  void buildMembers(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
     _build();
     f(_procedureInternal, BuiltMemberKind.RedirectingFactory);
     if (_factoryTearOff != null) {
