@@ -116,8 +116,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       // A prefix expression (! or -) can have an argument wrapped in
       // "unnecessary" parens if that argument has potentially confusing
       // whitespace after its first token.
-      if (parent is PrefixExpression &&
-          _expressionStartsWithWhitespace(node.expression)) return;
+      if (parent is PrefixExpression && node.expression.startsWithWhitespace) {
+        return;
+      }
 
       // Another case of the above exception, something like
       // `!(const [7]).contains(5);`, where the _parent's_ parent is the
@@ -126,17 +127,14 @@ class _Visitor extends SimpleAstVisitor<void> {
         var target = parent.target;
         if (parent.parent is PrefixExpression &&
             target == node &&
-            _expressionStartsWithWhitespace(node.expression)) return;
+            node.expression.startsWithWhitespace) return;
       }
 
       // Something like `({1, 2, 3}).forEach(print);`.
       // The parens cannot be removed because then the curly brackets are not
       // interpreted as a set-or-map literal.
-      if (parent is PropertyAccess || parent is MethodInvocation) {
-        var target = (parent as dynamic).target;
-        if (target == node &&
-            node.expression is SetOrMapLiteral &&
-            parent.parent is ExpressionStatement) return;
+      if (node.wouldBeParsedAsStatementBlock) {
+        return;
       }
 
       if (parent.precedence < node.expression.precedence) {
@@ -155,26 +153,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     node.accept(containsFunctionExpressionVisitor);
     return containsFunctionExpressionVisitor.hasFunctionExpression;
   }
-
-  /// Returns whether [node] "starts" with whitespace.
-  ///
-  /// That is, is there definitely whitespace after the first token in [node]?
-  bool _expressionStartsWithWhitespace(Expression? node) =>
-      // As in, `!(await foo)`.
-      node is AwaitExpression ||
-      // As in, `!(new Foo())`.
-      (node is InstanceCreationExpression && node.keyword != null) ||
-      // No TypedLiteral (ListLiteral, MapLiteral, SetLiteral) accepts `-` or
-      // `!` as a prefix operator, but this method can be called recursively,
-      // so this catches things like `!(const [].contains(42))`.
-      (node is TypedLiteral && node.constKeyword != null) ||
-      // As in, `!(const List(3).contains(7))`, and chains like
-      // `-(new List(3).skip(1).take(3).skip(1).length)`.
-      (node is MethodInvocation &&
-          _expressionStartsWithWhitespace(node.target)) ||
-      // As in, `-(new List(3).length)`, and chains like
-      // `-(new List(3).length.bitLength.bitLength)`.
-      (node is PropertyAccess && _expressionStartsWithWhitespace(node.target));
 }
 
 class _ContainsFunctionExpressionVisitor extends UnifyingAstVisitor<void> {
@@ -190,5 +168,50 @@ class _ContainsFunctionExpressionVisitor extends UnifyingAstVisitor<void> {
     if (!hasFunctionExpression) {
       node.visitChildren(this);
     }
+  }
+}
+
+extension on ParenthesizedExpression {
+  /// Returns whether a parser would attempt to parse `this` as a statement
+  /// block if the parentheses were removed.
+  ///
+  /// The two components that make this true are:
+  /// * the parenthesized expression is a [SetOrMapLiteral] (starting with `{`),
+  /// * the open parenthesis of this expression is the first token of an
+  ///   [ExpressionStatement].
+  bool get wouldBeParsedAsStatementBlock {
+    if (expression is! SetOrMapLiteral) {
+      return false;
+    }
+    var exprStatementAncestor = thisOrAncestorOfType<ExpressionStatement>();
+    if (exprStatementAncestor == null) {
+      return false;
+    }
+    return exprStatementAncestor.beginToken == leftParenthesis;
+  }
+}
+
+extension on Expression? {
+  /// Returns whether this "starts" with whitespace.
+  ///
+  /// That is, is there definitely whitespace after the first token?
+  bool get startsWithWhitespace {
+    var self = this;
+    return
+        // As in, `!(await foo)`.
+        self is AwaitExpression ||
+            // As in, `!(new Foo())`.
+            (self is InstanceCreationExpression && self.keyword != null) ||
+            // No TypedLiteral (ListLiteral, MapLiteral, SetLiteral) accepts `-`
+            // or `!` as a prefix operator, but this method can be called
+            // rescursively, so this catches things like
+            // `!(const [].contains(42))`.
+            (self is TypedLiteral && self.constKeyword != null) ||
+            // As in, `!(const List(3).contains(7))`, and chains like
+            // `-(new List(3).skip(1).take(3).skip(1).length)`.
+            (self is MethodInvocation && self.target.startsWithWhitespace) ||
+            // As in, `-(new List(3).length)`, and chains like
+            // `-(new List(3).length.bitLength.bitLength)`.
+            (self is PropertyAccess && self.target.startsWithWhitespace);
   }
 }

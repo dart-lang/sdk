@@ -1,3 +1,8 @@
+# 1.26.0-dev
+
+- fixed false positive for `unnecessary_parenthesis` on a map-or-set
+  literal at the start of an expression statement
+
 # 1.25.0
 
 - new lint: `discarded_futures`

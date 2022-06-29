@@ -99,6 +99,12 @@ main() async {
   ({false: 'false', true: 'true'}).forEach((k, v) => print('$k: $v'));
   ({false, true}).forEach(print);
   ({false, true}).length;
+  ({false, true}).length.toString();
+  ({1, 2, 3}) + {4};
+  ({1, 2, 3}).cast<num>;
+  /* comment */ ({1, 2, 3}).length;
+  // comment
+  ({1, 2, 3}).length;
   print(({1, 2, 3}).length); // LINT
   ([false, true]).forEach(print); // LINT
 }
@@ -132,4 +138,8 @@ class UnnecessaryParenthesis {
   UnnecessaryParenthesis()
       : c = (ClassWithClassWithFunction()
           ..c = (ClassWithFunction()..f = () => 42)); // OK
+}
+
+extension<T> on Set<T> {
+  Set<T> operator+(Set<T> other) => {...this, ...other};
 }
