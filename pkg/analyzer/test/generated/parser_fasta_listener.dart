@@ -1002,7 +1002,8 @@ class ForwardingTestListener extends ForwardingListener {
   @override
   void endInvalidAwaitExpression(
       Token beginToken, Token endToken, MessageCode errorCode) {
-    end('InvalidAwaitExpression');
+    // endInvalidAwaitExpression is started by beginAwaitExpression
+    end('AwaitExpression');
     super.endInvalidAwaitExpression(beginToken, endToken, errorCode);
   }
 

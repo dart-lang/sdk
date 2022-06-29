@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -143,8 +144,8 @@ class ClassMemberParserTest extends FastaParserTestCase
     var method = parser.parseClassMember('C') as MethodDeclaration;
     expect(method, isNotNull);
     listener.assertErrors([
-      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 13, 5),
-      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 23, 5)
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 13, 5),
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 23, 5)
     ]);
     FunctionBody body = method.body;
     expect(body, isBlockFunctionBody);
@@ -152,6 +153,134 @@ class ClassMemberParserTest extends FastaParserTestCase
     expect(statement, isReturnStatement);
     Expression expression = (statement as ReturnStatement).expression!;
     expect(expression, isBinaryExpression);
+    expect((expression as BinaryExpression).leftOperand, isAwaitExpression);
+    expect(expression.rightOperand, isAwaitExpression);
+  }
+
+  void test_parseAwaitExpression_inSync_v1_49116() {
+    createParser('m() { await returnsFuture(); }');
+    var method = parser.parseClassMember('C') as MethodDeclaration;
+    expect(method, isNotNull);
+    listener.assertErrors([
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 6, 5),
+    ]);
+    FunctionBody body = method.body;
+    expect(body, isBlockFunctionBody);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    expect(statement, isExpressionStatement);
+    Expression expression = (statement as ExpressionStatement).expression;
+    expect(expression, isAwaitExpression);
+  }
+
+  void test_parseAwaitExpression_inSync_v2_49116() {
+    createParser('''m() {
+      if (await returnsFuture()) {}
+      else if (!await returnsFuture()) {}
+    }''');
+    var method = parser.parseClassMember('C') as MethodDeclaration;
+    expect(method, isNotNull);
+    listener.assertErrors([
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 16, 5),
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 58, 5),
+    ]);
+    FunctionBody body = method.body;
+    expect(body, isBlockFunctionBody);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    expect(statement, isIfStatement);
+    Expression expression = (statement as IfStatement).condition;
+    expect(expression, isAwaitExpression);
+    expect(statement.elseStatement, isNotNull);
+    Statement elseStatement = statement.elseStatement!;
+    expect(elseStatement, isIfStatement);
+    expression = (elseStatement as IfStatement).condition;
+    expect(expression, isPrefixExpression);
+    expect((expression as PrefixExpression).operator.lexeme, '!');
+    expression = expression.operand;
+    expect(expression, isAwaitExpression);
+  }
+
+  void test_parseAwaitExpression_inSync_v3_49116() {
+    createParser('m() { print(await returnsFuture()); }');
+    var method = parser.parseClassMember('C') as MethodDeclaration;
+    expect(method, isNotNull);
+    listener.assertErrors([
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 12, 5),
+    ]);
+    FunctionBody body = method.body;
+    expect(body, isBlockFunctionBody);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    expect(statement, isExpressionStatement);
+    Expression expression = (statement as ExpressionStatement).expression;
+    expect(expression, isMethodInvocation);
+    expression = (expression as MethodInvocation).argumentList.arguments.single;
+    expect(expression, isAwaitExpression);
+  }
+
+  void test_parseAwaitExpression_inSync_v4_49116() {
+    createParser('''m() {
+      xor(await returnsFuture(), await returnsFuture(), await returnsFuture());
+    }''');
+    var method = parser.parseClassMember('C') as MethodDeclaration;
+    expect(method, isNotNull);
+    listener.assertErrors([
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 16, 5),
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 39, 5),
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 62, 5),
+    ]);
+    FunctionBody body = method.body;
+    expect(body, isBlockFunctionBody);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    expect(statement, isExpressionStatement);
+    Expression expression = (statement as ExpressionStatement).expression;
+    expect(expression, isMethodInvocation);
+    expect((expression as MethodInvocation).argumentList.arguments.length, 3);
+    expect(expression.argumentList.arguments[0], isAwaitExpression);
+    expect(expression.argumentList.arguments[1], isAwaitExpression);
+    expect(expression.argumentList.arguments[2], isAwaitExpression);
+  }
+
+  void test_parseAwaitExpression_inSync_v5_49116() {
+    createParser('''m() {
+      await returnsFuture() ^ await returnsFuture();
+    }''');
+    var method = parser.parseClassMember('C') as MethodDeclaration;
+    expect(method, isNotNull);
+    listener.assertErrors([
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 12, 5),
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 36, 5),
+    ]);
+    FunctionBody body = method.body;
+    expect(body, isBlockFunctionBody);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    expect(statement, isExpressionStatement);
+    Expression expression = (statement as ExpressionStatement).expression;
+    expect(expression, isBinaryExpression);
+    expect((expression as BinaryExpression).leftOperand, isAwaitExpression);
+    expect(expression.rightOperand, isAwaitExpression);
+    expect(expression.operator.lexeme, '^');
+  }
+
+  void test_parseAwaitExpression_inSync_v6_49116() {
+    createParser('''m() {
+      print(await returnsFuture() ^ await returnsFuture());
+    }''');
+    var method = parser.parseClassMember('C') as MethodDeclaration;
+    expect(method, isNotNull);
+    listener.assertErrors([
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 18, 5),
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 42, 5),
+    ]);
+    FunctionBody body = method.body;
+    expect(body, isBlockFunctionBody);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    expect(statement, isExpressionStatement);
+    Expression expression = (statement as ExpressionStatement).expression;
+    expect(expression, isMethodInvocation);
+    expression = (expression as MethodInvocation).argumentList.arguments.single;
+    expect(expression, isBinaryExpression);
+    expect((expression as BinaryExpression).leftOperand, isAwaitExpression);
+    expect(expression.rightOperand, isAwaitExpression);
+    expect(expression.operator.lexeme, '^');
   }
 
   void test_parseClassMember_constructor_initializers_conditional() {
