@@ -30,8 +30,6 @@ void main() {
       await cli.runLinter([
         '$integrationTestDir/avoid_relative_lib_imports',
         '--rules=avoid_relative_lib_imports',
-        '--packages',
-        '$integrationTestDir/avoid_relative_lib_imports/_packages'
       ], LinterOptions());
       expect(
           collectingOut.trim(),

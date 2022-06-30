@@ -33,7 +33,6 @@ import 'integration/lines_longer_than_80_chars.dart'
     as lines_longer_than_80_chars;
 import 'integration/only_throw_errors.dart' as only_throw_errors;
 import 'integration/overridden_fields.dart' as overridden_fields;
-import 'integration/packages_file_test.dart' as packages_file_test;
 import 'integration/prefer_asserts_in_initializer_lists.dart'
     as prefer_asserts_in_initializer_lists;
 import 'integration/prefer_const_constructors.dart'
@@ -131,11 +130,7 @@ void coreTests() {
         outSink = currentOut;
       });
       test('no warnings due to bad canonicalization', () async {
-        var packagesFilePath =
-            File('$integrationTestDir/p4/_packages').absolute.path;
-        await cli.runLinter(
-            ['--packages', packagesFilePath, '$integrationTestDir/p4'],
-            LinterOptions([]));
+        await cli.runLinter(['$integrationTestDir/p4'], LinterOptions([]));
         expect(collectingOut.trim(),
             startsWith('3 files analyzed, 0 issues found, in'));
       });
@@ -184,7 +179,6 @@ void ruleTests() {
     unnecessary_lambdas.main();
     exhaustive_cases.main();
     avoid_web_libraries_in_flutter.main();
-    packages_file_test.main();
     overridden_fields.main();
     close_sinks.main();
     cancel_subscriptions.main();

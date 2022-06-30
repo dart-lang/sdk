@@ -1,0 +1,38 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "flutter_gen",
+      "rootUri": "../vendor/flutter_gen/",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
+    },
+    {
+      "name": "public_dep",
+      "rootUri": "../vendor/public_dep/",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
+    },
+    {
+      "name": "private_dep",
+      "rootUri": "../vendor/private_dep/",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
+    },
+    {
+      "name": "transitive_dep",
+      "rootUri": "../vendor/transitive_dep/",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
+    },
+    {
+      "name": "sample_project",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
+    }
+  ],
+  "generated": "2022-06-30T01:27:31.576781Z",
+  "generator": "pub",
+  "generatorVersion": "2.17.0"
+}

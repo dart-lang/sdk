@@ -29,8 +29,6 @@ void main() {
 
     test('lint lib/ sources and non-lib/ sources', () async {
       await cli.run([
-        '--packages',
-        '$integrationTestDir/avoid_renaming_method_parameters/_packages',
         '$integrationTestDir/avoid_renaming_method_parameters',
         '--rules=avoid_renaming_method_parameters'
       ]);

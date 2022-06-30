@@ -30,8 +30,6 @@ void main() {
       await cli.runLinter([
         '$integrationTestDir/prefer_const_constructors_in_immutables',
         '--rules=prefer_const_constructors_in_immutables',
-        '--packages',
-        '$ruleTestDir/.mock_packages',
       ], LinterOptions());
       expect(
           collectingOut.trim(),

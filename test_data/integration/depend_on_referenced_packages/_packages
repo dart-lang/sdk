@@ -1,5 +1,0 @@
-flutter_gen:vendor/flutter_gen
-sample_project:lib/
-public_dep:vendor/public_dep/
-private_dep:vendor/private_dep/
-transitive_dep:vendor/transitive_dep/

@@ -27,8 +27,6 @@ void main() {
 
     test('lints files under bin', () async {
       await cli.run([
-        '--packages',
-        '$integrationTestDir/depend_on_referenced_packages/_packages',
         '$integrationTestDir/depend_on_referenced_packages/bin',
         '--rules=depend_on_referenced_packages'
       ]);
@@ -51,8 +49,6 @@ void main() {
 
     test('lints files under lib', () async {
       await cli.run([
-        '--packages',
-        '$integrationTestDir/depend_on_referenced_packages/_packages',
         '$integrationTestDir/depend_on_referenced_packages/lib',
         '--rules=depend_on_referenced_packages'
       ]);
@@ -75,8 +71,6 @@ void main() {
 
     test('lints files under test', () async {
       await cli.run([
-        '--packages',
-        '$integrationTestDir/depend_on_referenced_packages/_packages',
         '$integrationTestDir/depend_on_referenced_packages/test',
         '--rules=depend_on_referenced_packages'
       ]);

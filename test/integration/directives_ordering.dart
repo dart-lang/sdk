@@ -26,10 +26,7 @@ void main() {
     });
 
     test('dart_directives_go_first', () async {
-      var packagesFilePath = File('.packages').absolute.path;
       await cli.run([
-        '--packages',
-        packagesFilePath,
         '$integrationTestDir/directives_ordering/dart_directives_go_first',
         '--rules=directives_ordering'
       ]);
@@ -50,10 +47,7 @@ void main() {
     });
 
     test('package_directives_before_relative', () async {
-      var packagesFilePath = File('.packages').absolute.path;
       await cli.run([
-        '--packages',
-        packagesFilePath,
         '$integrationTestDir/directives_ordering/package_directives_before_relative',
         '--rules=directives_ordering'
       ]);
@@ -74,10 +68,7 @@ void main() {
     });
 
     test('export_directives_after_import_directives', () async {
-      var packagesFilePath = File('.packages').absolute.path;
       await cli.run([
-        '--packages',
-        packagesFilePath,
         '$integrationTestDir/directives_ordering/export_directives_after_import_directives',
         '--rules=directives_ordering'
       ]);
@@ -94,10 +85,7 @@ void main() {
     });
 
     test('sort_directive_sections_alphabetically', () async {
-      var packagesFilePath = File('.packages').absolute.path;
       await cli.run([
-        '--packages',
-        packagesFilePath,
         '$integrationTestDir/directives_ordering/sort_directive_sections_alphabetically',
         '--rules=directives_ordering'
       ]);
@@ -134,10 +122,7 @@ void main() {
     });
 
     test('lint_one_node_no_more_than_once', () async {
-      var packagesFilePath = File('.packages').absolute.path;
       await cli.run([
-        '--packages',
-        packagesFilePath,
         '$integrationTestDir/directives_ordering/lint_one_node_no_more_than_once',
         '--rules=directives_ordering'
       ]);
@@ -152,10 +137,7 @@ void main() {
     });
 
     test('match_analyzer_organize_directives', () async {
-      var packagesFilePath = File('.packages').absolute.path;
       await cli.run([
-        '--packages',
-        packagesFilePath,
         '$integrationTestDir/directives_ordering/match_analyzer_organize_directives',
         '--rules=directives_ordering'
       ]);

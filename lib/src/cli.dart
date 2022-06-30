@@ -68,6 +68,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     ..addMultiOption('rules',
         help: 'A list of lint rules to run. For example: '
             'avoid_as,annotate_overrides')
+    // TODO(srawlins): Remove this flag; it does not work any more.
     ..addOption('packages',
         help: 'Path to the package resolution configuration file, which\n'
             'supplies a mapping of package names to paths.');
