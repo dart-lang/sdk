@@ -46,6 +46,7 @@ import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
@@ -5337,13 +5338,5 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.NOT_INSTANTIATED_BOUND, node, []);
     }
-  }
-}
-
-extension on Object? {
-  /// If the target is [T], return it, otherwise `null`.
-  T? ifTypeOrNull<T>() {
-    final self = this;
-    return self is T ? self : null;
   }
 }

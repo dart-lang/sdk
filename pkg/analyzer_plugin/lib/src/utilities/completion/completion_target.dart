@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// A CompletionTarget represents an edge in the parse tree which connects an
 /// AST node (the [containingNode] of the completion) to one of its children
@@ -695,13 +696,5 @@ class CompletionTarget {
     } else {
       return false;
     }
-  }
-}
-
-extension on Object? {
-  /// If the target is [T], return it, otherwise `null`.
-  T? ifTypeOrNull<T>() {
-    final self = this;
-    return self is T ? self : null;
   }
 }
