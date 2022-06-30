@@ -436,21 +436,6 @@ class FileState {
   @visibleForTesting
   FileStateTestView get test => FileStateTestView(this);
 
-  /// Return the set of transitive files - the file itself and all of the
-  /// directly or indirectly referenced files.
-  Set<FileState> get transitiveFiles {
-    var transitiveFiles = <FileState>{};
-
-    void appendReferenced(FileState file) {
-      if (transitiveFiles.add(file)) {
-        file.directReferencedFiles.forEach(appendReferenced);
-      }
-    }
-
-    appendReferenced(this);
-    return transitiveFiles;
-  }
-
   /// The [UnlinkedUnit] of the file.
   UnlinkedUnit get unlinked2 => _unlinked2!;
 
