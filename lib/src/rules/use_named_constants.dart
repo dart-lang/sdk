@@ -67,10 +67,11 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (nodeField?.enclosingElement == element) return;
 
         var library = (node.root as CompilationUnit).declaredElement?.library;
+        if (library == null) return;
         var value = context.evaluateConstant(node).value;
         for (var field
             in element.fields.where((e) => e.isStatic && e.isConst)) {
-          if (field.isAccessibleIn(library) &&
+          if (field.isAccessibleIn2(library) &&
               field.computeConstantValue() == value) {
             rule.reportLint(node,
                 arguments: ['${element.name}.${field.name}'],
