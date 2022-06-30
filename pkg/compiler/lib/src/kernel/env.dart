@@ -26,6 +26,7 @@ import '../js_model/env.dart';
 import '../ordered_typeset.dart';
 import '../universe/member_usage.dart';
 import 'element_map.dart';
+import 'element_map_interfaces.dart' show memberIsIgnorable;
 
 /// Environment for fast lookup of component libraries.
 class KProgramEnv {
