@@ -419,6 +419,26 @@ class _SuspendState {
     zone.scheduleMicrotask(run);
   }
 
+  @pragma("vm:invisible")
+  @pragma("vm:prefer-inline")
+  void _awaitUserDefinedFuture(Future future) {
+    // Create a generic callback closure and instantiate it
+    // using the type argument of Future.
+    // This is needed to avoid unsoundness which may happen if user-defined
+    // Future.then casts callback to Function(dynamic) passes a value of
+    // incorrect type.
+    @pragma("vm:invisible")
+    dynamic typedCallback<T>(T value) {
+      return unsafeCast<dynamic Function(dynamic)>(_thenCallback)(value);
+    }
+
+    future.then(
+        unsafeCast<dynamic Function(dynamic)>(
+            _instantiateClosureWithFutureTypeArgument(typedCallback, future)),
+        onError:
+            unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback));
+  }
+
   @pragma("vm:entry-point", "call")
   @pragma("vm:invisible")
   Object? _await(Object? object) {
@@ -437,9 +457,7 @@ class _SuspendState {
     } else if (object is! Future) {
       _awaitNotFuture(object);
     } else {
-      object.then(unsafeCast<dynamic Function(dynamic)>(_thenCallback),
-          onError:
-              unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback));
+      _awaitUserDefinedFuture(object);
     }
     return _functionData;
   }
@@ -612,6 +630,11 @@ class _SuspendState {
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   external _SuspendState _clone();
+
+  @pragma("vm:external-name",
+      "SuspendState_instantiateClosureWithFutureTypeArgument")
+  external static Function _instantiateClosureWithFutureTypeArgument(
+      dynamic Function<T>(T) closure, Future future);
 }
 
 class _SyncStarIterable<T> extends Iterable<T> {
