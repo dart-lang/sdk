@@ -470,16 +470,6 @@ class FileState {
     return other is FileState && other.uri == uri;
   }
 
-  /// Collect all files that are transitively referenced by this file via
-  /// imports, exports, and parts.
-  void collectAllReferencedFiles(Set<String> referencedFiles) {
-    for (final file in directReferencedFiles) {
-      if (referencedFiles.add(file.path)) {
-        file.collectAllReferencedFiles(referencedFiles);
-      }
-    }
-  }
-
   /// Return a new parsed unresolved [CompilationUnit].
   CompilationUnitImpl parse([AnalysisErrorListener? errorListener]) {
     errorListener ??= AnalysisErrorListener.NULL_LISTENER;
@@ -1330,24 +1320,23 @@ class FileSystemState {
   }
 
   /// Computes the set of [FileState]'s used/not used to analyze the given
-  /// [files]. Removes the [FileState]'s of the files not used for analysis from
+  /// [paths]. Removes the [FileState]'s of the files not used for analysis from
   /// the cache. Returns the set of unused [FileState]'s.
-  Set<FileState> removeUnusedFiles(List<String> files) {
-    var allReferenced = <String>{};
-    for (var path in files) {
-      allReferenced.add(path);
-      _pathToFile[path]?.collectAllReferencedFiles(allReferenced);
+  Set<FileState> removeUnusedFiles(List<String> paths) {
+    final referenced = <FileState>{};
+    for (final path in paths) {
+      final library = _pathToFile[path]?.kind.library;
+      library?.collectTransitive(referenced);
     }
 
-    var unusedPaths = _pathToFile.keys.toSet();
-    unusedPaths.removeAll(allReferenced);
-
-    var removedFiles = <FileState>{};
-    for (var path in unusedPaths) {
-      changeFile(path, removedFiles);
+    final removed = <FileState>{};
+    for (final file in _pathToFile.values.toList()) {
+      if (!referenced.contains(file)) {
+        changeFile(file.path, removed);
+      }
     }
 
-    return removedFiles;
+    return removed;
   }
 
   /// Clear all [FileState] data - all maps from path or URI, etc.
@@ -1706,6 +1695,16 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
   }
 
   @override
+  void collectTransitive(Set<FileState> files) {
+    super.collectTransitive(files);
+    for (final part in parts) {
+      if (part is PartDirectiveWithFile) {
+        files.add(part.includedFile);
+      }
+    }
+  }
+
+  @override
   void discoverReferencedFiles() {
     super.discoverReferencedFiles();
     parts;
@@ -1853,6 +1852,28 @@ abstract class LibraryOrAugmentationFileKind extends FileStateKind {
         );
       }
     }).toList();
+  }
+
+  /// Collect files that are transitively referenced by this library.
+  @mustCallSuper
+  void collectTransitive(Set<FileState> files) {
+    if (files.add(file)) {
+      for (final augmentation in augmentations) {
+        if (augmentation is ImportAugmentationDirectiveWithFile) {
+          augmentation.importedAugmentation?.collectTransitive(files);
+        }
+      }
+      for (final export in exports) {
+        if (export is ExportDirectiveWithFile) {
+          export.exportedLibrary?.collectTransitive(files);
+        }
+      }
+      for (final import in imports) {
+        if (import is ImportDirectiveWithFile) {
+          import.importedLibrary?.collectTransitive(files);
+        }
+      }
+    }
   }
 
   /// Directives are usually pulled lazily (so that we can parse a file
