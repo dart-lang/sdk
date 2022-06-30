@@ -4,6 +4,8 @@
 
 // test w/ `dart test -N unnecessary_overrides`
 
+import 'package:meta/meta.dart';
+
 class _MyAnnotation {
   const _MyAnnotation();
 }
@@ -122,7 +124,9 @@ class B extends A {
 class C {
   num get g => 0;
   set s(int v) {}
+  @protected
   num m(int v) => 0;
+  @protected
   num m1({int v = 20}) => 0;
   num m2([int v = 20]) => 0;
   num operator +(int other) => 0;
@@ -186,6 +190,12 @@ class ParameterDefaultChange extends C {
   num m1({int v = 10}) => super.m1(v: v); // OK
   @override
   num m2([int v = 10]) => super.m2(v); // OK
+}
+class ProtectedMadePublic extends C {
+  @override
+  num m(int v) => super.m(v); // OK
+  @protected
+  num m1({int v = 20}) => super.m1(v: v); // LINT
 }
 
 // noSuchMethod is allowed to proxify
