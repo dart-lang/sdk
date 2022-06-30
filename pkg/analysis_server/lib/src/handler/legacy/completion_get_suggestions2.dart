@@ -195,8 +195,6 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
           offset: offset,
           dartdocDirectiveInfo:
               server.getDartdocDirectiveInfoForSession(analysisSession),
-          documentationCache:
-              server.getDocumentationCacheForSession(analysisSession),
         );
         setNewRequest(completionRequest);
 

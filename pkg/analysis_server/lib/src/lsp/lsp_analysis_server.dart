@@ -1006,8 +1006,6 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   void _handleResolvedUnitResult(ResolvedUnitResult result) {
     var path = result.path;
 
-    analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
-
     final unit = result.unit;
     if (analysisServer.shouldSendClosingLabelsFor(path)) {
       final labels = DartUnitClosingLabelsComputer(result.lineInfo, unit)

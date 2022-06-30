@@ -1004,8 +1004,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void _handleResolvedUnitResult(ResolvedUnitResult result) {
     var path = result.path;
 
-    analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
-
     var unit = result.unit;
     if (analysisServer._hasAnalysisServiceSubscription(
         AnalysisService.HIGHLIGHTS, path)) {
