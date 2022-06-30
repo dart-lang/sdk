@@ -498,19 +498,25 @@ void TimelineEvent::Duration(const char* label,
 }
 
 void TimelineEvent::Begin(const char* label,
+                          int64_t id,
                           int64_t micros,
                           int64_t thread_micros) {
   Init(kBegin, label);
   set_timestamp0(micros);
   set_thread_timestamp0(thread_micros);
+  // Overload timestamp1_ with the async_id.
+  set_timestamp1(id);
 }
 
 void TimelineEvent::End(const char* label,
+                        int64_t id,
                         int64_t micros,
                         int64_t thread_micros) {
   Init(kEnd, label);
   set_timestamp0(micros);
   set_thread_timestamp0(thread_micros);
+  // Overload timestamp1_ with the async_id.
+  set_timestamp1(id);
 }
 
 void TimelineEvent::Counter(const char* label, int64_t micros) {
@@ -655,31 +661,31 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
     } break;
     case kAsyncBegin: {
       writer->PrintProperty("ph", "b");
-      writer->PrintfProperty("id", "%" Px64 "", AsyncId());
+      writer->PrintfProperty("id", "%" Px64 "", Id());
     } break;
     case kAsyncInstant: {
       writer->PrintProperty("ph", "n");
-      writer->PrintfProperty("id", "%" Px64 "", AsyncId());
+      writer->PrintfProperty("id", "%" Px64 "", Id());
     } break;
     case kAsyncEnd: {
       writer->PrintProperty("ph", "e");
-      writer->PrintfProperty("id", "%" Px64 "", AsyncId());
+      writer->PrintfProperty("id", "%" Px64 "", Id());
     } break;
     case kCounter: {
       writer->PrintProperty("ph", "C");
     } break;
     case kFlowBegin: {
       writer->PrintProperty("ph", "s");
-      writer->PrintfProperty("id", "%" Px64 "", AsyncId());
+      writer->PrintfProperty("id", "%" Px64 "", Id());
     } break;
     case kFlowStep: {
       writer->PrintProperty("ph", "t");
-      writer->PrintfProperty("id", "%" Px64 "", AsyncId());
+      writer->PrintfProperty("id", "%" Px64 "", Id());
     } break;
     case kFlowEnd: {
       writer->PrintProperty("ph", "f");
       writer->PrintProperty("bp", "e");
-      writer->PrintfProperty("id", "%" Px64 "", AsyncId());
+      writer->PrintfProperty("id", "%" Px64 "", Id());
     } break;
     case kMetadata: {
       writer->PrintProperty("ph", "M");
@@ -726,14 +732,6 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
     writer->CloseObject();
   }
   writer->CloseObject();
-}
-
-int64_t TimelineEvent::TimeOrigin() const {
-  return timestamp0_;
-}
-
-int64_t TimelineEvent::AsyncId() const {
-  return timestamp1_;
 }
 
 int64_t TimelineEvent::LowTime() const {
@@ -841,6 +839,13 @@ void TimelineEventScope::Init() {
     return;
   }
   enabled_ = true;
+  Thread* thread = static_cast<Thread*>(this->thread());
+  if (thread != NULL) {
+    id_ = thread->GetNextTaskId();
+  } else {
+    static RelaxedAtomic<int64_t> next_bootstrap_task_id = {0};
+    id_ = next_bootstrap_task_id.fetch_add(1);
+  }
 }
 
 void TimelineEventScope::SetNumArguments(intptr_t length) {
@@ -919,7 +924,7 @@ void TimelineBeginEndScope::EmitBegin() {
   }
   ASSERT(event != NULL);
   // Emit a begin event.
-  event->Begin(label());
+  event->Begin(label(), id());
   event->Complete();
 }
 
@@ -935,7 +940,7 @@ void TimelineBeginEndScope::EmitEnd() {
   }
   ASSERT(event != NULL);
   // Emit an end event.
-  event->End(label());
+  event->End(label(), id());
   StealArguments(event);
   event->Complete();
 }
@@ -958,7 +963,7 @@ IsolateTimelineEventFilter::IsolateTimelineEventFilter(
       isolate_id_(isolate_id) {}
 
 TimelineEventRecorder::TimelineEventRecorder()
-    : async_id_(0), time_low_micros_(0), time_high_micros_(0) {}
+    : time_low_micros_(0), time_high_micros_(0) {}
 
 #ifndef PRODUCT
 void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
@@ -1119,16 +1124,6 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
   return;
 }
 #endif
-
-int64_t TimelineEventRecorder::GetNextAsyncId() {
-  // TODO(johnmccutchan): Gracefully handle wrap around.
-#if defined(DART_HOST_OS_FUCHSIA)
-  return trace_generate_nonce();
-#else
-  uint32_t next = static_cast<uint32_t>(async_id_.fetch_add(1u));
-  return static_cast<int64_t>(next);
-#endif
-}
 
 void TimelineEventRecorder::FinishBlock(TimelineEventBlock* block) {
   if (block == NULL) {
@@ -1706,10 +1701,10 @@ void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
       event->AsyncEnd(name, id, start);
       break;
     case 'B':
-      event->Begin(name, start, start_cpu);
+      event->Begin(name, id, start, start_cpu);
       break;
     case 'E':
-      event->End(name, start, start_cpu);
+      event->End(name, id, start, start_cpu);
       break;
     default:
       UNREACHABLE();

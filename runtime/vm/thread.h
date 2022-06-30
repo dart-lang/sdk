@@ -1096,6 +1096,10 @@ class Thread : public ThreadState {
 
   void InitVMConstants();
 
+  int64_t GetNextTaskId() { return next_task_id_++; }
+  static intptr_t next_task_id_offset() {
+    return OFFSET_OF(Thread, next_task_id_);
+  }
   Random* random() { return &thread_random_; }
   static intptr_t random_offset() { return OFFSET_OF(Thread, thread_random_); }
 
@@ -1209,6 +1213,7 @@ class Thread : public ThreadState {
   uword exit_through_ffi_ = 0;
   ApiLocalScope* api_top_scope_;
   uint8_t double_truncate_round_supported_;
+  ALIGN8 int64_t next_task_id_;
   ALIGN8 Random thread_random_;
 
   TsanUtils* tsan_utils_ = nullptr;
