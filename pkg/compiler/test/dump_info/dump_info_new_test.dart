@@ -41,11 +41,13 @@ Map filteredJsonObject(Map object, Set<String> filteredFields) {
 
 main(List<String> args) {
   asyncTest(() async {
-    Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
-    print('Testing output of dump-info');
+    Directory dataDir = Directory.fromUri(Platform.script.resolve('data_new'));
+    print('Testing output of new-dump-info');
     print('==================================================================');
     await checkTests(dataDir, const DumpInfoDataComputer(),
-        args: args, testedConfigs: allSpecConfigs, options: ['--dump-info']);
+        args: args,
+        testedConfigs: allSpecConfigs,
+        options: ['--dump-info', '--new-dump-info', '--enable-asserts']);
   });
 }
 

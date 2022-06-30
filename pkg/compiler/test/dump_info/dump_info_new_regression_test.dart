@@ -26,10 +26,10 @@ final JsonEncoder encoder = const JsonEncoder();
 final JsonEncoder indentedEncoder = const JsonEncoder.withIndent('  ');
 
 String jsonEncode(Map object, {bool indent = true}) {
-  var jsonEncoder = indent ? indentedEncoder : encoder;
-  var transformedObject = transformJsonObjectForComparison(object);
+  final jsonEncoder = indent ? indentedEncoder : encoder;
+  final transformedObject = transformJsonObjectForComparison(object);
   // Filter block comments since they interfere with ID test comments.
-  var json = jsonEncoder
+  final json = jsonEncoder
       .convert(transformedObject)
       .replaceAll('/*', '')
       .replaceAll('*/', '');
@@ -54,7 +54,7 @@ Map transformJsonObjectForComparison(Map object) {
     }
 
     // Ignore sizes for output units, as these deviate by some constant when
-    // `--canary` is enabled.
+    // `--new-dump-info` is enabled.
     if (object['kind'] == 'outputUnit' && key == 'size') {
       return;
     }
@@ -89,12 +89,12 @@ void main(List<String> args) {
 
   asyncTest(() async {
     Directory dataDir = Directory.fromUri(Platform.script.resolve('data'));
-    print('Testing output of dump-info');
+    print('Testing output of new-dump-info');
     print('==================================================================');
     await checkTests(dataDir, const DumpInfoDataComputer(),
         args: filteredArgs,
         testedConfigs: allSpecConfigs,
-        options: ['--dump-info', '--canary', '--enable-asserts']);
+        options: ['--dump-info', '--new-dump-info', '--enable-asserts']);
   });
 }
 

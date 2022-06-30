@@ -1,4 +1,4 @@
-## 4.2.0-dev
+## 4.2.0
 * Update SDK constraints to `>=2.17.0 <3.0.0`.
 * Deprecated `ImportDirective.COMPARATOR`, use appropriate custom logic, if necessary.
 * Deprecated `Element.isAccessibleIn()`, use `isAccessibleIn2()` instead.

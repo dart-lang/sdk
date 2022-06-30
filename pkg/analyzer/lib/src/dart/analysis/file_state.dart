@@ -551,19 +551,8 @@ class FileState {
         !_equalByteLists(_apiSignature, newApiSignature);
     _apiSignature = newApiSignature;
 
-    // The API signature changed.
-    //   Flush affected library cycles.
-    //   Flush exported top-level declarations of all files.
-    if (apiSignatureChanged) {
-      // TODO(scheglov) Make it a method of FileStateKind?
-      final kind = _kind;
-      if (kind is LibraryFileStateKind) {
-        kind._libraryCycle?.invalidate();
-      }
-      _invalidatesLibrariesOfThisPart();
-    }
-
     // It is possible that this file does not reference these files.
+    // TODO(scheglov) This also could be moved, almost.
     _stopReferencingByThisFile();
 
     // Read imports/exports on demand.
@@ -658,27 +647,6 @@ class FileState {
       for (var name in _driverUnlinkedUnit!.subtypedNames) {
         var files = _fsState._subtypedNameToFiles[name];
         files?.remove(this);
-      }
-    }
-  }
-
-  /// If this is a part, invalidate the libraries that use it.
-  /// TODO(scheglov) Make it a method of `PartFileStateKind`?
-  void _invalidatesLibrariesOfThisPart() {
-    if (_kind is PartFileStateKind) {
-      final libraries = _fsState._pathToFile.values
-          .map((file) => file._kind)
-          .whereType<LibraryFileStateKind>()
-          .toList();
-
-      for (final library in libraries) {
-        for (final partDirective in library.parts) {
-          if (partDirective is PartDirectiveWithFile) {
-            if (partDirective.includedFile == this) {
-              library._libraryCycle?.invalidate();
-            }
-          }
-        }
       }
     }
   }
@@ -778,11 +746,10 @@ class FileState {
         );
       }
     } else if (libraryDirective != null) {
-      final kind = _kind = LibraryFileStateKind(
+      _kind = LibraryFileStateKind(
         file: this,
         name: libraryDirective.name,
       );
-      _fsState._libraryNameToFiles.add(kind);
     } else if (partOfNameDirective != null) {
       _kind = PartOfNameFileStateKind(
         file: this,
@@ -812,8 +779,6 @@ class FileState {
         name: null,
       );
     }
-
-    _invalidatesLibrariesOfThisPart();
   }
 
   static UnlinkedUnit serializeAstUnlinked2(
@@ -1618,7 +1583,9 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
   LibraryFileStateKind({
     required super.file,
     required this.name,
-  });
+  }) {
+    file._fsState._libraryNameToFiles.add(this);
+  }
 
   /// The list of files files that this library consists of, i.e. this library
   /// file itself, its [parts], and augmentations.
@@ -1925,10 +1892,29 @@ class PartDirectiveWithFile extends PartDirectiveState {
 abstract class PartFileStateKind extends FileStateKind {
   PartFileStateKind({
     required super.file,
-  });
+  }) {
+    _invalidateLibraries();
+  }
+
+  @override
+  void dispose() {
+    _invalidateLibraries();
+    super.dispose();
+  }
 
   /// Returns `true` if the `part of` directive confirms the [library].
   bool isPartOf(LibraryFileStateKind library);
+
+  /// This method is invoked when the part file is updated.
+  /// The file either becomes a part, or might stop being a part.
+  void _invalidateLibraries() {
+    for (final reference in file.referencingFiles) {
+      final referenceKind = reference.kind;
+      if (referenceKind is LibraryFileStateKind) {
+        referenceKind.invalidateLibraryCycle();
+      }
+    }
+  }
 }
 
 /// The file has `part of name` directive.

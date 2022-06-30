@@ -1032,6 +1032,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 class FlowAnalysisDebug<Node extends Object, Statement extends Node,
         Expression extends Object, Variable extends Object, Type extends Object>
     implements FlowAnalysis<Node, Statement, Expression, Variable, Type> {
+  static int _nextCallbackId = 0;
+
+  static Expando<String> _description = new Expando<String>();
+
   FlowAnalysis<Node, Statement, Expression, Variable, Type> _wrapped;
 
   bool _exceptionOccurred = false;
@@ -1538,16 +1542,18 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   @override
   Map<Type, NonPromotionReason> Function() whyNotPromoted(Expression target) {
-    return _wrap(
-        'whyNotPromoted($target)', () => _wrapped.whyNotPromoted(target),
+    return _wrap('whyNotPromoted($target)',
+        () => _trackWhyNotPromoted(_wrapped.whyNotPromoted(target)),
         isQuery: true);
   }
 
   @override
   Map<Type, NonPromotionReason> Function() whyNotPromotedImplicitThis(
       Type staticType) {
-    return _wrap('whyNotPromotedImplicitThis($staticType)',
-        () => _wrapped.whyNotPromotedImplicitThis(staticType),
+    return _wrap(
+        'whyNotPromotedImplicitThis($staticType)',
+        () => _trackWhyNotPromoted(
+            _wrapped.whyNotPromotedImplicitThis(staticType)),
         isQuery: true);
   }
 
@@ -1560,6 +1566,19 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   @override
   void _dumpState() => _wrapped._dumpState();
+
+  /// Wraps [callback] so that when it is called, the call (and its return
+  /// value) will be printed to the console.  Also registers the wrapped
+  /// callback in [_description] so that it will be given a unique identifier
+  /// when printed to the console.
+  Map<Type, NonPromotionReason> Function() _trackWhyNotPromoted(
+      Map<Type, NonPromotionReason> Function() callback) {
+    String callbackToString = '#CALLBACK${_nextCallbackId++}';
+    Map<Type, NonPromotionReason> Function() wrappedCallback =
+        () => _wrap('$callbackToString()', callback, isQuery: true);
+    _description[wrappedCallback] = callbackToString;
+    return wrappedCallback;
+  }
 
   T _wrap<T>(String description, T callback(),
       {bool isQuery: false, bool? isPure}) {
@@ -1578,9 +1597,17 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
       _wrapped._dumpState();
     }
     if (isQuery) {
-      print('  => $result');
+      print('  => ${_describe(result)}');
     }
     return result;
+  }
+
+  static String _describe(Object? value) {
+    if (value != null && value is! String && value is! num && value is! bool) {
+      String? description = _description[value];
+      if (description != null) return description;
+    }
+    return value.toString();
   }
 }
 
@@ -2613,6 +2640,9 @@ class ReferenceWithType<Variable extends Object, Type extends Object> {
   final Type type;
 
   ReferenceWithType(this.reference, this.type);
+
+  @override
+  String toString() => 'ReferenceWithType($reference, $type)';
 }
 
 /// Data structure representing a unique value that a variable might take on
@@ -2858,6 +2888,9 @@ class VariableModel<Variable extends Object, Type extends Object> {
     }
     if (nonPromotionHistory != null) {
       parts.add('nonPromotionHistory: $nonPromotionHistory');
+    }
+    if (properties.isNotEmpty) {
+      parts.add('properties: $properties');
     }
     return 'VariableModel(${parts.join(', ')})';
   }
@@ -3358,6 +3391,9 @@ class VariableReference<Variable extends Object, Type extends Object>
   }
 
   @override
+  String toString() => 'VariableReference($variable)';
+
+  @override
   VariableModel<Variable, Type>? _getInfo(
           Map<Variable?, VariableModel<Variable, Type>> variableInfo) =>
       variableInfo[variable];
@@ -3371,7 +3407,7 @@ class _AssertContext<Variable extends Object, Type extends Object>
   /// Flow models associated with the condition being asserted.
   ExpressionInfo<Variable, Type>? _conditionInfo;
 
-  _AssertContext(FlowModel<Variable, Type> previous) : super(previous);
+  _AssertContext(super.previous);
 
   @override
   String toString() =>
@@ -3424,8 +3460,7 @@ class _ConditionalContext<Variable extends Object, Type extends Object>
   /// circumstance where the "then" branch is taken.
   ExpressionInfo<Variable, Type>? _thenInfo;
 
-  _ConditionalContext(ExpressionInfo<Variable, Type> conditionInfo)
-      : super(conditionInfo);
+  _ConditionalContext(ExpressionInfo<Variable, Type> super.conditionInfo);
 
   @override
   String toString() => '_ConditionalContext(conditionInfo: $_conditionInfo, '
@@ -4353,8 +4388,7 @@ abstract class _FlowContext {}
 /// [_FlowContext] representing a function expression.
 class _FunctionExpressionContext<Variable extends Object, Type extends Object>
     extends _SimpleContext<Variable, Type> {
-  _FunctionExpressionContext(FlowModel<Variable, Type> previous)
-      : super(previous);
+  _FunctionExpressionContext(super.previous);
 
   @override
   String toString() => '_FunctionExpressionContext(previous: $_previous)';
@@ -4367,8 +4401,7 @@ class _IfContext<Variable extends Object, Type extends Object>
   /// statement executes, in the circumstance where the "then" branch is taken.
   FlowModel<Variable, Type>? _afterThen;
 
-  _IfContext(ExpressionInfo<Variable, Type> conditionInfo)
-      : super(conditionInfo);
+  _IfContext(ExpressionInfo<Variable, Type> super.conditionInfo);
 
   @override
   String toString() =>
@@ -4378,8 +4411,7 @@ class _IfContext<Variable extends Object, Type extends Object>
 /// [_FlowContext] representing an "if-null" (`??`) expression.
 class _IfNullExpressionContext<Variable extends Object, Type extends Object>
     extends _SimpleContext<Variable, Type> {
-  _IfNullExpressionContext(FlowModel<Variable, Type> previous)
-      : super(previous);
+  _IfNullExpressionContext(super.previous);
 
   @override
   String toString() => '_IfNullExpressionContext(previous: $_previous)';
@@ -4396,9 +4428,8 @@ class _LegacyBinaryAndContext<Variable extends Object, Type extends Object>
   /// expression.
   final AssignedVariablesNodeInfo<Variable> _assignedVariablesInfoForRhs;
 
-  _LegacyBinaryAndContext(Map<Variable, Type> previousKnownTypes,
-      this._lhsShownTypes, this._assignedVariablesInfoForRhs)
-      : super(previousKnownTypes);
+  _LegacyBinaryAndContext(super.previousKnownTypes, this._lhsShownTypes,
+      this._assignedVariablesInfoForRhs);
 }
 
 /// Contextual information tracked by legacy type promotion about a statement or
@@ -4947,7 +4978,7 @@ class _LegacyVariableReadInfo<Variable, Type>
 /// [_FlowContext] representing a null aware access (`?.`).
 class _NullAwareAccessContext<Variable extends Object, Type extends Object>
     extends _SimpleContext<Variable, Type> {
-  _NullAwareAccessContext(FlowModel<Variable, Type> previous) : super(previous);
+  _NullAwareAccessContext(super.previous);
 
   @override
   String toString() => '_NullAwareAccessContext(previous: $_previous)';
@@ -5031,6 +5062,10 @@ class _PropertyGetReference<Variable extends Object, Type extends Object>
   }
 
   @override
+  String toString() =>
+      '_PropertyGetReference($target, $propertyName, $propertyMember)';
+
+  @override
   VariableModel<Variable, Type>? _getInfo(
       Map<Variable?, VariableModel<Variable, Type>> variableInfo) {
     VariableModel<Variable, Type> targetInfo = target.getInfo(variableInfo);
@@ -5064,8 +5099,7 @@ class _SimpleStatementContext<Variable extends Object, Type extends Object>
   /// after evaluation of the switch expression.
   final FlowModel<Variable, Type> _previous;
 
-  _SimpleStatementContext(Reachability checkpoint, this._previous)
-      : super(checkpoint);
+  _SimpleStatementContext(super.checkpoint, this._previous);
 
   @override
   String toString() => '_SimpleStatementContext(breakModel: $_breakModel, '
@@ -5146,7 +5180,7 @@ class _TryContext<Variable extends Object, Type extends Object>
   /// has finished executing.
   FlowModel<Variable, Type>? _afterBodyAndCatches;
 
-  _TryContext(FlowModel<Variable, Type> previous) : super(previous);
+  _TryContext(super.previous);
 
   @override
   String toString() =>
@@ -5160,7 +5194,7 @@ class _TryFinallyContext<Variable extends Object, Type extends Object>
   /// block.
   late final FlowModel<Variable, Type> _beforeFinally;
 
-  _TryFinallyContext(FlowModel<Variable, Type> previous) : super(previous);
+  _TryFinallyContext(super.previous);
 }
 
 /// [_FlowContext] representing a `while` loop (or a C-style `for` loop, which
@@ -5170,8 +5204,7 @@ class _WhileContext<Variable extends Object, Type extends Object>
   /// Flow models associated with the loop condition.
   final ExpressionInfo<Variable, Type> _conditionInfo;
 
-  _WhileContext(Reachability checkpoint, this._conditionInfo)
-      : super(checkpoint);
+  _WhileContext(super.checkpoint, this._conditionInfo);
 
   @override
   String toString() => '_WhileContext(breakModel: $_breakModel, '

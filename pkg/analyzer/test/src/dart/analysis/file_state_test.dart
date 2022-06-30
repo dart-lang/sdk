@@ -4141,7 +4141,7 @@ files
           library_2 dart:core synthetic
         augmentations
           notAugmentation file_1
-        cycle_0
+        cycle_2
           dependencies: dart:core
           libraries: library_0
           apiSignature_0
@@ -4173,7 +4173,7 @@ files
           library_2 dart:core synthetic
         augmentations
           notAugmentation file_1
-        cycle_2
+        cycle_3
           dependencies: dart:core
           libraries: library_8
           apiSignature_0
@@ -4211,7 +4211,7 @@ files
           library_2 dart:core synthetic
         parts
           partOfName_7
-        cycle_3
+        cycle_4
           dependencies: dart:core
           libraries: library_9
           apiSignature_1
@@ -4291,7 +4291,7 @@ files
           library_2 dart:core synthetic
         augmentations
           notAugmentation file_1
-        cycle_0
+        cycle_2
           dependencies: dart:core
           libraries: library_0
           apiSignature_0
@@ -4321,7 +4321,7 @@ files
           library_2 dart:core synthetic
         augmentations
           notAugmentation file_1
-        cycle_2
+        cycle_3
           dependencies: dart:core
           libraries: library_8
           apiSignature_0
@@ -4356,7 +4356,7 @@ files
           library_2 dart:core synthetic
         parts
           partOfUriKnown_7
-        cycle_3
+        cycle_4
           dependencies: dart:core
           libraries: library_9
           apiSignature_1
@@ -4975,7 +4975,6 @@ class A2 {}
     // `a.dart` is still a part.
     // ...but the unlinked signature of `a.dart` is different.
     // API signatures of both `b.dart` and `c.dart` changed.
-    // Even though `a.dart` is not a valid part of `c.dart`.
     assertDriverStateString(testFile, r'''
 files
   /home/test/lib/a.dart

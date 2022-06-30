@@ -124,7 +124,7 @@ class SubSequenceReader extends CharSequenceReader {
    * [sequence]. The [_offsetDelta] is the offset from the beginning of the file
    * to the beginning of the source being scanned
    */
-  SubSequenceReader(String sequence, this._offsetDelta) : super(sequence);
+  SubSequenceReader(super.sequence, this._offsetDelta);
 
   @override
   int get offset => _offsetDelta + super.offset;
